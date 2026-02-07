@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  heightCm        Float?
+  weightKg        Float?
+  bodyCompTag     String?   // lean, average, heavy
+  trainingAge     String?   // beginner, intermediate, advanced
+  equipment       String?   // home, commercial, limited
+  constraintsText String?
+  createdAt       DateTime  @default(now())
+  sessions        Session[]
+}
+
+model Session {
+  id               String               @id @default(uuid())
+  userId           String?
+  selectedLift     String
+  goal             String?              // strength_peak, hypertrophy, balanced
+  createdAt        DateTime             @default(now())
+  user             User?                @relation(fields: [userId], references: [id])
+  snapshots        ExerciseSnapshot[]
+  messages         DiagnosticMessage[]
+  plans            GeneratedPlan[]
+}
+
+model ExerciseSnapshot {
+  id          String   @id @default(uuid())
+  sessionId   String
+  exerciseId  String
+  weight      Float
+  sets        Int
+  repsSchema  String   // e.g., "8" or "6-8"
+  rpeOrRir    String?
+  createdAt   DateTime @default(now())
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model DiagnosticMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  role      String   // user, assistant
+  message   String
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedPlan {
+  id        String   @id @default(uuid())
+  sessionId String
+  planJson  String   // JSON stringified
+  planText  String
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
