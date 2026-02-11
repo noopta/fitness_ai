@@ -3,19 +3,9 @@
   "version": "1.0.0",
   "description": "Lift Coach MVP - AI-powered strength training diagnostic app",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "npm run dev --workspace=backend",
-    "dev:frontend": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspaces",
-    "build:backend": "npm run build --workspace=backend",
-    "build:frontend": "npm run build --workspace=frontend"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "dev": "cd frontend-v2 && npm run dev",
+    "build": "cd frontend-v2 && npm run build",
+    "start": "cd frontend-v2 && npm run start"
   }
 }
