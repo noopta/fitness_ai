@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { liftCoachApi } from "@/lib/api";
 import { LucideIcon } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const lifts: Array<{ id: string; label: string; hint: string; icon: LucideIcon }> = [
   { id: "flat_bench_press", label: "Flat Bench Press", hint: "Chest, triceps, shoulders", icon: Dumbbell },
@@ -33,9 +34,7 @@ function TopBar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/">
           <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border bg-gradient-to-br from-primary to-blue-600 shadow-xs">
-              <span className="font-bold text-lg text-white">LO</span>
-            </span>
+            <BrandLogo height={36} className="h-9 w-auto" />
             <div>
               <div className="text-sm font-semibold">LiftOff</div>
               <div className="text-xs text-muted-foreground">AI-Powered Lift Diagnostics</div>

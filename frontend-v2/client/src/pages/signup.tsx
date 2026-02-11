@@ -23,15 +23,14 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
+import { BrandLogo } from "@/components/BrandLogo";
 
 function Nav() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
       <div className="container-tight flex items-center justify-between py-4">
         <Link href="/" className="inline-flex items-center gap-3" data-testid="link-nav-home">
-          <span className="grid h-9 w-9 place-items-center rounded-xl border bg-gradient-to-br from-primary to-blue-600 shadow-xs">
-            <span className="font-bold text-lg text-white">LO</span>
-          </span>
+          <BrandLogo height={36} className="h-9 w-auto" />
           <div className="leading-tight">
             <div className="text-sm font-semibold" data-testid="text-nav-brand">
               LiftOff
@@ -818,7 +817,10 @@ export default function Signup() {
 
         <footer className="border-t py-10">
           <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <div data-testid="text-footer-brand">LiftOff - AI-Powered Lift Diagnostics</div>
+            <div className="flex items-center gap-3" data-testid="text-footer-brand">
+              <BrandLogo height={24} className="h-6 w-auto" />
+              <span>LiftOff - AI-Powered Lift Diagnostics</span>
+            </div>
             <div className="flex items-center gap-3">
               <Link
                 href="/mvp"

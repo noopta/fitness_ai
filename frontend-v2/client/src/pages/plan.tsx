@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { liftCoachApi, WorkoutPlan } from "@/lib/api";
+import { BrandLogo } from "@/components/BrandLogo";
 
 function Header() {
   return (
@@ -15,9 +16,7 @@ function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/">
           <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border bg-gradient-to-br from-primary to-blue-600 shadow-xs">
-              <span className="font-bold text-lg text-white">LO</span>
-            </span>
+            <BrandLogo height={36} className="h-9 w-auto" />
             <div>
               <div className="text-sm font-semibold" data-testid="text-plan-title">
                 Your lift-day plan

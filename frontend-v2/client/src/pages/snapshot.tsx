@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { liftCoachApi } from "@/lib/api";
 import { toast } from "sonner";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type SnapshotRow = {
   id: string;
@@ -116,9 +117,7 @@ function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/">
           <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border bg-gradient-to-br from-primary to-blue-600 shadow-xs">
-              <span className="font-bold text-lg text-white">LO</span>
-            </span>
+            <BrandLogo height={36} className="h-9 w-auto" />
             <div>
               <div className="text-sm font-semibold" data-testid="text-snapshot-title">
                 Strength snapshot
