@@ -1,5 +1,5 @@
 // API adapter to connect to our Lift Coach backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
 
 export interface LiftData {
   id: string;

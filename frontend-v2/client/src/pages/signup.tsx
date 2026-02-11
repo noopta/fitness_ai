@@ -224,7 +224,7 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/waitlist", {
+      const response = await fetch("https://luciuslab.xyz:4009/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
