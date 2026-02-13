@@ -21,6 +21,38 @@ type SnapshotRow = {
   rpe: string;
 };
 
+type ExerciseCache = Record<string, { weight: string; sets: string; reps: string; rpe: string }>;
+
+const EXERCISE_CACHE_KEY = "liftoff_exercise_cache";
+
+function getExerciseCache(): ExerciseCache {
+  try {
+    const raw = localStorage.getItem(EXERCISE_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveExerciseCache(cache: ExerciseCache) {
+  localStorage.setItem(EXERCISE_CACHE_KEY, JSON.stringify(cache));
+}
+
+function updateExerciseCacheFromRows(rows: SnapshotRow[]) {
+  const cache = getExerciseCache();
+  for (const row of rows) {
+    if (row.exercise && (row.weight || row.sets || row.reps || row.rpe)) {
+      cache[row.exercise] = {
+        weight: row.weight,
+        sets: row.sets,
+        reps: row.reps,
+        rpe: row.rpe,
+      };
+    }
+  }
+  saveExerciseCache(cache);
+}
+
 // Lift-specific exercise recommendations based on target muscles
 const liftExerciseMap: Record<string, string[]> = {
   flat_bench_press: [
@@ -145,64 +177,67 @@ export default function Snapshot() {
     { id: "row-2", exercise: "", weight: "", sets: "", reps: "", rpe: "" },
   ]);
 
-  // Load selected lift, target lift stats, and cached rows from localStorage
   useEffect(() => {
     const lift = localStorage.getItem("liftoff_selected_lift");
     const targetWeight = localStorage.getItem("liftoff_target_lift_weight");
     const targetSets = localStorage.getItem("liftoff_target_lift_sets");
     const targetReps = localStorage.getItem("liftoff_target_lift_reps");
-    const cachedRows = localStorage.getItem("liftoff_cached_snapshot_rows");
-    
+
     if (lift) {
       setSelectedLift(lift);
     }
 
-    // Load cached rows if they exist
-    if (cachedRows) {
-      try {
-        const parsedRows = JSON.parse(cachedRows);
-        setRows(parsedRows);
-      } catch (error) {
-        console.error("Failed to parse cached rows:", error);
-        // Fallback to default behavior
-        if (lift) {
-          const liftName = lift.split('_').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ');
-          setRows(prev => [
-            { 
-              ...prev[0], 
-              exercise: liftName,
-              weight: targetWeight || "",
-              sets: targetSets || "",
-              reps: targetReps || "",
-            },
-            ...prev.slice(1)
-          ]);
-        }
+    const cache = getExerciseCache();
+    const liftName = lift
+      ? lift.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+      : "";
+
+    const mainRow: SnapshotRow = {
+      id: "row-1",
+      exercise: liftName,
+      weight: cache[liftName]?.weight || targetWeight || "",
+      sets: cache[liftName]?.sets || targetSets || "",
+      reps: cache[liftName]?.reps || targetReps || "",
+      rpe: cache[liftName]?.rpe || "",
+    };
+
+    const initialRows: SnapshotRow[] = liftName ? [mainRow] : [];
+
+    const exercises = lift && liftExerciseMap[lift] ? liftExerciseMap[lift] : defaultExercises;
+    exercises.forEach((exerciseName, idx) => {
+      if (exerciseName === liftName) return;
+      const cached = cache[exerciseName];
+      if (cached && (cached.weight || cached.sets || cached.reps)) {
+        initialRows.push({
+          id: `row-cached-${idx}-${Math.random().toString(16).slice(2)}`,
+          exercise: exerciseName,
+          weight: cached.weight,
+          sets: cached.sets,
+          reps: cached.reps,
+          rpe: cached.rpe,
+        });
       }
-    } else if (lift) {
-      // Set first row to the main lift with pre-filled data
-      const liftName = lift.split('_').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ');
-      setRows(prev => [
-        { 
-          ...prev[0], 
-          exercise: liftName,
-          weight: targetWeight || "",
-          sets: targetSets || "",
-          reps: targetReps || "",
-        },
-        ...prev.slice(1)
-      ]);
+    });
+
+    if (initialRows.length < 2) {
+      while (initialRows.length < 2) {
+        initialRows.push({
+          id: `row-empty-${initialRows.length}-${Math.random().toString(16).slice(2)}`,
+          exercise: "",
+          weight: "",
+          sets: "",
+          reps: "",
+          rpe: "",
+        });
+      }
     }
+
+    setRows(initialRows);
   }, []);
 
-  // Save rows to cache whenever they change
   useEffect(() => {
     if (rows.length > 0) {
-      localStorage.setItem("liftoff_cached_snapshot_rows", JSON.stringify(rows));
+      updateExerciseCacheFromRows(rows);
     }
   }, [rows]);
 
@@ -347,8 +382,16 @@ export default function Snapshot() {
                         <Select 
                           value={row.exercise || undefined}
                           onValueChange={(value) => {
+                            const cache = getExerciseCache();
+                            const cached = cache[value];
                             const newRows = [...rows];
                             newRows[idx].exercise = value;
+                            if (cached) {
+                              newRows[idx].weight = cached.weight || newRows[idx].weight;
+                              newRows[idx].sets = cached.sets || newRows[idx].sets;
+                              newRows[idx].reps = cached.reps || newRows[idx].reps;
+                              newRows[idx].rpe = cached.rpe || newRows[idx].rpe;
+                            }
                             setRows(newRows);
                           }}
                         >

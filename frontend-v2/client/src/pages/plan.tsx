@@ -114,7 +114,6 @@ export default function Plan() {
     localStorage.removeItem("liftoff_target_lift_weight");
     localStorage.removeItem("liftoff_target_lift_sets");
     localStorage.removeItem("liftoff_target_lift_reps");
-    localStorage.removeItem("liftoff_cached_snapshot_rows");
     setLocation("/mvp");
     toast.success("Starting new session");
   }
