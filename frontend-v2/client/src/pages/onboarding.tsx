@@ -148,8 +148,7 @@ export default function Onboarding() {
         profile,
       });
 
-      // Store session data in localStorage
-      localStorage.setItem("liftoff_session_id", response.sessionId);
+      localStorage.setItem("liftoff_session_id", response.session.id);
       localStorage.setItem("liftoff_selected_lift", selectedLift);
       
       setLocation("/snapshot");

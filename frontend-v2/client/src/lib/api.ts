@@ -32,11 +32,13 @@ export interface ProfileData {
 }
 
 export interface SessionData {
-  sessionId: string;
-  selectedLift: string;
-  profile?: ProfileData;
-  createdAt?: string;
-  status?: string;
+  session: {
+    id: string;
+    selectedLift: string;
+    profile?: ProfileData;
+    createdAt?: string;
+    status?: string;
+  };
 }
 
 export interface SnapshotEntry {
