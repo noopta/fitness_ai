@@ -1,0 +1,771 @@
+
+● Perfect! I've gathered all the context. Here's a comprehensive
+  overview of your project:
+
+  Project Overview: LiftOff (Fitness AI)
+
+  This is an AI-powered strength training diagnostic web application
+  that provides lift-specific coaching for compound movements (bench
+  press, squat, deadlift).
+
+  ---
+  Port Allocation & Services
+
+  Based on your nginx config and systemd setup, here's what's running:
+
+  | Service              | Internal Port | External SSL Port | Domain(s)
+                          | Purpose                  |
+  |----------------------|---------------|-------------------|----------
+  ------------------------|--------------------------|
+  | Fitness AI (LiftOff) | 3001          | 4009              |
+  luciuslab.xyz, api.airthreads.ai | Your main project        |
+  | Django API           | 8000          | 5002              |
+  api.airthreads.ai                | Main Django API          |
+  | Python MCP           | 9500          | 5000, 5001        |
+  luciuslab.xyz, api.airthreads.ai | Python API & SSE streams |
+  | Gmail MCP            | 10500         | 4008              |
+  luciuslab.xyz, api.airthreads.ai | Gmail MCP Server         |
+  | Calendar MCP         | 11000         | 4010              |
+  luciuslab.xyz, api.airthreads.ai | Calendar MCP Server      |
+  | OAuth Callbacks      | 12000, 3111   | 3005, 4007        |
+  luciuslab.xyz                    | OAuth redirects          |
+  | Haircut Service      | 7500          | 7600              |
+  luciuslab.xyz, api.airthreads.ai | SMS booking service      |
+  | Balto Bites          | 3002          | 4011              |
+  luciuslab.xyz, api.airthreads.ai | Shipping dashboard       |
+  | Feedback Dashboard   | 8002          | 6789, 9999        |
+  api.airthreads.ai                | Feedback system          |
+
+  ---
+  Systemd Configuration
+
+  fitness-ai.service (Your main project)
+
+  - Location: /etc/systemd/system/fitness-ai.service
+  - User: ubuntu
+  - Working Dir: /home/ubuntu/fitness_ap/fitness_ai/backend
+  - Start Command: node dist/index.js (compiled TypeScript)
+  - Auto-restart: Yes (on failure, 5 sec delay)
+  - Status: ✅ Running for 5 days
+  - Environment: Loads from
+  /home/ubuntu/fitness_ap/fitness_ai/backend/.env
+
+  ---
+  Nginx Configuration
+
+  Port 4009 - Fitness AI Backend
+
+  server {
+      listen 4009 ssl;
+      server_name luciuslab.xyz api.airthreads.ai;
+
+      # Proxies to internal port 3001
+      location / {
+          proxy_pass http://127.0.0.1:3001;
+          # CORS enabled for all origins
+      }
+  }
+
+  SSL Certificates: Let's Encrypt (luciuslab.xyz)
+
+  ---
+  Tech Stack
+
+  Backend (Port 3001 → 4009)
+
+  - Runtime: Node.js 18 + Express + TypeScript
+  - Database: SQLite with Prisma ORM
+  - AI: OpenAI GPT-4 (for diagnostic reasoning)
+  - Notifications: Twilio (SMS) + Nodemailer (email)
+
+  Frontend Options
+
+  1. Original MVP (port 3000) - Full working flow with imperial units
+  2. LiftOff V2 (port 5000) - Rebranded, cleaner UI, waitlist integrated
+
+  ---
+  Key Features
+
+  Supported Lifts
+
+  - Flat Bench Press
+  - Incline Bench Press
+  - Deadlift
+  - Barbell Back Squat
+  - Barbell Front Squat
+
+  User Flow
+
+  1. Landing/Signup → Join waitlist (SMS + email notifications)
+  2. Onboarding → Select lift, enter profile (imperial units:
+  feet/inches, lbs)
+  3. Snapshot → Enter recent strength data
+  4. Diagnostic Chat → AI asks 4-8 questions to identify sticking points
+  5. Plan Output → Personalized program with targeted accessories
+
+  AI Capabilities
+
+  - Analyzes strength ratios and biomechanics
+  - Identifies limiting factors (weak points in lifts)
+  - Prescribes evidence-based accessory exercises
+  - Uses structured rules engine + GPT-4 reasoning
+
+  ---
+  Current Status
+
+  ✅ Production Ready
+
+  - Backend running 24/7 via systemd
+  - OpenAI API key configured
+  - Public endpoints working at https://luciuslab.xyz:4009
+  - Health check: https://luciuslab.xyz:4009/health
+
+  ✅ Completed Features
+
+  - Rebranded to "LiftOff" throughout
+  - Card-based lift selection UI
+  - Imperial units (Canadian metric)
+  - Waitlist with SMS + email notifications
+  - Backend API fully integrated
+  - Exercise filtering by lift type
+
+  ⏳ Needs Integration (Frontend V2)
+
+  - Snapshot page → Connect to backend API
+  - Diagnostic page → Connect chat flow
+  - Plan page → Connect plan generation
+
+  ---
+  File Structure
+
+  /home/ubuntu/fitness_ap/fitness_ai/
+  ├── backend/
+  │   ├── dist/                    # Compiled JS (runs in production)
+  │   ├── prisma/
+  │   │   ├── schema.prisma
+  │   │   └── dev.db              # SQLite database
+  │   ├── src/
+  │   │   ├── data/               # Exercise & lift libraries
+  │   │   ├── engine/             # Rules engine (biomechanics)
+  │   │   ├── routes/             # API routes (sessions, lifts,
+  waitlist)
+  │   │   └── services/           # LLM integration
+  │   ├── .env                    # Environment vars (OpenAI key,
+  Twilio, etc)
+  │   └── package.json
+  ├── frontend/                   # Original MVP
+  └── frontend-v2/                # LiftOff rebrand
+
+  ---
+  API Endpoints
+
+  Base URL: https://luciuslab.xyz:4009/api
+
+  - GET /health - Health check
+  - GET /api/lifts - Get all supported lifts
+  - GET /api/lifts/:id/exercises - Get exercises for a lift
+  - POST /api/sessions - Create diagnostic session
+  - POST /api/sessions/:id/snapshots - Add exercise snapshot
+  - POST /api/sessions/:id/messages - Send diagnostic message
+  - POST /api/sessions/:id/generate - Generate workout plan
+  - GET /api/sessions/:id - Get session details
+  - POST /api/waitlist - Join waitlist (sends SMS + emails)
+
+  ---
+  Environment Configuration
+
+  Location: /home/ubuntu/fitness_ap/fitness_ai/backend/.env
+
+  PORT=3001
+  DATABASE_URL="file:./dev.db"
+  OPENAI_API_KEY=configured ✅
+
+  # Optional (for waitlist notifications)
+  TWILIO_ACCOUNT_SID=...
+  TWILIO_AUTH_TOKEN=...
+  TWILIO_PHONE_NUMBER=...
+  NOTIFICATION_PHONE=...
+  EMAIL_USER=anuptaislam33@gmail.com
+  EMAIL_PASSWORD=...
+
+  ---
+  Service Management Commands
+
+  # Check status
+  sudo systemctl status fitness-ai
+
+  # View logs (real-time)
+  sudo journalctl -u fitness-ai -f
+
+  # Restart service
+  sudo systemctl restart fitness-ai
+
+  # Check listening ports
+  sudo ss -tlnp | grep 3001
+  sudo ss -tlnp | grep 4009
+
+  ---
+  Key Design Principles
+
+  1. Lift-centric (not muscle-split-centric)
+  2. Data-driven diagnostics (not questionnaires)
+  3. LLM may choose, but not invent (all exercises from approved
+  library)
+  4. Safety-first volume constraints (based on training age)
+  5. Always explain why (every exercise choice justified)
+
+  ---
+  That's your complete project setup! The backend is running smoothly on
+   port 3001 (exposed as 4009 via nginx), alongside your other MCP
+  services. Everything is configured with SSL via Let's Encrypt and
+  accessible through both luciuslab.xyz and api.airthreads.ai domains.
+
+> can you type out here (not in external documentain) how our front end can 
+interact with our endpoints for the fitness app, request examples and response 
+examples 
+
+● LiftOff API Integration Guide
+
+  Base URL
+
+  Production: https://luciuslab.xyz:4009/api
+  Local Dev: http://localhost:3001/api
+
+  ---
+  1. Health Check
+
+  Request
+
+  GET https://luciuslab.xyz:4009/health
+
+  Response
+
+  {
+    "status": "ok",
+    "message": "LiftOff API is running"
+  }
+
+  ---
+  2. Get All Lifts
+
+  Request
+
+  GET https://luciuslab.xyz:4009/api/lifts
+
+  Response
+
+  [
+    {
+      "id": "flat-bench",
+      "name": "Flat Bench Press",
+      "description": "Horizontal pressing movement targeting chest, triceps, 
+  and anterior deltoids",
+      "muscleGroups": ["chest", "triceps", "shoulders"],
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "incline-bench",
+      "name": "Incline Bench Press",
+      "description": "Inclined pressing movement with upper chest emphasis",
+      "muscleGroups": ["chest", "shoulders", "triceps"],
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "deadlift",
+      "name": "Deadlift",
+      "description": "Full posterior chain movement",
+      "muscleGroups": ["back", "glutes", "hamstrings"],
+      "difficulty": "advanced"
+    },
+    {
+      "id": "back-squat",
+      "name": "Barbell Back Squat",
+      "description": "Primary leg and glute builder",
+      "muscleGroups": ["quads", "glutes", "hamstrings"],
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "front-squat",
+      "name": "Barbell Front Squat",
+      "description": "Quad-dominant squat variation",
+      "muscleGroups": ["quads", "core", "upper back"],
+      "difficulty": "advanced"
+    }
+  ]
+
+  ---
+  3. Get Exercises for a Specific Lift
+
+  Request
+
+  GET https://luciuslab.xyz:4009/api/lifts/flat-bench/exercises
+
+  Response
+
+  [
+    {
+      "id": "close-grip-bench",
+      "name": "Close Grip Bench Press",
+      "category": "compound",
+      "muscleGroups": ["triceps", "chest"],
+      "equipment": ["barbell"],
+      "difficulty": "intermediate",
+      "description": "Triceps-focused bench variation"
+    },
+    {
+      "id": "incline-db-press",
+      "name": "Incline Dumbbell Press",
+      "category": "compound",
+      "muscleGroups": ["chest", "shoulders"],
+      "equipment": ["dumbbells", "bench"],
+      "difficulty": "intermediate",
+      "description": "Upper chest builder"
+    },
+    {
+      "id": "tricep-pushdown",
+      "name": "Tricep Pushdown",
+      "category": "isolation",
+      "muscleGroups": ["triceps"],
+      "equipment": ["cable"],
+      "difficulty": "beginner",
+      "description": "Triceps isolation"
+    }
+    // ... more exercises relevant to bench press
+  ]
+
+  ---
+  4. Create New Session
+
+  Request
+
+  POST https://luciuslab.xyz:4009/api/sessions
+  Content-Type: application/json
+
+  {
+    "selectedLift": "flat-bench",
+    "profile": {
+      "age": 28,
+      "heightCm": 180,
+      "weightKg": 82,
+      "gender": "male",
+      "trainingAge": "intermediate",
+      "goal": "strength",
+      "injuries": [],
+      "equipment": ["barbell", "dumbbells", "rack"]
+    }
+  }
+
+  Response
+
+  {
+    "sessionId": "sess_abc123xyz456",
+    "selectedLift": "flat-bench",
+    "profile": {
+      "age": 28,
+      "heightCm": 180,
+      "weightKg": 82,
+      "gender": "male",
+      "trainingAge": "intermediate",
+      "goal": "strength",
+      "injuries": [],
+      "equipment": ["barbell", "dumbbells", "rack"]
+    },
+    "createdAt": "2026-02-13T10:30:00.000Z",
+    "status": "active"
+  }
+
+  ---
+  5. Add Snapshot (Exercise Performance Data)
+
+  Request
+
+  POST https://luciuslab.xyz:4009/api/sessions/sess_abc123xyz456/snapshots
+  Content-Type: application/json
+
+  {
+    "snapshots": [
+      {
+        "exerciseId": "flat-bench",
+        "weight": 225,
+        "weightUnit": "lbs",
+        "reps": 5,
+        "rpe": 8,
+        "date": "2026-02-10"
+      },
+      {
+        "exerciseId": "close-grip-bench",
+        "weight": 185,
+        "weightUnit": "lbs",
+        "reps": 8,
+        "rpe": 7,
+        "date": "2026-02-10"
+      },
+      {
+        "exerciseId": "overhead-press",
+        "weight": 135,
+        "weightUnit": "lbs",
+        "reps": 6,
+        "rpe": 8,
+        "date": "2026-02-08"
+      }
+    ]
+  }
+
+  Response
+
+  {
+    "sessionId": "sess_abc123xyz456",
+    "snapshotsAdded": 3,
+    "snapshots": [
+      {
+        "id": "snap_001",
+        "exerciseId": "flat-bench",
+        "weight": 225,
+        "weightUnit": "lbs",
+        "reps": 5,
+        "rpe": 8,
+        "date": "2026-02-10",
+        "estimatedOneRepMax": 253
+      },
+      {
+        "id": "snap_002",
+        "exerciseId": "close-grip-bench",
+        "weight": 185,
+        "weightUnit": "lbs",
+        "reps": 8,
+        "rpe": 7,
+        "estimatedOneRepMax": 227
+      },
+      {
+        "id": "snap_003",
+        "exerciseId": "overhead-press",
+        "weight": 135,
+        "weightUnit": "lbs",
+        "reps": 6,
+        "rpe": 8,
+        "estimatedOneRepMax": 156
+      }
+    ],
+    "strengthRatios": {
+      "benchToOhp": 1.62,
+      "benchToCloseGrip": 1.11
+    }
+  }
+
+  ---
+  6. Send Diagnostic Message (Chat Flow)
+
+  Request
+
+  POST https://luciuslab.xyz:4009/api/sessions/sess_abc123xyz456/messages
+  Content-Type: application/json
+
+  {
+    "message": "I usually fail around the midpoint of the press, right when the
+   bar is a few inches off my chest."
+  }
+
+  Response (AI asking follow-up)
+
+  {
+    "sessionId": "sess_abc123xyz456",
+    "aiResponse": "That's helpful context. The midpoint sticking point often 
+  indicates either weak triceps or weak anterior deltoids. When you fail at 
+  that point, does the bar path move forward (toward your face) or does it just
+   slow down and stop in place?",
+    "complete": false,
+    "questionsAsked": 2,
+    "maxQuestions": 6
+  }
+
+  Response (Diagnostic complete)
+
+  {
+    "sessionId": "sess_abc123xyz456",
+    "aiResponse": "Based on your feedback, I've identified your primary 
+  limiter. You have weak lockout strength, specifically in your triceps. Your 
+  bench-to-close-grip ratio of 1.11 is very low (ideal is 1.3+), and you 
+  described bar deceleration in the final third of the press. Let's move to 
+  your personalized plan.",
+    "complete": true,
+    "diagnosis": {
+      "primaryLimiter": "weak_lockout",
+      "muscleGroup": "triceps",
+      "reasoning": "Low bench-to-close-grip ratio (1.11 vs ideal 1.3+), bar 
+  deceleration in final third of press",
+      "confidence": "high"
+    }
+  }
+
+  ---
+  7. Generate Workout Plan
+
+  Request
+
+  POST https://luciuslab.xyz:4009/api/sessions/sess_abc123xyz456/generate
+  Content-Type: application/json
+
+  {}
+
+  Response
+
+  {
+    "sessionId": "sess_abc123xyz456",
+    "plan": {
+      "diagnosis": {
+        "limiter": "Weak Lockout (Triceps)",
+        "explanation": "Your bench-to-close-grip ratio is 1.11, well below the 
+  ideal 1.3+. This indicates your triceps are disproportionately weak compared 
+  to your chest. You also reported bar deceleration in the final third of the 
+  press, which confirms triceps as the limiting factor."
+      },
+      "accessories": [
+        {
+          "exerciseId": "close-grip-bench",
+          "name": "Close Grip Bench Press",
+          "sets": 4,
+          "reps": "6-8",
+          "rpe": 8,
+          "restSeconds": 180,
+          "reasoning": "Primary triceps builder with heavy loading. Will 
+  directly improve your lockout strength.",
+          "priority": 1
+        },
+        {
+          "exerciseId": "jm-press",
+          "name": "JM Press",
+          "sets": 3,
+          "reps": "8-10",
+          "rpe": 7,
+          "restSeconds": 120,
+          "reasoning": "Targets the exact sticking point you're experiencing. 
+  Builds explosive triceps strength through the midpoint.",
+          "priority": 2
+        },
+        {
+          "exerciseId": "tricep-pushdown",
+          "name": "Tricep Pushdown",
+          "sets": 3,
+          "reps": "12-15",
+          "rpe": 8,
+          "restSeconds": 90,
+          "reasoning": "High-rep triceps isolation to build work capacity and 
+  muscular endurance.",
+          "priority": 3
+        },
+        {
+          "exerciseId": "overhead-tricep-ext",
+          "name": "Overhead Tricep Extension",
+          "sets": 3,
+          "reps": "10-12",
+          "rpe": 7,
+          "restSeconds": 90,
+          "reasoning": "Emphasizes the long head of the triceps, providing 
+  balanced triceps development.",
+          "priority": 4
+        }
+      ],
+      "weeklyVolume": {
+        "totalSets": 13,
+        "totalReps": "122-162",
+        "safetyCheck": "Within recommended volume for intermediate lifter 
+  (10-20 sets/week for triceps)"
+      },
+      "implementation": {
+        "frequency": "2x per week",
+        "placement": "After main bench press work",
+        "duration": "6-8 weeks",
+        "progressionGuidelines": "Add 2.5-5 lbs when you hit the top of the rep
+   range at RPE 7-8"
+      }
+    },
+    "generatedAt": "2026-02-13T10:45:00.000Z"
+  }
+
+  ---
+  8. Get Session Details
+
+  Request
+
+  GET https://luciuslab.xyz:4009/api/sessions/sess_abc123xyz456
+
+  Response
+
+  {
+    "sessionId": "sess_abc123xyz456",
+    "selectedLift": "flat-bench",
+    "profile": {
+      "age": 28,
+      "heightCm": 180,
+      "weightKg": 82,
+      "gender": "male",
+      "trainingAge": "intermediate",
+      "goal": "strength",
+      "injuries": [],
+      "equipment": ["barbell", "dumbbells", "rack"]
+    },
+    "snapshots": [
+      {
+        "id": "snap_001",
+        "exerciseId": "flat-bench",
+        "weight": 225,
+        "weightUnit": "lbs",
+        "reps": 5,
+        "rpe": 8,
+        "estimatedOneRepMax": 253
+      }
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "I usually fail around the midpoint of the press",
+        "timestamp": "2026-02-13T10:35:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's helpful context...",
+        "timestamp": "2026-02-13T10:35:02.000Z"
+      }
+    ],
+    "diagnosis": {
+      "primaryLimiter": "weak_lockout",
+      "muscleGroup": "triceps",
+      "reasoning": "Low bench-to-close-grip ratio..."
+    },
+    "plan": {
+      // ... full plan object
+    },
+    "status": "completed",
+    "createdAt": "2026-02-13T10:30:00.000Z",
+    "updatedAt": "2026-02-13T10:45:00.000Z"
+  }
+
+  ---
+  9. Join Waitlist
+
+  Request
+
+  POST https://luciuslab.xyz:4009/api/waitlist
+  Content-Type: application/json
+
+  {
+    "email": "user@example.com",
+    "name": "John Doe",
+    "phone": "+16471234567"
+  }
+
+  Response
+
+  {
+    "success": true,
+    "message": "Successfully joined the waitlist!",
+    "email": "user@example.com",
+    "notifications": {
+      "emailSent": true,
+      "smsSent": true,
+      "adminNotified": true
+    }
+  }
+
+  Triggers:
+  - SMS to your phone (Twilio)
+  - Email to anuptaislam33@gmail.com with signup details
+  - Confirmation email to user
+
+  ---
+  Frontend Integration Example (React/TypeScript)
+
+  // lib/api.ts
+  const API_BASE = 'https://luciuslab.xyz:4009/api';
+
+  export const liftCoachApi = {
+    // Get all lifts
+    async getLifts() {
+      const res = await fetch(`${API_BASE}/lifts`);
+      return res.json();
+    },
+
+    // Create session
+    async createSession(data: {
+      selectedLift: string;
+      profile: {
+        age?: number;
+        heightCm: number;
+        weightKg: number;
+        gender?: string;
+        trainingAge: string;
+        goal: string;
+        injuries?: string[];
+        equipment?: string[];
+      };
+    }) {
+      const res = await fetch(`${API_BASE}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return res.json();
+    },
+
+    // Add snapshots
+    async addSnapshot(sessionId: string, snapshots: any[]) {
+      const res = await fetch(`${API_BASE}/sessions/${sessionId}/snapshots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ snapshots }),
+      });
+      return res.json();
+    },
+
+    // Send message
+    async sendMessage(sessionId: string, message: string) {
+      const res = await fetch(`${API_BASE}/sessions/${sessionId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      return res.json();
+    },
+
+    // Generate plan
+    async generatePlan(sessionId: string) {
+      const res = await fetch(`${API_BASE}/sessions/${sessionId}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      return res.json();
+    },
+
+    // Get session
+    async getSession(sessionId: string) {
+      const res = await fetch(`${API_BASE}/sessions/${sessionId}`);
+      return res.json();
+    },
+
+    // Join waitlist
+    async joinWaitlist(email: string, name: string, phone?: string) {
+      const res = await fetch(`${API_BASE}/waitlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, phone }),
+      });
+      return res.json();
+    },
+  };
+
+  ---
+  Error Responses
+
+  All errors follow this format:
+
+  {
+    "error": "Error message here",
+    "details": "Additional context if available",
+    "statusCode": 400
+  }
+
+  Common status codes:
+  - 400 - Bad Request (validation error)
+  - 404 - Not Found (session/lift doesn't exist)
+  - 500 - Internal Server Error
