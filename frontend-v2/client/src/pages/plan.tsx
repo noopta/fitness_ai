@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,10 @@ function Stat({ label, value }: { label: string; value: string }) {
       </div>
     </div>
   );
+}
+
+function formatLiftName(id: string): string {
+  return id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
 export default function Plan() {
@@ -98,10 +102,30 @@ export default function Plan() {
 
   function copy() {
     if (!plan) return;
-    
-    const text = `LiftOff - Plan\n\nSelected lift: ${selectedLiftLabel}\n\nDiagnosis:\n- ${plan.diagnosis.limiter}\n  ${plan.diagnosis.explanation}\n\nAccessories:\n${plan.accessories
-      .map((a) => `- ${a.name}: ${a.sets}x${a.reps} @ RPE ${a.rpe} (Rest: ${a.restSeconds}s)\n  ${a.reasoning}`)
-      .join("\n")}\n\n${plan.implementation ? `Implementation:\n- Frequency: ${plan.implementation.frequency}\n- Placement: ${plan.implementation.placement}\n- Duration: ${plan.implementation.duration}\n- Progression: ${plan.implementation.progressionGuidelines}` : ''}`;
+
+    const primary = plan.bench_day_plan.primary_lift;
+    const diag = plan.diagnosis[0];
+
+    const text = [
+      `LiftOff - ${selectedLiftLabel} Plan`,
+      "",
+      `Diagnosis: ${diag?.limiterName || "Unknown"}`,
+      ...(diag?.evidence || []).map(e => `  • ${e}`),
+      "",
+      `Primary Lift: ${primary.exercise_name}`,
+      `  ${primary.sets} x ${primary.reps} @ ${primary.intensity} (Rest: ${primary.rest_minutes} min)`,
+      "",
+      "Accessories:",
+      ...plan.bench_day_plan.accessories.map(a =>
+        `  • ${a.exercise_name}: ${a.sets} x ${a.reps} [${a.category}]\n    ${a.why}`
+      ),
+      "",
+      "Progression Rules:",
+      ...plan.progression_rules.map(r => `  • ${r}`),
+      "",
+      "Track Next Time:",
+      ...plan.track_next_time.map(t => `  • ${t}`),
+    ].join("\n");
 
     navigator.clipboard.writeText(text).then(() => {
       toast.success("Plan copied to clipboard");
@@ -168,6 +192,10 @@ export default function Plan() {
     );
   }
 
+  const primaryDiagnosis = plan.diagnosis[0];
+  const primary = plan.bench_day_plan.primary_lift;
+  const accessories = plan.bench_day_plan.accessories;
+
   return (
     <div className="min-h-screen grid-fade">
       <Header />
@@ -183,19 +211,15 @@ export default function Plan() {
               <div className="space-y-2 text-sm">
                 <p className="leading-relaxed">
                   <strong className="text-foreground">Limiting factor:</strong>{' '}
-                  <strong className="text-foreground">{plan.diagnosis.limiter}</strong>
+                  <strong className="text-foreground">{primaryDiagnosis?.limiterName || "Unknown"}</strong>
+                  {primaryDiagnosis?.confidence && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {Math.round(primaryDiagnosis.confidence * 100)}% confidence
+                    </Badge>
+                  )}
                 </p>
                 <p className="leading-relaxed text-muted-foreground">
-                  {plan.diagnosis.explanation}
-                </p>
-                <p className="leading-relaxed">
-                  <strong className="text-foreground">Prescribed accessories:</strong>{' '}
-                  {plan.accessories.map((a, i) => (
-                    <span key={i}>
-                      {a.name}
-                      {i < plan.accessories.length - 1 && (plan.accessories.length > 2 ? ', ' : ' and ')}
-                    </span>
-                  ))}
+                  {primaryDiagnosis?.evidence?.[0] || "Analysis based on your lift data and diagnostic responses."}
                 </p>
               </div>
             </div>
@@ -236,8 +260,8 @@ export default function Plan() {
                     <Clipboard className="mr-2 h-4 w-4" />
                     Copy plan
                   </Button>
-                  <Button 
-                    className="shadow-sm" 
+                  <Button
+                    className="shadow-sm"
                     onClick={startNewSession}
                     data-testid="button-new-session"
                   >
@@ -248,9 +272,9 @@ export default function Plan() {
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <Stat label="Limiter" value={plan.diagnosis.limiter} />
-                <Stat label="Accessories" value={`${plan.accessories.length}`} />
-                {plan.implementation && <Stat label="Duration" value={plan.implementation.duration} />}
+                <Stat label="Limiter" value={primaryDiagnosis?.limiterName || "Unknown"} />
+                <Stat label="Confidence" value={primaryDiagnosis ? `${Math.round(primaryDiagnosis.confidence * 100)}%` : "N/A"} />
+                <Stat label="Accessories" value={`${accessories.length}`} />
               </div>
 
               <Separator className="my-6" />
@@ -271,14 +295,59 @@ export default function Plan() {
                     </Badge>
                   </div>
 
-                  <div className="mt-4">
-                    <div className="rounded-2xl border bg-white/60 p-4 shadow-xs backdrop-blur dark:bg-white/5" data-testid="card-diagnosis">
-                      <div className="text-base font-semibold mb-2" data-testid="text-limiter">
-                        {plan.diagnosis.limiter}
+                  <div className="mt-4 space-y-3">
+                    {plan.diagnosis.map((d, idx) => (
+                      <div key={idx} className="rounded-2xl border bg-white/60 p-4 shadow-xs backdrop-blur dark:bg-white/5" data-testid={`card-diagnosis-${idx}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-base font-semibold" data-testid={`text-limiter-${idx}`}>
+                            {d.limiterName}
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {Math.round(d.confidence * 100)}%
+                          </Badge>
+                        </div>
+                        <ul className="space-y-2">
+                          {d.evidence.map((e, eIdx) => (
+                            <li key={eIdx} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+                              <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" strokeWidth={1.8} />
+                              <span>{e}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {plan.diagnosis.explanation}
-                      </p>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
+                  <div className="flex items-start gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
+                      <Target className="h-4 w-4 text-primary" strokeWidth={1.8} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold" data-testid="text-primary-lift-title">
+                        Primary Lift
+                      </div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        Your main movement for the session
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border bg-white/60 p-4 shadow-xs backdrop-blur dark:bg-white/5">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                      <div className="text-base font-semibold">{primary.exercise_name}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {primary.sets} x {primary.reps}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {primary.intensity}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          Rest {primary.rest_minutes} min
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -290,41 +359,36 @@ export default function Plan() {
                     </div>
                     <div>
                       <div className="text-sm font-semibold" data-testid="text-prescription-title">
-                        Add These to Your {selectedLiftLabel} Day
+                        Accessories
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground" data-testid="text-prescription-subtitle">
-                        Targeted accessories to improve your {selectedLiftLabel}
+                        Targeted movements to improve your {selectedLiftLabel}
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 grid gap-3">
-                    {plan.accessories
-                      .sort((a, b) => a.priority - b.priority)
-                      .map((a, idx) => (
+                    {accessories.map((a, idx) => (
                       <div
-                        key={a.exerciseId || idx}
+                        key={a.exercise_id || idx}
                         className="rounded-2xl border bg-white/60 p-4 shadow-xs backdrop-blur dark:bg-white/5"
                         data-testid={`card-accessory-${idx}`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
                             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                              {a.priority}
+                              {idx + 1}
                             </span>
                             <div className="text-base font-semibold" data-testid={`text-accessory-exercise-${idx}`}>
-                              {a.name}
+                              {a.exercise_name}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="text-xs" data-testid={`text-accessory-volume-${idx}`}>
                               {a.sets} x {a.reps}
                             </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              RPE {a.rpe}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              Rest {a.restSeconds}s
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {a.category}
                             </Badge>
                           </div>
                         </div>
@@ -333,7 +397,7 @@ export default function Plan() {
                             <span className="text-xs font-bold text-primary">→</span>
                           </div>
                           <div className="leading-relaxed">
-                            <span className="text-muted-foreground">{a.reasoning}</span>
+                            <span className="text-muted-foreground">{a.why}</span>
                           </div>
                         </div>
                       </div>
@@ -345,65 +409,53 @@ export default function Plan() {
           </Card>
 
           <div className="grid gap-4">
-            {plan.weeklyVolume && (
-              <Card className="glass p-6">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
-                    <Dumbbell className="h-4 w-4 text-primary" strokeWidth={1.8} />
+            <Card className="glass p-6">
+              <div className="flex items-start gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
+                  <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground">
+                    Progression
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-muted-foreground">
-                      Weekly Volume
-                    </div>
-                    <div className="mt-1 font-serif text-2xl">
-                      Volume Summary
-                    </div>
+                  <div className="mt-1 font-serif text-2xl">
+                    Progression Rules
                   </div>
                 </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <Stat label="Total Sets" value={`${plan.weeklyVolume.totalSets}`} />
-                  <Stat label="Total Reps" value={plan.weeklyVolume.totalReps} />
-                </div>
-                <div className="mt-3 text-sm text-muted-foreground flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" strokeWidth={1.8} />
-                  <p>{plan.weeklyVolume.safetyCheck}</p>
-                </div>
-              </Card>
-            )}
+              </div>
+              <div className="mt-5 space-y-3 text-sm text-muted-foreground">
+                {plan.progression_rules.map((rule, idx) => (
+                  <div className="flex items-start gap-3" key={idx}>
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" strokeWidth={1.8} />
+                    <p>{rule}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
 
-            {plan.implementation && (
-              <Card className="glass p-6">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
-                    <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.8} />
+            <Card className="glass p-6">
+              <div className="flex items-start gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
+                  <Eye className="h-4 w-4 text-primary" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground">
+                    What to Watch
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-muted-foreground" data-testid="text-implementation-eyebrow">
-                      Implementation
-                    </div>
-                    <div className="mt-1 font-serif text-2xl" data-testid="text-implementation-title">
-                      How to use this plan
-                    </div>
+                  <div className="mt-1 font-serif text-2xl">
+                    Track Next Time
                   </div>
                 </div>
-
-                <div className="mt-5 space-y-3 text-sm text-muted-foreground">
-                  {[
-                    { label: "Frequency", value: plan.implementation.frequency },
-                    { label: "Placement", value: plan.implementation.placement },
-                    { label: "Duration", value: plan.implementation.duration },
-                    { label: "Progression", value: plan.implementation.progressionGuidelines },
-                  ].map((item) => (
-                    <div className="flex items-start gap-3" key={item.label}>
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" strokeWidth={1.8} />
-                      <p>
-                        <strong className="text-foreground">{item.label}:</strong> {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
+              </div>
+              <div className="mt-5 space-y-3 text-sm text-muted-foreground">
+                {plan.track_next_time.map((item, idx) => (
+                  <div className="flex items-start gap-3" key={idx}>
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" strokeWidth={1.8} />
+                    <p>{item}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
 
             <div className="flex justify-center">
               <Button

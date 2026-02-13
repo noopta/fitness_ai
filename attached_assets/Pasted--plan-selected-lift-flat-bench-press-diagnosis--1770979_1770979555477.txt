@@ -1,0 +1,62 @@
+{
+    "plan": {
+        "selected_lift": "flat_bench_press",
+        "diagnosis": [
+            {
+                "limiter": "chest_strength",
+                "limiterName": "Chest Strength Off Bottom",
+                "confidence": 0.85,
+                "evidence": [
+                    "Overhead Press at 135 lbs is 60% of Flat Bench Press at 225 lbs, which is within the expected range of 60-70%, indicating shoulder strength is adequate and not the limiting factor.",
+                    "User reported: 'right off the chest, no weakness during lockout phase, sometimes maintaining bar path,' suggesting the initial phase off the chest is the primary issue.",
+                    "Pause reps feel significantly harder for the user, confirming a weak reversal strength in the bottom position where chest and anterior deltoid are critical.",
+                    "The snapshot lacks data on Dumbbell Bench Press or Incline Bench Press, but the user's difficulty with bar path and bottom position strength suggests chest strength is the limiter."
+                ]
+            }
+        ],
+        "bench_day_plan": {
+            "primary_lift": {
+                "exercise_id": "flat_bench_press",
+                "exercise_name": "Flat Bench Press",
+                "sets": 4,
+                "reps": "5",
+                "intensity": "RIR 1-2",
+                "rest_minutes": 3
+            },
+            "accessories": [
+                {
+                    "exercise_id": "dumbbell_bench_press",
+                    "exercise_name": "Dumbbell Bench Press",
+                    "sets": 3,
+                    "reps": "8-10",
+                    "why": "Improves unilateral chest strength and stabilization, addressing bottom position weakness.",
+                    "category": "targeted"
+                },
+                {
+                    "exercise_id": "pause_bench_press",
+                    "exercise_name": "Pause Bench Press",
+                    "sets": 3,
+                    "reps": "6-8",
+                    "why": "Enhances reversal strength and chest activation by pausing at the bottom and focusing on explosive power from the chest.",
+                    "category": "targeted"
+                },
+                {
+                    "exercise_id": "chest_supported_row",
+                    "exercise_name": "Chest Supported Row",
+                    "sets": 3,
+                    "reps": "10-12",
+                    "why": "Enhances upper back stability, which aids in maintaining bar path during bench pressing.",
+                    "category": "stability"
+                }
+            ]
+        },
+        "progression_rules": [
+            "Increase weight by 5 lbs on primary lift when completing all sets with RIR 2.",
+            "For accessories, increase weight when you can complete the top reps in the range with good form."
+        ],
+        "track_next_time": [
+            "Observe bar speed off the chest during bench press.",
+            "Measure perceived exertion during pause bench press to track improvement in bottom position strength."
+        ]
+    }
+}

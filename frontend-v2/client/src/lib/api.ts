@@ -71,37 +71,37 @@ export interface DiagnosticResponse {
 }
 
 export interface WorkoutPlan {
-  diagnosis: {
+  selected_lift: string;
+  diagnosis: Array<{
     limiter: string;
-    explanation: string;
-  };
-  accessories: Array<{
-    exerciseId: string;
-    name: string;
-    sets: number;
-    reps: string;
-    rpe: number;
-    restSeconds: number;
-    reasoning: string;
-    priority: number;
+    limiterName: string;
+    confidence: number;
+    evidence: string[];
   }>;
-  weeklyVolume?: {
-    totalSets: number;
-    totalReps: string;
-    safetyCheck: string;
+  bench_day_plan: {
+    primary_lift: {
+      exercise_id: string;
+      exercise_name: string;
+      sets: number;
+      reps: string;
+      intensity: string;
+      rest_minutes: number;
+    };
+    accessories: Array<{
+      exercise_id: string;
+      exercise_name: string;
+      sets: number;
+      reps: string;
+      why: string;
+      category: string;
+    }>;
   };
-  implementation?: {
-    frequency: string;
-    placement: string;
-    duration: string;
-    progressionGuidelines: string;
-  };
+  progression_rules: string[];
+  track_next_time: string[];
 }
 
 export interface GeneratePlanResponse {
-  sessionId: string;
   plan: WorkoutPlan;
-  generatedAt: string;
 }
 
 export interface SessionDetails {
