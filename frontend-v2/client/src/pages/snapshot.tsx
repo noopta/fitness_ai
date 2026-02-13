@@ -251,16 +251,16 @@ export default function Snapshot() {
 
     setLoading(true);
     try {
-      // Save each snapshot to the backend
-      for (const row of validRows) {
-        await liftCoachApi.addSnapshot(sessionId, {
-          exerciseId: row.exercise.toLowerCase().replace(/\s+/g, "_"),
-          weight: parseFloat(row.weight),
-          sets: parseInt(row.sets),
-          repsSchema: row.reps,
-          rpeOrRir: row.rpe || undefined,
-        });
-      }
+      const snapshots = validRows.map(row => ({
+        exerciseId: row.exercise.toLowerCase().replace(/\s+/g, "_"),
+        weight: parseFloat(row.weight),
+        weightUnit: "lbs" as const,
+        reps: parseInt(row.reps),
+        rpe: row.rpe ? parseFloat(row.rpe) : undefined,
+        date: new Date().toISOString().split('T')[0],
+      }));
+
+      await liftCoachApi.addSnapshots(sessionId, snapshots);
 
       toast.success("Snapshot saved successfully!");
       setLocation("/diagnostic");

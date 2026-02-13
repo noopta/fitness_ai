@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+import { liftCoachApi } from "@/lib/api";
 import {
   ArrowRight,
   Check,
@@ -224,19 +225,12 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const response = await fetch("https://luciuslab.xyz:4009/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      if (response.ok) {
-        toast.success("🎉 You've joined the waitlist! Check your email for confirmation.");
+      const result = await liftCoachApi.joinWaitlist(email.trim());
+      if (result.success) {
+        toast.success("You've joined the waitlist! Check your email for confirmation.");
         setEmail("");
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Waitlist error:", errorData);
-        toast.error(errorData.error || "Something went wrong. Please try again.");
+        toast.error(result.message || "Something went wrong. Please try again.");
       }
     } catch (error) {
       console.error("Waitlist signup error:", error);

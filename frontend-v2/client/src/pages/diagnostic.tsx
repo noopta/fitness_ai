@@ -205,23 +205,21 @@ export default function Diagnostic() {
     setInitialLoading(true);
     try {
       const response = await liftCoachApi.getSession(sessionId);
-      const existingMessages = response.session.messages || [];
+      const existingMessages = response.messages || [];
       
       if (existingMessages.length > 0) {
         const loadedMessages = existingMessages.map((msg, idx) => ({
           id: `loaded-${idx}`,
           role: msg.role,
-          content: msg.message
+          content: msg.content
         }));
         setMessages([messages[0], ...loadedMessages]);
         setQuestionCount(existingMessages.filter(m => m.role === 'user').length);
       } else {
-        // Start the conversation with first AI question
         await getFirstQuestion(sessionId);
       }
     } catch (error) {
       console.error("Error loading messages:", error);
-      // Start fresh conversation
       await getFirstQuestion(sessionId);
     } finally {
       setInitialLoading(false);
@@ -234,7 +232,7 @@ export default function Diagnostic() {
       if (!response.complete) {
         setMessages(prev => [
           ...prev,
-          { id: `a-${Date.now()}`, role: "assistant", content: response.message }
+          { id: `a-${Date.now()}`, role: "assistant", content: response.aiResponse }
         ]);
       }
     } catch (error) {
@@ -274,14 +272,13 @@ export default function Diagnostic() {
           { 
             id: `a-${Date.now()}`, 
             role: "assistant", 
-            content: "That's enough signal. I have what I need to create your personalized plan." 
+            content: response.aiResponse || "That's enough signal. I have what I need to create your personalized plan." 
           }
         ]);
       } else {
-        // Add AI response
         setMessages(prev => [
           ...prev,
-          { id: `a-${Date.now()}`, role: "assistant", content: response.message }
+          { id: `a-${Date.now()}`, role: "assistant", content: response.aiResponse }
         ]);
       }
       

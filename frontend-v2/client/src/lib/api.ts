@@ -4,76 +4,127 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009
 export interface LiftData {
   id: string;
   name: string;
-  category: string;
   description: string;
+  muscleGroups: string[];
+  difficulty: string;
 }
 
 export interface ExerciseData {
   id: string;
   name: string;
   category: string;
-  targetMuscle: string[];
+  muscleGroups: string[];
   equipment: string[];
+  difficulty: string;
+  description: string;
 }
 
 export interface ProfileData {
+  age?: number;
   heightCm?: number;
   weightKg?: number;
-  bodyCompTag?: string;
+  gender?: string;
   trainingAge?: string;
-  equipment?: string;
+  goal?: string;
+  injuries?: string[];
+  equipment?: string[];
   constraintsText?: string;
 }
 
 export interface SessionData {
-  id: string;
+  sessionId: string;
   selectedLift: string;
-  goal?: string;
-  userId?: string;
+  profile?: ProfileData;
+  createdAt?: string;
+  status?: string;
 }
 
-export interface ExerciseSnapshot {
+export interface SnapshotEntry {
   exerciseId: string;
   weight: number;
-  sets: number;
-  repsSchema: string;
-  rpeOrRir?: string;
+  weightUnit: string;
+  reps: number;
+  rpe?: number;
+  date?: string;
 }
 
 export interface DiagnosticMessage {
   role: 'user' | 'assistant';
-  message: string;
-  createdAt?: string;
+  content: string;
+  timestamp?: string;
+}
+
+export interface DiagnosticResponse {
+  sessionId: string;
+  aiResponse: string;
+  complete: boolean;
+  questionsAsked?: number;
+  maxQuestions?: number;
+  diagnosis?: {
+    primaryLimiter: string;
+    muscleGroup: string;
+    reasoning: string;
+    confidence: string;
+  };
 }
 
 export interface WorkoutPlan {
-  selected_lift: string;
-  diagnosis: Array<{
+  diagnosis: {
     limiter: string;
-    limiterName: string;
-    confidence: number;
-    evidence: string[];
-  }>;
-  bench_day_plan: {
-    primary_lift: {
-      exercise_id: string;
-      exercise_name: string;
-      sets: number;
-      reps: string;
-      intensity: string;
-      rest_minutes: number;
-    };
-    accessories: Array<{
-      exercise_id: string;
-      exercise_name: string;
-      sets: number;
-      reps: string;
-      why: string;
-      category: string;
-    }>;
+    explanation: string;
   };
-  progression_rules: string[];
-  track_next_time: string[];
+  accessories: Array<{
+    exerciseId: string;
+    name: string;
+    sets: number;
+    reps: string;
+    rpe: number;
+    restSeconds: number;
+    reasoning: string;
+    priority: number;
+  }>;
+  weeklyVolume?: {
+    totalSets: number;
+    totalReps: string;
+    safetyCheck: string;
+  };
+  implementation?: {
+    frequency: string;
+    placement: string;
+    duration: string;
+    progressionGuidelines: string;
+  };
+}
+
+export interface GeneratePlanResponse {
+  sessionId: string;
+  plan: WorkoutPlan;
+  generatedAt: string;
+}
+
+export interface SessionDetails {
+  sessionId: string;
+  selectedLift: string;
+  profile?: ProfileData;
+  snapshots: Array<{
+    id: string;
+    exerciseId: string;
+    weight: number;
+    weightUnit: string;
+    reps: number;
+    rpe?: number;
+    estimatedOneRepMax?: number;
+  }>;
+  messages: DiagnosticMessage[];
+  diagnosis?: {
+    primaryLimiter: string;
+    muscleGroup: string;
+    reasoning: string;
+  };
+  plan?: WorkoutPlan;
+  status: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 async function apiRequest<T>(
@@ -91,59 +142,52 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API Error: ${response.statusText}`);
   }
 
   return response.json();
 }
 
-// API methods
 export const liftCoachApi = {
-  // Get all lifts
-  getLifts: () => apiRequest<{ lifts: LiftData[] }>('/lifts'),
+  getLifts: () => apiRequest<LiftData[]>('/lifts'),
 
-  // Get exercises for a lift
   getLiftExercises: (liftId: string) => 
-    apiRequest<{ exercises: ExerciseData[] }>(`/lifts/${liftId}/exercises`),
+    apiRequest<ExerciseData[]>(`/lifts/${liftId}/exercises`),
 
-  // Create new session
   createSession: (data: {
     selectedLift: string;
     goal?: string;
     profile?: ProfileData;
-  }) => apiRequest<{ session: SessionData }>('/sessions', {
+  }) => apiRequest<SessionData>('/sessions', {
     method: 'POST',
     body: JSON.stringify(data)
   }),
 
-  // Add exercise snapshot
-  addSnapshot: (sessionId: string, snapshot: ExerciseSnapshot) =>
-    apiRequest<{ snapshot: any }>(`/sessions/${sessionId}/snapshots`, {
+  addSnapshots: (sessionId: string, snapshots: SnapshotEntry[]) =>
+    apiRequest<any>(`/sessions/${sessionId}/snapshots`, {
       method: 'POST',
-      body: JSON.stringify(snapshot)
+      body: JSON.stringify({ snapshots })
     }),
 
-  // Send diagnostic message
   sendMessage: (sessionId: string, message: string) =>
-    apiRequest<{ complete: boolean; message: string }>(`/sessions/${sessionId}/messages`, {
+    apiRequest<DiagnosticResponse>(`/sessions/${sessionId}/messages`, {
       method: 'POST',
       body: JSON.stringify({ message })
     }),
 
-  // Generate workout plan
   generatePlan: (sessionId: string) =>
-    apiRequest<{ plan: WorkoutPlan }>(`/sessions/${sessionId}/generate`, {
-      method: 'POST'
+    apiRequest<GeneratePlanResponse>(`/sessions/${sessionId}/generate`, {
+      method: 'POST',
+      body: JSON.stringify({})
     }),
 
-  // Get session details
   getSession: (sessionId: string) =>
-    apiRequest<{
-      session: SessionData & {
-        user?: any;
-        snapshots: any[];
-        messages: DiagnosticMessage[];
-        plans: Array<{ planJson: string }>;
-      };
-    }>(`/sessions/${sessionId}`)
+    apiRequest<SessionDetails>(`/sessions/${sessionId}`),
+
+  joinWaitlist: (email: string, name?: string, phone?: string) =>
+    apiRequest<{ success: boolean; message: string }>('/waitlist', {
+      method: 'POST',
+      body: JSON.stringify({ email, name, phone })
+    }),
 };
