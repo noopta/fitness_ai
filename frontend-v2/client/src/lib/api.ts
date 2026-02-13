@@ -57,9 +57,9 @@ export interface DiagnosticMessage {
 }
 
 export interface DiagnosticResponse {
-  sessionId: string;
-  aiResponse: string;
+  message: string;
   complete: boolean;
+  analysis?: string;
   questionsAsked?: number;
   maxQuestions?: number;
   diagnosis?: {

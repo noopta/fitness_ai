@@ -232,7 +232,7 @@ export default function Diagnostic() {
       if (!response.complete) {
         setMessages(prev => [
           ...prev,
-          { id: `a-${Date.now()}`, role: "assistant", content: response.aiResponse }
+          { id: `a-${Date.now()}`, role: "assistant", content: response.message }
         ]);
       }
     } catch (error) {
@@ -272,13 +272,13 @@ export default function Diagnostic() {
           { 
             id: `a-${Date.now()}`, 
             role: "assistant", 
-            content: response.aiResponse || "That's enough signal. I have what I need to create your personalized plan." 
+            content: response.message || "That's enough signal. I have what I need to create your personalized plan." 
           }
         ]);
       } else {
         setMessages(prev => [
           ...prev,
-          { id: `a-${Date.now()}`, role: "assistant", content: response.aiResponse }
+          { id: `a-${Date.now()}`, role: "assistant", content: response.message }
         ]);
       }
       
