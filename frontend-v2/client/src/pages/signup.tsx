@@ -371,16 +371,17 @@ function PreviewSection() {
             </AnimatePresence>
           </div>
 
-          <div className="relative bg-muted/30 p-4 lg:p-6 flex items-center justify-center overflow-hidden">
-            <AnimatePresence mode="wait" custom={direction}>
+          <div className="relative bg-muted/30 p-4 lg:p-6 overflow-hidden">
+            <AnimatePresence initial={false}>
               <motion.img
                 key={activeStep}
                 src={current.image}
                 alt={current.title}
                 className="w-full rounded-xl border shadow-sm"
+                style={{ position: "relative" }}
                 initial={{ opacity: 0, x: 30, scale: 0.96, filter: "blur(6px)" }}
                 animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, x: 30, scale: 0.96, filter: "blur(6px)" }}
+                exit={{ opacity: 0, position: "absolute", top: 0, left: 0, right: 0, filter: "blur(6px)" }}
                 transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: 0.22 }}
               />
             </AnimatePresence>
