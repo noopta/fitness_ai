@@ -24,6 +24,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
+import snapshotTarget from "@assets/snapshot_target_1771266514838.png";
+import snapshotRelevantLifts from "@assets/snapshot_relevant_lifts_1771266523066.png";
 import snapshotChat from "@assets/snapshot_chat_1771264391949.png";
 import snapshotAiSummary from "@assets/snapshot_ai_summary_1771264391948.png";
 import snapshotAnalysis from "@assets/snapshot_analysis_1771264391949.png";
@@ -158,24 +160,36 @@ function ComparisonRow({
 const previewSteps = [
   {
     step: 1,
+    title: "Select Your Lift",
+    description: "Pick the compound movement you want to diagnose — bench, squat, or deadlift. Enter your working weight, sets, and reps along with optional body proportions so the AI has the full picture.",
+    image: snapshotTarget,
+  },
+  {
+    step: 2,
+    title: "Your Relevant Lifts",
+    description: "Log the related exercises you currently perform — rows, presses, squats, hip thrusts, and more. Your working weights and rep ranges give the AI the strength ratios it needs to find imbalances.",
+    image: snapshotRelevantLifts,
+  },
+  {
+    step: 3,
     title: "Diagnostic Chat",
     description: "Our AI asks targeted questions based on your working weights and strength ratios. It analyzes your lift mechanics, sticking points, and muscle balance — just like a coach would in person.",
     image: snapshotChat,
   },
   {
-    step: 2,
+    step: 4,
     title: "AI Summary",
     description: "Get an instant summary identifying your limiting factor with a confidence score. The AI cross-references your strength data with biomechanical benchmarks to pinpoint exactly what's holding you back.",
     image: snapshotAiSummary,
   },
   {
-    step: 3,
+    step: 5,
     title: "Detailed Analysis",
     description: "See the full evidence-based breakdown — every data point the AI used to reach its conclusion. From strength ratios to your self-reported sticking points, nothing is a black box.",
     image: snapshotAnalysis,
   },
   {
-    step: 4,
+    step: 6,
     title: "Your Prescription",
     description: "Receive a targeted list of accessory exercises designed to address your specific weak points. Each movement includes sets, reps, and a clear explanation of why it was chosen.",
     image: snapshotAccessories,
