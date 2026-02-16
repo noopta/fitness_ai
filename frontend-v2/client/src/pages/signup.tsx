@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { liftCoachApi } from "@/lib/api";
 import {
   ArrowRight,
@@ -184,7 +184,52 @@ const previewSteps = [
 
 function PreviewSection() {
   const [activeStep, setActiveStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const current = previewSteps[activeStep];
+
+  const navigate = (next: number) => {
+    setDirection(next > activeStep ? 1 : -1);
+    setActiveStep(next);
+  };
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      opacity: 0,
+      x: dir * 40,
+      filter: "blur(4px)",
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      filter: "blur(0px)",
+    },
+    exit: (dir: number) => ({
+      opacity: 0,
+      x: dir * -40,
+      filter: "blur(4px)",
+    }),
+  };
+
+  const imageVariants = {
+    enter: (dir: number) => ({
+      opacity: 0,
+      scale: 0.92,
+      y: dir * 20,
+    }),
+    center: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+    },
+    exit: (dir: number) => ({
+      opacity: 0,
+      scale: 0.92,
+      y: dir * -20,
+    }),
+  };
+
+  const spring = { type: "spring", stiffness: 300, damping: 30 };
+  const easeFade = { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] };
 
   return (
     <section className="pb-16 sm:pb-24" data-testid="section-preview">
@@ -205,81 +250,147 @@ function PreviewSection() {
           {previewSteps.map((item, idx) => (
             <button
               key={item.step}
-              onClick={() => setActiveStep(idx)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                idx === activeStep
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
+              onClick={() => navigate(idx)}
+              className="relative flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors -mb-px"
               data-testid={`tab-preview-${item.step}`}
             >
-              <span className={`grid h-6 w-6 place-items-center rounded-full text-xs font-bold ${
-                idx === activeStep ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <motion.span
+                className="grid h-6 w-6 place-items-center rounded-full text-xs font-bold"
+                animate={{
+                  backgroundColor: idx === activeStep ? "var(--color-primary)" : "var(--color-muted)",
+                  color: idx === activeStep ? "var(--color-primary-foreground)" : "var(--color-muted-foreground)",
+                }}
+                transition={spring}
+              >
                 {item.step}
+              </motion.span>
+              <span className={`hidden sm:inline transition-colors duration-200 ${
+                idx === activeStep ? "text-foreground" : "text-muted-foreground"
+              }`}>
+                {item.title}
               </span>
-              <span className="hidden sm:inline">{item.title}</span>
+              {idx === activeStep && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                  layoutId="activeTab"
+                  transition={spring}
+                />
+              )}
             </button>
           ))}
         </div>
 
-        <div className="grid gap-0 lg:grid-cols-[0.42fr_0.58fr]">
-          <div className="flex flex-col justify-center p-6 lg:p-8">
-            <motion.div
-              key={activeStep}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                  {current.step}
-                </span>
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Step {current.step} of {previewSteps.length}
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold tracking-tight" data-testid="text-preview-active-title">
-                {current.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground" data-testid="text-preview-active-desc">
-                {current.description}
-              </p>
+        <div className="grid gap-0 lg:grid-cols-[0.42fr_0.58fr] min-h-[400px]">
+          <div className="relative flex flex-col justify-center p-6 lg:p-8 overflow-hidden">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={activeStep}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={easeFade}
+              >
+                <motion.div
+                  className="flex items-center gap-3 mb-3"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...easeFade, delay: 0.05 }}
+                >
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                    {current.step}
+                  </span>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Step {current.step} of {previewSteps.length}
+                  </div>
+                </motion.div>
+                <motion.h3
+                  className="text-xl font-semibold tracking-tight"
+                  data-testid="text-preview-active-title"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...easeFade, delay: 0.1 }}
+                >
+                  {current.title}
+                </motion.h3>
+                <motion.p
+                  className="mt-2 text-sm leading-relaxed text-muted-foreground"
+                  data-testid="text-preview-active-desc"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...easeFade, delay: 0.15 }}
+                >
+                  {current.description}
+                </motion.p>
 
-              <div className="mt-6 flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
-                  disabled={activeStep === 0}
-                  className="rounded-xl"
+                <motion.div
+                  className="mt-6 flex items-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ ...easeFade, delay: 0.2 }}
                 >
-                  Previous
-                </Button>
-                <Button
-                  variant={activeStep === previewSteps.length - 1 ? "outline" : "default"}
-                  size="sm"
-                  onClick={() => setActiveStep(Math.min(previewSteps.length - 1, activeStep + 1))}
-                  disabled={activeStep === previewSteps.length - 1}
-                  className="rounded-xl"
-                >
-                  Next
-                  <ChevronRight className="ml-1 h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </motion.div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(Math.max(0, activeStep - 1))}
+                    disabled={activeStep === 0}
+                    className="rounded-xl"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant={activeStep === previewSteps.length - 1 ? "outline" : "default"}
+                    size="sm"
+                    onClick={() => navigate(Math.min(previewSteps.length - 1, activeStep + 1))}
+                    disabled={activeStep === previewSteps.length - 1}
+                    className="rounded-xl"
+                  >
+                    Next
+                    <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
           </div>
-          <div className="relative bg-muted/30 p-4 lg:p-6 flex items-center justify-center">
-            <motion.img
-              key={activeStep}
-              src={current.image}
-              alt={current.title}
-              className="w-full rounded-xl border shadow-sm"
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            />
+
+          <div className="relative bg-muted/30 p-4 lg:p-6 flex items-center justify-center overflow-hidden">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.img
+                key={activeStep}
+                src={current.image}
+                alt={current.title}
+                className="w-full rounded-xl border shadow-sm"
+                custom={direction}
+                variants={imageVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ ...easeFade, duration: 0.45 }}
+              />
+            </AnimatePresence>
           </div>
+        </div>
+
+        <div className="flex justify-center gap-1.5 py-3 border-t">
+          {previewSteps.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate(idx)}
+              className="p-1"
+              aria-label={`Go to step ${idx + 1}`}
+            >
+              <motion.div
+                className="rounded-full"
+                animate={{
+                  width: idx === activeStep ? 24 : 6,
+                  height: 6,
+                  backgroundColor: idx === activeStep ? "var(--color-primary)" : "var(--color-border)",
+                }}
+                transition={spring}
+              />
+            </button>
+          ))}
         </div>
       </Card>
     </section>
