@@ -155,6 +155,137 @@ function ComparisonRow({
   );
 }
 
+const previewSteps = [
+  {
+    step: 1,
+    title: "Diagnostic Chat",
+    description: "Our AI asks targeted questions based on your working weights and strength ratios. It analyzes your lift mechanics, sticking points, and muscle balance — just like a coach would in person.",
+    image: snapshotChat,
+  },
+  {
+    step: 2,
+    title: "AI Summary",
+    description: "Get an instant summary identifying your limiting factor with a confidence score. The AI cross-references your strength data with biomechanical benchmarks to pinpoint exactly what's holding you back.",
+    image: snapshotAiSummary,
+  },
+  {
+    step: 3,
+    title: "Detailed Analysis",
+    description: "See the full evidence-based breakdown — every data point the AI used to reach its conclusion. From strength ratios to your self-reported sticking points, nothing is a black box.",
+    image: snapshotAnalysis,
+  },
+  {
+    step: 4,
+    title: "Your Prescription",
+    description: "Receive a targeted list of accessory exercises designed to address your specific weak points. Each movement includes sets, reps, and a clear explanation of why it was chosen.",
+    image: snapshotAccessories,
+  },
+];
+
+function PreviewSection() {
+  const [activeStep, setActiveStep] = useState(0);
+  const current = previewSteps[activeStep];
+
+  return (
+    <section className="pb-16 sm:pb-24" data-testid="section-preview">
+      <div className="max-w-3xl">
+        <div className="text-xs font-semibold text-muted-foreground" data-testid="text-preview-eyebrow">
+          See it in action
+        </div>
+        <h2 className="mt-2 text-balance text-2xl font-semibold tracking-tight" data-testid="text-preview-title">
+          What your diagnostic session looks like
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground" data-testid="text-preview-subtitle">
+          Walk through the full experience — from answering targeted questions about your lifts, to receiving a data-driven diagnosis and personalized accessory plan.
+        </p>
+      </div>
+
+      <Card className="mt-8 card-min overflow-hidden rounded-2xl" data-testid="card-preview">
+        <div className="flex border-b overflow-x-auto">
+          {previewSteps.map((item, idx) => (
+            <button
+              key={item.step}
+              onClick={() => setActiveStep(idx)}
+              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                idx === activeStep
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+              data-testid={`tab-preview-${item.step}`}
+            >
+              <span className={`grid h-6 w-6 place-items-center rounded-full text-xs font-bold ${
+                idx === activeStep ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                {item.step}
+              </span>
+              <span className="hidden sm:inline">{item.title}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-0 lg:grid-cols-[0.42fr_0.58fr]">
+          <div className="flex flex-col justify-center p-6 lg:p-8">
+            <motion.div
+              key={activeStep}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                  {current.step}
+                </span>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Step {current.step} of {previewSteps.length}
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold tracking-tight" data-testid="text-preview-active-title">
+                {current.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground" data-testid="text-preview-active-desc">
+                {current.description}
+              </p>
+
+              <div className="mt-6 flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
+                  disabled={activeStep === 0}
+                  className="rounded-xl"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant={activeStep === previewSteps.length - 1 ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => setActiveStep(Math.min(previewSteps.length - 1, activeStep + 1))}
+                  disabled={activeStep === previewSteps.length - 1}
+                  className="rounded-xl"
+                >
+                  Next
+                  <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+          <div className="relative bg-muted/30 p-4 lg:p-6 flex items-center justify-center">
+            <motion.img
+              key={activeStep}
+              src={current.image}
+              alt={current.title}
+              className="w-full rounded-xl border shadow-sm"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </div>
+        </div>
+      </Card>
+    </section>
+  );
+}
+
 const BODY_AREAS = {
   chest: {
     label: "Chest",
@@ -426,91 +557,7 @@ export default function Signup() {
           </div>
         </section>
 
-        <section className="pb-16 sm:pb-24" data-testid="section-preview">
-          <div className="max-w-3xl">
-            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-preview-eyebrow">
-              See it in action
-            </div>
-            <h2
-              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
-              data-testid="text-preview-title"
-            >
-              What your diagnostic session looks like
-            </h2>
-            <p
-              className="mt-3 text-sm leading-relaxed text-muted-foreground"
-              data-testid="text-preview-subtitle"
-            >
-              Walk through the full experience — from answering targeted questions about your lifts, to receiving a data-driven diagnosis and personalized accessory plan.
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-6">
-            {[
-              {
-                step: 1,
-                title: "Diagnostic Chat",
-                description: "Our AI asks targeted questions based on your working weights and strength ratios. It analyzes your lift mechanics, sticking points, and muscle balance — just like a coach would in person.",
-                image: snapshotChat,
-              },
-              {
-                step: 2,
-                title: "AI Summary",
-                description: "Get an instant summary identifying your limiting factor with a confidence score. The AI cross-references your strength data with biomechanical benchmarks to pinpoint exactly what's holding you back.",
-                image: snapshotAiSummary,
-              },
-              {
-                step: 3,
-                title: "Detailed Analysis",
-                description: "See the full evidence-based breakdown — every data point the AI used to reach its conclusion. From strength ratios to your self-reported sticking points, nothing is a black box.",
-                image: snapshotAnalysis,
-              },
-              {
-                step: 4,
-                title: "Your Prescription",
-                description: "Receive a targeted list of accessory exercises designed to address your specific weak points. Each movement includes sets, reps, and a clear explanation of why it was chosen.",
-                image: snapshotAccessories,
-              },
-            ].map((item) => (
-              <motion.div
-                key={item.step}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: item.step * 0.05 }}
-              >
-                <Card className="card-min overflow-hidden rounded-2xl" data-testid={`card-preview-${item.step}`}>
-                  <div className="grid gap-0 lg:grid-cols-[0.45fr_0.55fr]">
-                    <div className="flex flex-col justify-center p-6 lg:p-8">
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                          {item.step}
-                        </span>
-                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                          Step {item.step}
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-semibold tracking-tight" data-testid={`text-preview-step-${item.step}-title`}>
-                        {item.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground" data-testid={`text-preview-step-${item.step}-desc`}>
-                        {item.description}
-                      </p>
-                    </div>
-                    <div className="relative bg-muted/30 p-4 lg:p-6">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full rounded-xl border shadow-sm"
-                        loading="lazy"
-                      />
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+        <PreviewSection />
 
         <section className="pb-16 sm:pb-24" data-testid="section-wearables">
           <div className="max-w-3xl">
