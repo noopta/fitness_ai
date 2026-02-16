@@ -24,6 +24,10 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
+import snapshotChat from "@assets/snapshot_chat_1771264391949.png";
+import snapshotAiSummary from "@assets/snapshot_ai_summary_1771264391948.png";
+import snapshotAnalysis from "@assets/snapshot_analysis_1771264391949.png";
+import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { BrandLogo } from "@/components/BrandLogo";
 
 function Nav() {
@@ -419,6 +423,92 @@ export default function Signup() {
               right="AI analyzes lift phases, biomechanics, and prescribes targeted accessories."
               testId="row-compare-3"
             />
+          </div>
+        </section>
+
+        <section className="pb-16 sm:pb-24" data-testid="section-preview">
+          <div className="max-w-3xl">
+            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-preview-eyebrow">
+              See it in action
+            </div>
+            <h2
+              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
+              data-testid="text-preview-title"
+            >
+              What your diagnostic session looks like
+            </h2>
+            <p
+              className="mt-3 text-sm leading-relaxed text-muted-foreground"
+              data-testid="text-preview-subtitle"
+            >
+              Walk through the full experience — from answering targeted questions about your lifts, to receiving a data-driven diagnosis and personalized accessory plan.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-6">
+            {[
+              {
+                step: 1,
+                title: "Diagnostic Chat",
+                description: "Our AI asks targeted questions based on your working weights and strength ratios. It analyzes your lift mechanics, sticking points, and muscle balance — just like a coach would in person.",
+                image: snapshotChat,
+              },
+              {
+                step: 2,
+                title: "AI Summary",
+                description: "Get an instant summary identifying your limiting factor with a confidence score. The AI cross-references your strength data with biomechanical benchmarks to pinpoint exactly what's holding you back.",
+                image: snapshotAiSummary,
+              },
+              {
+                step: 3,
+                title: "Detailed Analysis",
+                description: "See the full evidence-based breakdown — every data point the AI used to reach its conclusion. From strength ratios to your self-reported sticking points, nothing is a black box.",
+                image: snapshotAnalysis,
+              },
+              {
+                step: 4,
+                title: "Your Prescription",
+                description: "Receive a targeted list of accessory exercises designed to address your specific weak points. Each movement includes sets, reps, and a clear explanation of why it was chosen.",
+                image: snapshotAccessories,
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: item.step * 0.05 }}
+              >
+                <Card className="card-min overflow-hidden rounded-2xl" data-testid={`card-preview-${item.step}`}>
+                  <div className="grid gap-0 lg:grid-cols-[0.45fr_0.55fr]">
+                    <div className="flex flex-col justify-center p-6 lg:p-8">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                          {item.step}
+                        </span>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Step {item.step}
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-semibold tracking-tight" data-testid={`text-preview-step-${item.step}-title`}>
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground" data-testid={`text-preview-step-${item.step}-desc`}>
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="relative bg-muted/30 p-4 lg:p-6">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full rounded-xl border shadow-sm"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </section>
 
