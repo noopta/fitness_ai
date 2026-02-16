@@ -260,16 +260,16 @@ function PreviewSection() {
       </div>
 
       <Card className="mt-8 card-min overflow-hidden rounded-2xl" data-testid="card-preview">
-        <div className="flex border-b overflow-x-auto">
+        <div className="flex border-b overflow-hidden">
           {previewSteps.map((item, idx) => (
             <button
               key={item.step}
               onClick={() => navigate(idx)}
-              className="relative flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors -mb-px"
+              className="relative flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-medium transition-colors -mb-px"
               data-testid={`tab-preview-${item.step}`}
             >
               <motion.span
-                className="grid h-6 w-6 place-items-center rounded-full text-xs font-bold"
+                className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold"
                 animate={{
                   backgroundColor: idx === activeStep ? "var(--color-primary)" : "var(--color-muted)",
                   color: idx === activeStep ? "var(--color-primary-foreground)" : "var(--color-muted-foreground)",
@@ -278,7 +278,7 @@ function PreviewSection() {
               >
                 {item.step}
               </motion.span>
-              <span className={`hidden sm:inline transition-colors duration-200 ${
+              <span className={`hidden md:inline truncate transition-colors duration-200 ${
                 idx === activeStep ? "text-foreground" : "text-muted-foreground"
               }`}>
                 {item.title}
