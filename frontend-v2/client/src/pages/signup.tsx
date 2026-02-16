@@ -308,9 +308,9 @@ function PreviewSection() {
               >
                 <motion.div
                   className="flex items-center gap-3 mb-3"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...easeFade, delay: 0.05 }}
+                  initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0 }}
                 >
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                     {current.step}
@@ -322,27 +322,27 @@ function PreviewSection() {
                 <motion.h3
                   className="text-xl font-semibold tracking-tight"
                   data-testid="text-preview-active-title"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...easeFade, delay: 0.1 }}
+                  initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0.08 }}
                 >
                   {current.title}
                 </motion.h3>
                 <motion.p
                   className="mt-2 text-sm leading-relaxed text-muted-foreground"
                   data-testid="text-preview-active-desc"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...easeFade, delay: 0.15 }}
+                  initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0.24 }}
                 >
                   {current.description}
                 </motion.p>
 
                 <motion.div
                   className="mt-6 flex items-center gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ ...easeFade, delay: 0.2 }}
+                  initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0.32 }}
                 >
                   <Button
                     variant="outline"
@@ -375,12 +375,10 @@ function PreviewSection() {
                 src={current.image}
                 alt={current.title}
                 className="w-full rounded-xl border shadow-sm"
-                custom={direction}
-                variants={imageVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ ...easeFade, duration: 0.45 }}
+                initial={{ opacity: 0, scale: 0.94, filter: "blur(6px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, scale: 0.94, filter: "blur(6px)" }}
+                transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1], delay: 0.12 }}
               />
             </AnimatePresence>
           </div>
