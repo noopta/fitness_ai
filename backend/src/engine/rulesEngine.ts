@@ -1,5 +1,15 @@
 import { getLiftById, Limiter } from '../data/lifts.js';
 import { getExerciseById, Exercise, exercises } from '../data/exercises.js';
+import { runDiagnosticEngine, type SessionFlags } from './diagnosticEngine.js';
+import type { TrainingAge, Equipment } from './liftConfigs.js';
+
+/**
+ * Feature flag for parallel QA logging.
+ * When true: both the legacy heuristic output and the new engine output are
+ * computed and logged side-by-side. The return value still uses legacy output.
+ * Flip to false once agreement rate is validated and legacy code can be removed.
+ */
+const USE_ENGINE_FOR_RATIO_ANALYSIS = false;
 
 export interface SessionContext {
   selectedLift: string;
@@ -136,33 +146,37 @@ export function getStabilityExercises(liftId: string, equipment?: string): Exerc
 
 export function analyzeSnapshotStrengthRatios(
   liftId: string,
-  snapshots: Array<{ exerciseId: string; weight: number; sets: number; repsSchema: string }>
+  snapshots: Array<{ exerciseId: string; weight: number; sets: number; repsSchema: string }>,
+  opts?: {
+    trainingAge?: TrainingAge;
+    equipment?: Equipment;
+    bodyweightLbs?: number;
+    flags?: SessionFlags;
+  }
 ): { limiter: string; confidence: number; evidence: string }[] {
-  // Simple heuristic analysis of strength ratios
-  // This provides initial guidance before LLM diagnostic
-  
-  const findings: { limiter: string; confidence: number; evidence: string }[] = [];
-  
+  // ── Legacy heuristics (kept for QA comparison) ──
+  const legacyFindings: { limiter: string; confidence: number; evidence: string }[] = [];
+
   if (liftId === 'flat_bench_press') {
     const mainBench = snapshots.find(s => s.exerciseId === 'flat_bench_press');
     const closeGrip = snapshots.find(s => s.exerciseId === 'close_grip_bench_press');
     const row = snapshots.find(s => s.exerciseId === 'barbell_row' || s.exerciseId === 'chest_supported_row');
-    
+
     if (mainBench && closeGrip) {
       const ratio = closeGrip.weight / mainBench.weight;
       if (ratio < 0.75) {
-        findings.push({
+        legacyFindings.push({
           limiter: 'triceps_lockout_strength',
           confidence: 0.6,
           evidence: 'Close-grip bench is significantly weaker than main bench (ratio < 0.75)'
         });
       }
     }
-    
+
     if (mainBench && row) {
       const ratio = row.weight / mainBench.weight;
       if (ratio < 0.6) {
-        findings.push({
+        legacyFindings.push({
           limiter: 'upper_back_stability',
           confidence: 0.5,
           evidence: 'Rowing strength is low relative to bench press'
@@ -170,16 +184,15 @@ export function analyzeSnapshotStrengthRatios(
       }
     }
   }
-  
+
   if (liftId === 'deadlift') {
     const mainDL = snapshots.find(s => s.exerciseId === 'deadlift');
     const rackPull = snapshots.find(s => s.exerciseId === 'rack_pull');
-    const rdl = snapshots.find(s => s.exerciseId === 'romanian_deadlift');
-    
+
     if (mainDL && rackPull) {
       const ratio = rackPull.weight / mainDL.weight;
       if (ratio > 1.15) {
-        findings.push({
+        legacyFindings.push({
           limiter: 'off_floor_strength',
           confidence: 0.65,
           evidence: 'Rack pulls significantly stronger than full deadlift'
@@ -187,8 +200,51 @@ export function analyzeSnapshotStrengthRatios(
       }
     }
   }
-  
-  return findings;
+
+  // ── New engine signals (always computed for QA logging) ──
+  try {
+    const engineSnapshots = snapshots.map(s => ({
+      exerciseId: s.exerciseId,
+      weight: s.weight,
+      reps: parseInt(s.repsSchema.toString().split('-')[0], 10) || 1,
+      sets: s.sets
+    }));
+
+    const engineSignals = runDiagnosticEngine({
+      liftId,
+      primaryExerciseId: liftId,
+      snapshots: engineSnapshots,
+      flags: opts?.flags ?? {},
+      bodyweightLbs: opts?.bodyweightLbs ?? 185,
+      trainingAge: opts?.trainingAge ?? 'intermediate',
+      equipment: opts?.equipment ?? 'commercial'
+    });
+
+    const engineFindings = engineSignals.hypothesis_scores.map(h => ({
+      limiter: h.key,
+      confidence: h.score / 100,
+      evidence: h.evidence[0] ?? h.label
+    }));
+
+    // QA log — compare legacy vs engine outputs
+    console.log('[QA] analyzeSnapshotStrengthRatios comparison', {
+      liftId,
+      legacyLimiters: legacyFindings.map(f => f.limiter),
+      engineHypotheses: engineFindings.map(f => f.limiter),
+      enginePrimaryPhase: engineSignals.primary_phase,
+      enginePhaseConfidence: engineSignals.primary_phase_confidence,
+      engineArchetype: engineSignals.dominance_archetype.label,
+      engineEfficiencyScore: engineSignals.efficiency_score.score
+    });
+
+    if (USE_ENGINE_FOR_RATIO_ANALYSIS) {
+      return engineFindings;
+    }
+  } catch (err) {
+    console.warn('[QA] diagnosticEngine failed in parallel run:', err);
+  }
+
+  return legacyFindings;
 }
 
 export function generateIntensityRecommendation(

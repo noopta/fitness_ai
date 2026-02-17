@@ -2,6 +2,8 @@ import OpenAI from 'openai';
 import { getLiftById } from '../data/lifts.js';
 import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
+import { runDiagnosticEngine, type DiagnosticSignals, type SnapshotInput, type SessionFlags } from '../engine/diagnosticEngine.js';
+import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -13,6 +15,8 @@ export interface DiagnosticContext {
   goal?: string;
   equipment?: string;
   constraints?: string;
+  bodyweightLbs?: number;
+  sessionFlags?: SessionFlags;
   snapshots?: Array<{
     exerciseId: string;
     exerciseName: string;
@@ -37,18 +41,141 @@ export interface InitialAnalysisResult {
   analysis: string;
   tailoredQuestions: string[];
   identifiedWeaknesses: string[];
+  signals?: DiagnosticSignals;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function normalizeTrainingAge(raw?: string): TrainingAge {
+  if (raw === 'beginner' || raw === 'intermediate' || raw === 'advanced') return raw;
+  return 'intermediate';
+}
+
+function normalizeEquipment(raw?: string): Equipment {
+  if (raw === 'commercial' || raw === 'limited' || raw === 'home') return raw;
+  return 'commercial';
 }
 
 /**
- * Analyzes user's snapshot data and generates 3 tailored diagnostic questions
- * This should be called BEFORE starting the regular diagnostic interview
+ * Convert DiagnosticContext snapshots to the SnapshotInput shape expected by the engine.
+ * repsSchema is stored as a string like "5" or "5-8" — we take the first number.
+ */
+function toSnapshotInputs(
+  snapshots: DiagnosticContext['snapshots']
+): SnapshotInput[] {
+  if (!snapshots) return [];
+  return snapshots.map(s => {
+    const reps = parseInt(s.repsSchema.toString().split('-')[0], 10) || 1;
+    return {
+      exerciseId: s.exerciseId,
+      weight: s.weight,
+      reps,
+      sets: s.sets
+    };
+  });
+}
+
+/**
+ * Serialize DiagnosticSignals into a compact, human-readable block
+ * that we inject verbatim into LLM prompts.
+ */
+function formatSignalsForPrompt(signals: DiagnosticSignals): string {
+  const lines: string[] = [];
+
+  lines.push('=== PRE-COMPUTED DIAGNOSTIC SIGNALS (do not recompute — use these directly) ===');
+  lines.push(`Signals version: ${signals.signals_version} | Config version: ${signals.lift_config_version}`);
+
+  // e1RMs
+  lines.push('\n--- e1RM Estimates ---');
+  for (const [ex, data] of Object.entries(signals.e1rms)) {
+    const clampNote = data.reps_clamped ? ` [reps clamped from actual to 10 for formula reliability]` : '';
+    lines.push(`  ${ex}: ${data.value} lbs (${data.reps_used} rep set, confidence: ${data.confidence}${clampNote})`);
+  }
+
+  // Indices
+  lines.push('\n--- Strength Indices (0–100, relative to primary lift) ---');
+  const indexKeys = ['quad_index', 'posterior_index', 'back_tension_index', 'triceps_index', 'shoulder_index'] as const;
+  let anyIndex = false;
+  for (const key of indexKeys) {
+    const idx = signals.indices[key];
+    if (idx) {
+      anyIndex = true;
+      lines.push(`  ${key}: ${idx.value}/100 (confidence: ${idx.confidence.toFixed(2)}, sources: ${idx.sources.join(', ')})`);
+    }
+  }
+  if (!anyIndex) lines.push('  No indices computed — insufficient proxy lift data.');
+
+  // Phase scores
+  lines.push('\n--- Phase Scores ---');
+  if (signals.phase_scores.length === 0) {
+    lines.push('  No phase rules fired — ask the lifter where they fail.');
+  } else {
+    for (const ps of signals.phase_scores) {
+      lines.push(`  ${ps.phase_id}: ${ps.points} pts`);
+    }
+  }
+  lines.push(`  PRIMARY PHASE: ${signals.primary_phase} (confidence: ${signals.primary_phase_confidence.toFixed(2)}${signals.phase_tie ? ', TIE — ask confirmatory question' : ''})`);
+  if (signals.secondary_phase) lines.push(`  Secondary phase: ${signals.secondary_phase}`);
+
+  // Hypotheses
+  lines.push('\n--- Hypothesis Scores (top ranked) ---');
+  for (const h of signals.hypothesis_scores) {
+    lines.push(`  [${h.score}/100] ${h.label} (${h.category})`);
+    for (const ev of h.evidence) {
+      lines.push(`    • ${ev}`);
+    }
+  }
+
+  // Archetype
+  lines.push('\n--- Dominance Archetype ---');
+  lines.push(`  ${signals.dominance_archetype.label}`);
+  lines.push(`  ${signals.dominance_archetype.rationale}`);
+  lines.push(`  Delta: ${signals.dominance_archetype.delta_key} = ${signals.dominance_archetype.delta_value} index points (confidence: ${signals.dominance_archetype.confidence.toFixed(2)})`);
+
+  // Efficiency score
+  lines.push('\n--- Efficiency Score ---');
+  lines.push(`  Score: ${signals.efficiency_score.score}/100`);
+  lines.push(`  ${signals.efficiency_score.explanation}`);
+  if (signals.efficiency_score.deductions.length > 0) {
+    for (const d of signals.efficiency_score.deductions) {
+      lines.push(`    −${d.points}: ${d.reason}`);
+    }
+  }
+
+  // Validation test
+  lines.push('\n--- Validation Test ---');
+  lines.push(`  "${signals.validation_test.description}"`);
+  lines.push(`  How to run: ${signals.validation_test.how_to_run}`);
+  lines.push(`  Tests: ${signals.validation_test.hypothesis_tested}`);
+  if (signals.validation_test.fallback_used) {
+    lines.push(`  [Fallback test used: ${signals.validation_test.fallback_reason}]`);
+  }
+
+  // Data gaps
+  if (signals.data_gaps.length > 0) {
+    lines.push('\n--- Data Gaps (PRIORITIZE resolving these in interview) ---');
+    for (const gap of signals.data_gaps) {
+      lines.push(`  [${gap.severity.toUpperCase()}] ${gap.key}: ${gap.reason}`);
+    }
+  }
+
+  lines.push('\n=== END DIAGNOSTIC SIGNALS ===');
+  return lines.join('\n');
+}
+
+// ─── Stage 1: Initial Analysis ────────────────────────────────────────────────
+
+/**
+ * Analyzes user's snapshot data and generates 3 tailored diagnostic questions.
+ * Runs the deterministic diagnostic engine first, then uses the LLM to explain
+ * and generate targeted questions.
  */
 export async function generateInitialAnalysis(
   context: DiagnosticContext
 ): Promise<InitialAnalysisResult> {
   const lift = getLiftById(context.selectedLift);
   const biomechanics = getBiomechanicsForLift(context.selectedLift);
-  
+
   if (!lift || !biomechanics) {
     throw new Error('Invalid lift selected or biomechanics data not found');
   }
@@ -57,69 +184,65 @@ export async function generateInitialAnalysis(
     throw new Error('No snapshot data provided for analysis');
   }
 
-  // Build comprehensive prompt for initial analysis
+  // Run the deterministic engine first
+  const engineInput = {
+    liftId: context.selectedLift,
+    primaryExerciseId: context.selectedLift,
+    snapshots: toSnapshotInputs(context.snapshots),
+    flags: context.sessionFlags ?? {},
+    bodyweightLbs: context.bodyweightLbs ?? 185,
+    trainingAge: normalizeTrainingAge(context.trainingAge),
+    equipment: normalizeEquipment(context.equipment)
+  };
+
+  const signals = runDiagnosticEngine(engineInput);
+  const signalsBlock = formatSignalsForPrompt(signals);
+
   const systemPrompt = `You are an expert strength coach analyzing a lifter's strength profile for ${lift.name}.
 
-TARGET LIFT: ${lift.name}
-USER'S GOAL: Increase strength in ${lift.name}
+${signalsBlock}
 
-BIOMECHANICS KNOWLEDGE - ${lift.name}:
+IMPORTANT INSTRUCTIONS:
+- Do NOT recompute ratios or e1RMs. Use the pre-computed signals above verbatim.
+- Reference actual numbers from the signals in your analysis and questions.
+- If primary_phase_confidence is below 0.4 or phase_tie is true, your questions MUST include a direct phase-confirmation question.
+- Use data_gaps to identify what proxy lift information is missing. Ask interview questions that fill the highest-severity gaps.
+- The dominance archetype and efficiency score should inform your narrative but not be stated numerically to the user — translate them into coaching language.
+
+BIOMECHANICS CONTEXT — ${lift.name}:
 ${biomechanics.movementPhases.map(phase => `
-Phase: ${phase.phaseName} (${phase.rangeOfMotion})
-- Mechanical Focus: ${phase.mechanicalFocus}
-- Primary Muscles: ${phase.primaryMuscles.map(m => `${m.muscle} (${m.role})`).join(', ')}
-- Common Failure: ${phase.commonFailurePoint}
+Phase: ${phase.phaseName}
+- Primary: ${phase.primaryMuscles.map(m => m.muscle).join(', ')}
+- Common failure: ${phase.commonFailurePoint}
 `).join('\n')}
 
-EXPECTED STRENGTH RATIOS:
-${biomechanics.strengthRatios.map(ratio => `
-- ${ratio.comparisonExercise}: ${ratio.expectedRatio}
-  Interpretation: ${ratio.interpretation}
-`).join('\n')}
+USER SNAPSHOT:
+${context.snapshots.map(s => `- ${s.exerciseName}: ${s.weight} lbs × ${s.sets}×${s.repsSchema}${s.rpeOrRir ? ` @ ${s.rpeOrRir}` : ''}`).join('\n')}
 
-COMMON WEAKNESSES FOR THIS LIFT:
-${biomechanics.commonWeaknesses.map((w, i) => `${i + 1}. ${w}`).join('\n')}
-
-USER'S CURRENT STRENGTH SNAPSHOT:
-${context.snapshots.map(s => `- ${s.exerciseName}: ${s.weight} lbs × ${s.sets} sets × ${s.repsSchema} reps${s.rpeOrRir ? ` @ ${s.rpeOrRir}` : ''}`).join('\n')}
+TRAINING CONTEXT:
+- Training age: ${context.trainingAge || 'unknown'}
+- Goal: ${context.goal || 'strength'}
+- Equipment: ${context.equipment || 'commercial'}
 
 YOUR TASK:
-1. Analyze the user's working weights and reps for exercises related to ${lift.name}
-2. Calculate strength ratios between main lift and accessories (compare actual % to expected %)
-3. Identify which muscles appear stronger/weaker based on these ratios
-4. Determine which phase of ${lift.name} is likely their limiting factor
-5. Consider body structure implications (e.g., high hip thrust vs squat suggests posterior-chain dominance)
-6. Think like an experienced coach piecing together their profile from the numbers
-
-Based on this analysis, generate EXACTLY 3 targeted diagnostic questions that will help identify:
-- Which specific phase of the lift they fail at (bottom, mid-range, lockout)
-- Whether the issue is muscular weakness, technical breakdown, or both
-- What their subjective experience is (where they feel weak, where bar slows, etc.)
-
-RULES FOR QUESTIONS:
-- Make them specific to the user's strength profile you just analyzed
-- Reference actual numbers and ratios (e.g., "Your close-grip bench at 140 lbs is 76% of your flat bench 185 lbs, which is below the typical 85-95%. Do you find...")
-- Connect the dots between multiple lifts when possible (e.g., "Given your strong overhead press but weak close-grip bench...")
-- Ask about their subjective experience to confirm what the numbers suggest
-- Keep questions clear, concise, and easy to answer
-- Each question should target a different aspect (phase of lift, muscle group, technique)
-- Make it feel like a coach who's studied their numbers is asking intelligent follow-ups
+1. Write a 2–3 paragraph analysis that:
+   a) States key ratios and what they reveal (use signal numbers, not your own math)
+   b) Interprets the top hypothesis and archetype in coaching language
+   c) Notes any uncertainty (low confidence phase, data gaps)
+2. Generate EXACTLY 3 targeted diagnostic questions that:
+   - Question 1: Confirms or challenges the PRIMARY PHASE (must reference the specific phase from signals)
+   - Question 2: Probes the TOP HYPOTHESIS (muscle/mechanical/stability) with specifics from their numbers
+   - Question 3: Either resolves a HIGH-severity data gap OR asks about subjective experience to confirm/refute the hypothesis
+3. List 1–3 identified weaknesses with ratio evidence from the signals.
 
 OUTPUT FORMAT (JSON):
 {
-  "analysis": "2-3 paragraph analysis that: 1) States the key ratios with actual numbers, 2) Interprets what these ratios mean (which muscles, which phase), 3) May infer body structure/leverages if ratios are telling (e.g., strong hip thrust vs weak squat suggests posterior-chain dominance), 4) Connects multiple lifts into a coherent story",
-  "tailoredQuestions": [
-    "Question 1 that references specific numbers/ratios and asks about phase or sticking point",
-    "Question 2 that connects dots between lifts and asks about muscle fatigue or weakness",
-    "Question 3 that asks about subjective experience to confirm what the data suggests"
-  ],
-  "identifiedWeaknesses": [
-    "Specific weakness 1 with ratio evidence (e.g., 'Triceps lockout - close-grip bench 76% of flat bench, below expected 85-95%')",
-    "Specific weakness 2 with ratio evidence"
-  ]
+  "analysis": "...",
+  "tailoredQuestions": ["question1", "question2", "question3"],
+  "identifiedWeaknesses": ["weakness with ratio evidence", ...]
 }
 
-TONE: Be specific, reference actual numbers, calculate ratios, and make it feel like an experienced coach analyzing their profile. Connect the dots between multiple lifts. Think like the ChatGPT deadlift analysis example - use numbers to tell a story about their structure and limiters.`;
+TONE: Specific, data-driven, coach-like. Reference actual numbers from the signals.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -128,7 +251,7 @@ TONE: Be specific, reference actual numbers, calculate ratios, and make it feel 
       { role: 'user', content: 'Analyze the snapshot data and generate 3 tailored diagnostic questions.' }
     ],
     temperature: 0.6,
-    max_tokens: 800,
+    max_tokens: 900,
     response_format: { type: 'json_object' }
   });
 
@@ -138,9 +261,12 @@ TONE: Be specific, reference actual numbers, calculate ratios, and make it feel 
   return {
     analysis: result.analysis || 'Analysis not available',
     tailoredQuestions: result.tailoredQuestions || [],
-    identifiedWeaknesses: result.identifiedWeaknesses || []
+    identifiedWeaknesses: result.identifiedWeaknesses || [],
+    signals
   };
 }
+
+// ─── Stage 2: Diagnostic Interview ───────────────────────────────────────────
 
 export async function generateDiagnosticQuestion(
   context: DiagnosticContext
@@ -151,58 +277,64 @@ export async function generateDiagnosticQuestion(
   }
 
   const questionCount = context.conversationHistory.filter(m => m.role === 'assistant').length;
-  
-  // Max 8 questions as per spec
+
   if (questionCount >= 8) {
-    return {
-      complete: true,
-      needsMoreInfo: false
-    };
+    return { complete: true, needsMoreInfo: false };
   }
 
-  // Build system prompt with lift knowledge
+  // Run engine with current flags to get live signals for the interview
+  const signals = runDiagnosticEngine({
+    liftId: context.selectedLift,
+    primaryExerciseId: context.selectedLift,
+    snapshots: toSnapshotInputs(context.snapshots),
+    flags: context.sessionFlags ?? {},
+    bodyweightLbs: context.bodyweightLbs ?? 185,
+    trainingAge: normalizeTrainingAge(context.trainingAge),
+    equipment: normalizeEquipment(context.equipment)
+  });
+
+  // Compact signals summary for interview (just the most action-relevant parts)
+  const interviewSignalsSummary = [
+    `Primary phase: ${signals.primary_phase} (confidence: ${signals.primary_phase_confidence.toFixed(2)}${signals.phase_tie ? ', TIE' : ''})`,
+    `Top hypothesis: ${signals.hypothesis_scores[0]?.label ?? 'none'} (${signals.hypothesis_scores[0]?.score ?? 0}/100)`,
+    signals.data_gaps.length > 0
+      ? `High-priority data gaps: ${signals.data_gaps.filter(g => g.severity === 'high').map(g => g.key).join(', ') || 'none'}`
+      : 'No high-severity data gaps.'
+  ].join('\n');
+
   const systemPrompt = `You are an expert strength coach conducting a diagnostic interview for ${lift.name}.
 
-Your goal: Identify the PRIMARY limiting factor(s) preventing this lifter from progressing.
+CURRENT ENGINE SIGNALS:
+${interviewSignalsSummary}
+
+IMPORTANT: Do NOT recompute ratios. Your job in the interview is to:
+1. Ask questions that CONFIRM or REFUTE the top hypothesis via subjective experience
+2. Resolve any high-priority data gaps (ask the lifter if they do those exercises)
+3. Confirm the primary phase if confidence is low or there is a tie
 
 LIFT PHASES:
-${lift.phases.map(p => `- ${p.name}: ${p.description}\n  Common issues: ${p.commonIssues.join(', ')}`).join('\n')}
+${lift.phases.map(p => `- ${p.name}: ${p.description}\n  Issues: ${p.commonIssues.join(', ')}`).join('\n')}
 
 POSSIBLE LIMITERS:
-${lift.commonLimiters.map(l => `- ${l.name}: ${l.description}\n  Key questions: ${l.diagnosticQuestions.join('; ')}`).join('\n\n')}
+${lift.commonLimiters.map(l => `- ${l.name}: ${l.description}`).join('\n')}
 
 CONTEXT:
 - Training Age: ${context.trainingAge || 'unknown'}
 - Goal: ${context.goal || 'general strength'}
-- Equipment: ${context.equipment || 'commercial gym'}
-${context.constraints ? `- Constraints: ${context.constraints}` : ''}
-
-${context.snapshots && context.snapshots.length > 0 ? `
-STRENGTH SNAPSHOT:
-${context.snapshots.map(s => `- ${s.exerciseName}: ${s.weight}kg × ${s.sets}×${s.repsSchema}${s.rpeOrRir ? ` @ ${s.rpeOrRir}` : ''}`).join('\n')}
-` : ''}
+- Equipment: ${context.equipment || 'commercial'}
 
 RULES:
 1. Ask ONE specific, clear question per turn
-2. Focus on subjective experience: sticking points, fatigue patterns, bar path, form breakdown
-3. Build on previous answers to narrow down the diagnosis
-4. Keep questions concise and easy to answer
-5. After 4-6 questions, you should have enough info to diagnose
-6. If the user provides detailed information, you may conclude sooner
+2. Build on previous answers — do not repeat themes
+3. After 4–6 questions with clear answers, you should have enough to finalize diagnosis
+4. If you have sufficient confirmation of phase + top hypothesis, respond with DIAGNOSIS_READY
 
-Current question count: ${questionCount}/8
-
-Based on the conversation so far, determine:
-- If you have enough information to make a diagnosis (respond with "DIAGNOSIS_READY")
-- OR ask the next most valuable diagnostic question
-
-Be direct and natural in your questioning style.`;
+Current question count: ${questionCount}/8`;
 
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt }
   ];
 
-  // Add conversation history
   context.conversationHistory.forEach(msg => {
     messages.push({
       role: msg.role === 'user' ? 'user' : 'assistant',
@@ -210,12 +342,11 @@ Be direct and natural in your questioning style.`;
     });
   });
 
-  // Add instruction for next question
   messages.push({
     role: 'user',
-    content: questionCount === 0 
+    content: questionCount === 0
       ? 'Begin the diagnostic interview with the most important question to identify the limiting factor.'
-      : 'Based on the user\'s response, ask your next diagnostic question or indicate DIAGNOSIS_READY if you have sufficient information.'
+      : "Based on the user's response, ask your next diagnostic question or indicate DIAGNOSIS_READY if you have sufficient information."
   });
 
   const response = await openai.chat.completions.create({
@@ -228,18 +359,13 @@ Be direct and natural in your questioning style.`;
   const assistantMessage = response.choices[0].message.content || '';
 
   if (assistantMessage.includes('DIAGNOSIS_READY') || questionCount >= 6) {
-    return {
-      complete: true,
-      needsMoreInfo: false
-    };
+    return { complete: true, needsMoreInfo: false };
   }
 
-  return {
-    question: assistantMessage,
-    complete: false,
-    needsMoreInfo: true
-  };
+  return { question: assistantMessage, complete: false, needsMoreInfo: true };
 }
+
+// ─── Stage 3: Workout Plan ────────────────────────────────────────────────────
 
 export interface WorkoutPlan {
   selected_lift: string;
@@ -269,6 +395,20 @@ export interface WorkoutPlan {
   };
   progression_rules: string[];
   track_next_time: string[];
+  // New fields from diagnostic engine
+  dominance_archetype: {
+    label: string;
+    rationale: string;
+  };
+  efficiency_score: {
+    score: number;
+    explanation: string;
+  };
+  validation_test: {
+    description: string;
+    how_to_run: string;
+    hypothesis_tested: string;
+  };
 }
 
 export async function generateWorkoutPlan(
@@ -276,23 +416,39 @@ export async function generateWorkoutPlan(
 ): Promise<WorkoutPlan> {
   const lift = getLiftById(context.selectedLift);
   const biomechanics = getBiomechanicsForLift(context.selectedLift);
-  
+
   if (!lift || !biomechanics) {
     throw new Error('Invalid lift selected or biomechanics data not found');
   }
 
-  // Build comprehensive snapshot summary with ratios
+  // Run engine with all accumulated flags from interview
+  const signals = runDiagnosticEngine({
+    liftId: context.selectedLift,
+    primaryExerciseId: context.selectedLift,
+    snapshots: toSnapshotInputs(context.snapshots),
+    flags: context.sessionFlags ?? {},
+    bodyweightLbs: context.bodyweightLbs ?? 185,
+    trainingAge: normalizeTrainingAge(context.trainingAge),
+    equipment: normalizeEquipment(context.equipment)
+  });
+
+  const signalsBlock = formatSignalsForPrompt(signals);
+
   const snapshotSummary = context.snapshots && context.snapshots.length > 0
-    ? context.snapshots.map(s => {
-        const lbs = s.weight;
-        const kg = s.weight * 0.453592; // Convert to kg for consistency
-        return `- ${s.exerciseName}: ${lbs} lbs (${kg.toFixed(1)} kg) × ${s.sets} sets × ${s.repsSchema} reps${s.rpeOrRir ? ` @ ${s.rpeOrRir}` : ''}`;
-      }).join('\n')
+    ? context.snapshots.map(s =>
+        `- ${s.exerciseName}: ${s.weight} lbs × ${s.sets}×${s.repsSchema}${s.rpeOrRir ? ` @ ${s.rpeOrRir}` : ''}`
+      ).join('\n')
     : 'No snapshot data available';
 
-  const systemPrompt = `You are an expert strength coach creating a personalized training plan.
+  const systemPrompt = `You are an expert strength coach creating a personalized training plan for ${lift.name}.
 
-You must analyze the diagnostic conversation AND the user's strength snapshot to generate a structured workout plan in JSON format.
+${signalsBlock}
+
+CRITICAL INSTRUCTIONS:
+- Do NOT recompute ratios or e1RMs. The signals above are the ground truth.
+- Your job is to: (1) write evidence narratives using signal data, (2) prescribe accessories targeting the top hypotheses, (3) include the validation test verbatim.
+- Evidence must cite actual numbers and ratios from the signals — not generic statements.
+- The validation_test in your output must match the one provided in the signals above.
 
 LIFT: ${lift.name}
 TRAINING AGE: ${context.trainingAge || 'intermediate'}
@@ -300,93 +456,29 @@ GOAL: ${context.goal || 'strength_peak'}
 EQUIPMENT: ${context.equipment || 'commercial'}
 ${context.constraints ? `CONSTRAINTS: ${context.constraints}` : ''}
 
-BIOMECHANICS KNOWLEDGE - ${lift.name}:
-${biomechanics.movementPhases.map(phase => `
-Phase: ${phase.phaseName}
-- Primary Muscles: ${phase.primaryMuscles.map(m => m.muscle).join(', ')}
-- Mechanical Focus: ${phase.mechanicalFocus}
-- Common Failure: ${phase.commonFailurePoint}
-`).join('\n')}
-
-EXPECTED STRENGTH RATIOS:
-${biomechanics.strengthRatios.map(ratio => `
-- ${ratio.comparisonExercise}: ${ratio.expectedRatio}
-  ${ratio.interpretation}
-`).join('\n')}
-
-USER'S STRENGTH SNAPSHOT:
+USER SNAPSHOT:
 ${snapshotSummary}
 
-POSSIBLE LIMITERS FOR THIS LIFT:
+POSSIBLE LIMITERS:
 ${lift.commonLimiters.map(l => `
 - ID: ${l.id}
   Name: ${l.name}
   Description: ${l.description}
   Target Muscles: ${l.targetMuscles.join(', ')}
-  Indicator Exercises: ${l.indicatorExercises?.join(', ') || 'N/A'}
 `).join('\n')}
 
 DIAGNOSTIC CONVERSATION:
 ${context.conversationHistory.map(m => `${m.role.toUpperCase()}: ${m.message}`).join('\n\n')}
 
-Your task:
-1. FIRST: Look at the user's SNAPSHOT DATA above and calculate actual strength ratios between their exercises
-2. Identify 1-2 PRIMARY limiters based on BOTH snapshot ratios AND conversation answers
-3. Assign confidence scores (0.0-1.0) based on evidence strength
-4. For EVIDENCE, YOU MUST provide 3-5 DETAILED, SPECIFIC points. EACH evidence point MUST include:
-   a) Actual weights from their snapshot (e.g., "Front squat at 185 lbs vs back squat at 255 lbs")
-   b) Calculated ratio as a percentage (e.g., "which is only 72% of back squat")
-   c) Expected ratio for comparison (e.g., "expected 80-90%")
-   d) What this ratio indicates biomechanically
-   e) User quotes when available to confirm
-   
-   DO NOT write generic evidence like "User struggles in bottom third"
-   ALWAYS anchor evidence to specific weights and ratios from their snapshot
-5. Select the primary lift programming (sets/reps/intensity)
-6. Choose 2-4 targeted accessories that SPECIFICALLY address the identified limiters
-7. For each accessory, explain HOW it improves the compound lift (be specific about phase/muscle/mechanics)
-8. Provide clear progression rules
-9. List specific tracking metrics for next session
+YOUR TASK:
+1. Map engine's top 1–2 hypotheses to the limiter IDs above (use closest match)
+2. For each limiter, write 3–5 evidence points using actual weights, ratios, and user quotes from conversation
+3. Select primary lift programming (sets/reps/intensity) appropriate for training age and goal
+4. Choose 2–4 accessories that directly target the top hypothesis phase and muscles
+5. Include the validation test from the signals (copy how_to_run verbatim)
+6. Provide progression rules and tracking metrics
 
-CRITICAL: Evidence must be THOROUGH and include:
-- Actual weights from snapshot with ratio calculations (e.g., "Close-grip bench at 140 lbs is only 76% of flat bench 185 lbs, below expected 85-95%")
-- Biomechanics explanations (which muscle, which phase of lift, why it matters)
-- Direct user quotes from diagnostic conversation
-- Technical reasoning that connects the dots
-- Body structure inferences when relevant (e.g., "This ratio pattern suggests longer limbs/posterior chain dominance")
-
-STYLE GUIDE FOR EVIDENCE:
-- Be specific and data-driven like an experienced coach analyzing numbers
-- Calculate and cite exact ratios (e.g., "Your X is Y% of your Z, which indicates...")
-- Connect multiple lifts to tell a coherent story (e.g., "Strong hip thrust but weak squat suggests...")
-- Explain what ratios reveal about structure/leverages when applicable
-- Make it feel like a conversation with an expert who's piecing together your profile
-
-EXAMPLES OF GREAT EVIDENCE (like an expert coach):
-
-Example 1 (Bench Press):
-"Close-grip bench at 140 lbs is only 76% of flat bench 185 lbs (expected 85-95%). This ratio indicates your triceps are limiting the lockout phase (final 20% of ROM where triceps dominate elbow extension). Combined with your report that 'the bar slows down in the final 2 inches', this confirms triceps strength is your primary limiter, not chest or shoulder strength."
-
-Example 2 (Deadlift):
-"Hip thrust at 545 lbs × 7 (~670 lb 1RM) is massively ahead of your deadlift at 365 × 3 (~405 lb 1RM). This means your glutes are overqualified for your current deadlift - they're not the limiter. The issue is likely earlier in the pull: spinal erectors, lats keeping bar close, or initial leg drive. User reported: 'lockout feels easy but getting it off the floor is hard.'"
-
-Example 3 (Squat):
-"Front squat at 185 lbs is only 72% of back squat at 255 lbs (expected 80-90%). This lower-than-expected ratio suggests either quad strength is limiting or upper back can't maintain upright position. User mentioned: 'torso collapses forward on heavier sets.'"
-
-MANDATORY REQUIREMENTS FOR EVIDENCE:
-- AT LEAST 2 evidence points MUST include specific weights from the user's snapshot with calculated ratios
-- AT LEAST 1 evidence point MUST reference OTHER exercises from their snapshot to rule in/out other limiters
-- AT LEAST 1 evidence point MUST include direct user quotes from the diagnostic conversation
-- Each evidence point should be 2-3 sentences, not just one generic statement
-- DO NOT write generic statements like "User struggles in bottom third" - instead use actual snapshot data
-
-BAD Evidence Example (too generic):
-"User struggles most in the bottom third of the squat, indicating potential quad weakness."
-
-GOOD Evidence Example (uses actual data):
-"Front squat at 185 lbs is only 72% of back squat 255 lbs (expected 80-90%). This below-expected ratio specifically indicates quad weakness, as front squats are more quad-dominant. User reported: 'I collapse in the hole on heavy sets.'"
-
-OUTPUT ONLY VALID JSON in this exact structure:
+OUTPUT ONLY VALID JSON:
 {
   "diagnosis": [
     {
@@ -394,11 +486,9 @@ OUTPUT ONLY VALID JSON in this exact structure:
       "limiterName": "Human readable name",
       "confidence": 0.75,
       "evidence": [
-        "Front squat at 185 lbs is only 72% of back squat 255 lbs (expected 80-90%), indicating quad weakness as front squats are quad-dominant",
-        "Leg press at XXX lbs shows... [use actual snapshot data]",
-        "Hip thrust at XXX lbs is strong (YY% of squat), ruling out posterior chain as the limiter",
-        "User reported: 'I collapse in the hole on heavy sets' - confirming quad weakness in bottom position",
-        "Biomechanics: Quads are primary movers in bottom third of squat where user fails"
+        "Specific evidence with actual weights and ratios from the signals",
+        "User quote from conversation if available",
+        "Biomechanical explanation of why this matters"
       ]
     }
   ],
@@ -414,21 +504,13 @@ OUTPUT ONLY VALID JSON in this exact structure:
       "exercise_name": "Exercise Name",
       "sets": 3,
       "reps": "8-10",
-      "why": "Brief explanation of why this helps the limiter",
+      "why": "Specific explanation of how this targets the identified phase/hypothesis",
       "category": "targeted|stability|hypertrophy"
     }
   ],
-  "progression_rules": [
-    "When to add weight",
-    "How to progress"
-  ],
-  "track_next_time": [
-    "What to observe",
-    "What to measure"
-  ]
-}
-
-Be specific, evidence-based, and conservative with volume. Respond ONLY with the JSON.`;
+  "progression_rules": ["..."],
+  "track_next_time": ["..."]
+}`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -444,7 +526,6 @@ Be specific, evidence-based, and conservative with volume. Respond ONLY with the
   const content = response.choices[0].message.content || '{}';
   const planData = JSON.parse(content);
 
-  // Construct the full plan with lift info
   const plan: WorkoutPlan = {
     selected_lift: context.selectedLift,
     diagnosis: planData.diagnosis || [],
@@ -460,7 +541,21 @@ Be specific, evidence-based, and conservative with volume. Respond ONLY with the
       accessories: planData.accessories || []
     },
     progression_rules: planData.progression_rules || ['Add weight when all sets completed at target RIR'],
-    track_next_time: planData.track_next_time || ['Sticking point location', 'RPE at same load']
+    track_next_time: planData.track_next_time || ['Sticking point location', 'RPE at same load'],
+    // Directly from engine — not from LLM
+    dominance_archetype: {
+      label: signals.dominance_archetype.label,
+      rationale: signals.dominance_archetype.rationale
+    },
+    efficiency_score: {
+      score: signals.efficiency_score.score,
+      explanation: signals.efficiency_score.explanation
+    },
+    validation_test: {
+      description: signals.validation_test.description,
+      how_to_run: signals.validation_test.how_to_run,
+      hypothesis_tested: signals.validation_test.hypothesis_tested
+    }
   };
 
   return plan;
