@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye, TrendingUp, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -456,6 +456,82 @@ export default function Plan() {
                 ))}
               </div>
             </Card>
+
+            {plan.dominance_archetype && (
+              <Card className="glass p-6">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
+                    <Activity className="h-4 w-4 text-primary" strokeWidth={1.8} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">
+                      Strength Profile
+                    </div>
+                    <div className="mt-1 font-serif text-xl">
+                      {plan.dominance_archetype.label}
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+                  {plan.dominance_archetype.rationale}
+                </p>
+              </Card>
+            )}
+
+            {plan.efficiency_score && (
+              <Card className="glass p-6">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
+                    <TrendingUp className="h-4 w-4 text-primary" strokeWidth={1.8} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-muted-foreground">
+                      Movement Efficiency
+                    </div>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="font-serif text-2xl">{plan.efficiency_score.score}</span>
+                      <span className="text-xs text-muted-foreground">/ 100</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${plan.efficiency_score.score}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                  {plan.efficiency_score.explanation}
+                </p>
+              </Card>
+            )}
+
+            {plan.validation_test && (
+              <Card className="glass p-6">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
+                    <Target className="h-4 w-4 text-primary" strokeWidth={1.8} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground">
+                      Validation Test
+                    </div>
+                    <div className="mt-1 font-serif text-xl">
+                      {plan.validation_test.description}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">How to run</div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {plan.validation_test.how_to_run}
+                  </p>
+                  <Badge variant="secondary" className="text-xs mt-2">
+                    Tests: {plan.validation_test.hypothesis_tested}
+                  </Badge>
+                </div>
+              </Card>
+            )}
 
             <div className="flex justify-center">
               <Button

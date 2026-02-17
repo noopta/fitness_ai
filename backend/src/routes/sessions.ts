@@ -200,15 +200,21 @@ router.post('/sessions/:id/messages', async (req, res) => {
         rpeOrRir: s.rpeOrRir || undefined
       };
     });
-    
+
     const conversationHistory = session.messages.map(m => ({
       role: m.role as 'user' | 'assistant',
       message: m.message
     }));
-    
+
+    const bodyweightLbs = session.user?.weightKg
+      ? session.user.weightKg * 2.20462
+      : undefined;
+
+    const sessionFlags = parseSessionFlags(conversationHistory.map(m => m.message).join(' '));
+
     // Check if this is the very first interaction (no previous assistant messages)
     const assistantMessageCount = conversationHistory.filter(m => m.role === 'assistant').length;
-    
+
     if (assistantMessageCount === 0 && snapshots.length > 0) {
       // First interaction - generate initial analysis and tailored questions
       try {
@@ -218,6 +224,8 @@ router.post('/sessions/:id/messages', async (req, res) => {
           goal: session.goal || undefined,
           equipment: session.user?.equipment || undefined,
           constraints: session.user?.constraintsText || undefined,
+          bodyweightLbs,
+          sessionFlags,
           snapshots,
           conversationHistory
         });
@@ -255,6 +263,8 @@ router.post('/sessions/:id/messages', async (req, res) => {
       goal: session.goal || undefined,
       equipment: session.user?.equipment || undefined,
       constraints: session.user?.constraintsText || undefined,
+      bodyweightLbs,
+      sessionFlags,
       snapshots,
       conversationHistory
     });
@@ -320,12 +330,18 @@ router.post('/sessions/:id/generate', async (req, res) => {
         rpeOrRir: s.rpeOrRir || undefined
       };
     });
-    
+
     const conversationHistory = session.messages.map(m => ({
       role: m.role as 'user' | 'assistant',
       message: m.message
     }));
-    
+
+    const bodyweightLbs = session.user?.weightKg
+      ? session.user.weightKg * 2.20462
+      : undefined;
+
+    const sessionFlags = parseSessionFlags(conversationHistory.map(m => m.message).join(' '));
+
     // Generate plan
     const plan = await generateWorkoutPlan({
       selectedLift: session.selectedLift,
@@ -333,6 +349,8 @@ router.post('/sessions/:id/generate', async (req, res) => {
       goal: session.goal || undefined,
       equipment: session.user?.equipment || undefined,
       constraints: session.user?.constraintsText || undefined,
+      bodyweightLbs,
+      sessionFlags,
       snapshots,
       conversationHistory
     });
@@ -399,6 +417,29 @@ router.get('/sessions/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch session' });
   }
 });
+
+// Parse conversational text into structured SessionFlags for the diagnostic engine
+function parseSessionFlags(text: string): Record<string, boolean> {
+  const flags: Record<string, boolean> = {};
+
+  if (/hard.{0,20}(off|from|at|on).{0,10}(chest|bottom|floor|start)/i.test(text)) flags.hard_off_chest = true;
+  if (/hard.{0,20}(off|from|at|on).{0,10}floor/i.test(text)) flags.hard_off_floor = true;
+  if (/hard.{0,20}(mid|middle|half)/i.test(text)) flags.hard_mid_range = true;
+  if (/hard.{0,20}lock(out|ing)/i.test(text) || /fail.{0,20}lock(out|ing)/i.test(text)) flags.hard_at_lockout = true;
+  if (/bar.{0,15}drift/i.test(text)) flags.bar_drifts = true;
+  if (/bar.{0,15}(drift|move|shift).{0,15}forward/i.test(text)) flags.bar_drifts_forward = true;
+  if (/hip.{0,15}shoot/i.test(text) || /hips.{0,10}(rise|up|high)/i.test(text)) flags.hips_shoot_up = true;
+  if (/chest.{0,15}drop/i.test(text) || /elbows.{0,15}(flare|out)/i.test(text)) flags.elbows_flare_early = true;
+  if (/back.{0,15}round/i.test(text) || /round.{0,15}back/i.test(text)) flags.back_rounds = true;
+  if (/lower back.{0,20}(pain|sore|tight|feel)/i.test(text)) flags.feel_lower_back = true;
+  if (/shoulder.{0,15}(pain|discomfort|hurt)/i.test(text)) flags.shoulder_discomfort = true;
+  if (/mobility.{0,15}(issue|problem|limit|restrict)/i.test(text)) flags.mobility_restriction = true;
+  if (/grip.{0,15}(limit|fail|slip|weak)/i.test(text)) flags.grip_limiting = true;
+  if (/pause.{0,20}(harder|harder|worse)/i.test(text)) flags.pause_much_harder = true;
+  if (/touch.{0,20}(inconsistent|vary|different|spot)/i.test(text)) flags.touch_point_inconsistent = true;
+
+  return flags;
+}
 
 function formatPlanAsText(plan: any): string {
   let text = `# ${plan.bench_day_plan.primary_lift.exercise_name} Training Plan\n\n`;

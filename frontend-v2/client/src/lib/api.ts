@@ -27,7 +27,7 @@ export interface ProfileData {
   trainingAge?: string;
   goal?: string;
   injuries?: string[];
-  equipment?: string[];
+  equipment?: string | string[];
   constraintsText?: string;
 }
 
@@ -98,6 +98,19 @@ export interface WorkoutPlan {
   };
   progression_rules: string[];
   track_next_time: string[];
+  dominance_archetype?: {
+    label: string;
+    rationale: string;
+  };
+  efficiency_score?: {
+    score: number;
+    explanation: string;
+  };
+  validation_test?: {
+    description: string;
+    how_to_run: string;
+    hypothesis_tested: string;
+  };
 }
 
 export interface GeneratePlanResponse {

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { liftCoachApi } from "@/lib/api";
 import { LucideIcon } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -62,6 +63,8 @@ export default function Onboarding() {
   const [heightInches, setHeightInches] = useState<number | undefined>();
   const [weightLbs, setWeightLbs] = useState<number | undefined>();
   const [constraints, setConstraints] = useState<string>("");
+  const [trainingAge, setTrainingAge] = useState<string>("intermediate");
+  const [equipment, setEquipment] = useState<string>("commercial");
 
   // Load cached data on mount
   useEffect(() => {
@@ -73,6 +76,8 @@ export default function Onboarding() {
     const cachedHeightInches = localStorage.getItem("liftoff_cached_height_inches");
     const cachedWeightLbs = localStorage.getItem("liftoff_cached_weight_lbs");
     const cachedConstraints = localStorage.getItem("liftoff_cached_constraints");
+    const cachedTrainingAge = localStorage.getItem("liftoff_cached_training_age");
+    const cachedEquipment = localStorage.getItem("liftoff_cached_equipment");
 
     if (cachedLift) setSelectedLift(cachedLift);
     if (cachedCurrentWeight) setCurrentWeight(parseFloat(cachedCurrentWeight));
@@ -82,6 +87,8 @@ export default function Onboarding() {
     if (cachedHeightInches) setHeightInches(parseFloat(cachedHeightInches));
     if (cachedWeightLbs) setWeightLbs(parseFloat(cachedWeightLbs));
     if (cachedConstraints) setConstraints(cachedConstraints);
+    if (cachedTrainingAge) setTrainingAge(cachedTrainingAge);
+    if (cachedEquipment) setEquipment(cachedEquipment);
   }, []);
 
   // Save data to cache whenever it changes
@@ -117,6 +124,14 @@ export default function Onboarding() {
     localStorage.setItem("liftoff_cached_constraints", constraints);
   }, [constraints]);
 
+  useEffect(() => {
+    localStorage.setItem("liftoff_cached_training_age", trainingAge);
+  }, [trainingAge]);
+
+  useEffect(() => {
+    localStorage.setItem("liftoff_cached_equipment", equipment);
+  }, [equipment]);
+
   const handleContinue = async () => {
     if (!selectedLift) return;
 
@@ -125,6 +140,8 @@ export default function Onboarding() {
       // Convert imperial to metric
       const profile: any = {
         constraintsText: constraints || undefined,
+        trainingAge,
+        equipment,
       };
 
       if (heightFeet !== undefined) {
@@ -133,6 +150,8 @@ export default function Onboarding() {
 
       if (weightLbs !== undefined) {
         profile.weightKg = lbToKg(weightLbs);
+        // Store raw lbs so engine can use bodyweightLbs directly
+        localStorage.setItem("liftoff_cached_weight_lbs", weightLbs.toString());
       }
 
       // Store current lift stats for context
@@ -278,6 +297,36 @@ export default function Onboarding() {
             <div className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label>Training Age</Label>
+                  <Select value={trainingAge} onValueChange={setTrainingAge}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner (&lt;1 year)</SelectItem>
+                      <SelectItem value="intermediate">Intermediate (1–3 years)</SelectItem>
+                      <SelectItem value="advanced">Advanced (3+ years)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Equipment Access</Label>
+                  <Select value={equipment} onValueChange={setEquipment}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="commercial">Commercial Gym (full)</SelectItem>
+                      <SelectItem value="limited">Limited (barbells + dumbbells)</SelectItem>
+                      <SelectItem value="home">Home Gym (minimal)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label>Height</Label>
                   <div className="flex gap-2">
                     <div className="flex-1">
@@ -310,7 +359,7 @@ export default function Onboarding() {
                     onChange={(e) => setWeightLbs(Number(e.target.value))}
                   />
                 </div>
-              </div>
+              </div>{/* end height/weight grid */}
 
               <div className="space-y-2">
                 <Label>Injuries or Constraints (Optional)</Label>
