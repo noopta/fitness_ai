@@ -37,9 +37,15 @@ const createSessionSchema = z.object({
 const addSnapshotSchema = z.object({
   exerciseId: z.string(),
   weight: z.number(),
-  sets: z.number(),
-  repsSchema: z.string(),
-  rpeOrRir: z.string().optional()
+  weightUnit: z.string().optional(),
+  reps: z.number(),
+  sets: z.number().optional().default(1),
+  rpe: z.number().optional(),
+  date: z.string().optional()
+});
+
+const addSnapshotsSchema = z.object({
+  snapshots: z.array(addSnapshotSchema)
 });
 
 const addMessageSchema = z.object({
@@ -83,26 +89,70 @@ router.post('/sessions', async (req, res) => {
   }
 });
 
-// POST /api/sessions/:id/snapshots - Add exercise snapshot
+// POST /api/sessions/:id/snapshots - Add exercise snapshots
 router.post('/sessions/:id/snapshots', async (req, res) => {
   try {
     const { id } = req.params;
-    const data = addSnapshotSchema.parse(req.body);
-    
-    const snapshot = await prisma.exerciseSnapshot.create({
-      data: {
-        sessionId: id,
-        exerciseId: data.exerciseId,
-        weight: data.weight,
-        sets: data.sets,
-        repsSchema: data.repsSchema,
-        rpeOrRir: data.rpeOrRir
-      }
+
+    // Check if session exists
+    const sessionExists = await prisma.session.findUnique({
+      where: { id }
     });
-    
-    res.json({ snapshot });
+
+    if (!sessionExists) {
+      console.error(`Session not found: ${id}`);
+      return res.status(404).json({
+        error: 'Session not found',
+        sessionId: id,
+        message: 'Please create a session first using POST /api/sessions'
+      });
+    }
+
+    // Check if request has snapshots array or single snapshot
+    let snapshotsData;
+    if (req.body.snapshots && Array.isArray(req.body.snapshots)) {
+      // Array of snapshots
+      const validated = addSnapshotsSchema.parse(req.body);
+      snapshotsData = validated.snapshots;
+    } else {
+      // Single snapshot (legacy support)
+      const validated = addSnapshotSchema.parse(req.body);
+      snapshotsData = [validated];
+    }
+
+    console.log(`Adding ${snapshotsData.length} snapshots to session ${id}`);
+
+    // Create all snapshots
+    const createdSnapshots = await Promise.all(
+      snapshotsData.map(data =>
+        prisma.exerciseSnapshot.create({
+          data: {
+            sessionId: id,
+            exerciseId: data.exerciseId,
+            weight: data.weight,
+            sets: data.sets,
+            repsSchema: data.reps.toString(), // Convert reps to string for compatibility
+            rpeOrRir: data.rpe ? `RPE ${data.rpe}` : undefined
+          }
+        })
+      )
+    );
+
+    console.log(`✓ Successfully added ${createdSnapshots.length} snapshots`);
+
+    res.json({
+      snapshots: createdSnapshots,
+      count: createdSnapshots.length
+    });
   } catch (error) {
-    console.error('Error adding snapshot:', error);
+    console.error('Error adding snapshots:', error);
+    if (error instanceof z.ZodError) {
+      console.error('Validation errors:', error.errors);
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: error.errors
+      });
+    }
     res.status(400).json({ error: 'Invalid request data' });
   }
 });
