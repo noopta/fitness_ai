@@ -395,10 +395,11 @@ export interface WorkoutPlan {
   };
   progression_rules: string[];
   track_next_time: string[];
-  // New fields from diagnostic engine
+  // Fields from diagnostic engine
   dominance_archetype: {
     label: string;
     rationale: string;
+    delta_value?: number;
   };
   efficiency_score: {
     score: number;
@@ -408,6 +409,15 @@ export interface WorkoutPlan {
     description: string;
     how_to_run: string;
     hypothesis_tested: string;
+  };
+  // Visualization data from diagnostic engine
+  diagnostic_signals: {
+    indices: DiagnosticSignals['indices'];
+    phase_scores: DiagnosticSignals['phase_scores'];
+    primary_phase: string;
+    primary_phase_confidence: number;
+    hypothesis_scores: DiagnosticSignals['hypothesis_scores'];
+    efficiency_score: DiagnosticSignals['efficiency_score'];
   };
 }
 
@@ -545,7 +555,8 @@ OUTPUT ONLY VALID JSON:
     // Directly from engine — not from LLM
     dominance_archetype: {
       label: signals.dominance_archetype.label,
-      rationale: signals.dominance_archetype.rationale
+      rationale: signals.dominance_archetype.rationale,
+      delta_value: signals.dominance_archetype.delta_value
     },
     efficiency_score: {
       score: signals.efficiency_score.score,
@@ -555,6 +566,14 @@ OUTPUT ONLY VALID JSON:
       description: signals.validation_test.description,
       how_to_run: signals.validation_test.how_to_run,
       hypothesis_tested: signals.validation_test.hypothesis_tested
+    },
+    diagnostic_signals: {
+      indices: signals.indices,
+      phase_scores: signals.phase_scores,
+      primary_phase: signals.primary_phase,
+      primary_phase_confidence: signals.primary_phase_confidence,
+      hypothesis_scores: signals.hypothesis_scores,
+      efficiency_score: signals.efficiency_score
     }
   };
 

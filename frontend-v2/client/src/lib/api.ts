@@ -70,6 +70,44 @@ export interface DiagnosticResponse {
   };
 }
 
+export interface IndexScore {
+  value: number;       // 0–100
+  confidence: number;  // 0–1
+  sources: string[];
+}
+
+export interface PhaseScore {
+  phase_id: string;
+  points: number;
+}
+
+export interface HypothesisSignal {
+  key: string;
+  label: string;
+  score: number;       // 0–100
+  category: 'muscle' | 'mechanical' | 'stability' | 'mobility' | 'technique' | 'programming';
+  evidence: string[];
+}
+
+export interface DiagnosticSignalsSubset {
+  indices: {
+    quad_index?: IndexScore;
+    posterior_index?: IndexScore;
+    back_tension_index?: IndexScore;
+    triceps_index?: IndexScore;
+    shoulder_index?: IndexScore;
+  };
+  phase_scores: PhaseScore[];
+  primary_phase: string;
+  primary_phase_confidence: number;
+  hypothesis_scores: HypothesisSignal[];
+  efficiency_score: {
+    score: number;
+    explanation: string;
+    deductions: Array<{ key: string; points: number; reason: string }>;
+  };
+}
+
 export interface WorkoutPlan {
   selected_lift: string;
   diagnosis: Array<{
@@ -101,6 +139,7 @@ export interface WorkoutPlan {
   dominance_archetype?: {
     label: string;
     rationale: string;
+    delta_value?: number;
   };
   efficiency_score?: {
     score: number;
@@ -111,6 +150,7 @@ export interface WorkoutPlan {
     how_to_run: string;
     hypothesis_tested: string;
   };
+  diagnostic_signals?: DiagnosticSignalsSubset;
 }
 
 export interface GeneratePlanResponse {

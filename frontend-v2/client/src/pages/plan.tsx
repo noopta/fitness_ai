@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye, TrendingUp, Activity } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye, TrendingUp, Activity, BarChart2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,10 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { liftCoachApi, WorkoutPlan } from "@/lib/api";
 import { BrandLogo } from "@/components/BrandLogo";
+import { StrengthRadar } from "@/components/StrengthRadar";
+import { PhaseBreakdown } from "@/components/PhaseBreakdown";
+import { HypothesisRankings } from "@/components/HypothesisRankings";
+import { EfficiencyGauge } from "@/components/EfficiencyGauge";
 
 function Header() {
   return (
@@ -319,6 +323,64 @@ export default function Plan() {
                   </div>
                 </Card>
 
+                {/* ── Diagnostic Visualizations ── */}
+                {plan.diagnostic_signals && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Strength Profile Radar */}
+                    {Object.keys(plan.diagnostic_signals.indices).length > 0 && (
+                      <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="grid h-8 w-8 place-items-center rounded-lg border bg-white/70 shadow-xs dark:bg-white/5">
+                            <Activity className="h-3.5 w-3.5 text-primary" strokeWidth={1.8} />
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold">Strength Profile</div>
+                            <div className="text-xs text-muted-foreground">Muscle group indices (0–100)</div>
+                          </div>
+                        </div>
+                        <StrengthRadar
+                          signals={plan.diagnostic_signals}
+                          liftId={plan.selected_lift}
+                        />
+                      </Card>
+                    )}
+
+                    {/* Phase Breakdown */}
+                    <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="grid h-8 w-8 place-items-center rounded-lg border bg-white/70 shadow-xs dark:bg-white/5">
+                          <BarChart2 className="h-3.5 w-3.5 text-primary" strokeWidth={1.8} />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">Lift Phase Breakdown</div>
+                          <div className="text-xs text-muted-foreground">Where the signal is strongest</div>
+                        </div>
+                      </div>
+                      <PhaseBreakdown
+                        phaseScores={plan.diagnostic_signals.phase_scores}
+                        primaryPhase={plan.diagnostic_signals.primary_phase}
+                        primaryPhaseConfidence={plan.diagnostic_signals.primary_phase_confidence}
+                      />
+                    </Card>
+                  </div>
+                )}
+
+                {/* Hypothesis Rankings */}
+                {plan.diagnostic_signals && plan.diagnostic_signals.hypothesis_scores.length > 0 && (
+                  <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg border bg-white/70 shadow-xs dark:bg-white/5">
+                        <Zap className="h-3.5 w-3.5 text-primary" strokeWidth={1.8} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold">Weakness Hypotheses</div>
+                        <div className="text-xs text-muted-foreground">Ranked by diagnostic confidence</div>
+                      </div>
+                    </div>
+                    <HypothesisRankings hypotheses={plan.diagnostic_signals.hypothesis_scores} />
+                  </Card>
+                )}
+
                 <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
                   <div className="flex items-start gap-3">
                     <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
@@ -478,31 +540,26 @@ export default function Plan() {
               </Card>
             )}
 
-            {plan.efficiency_score && (
+            {plan.diagnostic_signals?.efficiency_score && (
               <Card className="glass p-6">
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
                     <TrendingUp className="h-4 w-4 text-primary" strokeWidth={1.8} />
                   </div>
-                  <div className="flex-1">
+                  <div>
                     <div className="text-xs font-semibold text-muted-foreground">
                       Movement Efficiency
                     </div>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="font-serif text-2xl">{plan.efficiency_score.score}</span>
-                      <span className="text-xs text-muted-foreground">/ 100</span>
+                    <div className="font-serif text-xl">
+                      Strength Expression
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${plan.efficiency_score.score}%` }}
-                  />
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  {plan.efficiency_score.explanation}
-                </p>
+                <EfficiencyGauge
+                  score={plan.diagnostic_signals.efficiency_score.score}
+                  explanation={plan.diagnostic_signals.efficiency_score.explanation}
+                  deductions={plan.diagnostic_signals.efficiency_score.deductions}
+                />
               </Card>
             )}
 
