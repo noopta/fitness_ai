@@ -1,11 +1,12 @@
 // API adapter to connect to our Lift Coach backend
-// In local dev (http://localhost) hit the local backend; everywhere else (Vercel/production) hit the EC2 endpoint.
+// In local dev (localhost) requests go to /api which Vite proxies to localhost:3001.
+// In production (Vercel) requests go to the EC2 endpoint directly.
 const isLocal = typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.protocol === 'http:');
+  window.location.hostname === 'localhost';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (
   isLocal
-    ? 'http://localhost:3001/api'
+    ? '/api'
     : 'https://luciuslab.xyz:4009/api'
 );
 
