@@ -1,5 +1,13 @@
 // API adapter to connect to our Lift Coach backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+// In local dev (http://localhost) hit the local backend; everywhere else (Vercel/production) hit the EC2 endpoint.
+const isLocal = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.protocol === 'http:');
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  isLocal
+    ? 'http://localhost:3001/api'
+    : 'https://luciuslab.xyz:4009/api'
+);
 
 export interface LiftData {
   id: string;
