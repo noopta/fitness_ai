@@ -391,6 +391,8 @@ export interface WorkoutPlan {
       reps: string;
       why: string;
       category: string;
+      priority: 1 | 2 | 3;
+      impact: 'high' | 'medium' | 'low';
     }>;
   };
   progression_rules: string[];
@@ -487,6 +489,10 @@ YOUR TASK:
 4. Choose 2–4 accessories that directly target the top hypothesis phase and muscles
 5. Include the validation test from the signals (copy how_to_run verbatim)
 6. Provide progression rules and tracking metrics
+7. For each accessory, assign:
+   - priority: 1 (most critical — directly targets the primary limiter), 2 (important secondary work), or 3 (supportive/general)
+   - impact: "high" (directly addresses the identified weakness), "medium" (supports it indirectly), or "low" (general maintenance)
+   - Order accessories in the array by priority ascending (1 first)
 
 OUTPUT ONLY VALID JSON:
 {
@@ -515,7 +521,9 @@ OUTPUT ONLY VALID JSON:
       "sets": 3,
       "reps": "8-10",
       "why": "Specific explanation of how this targets the identified phase/hypothesis",
-      "category": "targeted|stability|hypertrophy"
+      "category": "targeted|stability|hypertrophy",
+      "priority": 1,
+      "impact": "high"
     }
   ],
   "progression_rules": ["..."],

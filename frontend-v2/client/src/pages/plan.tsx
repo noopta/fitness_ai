@@ -425,46 +425,78 @@ export default function Plan() {
                         Accessories
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground" data-testid="text-prescription-subtitle">
-                        Targeted movements to improve your {selectedLiftLabel}
+                        Ranked by impact — prioritize the top ones if short on time
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 grid gap-3">
-                    {accessories.map((a, idx) => (
-                      <div
-                        key={a.exercise_id || idx}
-                        className="rounded-2xl border bg-white/60 p-4 shadow-xs backdrop-blur dark:bg-white/5"
-                        data-testid={`card-accessory-${idx}`}
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                              {idx + 1}
-                            </span>
-                            <div className="text-base font-semibold" data-testid={`text-accessory-exercise-${idx}`}>
-                              {a.exercise_name}
+                    {[...accessories]
+                      .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
+                      .map((a, idx) => {
+                        const isTopPick = a.priority === 1;
+                        const impactColor =
+                          a.impact === 'high'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                            : a.impact === 'medium'
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
+                            : 'bg-muted text-muted-foreground';
+
+                        return (
+                          <div
+                            key={a.exercise_id || idx}
+                            className={`rounded-2xl border p-4 shadow-xs backdrop-blur ${
+                              isTopPick
+                                ? 'border-primary/40 bg-primary/5 dark:bg-primary/10'
+                                : 'bg-white/60 dark:bg-white/5'
+                            }`}
+                            data-testid={`card-accessory-${idx}`}
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                {isTopPick ? (
+                                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                                    ★
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                    {idx + 1}
+                                  </span>
+                                )}
+                                <div className="text-base font-semibold" data-testid={`text-accessory-exercise-${idx}`}>
+                                  {a.exercise_name}
+                                </div>
+                                {isTopPick && (
+                                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                    Most Impactful
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {a.impact && (
+                                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${impactColor}`}>
+                                    {a.impact} impact
+                                  </span>
+                                )}
+                                <Badge variant="secondary" className="text-xs" data-testid={`text-accessory-volume-${idx}`}>
+                                  {a.sets} x {a.reps}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs capitalize">
+                                  {a.category}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2 text-sm" data-testid={`text-accessory-why-${idx}`}>
+                              <div className="grid h-5 w-5 mt-0.5 flex-shrink-0 place-items-center rounded-full bg-primary/10">
+                                <span className="text-xs font-bold text-primary">→</span>
+                              </div>
+                              <div className="leading-relaxed">
+                                <span className="text-muted-foreground">{a.why}</span>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs" data-testid={`text-accessory-volume-${idx}`}>
-                              {a.sets} x {a.reps}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {a.category}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 text-sm" data-testid={`text-accessory-why-${idx}`}>
-                          <div className="grid h-5 w-5 mt-0.5 flex-shrink-0 place-items-center rounded-full bg-primary/10">
-                            <span className="text-xs font-bold text-primary">→</span>
-                          </div>
-                          <div className="leading-relaxed">
-                            <span className="text-muted-foreground">{a.why}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
                   </div>
                 </Card>
               </div>
@@ -549,10 +581,10 @@ export default function Plan() {
                   </div>
                   <div>
                     <div className="text-xs font-semibold text-muted-foreground">
-                      Movement Efficiency
+                      Strength Balance
                     </div>
                     <div className="font-serif text-xl">
-                      Strength Expression
+                      Balance Score
                     </div>
                   </div>
                 </div>

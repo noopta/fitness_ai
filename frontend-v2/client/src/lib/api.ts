@@ -140,6 +140,8 @@ export interface WorkoutPlan {
       reps: string;
       why: string;
       category: string;
+      priority?: 1 | 2 | 3;
+      impact?: 'high' | 'medium' | 'low';
     }>;
   };
   progression_rules: string[];
