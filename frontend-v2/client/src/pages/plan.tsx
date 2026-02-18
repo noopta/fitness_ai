@@ -360,6 +360,7 @@ export default function Plan() {
                         phaseScores={plan.diagnostic_signals.phase_scores}
                         primaryPhase={plan.diagnostic_signals.primary_phase}
                         primaryPhaseConfidence={plan.diagnostic_signals.primary_phase_confidence}
+                        liftId={plan.selected_lift}
                       />
                     </Card>
                   </div>
