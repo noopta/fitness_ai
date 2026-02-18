@@ -57,7 +57,7 @@ function Nav() {
               data-testid="button-nav-try-mvp"
             >
               <span>
-                Try MVP
+                Try Demo
                 <ChevronRight className="ml-2 h-4 w-4" />
               </span>
             </Button>
@@ -545,7 +545,7 @@ export default function Signup() {
               data-testid="text-signup-hero-title"
             >
               Break through your plateau.
-              <span className="text-muted-foreground"> One lift at a time.</span>
+              <span className="text-muted-foreground"> Then break through the next.</span>
             </h1>
 
             <p
@@ -605,7 +605,7 @@ export default function Signup() {
                       data-testid="button-try-mvp"
                     >
                       <span>
-                        Try the MVP
+                        Try the Demo
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </span>
                     </Button>
@@ -1072,7 +1072,7 @@ export default function Signup() {
                     data-testid="button-cta-try"
                   >
                     <span>
-                      Try MVP
+                      Try Demo
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </span>
                   </Button>
