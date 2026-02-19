@@ -122,7 +122,7 @@ export function StrengthRadar({ signals, liftId }: Props) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Scale legend */}
       <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
         <span>Index scale: 100 = expected for your lift level</span>
@@ -134,11 +134,11 @@ export function StrengthRadar({ signals, liftId }: Props) {
       </div>
 
       {/* Bars */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {data.map((d) => {
           const { label, color } = scoreLabel(d.value);
           return (
-            <div key={d.key} className="space-y-1.5">
+            <div key={d.key} className="space-y-3">
               {/* Header row */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -152,29 +152,32 @@ export function StrengthRadar({ signals, liftId }: Props) {
               </div>
 
               {/* Bar with benchmark marker at 70 */}
-              <div className="relative h-3 w-full rounded-full bg-muted overflow-visible">
-                {/* Filled bar */}
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${d.value}%`, backgroundColor: barBg(d.value) }}
-                />
-                {/* Benchmark line at 70 */}
-                <div
-                  className="absolute top-[-3px] bottom-[-3px] w-px bg-foreground/40"
-                  style={{ left: "70%" }}
-                  title="Adequate threshold (70)"
-                />
-                {/* Benchmark label */}
+              <div className="relative mt-5 w-full">
+                {/* Benchmark label - above bar with clear spacing */}
                 <span
-                  className="absolute top-[-18px] text-[9px] text-muted-foreground"
-                  style={{ left: "70%", transform: "translateX(-50%)" }}
+                  className="absolute text-[10px] text-muted-foreground"
+                  style={{ left: "70%", transform: "translateX(-50%)", top: "-20px" }}
+                  title="Adequate threshold (70)"
                 >
                   min
                 </span>
+                <div className="relative h-3 w-full rounded-full bg-muted overflow-visible mt-1">
+                  {/* Filled bar */}
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${d.value}%`, backgroundColor: barBg(d.value) }}
+                  />
+                  {/* Benchmark line at 70 */}
+                  <div
+                    className="absolute top-[-3px] bottom-[-3px] w-px bg-foreground/40"
+                    style={{ left: "70%" }}
+                    title="Adequate threshold (70)"
+                  />
+                </div>
               </div>
 
               {/* Role + interpretation */}
-              <div className="space-y-0.5 pl-0.5">
+              <div className="space-y-1.5">
                 {d.role && (
                   <p className="text-[11px] text-muted-foreground leading-relaxed">{d.role}</p>
                 )}
@@ -187,7 +190,7 @@ export function StrengthRadar({ signals, liftId }: Props) {
         })}
       </div>
 
-      <p className="text-[11px] text-muted-foreground border-t pt-3 leading-relaxed">
+      <p className="text-[11px] text-muted-foreground border-t pt-4 mt-1 leading-relaxed">
         Indices compare your proxy lift performance to what's expected given your primary lift strength.
         A score of 100 means you're exactly as strong as expected in that muscle group.
         Scores below 70 suggest a relative weakness that may be limiting your primary lift.

@@ -13,6 +13,7 @@ import { StrengthRadar } from "@/components/StrengthRadar";
 import { PhaseBreakdown } from "@/components/PhaseBreakdown";
 import { HypothesisRankings } from "@/components/HypothesisRankings";
 import { EfficiencyGauge } from "@/components/EfficiencyGauge";
+import { ResultsChat } from "@/components/ResultsChat";
 
 function Header() {
   return (
@@ -205,6 +206,10 @@ export default function Plan() {
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-10">
+        <ResultsChat
+          plan={plan}
+          resultsContent={
+            <>
         <Card className="glass mb-4 p-6 border-primary/20 bg-primary/5">
           <div className="flex items-start gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl border bg-primary/10">
@@ -636,6 +641,9 @@ export default function Plan() {
             </div>
           </div>
         </motion.div>
+            </>
+          }
+        />
       </main>
     </div>
   );

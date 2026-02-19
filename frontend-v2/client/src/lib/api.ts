@@ -254,4 +254,11 @@ export const liftCoachApi = {
       method: 'POST',
       body: JSON.stringify({ email, name, phone })
     }),
+
+  /** Chat about results — OpenAI thread managed server-side, no history in request */
+  chat: (sessionId: string, message: string) =>
+    apiRequest<{ reply: string }>(`/sessions/${sessionId}/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    }),
 };
