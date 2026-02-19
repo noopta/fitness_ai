@@ -587,3 +587,162 @@ OUTPUT ONLY VALID JSON:
 
   return plan;
 }
+
+// ─── Stage 4: Chat Thread ──────────────────────────────────────────────────────
+
+export interface ChatSessionContext {
+  selectedLift: string;
+  profile?: {
+    trainingAge?: string;
+    goal?: string;
+    equipment?: string;
+    constraintsText?: string;
+    weightKg?: number;
+    heightCm?: number;
+  };
+  snapshots: Array<{
+    exerciseId: string;
+    weight: number;
+    sets: number;
+    repsSchema: string;
+    rpeOrRir?: string;
+  }>;
+  diagnosticMessages: Array<{ role: string; message: string }>;
+  plan: WorkoutPlan | null;
+}
+
+/**
+ * Creates an OpenAI Thread for a session and injects the full session context
+ * as the first message. Returns the thread ID to be stored on the session.
+ */
+export async function createChatThread(ctx: ChatSessionContext): Promise<string> {
+  const thread = await openai.beta.threads.create();
+
+  // Build the context block injected once — never re-sent on subsequent messages
+  const lines: string[] = [];
+
+  lines.push('=== SESSION CONTEXT ===');
+  lines.push(`Primary lift: ${ctx.selectedLift}`);
+
+  if (ctx.profile) {
+    const p = ctx.profile;
+    lines.push('\n--- Athlete Profile ---');
+    if (p.trainingAge) lines.push(`  Training age: ${p.trainingAge}`);
+    if (p.goal)        lines.push(`  Goal: ${p.goal}`);
+    if (p.equipment)   lines.push(`  Equipment: ${p.equipment}`);
+    if (p.weightKg)    lines.push(`  Bodyweight: ${p.weightKg} kg`);
+    if (p.constraintsText) lines.push(`  Constraints/injuries: ${p.constraintsText}`);
+  }
+
+  if (ctx.snapshots.length > 0) {
+    lines.push('\n--- Working Weights Logged ---');
+    for (const s of ctx.snapshots) {
+      lines.push(`  ${s.exerciseId}: ${s.weight} lbs × ${s.sets} sets × ${s.repsSchema} reps${s.rpeOrRir ? ` @ RPE ${s.rpeOrRir}` : ''}`);
+    }
+  }
+
+  if (ctx.diagnosticMessages.length > 0) {
+    lines.push('\n--- Diagnostic Q&A ---');
+    for (const m of ctx.diagnosticMessages) {
+      lines.push(`  ${m.role === 'user' ? 'Athlete' : 'Coach'}: ${m.message}`);
+    }
+  }
+
+  if (ctx.plan) {
+    const plan = ctx.plan;
+    lines.push('\n--- AI Diagnosis ---');
+    for (const d of plan.diagnosis) {
+      lines.push(`  ${d.limiterName} (${Math.round(d.confidence * 100)}% confidence)`);
+      for (const ev of d.evidence) lines.push(`    • ${ev}`);
+    }
+
+    lines.push('\n--- Prescribed Plan ---');
+    const pl = plan.bench_day_plan.primary_lift;
+    lines.push(`  Primary: ${pl.exercise_name} — ${pl.sets}×${pl.reps} @ ${pl.intensity}, rest ${pl.rest_minutes} min`);
+    lines.push('  Accessories (ranked by priority):');
+    for (const a of plan.bench_day_plan.accessories) {
+      lines.push(`    ${a.priority ? `[P${a.priority}]` : ''} ${a.exercise_name}: ${a.sets}×${a.reps} — ${a.why}`);
+    }
+
+    lines.push('\n--- Progression Rules ---');
+    for (const r of plan.progression_rules) lines.push(`  • ${r}`);
+
+    lines.push('\n--- Track Next Time ---');
+    for (const t of plan.track_next_time) lines.push(`  • ${t}`);
+
+    if (plan.diagnostic_signals) {
+      const ds = plan.diagnostic_signals;
+      lines.push('\n--- Strength Indices ---');
+      for (const [key, val] of Object.entries(ds.indices)) {
+        if (val) lines.push(`  ${key}: ${val.value}/100 (confidence: ${val.confidence.toFixed(2)})`);
+      }
+      lines.push(`\n--- Lift Phase Breakdown ---`);
+      lines.push(`  Primary weak phase: ${ds.primary_phase} (${Math.round(ds.primary_phase_confidence * 100)}% confidence)`);
+      for (const ps of ds.phase_scores) lines.push(`  ${ps.phase_id}: ${ps.points} pts`);
+      lines.push(`\n--- Weakness Hypotheses ---`);
+      for (const h of ds.hypothesis_scores) {
+        lines.push(`  [${h.score}/100] ${h.label} (${h.category})`);
+      }
+      lines.push(`\n--- Balance Score ---`);
+      lines.push(`  ${ds.efficiency_score.score}/100 — ${ds.efficiency_score.explanation}`);
+    }
+
+    if (plan.dominance_archetype) {
+      lines.push(`\n--- Strength Archetype ---`);
+      lines.push(`  ${plan.dominance_archetype.label}: ${plan.dominance_archetype.rationale}`);
+    }
+
+    if (plan.validation_test) {
+      lines.push(`\n--- Validation Test ---`);
+      lines.push(`  ${plan.validation_test.description}`);
+      lines.push(`  How: ${plan.validation_test.how_to_run}`);
+    }
+  }
+
+  lines.push('\n=== END SESSION CONTEXT ===');
+  lines.push('\nThe athlete is now asking follow-up questions. Answer based on the above data.');
+
+  await openai.beta.threads.messages.create(thread.id, {
+    role: 'user',
+    content: lines.join('\n'),
+  });
+
+  // Prime the assistant so it acknowledges the context
+  const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+    assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+    additional_instructions: 'Acknowledge you have their session data and are ready for questions. Keep it brief (1-2 sentences).',
+  });
+
+  if (run.status !== 'completed') {
+    throw new Error(`Thread priming failed: ${run.status}`);
+  }
+
+  return thread.id;
+}
+
+/**
+ * Sends a user message to an existing thread and returns the assistant reply.
+ */
+export async function sendChatMessage(threadId: string, userMessage: string): Promise<string> {
+  await openai.beta.threads.messages.create(threadId, {
+    role: 'user',
+    content: userMessage,
+  });
+
+  const run = await openai.beta.threads.runs.createAndPoll(threadId, {
+    assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+  });
+
+  if (run.status !== 'completed') {
+    throw new Error(`Run failed with status: ${run.status}`);
+  }
+
+  const messages = await openai.beta.threads.messages.list(threadId, { order: 'desc', limit: 1 });
+  const latest = messages.data[0];
+  if (!latest || latest.role !== 'assistant') throw new Error('No assistant reply found');
+
+  const content = latest.content[0];
+  if (content.type !== 'text') throw new Error('Unexpected content type');
+
+  return content.text.value;
+}

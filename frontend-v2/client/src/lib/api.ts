@@ -208,6 +208,11 @@ async function apiRequest<T>(
   return response.json();
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export const liftCoachApi = {
   getLifts: () => apiRequest<LiftData[]>('/lifts'),
 

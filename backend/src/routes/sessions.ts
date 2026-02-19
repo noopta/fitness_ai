@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import twilio from 'twilio';
-import { generateDiagnosticQuestion, generateWorkoutPlan, generateInitialAnalysis } from '../services/llmService.js';
+import { generateDiagnosticQuestion, generateWorkoutPlan, generateInitialAnalysis, createChatThread, sendChatMessage } from '../services/llmService.js';
 import { getExerciseById } from '../data/exercises.js';
 
 const router = Router();
@@ -440,6 +440,74 @@ function parseSessionFlags(text: string): Record<string, boolean> {
 
   return flags;
 }
+
+// ─── POST /sessions/:id/chat ───────────────────────────────────────────────────
+const chatMessageSchema = z.object({
+  message: z.string().min(1).max(2000),
+});
+
+router.post('/sessions/:id/chat', async (req, res) => {
+  try {
+    const { message } = chatMessageSchema.parse(req.body);
+    const sessionId = req.params.id;
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        snapshots: true,
+        messages: { orderBy: { createdAt: 'asc' } },
+        plans: { orderBy: { createdAt: 'desc' }, take: 1 },
+        user: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    let threadId = session.threadId;
+
+    // Create thread on first chat message
+    if (!threadId) {
+      const latestPlan = session.plans[0] ? JSON.parse(session.plans[0].planJson) : null;
+
+      threadId = await createChatThread({
+        selectedLift: session.selectedLift,
+        profile: session.user ? {
+          trainingAge: session.user.trainingAge ?? undefined,
+          equipment: session.user.equipment ?? undefined,
+          constraintsText: session.user.constraintsText ?? undefined,
+          weightKg: session.user.weightKg ?? undefined,
+          heightCm: session.user.heightCm ?? undefined,
+        } : undefined,
+        snapshots: session.snapshots.map(s => ({
+          exerciseId: s.exerciseId,
+          weight: s.weight,
+          sets: s.sets,
+          repsSchema: s.repsSchema,
+          rpeOrRir: s.rpeOrRir ?? undefined,
+        })),
+        diagnosticMessages: session.messages.map(m => ({
+          role: m.role,
+          message: m.message,
+        })),
+        plan: latestPlan,
+      });
+
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { threadId },
+      });
+    }
+
+    const reply = await sendChatMessage(threadId, message);
+    return res.json({ reply });
+
+  } catch (err: any) {
+    console.error('Chat error:', err);
+    return res.status(500).json({ error: err.message || 'Chat failed' });
+  }
+});
 
 function formatPlanAsText(plan: any): string {
   let text = `# ${plan.bench_day_plan.primary_lift.exercise_name} Training Plan\n\n`;

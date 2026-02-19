@@ -24,6 +24,7 @@ model Session {
   userId           String?
   selectedLift     String
   goal             String?              // strength_peak, hypertrophy, balanced
+  threadId         String?              // OpenAI Assistants API thread ID for chat
   createdAt        DateTime             @default(now())
   user             User?                @relation(fields: [userId], references: [id])
   snapshots        ExerciseSnapshot[]
