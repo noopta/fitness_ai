@@ -513,41 +513,49 @@ function computeDominanceArchetype(
   const a = indices[primary_key];
   const b = indices[secondary_key];
 
-  // Require both to be present with sufficient confidence
-  if (!a || !b || a.confidence < 0.5 || b.confidence < 0.5) return INSUFFICIENT;
+  // Need at least one index with minimum single-source confidence (0.35)
+  if (!a && !b) return INSUFFICIENT;
+  if (a && a.confidence < 0.3) return INSUFFICIENT;
+  if (b && b.confidence < 0.3) return INSUFFICIENT;
 
-  const delta_value = a.value - b.value;
-  const confidence = Math.min(a.confidence, b.confidence);
+  // If only one side is present, use a neutral baseline of 50 for the missing side
+  // so we can still characterise relative strength (with lower confidence)
+  const aVal = a ? a.value : 50;
+  const bVal = b ? b.value : 50;
+  const delta_value = aVal - bVal;
+  const confidence = a && b ? Math.min(a.confidence, b.confidence) : 0.3;
 
   // Threshold of ±15 index points = dominant
   let label: string;
   let rationale: string;
 
+  const missingNote = (!a || !b) ? ' (one index estimated from baseline — add more proxy lifts to confirm)' : '';
+
   if (delta_value >= 15) {
     if (liftId === 'deadlift') {
       label = `Posterior-chain dominant${primaryPhase === 'initial_pull' ? ', floor-limited' : primaryPhase === 'lockout' ? ', lockout-limited' : ''}`;
-      rationale = `Posterior index (${a.value}) exceeds quad index (${b.value}) by ${delta_value} points. Your hip hinge pattern is strong relative to your quad contribution.`;
+      rationale = `Posterior index (${aVal}) exceeds quad index (${bVal}) by ${delta_value} points. Your hip hinge pattern is strong relative to your quad contribution.${missingNote}`;
     } else if (liftId === 'barbell_back_squat' || liftId === 'barbell_front_squat') {
       label = `Posterior-chain dominant${primaryPhase === 'bottom' ? ', bottom-limited' : ', ascent-limited'}`;
-      rationale = `Posterior index (${a.value}) exceeds quad index (${b.value}) by ${delta_value} points. Hip extension is relatively strong; quad drive is the specific weakness.`;
+      rationale = `Posterior index (${aVal}) exceeds quad index (${bVal}) by ${delta_value} points. Hip extension is relatively strong; quad drive is the specific weakness.${missingNote}`;
     } else {
       label = 'Back-tension dominant presser';
-      rationale = `Back tension index (${a.value}) exceeds triceps index (${b.value}) by ${delta_value} points. Upper back is well-developed relative to triceps pressing power.`;
+      rationale = `Back tension index (${aVal}) exceeds triceps index (${bVal}) by ${delta_value} points. Upper back is well-developed relative to triceps pressing power.${missingNote}`;
     }
   } else if (delta_value <= -15) {
     if (liftId === 'deadlift') {
       label = `Quad-dominant${primaryPhase === 'lockout' ? ', lockout-limited' : ', floor-strong'}`;
-      rationale = `Quad index (${b.value}) exceeds posterior index (${a.value}) by ${Math.abs(delta_value)} points. Strong quad contribution; posterior chain is the relative weakness.`;
+      rationale = `Quad index (${bVal}) exceeds posterior index (${aVal}) by ${Math.abs(delta_value)} points. Strong quad contribution; posterior chain is the relative weakness.${missingNote}`;
     } else if (liftId === 'barbell_back_squat' || liftId === 'barbell_front_squat') {
       label = `Quad-dominant squatter${primaryPhase === 'ascent' ? ', mid-ascent limited' : ''}`;
-      rationale = `Quad index (${b.value}) exceeds posterior index (${a.value}) by ${Math.abs(delta_value)} points. Strong quad drive; glute/hip extension is the relative weakness.`;
+      rationale = `Quad index (${bVal}) exceeds posterior index (${aVal}) by ${Math.abs(delta_value)} points. Strong quad drive; glute/hip extension is the relative weakness.${missingNote}`;
     } else {
       label = 'Triceps-dominant presser';
-      rationale = `Triceps index (${b.value}) exceeds back tension index (${a.value}) by ${Math.abs(delta_value)} points. Strong lockout; upper back stability may be the limiting factor.`;
+      rationale = `Triceps index (${bVal}) exceeds back tension index (${aVal}) by ${Math.abs(delta_value)} points. Strong lockout; upper back stability may be the limiting factor.${missingNote}`;
     }
   } else {
     label = 'Balanced profile';
-    rationale = `Posterior index (${a.value}) and quad/triceps index (${b.value}) are within 15 points of each other — no clear dominance imbalance detected.`;
+    rationale = `Posterior index (${aVal}) and quad/triceps index (${bVal}) are within 15 points of each other — no clear dominance imbalance detected.${missingNote}`;
   }
 
   return { label, rationale, delta_key, delta_value, delta_units: 'index_points', confidence };
