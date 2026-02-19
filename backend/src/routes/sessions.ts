@@ -40,7 +40,7 @@ const addSnapshotSchema = z.object({
   weightUnit: z.string().optional(),
   reps: z.number(),
   sets: z.number().optional().default(1),
-  rpe: z.number().optional(),
+  rpe: z.number().nullish().transform(v => v ?? undefined),
   date: z.string().optional()
 });
 
