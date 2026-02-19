@@ -291,13 +291,22 @@ export default function Snapshot() {
       const toNum = (s: string) => parseFloat(s.replace(',', '.'));
       const toInt = (s: string) => parseInt(s.replace(',', '.'), 10);
 
+      // Extract the numeric part from RPE/RIR strings like "RPE 8", "RIR 2", "8", "8.5"
+      const parseRpe = (s: string): number | undefined => {
+        if (!s.trim()) return undefined;
+        const match = s.match(/[\d.]+/);
+        if (!match) return undefined;
+        const n = parseFloat(match[0]);
+        return isNaN(n) ? undefined : n;
+      };
+
       const snapshots = validRows.map(row => ({
         exerciseId: row.exercise.toLowerCase().replace(/\s+/g, "_"),
         weight: toNum(row.weight),
         weightUnit: "lbs" as const,
         sets: toInt(row.sets),
         reps: toInt(row.reps),
-        rpe: row.rpe ? toNum(row.rpe) : undefined,
+        rpe: parseRpe(row.rpe),
         date: new Date().toISOString().split('T')[0],
       }));
 
