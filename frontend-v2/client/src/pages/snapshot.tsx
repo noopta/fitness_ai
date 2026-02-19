@@ -286,14 +286,28 @@ export default function Snapshot() {
 
     setLoading(true);
     try {
+      // Normalize numeric strings for mobile locale safety:
+      // some Android keyboards use comma as decimal separator (e.g. "225,5")
+      const toNum = (s: string) => parseFloat(s.replace(',', '.'));
+      const toInt = (s: string) => parseInt(s.replace(',', '.'), 10);
+
       const snapshots = validRows.map(row => ({
         exerciseId: row.exercise.toLowerCase().replace(/\s+/g, "_"),
-        weight: parseFloat(row.weight),
+        weight: toNum(row.weight),
         weightUnit: "lbs" as const,
-        reps: parseInt(row.reps),
-        rpe: row.rpe ? parseFloat(row.rpe) : undefined,
+        sets: toInt(row.sets),
+        reps: toInt(row.reps),
+        rpe: row.rpe ? toNum(row.rpe) : undefined,
         date: new Date().toISOString().split('T')[0],
       }));
+
+      // Guard: if any numeric field is NaN, reject before hitting the backend
+      const invalid = snapshots.find(s => isNaN(s.weight) || isNaN(s.reps) || isNaN(s.sets));
+      if (invalid) {
+        toast.error("Please enter valid numbers for weight, sets, and reps.");
+        setLoading(false);
+        return;
+      }
 
       await liftCoachApi.addSnapshots(sessionId, snapshots);
 
