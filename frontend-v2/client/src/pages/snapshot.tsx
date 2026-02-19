@@ -324,7 +324,14 @@ export default function Snapshot() {
       setLocation("/diagnostic");
     } catch (error) {
       console.error("Failed to save snapshots:", error);
-      toast.error("Failed to save snapshot data. Please try again.");
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      if (msg.includes("Session not found") || msg.includes("not found")) {
+        toast.error("Your session expired. Redirecting to start over...");
+        localStorage.removeItem("liftoff_session_id");
+        setTimeout(() => setLocation("/onboarding"), 1500);
+      } else {
+        toast.error(`Failed to save snapshot: ${msg}`);
+      }
       setLoading(false);
     }
   }
