@@ -47,6 +47,7 @@ export interface SnapshotEntry {
   exerciseId: string;
   weight: number;
   weightUnit: string;
+  sets: number;
   reps: number;
   rpe?: number;
   date?: string;
