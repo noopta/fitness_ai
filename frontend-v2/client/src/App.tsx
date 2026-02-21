@@ -16,6 +16,7 @@ import Login from "./pages/login";
 import Register from "./pages/register";
 import HistoryPage from "./pages/history";
 import AnalysisPage from "./pages/analysis";
+import Pricing from "./pages/pricing";
 
 function Router() {
   return (
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/mvp" component={() => <ProtectedRoute component={Onboarding} />} />
       <Route path="/onboarding" component={() => <ProtectedRoute component={Onboarding} />} />
       <Route path="/snapshot" component={() => <ProtectedRoute component={Snapshot} />} />

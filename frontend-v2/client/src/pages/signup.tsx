@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { liftCoachApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 import {
   ArrowRight,
   Check,
@@ -21,7 +23,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
 import snapshotTarget from "@assets/snapshot_target_1771266514838.png";
@@ -33,6 +34,18 @@ import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { BrandLogo } from "@/components/BrandLogo";
 
 function Nav() {
+  const { user, logout } = useAuth();
+  const [, navigate] = useLocation();
+
+  async function handleLogout() {
+    try {
+      await logout();
+      navigate("/");
+    } catch {
+      toast.error("Logout failed.");
+    }
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
       <div className="container-tight flex items-center justify-between py-4">
@@ -49,28 +62,51 @@ function Nav() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href="/login">
-            <Button
-              asChild
-              variant="ghost"
-              className="rounded-xl"
-              data-testid="button-nav-login"
-            >
-              <span>Sign In</span>
+          <Link href="/pricing">
+            <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-pricing">
+              Pricing
             </Button>
           </Link>
-          <Link href="/register">
-            <Button
-              asChild
-              className="rounded-xl"
-              data-testid="button-nav-register"
-            >
-              <span>
-                Get Started
-                <ChevronRight className="ml-2 h-4 w-4" />
+          {user ? (
+            <>
+              <span className="hidden md:block text-xs text-muted-foreground truncate max-w-[180px]" data-testid="text-nav-email">
+                {user.email}
               </span>
-            </Button>
-          </Link>
+              <Link href="/onboarding">
+                <Button variant="ghost" size="sm" className="rounded-xl" data-testid="button-nav-dashboard">
+                  Dashboard
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" className="rounded-xl" onClick={handleLogout} data-testid="button-nav-logout">
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="rounded-xl"
+                  data-testid="button-nav-login"
+                >
+                  <span>Sign In</span>
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button
+                  asChild
+                  className="rounded-xl"
+                  data-testid="button-nav-register"
+                >
+                  <span>
+                    Get Started
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </span>
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -1093,11 +1129,13 @@ export default function Signup() {
               <span>LiftOff - AI-Powered Lift Diagnostics</span>
             </div>
             <div className="flex items-center gap-3">
-              <Link
-                href="/mvp"
-                className="text-sm hover:text-foreground"
-                data-testid="link-footer-mvp"
-              >
+              <Link href="/pricing" className="text-sm hover:text-foreground" data-testid="link-footer-pricing">
+                Pricing
+              </Link>
+              <Link href="/login" className="text-sm hover:text-foreground" data-testid="link-footer-login">
+                Sign In
+              </Link>
+              <Link href="/mvp" className="text-sm hover:text-foreground" data-testid="link-footer-mvp">
                 MVP
               </Link>
             </div>
