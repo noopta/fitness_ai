@@ -205,7 +205,7 @@ export default function Diagnostic() {
     setInitialLoading(true);
     try {
       const response = await liftCoachApi.getSession(sessionId);
-      const existingMessages = response.messages || [];
+      const existingMessages = (response as any).session?.messages || response.messages || [];
       
       if (existingMessages.length > 0) {
         const loadedMessages = existingMessages.map((msg, idx) => ({

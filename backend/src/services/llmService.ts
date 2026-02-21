@@ -176,8 +176,8 @@ export async function generateInitialAnalysis(
   const lift = getLiftById(context.selectedLift);
   const biomechanics = getBiomechanicsForLift(context.selectedLift);
 
-  if (!lift || !biomechanics) {
-    throw new Error('Invalid lift selected or biomechanics data not found');
+  if (!lift) {
+    throw new Error('Invalid lift selected');
   }
 
   if (!context.snapshots || context.snapshots.length === 0) {
@@ -210,11 +210,11 @@ IMPORTANT INSTRUCTIONS:
 - The dominance archetype and efficiency score should inform your narrative but not be stated numerically to the user — translate them into coaching language.
 
 BIOMECHANICS CONTEXT — ${lift.name}:
-${biomechanics.movementPhases.map(phase => `
+${biomechanics ? biomechanics.movementPhases.map(phase => `
 Phase: ${phase.phaseName}
 - Primary: ${phase.primaryMuscles.map(m => m.muscle).join(', ')}
 - Common failure: ${phase.commonFailurePoint}
-`).join('\n')}
+`).join('\n') : lift.phases.map(p => `Phase: ${p.name}\n- Common issues: ${p.commonIssues.join(', ')}`).join('\n')}
 
 USER SNAPSHOT:
 ${context.snapshots.map(s => `- ${s.exerciseName}: ${s.weight} lbs × ${s.sets}×${s.repsSchema}${s.rpeOrRir ? ` @ ${s.rpeOrRir}` : ''}`).join('\n')}
@@ -429,8 +429,8 @@ export async function generateWorkoutPlan(
   const lift = getLiftById(context.selectedLift);
   const biomechanics = getBiomechanicsForLift(context.selectedLift);
 
-  if (!lift || !biomechanics) {
-    throw new Error('Invalid lift selected or biomechanics data not found');
+  if (!lift) {
+    throw new Error('Invalid lift selected');
   }
 
   // Run engine with all accumulated flags from interview

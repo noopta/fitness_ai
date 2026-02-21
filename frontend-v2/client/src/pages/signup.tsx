@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { liftCoachApi } from "@/lib/api";
@@ -524,6 +524,15 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedArea, setSelectedArea] = useState<BodyAreaKey>("shoulders");
+  const { user, loading: authLoading } = useAuth();
+  const [, navigate] = useLocation();
+
+  // Redirect logged-in users to onboarding
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/onboarding");
+    }
+  }, [user, authLoading]);
 
   const selectedAreaMeta = BODY_AREAS[selectedArea];
   const selectedAreaLabel = selectedAreaMeta.label;
