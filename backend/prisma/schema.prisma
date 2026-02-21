@@ -8,15 +8,27 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  heightCm        Float?
-  weightKg        Float?
-  bodyCompTag     String?   // lean, average, heavy
-  trainingAge     String?   // beginner, intermediate, advanced
-  equipment       String?   // home, commercial, limited
-  constraintsText String?
-  createdAt       DateTime  @default(now())
-  sessions        Session[]
+  id                 String    @id @default(uuid())
+  heightCm           Float?
+  weightKg           Float?
+  bodyCompTag        String?   // lean, average, heavy
+  trainingAge        String?   // beginner, intermediate, advanced
+  equipment          String?   // home, commercial, limited
+  constraintsText    String?
+  createdAt          DateTime  @default(now())
+  // Auth fields
+  name               String?
+  email              String?   @unique
+  hashedPassword     String?
+  googleId           String?   @unique
+  dateOfBirth        DateTime?
+  tier               String    @default("free")  // free | pro | enterprise
+  stripeCustomerId   String?
+  stripeSubStatus    String?
+  dailyAnalysisCount Int       @default(0)
+  dailyAnalysisDate  DateTime?
+  updatedAt          DateTime  @default(now()) @updatedAt
+  sessions           Session[]
 }
 
 model Session {
@@ -25,11 +37,21 @@ model Session {
   selectedLift     String
   goal             String?              // strength_peak, hypertrophy, balanced
   threadId         String?              // OpenAI Assistants API thread ID for chat
+  isPublic         Boolean              @default(false)
   createdAt        DateTime             @default(now())
   user             User?                @relation(fields: [userId], references: [id])
   snapshots        ExerciseSnapshot[]
   messages         DiagnosticMessage[]
   plans            GeneratedPlan[]
+}
+
+model VideoCache {
+  id         String   @id @default(uuid())
+  exerciseId String   @unique
+  videoId    String
+  title      String
+  thumbnail  String
+  fetchedAt  DateTime @default(now())
 }
 
 model ExerciseSnapshot {

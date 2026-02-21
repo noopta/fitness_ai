@@ -427,6 +427,72 @@ export const lifts: Lift[] = [
         indicatorExercises: []
       }
     ]
+  },
+  // ── OLYMPIC LIFTS ────────────────────────────────────────────────────────
+  {
+    id: 'clean_and_jerk',
+    name: 'Clean & Jerk',
+    category: 'olympic',
+    description: 'Full Olympic lift: clean from floor to rack, then jerk overhead',
+    phases: [
+      { id: 'first_pull', name: 'First Pull', description: 'Bar off floor to knee', commonIssues: ['Hips rise too fast', 'Bar drifts forward', 'Back rounding'] },
+      { id: 'second_pull', name: 'Second Pull', description: 'Knee to hip extension', commonIssues: ['Insufficient triple extension', 'Early arm bend', 'Bar path deviates'] },
+      { id: 'catch_clean', name: 'Catch (Clean)', description: 'Receiving position in front rack', commonIssues: ['Poor front rack mobility', 'Elbows drop', 'Squat depth'] },
+      { id: 'jerk', name: 'Jerk', description: 'Overhead drive and lock-out', commonIssues: ['Footwork inconsistent', 'Bar out front', 'Elbow lockout'] }
+    ],
+    commonLimiters: [
+      { id: 'hip_drive', name: 'Insufficient Hip Drive', description: 'Weak second pull / triple extension', diagnosticQuestions: ['Where does the bar lose speed?', 'Do you complete full hip extension?'], targetMuscles: ['glutes', 'hamstrings', 'calves'] },
+      { id: 'front_rack_mobility', name: 'Front Rack Mobility', description: 'Wrist, elbow or thoracic limitation', diagnosticQuestions: ['Can you hold the front rack comfortably with empty bar?', 'Do elbows drop under load?'], targetMuscles: ['wrist_flexors', 'thoracic'] },
+      { id: 'catch_strength', name: 'Catch Strength', description: 'Inability to stabilize in the catch', diagnosticQuestions: ['Do you fail in the squat or standing up?', 'Is the jerk or clean harder?'], targetMuscles: ['quads', 'upper_back', 'anterior_deltoid'] }
+    ]
+  },
+  {
+    id: 'snatch',
+    name: 'Snatch',
+    category: 'olympic',
+    description: 'Single-movement lift from floor to overhead in one pull',
+    phases: [
+      { id: 'setup', name: 'Setup', description: 'Wide grip, hip hinge start position', commonIssues: ['Grip too narrow', 'Starting hips too high/low'] },
+      { id: 'first_pull', name: 'First Pull', description: 'Bar off floor to knee', commonIssues: ['Bar drifts away', 'Back rounding', 'Hips shoot up'] },
+      { id: 'transition', name: 'Transition / Scoop', description: 'Knee rebend into second pull', commonIssues: ['No scoop', 'Over-bending knees'] },
+      { id: 'second_pull', name: 'Second Pull & Turnover', description: 'Explosive hip extension into overhead catch', commonIssues: ['Early arm pull', 'Bar path away from body', 'Insufficient height'] },
+      { id: 'overhead_squat', name: 'Overhead Squat Catch', description: 'Receiving overhead in squat', commonIssues: ['Overhead instability', 'Forward torso', 'Bar behind'] }
+    ],
+    commonLimiters: [
+      { id: 'overhead_stability', name: 'Overhead Stability', description: 'Cannot stabilize bar in squat', diagnosticQuestions: ['Can you hold an overhead squat with empty bar?', 'Does the bar move forward or back in the catch?'], targetMuscles: ['rotator_cuff', 'traps', 'serratus'] },
+      { id: 'hip_drive', name: 'Hip Drive / Extension', description: 'Insufficient power in second pull', diagnosticQuestions: ['Do you pull the bar high enough?', 'Where does the lift feel weakest?'], targetMuscles: ['glutes', 'hamstrings', 'calves'] },
+      { id: 'mobility_restriction', name: 'Mobility Restriction', description: 'Ankle, hip, or thoracic limits', diagnosticQuestions: ['Do your heels lift?', 'Can you squat deep overhead?'], targetMuscles: [] }
+    ]
+  },
+  {
+    id: 'power_clean',
+    name: 'Power Clean',
+    category: 'olympic',
+    description: 'Clean caught in a power position (above parallel)',
+    phases: [
+      { id: 'first_pull', name: 'First Pull', description: 'Bar from floor to knee', commonIssues: ['Back rounding', 'Hips rise first', 'Bar drifts'] },
+      { id: 'second_pull', name: 'Second Pull', description: 'Explosive hip and knee extension', commonIssues: ['Arm pull too early', 'No shrug', 'Bar path'] },
+      { id: 'catch', name: 'Catch', description: 'Rack position in power stance', commonIssues: ['Elbows too low', 'Over-stepping', 'Wrist pain'] }
+    ],
+    commonLimiters: [
+      { id: 'posterior_chain', name: 'Posterior Chain Weakness', description: 'Hamstrings/glutes limit pull power', diagnosticQuestions: ['Do you feel the pull mostly in your back or legs?', 'Is the pull or catch harder?'], targetMuscles: ['hamstrings', 'glutes', 'erectors'] },
+      { id: 'front_rack_mobility', name: 'Front Rack Mobility', description: 'Wrist/elbow limits the catch', diagnosticQuestions: ['Do your elbows drop in the rack?', 'Do you have wrist pain?'], targetMuscles: ['wrist_flexors'] }
+    ]
+  },
+  {
+    id: 'hang_clean',
+    name: 'Hang Clean',
+    category: 'olympic',
+    description: 'Clean initiated from a hang position above the knee',
+    phases: [
+      { id: 'hang_position', name: 'Hang Position', description: 'Hip hinge with bar at mid-thigh', commonIssues: ['Too upright', 'Hips too low', 'Bar too far from body'] },
+      { id: 'second_pull', name: 'Second Pull', description: 'Explosive extension from hang', commonIssues: ['Bar drifts', 'Insufficient extension', 'Arm pull too early'] },
+      { id: 'catch', name: 'Catch', description: 'Front rack receiving position', commonIssues: ['Elbows drop', 'Under-squatting', 'Forward lean'] }
+    ],
+    commonLimiters: [
+      { id: 'hip_drive', name: 'Hip Drive', description: 'Explosive hip extension from hang', diagnosticQuestions: ['Do you feel powerful through the hips?', 'Where does the bar stall?'], targetMuscles: ['glutes', 'hamstrings'] },
+      { id: 'upper_back', name: 'Upper Back Strength', description: 'Back rounds or can\'t maintain position', diagnosticQuestions: ['Do you feel your back rounding?', 'Is holding the hang position hard?'], targetMuscles: ['traps', 'rhomboids', 'erectors'] }
+    ]
   }
 ];
 

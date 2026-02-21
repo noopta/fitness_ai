@@ -191,9 +191,10 @@ async function apiRequest<T>(
   options?: RequestInit
 ): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-  
+
   const response = await fetch(url, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers
@@ -202,7 +203,10 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `API Error: ${response.statusText}`);
+    const err: any = new Error(errorData.error || `API Error: ${response.statusText}`);
+    err.status = response.status;
+    err.upgradeUrl = errorData.upgradeUrl;
+    throw err;
   }
 
   return response.json();
@@ -216,7 +220,7 @@ export interface ChatMessage {
 export const liftCoachApi = {
   getLifts: () => apiRequest<LiftData[]>('/lifts'),
 
-  getLiftExercises: (liftId: string) => 
+  getLiftExercises: (liftId: string) =>
     apiRequest<ExerciseData[]>(`/lifts/${liftId}/exercises`),
 
   createSession: (data: {
@@ -261,4 +265,35 @@ export const liftCoachApi = {
       method: 'POST',
       body: JSON.stringify({ message })
     }),
+};
+
+export const authApi = {
+  me: () => apiRequest<any>('/auth/me'),
+  login: (email: string, password: string) =>
+    apiRequest<any>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  register: (name: string, email: string, password: string, dateOfBirth?: string) =>
+    apiRequest<any>('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password, dateOfBirth }) }),
+  logout: () => apiRequest<any>('/auth/logout', { method: 'POST' }),
+  updateProfile: (data: Partial<ProfileData & { name?: string }>) =>
+    apiRequest<any>('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
+};
+
+export const historyApi = {
+  getHistory: () => apiRequest<any[]>('/sessions/history'),
+};
+
+export const sessionApi = {
+  getPublic: (sessionId: string) =>
+    fetch(`${API_BASE_URL}/sessions/${sessionId}/public`).then(r => r.ok ? r.json() : null),
+  share: (sessionId: string) =>
+    apiRequest<{ shareUrl: string }>(`/sessions/${sessionId}/share`, { method: 'POST' }),
+};
+
+export const exerciseApi = {
+  getVideo: (exerciseId: string) =>
+    apiRequest<{ videoId: string; title: string; thumbnail: string }>(`/exercises/${exerciseId}/video`),
+};
+
+export const paymentsApi = {
+  getStatus: () => apiRequest<{ tier: string; stripeSubStatus?: string }>('/payments/status'),
 };

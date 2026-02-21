@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronRight, Dumbbell, Target, TrendingUp, Activity, Zap } from "lucide-react";
+import { ChevronRight, Dumbbell, Target, TrendingUp, Activity, Zap, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { liftCoachApi } from "@/lib/api";
+import { liftCoachApi, authApi } from "@/lib/api";
 import { LucideIcon } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { useAuth } from "@/context/AuthContext";
 
 const lifts: Array<{ id: string; label: string; hint: string; icon: LucideIcon }> = [
   { id: "flat_bench_press", label: "Flat Bench Press", hint: "Chest, triceps, shoulders", icon: Dumbbell },
@@ -18,6 +19,10 @@ const lifts: Array<{ id: string; label: string; hint: string; icon: LucideIcon }
   { id: "deadlift", label: "Deadlift", hint: "Full posterior chain", icon: Zap },
   { id: "barbell_back_squat", label: "Back Squat", hint: "Legs & glutes", icon: Activity },
   { id: "barbell_front_squat", label: "Front Squat", hint: "Quad dominant", icon: Target },
+  { id: "clean_and_jerk", label: "Clean & Jerk", hint: "Olympic — full body", icon: Flame },
+  { id: "snatch", label: "Snatch", hint: "Olympic — explosive pull", icon: Flame },
+  { id: "power_clean", label: "Power Clean", hint: "Olympic — power position", icon: Flame },
+  { id: "hang_clean", label: "Hang Clean", hint: "Olympic — hang position", icon: Flame },
 ];
 
 // Conversion utilities
@@ -50,6 +55,7 @@ function TopBar() {
 
 export default function Onboarding() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [selectedLift, setSelectedLift] = useState<string>("flat_bench_press");
   const [loading, setLoading] = useState(false);
 
@@ -66,7 +72,7 @@ export default function Onboarding() {
   const [trainingAge, setTrainingAge] = useState<string>("intermediate");
   const [equipment, setEquipment] = useState<string>("commercial");
 
-  // Load cached data on mount
+  // Load cached data on mount; prefer account profile over localStorage
   useEffect(() => {
     const cachedLift = localStorage.getItem("liftoff_cached_lift");
     const cachedCurrentWeight = localStorage.getItem("liftoff_cached_current_weight");
@@ -89,7 +95,22 @@ export default function Onboarding() {
     if (cachedConstraints) setConstraints(cachedConstraints);
     if (cachedTrainingAge) setTrainingAge(cachedTrainingAge);
     if (cachedEquipment) setEquipment(cachedEquipment);
-  }, []);
+
+    // Override with account profile if available
+    if (user) {
+      if (user.trainingAge) setTrainingAge(user.trainingAge);
+      if (user.equipment) setEquipment(user.equipment);
+      if (user.constraintsText) setConstraints(user.constraintsText);
+      if (user.heightCm) {
+        const totalInches = user.heightCm / 2.54;
+        setHeightFeet(Math.floor(totalInches / 12));
+        setHeightInches(Math.round(totalInches % 12));
+      }
+      if (user.weightKg) {
+        setWeightLbs(Math.round(user.weightKg / 0.453592));
+      }
+    }
+  }, [user]);
 
   // Save data to cache whenever it changes
   useEffect(() => {
@@ -169,7 +190,16 @@ export default function Onboarding() {
 
       localStorage.setItem("liftoff_session_id", response.session.id);
       localStorage.setItem("liftoff_selected_lift", selectedLift);
-      
+
+      // Persist profile to account (fire-and-forget, don't block navigation)
+      authApi.updateProfile({
+        trainingAge: profile.trainingAge,
+        equipment: profile.equipment,
+        constraintsText: profile.constraintsText,
+        heightCm: profile.heightCm,
+        weightKg: profile.weightKg,
+      }).catch(() => {});
+
       setLocation("/snapshot");
     } catch (error) {
       console.error("Failed to create session:", error);

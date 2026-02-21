@@ -891,6 +891,85 @@ export const exercises: Exercise[] = [
     equipment: ['barbell', 'rack'],
     fatigueCost: 'high',
     description: 'Slow eccentric for time under tension'
+  },
+  // OLYMPIC ACCESSORIES
+  {
+    id: 'overhead_squat',
+    name: 'Overhead Squat',
+    category: 'accessory',
+    targetPhase: ['overhead_squat'],
+    targetMuscle: ['quads', 'glutes', 'rotator_cuff', 'traps', 'core'],
+    equipment: ['barbell'],
+    fatigueCost: 'high',
+    description: 'Builds overhead stability and squat depth for snatch'
+  },
+  {
+    id: 'snatch_pull',
+    name: 'Snatch Pull',
+    category: 'accessory',
+    targetPhase: ['first_pull', 'second_pull'],
+    targetMuscle: ['hamstrings', 'glutes', 'erectors', 'traps'],
+    equipment: ['barbell'],
+    fatigueCost: 'high',
+    description: 'Develops first and second pull mechanics for snatch'
+  },
+  {
+    id: 'clean_pull',
+    name: 'Clean Pull',
+    category: 'accessory',
+    targetPhase: ['first_pull', 'second_pull'],
+    targetMuscle: ['hamstrings', 'glutes', 'erectors', 'traps'],
+    equipment: ['barbell'],
+    fatigueCost: 'high',
+    description: 'Develops pulling mechanics and triple extension for clean'
+  },
+  {
+    id: 'push_press',
+    name: 'Push Press',
+    category: 'accessory',
+    targetPhase: ['jerk'],
+    targetMuscle: ['anterior_deltoid', 'triceps', 'quads', 'glutes'],
+    equipment: ['barbell'],
+    fatigueCost: 'medium',
+    description: 'Jerk drive and overhead strength development'
+  },
+  {
+    id: 'hang_power_snatch',
+    name: 'Hang Power Snatch',
+    category: 'accessory',
+    targetPhase: ['second_pull', 'transition'],
+    targetMuscle: ['glutes', 'hamstrings', 'traps', 'rotator_cuff'],
+    equipment: ['barbell'],
+    fatigueCost: 'medium',
+    description: 'Speed and power development for snatch turnover'
+  },
+  {
+    id: 'box_jump',
+    name: 'Box Jump',
+    category: 'accessory',
+    targetPhase: ['second_pull'],
+    targetMuscle: ['glutes', 'hamstrings', 'quads', 'calves'],
+    equipment: ['box'],
+    fatigueCost: 'low',
+    description: 'Explosive lower-body power for Olympic pulling'
+  },
+  {
+    id: 'wrist_curl',
+    name: 'Wrist Curl / Wrist Roller',
+    category: 'isolation',
+    targetMuscle: ['wrist_flexors'],
+    equipment: ['dumbbell'],
+    fatigueCost: 'low',
+    description: 'Wrist strength for front rack and jerk'
+  },
+  {
+    id: 'ankle_mobility_drill',
+    name: 'Ankle Mobility Drill',
+    category: 'accessory',
+    targetMuscle: [],
+    equipment: ['bodyweight'],
+    fatigueCost: 'low',
+    description: 'Ankle dorsiflexion for Olympic squat positions'
   }
 ];
 
@@ -952,6 +1031,49 @@ export function getExercisesByLift(liftId: string): Exercise[] {
       'bulgarian_split_squat',
       'leg_extension',
       'romanian_deadlift'
+    ],
+    clean_and_jerk: [
+      'clean_and_jerk',
+      'power_clean',
+      'hang_clean',
+      'front_squat',
+      'clean_pull',
+      'push_press',
+      'overhead_squat',
+      'romanian_deadlift',
+      'wrist_curl',
+      'box_jump'
+    ],
+    snatch: [
+      'snatch',
+      'overhead_squat',
+      'snatch_pull',
+      'hang_power_snatch',
+      'barbell_back_squat',
+      'romanian_deadlift',
+      'box_jump',
+      'ankle_mobility_drill'
+    ],
+    power_clean: [
+      'power_clean',
+      'clean_and_jerk',
+      'hang_clean',
+      'clean_pull',
+      'front_squat',
+      'push_press',
+      'romanian_deadlift',
+      'wrist_curl',
+      'box_jump'
+    ],
+    hang_clean: [
+      'hang_clean',
+      'power_clean',
+      'clean_pull',
+      'front_squat',
+      'romanian_deadlift',
+      'push_press',
+      'box_jump',
+      'wrist_curl'
     ]
   };
 

@@ -1,21 +1,28 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
+import authRoutes from './routes/auth.js';
+import paymentsRoutes from './routes/payments.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Raw body parser for Stripe webhook BEFORE express.json()
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
 // Middleware
+app.use(cookieParser());
 app.use(cors({
-  origin: '*',
+  origin: process.env.FRONTEND_URL || 'https://liftoffmvp.io',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  credentials: true
 }));
 app.use(express.json());
 
@@ -25,6 +32,8 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
+app.use('/api', authRoutes);
+app.use('/api', paymentsRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);

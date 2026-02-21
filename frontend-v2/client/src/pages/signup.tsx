@@ -49,15 +49,24 @@ function Nav() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href="/mvp">
+          <Link href="/login">
             <Button
               asChild
-              variant="secondary"
+              variant="ghost"
               className="rounded-xl"
-              data-testid="button-nav-try-mvp"
+              data-testid="button-nav-login"
+            >
+              <span>Sign In</span>
+            </Button>
+          </Link>
+          <Link href="/register">
+            <Button
+              asChild
+              className="rounded-xl"
+              data-testid="button-nav-register"
             >
               <span>
-                Try Demo
+                Get Started
                 <ChevronRight className="ml-2 h-4 w-4" />
               </span>
             </Button>
@@ -580,41 +589,42 @@ export default function Signup() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Button
-                    className={`rounded-xl transition-all ${
-                      email.length > 0
-                        ? "shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold cursor-pointer" 
-                        : "shadow-md bg-gradient-to-r from-primary/60 to-blue-600/60 font-normal cursor-pointer"
-                    }`}
-                    style={{
-                      opacity: email.length > 0 ? 1 : 0.6
-                    }}
-                    onClick={submit}
-                    disabled={loading}
-                    data-testid="button-join-waitlist"
-                  >
-                    {loading ? "Joining..." : "Join waitlist"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-
-                  <Link href="/mvp">
+                  <Link href="/register">
+                    <Button
+                      asChild
+                      className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                      data-testid="button-get-started"
+                    >
+                      <span>
+                        Get Started Free
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </span>
+                    </Button>
+                  </Link>
+                  <Link href="/login">
                     <Button
                       asChild
                       variant="secondary"
                       className="rounded-xl"
-                      data-testid="button-try-mvp"
+                      data-testid="button-sign-in"
                     >
-                      <span>
-                        Try the Demo
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </span>
+                      <span>Sign In</span>
                     </Button>
                   </Link>
                 </div>
 
-                <div className="mt-4 text-xs text-muted-foreground" data-testid="text-email-note">
-                  You'll receive a confirmation email with early access details.
+                <div className="mt-3 text-xs text-muted-foreground" data-testid="text-email-note">
+                  Or{' '}
+                  <button
+                    className="underline hover:text-foreground transition-colors"
+                    onClick={submit}
+                    disabled={loading}
+                  >
+                    {loading ? 'Joining...' : 'join the waitlist'}
+                  </button>
+                  {' '}to be notified at launch.
                 </div>
+
               </Card>
 
               <Card className="card-min rounded-2xl p-6" data-testid="card-proof">
@@ -1049,32 +1059,26 @@ export default function Signup() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3 md:justify-end">
-                <Button
-                  className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold cursor-pointer transition-all"
-                  onClick={() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    // Focus on email input after scrolling
-                    setTimeout(() => {
-                      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
-                      emailInput?.focus();
-                    }, 500);
-                  }}
-                  data-testid="button-cta-join"
-                >
-                  Join waitlist
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Link href="/mvp">
+                <Link href="/register">
+                  <Button
+                    asChild
+                    className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                    data-testid="button-cta-join"
+                  >
+                    <span>
+                      Get Started Free
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </span>
+                  </Button>
+                </Link>
+                <Link href="/login">
                   <Button
                     asChild
                     variant="secondary"
                     className="rounded-xl"
                     data-testid="button-cta-try"
                   >
-                    <span>
-                      Try Demo
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </span>
+                    <span>Sign In</span>
                   </Button>
                 </Link>
               </div>

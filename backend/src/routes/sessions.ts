@@ -4,6 +4,10 @@ import { z } from 'zod';
 import twilio from 'twilio';
 import { generateDiagnosticQuestion, generateWorkoutPlan, generateInitialAnalysis, createChatThread, sendChatMessage } from '../services/llmService.js';
 import { getExerciseById } from '../data/exercises.js';
+import { optionalAuth } from '../middleware/optionalAuth.js';
+import { requireAuth } from '../middleware/requireAuth.js';
+import { checkAnalysisRateLimit } from '../middleware/rateLimit.js';
+import { getExerciseVideo } from '../services/youtubeService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -53,14 +57,15 @@ const addMessageSchema = z.object({
 });
 
 // POST /api/sessions - Create new session
-router.post('/sessions', async (req, res) => {
+router.post('/sessions', optionalAuth, async (req, res) => {
   try {
     const data = createSessionSchema.parse(req.body);
-    
-    let userId = data.userId;
-    
-    // Create or update user if profile provided
-    if (data.profile) {
+
+    // If user is authenticated, use their ID; otherwise fall back to provided userId or create anon user
+    let userId = req.user?.id || data.userId;
+
+    // Create or update user if profile provided and not authenticated
+    if (data.profile && !req.user) {
       const user = await prisma.user.create({
         data: {
           heightCm: data.profile.heightCm,
@@ -72,6 +77,19 @@ router.post('/sessions', async (req, res) => {
         }
       });
       userId = user.id;
+    } else if (data.profile && req.user) {
+      // Update authenticated user's profile
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: {
+          heightCm: data.profile.heightCm,
+          weightKg: data.profile.weightKg,
+          bodyCompTag: data.profile.bodyCompTag,
+          trainingAge: data.profile.trainingAge ?? undefined,
+          equipment: data.profile.equipment ?? undefined,
+          constraintsText: data.profile.constraintsText ?? undefined
+        }
+      });
     }
     
     const session = await prisma.session.create({
@@ -298,7 +316,7 @@ router.post('/sessions/:id/messages', async (req, res) => {
 });
 
 // POST /api/sessions/:id/generate - Generate workout plan
-router.post('/sessions/:id/generate', async (req, res) => {
+router.post('/sessions/:id/generate', optionalAuth, checkAnalysisRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -588,6 +606,102 @@ router.post('/sessions/:id/chat', async (req, res) => {
   } catch (err: any) {
     console.error('Chat error:', err);
     return res.status(500).json({ error: err.message || 'Chat failed' });
+  }
+});
+
+// GET /api/sessions/history - Get session history for logged-in user
+router.get('/sessions/history', requireAuth, async (req, res) => {
+  try {
+    const sessions = await prisma.session.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        plans: { orderBy: { createdAt: 'desc' }, take: 1 }
+      }
+    });
+
+    const result = sessions.map(s => {
+      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      return {
+        id: s.id,
+        selectedLift: s.selectedLift,
+        createdAt: s.createdAt,
+        isPublic: s.isPublic,
+        primaryLimiter: plan?.diagnosis?.[0]?.limiterName || null,
+        confidence: plan?.diagnosis?.[0]?.confidence || null
+      };
+    });
+
+    res.json({ sessions: result });
+  } catch (err) {
+    console.error('History error:', err);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
+// GET /api/sessions/:id/public - Get public session (no auth required)
+router.get('/sessions/:id/public', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = await prisma.session.findUnique({
+      where: { id },
+      include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } }
+    });
+
+    if (!session || !session.isPublic) {
+      return res.status(404).json({ error: 'Plan not found or not public' });
+    }
+
+    const plan = session.plans[0] ? JSON.parse(session.plans[0].planJson) : null;
+    res.json({ plan, selectedLift: session.selectedLift });
+  } catch (err) {
+    console.error('Public session error:', err);
+    res.status(500).json({ error: 'Failed to fetch plan' });
+  }
+});
+
+// POST /api/sessions/:id/share - Make session public
+router.post('/sessions/:id/share', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = await prisma.session.findUnique({ where: { id } });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    if (session.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    await prisma.session.update({ where: { id }, data: { isPublic: true } });
+
+    const shareUrl = `${process.env.FRONTEND_URL}/analysis/${id}`;
+    res.json({ shareUrl });
+  } catch (err) {
+    console.error('Share error:', err);
+    res.status(500).json({ error: 'Failed to share' });
+  }
+});
+
+// GET /api/exercises/:exerciseId/video - Get YouTube video for exercise
+router.get('/exercises/:exerciseId/video', async (req, res) => {
+  try {
+    const { exerciseId } = req.params;
+    const exercise = getExerciseById(exerciseId);
+    if (!exercise) {
+      return res.status(404).json({ error: 'Exercise not found' });
+    }
+
+    const video = await getExerciseVideo(exerciseId, exercise.name);
+    if (!video) {
+      return res.status(404).json({ error: 'No video found' });
+    }
+
+    res.json(video);
+  } catch (err) {
+    console.error('Video fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch video' });
   }
 });
 

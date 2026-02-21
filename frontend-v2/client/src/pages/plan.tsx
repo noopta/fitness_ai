@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye, TrendingUp, Activity, BarChart2, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye, TrendingUp, Activity, BarChart2, Zap, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,10 @@ import { PhaseBreakdown } from "@/components/PhaseBreakdown";
 import { HypothesisRankings } from "@/components/HypothesisRankings";
 import { EfficiencyGauge } from "@/components/EfficiencyGauge";
 import { ResultsChat } from "@/components/ResultsChat";
+import { ShareAnalysis } from "@/components/ShareAnalysis";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { AccessoryVideoCard } from "@/components/AccessoryVideoCard";
+import { useAuth } from "@/context/AuthContext";
 
 function Header() {
   return (
@@ -60,11 +64,14 @@ function formatLiftName(id: string): string {
 
 export default function Plan() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
 
   const selectedLift = localStorage.getItem("liftoff_selected_lift") || "";
+  const sessionId = localStorage.getItem("liftoff_session_id") || "";
 
   const selectedLiftLabel = (() => {
     switch (selectedLift) {
@@ -96,10 +103,14 @@ export default function Plan() {
     try {
       const response = await liftCoachApi.generatePlan(sessionId);
       setPlan(response.plan);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to generate plan:", err);
-      setError("Failed to generate plan. Please try again.");
-      toast.error("Failed to generate plan");
+      if (err.status === 429) {
+        setRateLimited(true);
+      } else {
+        setError("Failed to generate plan. Please try again.");
+        toast.error("Failed to generate plan");
+      }
     } finally {
       setLoading(false);
     }
@@ -165,6 +176,17 @@ export default function Plan() {
               </div>
             </div>
           </Card>
+        </main>
+      </div>
+    );
+  }
+
+  if (rateLimited) {
+    return (
+      <div className="min-h-screen grid-fade">
+        <Header />
+        <main className="mx-auto max-w-2xl px-4 py-10">
+          <UpgradePrompt userId={user?.id} />
         </main>
       </div>
     );
@@ -259,7 +281,14 @@ export default function Plan() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <ShareAnalysis sessionId={sessionId} />
+                  <Link href="/history">
+                    <Button variant="outline" size="sm" className="shadow-xs">
+                      <History className="mr-2 h-4 w-4" />
+                      History
+                    </Button>
+                  </Link>
                   <Button
                     variant="secondary"
                     className="shadow-xs"
@@ -499,6 +528,12 @@ export default function Plan() {
                                 <span className="text-muted-foreground">{a.why}</span>
                               </div>
                             </div>
+                            {a.exercise_id && (
+                              <AccessoryVideoCard
+                                exerciseId={a.exercise_id}
+                                exerciseName={a.exercise_name}
+                              />
+                            )}
                           </div>
                         );
                       })}

@@ -1376,6 +1376,501 @@ export const frontSquatConfig: LiftConfig = {
   ]
 };
 
+// ─── Clean & Jerk ─────────────────────────────────────────────────────────────
+
+export const cleanAndJerkConfig: LiftConfig = {
+  lift_id: 'clean_and_jerk',
+
+  phaseRules: [
+    {
+      description: 'Hips rise before bar clears knee',
+      condition: { type: 'flag', flag: 'hips_rise_first' },
+      phase_id: 'first_pull',
+      points: 30
+    },
+    {
+      description: 'Bar drifts forward off the floor',
+      condition: { type: 'flag', flag: 'bar_drifts_forward' },
+      phase_id: 'first_pull',
+      points: 20
+    },
+    {
+      description: 'Back rounds under load',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      phase_id: 'first_pull',
+      points: 25
+    },
+    {
+      description: 'Insufficient triple extension at second pull',
+      condition: { type: 'flag', flag: 'insufficient_extension' },
+      phase_id: 'second_pull',
+      points: 35
+    },
+    {
+      description: 'Early arm pull before hip extension',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      phase_id: 'second_pull',
+      points: 25
+    },
+    {
+      description: 'Front rack mobility limits catch',
+      condition: { type: 'flag', flag: 'front_rack_limited' },
+      phase_id: 'catch_clean',
+      points: 35
+    },
+    {
+      description: 'Elbows drop in the catch',
+      condition: { type: 'flag', flag: 'elbows_drop' },
+      phase_id: 'catch_clean',
+      points: 25
+    },
+    {
+      description: 'Footwork inconsistent on jerk',
+      condition: { type: 'flag', flag: 'footwork_inconsistent' },
+      phase_id: 'jerk',
+      points: 30
+    },
+    {
+      description: 'Bar drifts out front overhead',
+      condition: { type: 'flag', flag: 'bar_out_front' },
+      phase_id: 'jerk',
+      points: 20
+    },
+    {
+      description: 'Elbow lockout incomplete overhead',
+      condition: { type: 'flag', flag: 'elbow_lockout_incomplete' },
+      phase_id: 'jerk',
+      points: 20
+    }
+  ],
+
+  hypothesisRules: [
+    {
+      description: 'Hip drive / triple extension deficit',
+      condition: { type: 'flag', flag: 'insufficient_extension' },
+      hypothesis_key: 'hip_drive_deficit',
+      hypothesis_label: 'Insufficient Hip Drive (Second Pull)',
+      category: 'muscle',
+      points: 40,
+      evidence_template: 'User reports incomplete triple extension in second pull — glutes/hamstrings failing to produce adequate power for bar height.'
+    },
+    {
+      description: 'Early arm pull suggests technique flaw or hip drive deficit',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      hypothesis_key: 'hip_drive_deficit',
+      hypothesis_label: 'Insufficient Hip Drive (Second Pull)',
+      category: 'technique',
+      points: 20,
+      evidence_template: 'Early arm pull indicates athlete is compensating for insufficient leg drive — consistent with hip drive as primary limiter.'
+    },
+    {
+      description: 'Front rack mobility limits clean catch',
+      condition: { type: 'flag', flag: 'front_rack_limited' },
+      hypothesis_key: 'front_rack_mobility_deficit',
+      hypothesis_label: 'Front Rack Mobility Restriction',
+      category: 'mobility',
+      points: 40,
+      evidence_template: 'Restricted front rack position limits catch depth and security — wrist, elbow, or thoracic mobility is the primary constraint.'
+    },
+    {
+      description: 'Elbows drop reinforces rack mobility issue',
+      condition: { type: 'flag', flag: 'elbows_drop' },
+      hypothesis_key: 'front_rack_mobility_deficit',
+      hypothesis_label: 'Front Rack Mobility Restriction',
+      category: 'mobility',
+      points: 25,
+      evidence_template: 'Elbows dropping in the catch position indicates insufficient thoracic extension or wrist flexibility to maintain proper front rack.'
+    },
+    {
+      description: 'Poor first pull mechanics from back rounding',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      hypothesis_key: 'posterior_chain_weakness',
+      hypothesis_label: 'Posterior Chain / Positional Weakness',
+      category: 'muscle',
+      points: 30,
+      evidence_template: 'Back rounding in first pull indicates erectors and posterior chain lack the strength to maintain position under load.'
+    }
+  ],
+
+  indexMappings: [],
+
+  validationTests: [
+    {
+      phase_id: 'second_pull',
+      hypothesis_key: 'hip_drive_deficit',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Hang clean power test',
+      how_to_run: 'Perform 3 hang cleans from mid-thigh at 85% of clean max. Focus on achieving full triple extension (ankle, knee, hip) before pulling under. If bar height is insufficient for a comfortable catch, posterior chain power is confirmed as the limiter.',
+      hypothesis_tested: 'Insufficient Hip Drive',
+      equipment_required: ['barbell', 'rack'],
+      training_age_minimum: 'beginner'
+    },
+    {
+      phase_id: 'catch_clean',
+      hypothesis_key: 'front_rack_mobility_deficit',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Front rack mobility assessment',
+      how_to_run: 'With an empty bar, hold the front rack position (elbows high, bar resting on delts) for 30 seconds. Note where discomfort occurs — wrist, elbow, or thoracic spine. If you cannot get elbows parallel to floor, mobility is the confirmed limiter.',
+      hypothesis_tested: 'Front Rack Mobility Restriction',
+      equipment_required: ['barbell'],
+      training_age_minimum: 'beginner'
+    }
+  ]
+};
+
+// ─── Snatch ────────────────────────────────────────────────────────────────────
+
+export const snatchConfig: LiftConfig = {
+  lift_id: 'snatch',
+
+  phaseRules: [
+    {
+      description: 'Bar drifts away from body off the floor',
+      condition: { type: 'flag', flag: 'bar_drifts_forward' },
+      phase_id: 'first_pull',
+      points: 25
+    },
+    {
+      description: 'Back rounds in first pull',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      phase_id: 'first_pull',
+      points: 25
+    },
+    {
+      description: 'No scoop / transition into second pull',
+      condition: { type: 'flag', flag: 'no_scoop' },
+      phase_id: 'transition',
+      points: 30
+    },
+    {
+      description: 'Early arm pull before full extension',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      phase_id: 'second_pull',
+      points: 30
+    },
+    {
+      description: 'Bar does not reach sufficient height for catch',
+      condition: { type: 'flag', flag: 'insufficient_bar_height' },
+      phase_id: 'second_pull',
+      points: 35
+    },
+    {
+      description: 'Overhead instability in catch',
+      condition: { type: 'flag', flag: 'overhead_unstable' },
+      phase_id: 'overhead_squat',
+      points: 35
+    },
+    {
+      description: 'Heels rise in overhead squat catch',
+      condition: { type: 'flag', flag: 'heels_rise' },
+      phase_id: 'overhead_squat',
+      points: 25
+    }
+  ],
+
+  hypothesisRules: [
+    {
+      description: 'Overhead instability — bar drifts or collapses in catch',
+      condition: { type: 'flag', flag: 'overhead_unstable' },
+      hypothesis_key: 'overhead_stability_deficit',
+      hypothesis_label: 'Overhead Stability Deficit',
+      category: 'stability',
+      points: 45,
+      evidence_template: 'Bar movement or collapse in the overhead squat catch indicates rotator cuff, trap, or serratus weakness preventing a stable lockout position.'
+    },
+    {
+      description: 'Insufficient bar height indicates hip drive deficit',
+      condition: { type: 'flag', flag: 'insufficient_bar_height' },
+      hypothesis_key: 'hip_drive_deficit',
+      hypothesis_label: 'Insufficient Hip Drive / Power',
+      category: 'muscle',
+      points: 40,
+      evidence_template: 'Bar does not reach sufficient height for a comfortable catch — glutes and hamstrings are not producing adequate power in the second pull.'
+    },
+    {
+      description: 'Early arm pull compensates for insufficient extension',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      hypothesis_key: 'hip_drive_deficit',
+      hypothesis_label: 'Insufficient Hip Drive / Power',
+      category: 'technique',
+      points: 20,
+      evidence_template: 'Early arm pull is typically a compensation for insufficient leg drive — confirms hip extension power as primary limiter.'
+    },
+    {
+      description: 'Ankle mobility limits overhead squat depth',
+      condition: { type: 'flag', flag: 'heels_rise' },
+      hypothesis_key: 'mobility_restriction',
+      hypothesis_label: 'Ankle / Thoracic Mobility Restriction',
+      category: 'mobility',
+      points: 35,
+      evidence_template: 'Heels rising in the catch indicates ankle dorsiflexion restriction, limiting the ability to receive the bar in a stable squat position.'
+    }
+  ],
+
+  indexMappings: [],
+
+  validationTests: [
+    {
+      phase_id: 'overhead_squat',
+      hypothesis_key: 'overhead_stability_deficit',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Overhead squat stability test',
+      how_to_run: 'Perform 5 overhead squats with empty bar (wide snatch grip). Note any bar movement forward or backward, shoulder instability, or inability to reach depth. If empty bar is unstable, shoulder girdle weakness (rotator cuff / serratus) is the confirmed limiter.',
+      hypothesis_tested: 'Overhead Stability Deficit',
+      equipment_required: ['barbell'],
+      training_age_minimum: 'beginner'
+    },
+    {
+      phase_id: 'second_pull',
+      hypothesis_key: 'hip_drive_deficit',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Snatch pull height assessment',
+      how_to_run: 'Perform 3 snatch pulls at 100–105% of snatch max. Focus on full triple extension and shrug. If bar does not reach navel height with full extension, posterior chain power is the confirmed limiter.',
+      hypothesis_tested: 'Insufficient Hip Drive',
+      equipment_required: ['barbell', 'plates'],
+      training_age_minimum: 'intermediate'
+    }
+  ]
+};
+
+// ─── Power Clean ───────────────────────────────────────────────────────────────
+
+export const powerCleanConfig: LiftConfig = {
+  lift_id: 'power_clean',
+
+  phaseRules: [
+    {
+      description: 'Back rounds in first pull',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      phase_id: 'first_pull',
+      points: 30
+    },
+    {
+      description: 'Hips rise before bar clears knee',
+      condition: { type: 'flag', flag: 'hips_rise_first' },
+      phase_id: 'first_pull',
+      points: 25
+    },
+    {
+      description: 'Bar drifts away from body',
+      condition: { type: 'flag', flag: 'bar_drifts_forward' },
+      phase_id: 'first_pull',
+      points: 20
+    },
+    {
+      description: 'Early arm pull in second pull',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      phase_id: 'second_pull',
+      points: 30
+    },
+    {
+      description: 'No shrug at top of pull',
+      condition: { type: 'flag', flag: 'no_shrug' },
+      phase_id: 'second_pull',
+      points: 20
+    },
+    {
+      description: 'Elbows drop in rack catch position',
+      condition: { type: 'flag', flag: 'elbows_drop' },
+      phase_id: 'catch',
+      points: 30
+    },
+    {
+      description: 'Wrist pain in catch',
+      condition: { type: 'flag', flag: 'wrist_pain' },
+      phase_id: 'catch',
+      points: 20
+    }
+  ],
+
+  hypothesisRules: [
+    {
+      description: 'Posterior chain weakness — back rounds under load',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      hypothesis_key: 'posterior_chain_weakness',
+      hypothesis_label: 'Posterior Chain Weakness',
+      category: 'muscle',
+      points: 40,
+      evidence_template: 'Back rounding in the first pull indicates erectors and hamstrings lack the strength to maintain a neutral spine position during the initial drive.'
+    },
+    {
+      description: 'Hips rise first — posterior chain cannot maintain position',
+      condition: { type: 'flag', flag: 'hips_rise_first' },
+      hypothesis_key: 'posterior_chain_weakness',
+      hypothesis_label: 'Posterior Chain Weakness',
+      category: 'technique',
+      points: 25,
+      evidence_template: 'Hips rising before the bar clears the knee is a compensation pattern indicating the posterior chain cannot generate enough force to maintain the hip-to-shoulder angle.'
+    },
+    {
+      description: 'Front rack mobility limits catch',
+      condition: { type: 'flag', flag: 'elbows_drop' },
+      hypothesis_key: 'front_rack_mobility_deficit',
+      hypothesis_label: 'Front Rack Mobility Restriction',
+      category: 'mobility',
+      points: 35,
+      evidence_template: 'Elbows dropping in the power clean catch indicates restricted wrist extension or thoracic mobility limiting the front rack position.'
+    },
+    {
+      description: 'Wrist pain indicates mobility or technique issue in catch',
+      condition: { type: 'flag', flag: 'wrist_pain' },
+      hypothesis_key: 'front_rack_mobility_deficit',
+      hypothesis_label: 'Front Rack Mobility Restriction',
+      category: 'mobility',
+      points: 25,
+      evidence_template: 'Wrist pain in the catch is a strong indicator of inadequate wrist flexibility — bar is being held by wrist extension rather than resting on the delts.'
+    }
+  ],
+
+  indexMappings: [],
+
+  validationTests: [
+    {
+      phase_id: 'first_pull',
+      hypothesis_key: 'posterior_chain_weakness',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Romanian deadlift strength comparison',
+      how_to_run: 'Perform 5 RDLs at 110% of your power clean max while maintaining a neutral spine. If this is near-maximal effort, posterior chain strength is confirmed as the limiting factor. If it feels manageable, technique and bar path are the primary issues to address.',
+      hypothesis_tested: 'Posterior Chain Weakness',
+      equipment_required: ['barbell', 'plates'],
+      training_age_minimum: 'beginner'
+    },
+    {
+      phase_id: 'catch',
+      hypothesis_key: 'front_rack_mobility_deficit',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Front rack position test',
+      how_to_run: 'With an empty bar, practice the front rack position: bar resting on finger tips, elbows driven high. Hold for 30 seconds. If you cannot get elbows to shoulder height or feel restriction in wrists/forearms, mobility is the confirmed limiter. Practice wrist curls and rack stretch.',
+      hypothesis_tested: 'Front Rack Mobility Restriction',
+      equipment_required: ['barbell'],
+      training_age_minimum: 'beginner'
+    }
+  ]
+};
+
+// ─── Hang Clean ────────────────────────────────────────────────────────────────
+
+export const hangCleanConfig: LiftConfig = {
+  lift_id: 'hang_clean',
+
+  phaseRules: [
+    {
+      description: 'Torso too upright in hang position (not enough hip hinge)',
+      condition: { type: 'flag', flag: 'too_upright' },
+      phase_id: 'hang_position',
+      points: 25
+    },
+    {
+      description: 'Bar too far from body in hang',
+      condition: { type: 'flag', flag: 'bar_drifts_forward' },
+      phase_id: 'hang_position',
+      points: 20
+    },
+    {
+      description: 'Insufficient hip extension from hang',
+      condition: { type: 'flag', flag: 'insufficient_extension' },
+      phase_id: 'second_pull',
+      points: 35
+    },
+    {
+      description: 'Early arm pull in second pull',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      phase_id: 'second_pull',
+      points: 25
+    },
+    {
+      description: 'Elbows drop in front rack catch',
+      condition: { type: 'flag', flag: 'elbows_drop' },
+      phase_id: 'catch',
+      points: 30
+    },
+    {
+      description: 'Upper back rounds or cannot hold position',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      phase_id: 'hang_position',
+      points: 30
+    },
+    {
+      description: 'Forward lean in catch / under-squatting',
+      condition: { type: 'flag', flag: 'forward_lean' },
+      phase_id: 'catch',
+      points: 20
+    }
+  ],
+
+  hypothesisRules: [
+    {
+      description: 'Insufficient hip drive from hang position',
+      condition: { type: 'flag', flag: 'insufficient_extension' },
+      hypothesis_key: 'hip_drive_deficit',
+      hypothesis_label: 'Hip Drive Deficit',
+      category: 'muscle',
+      points: 45,
+      evidence_template: 'Incomplete hip extension from the hang position indicates glutes and hamstrings are not generating sufficient explosive power for bar height in the catch.'
+    },
+    {
+      description: 'Early arm pull compensates for insufficient hip extension',
+      condition: { type: 'flag', flag: 'early_arm_pull' },
+      hypothesis_key: 'hip_drive_deficit',
+      hypothesis_label: 'Hip Drive Deficit',
+      category: 'technique',
+      points: 20,
+      evidence_template: 'Pulling with arms before full hip extension is a compensation for insufficient posterior chain power — hip drive is the primary limiter.'
+    },
+    {
+      description: 'Upper back weakness — cannot maintain position or rounds',
+      condition: { type: 'flag', flag: 'back_rounds' },
+      hypothesis_key: 'upper_back_weakness',
+      hypothesis_label: 'Upper Back Strength Deficit',
+      category: 'muscle',
+      points: 40,
+      evidence_template: 'Rounding through the upper back in the hang position or catch indicates traps, rhomboids, and erectors cannot support the load in the required position.'
+    },
+    {
+      description: 'Front rack mobility limits catch quality',
+      condition: { type: 'flag', flag: 'elbows_drop' },
+      hypothesis_key: 'front_rack_mobility_deficit',
+      hypothesis_label: 'Front Rack Mobility Restriction',
+      category: 'mobility',
+      points: 35,
+      evidence_template: 'Elbows dropping in the hang clean catch indicates wrist or thoracic restriction — bar cannot rest securely on the anterior delts.'
+    }
+  ],
+
+  indexMappings: [],
+
+  validationTests: [
+    {
+      phase_id: 'second_pull',
+      hypothesis_key: 'hip_drive_deficit',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Hip extension power test from hang',
+      how_to_run: 'Perform 3 hang high pulls from mid-thigh at 90% of hang clean max. Focus on aggressive hip snap and full triple extension before shrugging. If bar does not reach chest height with good extension, glute/hamstring power is confirmed as the limiter.',
+      hypothesis_tested: 'Hip Drive Deficit',
+      equipment_required: ['barbell', 'plates'],
+      training_age_minimum: 'beginner'
+    },
+    {
+      phase_id: 'hang_position',
+      hypothesis_key: 'upper_back_weakness',
+      training_age: 'any',
+      equipment: 'any',
+      description: 'Barbell row strength test',
+      how_to_run: 'Perform 5 heavy barbell rows at 80% of hang clean max. If maintaining a rigid back angle throughout is very difficult, upper back endurance and strength is confirmed as the primary positional limiter.',
+      hypothesis_tested: 'Upper Back Strength Deficit',
+      equipment_required: ['barbell', 'plates'],
+      training_age_minimum: 'beginner'
+    }
+  ]
+};
+
 // ─── Config lookup ────────────────────────────────────────────────────────────
 
 export const liftConfigs: Record<string, LiftConfig> = {
@@ -1383,7 +1878,11 @@ export const liftConfigs: Record<string, LiftConfig> = {
   incline_bench_press: inclineBenchConfig,
   deadlift: deadliftConfig,
   barbell_back_squat: backSquatConfig,
-  barbell_front_squat: frontSquatConfig
+  barbell_front_squat: frontSquatConfig,
+  clean_and_jerk: cleanAndJerkConfig,
+  snatch: snatchConfig,
+  power_clean: powerCleanConfig,
+  hang_clean: hangCleanConfig
 };
 
 export function getLiftConfig(liftId: string): LiftConfig | undefined {
