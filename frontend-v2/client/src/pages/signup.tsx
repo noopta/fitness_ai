@@ -34,7 +34,7 @@ import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { BrandLogo } from "@/components/BrandLogo";
 
 function Nav() {
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [, navigate] = useLocation();
 
   async function handleLogout() {
@@ -67,10 +67,13 @@ function Nav() {
               Pricing
             </Button>
           </Link>
-          {user ? (
+          {authLoading ? (
+            // Skeleton placeholder — prevents flash of "Sign In" while auth resolves
+            <div className="h-8 w-24 animate-pulse rounded-xl bg-muted" />
+          ) : user ? (
             <>
               <span className="hidden md:block text-xs text-muted-foreground truncate max-w-[180px]" data-testid="text-nav-email">
-                {user.email}
+                {user.name || user.email}
               </span>
               <Link href="/onboarding">
                 <Button variant="ghost" size="sm" className="rounded-xl" data-testid="button-nav-dashboard">
@@ -611,65 +614,96 @@ export default function Signup() {
 
             <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
               <Card className="card-min rounded-2xl p-6" data-testid="card-email">
-                <div className="text-sm font-semibold" data-testid="text-email-title">
-                  Get notified at launch
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
-                  Join the waitlist and be first to know when we launch.
-                </div>
+                {user ? (
+                  <>
+                    <div className="text-sm font-semibold" data-testid="text-email-title">
+                      Welcome back{user.name ? `, ${user.name}` : ""}
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
+                      You're signed in as <span className="font-medium text-foreground">{user.email}</span>
+                    </div>
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                      <Link href="/onboarding">
+                        <Button
+                          asChild
+                          className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                          data-testid="button-get-started"
+                        >
+                          <span>
+                            Go to Dashboard
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </span>
+                        </Button>
+                      </Link>
+                      <Link href="/history">
+                        <Button asChild variant="secondary" className="rounded-xl" data-testid="button-history">
+                          <span>My Analyses</span>
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-sm font-semibold" data-testid="text-email-title">
+                      Get notified at launch
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
+                      Join the waitlist and be first to know when we launch.
+                    </div>
 
-                <div className="mt-5 grid gap-2">
-                  <Label data-testid="label-email">Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="you@domain.com"
-                    className="h-11"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") submit();
-                    }}
-                    data-testid="input-email"
-                  />
-                </div>
+                    <div className="mt-5 grid gap-2">
+                      <Label data-testid="label-email">Email</Label>
+                      <Input
+                        type="email"
+                        placeholder="you@domain.com"
+                        className="h-11"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") submit();
+                        }}
+                        data-testid="input-email"
+                      />
+                    </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Link href="/register">
-                    <Button
-                      asChild
-                      className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                      data-testid="button-get-started"
-                    >
-                      <span>
-                        Get Started Free
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </span>
-                    </Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button
-                      asChild
-                      variant="secondary"
-                      className="rounded-xl"
-                      data-testid="button-sign-in"
-                    >
-                      <span>Sign In</span>
-                    </Button>
-                  </Link>
-                </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <Link href="/register">
+                        <Button
+                          asChild
+                          className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                          data-testid="button-get-started"
+                        >
+                          <span>
+                            Get Started Free
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </span>
+                        </Button>
+                      </Link>
+                      <Link href="/login">
+                        <Button
+                          asChild
+                          variant="secondary"
+                          className="rounded-xl"
+                          data-testid="button-sign-in"
+                        >
+                          <span>Sign In</span>
+                        </Button>
+                      </Link>
+                    </div>
 
-                <div className="mt-3 text-xs text-muted-foreground" data-testid="text-email-note">
-                  Or{' '}
-                  <button
-                    className="underline hover:text-foreground transition-colors"
-                    onClick={submit}
-                    disabled={loading}
-                  >
-                    {loading ? 'Joining...' : 'join the waitlist'}
-                  </button>
-                  {' '}to be notified at launch.
-                </div>
-
+                    <div className="mt-3 text-xs text-muted-foreground" data-testid="text-email-note">
+                      Or{' '}
+                      <button
+                        className="underline hover:text-foreground transition-colors"
+                        onClick={submit}
+                        disabled={loading}
+                      >
+                        {loading ? 'Joining...' : 'join the waitlist'}
+                      </button>
+                      {' '}to be notified at launch.
+                    </div>
+                  </>
+                )}
               </Card>
 
               <Card className="card-min rounded-2xl p-6" data-testid="card-proof">
