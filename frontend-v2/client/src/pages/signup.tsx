@@ -527,13 +527,28 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedArea, setSelectedArea] = useState<BodyAreaKey>("shoulders");
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [, navigate] = useLocation();
 
-  // Redirect logged-in users to onboarding
+  // Handle ?auth=success from Google OAuth (in case callback lands here)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'success') {
+      refreshUser().then(() => {
+        const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
+        sessionStorage.removeItem('liftoff_redirect');
+        navigate(redirect);
+      });
+    }
+  }, []);
+
+  // Redirect already-logged-in users to onboarding
   useEffect(() => {
     if (!authLoading && user) {
-      navigate("/onboarding");
+      const params = new URLSearchParams(window.location.search);
+      if (!params.get('auth')) {
+        navigate("/onboarding");
+      }
     }
   }, [user, authLoading]);
 

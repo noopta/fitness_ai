@@ -108,7 +108,7 @@ router.get('/auth/google', (req, res) => {
 router.get('/auth/google/callback', async (req, res) => {
   const code = req.query.code as string;
   if (!code) {
-    return res.redirect(`${process.env.FRONTEND_URL}?auth=error`);
+    return res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
   }
 
   try {
@@ -127,7 +127,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
     const tokens = await tokenRes.json() as any;
     if (!tokens.id_token) {
-      return res.redirect(`${process.env.FRONTEND_URL}?auth=error`);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
     }
 
     // Decode id_token (JWT, no need to verify signature for profile data since we trust Google's response)
@@ -155,10 +155,10 @@ router.get('/auth/google/callback', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
-    res.redirect(`${process.env.FRONTEND_URL}?auth=success`);
+    res.redirect(`${process.env.FRONTEND_URL}/login?auth=success`);
   } catch (err) {
     console.error('Google OAuth callback error:', err);
-    res.redirect(`${process.env.FRONTEND_URL}?auth=error`);
+    res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
   }
 });
 
