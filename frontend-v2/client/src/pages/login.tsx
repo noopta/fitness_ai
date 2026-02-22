@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [oauthPending, setOauthPending] = useState(false);
+  const redirected = useRef(false); // prevent double-redirect from handleLogin + useEffect
 
   // Handle ?auth=success from Google OAuth redirect (including after Gmail verification)
   useEffect(() => {
@@ -51,7 +52,10 @@ export default function Login() {
             if (res.ok) {
               const data = await res.json();
               if (data.user) {
-                const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
+                const saved = sessionStorage.getItem('liftoff_redirect');
+                const redirect = (saved && saved !== '/login' && saved !== '/register')
+                  ? saved
+                  : '/onboarding';
                 sessionStorage.removeItem('liftoff_redirect');
                 setLocation(redirect);
                 return;
@@ -68,10 +72,14 @@ export default function Login() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // If already logged in (e.g. navigated to /login while session active), redirect out
+  // If already logged in on page load, redirect out — but never back to /login
   useEffect(() => {
-    if (!loading && !oauthPending && user) {
-      const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
+    if (!loading && !oauthPending && user && !redirected.current) {
+      redirected.current = true;
+      const saved = sessionStorage.getItem('liftoff_redirect');
+      const redirect = (saved && saved !== '/login' && saved !== '/register')
+        ? saved
+        : '/onboarding';
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     }
@@ -83,7 +91,11 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(email, password);
-      const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
+      redirected.current = true; // prevent the useEffect from also firing
+      const saved = sessionStorage.getItem('liftoff_redirect');
+      const redirect = (saved && saved !== '/login' && saved !== '/register')
+        ? saved
+        : '/onboarding';
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     } catch (err: any) {

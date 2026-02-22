@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,12 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const redirected = useRef(false);
 
+  // Already logged in on arrival — redirect out
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !redirected.current) {
+      redirected.current = true;
       setLocation('/onboarding');
     }
   }, [user, loading]);
@@ -30,6 +33,7 @@ export default function Register() {
     setSubmitting(true);
     try {
       await register(name, email, password, dateOfBirth || undefined);
+      redirected.current = true; // prevent useEffect double-fire
       setLocation('/onboarding');
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');

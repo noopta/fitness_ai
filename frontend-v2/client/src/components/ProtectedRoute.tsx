@@ -12,7 +12,11 @@ export default function ProtectedRoute({ component: Component }: ProtectedRouteP
 
   useEffect(() => {
     if (!loading && !user) {
-      sessionStorage.setItem('liftoff_redirect', window.location.pathname);
+      // Never save /login or /register as a redirect target — that causes a loop
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/register') {
+        sessionStorage.setItem('liftoff_redirect', path);
+      }
       setLocation('/login');
     }
   }, [user, loading, setLocation]);
