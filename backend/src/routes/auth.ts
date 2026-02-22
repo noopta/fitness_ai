@@ -8,10 +8,11 @@ import { requireAuth } from '../middleware/requireAuth.js';
 const router = Router();
 const prisma = new PrismaClient();
 
+const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_OPTS = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'none' as const,
+  secure: IS_PROD,
+  sameSite: (IS_PROD ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: 30 * 24 * 60 * 60 * 1000
 };
 
@@ -164,7 +165,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
 // POST /api/auth/logout
 router.post('/auth/logout', (req, res) => {
-  res.clearCookie('liftoff_jwt', { httpOnly: true, secure: true, sameSite: 'none' });
+  res.clearCookie('liftoff_jwt', { httpOnly: true, secure: IS_PROD, sameSite: IS_PROD ? 'none' : 'lax' });
   res.json({ success: true });
 });
 
