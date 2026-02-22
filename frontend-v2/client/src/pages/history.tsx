@@ -47,14 +47,15 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetch(`${API_BASE}/sessions/history`, { credentials: 'include' })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => setSessions(Array.isArray(data) ? data : []))
+      .then(r => r.ok ? r.json() : { sessions: [] })
+      .then(data => setSessions(Array.isArray(data?.sessions) ? data.sessions : []))
       .catch(() => setSessions([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const completed = sessions.filter(s => s.status === 'completed');
-  const inProgress = sessions.filter(s => s.status !== 'completed');
+  // Sessions with a plan (primaryLimiter set) are "completed"; others are in-progress
+  const completed = sessions.filter(s => s.primaryLimiter != null);
+  const inProgress = sessions.filter(s => s.primaryLimiter == null);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
