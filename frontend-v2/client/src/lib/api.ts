@@ -1,7 +1,7 @@
 // API adapter to connect to our Lift Coach backend
 // Both local dev and production hit the EC2 backend over HTTPS.
 // Override with VITE_API_URL env var if you need to point elsewhere.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 export interface LiftData {
   id: string;

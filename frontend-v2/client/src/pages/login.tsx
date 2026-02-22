@@ -46,7 +46,7 @@ export default function Login() {
           // Check if we already have a user via a fresh fetch rather than stale closure
           try {
             const res = await fetch(
-              (import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api') + '/auth/me',
+              (import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api') + '/auth/me',
               { credentials: 'include' }
             );
             if (res.ok) {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 export interface AuthUser {
   id: string;

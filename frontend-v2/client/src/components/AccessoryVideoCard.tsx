@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 interface VideoData {
   videoId: string;

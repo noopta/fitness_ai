@@ -8,7 +8,7 @@ import { BrandLogo } from '@/components/BrandLogo';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2, History, ArrowRight, Dumbbell, ChevronRight, Share2 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 interface HistorySession {
   id: string;

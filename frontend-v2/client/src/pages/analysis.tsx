@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Loader2, Shield, CheckCircle2, Target, Sparkles, ArrowRight } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 function formatLiftName(id: string): string {
   return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

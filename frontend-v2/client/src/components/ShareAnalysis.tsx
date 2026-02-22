@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 interface ShareAnalysisProps {
   sessionId: string;
