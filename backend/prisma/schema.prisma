@@ -27,6 +27,7 @@ model User {
   stripeSubStatus    String?
   dailyAnalysisCount Int       @default(0)
   dailyAnalysisDate  DateTime?
+  coachThreadId      String?              // OpenAI Assistants API thread ID for AI Coach
   updatedAt          DateTime  @default(now()) @updatedAt
   sessions           Session[]
 }

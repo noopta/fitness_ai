@@ -720,6 +720,140 @@ export async function createChatThread(ctx: ChatSessionContext): Promise<string>
   return thread.id;
 }
 
+// ─── AI Coach ─────────────────────────────────────────────────────────────────
+
+export interface CoachSession {
+  id: string;
+  selectedLift: string;
+  createdAt: Date;
+  primaryLimiter: string | null;
+  confidence: number | null;
+  archetype: string | null;
+  efficiencyScore: number | null;
+  accessories: string[];
+  plan: any;
+}
+
+/**
+ * Creates a persistent AI Coach thread scoped to the user.
+ * Injects the user's full analysis history as context.
+ */
+export async function createCoachThread(params: {
+  userName: string | null;
+  trainingAge: string | null;
+  equipment: string | null;
+  constraintsText: string | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  sessions: CoachSession[];
+}): Promise<string> {
+  const thread = await openai.beta.threads.create();
+
+  const lines: string[] = [];
+  lines.push('=== AI COACH CONTEXT ===');
+  lines.push(`\nAthlete: ${params.userName || 'Unknown'}`);
+  if (params.trainingAge) lines.push(`Training Age: ${params.trainingAge}`);
+  if (params.equipment) lines.push(`Equipment: ${params.equipment}`);
+  if (params.heightCm) lines.push(`Height: ${params.heightCm} cm`);
+  if (params.weightKg) lines.push(`Weight: ${params.weightKg} kg`);
+  if (params.constraintsText) lines.push(`Constraints/Injuries: ${params.constraintsText}`);
+
+  lines.push(`\nTotal analyses completed: ${params.sessions.length}`);
+
+  if (params.sessions.length > 0) {
+    lines.push('\n=== FULL ANALYSIS HISTORY ===');
+    for (const s of params.sessions) {
+      lines.push(`\n--- Analysis: ${s.selectedLift.replace(/_/g, ' ').toUpperCase()} (${new Date(s.createdAt).toLocaleDateString()}) ---`);
+      if (s.primaryLimiter) lines.push(`  Primary Limiter: ${s.primaryLimiter} (${s.confidence ? Math.round(s.confidence * 100) : '?'}% confidence)`);
+      if (s.archetype) lines.push(`  Strength Archetype: ${s.archetype}`);
+      if (s.efficiencyScore !== null) lines.push(`  Muscle Balance Score: ${s.efficiencyScore}/100`);
+      if (s.accessories.length > 0) lines.push(`  Prescribed Accessories: ${s.accessories.join(', ')}`);
+      if (s.plan?.diagnosis) {
+        lines.push('  All Limiters Identified:');
+        for (const d of s.plan.diagnosis) {
+          lines.push(`    - ${d.limiterName} (${Math.round((d.confidence || 0) * 100)}%): ${(d.evidence || []).join('; ')}`);
+        }
+      }
+      if (s.plan?.bench_day_plan?.accessories) {
+        const accs = s.plan.bench_day_plan.accessories;
+        if (accs.length > 0) {
+          lines.push('  Accessory Prescriptions:');
+          for (const a of accs) {
+            lines.push(`    - ${a.exercise_name}: ${a.sets}x${a.reps} — ${a.why}`);
+          }
+        }
+      }
+      if (s.plan?.progression_rules) {
+        lines.push(`  Progression Notes: ${s.plan.progression_rules.join('; ')}`);
+      }
+    }
+  }
+
+  lines.push('\n=== COACH INSTRUCTIONS ===');
+  lines.push(`You are an elite AI strength coach with deep expertise equivalent to NSCA-CSCS, ACE, and ISSN certifications.`);
+  lines.push(`You have full access to this athlete's diagnostic history above. Reference it specifically in your responses.`);
+  lines.push(`You cover ALL coaching domains: program design, nutrition, recovery, wellness, injury prevention, education, and accountability.`);
+  lines.push(`Be direct, evidence-based, and specific. Always tie advice back to the athlete's actual data when relevant.`);
+  lines.push(`Use markdown formatting for structured responses (headers, bullet points, bold key points).`);
+  lines.push('=== END CONTEXT ===');
+
+  await openai.beta.threads.messages.create(thread.id, {
+    role: 'user',
+    content: lines.join('\n'),
+  });
+
+  const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+    assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+    additional_instructions: 'You now have this athlete\'s full profile and history. Introduce yourself briefly as their AI coach and mention one specific insight from their data. Keep it to 2-3 sentences.',
+  });
+
+  if (run.status !== 'completed') {
+    throw new Error(`Coach thread priming failed: ${run.status}`);
+  }
+
+  return thread.id;
+}
+
+/**
+ * Sends a message to an existing coach thread and returns the reply.
+ */
+export async function sendCoachMessage(threadId: string, userMessage: string): Promise<string> {
+  await openai.beta.threads.messages.create(threadId, {
+    role: 'user',
+    content: userMessage,
+  });
+
+  const run = await openai.beta.threads.runs.createAndPoll(threadId, {
+    assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+  });
+
+  if (run.status !== 'completed') {
+    throw new Error(`Coach run failed: ${run.status}`);
+  }
+
+  const messages = await openai.beta.threads.messages.list(threadId, { order: 'desc', limit: 1 });
+  const latest = messages.data[0];
+  if (!latest || latest.role !== 'assistant') throw new Error('No coach reply found');
+
+  const content = latest.content[0];
+  if (content.type !== 'text') throw new Error('Unexpected content type');
+
+  return content.text.value;
+}
+
+/**
+ * Fetches the full message history from a coach thread.
+ */
+export async function getCoachMessages(threadId: string): Promise<Array<{ role: string; content: string }>> {
+  const messages = await openai.beta.threads.messages.list(threadId, { order: 'asc', limit: 100 });
+  // Skip the first message (context injection) — it's internal
+  const filtered = messages.data.slice(1);
+  return filtered.map(m => ({
+    role: m.role,
+    content: m.content[0]?.type === 'text' ? m.content[0].text.value : '',
+  }));
+}
+
 /**
  * Sends a user message to an existing thread and returns the assistant reply.
  */

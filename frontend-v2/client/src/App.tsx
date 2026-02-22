@@ -17,6 +17,7 @@ import Register from "./pages/register";
 import HistoryPage from "./pages/history";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
+import CoachPage from "./pages/coach";
 
 function Router() {
   return (
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/diagnostic" component={() => <ProtectedRoute component={Diagnostic} />} />
       <Route path="/plan" component={() => <ProtectedRoute component={Plan} />} />
       <Route path="/history" component={() => <ProtectedRoute component={HistoryPage} />} />
+      <Route path="/coach" component={() => <ProtectedRoute component={CoachPage} />} />
       <Route component={NotFound} />
     </Switch>
   );

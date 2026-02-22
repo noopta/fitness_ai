@@ -7,6 +7,7 @@ import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
 import authRoutes from './routes/auth.js';
 import paymentsRoutes from './routes/payments.js';
+import coachRoutes from './routes/coach.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api', authRoutes);
 app.use('/api', paymentsRoutes);
+app.use('/api', coachRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);

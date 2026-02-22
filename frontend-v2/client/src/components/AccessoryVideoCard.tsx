@@ -44,8 +44,6 @@ export function AccessoryVideoCard({ exerciseId, exerciseName }: AccessoryVideoC
     return () => observer.disconnect();
   }, [exerciseId]);
 
-  if (!loading && !video) return null;
-
   if (loading) {
     return (
       <div ref={ref} className="mt-2 h-24 rounded-xl bg-muted animate-pulse" />

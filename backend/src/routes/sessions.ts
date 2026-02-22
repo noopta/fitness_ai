@@ -107,6 +107,38 @@ router.post('/sessions', optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/sessions/history - Get session history for logged-in user
+// NOTE: must be registered before /:id routes so Express doesn't match "history" as an id
+router.get('/sessions/history', requireAuth, async (req, res) => {
+  try {
+    const sessions = await prisma.session.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        plans: { orderBy: { createdAt: 'desc' }, take: 1 }
+      }
+    });
+
+    const result = sessions.map(s => {
+      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      return {
+        id: s.id,
+        selectedLift: s.selectedLift,
+        createdAt: s.createdAt,
+        isPublic: s.isPublic,
+        primaryLimiter: plan?.diagnosis?.[0]?.limiterName || null,
+        confidence: plan?.diagnosis?.[0]?.confidence || null
+      };
+    });
+
+    res.json({ sessions: result });
+  } catch (err) {
+    console.error('History error:', err);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
 // POST /api/sessions/:id/snapshots - Add exercise snapshots
 router.post('/sessions/:id/snapshots', async (req, res) => {
   try {
@@ -606,37 +638,6 @@ router.post('/sessions/:id/chat', async (req, res) => {
   } catch (err: any) {
     console.error('Chat error:', err);
     return res.status(500).json({ error: err.message || 'Chat failed' });
-  }
-});
-
-// GET /api/sessions/history - Get session history for logged-in user
-router.get('/sessions/history', requireAuth, async (req, res) => {
-  try {
-    const sessions = await prisma.session.findMany({
-      where: { userId: req.user!.id },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-      include: {
-        plans: { orderBy: { createdAt: 'desc' }, take: 1 }
-      }
-    });
-
-    const result = sessions.map(s => {
-      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
-      return {
-        id: s.id,
-        selectedLift: s.selectedLift,
-        createdAt: s.createdAt,
-        isPublic: s.isPublic,
-        primaryLimiter: plan?.diagnosis?.[0]?.limiterName || null,
-        confidence: plan?.diagnosis?.[0]?.confidence || null
-      };
-    });
-
-    res.json({ sessions: result });
-  } catch (err) {
-    console.error('History error:', err);
-    res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
 

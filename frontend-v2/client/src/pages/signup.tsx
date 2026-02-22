@@ -80,6 +80,11 @@ function Nav() {
                   My Analyses
                 </Button>
               </Link>
+              <Link href="/coach">
+                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-coach">
+                  AI Coach
+                </Button>
+              </Link>
               <Button variant="ghost" size="sm" className="rounded-xl" onClick={handleLogout} data-testid="button-nav-logout">
                 Sign out
               </Button>
