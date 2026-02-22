@@ -305,15 +305,46 @@ function questionIndex(currentIdx: number): number {
   return STEPS.slice(0, currentIdx + 1).filter(s => s.type !== 'section').length;
 }
 
+// ─── Test user preset answers ─────────────────────────────────────────────────
+
+const TEST_EMAIL = 'pro@liftoff.test';
+
+const TEST_PRESET_ANSWERS: AnswerMap = {
+  primaryGoal: 'Short-term: add 25 lbs to my bench and hit a 405 lb deadlift within 4 months. Long-term: compete in my first powerlifting meet within 18 months.',
+  goalWhy: 'I want to feel genuinely strong again. Hitting big numbers gives me confidence and a sense of control that carries into work and family life.',
+  pastAttempts: "Ran Starting Strength for 8 months — made good gains but plateau'd around month 5. Tried a bro split for 3 months — no clear progress.",
+  commitment: '8',
+  medicalConditions: 'None. Appendix removed 2019, fully recovered.',
+  medications: 'Creatine 5g/day, fish oil 2g/day, vitamin D 2000 IU.',
+  injuries: 'Mild left knee discomfort on deep squats — manageable with a slight heel elevation. No shoulder issues.',
+  hormonal: 'None relevant.',
+  trainingAge: 'intermediate',
+  currentRoutine: '4 days/week: Mon/Thu upper, Tue/Fri lower. ~60 min sessions. Mostly barbell compound work. No dedicated cardio.',
+  strengthLevel: "Bench: 205 lbs × 5. Squat: 275 lbs × 5. Deadlift: 365 lbs × 3. OHP: 135 lbs × 5.",
+  trainingPreference: 'strength',
+  sleep: 'ok',
+  stressEnergy: 'moderate',
+  lifestyle: 'Up at 6:30am. Desk job with back-to-back meetings. Train after work around 6:30pm. Bed by 11pm. High-pressure sales role.',
+  recoveryPractices: 'Weekly foam rolling. Sauna 1x/week at the gym. No formal massage or meditation.',
+  daysPerWeek: '4',
+  equipment: 'commercial',
+  accountability: 'weekly_review',
+  bodyStats: "5'11\", 192 lbs, ~17% body fat.",
+  aestheticGoals: 'Leaner midsection, more developed upper chest and shoulders. Better posture from sitting all day.',
+  budget: '$100/week',
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
   userName: string | null;
+  userEmail?: string | null;
   existingAnswers?: Partial<AnswerMap>;
   onComplete: (answers: AnswerMap) => void;
 }
 
-export function CoachOnboarding({ userName, existingAnswers, onComplete }: Props) {
+export function CoachOnboarding({ userName, userEmail, existingAnswers, onComplete }: Props) {
+  const isTestUser = userEmail === TEST_EMAIL;
   const [stepIdx, setStepIdx] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>(existingAnswers as AnswerMap || {});
   const [currentInput, setCurrentInput] = useState('');
@@ -324,6 +355,9 @@ export function CoachOnboarding({ userName, existingAnswers, onComplete }: Props
   const firstName = userName?.split(' ')[0] || 'there';
   const totalQ = totalQuestionSteps();
   const currentQ = questionIndex(stepIdx);
+
+  // Auto-fill text/textarea inputs for test user when step changes
+  const presetValue = isTestUser && step ? TEST_PRESET_ANSWERS[step.id] || '' : '';
 
   function advance(value: string) {
     const updated = { ...answers, [step.id]: value };
@@ -474,10 +508,12 @@ export function CoachOnboarding({ userName, existingAnswers, onComplete }: Props
                   <div className="space-y-3">
                     <textarea
                       autoFocus
-                      value={currentInput}
+                      key={step.id}
+                      value={currentInput || presetValue}
                       onChange={e => setCurrentInput(e.target.value)}
                       onKeyDown={e => {
-                        if (e.key === 'Enter' && e.metaKey && currentInput.trim()) advance(currentInput.trim());
+                        const val = currentInput || presetValue;
+                        if (e.key === 'Enter' && e.metaKey && val.trim()) advance(val.trim());
                       }}
                       placeholder={step.placeholder}
                       rows={4}
@@ -490,8 +526,8 @@ export function CoachOnboarding({ userName, existingAnswers, onComplete }: Props
                         </button>
                       )}
                       <Button
-                        onClick={() => advance(currentInput.trim())}
-                        disabled={!currentInput.trim() && !step.optional}
+                        onClick={() => advance((currentInput || presetValue).trim())}
+                        disabled={!(currentInput || presetValue).trim() && !step.optional}
                         className="rounded-xl ml-auto"
                         size="sm"
                       >
@@ -506,10 +542,14 @@ export function CoachOnboarding({ userName, existingAnswers, onComplete }: Props
                   <div className="space-y-3">
                     <input
                       autoFocus
+                      key={step.id}
                       type="text"
-                      value={currentInput}
+                      value={currentInput || presetValue}
                       onChange={e => setCurrentInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') advance(currentInput.trim()); }}
+                      onKeyDown={e => {
+                        const val = currentInput || presetValue;
+                        if (e.key === 'Enter') advance(val.trim());
+                      }}
                       placeholder={step.placeholder}
                       className="w-full rounded-xl border bg-muted/30 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
@@ -520,8 +560,8 @@ export function CoachOnboarding({ userName, existingAnswers, onComplete }: Props
                         </button>
                       )}
                       <Button
-                        onClick={() => advance(currentInput.trim())}
-                        disabled={!currentInput.trim() && !step.optional}
+                        onClick={() => advance((currentInput || presetValue).trim())}
+                        disabled={!(currentInput || presetValue).trim() && !step.optional}
                         className="rounded-xl ml-auto"
                         size="sm"
                       >

@@ -162,6 +162,7 @@ export default function CoachPage() {
         /* Onboarding interview */
         <CoachOnboarding
           userName={user?.name || null}
+          userEmail={user?.email || null}
           existingAnswers={
             user?.coachProfile
               ? JSON.parse(user.coachProfile)
