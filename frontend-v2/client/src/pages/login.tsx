@@ -15,27 +15,67 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [oauthPending, setOauthPending] = useState(false);
 
-  // Handle ?auth=success from Google OAuth redirect
+  // Handle ?auth=success from Google OAuth redirect (including after Gmail verification)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('auth') === 'success') {
-      refreshUser().then(() => {
-        const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
-        sessionStorage.removeItem('liftoff_redirect');
-        setLocation(redirect);
-      });
-    }
-  }, []);
+    const authParam = params.get('auth');
 
-  // If already logged in, redirect
+    if (authParam === 'error') {
+      toast.error('Google sign-in failed. Please try again.');
+      // Clean up the URL
+      window.history.replaceState({}, '', '/login');
+      return;
+    }
+
+    if (authParam === 'success') {
+      setOauthPending(true);
+      // Strip query param from URL immediately to prevent re-triggering
+      window.history.replaceState({}, '', '/login');
+
+      // Retry refreshUser up to 3 times with a short delay — cookie may need a
+      // brief moment to propagate after the OAuth redirect chain.
+      const attemptRefresh = async (attemptsLeft: number): Promise<void> => {
+        await refreshUser();
+        // After refreshUser, user state update is async — read from /auth/me result
+        // by attempting the redirect in the same tick via a small timeout
+        if (attemptsLeft > 1) {
+          await new Promise(r => setTimeout(r, 400));
+          // Check if we already have a user via a fresh fetch rather than stale closure
+          try {
+            const res = await fetch(
+              (import.meta.env.VITE_API_URL || 'https://luciuslab.xyz:4009/api') + '/auth/me',
+              { credentials: 'include' }
+            );
+            if (res.ok) {
+              const data = await res.json();
+              if (data.user) {
+                const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
+                sessionStorage.removeItem('liftoff_redirect');
+                setLocation(redirect);
+                return;
+              }
+            }
+          } catch { /* ignore */ }
+          return attemptRefresh(attemptsLeft - 1);
+        }
+      };
+
+      attemptRefresh(3).catch(() => {
+        toast.error('Could not restore your session. Please sign in again.');
+      }).finally(() => setOauthPending(false));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // If already logged in (e.g. navigated to /login while session active), redirect out
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && !oauthPending && user) {
       const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     }
-  }, [user, loading]);
+  }, [user, loading, oauthPending]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +91,18 @@ export default function Login() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (oauthPending) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <BrandLogo height={48} className="h-12 w-auto" />
+          <p className="text-sm text-muted-foreground">Signing you in…</p>
+          <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -72,12 +72,17 @@ function Nav() {
             <div className="h-8 w-24 animate-pulse rounded-xl bg-muted" />
           ) : user ? (
             <>
-              <span className="hidden md:block text-xs text-muted-foreground truncate max-w-[180px]" data-testid="text-nav-email">
-                {user.name || user.email}
+              <span className="hidden md:block text-xs text-muted-foreground truncate max-w-[160px]" data-testid="text-nav-email">
+                {user.name ? `Hi, ${user.name.split(' ')[0]}` : user.email}
               </span>
+              <Link href="/history">
+                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-history">
+                  My Analyses
+                </Button>
+              </Link>
               <Link href="/onboarding">
-                <Button variant="ghost" size="sm" className="rounded-xl" data-testid="button-nav-dashboard">
-                  Dashboard
+                <Button size="sm" className="rounded-xl" data-testid="button-nav-dashboard">
+                  New Analysis
                 </Button>
               </Link>
               <Button variant="ghost" size="sm" className="rounded-xl" onClick={handleLogout} data-testid="button-nav-logout">
@@ -530,27 +535,16 @@ export default function Signup() {
   const { user, loading: authLoading, refreshUser } = useAuth();
   const [, navigate] = useLocation();
 
-  // Handle ?auth=success from Google OAuth (in case callback lands here)
+  // Handle ?auth=success from Google OAuth (in case callback lands here instead of /login)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth') === 'success') {
-      refreshUser().then(() => {
-        const redirect = sessionStorage.getItem('liftoff_redirect') || '/onboarding';
-        sessionStorage.removeItem('liftoff_redirect');
-        navigate(redirect);
-      });
+      window.history.replaceState({}, '', '/');
+      refreshUser();
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Redirect already-logged-in users to onboarding
-  useEffect(() => {
-    if (!authLoading && user) {
-      const params = new URLSearchParams(window.location.search);
-      if (!params.get('auth')) {
-        navigate("/onboarding");
-      }
-    }
-  }, [user, authLoading]);
+  // Do NOT auto-redirect logged-in users away — let them see the landing with their name
 
   const selectedAreaMeta = BODY_AREAS[selectedArea];
   const selectedAreaLabel = selectedAreaMeta.label;
