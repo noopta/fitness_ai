@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
+const AUTH_BASE = API_BASE.replace(/\/api$/, '');
 
 export interface AuthUser {
   id: string;
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function googleLogin() {
-    window.location.href = `${API_BASE.replace('/api', '')}/api/auth/google`;
+    window.location.href = `${AUTH_BASE}/api/auth/google`;
   }
 
   return (

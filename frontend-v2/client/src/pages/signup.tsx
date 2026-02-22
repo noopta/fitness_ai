@@ -80,11 +80,6 @@ function Nav() {
                   My Analyses
                 </Button>
               </Link>
-              <Link href="/onboarding">
-                <Button size="sm" className="rounded-xl" data-testid="button-nav-dashboard">
-                  New Analysis
-                </Button>
-              </Link>
               <Button variant="ghost" size="sm" className="rounded-xl" onClick={handleLogout} data-testid="button-nav-logout">
                 Sign out
               </Button>
