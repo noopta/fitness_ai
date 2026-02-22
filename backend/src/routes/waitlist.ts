@@ -175,7 +175,7 @@ router.post('/waitlist', async (req, res) => {
                 and your support means everything to us. Stay tuned for exciting updates coming soon!
               </p>
               <div style="text-align: center; margin: 35px 0;">
-                <a href="https://luciuslab.xyz:4009/api/lifts" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);">
+                <a href="https://liftoffmvp.io/onboarding" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);">
                   Try the MVP Now
                 </a>
               </div>
