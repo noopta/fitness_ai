@@ -854,6 +854,200 @@ export async function getCoachMessages(threadId: string): Promise<Array<{ role: 
   }));
 }
 
+// ─── Coach Extras: Nutrition Plan ─────────────────────────────────────────────
+
+export interface NutritionPlanResult {
+  macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
+  foods: Array<{ name: string; reason: string }>;
+  rationale: string;
+}
+
+export async function generateNutritionPlan(params: {
+  goal: string;
+  weightKg: number | null;
+  trainingAge: string | null;
+  primaryLimiter: string | null;
+  selectedLift: string | null;
+}): Promise<NutritionPlanResult> {
+  const prompt = `You are a certified sports nutritionist. Based on the athlete profile below, generate a macro plan and food recommendations.
+
+ATHLETE PROFILE:
+- Goal: ${params.goal || 'general strength'}
+- Body weight: ${params.weightKg ? params.weightKg + ' kg' : 'unknown'}
+- Training age: ${params.trainingAge || 'intermediate'}
+- Primary lift: ${params.selectedLift || 'unknown'}
+- Primary weakness identified: ${params.primaryLimiter || 'none identified'}
+
+INSTRUCTIONS:
+- Calculate daily macros (protein, carbs, fat in grams) appropriate for the goal
+- Suggest 5–7 specific whole foods that support the training goal and weakness
+- Provide a brief rationale (2–3 sentences) explaining the macro split
+
+OUTPUT FORMAT (JSON only):
+{
+  "macros": { "proteinG": 180, "carbsG": 250, "fatG": 70, "calories": 2350 },
+  "foods": [
+    { "name": "Chicken breast", "reason": "High protein for muscle repair" },
+    ...
+  ],
+  "rationale": "..."
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.5,
+    max_tokens: 600,
+    response_format: { type: 'json_object' },
+  });
+
+  const content = response.choices[0].message.content || '{}';
+  return JSON.parse(content) as NutritionPlanResult;
+}
+
+// ─── Coach Extras: Training Program ───────────────────────────────────────────
+
+export interface TrainingProgram {
+  goal: string;
+  daysPerWeek: number;
+  durationWeeks: number;
+  weeks: Array<{
+    weekNumber: number;
+    days: Array<{
+      day: string;
+      focus: string;
+      sessions: Array<{
+        exercise: string;
+        sets: number;
+        reps: string;
+        intensity: string;
+        notes?: string;
+      }>;
+    }>;
+  }>;
+  progressionNotes: string[];
+}
+
+export async function generateTrainingProgram(params: {
+  goal: string;
+  daysPerWeek: number;
+  durationWeeks: number;
+  trainingAge: string | null;
+  equipment: string | null;
+  primaryLimiter: string | null;
+  selectedLift: string | null;
+  accessories: string[];
+}): Promise<TrainingProgram> {
+  const prompt = `You are an elite strength coach (NSCA-CSCS level). Generate a detailed training program.
+
+ATHLETE PROFILE:
+- Goal: ${params.goal}
+- Days per week: ${params.daysPerWeek}
+- Duration: ${params.durationWeeks} weeks
+- Training age: ${params.trainingAge || 'intermediate'}
+- Equipment: ${params.equipment || 'commercial gym'}
+- Primary lift focus: ${params.selectedLift || 'general'}
+- Primary weakness: ${params.primaryLimiter || 'none identified'}
+- Prescribed accessories from analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}
+
+INSTRUCTIONS:
+- Generate a periodized program for ${params.durationWeeks} weeks
+- Structure each week with exactly ${params.daysPerWeek} training days (name them by muscle group/focus, not Day 1/2/3)
+- Include the primary lift on appropriate days
+- Include prescribed accessories from the analysis
+- Sets, reps, and intensity should progress across weeks
+- For brevity, you can show week 1 in full detail and note "Week 2-${params.durationWeeks}: Progressive overload — add 2.5-5 lbs or reduce RIR by 0.5 per week" rather than repeating every week
+
+OUTPUT FORMAT (JSON only):
+{
+  "goal": "${params.goal}",
+  "daysPerWeek": ${params.daysPerWeek},
+  "durationWeeks": ${params.durationWeeks},
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "days": [
+        {
+          "day": "Push / Bench",
+          "focus": "Primary strength",
+          "sessions": [
+            { "exercise": "Bench Press", "sets": 4, "reps": "5", "intensity": "RIR 2", "notes": "Focus on leg drive" }
+          ]
+        }
+      ]
+    }
+  ],
+  "progressionNotes": ["Add 2.5 lbs per session on primary lift when all reps completed at target RIR", "..."]
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.6,
+    max_tokens: 2000,
+    response_format: { type: 'json_object' },
+  });
+
+  const content = response.choices[0].message.content || '{}';
+  return JSON.parse(content) as TrainingProgram;
+}
+
+// ─── Coach Insights ────────────────────────────────────────────────────────────
+
+export async function generateCoachInsight(params: {
+  primaryLimiter: string | null;
+  archetype: string | null;
+  efficiencyScore: number | null;
+  selectedLift: string | null;
+}): Promise<string> {
+  const prompt = `You are an elite AI strength coach. Generate ONE concise, specific coaching insight (1–2 sentences max) for this athlete.
+
+ATHLETE DATA:
+- Primary lift: ${params.selectedLift || 'unknown'}
+- Primary weakness: ${params.primaryLimiter || 'none identified'}
+- Strength archetype: ${params.archetype || 'unknown'}
+- Muscle balance score: ${params.efficiencyScore !== null ? params.efficiencyScore + '/100' : 'unknown'}
+
+Be specific and actionable. Reference their data. Do not use generic phrases like "keep up the good work."
+Output only the insight text, no JSON, no labels.`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    max_tokens: 100,
+  });
+
+  return response.choices[0].message.content?.trim() || 'Keep training consistently and track your progress.';
+}
+
+// ─── Wellness Insight ──────────────────────────────────────────────────────────
+
+export async function generateWellnessInsight(params: {
+  recentCheckins: Array<{ mood: number; energy: number; sleepHours: number; stress: number; date: string }>;
+}): Promise<string> {
+  const summary = params.recentCheckins.slice(0, 7).map(c =>
+    `${c.date}: mood=${c.mood}/5, energy=${c.energy}/5, sleep=${c.sleepHours}h, stress=${c.stress}/5`
+  ).join('\n');
+
+  const prompt = `You are a sports recovery specialist. Analyze this athlete's recent wellness check-ins and provide ONE specific recovery recommendation (2–3 sentences).
+
+RECENT CHECKINS (last 7 days):
+${summary}
+
+Be specific. If energy is low, say why and what to do. If stress is high, recommend a concrete intervention.
+Output only the recommendation text, no JSON, no labels.`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.6,
+    max_tokens: 120,
+  });
+
+  return response.choices[0].message.content?.trim() || 'Prioritize 7-9 hours of sleep and manage stress to optimize recovery.';
+}
+
 /**
  * Sends a user message to an existing thread and returns the assistant reply.
  */

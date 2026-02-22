@@ -28,8 +28,35 @@ model User {
   dailyAnalysisCount Int       @default(0)
   dailyAnalysisDate  DateTime?
   coachThreadId      String?              // OpenAI Assistants API thread ID for AI Coach
+  savedProgram       String?              // Saved AI-generated training program JSON
   updatedAt          DateTime  @default(now()) @updatedAt
   sessions           Session[]
+  nutritionLogs      NutritionLog[]
+  wellnessCheckins   WellnessCheckin[]
+}
+
+model NutritionLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  proteinG  Float
+  carbsG    Float
+  fatG      Float
+  notes     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model WellnessCheckin {
+  id         String   @id @default(uuid())
+  userId     String
+  date       String   // YYYY-MM-DD
+  mood       Int      // 1–5
+  energy     Int      // 1–5
+  sleepHours Float
+  stress     Int      // 1–5
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
 }
 
 model Session {
