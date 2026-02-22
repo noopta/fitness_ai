@@ -909,25 +909,50 @@ OUTPUT FORMAT (JSON only):
 
 // ─── Coach Extras: Training Program ───────────────────────────────────────────
 
+export interface ProgramExercise {
+  exercise: string;
+  sets: number;
+  reps: string;
+  intensity: string;
+  notes?: string;
+}
+
+export interface ProgramDay {
+  day: string;
+  focus: string;
+  warmup: string[];       // e.g. ["3 min rowing", "Hip 90/90 x 5/side", "Band pull-aparts 2x15"]
+  exercises: ProgramExercise[];
+  cooldown: string[];     // e.g. ["Doorway pec stretch 2x30s", "T-spine rotation 2x10"]
+}
+
+export interface ProgramPhase {
+  phaseNumber: number;
+  phaseName: string;      // e.g. "Foundation", "Build", "Peak"
+  rationale: string;      // Why this phase exists for this athlete
+  durationWeeks: number;
+  weeksLabel: string;     // e.g. "Weeks 1-4"
+  trainingDays: ProgramDay[];  // Template week for this phase (repeated durationWeeks times)
+  progressionNotes: string[]; // How to progress during this phase
+  deloadProtocol: string;     // When/how to deload within this phase
+}
+
 export interface TrainingProgram {
   goal: string;
   daysPerWeek: number;
   durationWeeks: number;
-  weeks: Array<{
+  phases: ProgramPhase[];
+  autoregulationRules: string[];  // RPE/RIR auto-regulation guidance
+  trackingMetrics: string[];      // What to track each session
+  // Legacy fields kept for backwards compatibility
+  weeks?: Array<{
     weekNumber: number;
     days: Array<{
       day: string;
       focus: string;
-      sessions: Array<{
-        exercise: string;
-        sets: number;
-        reps: string;
-        intensity: string;
-        notes?: string;
-      }>;
+      sessions: ProgramExercise[];
     }>;
   }>;
-  progressionNotes: string[];
+  progressionNotes?: string[];
 }
 
 export async function generateTrainingProgram(params: {
@@ -939,59 +964,185 @@ export async function generateTrainingProgram(params: {
   primaryLimiter: string | null;
   selectedLift: string | null;
   accessories: string[];
+  coachProfile?: string | null;   // Full JSON blob of onboarding interview answers
+  diagnosticSignals?: {           // From latest analysis
+    primaryPhase?: string;
+    hypothesisScores?: Array<{ label: string; score: number; category: string }>;
+    efficiencyScore?: number;
+    indices?: Record<string, { value: number; confidence: number } | null>;
+  } | null;
 }): Promise<TrainingProgram> {
-  const prompt = `You are an elite strength coach (NSCA-CSCS level). Generate a detailed training program.
+  // Parse coachProfile for richer context
+  let profileContext = '';
+  if (params.coachProfile) {
+    try {
+      const profile = JSON.parse(params.coachProfile);
+      const lines: string[] = [];
+      if (profile.primaryGoal) lines.push(`- Primary goal: ${profile.primaryGoal}`);
+      if (profile.goalWhy) lines.push(`- Goal motivation: ${profile.goalWhy}`);
+      if (profile.medicalConditions) lines.push(`- Medical conditions: ${profile.medicalConditions}`);
+      if (profile.medications) lines.push(`- Medications: ${profile.medications}`);
+      if (profile.injuries) lines.push(`- Injuries/constraints: ${profile.injuries}`);
+      if (profile.hormonal) lines.push(`- Hormonal notes: ${profile.hormonal}`);
+      if (profile.currentRoutine) lines.push(`- Current routine: ${profile.currentRoutine}`);
+      if (profile.strengthLevel) lines.push(`- Strength level self-assessment: ${profile.strengthLevel}`);
+      if (profile.trainingPreference) lines.push(`- Training style preference: ${profile.trainingPreference}`);
+      if (profile.sleep) lines.push(`- Sleep quality: ${profile.sleep}`);
+      if (profile.stressEnergy) lines.push(`- Stress/energy levels: ${profile.stressEnergy}`);
+      if (profile.lifestyle) lines.push(`- Lifestyle: ${profile.lifestyle}`);
+      if (profile.recoveryPractices) lines.push(`- Recovery practices: ${profile.recoveryPractices}`);
+      if (profile.daysPerWeek) lines.push(`- Preferred days/week: ${profile.daysPerWeek}`);
+      if (profile.accountability) lines.push(`- Accountability style: ${profile.accountability}`);
+      if (profile.bodyStats) lines.push(`- Body stats: ${profile.bodyStats}`);
+      if (profile.aestheticGoals) lines.push(`- Aesthetic goals: ${profile.aestheticGoals}`);
+      if (profile.pastAttempts) lines.push(`- Past attempts/struggles: ${profile.pastAttempts}`);
+      if (profile.commitment) lines.push(`- Commitment level: ${profile.commitment}`);
+      profileContext = lines.length > 0 ? `\nFULL CONSULTATION PROFILE:\n${lines.join('\n')}` : '';
+    } catch { /* ignore parse errors */ }
+  }
+
+  // Summarize diagnostic signals
+  let signalsContext = '';
+  if (params.diagnosticSignals) {
+    const ds = params.diagnosticSignals;
+    const lines: string[] = [];
+    if (ds.primaryPhase) lines.push(`- Identified weak phase: ${ds.primaryPhase}`);
+    if (ds.hypothesisScores && ds.hypothesisScores.length > 0) {
+      const top3 = ds.hypothesisScores.slice(0, 3);
+      lines.push(`- Top weakness hypotheses: ${top3.map(h => `${h.label} (${h.score}/100)`).join(', ')}`);
+    }
+    if (ds.efficiencyScore !== undefined) lines.push(`- Muscle balance score: ${ds.efficiencyScore}/100`);
+    if (ds.indices) {
+      const lowIndices = Object.entries(ds.indices)
+        .filter(([, v]) => v && v.value < 60)
+        .map(([k, v]) => `${k.replace('_index', '')} (${v!.value}/100)`);
+      if (lowIndices.length > 0) lines.push(`- Low strength indices: ${lowIndices.join(', ')}`);
+    }
+    signalsContext = lines.length > 0 ? `\nBIOMECHANICS & DIAGNOSTIC DATA:\n${lines.join('\n')}` : '';
+  }
+
+  // Determine how many phases based on duration
+  let phaseStructure: string;
+  if (params.durationWeeks <= 4) {
+    phaseStructure = '1 phase (Foundation only)';
+  } else if (params.durationWeeks <= 8) {
+    phaseStructure = '2 phases: Phase 1 Foundation (first half), Phase 2 Build (second half)';
+  } else {
+    phaseStructure = '3 phases: Phase 1 Foundation (~1/3), Phase 2 Build (~1/3), Phase 3 Peak (~1/3)';
+  }
+
+  const prompt = `You are an elite strength & conditioning coach (NSCA-CSCS, with 15+ years experience designing individualized programs for elite athletes and serious recreational lifters). Generate a comprehensive, phased training program.
 
 ATHLETE PROFILE:
-- Goal: ${params.goal}
+- Training goal: ${params.goal}
 - Days per week: ${params.daysPerWeek}
-- Duration: ${params.durationWeeks} weeks
+- Total duration: ${params.durationWeeks} weeks
 - Training age: ${params.trainingAge || 'intermediate'}
-- Equipment: ${params.equipment || 'commercial gym'}
-- Primary lift focus: ${params.selectedLift || 'general'}
-- Primary weakness: ${params.primaryLimiter || 'none identified'}
-- Prescribed accessories from analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}
+- Equipment available: ${params.equipment || 'commercial gym'}
+- Primary lift focus: ${params.selectedLift || 'general strength'}
+- Primary mechanical weakness identified: ${params.primaryLimiter || 'none identified'}
+- Prescribed accessories from diagnostic analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}${profileContext}${signalsContext}
 
-INSTRUCTIONS:
-- Generate a periodized program for ${params.durationWeeks} weeks
-- Structure each week with exactly ${params.daysPerWeek} training days (name them by muscle group/focus, not Day 1/2/3)
-- Include the primary lift on appropriate days
-- Include prescribed accessories from the analysis
-- Sets, reps, and intensity should progress across weeks
-- For brevity, you can show week 1 in full detail and note "Week 2-${params.durationWeeks}: Progressive overload — add 2.5-5 lbs or reduce RIR by 0.5 per week" rather than repeating every week
+PROGRAM ARCHITECTURE:
+Use ${phaseStructure}.
 
-OUTPUT FORMAT (JSON only):
+ELITE TRAINER REQUIREMENTS:
+1. PHASED PERIODIZATION — Each phase must have a distinct name (Foundation/Correction, Build/Hypertrophy, or Peak/Strength), a clinical rationale paragraph explaining why this phase is right for THIS specific athlete based on their profile and diagnostic data.
+2. BIOMECHANICS INTEGRATION — Exercise selection must directly address the identified weak phase and hypotheses. If a weak index was identified (e.g., low posterior_index = weak hip hinge), the Foundation phase must include corrective work for it. Include the diagnostic rationale in exercise notes.
+3. WARM-UP PROTOCOL — Each training day must include a 3–5 item specific warm-up tailored to the day's focus (e.g., hip mobility for leg days, thoracic rotation + band pull-aparts for upper days). Not generic — specific to the day's demands.
+4. COOL-DOWN/RECOVERY — 2–3 targeted stretches or recovery movements per session that address the weakness identified.
+5. DELOAD PROTOCOL — Each phase must include a specific deload rule: when to deload (e.g., if fatigue >7/10, after 4 weeks) and how (reduce volume by 40%, keep intensity).
+6. AUTOREGULATION — All intensity should use RPE or RIR, not fixed percentages. Include guidance on adjusting loads based on daily readiness.
+7. PROGRESSION RULES — Specific, measurable progression triggers per phase (not generic "add weight").
+
+OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
 {
-  "goal": "${params.goal}",
+  "goal": "...",
   "daysPerWeek": ${params.daysPerWeek},
   "durationWeeks": ${params.durationWeeks},
-  "weeks": [
+  "phases": [
     {
-      "weekNumber": 1,
-      "days": [
+      "phaseNumber": 1,
+      "phaseName": "Foundation",
+      "rationale": "2-3 sentences explaining why this phase is prescribed for THIS athlete based on their specific profile and diagnostic data",
+      "durationWeeks": 4,
+      "weeksLabel": "Weeks 1–4",
+      "trainingDays": [
         {
-          "day": "Push / Bench",
-          "focus": "Primary strength",
-          "sessions": [
-            { "exercise": "Bench Press", "sets": 4, "reps": "5", "intensity": "RIR 2", "notes": "Focus on leg drive" }
+          "day": "Upper — Horizontal Push/Pull",
+          "focus": "Corrective strength + movement quality",
+          "warmup": [
+            "5 min light rowing or bike",
+            "Band pull-aparts 2x20",
+            "Wall slides 2x10",
+            "Shoulder CARs 1x5/side"
+          ],
+          "exercises": [
+            {
+              "exercise": "Bench Press",
+              "sets": 4,
+              "reps": "6",
+              "intensity": "RPE 7 (leave 3 in tank)",
+              "notes": "Focus on scapular retraction throughout. This directly addresses your identified lockout weakness."
+            }
+          ],
+          "cooldown": [
+            "Doorway pec stretch 2x30s/side",
+            "Child's pose thoracic extension 2x60s"
           ]
         }
-      ]
+      ],
+      "progressionNotes": [
+        "Add 2.5 lbs when all sets completed at RPE 7 or below",
+        "Progress to Phase 2 when you can hit all target reps at RPE ≤8 consistently for 2 sessions"
+      ],
+      "deloadProtocol": "After week 4 OR if perceived fatigue exceeds 7/10 for 3+ consecutive days: reduce volume by 40% (drop to 2-3 sets per exercise), maintain intensity (same RPE). Return to full volume after 1 week."
     }
   ],
-  "progressionNotes": ["Add 2.5 lbs per session on primary lift when all reps completed at target RIR", "..."]
+  "autoregulationRules": [
+    "If arriving to the gym at energy <5/10: reduce all working sets by 1 and drop RPE target by 1",
+    "If a set feels unexpectedly hard (RPE 9+ on what should be RPE 7): take an extra rest minute, then reduce weight by 5% for remaining sets",
+    "Never sacrifice form for load — terminate a set early at any form breakdown"
+  ],
+  "trackingMetrics": [
+    "Log: weight used, sets completed, reps completed, RPE per set",
+    "Note: sticking point location on primary lift each session",
+    "Weekly: bodyweight (same time of day), subjective energy/fatigue (1-10)"
+  ]
 }`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.6,
-    max_tokens: 2000,
+    max_tokens: 3500,
     response_format: { type: 'json_object' },
   });
 
   const content = response.choices[0].message.content || '{}';
-  return JSON.parse(content) as TrainingProgram;
+  const parsed = JSON.parse(content) as TrainingProgram;
+
+  // Backwards-compatibility: if old UI still reads .weeks, synthesize it
+  if (!parsed.weeks && parsed.phases && parsed.phases.length > 0) {
+    let weekNum = 0;
+    parsed.weeks = [];
+    for (const phase of parsed.phases) {
+      for (let w = 0; w < phase.durationWeeks; w++) {
+        weekNum++;
+        parsed.weeks.push({
+          weekNumber: weekNum,
+          days: phase.trainingDays.map(d => ({
+            day: d.day,
+            focus: d.focus,
+            sessions: d.exercises,
+          })),
+        });
+      }
+    }
+    parsed.progressionNotes = parsed.phases.flatMap(p => p.progressionNotes);
+  }
+
+  return parsed;
 }
 
 // ─── Coach Insights ────────────────────────────────────────────────────────────

@@ -284,6 +284,15 @@ router.post('/coach/program', requireAuth, async (req, res) => {
     const latestPlan = user.sessions[0]?.plans[0] ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
     const accessories = latestPlan?.bench_day_plan?.accessories?.map((a: any) => a.exercise_name) || [];
 
+    // Build diagnostic signals context from latest plan
+    const ds = latestPlan?.diagnostic_signals;
+    const diagnosticSignals = ds ? {
+      primaryPhase: ds.primary_phase || null,
+      hypothesisScores: ds.hypothesis_scores || [],
+      efficiencyScore: ds.efficiency_score?.score ?? undefined,
+      indices: ds.indices || {},
+    } : null;
+
     const program = await generateTrainingProgram({
       goal,
       daysPerWeek,
@@ -293,6 +302,8 @@ router.post('/coach/program', requireAuth, async (req, res) => {
       primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
       selectedLift: user.sessions[0]?.selectedLift || null,
       accessories,
+      coachProfile: user.coachProfile,
+      diagnosticSignals,
     });
 
     res.json(program);
