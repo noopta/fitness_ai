@@ -25,6 +25,7 @@ interface UserProfile {
   trainingAge: string | null;
   equipment: string | null;
   tier: string;
+  coachGoal: string | null;
 }
 
 interface Props {
@@ -84,11 +85,17 @@ export function OverviewTab({ sessions, user, onTabChange }: Props) {
                 {user.tier}
               </span>
             </div>
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-2">
               {user.trainingAge && <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" />{user.trainingAge}</span>}
               {user.equipment && <span className="flex items-center gap-1"><Zap className="h-3 w-3" />{user.equipment} gym</span>}
               {sessions.length > 0 && <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{sessions.length} analyses</span>}
             </div>
+            {user.coachGoal && (
+              <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 max-w-sm">
+                <p className="text-[10px] font-semibold text-primary uppercase tracking-wide mb-0.5">Current Goal</p>
+                <p className="text-xs text-foreground leading-relaxed">{user.coachGoal}</p>
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/onboarding">

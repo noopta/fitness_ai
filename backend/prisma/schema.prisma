@@ -29,6 +29,9 @@ model User {
   dailyAnalysisDate  DateTime?
   coachThreadId      String?              // OpenAI Assistants API thread ID for AI Coach
   savedProgram       String?              // Saved AI-generated training program JSON
+  coachGoal          String?              // Free-text fitness goal from onboarding interview
+  coachBudget        String?              // Weekly food budget (e.g. "$100/week")
+  coachOnboardingDone Boolean @default(false) // Whether coach onboarding interview is complete
   updatedAt          DateTime  @default(now()) @updatedAt
   sessions           Session[]
   nutritionLogs      NutritionLog[]

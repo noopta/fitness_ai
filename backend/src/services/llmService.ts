@@ -868,6 +868,7 @@ export async function generateNutritionPlan(params: {
   trainingAge: string | null;
   primaryLimiter: string | null;
   selectedLift: string | null;
+  budget?: string | null;
 }): Promise<NutritionPlanResult> {
   const prompt = `You are a certified sports nutritionist. Based on the athlete profile below, generate a macro plan and food recommendations.
 
@@ -877,6 +878,7 @@ ATHLETE PROFILE:
 - Training age: ${params.trainingAge || 'intermediate'}
 - Primary lift: ${params.selectedLift || 'unknown'}
 - Primary weakness identified: ${params.primaryLimiter || 'none identified'}
+${params.budget ? `- Weekly food budget: ${params.budget} — suggest affordable, practical foods within this budget` : ''}
 
 INSTRUCTIONS:
 - Calculate daily macros (protein, carbs, fat in grams) appropriate for the goal

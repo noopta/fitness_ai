@@ -138,6 +138,7 @@ export default function HistoryPage() {
                         onOpen={() => {
                           localStorage.setItem('liftoff_session_id', s.id);
                           localStorage.setItem('liftoff_selected_lift', s.selectedLift);
+                          // Plan cache is keyed by session ID — plan.tsx will find it
                           setLocation('/plan');
                         }}
                       />

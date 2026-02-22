@@ -33,6 +33,8 @@ interface Props {
   latestSession: SessionSummary | null;
   weightKg: number | null;
   trainingAge: string | null;
+  coachGoal: string | null;
+  coachBudget: string | null;
   isPro: boolean;
 }
 
@@ -40,7 +42,7 @@ function todayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
-export function NutritionTab({ latestSession, weightKg, trainingAge, isPro }: Props) {
+export function NutritionTab({ latestSession, weightKg, trainingAge, coachGoal, coachBudget, isPro }: Props) {
   const [logs, setLogs] = useState<NutritionLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [form, setForm] = useState({ date: todayStr(), proteinG: '', carbsG: '', fatG: '', notes: '' });
@@ -108,11 +110,12 @@ export function NutritionTab({ latestSession, weightKg, trainingAge, isPro }: Pr
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          goal: latestSession?.plan?.goal || 'strength_peak',
+          goal: coachGoal || latestSession?.plan?.goal || 'strength_peak',
           weightKg,
           trainingAge,
           primaryLimiter: latestSession?.primaryLimiter || null,
           selectedLift: latestSession?.selectedLift || null,
+          budget: coachBudget || null,
         }),
       });
       const data = await res.json();

@@ -184,7 +184,10 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         trainingAge: true,
         equipment: true,
         constraintsText: true,
-        dateOfBirth: true
+        dateOfBirth: true,
+        coachGoal: true,
+        coachBudget: true,
+        coachOnboardingDone: true,
       }
     });
     if (!user) {
@@ -205,7 +208,10 @@ const profileSchema = z.object({
   trainingAge: z.string().optional(),
   equipment: z.string().optional(),
   constraintsText: z.string().optional(),
-  dateOfBirth: z.string().optional()
+  dateOfBirth: z.string().optional(),
+  coachGoal: z.string().max(500).optional(),
+  coachBudget: z.string().max(100).optional(),
+  coachOnboardingDone: z.boolean().optional(),
 });
 
 router.put('/auth/profile', requireAuth, async (req, res) => {
@@ -220,7 +226,8 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
       select: {
         id: true, name: true, email: true, tier: true,
         heightCm: true, weightKg: true, trainingAge: true,
-        equipment: true, constraintsText: true
+        equipment: true, constraintsText: true,
+        coachGoal: true, coachBudget: true, coachOnboardingDone: true,
       }
     });
     res.json({ user });

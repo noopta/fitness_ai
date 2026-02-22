@@ -99,10 +99,33 @@ export default function Plan() {
       return;
     }
 
+    // Check localStorage cache first
+    const cacheKey = `liftoff_plan_${sessionId}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        setPlan(JSON.parse(cached));
+        setLoading(false);
+        return;
+      } catch {
+        localStorage.removeItem(cacheKey);
+      }
+    }
+
     setLoading(true);
     try {
+      // Try to load already-generated plan first (no API cost, no rate limit)
+      try {
+        const cached = await liftCoachApi.getCachedPlan(sessionId);
+        setPlan(cached.plan);
+        localStorage.setItem(cacheKey, JSON.stringify(cached.plan));
+        return;
+      } catch {
+        // No cached plan — generate a new one
+      }
       const response = await liftCoachApi.generatePlan(sessionId);
       setPlan(response.plan);
+      localStorage.setItem(cacheKey, JSON.stringify(response.plan));
     } catch (err: any) {
       console.error("Failed to generate plan:", err);
       if (err.status === 429) {

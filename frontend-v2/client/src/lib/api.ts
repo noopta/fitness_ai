@@ -245,6 +245,10 @@ export const liftCoachApi = {
       body: JSON.stringify({ message })
     }),
 
+  // Fetch already-generated plan without triggering a new generation
+  getCachedPlan: (sessionId: string) =>
+    apiRequest<GeneratePlanResponse>(`/sessions/${sessionId}/plan`),
+
   generatePlan: (sessionId: string) =>
     apiRequest<GeneratePlanResponse>(`/sessions/${sessionId}/generate`, {
       method: 'POST',

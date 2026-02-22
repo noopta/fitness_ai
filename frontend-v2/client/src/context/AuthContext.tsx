@@ -13,6 +13,9 @@ export interface AuthUser {
   trainingAge?: string | null;
   equipment?: string | null;
   constraintsText?: string | null;
+  coachGoal?: string | null;
+  coachBudget?: string | null;
+  coachOnboardingDone?: boolean;
 }
 
 interface AuthContextType {

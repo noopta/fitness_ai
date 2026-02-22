@@ -61,20 +61,19 @@ function Nav() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2">
-          <Link href="/pricing">
-            <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-pricing">
-              Pricing
-            </Button>
-          </Link>
+        <div className="flex items-center gap-3">
           {authLoading ? (
-            // Skeleton placeholder — prevents flash of "Sign In" while auth resolves
             <div className="h-8 w-24 animate-pulse rounded-xl bg-muted" />
           ) : user ? (
             <>
-              <span className="hidden md:block text-xs text-muted-foreground truncate max-w-[160px]" data-testid="text-nav-email">
-                {user.name ? `Hi, ${user.name.split(' ')[0]}` : user.email}
+              <span className="hidden md:block text-sm font-medium text-foreground truncate max-w-[140px]" data-testid="text-nav-email">
+                {user.name ? user.name.split(' ')[0] : user.email}
               </span>
+              <Link href="/pricing">
+                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-pricing">
+                  Pricing
+                </Button>
+              </Link>
               <Link href="/history">
                 <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-history">
                   My Analyses
@@ -85,32 +84,26 @@ function Nav() {
                   AI Coach
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" className="rounded-xl" onClick={handleLogout} data-testid="button-nav-logout">
+              <Button variant="ghost" size="sm" className="rounded-xl text-muted-foreground" onClick={handleLogout} data-testid="button-nav-logout">
                 Sign out
               </Button>
             </>
           ) : (
             <>
+              <Link href="/pricing">
+                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-pricing">
+                  Pricing
+                </Button>
+              </Link>
               <Link href="/login">
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="rounded-xl"
-                  data-testid="button-nav-login"
-                >
-                  <span>Sign In</span>
+                <Button variant="ghost" size="sm" className="rounded-xl" data-testid="button-nav-login">
+                  Sign In
                 </Button>
               </Link>
               <Link href="/register">
-                <Button
-                  asChild
-                  className="rounded-xl"
-                  data-testid="button-nav-register"
-                >
-                  <span>
-                    Get Started
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </span>
+                <Button size="sm" className="rounded-xl" data-testid="button-nav-register">
+                  Get Started
+                  <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </>

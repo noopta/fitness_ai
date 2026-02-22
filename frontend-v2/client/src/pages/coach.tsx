@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BrandLogo } from '@/components/BrandLogo';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { Loader2, Sparkles, Lock, ChevronRight, TrendingUp, Dumbbell, Heart, Apple, MessageCircle, BarChart3 } from 'lucide-react';
+import { Loader2, Sparkles, Lock, ChevronRight, TrendingUp, Dumbbell, Apple, MessageCircle, BarChart3, RotateCcw } from 'lucide-react';
 
+import { CoachOnboarding } from '@/components/coach/CoachOnboarding';
 import { OverviewTab } from '@/components/coach/OverviewTab';
 import { AnalyticsTab } from '@/components/coach/AnalyticsTab';
 import { NutritionTab } from '@/components/coach/NutritionTab';
-import { WellnessTab } from '@/components/coach/WellnessTab';
 import { ProgramTab } from '@/components/coach/ProgramTab';
 import { ChatTab } from '@/components/coach/ChatTab';
 
@@ -41,18 +40,21 @@ const TABS = [
   { value: 'overview', label: 'Overview', icon: Sparkles },
   { value: 'analytics', label: 'Analytics', icon: BarChart3 },
   { value: 'nutrition', label: 'Nutrition', icon: Apple },
-  { value: 'wellness', label: 'Wellness', icon: Heart },
   { value: 'program', label: 'Program', icon: Dumbbell },
   { value: 'chat', label: 'Coach Chat', icon: MessageCircle },
 ];
 
 export default function CoachPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [coachData, setCoachData] = useState<CoachData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  // Local override so user can re-do onboarding without refreshing
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
+  // Use local state if set, otherwise fall back to user profile
+  const showDashboard = onboardingDone ?? (user?.coachOnboardingDone ?? false);
 
   useEffect(() => {
     if (!isPro) { setLoading(false); return; }
@@ -62,6 +64,15 @@ export default function CoachPage() {
       .catch(() => toast.error('Failed to load coach'))
       .finally(() => setLoading(false));
   }, [isPro]);
+
+  async function handleOnboardingComplete() {
+    await refreshUser();
+    setOnboardingDone(true);
+  }
+
+  function handleRestartOnboarding() {
+    setOnboardingDone(false);
+  }
 
   if (loading) {
     return (
@@ -96,6 +107,18 @@ export default function CoachPage() {
             <Link href="/history">
               <Button variant="ghost" size="sm" className="rounded-xl text-xs">My Analyses</Button>
             </Link>
+            {isPro && showDashboard && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-xl text-xs text-muted-foreground"
+                onClick={handleRestartOnboarding}
+                title="Update my goals"
+              >
+                <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                Update Goals
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -110,15 +133,14 @@ export default function CoachPage() {
             <div>
               <h2 className="text-xl font-bold">AI Coach is a Pro feature</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Upgrade to Pro to unlock your personal AI strength coach with personalized programs, nutrition tracking, wellness monitoring, and unlimited coaching conversations.
+                Upgrade to Pro to unlock your personal AI strength coach with personalized programs, nutrition tracking, and unlimited coaching conversations.
               </p>
             </div>
             <div className="space-y-2 text-left text-sm text-muted-foreground">
               {[
+                'Guided coaching intake — tell us your goals',
                 'Personalized program design from your data',
                 'Nutrition tracking & AI macro recommendations',
-                'Daily wellness check-ins & recovery insights',
-                'Injury prevention & prehab guidance',
                 'Progress analytics & trend charts',
                 'Unlimited coaching conversations',
               ].map(f => (
@@ -136,8 +158,22 @@ export default function CoachPage() {
             </Link>
           </Card>
         </div>
+      ) : !showDashboard ? (
+        /* Onboarding interview */
+        <CoachOnboarding
+          userName={user?.name || null}
+          existingAnswers={{
+            trainingAge: user?.trainingAge || '',
+            equipment: user?.equipment || '',
+            weightKg: user?.weightKg ? String(Math.round(user.weightKg * 2.20462)) + ' lbs' : '',
+            constraintsText: user?.constraintsText || '',
+            budget: user?.coachBudget || '',
+            goal: user?.coachGoal || '',
+          }}
+          onComplete={handleOnboardingComplete}
+        />
       ) : (
-        /* Main tabbed layout */
+        /* Main tabbed dashboard */
         <div className="flex-1 flex flex-col min-h-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
             {/* Tab bar */}
@@ -161,7 +197,7 @@ export default function CoachPage() {
               </div>
             </div>
 
-            {/* Tab content area */}
+            {/* Tab content */}
             <div className="flex-1 overflow-y-auto">
               <TabsContent value="overview" className="mt-0 h-full">
                 <OverviewTab
@@ -171,6 +207,7 @@ export default function CoachPage() {
                     trainingAge: user?.trainingAge || null,
                     equipment: user?.equipment || null,
                     tier: user?.tier || 'free',
+                    coachGoal: user?.coachGoal || null,
                   }}
                   onTabChange={setActiveTab}
                 />
@@ -189,12 +226,10 @@ export default function CoachPage() {
                   } : null}
                   weightKg={user?.weightKg || null}
                   trainingAge={user?.trainingAge || null}
+                  coachGoal={user?.coachGoal || null}
+                  coachBudget={user?.coachBudget || null}
                   isPro={isPro}
                 />
-              </TabsContent>
-
-              <TabsContent value="wellness" className="mt-0 h-full">
-                <WellnessTab latestPlan={latestPlan} />
               </TabsContent>
 
               <TabsContent value="program" className="mt-0 h-full">

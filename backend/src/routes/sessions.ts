@@ -436,6 +436,24 @@ router.post('/sessions/:id/generate', optionalAuth, checkAnalysisRateLimit, asyn
   }
 });
 
+// GET /api/sessions/:id/plan - Return already-generated plan (no regeneration)
+router.get('/sessions/:id/plan', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const plan = await prisma.generatedPlan.findFirst({
+      where: { sessionId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!plan) {
+      return res.status(404).json({ error: 'No plan found for this session' });
+    }
+    res.json({ plan: JSON.parse(plan.planJson) });
+  } catch (err) {
+    console.error('Get plan error:', err);
+    res.status(500).json({ error: 'Failed to fetch plan' });
+  }
+});
+
 // GET /api/sessions/:id - Get session details
 router.get('/sessions/:id', async (req, res) => {
   try {

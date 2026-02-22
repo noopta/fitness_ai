@@ -231,6 +231,7 @@ const nutritionPlanSchema = z.object({
   trainingAge: z.string().nullable().optional(),
   primaryLimiter: z.string().nullable().optional(),
   selectedLift: z.string().nullable().optional(),
+  budget: z.string().nullable().optional(),
 });
 
 router.post('/coach/nutrition-plan', requireAuth, async (req, res) => {
@@ -245,6 +246,7 @@ router.post('/coach/nutrition-plan', requireAuth, async (req, res) => {
       trainingAge: params.trainingAge ?? null,
       primaryLimiter: params.primaryLimiter ?? null,
       selectedLift: params.selectedLift ?? null,
+      budget: params.budget ?? null,
     });
     res.json(plan);
   } catch (err: any) {
