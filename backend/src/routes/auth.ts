@@ -188,6 +188,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         coachGoal: true,
         coachBudget: true,
         coachOnboardingDone: true,
+        coachProfile: true,
       }
     });
     if (!user) {
@@ -212,6 +213,7 @@ const profileSchema = z.object({
   coachGoal: z.string().max(500).optional(),
   coachBudget: z.string().max(100).optional(),
   coachOnboardingDone: z.boolean().optional(),
+  coachProfile: z.string().optional(), // JSON stringified full interview answers
 });
 
 router.put('/auth/profile', requireAuth, async (req, res) => {
@@ -227,7 +229,7 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
         id: true, name: true, email: true, tier: true,
         heightCm: true, weightKg: true, trainingAge: true,
         equipment: true, constraintsText: true,
-        coachGoal: true, coachBudget: true, coachOnboardingDone: true,
+        coachGoal: true, coachBudget: true, coachOnboardingDone: true, coachProfile: true,
       }
     });
     res.json({ user });

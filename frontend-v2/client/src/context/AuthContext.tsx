@@ -16,6 +16,7 @@ export interface AuthUser {
   coachGoal?: string | null;
   coachBudget?: string | null;
   coachOnboardingDone?: boolean;
+  coachProfile?: string | null; // JSON blob of full onboarding answers
 }
 
 interface AuthContextType {

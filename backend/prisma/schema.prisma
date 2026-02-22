@@ -32,6 +32,7 @@ model User {
   coachGoal          String?              // Free-text fitness goal from onboarding interview
   coachBudget        String?              // Weekly food budget (e.g. "$100/week")
   coachOnboardingDone Boolean @default(false) // Whether coach onboarding interview is complete
+  coachProfile       String?              // Full JSON blob of onboarding interview answers
   updatedAt          DateTime  @default(now()) @updatedAt
   sessions           Session[]
   nutritionLogs      NutritionLog[]

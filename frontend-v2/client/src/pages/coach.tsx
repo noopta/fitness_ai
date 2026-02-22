@@ -162,14 +162,17 @@ export default function CoachPage() {
         /* Onboarding interview */
         <CoachOnboarding
           userName={user?.name || null}
-          existingAnswers={{
-            trainingAge: user?.trainingAge || '',
-            equipment: user?.equipment || '',
-            weightKg: user?.weightKg ? String(Math.round(user.weightKg * 2.20462)) + ' lbs' : '',
-            constraintsText: user?.constraintsText || '',
-            budget: user?.coachBudget || '',
-            goal: user?.coachGoal || '',
-          }}
+          existingAnswers={
+            user?.coachProfile
+              ? JSON.parse(user.coachProfile)
+              : {
+                  trainingAge: user?.trainingAge || '',
+                  equipment: user?.equipment || '',
+                  injuries: user?.constraintsText || '',
+                  budget: user?.coachBudget || '',
+                  primaryGoal: user?.coachGoal || '',
+                }
+          }
           onComplete={handleOnboardingComplete}
         />
       ) : (
