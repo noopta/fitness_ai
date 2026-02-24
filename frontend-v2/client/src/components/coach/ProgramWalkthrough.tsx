@@ -3,8 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
-  ChevronLeft, ChevronRight, Dumbbell, Zap, Target, Loader2,
-  CheckCircle2, RotateCcw, Calendar, Flame, Moon
+  ChevronLeft, ChevronRight, Dumbbell, Zap, Target,
+  Loader2, CheckCircle2, RotateCcw, Calendar, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { TrainingProgram, ProgramPhase } from './ProgramSetup';
@@ -19,22 +19,6 @@ interface Props {
   onAdjust: () => void;
 }
 
-const PHASE_COLORS: Record<string, { badge: string; border: string }> = {
-  Foundation: { badge: 'bg-blue-500/15 text-blue-600', border: 'border-blue-500/30' },
-  'Foundation/Correction': { badge: 'bg-blue-500/15 text-blue-600', border: 'border-blue-500/30' },
-  Corrective: { badge: 'bg-blue-500/15 text-blue-600', border: 'border-blue-500/30' },
-  Build: { badge: 'bg-purple-500/15 text-purple-600', border: 'border-purple-500/30' },
-  Hypertrophy: { badge: 'bg-purple-500/15 text-purple-600', border: 'border-purple-500/30' },
-  'Build/Hypertrophy': { badge: 'bg-purple-500/15 text-purple-600', border: 'border-purple-500/30' },
-  Peak: { badge: 'bg-orange-500/15 text-orange-600', border: 'border-orange-500/30' },
-  Strength: { badge: 'bg-orange-500/15 text-orange-600', border: 'border-orange-500/30' },
-  'Peak/Strength': { badge: 'bg-orange-500/15 text-orange-600', border: 'border-orange-500/30' },
-};
-
-function getPhaseBadge(name: string) {
-  return PHASE_COLORS[name] || { badge: 'bg-primary/10 text-primary', border: 'border-primary/20' };
-}
-
 function formatGoal(goal: string) {
   const map: Record<string, string> = {
     strength: 'Strength Peak',
@@ -45,7 +29,7 @@ function formatGoal(goal: string) {
   return map[goal] || goal;
 }
 
-// Slide 0: Welcome
+// ─── Slide 0: Welcome ──────────────────────────────────────────────────────────
 function WelcomeSlide({ program, userName }: { program: TrainingProgram; userName: string | null }) {
   return (
     <div className="text-center space-y-6 py-8">
@@ -53,26 +37,29 @@ function WelcomeSlide({ program, userName }: { program: TrainingProgram; userNam
         <CheckCircle2 className="h-10 w-10 text-primary" />
       </div>
       <div>
-        <h2 className="text-2xl font-bold mb-2">Your program is ready{userName ? `, ${userName.split(' ')[0]}` : ''}.</h2>
-        <p className="text-muted-foreground">Your personalized training plan has been built from your intake data.</p>
+        <h2 className="text-2xl font-bold mb-2">
+          Your program is ready{userName ? `, ${userName.split(' ')[0]}` : ''}.
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Your personalized training plan has been built from your intake data.
+        </p>
       </div>
       <div className="flex items-center justify-center gap-6 pt-2">
-        <div className="text-center">
-          <p className="text-2xl font-bold text-primary">{program.durationWeeks}</p>
-          <p className="text-xs text-muted-foreground">Weeks</p>
-        </div>
-        <div className="h-8 w-px bg-border" />
-        <div className="text-center">
-          <p className="text-2xl font-bold text-primary">{program.phases?.length || 1}</p>
-          <p className="text-xs text-muted-foreground">Phases</p>
-        </div>
-        <div className="h-8 w-px bg-border" />
-        <div className="text-center">
-          <p className="text-2xl font-bold text-primary">{program.daysPerWeek}</p>
-          <p className="text-xs text-muted-foreground">Days/week</p>
-        </div>
+        {[
+          { value: program.durationWeeks, label: 'Weeks' },
+          { value: program.phases?.length || 1, label: 'Phases' },
+          { value: program.daysPerWeek, label: 'Days/week' },
+        ].map((stat, i) => (
+          <div key={i} className="flex items-center gap-4">
+            {i > 0 && <div className="h-8 w-px bg-border" />}
+            <div className="text-center">
+              <p className="text-2xl font-bold text-primary">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="rounded-xl bg-muted/50 border px-6 py-4 inline-block">
+      <div className="inline-block rounded-xl bg-muted/50 border px-6 py-4">
         <p className="text-sm font-semibold">{formatGoal(program.goal)}</p>
         <p className="text-xs text-muted-foreground mt-0.5">Primary training goal</p>
       </div>
@@ -81,8 +68,8 @@ function WelcomeSlide({ program, userName }: { program: TrainingProgram; userNam
   );
 }
 
-// Slide 1: Profile summary
-function ProfileSlide({ program, coachProfile }: { program: TrainingProgram; coachProfile: Record<string, any> | null }) {
+// ─── Slide 1: Profile Summary ─────────────────────────────────────────────────
+function ProfileSlide({ coachProfile }: { coachProfile: Record<string, any> | null }) {
   const signals = [
     coachProfile?.primaryGoal && { label: 'Goal', value: coachProfile.primaryGoal },
     coachProfile?.trainingPreference && { label: 'Training style', value: coachProfile.trainingPreference },
@@ -93,84 +80,84 @@ function ProfileSlide({ program, coachProfile }: { program: TrainingProgram; coa
     coachProfile?.injuries && { label: 'Constraints', value: coachProfile.injuries },
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
+  const lowRecovery = coachProfile?.sleep === 'poor' || coachProfile?.sleep === 'very_poor' ||
+    coachProfile?.stressEnergy === 'high_stress' || coachProfile?.stressEnergy === 'burnout';
+
   return (
     <div className="space-y-5 py-4">
       <div>
         <h2 className="text-xl font-bold mb-1">Here's what I used to build this.</h2>
-        <p className="text-sm text-muted-foreground">Your program was personalized based on these key signals from your consultation.</p>
+        <p className="text-sm text-muted-foreground">
+          Your program was personalized from these signals.
+        </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {signals.map(({ label, value }) => (
-          <div key={label} className="rounded-xl bg-muted/50 border px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">{label}</p>
-            <p className="text-sm font-medium capitalize">{value}</p>
-          </div>
-        ))}
-        {signals.length === 0 && (
-          <p className="text-sm text-muted-foreground col-span-2">Profile data not available.</p>
-        )}
-      </div>
-      {(coachProfile?.sleep === 'poor' || coachProfile?.sleep === 'very_poor' ||
-        coachProfile?.stressEnergy === 'high_stress' || coachProfile?.stressEnergy === 'burnout') && (
-        <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/30 px-4 py-3">
+      {signals.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {signals.map(({ label, value }) => (
+            <div key={label} className="rounded-xl bg-muted/50 border px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">{label}</p>
+              <p className="text-sm font-medium capitalize">{value}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Profile data not available.</p>
+      )}
+      {lowRecovery && (
+        <Card className="p-4 border-border bg-muted/30">
           <div className="flex items-start gap-2">
-            <Moon className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-yellow-700 dark:text-yellow-400">
-              Based on your recovery status, weekly volume has been reduced by ~15–20% with an emphasis on quality over quantity.
+            <Zap className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">
+              Based on your recovery status, weekly volume has been adjusted with emphasis on quality over quantity.
             </p>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
 }
 
-// Slide 2: Why this structure
+// ─── Slide 2: Program Structure ───────────────────────────────────────────────
 function StructureSlide({ program }: { program: TrainingProgram }) {
-  const firstPhaseRationale = program.phases?.[0]?.rationale;
   return (
     <div className="space-y-5 py-4">
       <div>
         <h2 className="text-xl font-bold mb-1">Why this structure.</h2>
         <p className="text-sm text-muted-foreground">The periodization approach behind your program.</p>
       </div>
+      {program.phases?.[0]?.rationale && (
+        <div className="rounded-xl bg-primary/5 border border-primary/20 px-4 py-4">
+          <p className="text-sm leading-relaxed">{program.phases[0].rationale}</p>
+        </div>
+      )}
       {program.phases && program.phases.length > 0 && (
-        <div className="space-y-3">
-          <div className="rounded-xl bg-primary/5 border border-primary/20 px-4 py-4">
-            <p className="text-sm leading-relaxed">{firstPhaseRationale || 'Progressive periodization structured around your identified weaknesses.'}</p>
-          </div>
+        <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phase Overview</p>
-          <div className="space-y-2">
-            {program.phases.map((phase) => {
-              const colors = getPhaseBadge(phase.phaseName);
-              return (
-                <div key={phase.phaseNumber} className={`rounded-xl border px-4 py-3 flex items-center justify-between ${colors.border}`}>
-                  <div className="flex items-center gap-3">
-                    <span className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${colors.badge}`}>
-                      Phase {phase.phaseNumber}
-                    </span>
-                    <span className="text-sm font-semibold">{phase.phaseName}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{phase.weeksLabel}</span>
-                </div>
-              );
-            })}
-          </div>
+          {program.phases.map((phase) => (
+            <div key={phase.phaseNumber} className="rounded-xl border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="rounded-lg bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  Phase {phase.phaseNumber}
+                </span>
+                <span className="text-sm font-semibold">{phase.phaseName}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{phase.weeksLabel}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-// Phase slide (one per phase)
+// ─── Phase Slide ──────────────────────────────────────────────────────────────
 function PhaseSlide({ phase }: { phase: ProgramPhase }) {
   const [expandedDay, setExpandedDay] = useState<number | null>(0);
-  const colors = getPhaseBadge(phase.phaseName);
 
   return (
     <div className="space-y-4 py-4">
       <div className="flex items-center gap-3">
-        <span className={`rounded-lg px-3 py-1 text-sm font-bold ${colors.badge}`}>
+        <span className="rounded-lg bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
           Phase {phase.phaseNumber}
         </span>
         <h2 className="text-xl font-bold">{phase.phaseName}</h2>
@@ -184,7 +171,7 @@ function PhaseSlide({ phase }: { phase: ProgramPhase }) {
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Template Week</p>
       <div className="space-y-2">
         {phase.trainingDays.map((day, idx) => (
-          <div key={idx} className={`rounded-xl border overflow-hidden ${colors.border}`}>
+          <div key={idx} className="rounded-xl border overflow-hidden">
             <button
               className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-muted/30 transition-colors"
               onClick={() => setExpandedDay(expandedDay === idx ? null : idx)}
@@ -209,19 +196,18 @@ function PhaseSlide({ phase }: { phase: ProgramPhase }) {
                   <div className="px-4 pb-4 space-y-3 border-t pt-3">
                     {day.warmup && day.warmup.length > 0 && (
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-orange-500 mb-1">Warm-up</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Warm-up</p>
                         <ul className="space-y-0.5">
                           {day.warmup.map((w, i) => (
                             <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                              <Flame className="h-3 w-3 shrink-0 mt-0.5 text-orange-400" />
-                              {w}
+                              <span className="text-primary mt-0.5">·</span> {w}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-primary mb-1">Exercises</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Exercises</p>
                       <div className="space-y-2">
                         {day.exercises.map((ex, i) => (
                           <div key={i} className="rounded-lg bg-background border px-3 py-2">
@@ -230,7 +216,7 @@ function PhaseSlide({ phase }: { phase: ProgramPhase }) {
                               {ex.sets}×{ex.reps} · {ex.intensity}
                             </p>
                             {ex.notes && (
-                              <p className="text-[10px] text-muted-foreground italic mt-0.5">{ex.notes}</p>
+                              <p className="text-[10px] text-muted-foreground/80 italic mt-0.5">{ex.notes}</p>
                             )}
                           </div>
                         ))}
@@ -238,12 +224,11 @@ function PhaseSlide({ phase }: { phase: ProgramPhase }) {
                     </div>
                     {day.cooldown && day.cooldown.length > 0 && (
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-500 mb-1">Cool-down</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Cool-down</p>
                         <ul className="space-y-0.5">
                           {day.cooldown.map((c, i) => (
                             <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                              <Moon className="h-3 w-3 shrink-0 mt-0.5 text-blue-400" />
-                              {c}
+                              <span className="text-muted-foreground/60 mt-0.5">·</span> {c}
                             </li>
                           ))}
                         </ul>
@@ -260,7 +245,7 @@ function PhaseSlide({ phase }: { phase: ProgramPhase }) {
   );
 }
 
-// Progression slide
+// ─── Progression Slide ────────────────────────────────────────────────────────
 function ProgressionSlide({ program }: { program: TrainingProgram }) {
   return (
     <div className="space-y-5 py-4">
@@ -271,20 +256,18 @@ function ProgressionSlide({ program }: { program: TrainingProgram }) {
       {program.autoregulationRules && program.autoregulationRules.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Autoregulation Rules</p>
-          <div className="space-y-2">
-            {program.autoregulationRules.map((rule, i) => (
-              <div key={i} className="rounded-xl bg-muted/40 border px-4 py-3">
-                <p className="text-sm leading-relaxed">{rule}</p>
-              </div>
-            ))}
-          </div>
+          {program.autoregulationRules.map((rule, i) => (
+            <div key={i} className="rounded-xl bg-muted/40 border px-4 py-3">
+              <p className="text-sm leading-relaxed">{rule}</p>
+            </div>
+          ))}
         </div>
       )}
       {program.phases && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phase Progression Notes</p>
-          {program.phases.map((phase) => (
-            phase.progressionNotes && phase.progressionNotes.length > 0 && (
+          {program.phases.map((phase) =>
+            phase.progressionNotes && phase.progressionNotes.length > 0 ? (
               <div key={phase.phaseNumber} className="rounded-xl bg-background border px-4 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
                   Phase {phase.phaseNumber}: {phase.phaseName}
@@ -298,8 +281,8 @@ function ProgressionSlide({ program }: { program: TrainingProgram }) {
                   ))}
                 </ul>
               </div>
-            )
-          ))}
+            ) : null
+          )}
         </div>
       )}
       {program.trackingMetrics && program.trackingMetrics.length > 0 && (
@@ -321,12 +304,9 @@ function ProgressionSlide({ program }: { program: TrainingProgram }) {
   );
 }
 
-// Confirm slide
+// ─── Confirm Slide ────────────────────────────────────────────────────────────
 function ConfirmSlide({
-  program,
-  saving,
-  onSave,
-  onAdjust,
+  program, saving, onSave, onAdjust,
 }: {
   program: TrainingProgram;
   saving: boolean;
@@ -335,32 +315,30 @@ function ConfirmSlide({
 }) {
   return (
     <div className="space-y-6 py-4 text-center">
-      <div className="grid h-16 w-16 place-items-center rounded-2xl bg-green-500/10 mx-auto">
-        <Target className="h-8 w-8 text-green-500" />
+      <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 mx-auto">
+        <Target className="h-8 w-8 text-primary" />
       </div>
       <div>
         <h2 className="text-2xl font-bold mb-2">This is your program. Let's go.</h2>
         <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          {program.durationWeeks} weeks of {formatGoal(program.goal).toLowerCase()} training, {program.daysPerWeek} days per week, built specifically for you.
+          {program.durationWeeks} weeks · {formatGoal(program.goal).toLowerCase()} · {program.daysPerWeek} days/week
         </p>
       </div>
-      <div className="flex items-center justify-center gap-4">
-        <div className="text-center">
-          <Dumbbell className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
-          <p className="text-xs text-muted-foreground">{program.phases?.length || 1} phases</p>
-        </div>
-        <div className="text-center">
-          <Calendar className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
-          <p className="text-xs text-muted-foreground">{program.daysPerWeek} days/week</p>
-        </div>
-        <div className="text-center">
-          <Zap className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
-          <p className="text-xs text-muted-foreground">RPE-based</p>
-        </div>
+      <div className="flex items-center justify-center gap-6">
+        {[
+          { icon: Dumbbell, label: `${program.phases?.length || 1} phases` },
+          { icon: Calendar, label: `${program.daysPerWeek} days/week` },
+          { icon: Zap, label: 'RPE-based' },
+        ].map(({ icon: Icon, label }, i) => (
+          <div key={i} className="text-center">
+            <Icon className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground">{label}</p>
+          </div>
+        ))}
       </div>
       <div className="space-y-3">
         <Button
-          className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-green-600 to-primary shadow-lg"
+          className="w-full h-12 rounded-xl text-base font-semibold"
           onClick={onSave}
           disabled={saving}
         >
@@ -391,13 +369,13 @@ function ConfirmSlide({
   );
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, onAdjust }: Props) {
   const phases = program.phases || [];
-  // Build slide sequence: welcome(0), profile(1), structure(2), ...phases, progression, confirm
   const PHASE_START = 3;
-  const progressionSlideIdx = PHASE_START + phases.length;
-  const confirmSlideIdx = progressionSlideIdx + 1;
-  const totalSlides = confirmSlideIdx + 1;
+  const progressionIdx = PHASE_START + phases.length;
+  const confirmIdx = progressionIdx + 1;
+  const totalSlides = confirmIdx + 1;
 
   const [slide, setSlide] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -427,7 +405,7 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
         body: JSON.stringify({ program }),
       });
       if (!resp.ok) throw new Error('Failed to save');
-      toast.success('Program saved! Today\'s workout is ready.');
+      toast.success("Program saved! Today's workout is ready.");
       onSaved();
     } catch {
       toast.error('Failed to save program. Please try again.');
@@ -438,19 +416,18 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
 
   function renderSlide() {
     if (slide === 0) return <WelcomeSlide program={program} userName={userName} />;
-    if (slide === 1) return <ProfileSlide program={program} coachProfile={coachProfile} />;
+    if (slide === 1) return <ProfileSlide coachProfile={coachProfile} />;
     if (slide === 2) return <StructureSlide program={program} />;
-    if (slide >= PHASE_START && slide < progressionSlideIdx) {
+    if (slide >= PHASE_START && slide < progressionIdx) {
       return <PhaseSlide phase={phases[slide - PHASE_START]} />;
     }
-    if (slide === progressionSlideIdx) return <ProgressionSlide program={program} />;
-    if (slide === confirmSlideIdx) return (
+    if (slide === progressionIdx) return <ProgressionSlide program={program} />;
+    return (
       <ConfirmSlide program={program} saving={saving} onSave={handleSave} onAdjust={onAdjust} />
     );
-    return null;
   }
 
-  const slideVariants = {
+  const variants = {
     enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
     center: { x: 0, opacity: 1 },
     exit: (dir: number) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
@@ -458,17 +435,25 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
 
   return (
     <div className="flex-1 flex flex-col min-h-[calc(100vh-120px)]">
+      {/* Slide label */}
+      <div className="px-4 pt-4 max-w-2xl mx-auto w-full">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>Program Walkthrough · {slide + 1} / {totalSlides}</span>
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 pb-32">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={slide}
               custom={direction}
-              variants={slideVariants}
+              variants={variants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
             >
               {renderSlide()}
             </motion.div>
@@ -499,7 +484,9 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
                 className={`rounded-full transition-all ${
                   i === slide
                     ? 'w-4 h-2 bg-primary'
-                    : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/60'
+                    : i < slide
+                    ? 'w-2 h-2 bg-primary/40'
+                    : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
               />
             ))}
@@ -511,7 +498,7 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
-            <div className="w-16" /> /* spacer to keep dots centered */
+            <div className="w-16" />
           )}
         </div>
       </div>

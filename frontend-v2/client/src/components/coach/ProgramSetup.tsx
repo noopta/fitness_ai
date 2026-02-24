@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2, Dumbbell, Zap, Target, RefreshCw, Check } from 'lucide-react';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
+
 export interface ProgramExercise {
   exercise: string;
   sets: number;
@@ -39,8 +42,6 @@ export interface TrainingProgram {
   trackingMetrics: string[];
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
-
 interface Props {
   userName: string | null;
   coachProfile: Record<string, any> | null;
@@ -53,36 +54,24 @@ const GOAL_OPTIONS = [
     label: 'Strength Peak',
     desc: 'Max strength, low reps, high intensity',
     icon: Target,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10 border-blue-500/30',
-    activeBg: 'bg-blue-500/20 border-blue-500',
   },
   {
     id: 'hypertrophy',
     label: 'Hypertrophy',
     desc: 'Muscle growth, moderate reps',
     icon: Dumbbell,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10 border-purple-500/30',
-    activeBg: 'bg-purple-500/20 border-purple-500',
   },
   {
     id: 'athletic',
     label: 'Power',
     desc: 'Speed-strength, athletic performance',
     icon: Zap,
-    color: 'text-yellow-500',
-    bg: 'bg-yellow-500/10 border-yellow-500/30',
-    activeBg: 'bg-yellow-500/20 border-yellow-500',
   },
   {
     id: 'mixed',
     label: 'Body Recomp',
     desc: 'Strength + fat loss balance',
     icon: RefreshCw,
-    color: 'text-green-500',
-    bg: 'bg-green-500/10 border-green-500/30',
-    activeBg: 'bg-green-500/20 border-green-500',
   },
 ] as const;
 
@@ -91,23 +80,21 @@ type GoalId = typeof GOAL_OPTIONS[number]['id'];
 const DURATION_OPTIONS = [
   { weeks: 4, label: '4 Weeks', sublabel: 'Introductory / Deload block' },
   { weeks: 8, label: '8 Weeks', sublabel: 'Standard mesocycle', recommended: true },
-  { weeks: 12, label: '12 Weeks', sublabel: 'Full macrocycle (recommended)' },
-  { weeks: 16, label: '16 Weeks', sublabel: 'Competition prep / long-term' },
+  { weeks: 12, label: '12 Weeks', sublabel: 'Full macrocycle' },
+  { weeks: 16, label: '16 Weeks', sublabel: 'Competition prep' },
 ];
 
-// Map trainingPreference from coachProfile to goal ID
 function inferGoalFromProfile(profile: Record<string, any> | null): GoalId {
-  const pref = profile?.trainingPreference?.toLowerCase() || '';
+  const pref = (profile?.trainingPreference || '').toLowerCase();
   if (pref.includes('strength') || pref.includes('strong')) return 'strength';
   if (pref.includes('hypertro') || pref.includes('muscle') || pref.includes('size')) return 'hypertrophy';
   if (pref.includes('athletic') || pref.includes('power') || pref.includes('sport')) return 'athletic';
   if (pref.includes('recomp') || pref.includes('fat') || pref.includes('weight loss')) return 'mixed';
-  // Fall back to primaryGoal
-  const goal = profile?.primaryGoal?.toLowerCase() || '';
+  const goal = (profile?.primaryGoal || '').toLowerCase();
   if (goal.includes('strength')) return 'strength';
   if (goal.includes('muscle') || goal.includes('hypertro')) return 'hypertrophy';
   if (goal.includes('athletic') || goal.includes('power')) return 'athletic';
-  return 'strength'; // default
+  return 'strength';
 }
 
 function inferDaysFromProfile(profile: Record<string, any> | null): number {
@@ -117,7 +104,7 @@ function inferDaysFromProfile(profile: Record<string, any> | null): number {
     const n = parseInt(raw);
     if (n >= 3 && n <= 6) return n;
   }
-  return 4; // default
+  return 4;
 }
 
 export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
@@ -150,6 +137,8 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
     }
   }
 
+  const selectedGoalLabel = GOAL_OPTIONS.find(o => o.id === goal)?.label || goal;
+
   return (
     <div className="flex-1 flex items-center justify-center p-4 md:p-8 min-h-[calc(100vh-120px)]">
       <motion.div
@@ -164,7 +153,7 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
           </div>
           <h1 className="text-2xl font-bold">Let's build your program</h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            Based on your intake, I've pre-selected the best options for you. Adjust as needed.
+            {userName ? `${userName.split(' ')[0]}, I've` : "I've"} pre-selected the best options from your intake. Adjust as needed.
           </p>
         </div>
 
@@ -180,16 +169,18 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
                   key={opt.id}
                   onClick={() => setGoal(opt.id)}
                   className={`relative rounded-xl border p-4 text-left transition-all ${
-                    active ? opt.activeBg : `${opt.bg} hover:opacity-90`
+                    active
+                      ? 'bg-primary/10 border-primary'
+                      : 'bg-background border-border hover:bg-muted/50'
                   }`}
                 >
                   {active && (
-                    <span className="absolute top-2 right-2">
-                      <Check className={`h-4 w-4 ${opt.color}`} />
+                    <span className="absolute top-2.5 right-2.5">
+                      <Check className="h-4 w-4 text-primary" />
                     </span>
                   )}
-                  <Icon className={`h-5 w-5 mb-2 ${opt.color}`} />
-                  <p className="text-sm font-semibold">{opt.label}</p>
+                  <Icon className={`h-5 w-5 mb-2 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-semibold ${active ? 'text-primary' : ''}`}>{opt.label}</p>
                   <p className="text-[11px] text-muted-foreground">{opt.desc}</p>
                 </button>
               );
@@ -209,7 +200,7 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
                   onClick={() => setDurationWeeks(opt.weeks)}
                   className={`relative rounded-xl border p-3 text-left transition-all ${
                     active
-                      ? 'bg-primary/10 border-primary text-primary'
+                      ? 'bg-primary/10 border-primary'
                       : 'bg-background border-border hover:bg-muted/50'
                   }`}
                 >
@@ -228,9 +219,7 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
 
         {/* Days per week */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Days Per Week
-          </p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Days Per Week</p>
           <div className="flex gap-2">
             {[3, 4, 5, 6].map(d => (
               <button
@@ -249,29 +238,25 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
           </div>
         </div>
 
-        {/* Summary */}
+        {/* Summary card */}
         <Card className="p-4 bg-muted/30">
           <p className="text-xs text-muted-foreground mb-1">Program Summary</p>
           <p className="text-sm font-semibold">
-            {GOAL_OPTIONS.find(o => o.id === goal)?.label} · {durationWeeks} weeks · {daysPerWeek} days/week
+            {selectedGoalLabel} · {durationWeeks} weeks · {daysPerWeek} days/week
           </p>
-          {coachProfile?.sleep && (
+          {coachProfile?.sleep && (coachProfile.sleep === 'poor' || coachProfile.sleep === 'very_poor') && (
             <p className="text-[11px] text-muted-foreground mt-1">
-              Sleep quality noted: {coachProfile.sleep}
-              {(coachProfile.sleep === 'poor' || coachProfile.sleep === 'very_poor') &&
-                ' — volume will be adjusted accordingly'}
+              Volume adjusted for recovery status ({coachProfile.sleep} sleep)
             </p>
           )}
         </Card>
 
-        {/* Error */}
         {error && (
           <p className="text-sm text-destructive text-center">{error}</p>
         )}
 
-        {/* Generate button */}
         <Button
-          className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-blue-600 shadow-lg"
+          className="w-full h-12 rounded-xl text-base font-semibold"
           onClick={handleGenerate}
           disabled={loading}
         >

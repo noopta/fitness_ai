@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Loader2, Sparkles, ChevronRight, Dumbbell, Calendar, TrendingUp,
-  Zap, Moon, Flame, CheckCircle2, BedDouble
+  Zap, Moon, CheckCircle2, BedDouble, Activity
 } from 'lucide-react';
 import { StrengthRadar } from '@/components/StrengthRadar';
 import { EfficiencyGauge } from '@/components/EfficiencyGauge';
@@ -132,14 +132,14 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="rounded-lg bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wide">
+                    <span className="rounded-lg bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wide">
                       {todayData.phaseName} · Week {todayData.weekNumber}
                     </span>
                   </div>
                   <p className="text-base font-bold">{todayData.todaySession.day}</p>
                   <p className="text-xs text-muted-foreground">{todayData.todaySession.focus}</p>
                 </div>
-                <Flame className="h-5 w-5 text-orange-500 shrink-0 mt-1" />
+                <Activity className="h-5 w-5 text-primary/60 shrink-0 mt-1" />
               </div>
 
               {/* Exercise list (compact) */}
@@ -189,10 +189,10 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
               </Button>
             </Card>
           ) : todayData?.isRestDay ? (
-            <Card className="p-5 space-y-3 border-blue-500/20 bg-blue-500/5">
+            <Card className="p-5 space-y-3">
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500/10">
-                  <BedDouble className="h-5 w-5 text-blue-500" />
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-muted">
+                  <BedDouble className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="text-sm font-bold">Rest Day</p>
@@ -200,7 +200,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
                 </div>
               </div>
               <div className="rounded-xl bg-background border px-4 py-3 space-y-2">
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Recovery Focus</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Recovery Focus</p>
                 <ul className="space-y-1 text-xs text-muted-foreground">
                   <li className="flex items-start gap-1.5"><Moon className="h-3 w-3 shrink-0 mt-0.5" />Aim for 8+ hours of sleep tonight</li>
                   <li className="flex items-start gap-1.5"><Zap className="h-3 w-3 shrink-0 mt-0.5" />Prioritize protein: 0.8–1g per lb of bodyweight</li>

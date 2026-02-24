@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import twilio from 'twilio';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateTrainingProgram, generateCoachInsight,
@@ -10,6 +11,20 @@ import {
 
 const router = Router();
 const prisma = new PrismaClient();
+
+let twilioClient: ReturnType<typeof twilio> | null = null;
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN &&
+    process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
+  try { twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN); }
+  catch { /* disabled */ }
+}
+
+async function sendCoachSMS(body: string) {
+  if (!twilioClient || !process.env.TWILIO_PHONE_NUMBER || !process.env.NOTIFICATION_PHONE) return;
+  try {
+    await twilioClient.messages.create({ body, from: process.env.TWILIO_PHONE_NUMBER, to: process.env.NOTIFICATION_PHONE });
+  } catch (e) { console.error('Coach SMS failed:', e); }
+}
 
 const coachMessageSchema = z.object({
   message: z.string().min(1).max(4000),
@@ -340,13 +355,22 @@ router.put('/coach/program', requireAuth, async (req, res) => {
     });
     const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
         savedProgram: JSON.stringify(program),
         ...(isNewProgram ? { programStartDate: new Date() } : {}),
       },
+      select: { name: true, email: true, tier: true },
     });
+
+    if (isNewProgram) {
+      const goalLabel = program.goal || 'unknown';
+      const weeks = program.durationWeeks || '?';
+      const days = program.daysPerWeek || '?';
+      sendCoachSMS(`💪 Program created: ${updatedUser.name || 'User'} (${updatedUser.email}) — ${goalLabel}, ${weeks}wk, ${days}d/wk [${updatedUser.tier}]`);
+    }
+
     res.json({ success: true });
   } catch (err) {
     console.error('Save program error:', err);

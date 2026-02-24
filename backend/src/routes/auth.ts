@@ -4,9 +4,32 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import twilio from 'twilio';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Twilio for sign-in/register notifications
+let twilioClient: ReturnType<typeof twilio> | null = null;
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN &&
+    process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
+  try {
+    twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  } catch { /* disabled */ }
+}
+
+async function sendAuthSMS(body: string) {
+  if (!twilioClient || !process.env.TWILIO_PHONE_NUMBER || !process.env.NOTIFICATION_PHONE) return;
+  try {
+    await twilioClient.messages.create({
+      body,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: process.env.NOTIFICATION_PHONE,
+    });
+  } catch (e) {
+    console.error('Auth SMS failed:', e);
+  }
+}
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_OPTS = {
@@ -54,6 +77,8 @@ router.post('/auth/register', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    // Fire-and-forget notification
+    sendAuthSMS(`🆕 New LiftOff signup: ${data.name} (${data.email})`);
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier } });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
@@ -86,6 +111,7 @@ router.post('/auth/login', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    sendAuthSMS(`🔑 LiftOff login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier } });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
@@ -138,15 +164,17 @@ router.get('/auth/google/callback', async (req, res) => {
     const { sub: googleId, email, name } = profile;
 
     // Upsert user
-    let user = await prisma.user.findUnique({ where: { googleId } });
-    if (!user && email) {
-      user = await prisma.user.findUnique({ where: { email } });
+    let existingUser = await prisma.user.findUnique({ where: { googleId } });
+    if (!existingUser && email) {
+      existingUser = await prisma.user.findUnique({ where: { email } });
     }
+    const isNewUser = !existingUser;
 
-    if (user) {
+    let user;
+    if (existingUser) {
       user = await prisma.user.update({
-        where: { id: user.id },
-        data: { googleId, name: name || user.name, email: email || user.email }
+        where: { id: existingUser.id },
+        data: { googleId, name: name || existingUser.name, email: email || existingUser.email }
       });
     } else {
       user = await prisma.user.create({
@@ -156,6 +184,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    sendAuthSMS(`${isNewUser ? '🆕 New Google signup' : '🔑 Google login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
     res.redirect(`${process.env.FRONTEND_URL}/login?auth=success`);
   } catch (err) {
     console.error('Google OAuth callback error:', err);
@@ -189,6 +218,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         coachBudget: true,
         coachOnboardingDone: true,
         coachProfile: true,
+        savedProgram: true,
       }
     });
     if (!user) {
@@ -229,7 +259,7 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
         id: true, name: true, email: true, tier: true,
         heightCm: true, weightKg: true, trainingAge: true,
         equipment: true, constraintsText: true,
-        coachGoal: true, coachBudget: true, coachOnboardingDone: true, coachProfile: true,
+        coachGoal: true, coachBudget: true, coachOnboardingDone: true, coachProfile: true, savedProgram: true,
       }
     });
     res.json({ user });
