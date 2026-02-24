@@ -501,4 +501,72 @@ router.get('/coach/today', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/coach/schedule - Get the current week's schedule (Mon–Sun)
+router.get('/coach/schedule', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user || !user.savedProgram) {
+      return res.json({ weekDays: [], weekNumber: null, phaseName: null });
+    }
+
+    const program = JSON.parse(user.savedProgram);
+    const startDate = user.programStartDate || new Date();
+
+    const msSinceStart = Date.now() - new Date(startDate).getTime();
+    const daysSinceStart = Math.floor(msSinceStart / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
+
+    // Find current phase
+    let cumulativeWeeks = 0;
+    let currentPhase = program.phases?.[0] || null;
+    if (program.phases) {
+      for (let i = 0; i < program.phases.length; i++) {
+        cumulativeWeeks += program.phases[i].durationWeeks;
+        if (weekNumber <= cumulativeWeeks) { currentPhase = program.phases[i]; break; }
+        currentPhase = program.phases[i];
+      }
+    }
+
+    const trainingDays = currentPhase?.trainingDays || [];
+    const totalDays = trainingDays.length;
+
+    // Start of current ISO week (Monday)
+    const today = new Date();
+    const dow = today.getDay(); // 0=Sun
+    const mondayOffset = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+
+    const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const weekDays = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+
+      const daysForDate = Math.floor(
+        (date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const dayInWeek = ((daysForDate % 7) + 7) % 7;
+      const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+
+      weekDays.push({
+        date: date.toISOString(),
+        dayLabel: DAY_LABELS[i],
+        dateNumber: date.getDate(),
+        monthLabel: date.toLocaleDateString('en-US', { month: 'short' }),
+        isToday: date.toDateString() === today.toDateString(),
+        isTrainingDay: !!session,
+        session: session || null,
+      });
+    }
+
+    res.json({ weekDays, weekNumber, phaseName: currentPhase?.phaseName || null });
+  } catch (err) {
+    console.error('Schedule endpoint error:', err);
+    res.status(500).json({ error: 'Failed to load schedule' });
+  }
+});
+
 export default router;
