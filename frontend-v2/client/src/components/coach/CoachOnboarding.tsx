@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronRight, Sparkles, Heart, Target, Dumbbell, Moon, Settings, User } from 'lucide-react';
+import {
+  Loader2, ChevronRight, Sparkles, Heart, Target, Dumbbell,
+  Moon, Settings, User, Apple, Shield,
+} from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -22,10 +25,12 @@ interface Step {
   placeholder?: string;
   optional?: boolean;
   choices?: Choice[];
-  // For section dividers
+  exclusiveValues?: string[]; // values that clear all other selections when chosen
   sectionTitle?: string;
   sectionDesc?: string;
   sectionIcon?: React.ComponentType<{ className?: string }>;
+  sectionCta?: string;    // custom button label for section cards
+  isFinalSection?: boolean; // triggers submitAll on section card click
 }
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
@@ -58,8 +63,21 @@ const STEPS: Step[] = [
     type: 'textarea',
     question: "What have you tried before, and what worked or didn't?",
     subtext: 'Previous programs, trainers, diets, apps — anything relevant. No judgment.',
-    placeholder: 'e.g. Ran Starting Strength for 6 months — made great gains but plateau\'d. Tried keto but couldn\'t sustain it socially.',
+    placeholder: "e.g. Ran Starting Strength for 6 months — made great gains but plateau'd. Tried keto but couldn't sustain it socially.",
     optional: true,
+  },
+  {
+    id: 'obstacleToConsistency',
+    type: 'choice',
+    question: "What's been your biggest obstacle to consistency in the past?",
+    choices: [
+      { value: 'time', label: 'Time & schedule', desc: "Life gets busy and training gets skipped" },
+      { value: 'motivation', label: 'Motivation & discipline', desc: "Hard to stay consistent when results feel slow" },
+      { value: 'no_right_plan', label: "Didn't have the right plan", desc: "Followed programs that weren't built for my goals" },
+      { value: 'injury', label: 'Injury or health setbacks', desc: "Kept getting derailed by physical issues" },
+      { value: 'results', label: 'Not seeing results fast enough', desc: "Got discouraged and stopped" },
+      { value: 'none', label: "I've been pretty consistent", desc: "Consistency hasn't been the main issue" },
+    ],
   },
   {
     id: 'commitment',
@@ -69,17 +87,34 @@ const STEPS: Step[] = [
       { value: '10', label: 'All in — 10/10', desc: 'Top priority. I will do whatever it takes.' },
       { value: '8', label: 'Very committed — 8/10', desc: 'High priority but life has other demands too.' },
       { value: '6', label: 'Moderate — 6/10', desc: 'I want this but consistency will be a challenge.' },
-      { value: '4', label: 'Testing the waters — 4/10', desc: 'Exploring what\'s possible right now.' },
+      { value: '4', label: 'Testing the waters — 4/10', desc: "Exploring what's possible right now." },
     ],
   },
 
-  // ── Section: Medical & Health ─────────────────────────────────────────────
+  // ── Section: Health & Medical ─────────────────────────────────────────────
   {
     id: '_s_medical',
     type: 'section',
     sectionTitle: 'Health & Medical History',
     sectionDesc: "This helps ensure your program is safe and optimal for your body. All answers stay private.",
     sectionIcon: Heart,
+  },
+  {
+    id: 'parqScreening',
+    type: 'multiselect',
+    question: 'PAR-Q Safety Screen — check any that apply to you',
+    subtext: 'This is the industry-standard Physical Activity Readiness Questionnaire. Check all that apply (or "None of the above" if you\'re clear).',
+    choices: [
+      { value: 'heart_condition', label: 'Heart condition', desc: 'A doctor has said you have a heart condition and should only exercise under supervision' },
+      { value: 'chest_pain', label: 'Chest pain with activity', desc: 'You feel pain in your chest during or after physical activity' },
+      { value: 'dizziness', label: 'Dizziness or loss of balance', desc: 'You have lost balance or become dizzy from exertion in the past 12 months' },
+      { value: 'joint_bone', label: 'Bone / joint / soft-tissue issues', desc: 'A problem that could be worsened by exercise' },
+      { value: 'bp_heart_meds', label: 'Medication for blood pressure or heart', desc: 'A doctor currently prescribes you medication for either condition' },
+      { value: 'chronic_condition', label: 'Chronic condition (diabetes, epilepsy, etc.)', desc: 'A diagnosed condition that may affect exercise safety' },
+      { value: 'other_concern', label: 'Other concern not listed above', desc: 'Any other reason exercise may not be safe for you right now' },
+      { value: 'none', label: 'None of the above — I\'m PAR-Q clear', desc: 'I am not aware of any health reason to restrict my activity' },
+    ],
+    exclusiveValues: ['none'],
   },
   {
     id: 'medicalConditions',
@@ -101,7 +136,7 @@ const STEPS: Step[] = [
     id: 'injuries',
     type: 'textarea',
     question: 'Any injuries, joint pain, or orthopedic issues — recent or old?',
-    subtext: 'Include back/neck problems, concussions, or anything affecting movement and balance.',
+    subtext: 'Include back/neck problems, concussions, or anything affecting movement.',
     placeholder: 'e.g. Left knee MCL sprain (2022, mostly healed). Chronic lower back tightness. Right shoulder clicking on overhead press.',
     optional: true,
   },
@@ -145,7 +180,7 @@ const STEPS: Step[] = [
     id: 'strengthLevel',
     type: 'textarea',
     question: 'What are your current working weights on main lifts?',
-    subtext: 'Approximate 1RMs or working weights. Skip lifts you don\'t do.',
+    subtext: "Approximate 1RMs or working weights. Skip lifts you don't do.",
     placeholder: 'e.g. Bench: 185 lbs × 5. Squat: 225 lbs × 5. Deadlift: 315 lbs × 3. OHP: 115 lbs × 5.',
     optional: true,
   },
@@ -161,6 +196,52 @@ const STEPS: Step[] = [
     ],
   },
 
+  // ── Section: Nutrition ────────────────────────────────────────────────────
+  {
+    id: '_s_nutrition',
+    type: 'section',
+    sectionTitle: 'Nutrition Baseline',
+    sectionDesc: "Nutrition drives 40–60% of body composition outcomes. A few quick questions help me tailor your plan.",
+    sectionIcon: Apple,
+  },
+  {
+    id: 'dietaryRestrictions',
+    type: 'multiselect',
+    question: 'Any dietary restrictions or preferences?',
+    subtext: 'Select all that apply.',
+    choices: [
+      { value: 'none', label: 'None / No restrictions', desc: 'I eat everything' },
+      { value: 'vegetarian', label: 'Vegetarian', desc: 'No meat' },
+      { value: 'vegan', label: 'Vegan', desc: 'No animal products' },
+      { value: 'gluten_free', label: 'Gluten-free', desc: 'Celiac or gluten sensitivity' },
+      { value: 'dairy_free', label: 'Dairy-free', desc: 'Lactose intolerance or preference' },
+      { value: 'halal_kosher', label: 'Halal / Kosher', desc: 'Religious dietary requirements' },
+      { value: 'allergies', label: 'Food allergies', desc: 'Nuts, shellfish, or other allergies' },
+    ],
+    exclusiveValues: ['none'],
+    optional: true,
+  },
+  {
+    id: 'nutritionQuality',
+    type: 'choice',
+    question: 'How would you rate your current nutrition?',
+    choices: [
+      { value: 'poor', label: 'Poor', desc: 'Mostly processed food, irregular meals' },
+      { value: 'inconsistent', label: 'Inconsistent', desc: 'Good days and bad days — no real structure' },
+      { value: 'decent', label: 'Decent', desc: 'Generally healthy, room for improvement' },
+      { value: 'solid', label: 'Solid', desc: 'Track macros or meal prep regularly' },
+      { value: 'optimized', label: 'Optimized', desc: 'Dialed in — I know exactly what I eat' },
+    ],
+  },
+  {
+    id: 'proteinIntake',
+    type: 'text',
+    question: 'Approximate daily protein intake, if you know it?',
+    subtext: 'Optional — helps calibrate nutrition recommendations.',
+    placeholder: 'e.g. ~150g/day, or "I don\'t track"',
+    optional: true,
+  },
+
   // ── Section: Lifestyle ────────────────────────────────────────────────────
   {
     id: '_s_lifestyle',
@@ -168,6 +249,18 @@ const STEPS: Step[] = [
     sectionTitle: 'Lifestyle & Recovery',
     sectionDesc: "Training is only one piece. Recovery and lifestyle drive 50% of your results.",
     sectionIcon: Moon,
+  },
+  {
+    id: 'activityLevel',
+    type: 'choice',
+    question: 'What is your daily activity level outside of training?',
+    subtext: 'This affects calorie burn (NEAT) and recovery capacity.',
+    choices: [
+      { value: 'sedentary', label: 'Sedentary', desc: 'Desk job, mostly sitting 8+ hours/day' },
+      { value: 'light', label: 'Lightly active', desc: 'Mix of sitting and moving — some walking' },
+      { value: 'moderate', label: 'Moderately active', desc: 'On my feet a fair amount — retail, teaching, etc.' },
+      { value: 'very_active', label: 'Very active / manual labor', desc: 'Physically demanding job or high daily movement' },
+    ],
   },
   {
     id: 'sleep',
@@ -281,13 +374,23 @@ const STEPS: Step[] = [
     placeholder: 'e.g. $80/week or $150/week',
     optional: true,
   },
+
+  // ── Section: Consent & Disclaimer ────────────────────────────────────────
+  {
+    id: '_s_consent',
+    type: 'section',
+    sectionTitle: "You're all set.",
+    sectionDesc: "LiftOff provides AI-generated fitness guidance for informational and coaching purposes only — not medical advice. If you flagged any health concerns above, please consult a physician before beginning a new exercise program. Your data is kept private and never sold.",
+    sectionIcon: Shield,
+    sectionCta: "I understand — Build My Profile →",
+    isFinalSection: true,
+  },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseWeightToKg(raw: string): number | null {
   if (!raw.trim()) return null;
-  // Try to extract numbers from strings like "5'11\", 195 lbs, ~18%"
   const lbsMatch = raw.match(/(\d+(?:\.\d+)?)\s*(?:lbs?|pounds)/i);
   if (lbsMatch) return Math.round(parseFloat(lbsMatch[1]) / 2.20462 * 10) / 10;
   const kgMatch = raw.match(/(\d+(?:\.\d+)?)\s*kg/i);
@@ -313,7 +416,9 @@ const TEST_PRESET_ANSWERS: AnswerMap = {
   primaryGoal: 'Short-term: add 25 lbs to my bench and hit a 405 lb deadlift within 4 months. Long-term: compete in my first powerlifting meet within 18 months.',
   goalWhy: 'I want to feel genuinely strong again. Hitting big numbers gives me confidence and a sense of control that carries into work and family life.',
   pastAttempts: "Ran Starting Strength for 8 months — made good gains but plateau'd around month 5. Tried a bro split for 3 months — no clear progress.",
+  obstacleToConsistency: 'no_right_plan',
   commitment: '8',
+  parqScreening: 'none',
   medicalConditions: 'None. Appendix removed 2019, fully recovered.',
   medications: 'Creatine 5g/day, fish oil 2g/day, vitamin D 2000 IU.',
   injuries: 'Mild left knee discomfort on deep squats — manageable with a slight heel elevation. No shoulder issues.',
@@ -322,6 +427,10 @@ const TEST_PRESET_ANSWERS: AnswerMap = {
   currentRoutine: '4 days/week: Mon/Thu upper, Tue/Fri lower. ~60 min sessions. Mostly barbell compound work. No dedicated cardio.',
   strengthLevel: "Bench: 205 lbs × 5. Squat: 275 lbs × 5. Deadlift: 365 lbs × 3. OHP: 135 lbs × 5.",
   trainingPreference: 'strength',
+  dietaryRestrictions: 'none',
+  nutritionQuality: 'decent',
+  proteinIntake: '~160g/day',
+  activityLevel: 'sedentary',
   sleep: 'ok',
   stressEnergy: 'moderate',
   lifestyle: 'Up at 6:30am. Desk job with back-to-back meetings. Train after work around 6:30pm. Bed by 11pm. High-pressure sales role.',
@@ -348,6 +457,7 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
   const [stepIdx, setStepIdx] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>(existingAnswers as AnswerMap || {});
   const [currentInput, setCurrentInput] = useState('');
+  const [currentMultiSelect, setCurrentMultiSelect] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const step = STEPS[stepIdx];
@@ -355,6 +465,11 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
   const firstName = userName?.split(' ')[0] || 'there';
   const totalQ = totalQuestionSteps();
   const currentQ = questionIndex(stepIdx);
+
+  // Reset multi-select state when step changes
+  useEffect(() => {
+    setCurrentMultiSelect([]);
+  }, [stepIdx]);
 
   // Auto-fill text/textarea inputs for test user when step changes
   const presetValue = isTestUser && step ? TEST_PRESET_ANSWERS[step.id] || '' : '';
@@ -372,16 +487,39 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
 
   function skip() { advance(''); }
 
-  // For section cards — just advance to next step
   function nextStep() {
-    if (isLast) submitAll(answers);
-    else setStepIdx(i => i + 1);
+    if (step.isFinalSection) {
+      submitAll(answers);
+    } else if (isLast) {
+      submitAll(answers);
+    } else {
+      setStepIdx(i => i + 1);
+    }
+  }
+
+  function toggleMultiSelect(value: string) {
+    const isExclusive = step.exclusiveValues?.includes(value);
+    setCurrentMultiSelect(prev => {
+      if (isExclusive) {
+        // Selecting an exclusive value clears everything else
+        return prev.includes(value) ? [] : [value];
+      } else {
+        // Selecting a non-exclusive value removes any exclusive selections
+        const withoutExclusive = prev.filter(v => !step.exclusiveValues?.includes(v));
+        return withoutExclusive.includes(value)
+          ? withoutExclusive.filter(v => v !== value)
+          : [...withoutExclusive, value];
+      }
+    });
+  }
+
+  function advanceMultiSelect() {
+    advance(currentMultiSelect.join(', ') || '');
   }
 
   async function submitAll(final: AnswerMap) {
     setSaving(true);
     try {
-      // Extract structured fields from answers for legacy profile fields
       const weightKg = parseWeightToKg(final.bodyStats || '');
       const trainingAgeMap: Record<string, string> = {
         beginner: 'beginner', intermediate: 'intermediate',
@@ -425,7 +563,7 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
           </div>
           {stepIdx === 0 && (
             <p className="text-sm text-muted-foreground mb-3">
-              Hey {firstName} — I'm your AI coach. This will take about 3 minutes and makes everything dramatically better.
+              Hey {firstName} — I'm your AI coach. This will take about 4 minutes and makes everything dramatically better.
             </p>
           )}
           {/* Progress bar */}
@@ -452,7 +590,6 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
             transition={{ duration: 0.2 }}
           >
             {step.type === 'section' ? (
-              // Section divider card
               <Card className="p-8 text-center space-y-4">
                 {step.sectionIcon && (
                   <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 mx-auto">
@@ -461,14 +598,21 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
                 )}
                 <div>
                   <h2 className="text-xl font-bold">{step.sectionTitle}</h2>
-                  <p className="text-sm text-muted-foreground mt-1.5">{step.sectionDesc}</p>
+                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{step.sectionDesc}</p>
                 </div>
-                <Button onClick={nextStep} className="rounded-xl w-full">
-                  Let's go <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
+                {step.isFinalSection ? (
+                  <Button onClick={nextStep} disabled={saving} className="rounded-xl w-full">
+                    {saving
+                      ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving your profile…</>
+                      : step.sectionCta || 'Complete Intake'}
+                  </Button>
+                ) : (
+                  <Button onClick={nextStep} className="rounded-xl w-full">
+                    {step.sectionCta || <>Let's go <ChevronRight className="h-4 w-4 ml-1" /></>}
+                  </Button>
+                )}
               </Card>
             ) : (
-              // Question card
               <Card className="p-6 space-y-5">
                 <div>
                   <h2 className="text-base font-bold leading-snug">{step.question}</h2>
@@ -500,6 +644,59 @@ export function CoachOnboarding({ userName, userEmail, existingAnswers, onComple
                         Prefer not to say / Skip
                       </button>
                     )}
+                  </div>
+                )}
+
+                {/* Multiselect */}
+                {step.type === 'multiselect' && step.choices && (
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      {step.choices.map(c => {
+                        const selected = currentMultiSelect.includes(c.value);
+                        return (
+                          <button
+                            key={c.value}
+                            onClick={() => toggleMultiSelect(c.value)}
+                            className={`w-full text-left rounded-xl border p-3.5 transition-colors ${
+                              selected
+                                ? 'border-primary bg-primary/8 text-foreground'
+                                : 'border-border hover:border-primary/40 hover:bg-muted/40'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`shrink-0 h-4 w-4 rounded border-2 flex items-center justify-center transition-colors ${
+                                selected ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                              }`}>
+                                {selected && (
+                                  <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 10 10" fill="none">
+                                    <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm">{c.label}</p>
+                                {c.desc && <p className="text-xs text-muted-foreground mt-0.5">{c.desc}</p>}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      {step.optional && (
+                        <button onClick={skip} className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                          Skip for now
+                        </button>
+                      )}
+                      <Button
+                        onClick={advanceMultiSelect}
+                        disabled={currentMultiSelect.length === 0 && !step.optional}
+                        className="rounded-xl ml-auto"
+                        size="sm"
+                      >
+                        Continue <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                      </Button>
+                    </div>
                   </div>
                 )}
 
