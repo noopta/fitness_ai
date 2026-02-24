@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { liftCoachApi, WorkoutPlan } from "@/lib/api";
-import { BrandLogo } from "@/components/BrandLogo";
+import { Navbar } from "@/components/Navbar";
 import { StrengthRadar } from "@/components/StrengthRadar";
 import { PhaseBreakdown } from "@/components/PhaseBreakdown";
 import { HypothesisRankings } from "@/components/HypothesisRankings";
@@ -19,31 +19,6 @@ import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { AccessoryVideoCard } from "@/components/AccessoryVideoCard";
 import { useAuth } from "@/context/AuthContext";
 
-function Header() {
-  return (
-    <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/">
-          <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <BrandLogo height={36} className="h-9 w-auto" />
-            <div>
-              <div className="text-sm font-semibold" data-testid="text-plan-title">
-                Your lift-day plan
-              </div>
-              <div className="text-xs text-muted-foreground" data-testid="text-plan-subtitle">
-                Diagnosis, prescription, and what to track
-              </div>
-            </div>
-          </a>
-        </Link>
-
-        <div className="hidden text-xs text-muted-foreground sm:block" data-testid="text-step">
-          Step 4 of 4
-        </div>
-      </div>
-    </header>
-  );
-}
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -184,7 +159,7 @@ export default function Plan() {
   if (loading) {
     return (
       <div className="min-h-screen grid-fade">
-        <Header />
+        <Navbar variant="step" title="Your lift-day plan" subtitle="Diagnosis, prescription, and what to track" stepLabel="Step 4 of 4" />
         <main className="mx-auto max-w-6xl px-4 py-10">
           <Card className="glass p-12">
             <div className="flex flex-col items-center justify-center gap-4 text-center">
@@ -207,7 +182,7 @@ export default function Plan() {
   if (rateLimited) {
     return (
       <div className="min-h-screen grid-fade">
-        <Header />
+        <Navbar variant="step" title="Your lift-day plan" subtitle="Diagnosis, prescription, and what to track" stepLabel="Step 4 of 4" />
         <main className="mx-auto max-w-2xl px-4 py-10">
           <UpgradePrompt userId={user?.id} />
         </main>
@@ -218,7 +193,7 @@ export default function Plan() {
   if (error || !plan) {
     return (
       <div className="min-h-screen grid-fade">
-        <Header />
+        <Navbar variant="step" title="Your lift-day plan" subtitle="Diagnosis, prescription, and what to track" stepLabel="Step 4 of 4" />
         <main className="mx-auto max-w-6xl px-4 py-10">
           <Card className="glass p-12">
             <div className="flex flex-col items-center justify-center gap-4 text-center">

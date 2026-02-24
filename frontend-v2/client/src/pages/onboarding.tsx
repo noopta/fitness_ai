@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { liftCoachApi, authApi } from "@/lib/api";
 import { LucideIcon } from "lucide-react";
-import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth } from "@/context/AuthContext";
+import { Navbar } from "@/components/Navbar";
 
 const lifts: Array<{ id: string; label: string; hint: string; icon: LucideIcon }> = [
   { id: "flat_bench_press", label: "Flat Bench Press", hint: "Chest, triceps, shoulders", icon: Dumbbell },
@@ -34,24 +34,6 @@ function lbToKg(lb: number) {
   return lb * 0.453592;
 }
 
-function TopBar() {
-  return (
-    <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/">
-          <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <BrandLogo height={36} className="h-9 w-auto" />
-            <div>
-              <div className="text-sm font-semibold">LiftOff</div>
-              <div className="text-xs text-muted-foreground">AI-Powered Lift Diagnostics</div>
-            </div>
-          </a>
-        </Link>
-        <div className="hidden text-xs text-muted-foreground sm:block">Step 1 of 3</div>
-      </div>
-    </header>
-  );
-}
 
 export default function Onboarding() {
   const [, setLocation] = useLocation();
@@ -209,7 +191,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
-      <TopBar />
+      <Navbar variant="step" subtitle="AI-Powered Lift Diagnostics" stepLabel="Step 1 of 3" />
 
       <main className="mx-auto max-w-5xl px-4 py-10">
         <motion.div

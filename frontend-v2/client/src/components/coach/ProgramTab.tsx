@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, Dumbbell, Save, ChevronDown, ChevronUp, Flame, Moon, Zap, BarChart2, RotateCcw } from 'lucide-react';
+import {
+  Loader2, Save, ChevronDown, ChevronUp, Flame, Moon,
+  Zap, BarChart2, RotateCcw, Dumbbell, CalendarDays, ArrowRight,
+  Target, TrendingUp,
+} from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -20,7 +24,6 @@ interface ProgramDay {
   focus: string;
   warmup?: string[];
   exercises: ProgramExercise[];
-  // Legacy support
   sessions?: ProgramExercise[];
   cooldown?: string[];
 }
@@ -43,7 +46,6 @@ interface TrainingProgram {
   phases?: ProgramPhase[];
   autoregulationRules?: string[];
   trackingMetrics?: string[];
-  // Legacy
   weeks?: Array<{ weekNumber: number; days: Array<{ day: string; focus: string; sessions: ProgramExercise[] }> }>;
   progressionNotes?: string[];
 }
@@ -51,77 +53,144 @@ interface TrainingProgram {
 interface Props {
   latestPlan: any;
   isPro: boolean;
+  onTabChange?: (tab: string) => void;
 }
 
-const GOAL_OPTIONS = [
-  { value: 'Strength Peak', label: 'Strength Peak', desc: 'Max strength, low reps, high intensity' },
-  { value: 'Hypertrophy', label: 'Hypertrophy', desc: 'Muscle building, moderate reps' },
-  { value: 'Power', label: 'Power', desc: 'Explosive strength and rate of force development' },
-  { value: 'Recomp', label: 'Body Recomp', desc: 'Simultaneous fat loss and muscle gain' },
-];
+const PHASE_COLORS: Record<string, { bg: string; border: string; text: string; badge: string; dot: string }> = {
+  'Foundation': { bg: 'bg-blue-500/5', border: 'border-blue-500/20', text: 'text-blue-700 dark:text-blue-400', badge: 'bg-blue-500/10 text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' },
+  'Correction':  { bg: 'bg-blue-500/5', border: 'border-blue-500/20', text: 'text-blue-700 dark:text-blue-400', badge: 'bg-blue-500/10 text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' },
+  'Build':       { bg: 'bg-amber-500/5', border: 'border-amber-500/20', text: 'text-amber-700 dark:text-amber-400', badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' },
+  'Hypertrophy': { bg: 'bg-amber-500/5', border: 'border-amber-500/20', text: 'text-amber-700 dark:text-amber-400', badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' },
+  'Peak':        { bg: 'bg-rose-500/5', border: 'border-rose-500/20', text: 'text-rose-700 dark:text-rose-400', badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-400', dot: 'bg-rose-500' },
+  'Strength':    { bg: 'bg-rose-500/5', border: 'border-rose-500/20', text: 'text-rose-700 dark:text-rose-400', badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-400', dot: 'bg-rose-500' },
+};
 
-const DAYS_OPTIONS = [3, 4, 5, 6];
-const DURATION_OPTIONS = [4, 8, 12];
-
-const PHASE_COLORS: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-  'Foundation': { bg: 'bg-blue-500/5', border: 'border-blue-500/20', text: 'text-blue-700 dark:text-blue-400', badge: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
-  'Correction': { bg: 'bg-blue-500/5', border: 'border-blue-500/20', text: 'text-blue-700 dark:text-blue-400', badge: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
-  'Build': { bg: 'bg-amber-500/5', border: 'border-amber-500/20', text: 'text-amber-700 dark:text-amber-400', badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' },
-  'Hypertrophy': { bg: 'bg-amber-500/5', border: 'border-amber-500/20', text: 'text-amber-700 dark:text-amber-400', badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' },
-  'Peak': { bg: 'bg-rose-500/5', border: 'border-rose-500/20', text: 'text-rose-700 dark:text-rose-400', badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' },
-  'Strength': { bg: 'bg-rose-500/5', border: 'border-rose-500/20', text: 'text-rose-700 dark:text-rose-400', badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' },
+const DAY_FOCUS_COLORS: Record<string, { card: string; bar: string }> = {
+  push:  { card: 'bg-blue-500/5 border-blue-500/20',   bar: 'bg-blue-500' },
+  pull:  { card: 'bg-green-500/5 border-green-500/20', bar: 'bg-green-500' },
+  leg:   { card: 'bg-purple-500/5 border-purple-500/20', bar: 'bg-purple-500' },
+  squat: { card: 'bg-purple-500/5 border-purple-500/20', bar: 'bg-purple-500' },
+  dead:  { card: 'bg-amber-500/5 border-amber-500/20',  bar: 'bg-amber-500' },
+  upper: { card: 'bg-blue-500/5 border-blue-500/20',   bar: 'bg-blue-500' },
+  lower: { card: 'bg-purple-500/5 border-purple-500/20', bar: 'bg-purple-500' },
+  bench: { card: 'bg-blue-500/5 border-blue-500/20',   bar: 'bg-blue-500' },
+  full:  { card: 'bg-rose-500/5 border-rose-500/20',   bar: 'bg-rose-500' },
+  hinge: { card: 'bg-amber-500/5 border-amber-500/20',  bar: 'bg-amber-500' },
+  hip:   { card: 'bg-amber-500/5 border-amber-500/20',  bar: 'bg-amber-500' },
 };
 
 function getPhaseStyle(name: string) {
   for (const [key, style] of Object.entries(PHASE_COLORS)) {
     if (name.includes(key)) return style;
   }
-  return { bg: 'bg-muted/30', border: 'border-muted', text: 'text-foreground', badge: 'bg-muted text-muted-foreground' };
+  return { bg: 'bg-muted/30', border: 'border-muted', text: 'text-foreground', badge: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' };
 }
 
-const DAY_FOCUS_COLORS: Record<string, string> = {
-  push: 'bg-blue-500/10 border-blue-500/30',
-  pull: 'bg-green-500/10 border-green-500/30',
-  leg: 'bg-purple-500/10 border-purple-500/30',
-  squat: 'bg-purple-500/10 border-purple-500/30',
-  dead: 'bg-amber-500/10 border-amber-500/30',
-  upper: 'bg-blue-500/10 border-blue-500/30',
-  lower: 'bg-purple-500/10 border-purple-500/30',
-  bench: 'bg-blue-500/10 border-blue-500/30',
-  full: 'bg-rose-500/10 border-rose-500/30',
-  hinge: 'bg-amber-500/10 border-amber-500/30',
-  hip: 'bg-amber-500/10 border-amber-500/30',
-};
-
-function getDayColor(day: string) {
+function getDayStyle(day: string) {
   const lower = day.toLowerCase();
   for (const [key, cls] of Object.entries(DAY_FOCUS_COLORS)) {
     if (lower.includes(key)) return cls;
   }
-  return 'bg-muted/30 border-muted';
+  return { card: 'bg-muted/20 border-muted', bar: 'bg-muted-foreground' };
+}
+
+/** RPE-based intensity coloring */
+function getIntensityStyle(intensity: string): string {
+  const lower = intensity.toLowerCase();
+  const rpeMatch = lower.match(/rpe\s*(\d+(?:\.\d+)?)/);
+  const pctMatch = lower.match(/(\d+)%/);
+  let level = 0;
+  if (rpeMatch) level = parseFloat(rpeMatch[1]);
+  else if (pctMatch) level = parseFloat(pctMatch[1]) / 10; // rough mapping
+  if (level >= 9) return 'bg-rose-500/10 text-rose-600 dark:text-rose-400';
+  if (level >= 7.5) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+  return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
+}
+
+/** Phase timeline at the top of the program view */
+function PhaseTimeline({ phases }: { phases: ProgramPhase[] }) {
+  return (
+    <div className="flex items-center gap-0 overflow-x-auto py-1">
+      {phases.map((phase, i) => {
+        const style = getPhaseStyle(phase.phaseName);
+        return (
+          <div key={i} className="flex items-center shrink-0">
+            <div className={`flex flex-col items-center rounded-xl px-4 py-2.5 border ${style.bg} ${style.border}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${style.text}`}>Phase {phase.phaseNumber}</span>
+              <span className="text-[11px] font-semibold mt-0.5">{phase.phaseName}</span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">{phase.weeksLabel}</span>
+            </div>
+            {i < phases.length - 1 && (
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground mx-2 shrink-0" />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ExerciseRow({ ex }: { ex: ProgramExercise }) {
+  const intensityClass = getIntensityStyle(ex.intensity);
+  return (
+    <div className="rounded-lg bg-background/70 border border-border/40 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-semibold leading-snug">{ex.exercise}</p>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+            {ex.sets}×{ex.reps}
+          </span>
+          <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${intensityClass}`}>
+            {ex.intensity}
+          </span>
+        </div>
+      </div>
+      {ex.notes && (
+        <p className="text-[10px] text-muted-foreground italic mt-1 leading-relaxed">{ex.notes}</p>
+      )}
+    </div>
+  );
 }
 
 function PhaseCard({ phase, defaultOpen }: { phase: ProgramPhase; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const style = getPhaseStyle(phase.phaseName);
+  const totalExercises = phase.trainingDays.reduce((sum, d) => sum + (d.exercises || d.sessions || []).length, 0);
+  const avgExercises = phase.trainingDays.length > 0 ? Math.round(totalExercises / phase.trainingDays.length) : 0;
 
   return (
     <div className={`rounded-2xl border ${style.border} ${style.bg} overflow-hidden`}>
       {/* Phase header */}
       <button
-        className="w-full text-left p-5 flex items-center justify-between"
+        className="w-full text-left p-5 flex items-center justify-between gap-3"
         onClick={() => setOpen(o => !o)}
       >
-        <div className="flex items-center gap-3">
-          <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${style.badge}`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${style.badge}`}>
             Phase {phase.phaseNumber}
           </span>
-          <div>
+          <div className="min-w-0">
             <p className={`text-sm font-bold ${style.text}`}>{phase.phaseName}</p>
             <p className="text-[10px] text-muted-foreground">{phase.weeksLabel} · {phase.durationWeeks} weeks</p>
           </div>
         </div>
-        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+        <div className="flex items-center gap-3 shrink-0">
+          {!open && (
+            <div className="hidden sm:flex items-center gap-3 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <CalendarDays className="h-3 w-3" />
+                {phase.trainingDays.length} days/week
+              </span>
+              {avgExercises > 0 && (
+                <span className="flex items-center gap-1">
+                  <Dumbbell className="h-3 w-3" />
+                  ~{avgExercises} exercises
+                </span>
+              )}
+            </div>
+          )}
+          {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+        </div>
       </button>
 
       <AnimatePresence initial={false}>
@@ -136,7 +205,7 @@ function PhaseCard({ phase, defaultOpen }: { phase: ProgramPhase; defaultOpen: b
             <div className="px-5 pb-5 space-y-5">
               {/* Rationale */}
               <div className="rounded-xl bg-background/60 border border-border/50 px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Coach Rationale</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Coach Rationale</p>
                 <p className="text-xs text-foreground leading-relaxed">{phase.rationale}</p>
               </div>
 
@@ -145,49 +214,66 @@ function PhaseCard({ phase, defaultOpen }: { phase: ProgramPhase; defaultOpen: b
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Template Week</p>
                 {phase.trainingDays.map((day, di) => {
                   const exercises = day.exercises || day.sessions || [];
+                  const dayStyle = getDayStyle(day.day);
                   return (
-                    <div key={di} className={`rounded-xl border p-4 space-y-3 ${getDayColor(day.day)}`}>
-                      <div>
-                        <p className="text-xs font-bold">{day.day}</p>
-                        <p className="text-[10px] text-muted-foreground opacity-80">{day.focus}</p>
-                      </div>
-
-                      {/* Warm-up */}
-                      {day.warmup && day.warmup.length > 0 && (
-                        <div className="rounded-lg bg-background/50 px-3 py-2 space-y-1">
-                          <div className="flex items-center gap-1.5 mb-1.5">
-                            <Flame className="h-3 w-3 text-orange-500" />
-                            <p className="text-[10px] font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Warm-Up</p>
+                    <div key={di} className={`rounded-xl border overflow-hidden ${dayStyle.card}`}>
+                      {/* Colored accent bar */}
+                      <div className={`h-0.5 w-full ${dayStyle.bar}`} />
+                      <div className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-xs font-bold">{day.day}</p>
+                            <p className="text-[10px] text-muted-foreground opacity-80">{day.focus}</p>
                           </div>
-                          {day.warmup.map((item, wi) => (
-                            <p key={wi} className="text-[11px] text-muted-foreground">· {item}</p>
+                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            {day.warmup && day.warmup.length > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Flame className="h-2.5 w-2.5 text-orange-500" />
+                                {day.warmup.length} warm-up
+                              </span>
+                            )}
+                            {day.cooldown && day.cooldown.length > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Moon className="h-2.5 w-2.5 text-blue-400" />
+                                {day.cooldown.length} cool-down
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Warm-up */}
+                        {day.warmup && day.warmup.length > 0 && (
+                          <div className="rounded-lg bg-background/50 px-3 py-2 space-y-1">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Flame className="h-3 w-3 text-orange-500" />
+                              <p className="text-[10px] font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Warm-Up</p>
+                            </div>
+                            {day.warmup.map((item, wi) => (
+                              <p key={wi} className="text-[11px] text-muted-foreground">· {item}</p>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Main exercises */}
+                        <div className="space-y-1.5">
+                          {exercises.map((ex, ei) => (
+                            <ExerciseRow key={ei} ex={ex} />
                           ))}
                         </div>
-                      )}
 
-                      {/* Main exercises */}
-                      <div className="space-y-1.5">
-                        {exercises.map((ex, ei) => (
-                          <div key={ei} className="rounded-lg bg-background/70 px-3 py-2">
-                            <p className="text-xs font-semibold">{ex.exercise}</p>
-                            <p className="text-[11px] text-muted-foreground">{ex.sets}×{ex.reps} · {ex.intensity}</p>
-                            {ex.notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">{ex.notes}</p>}
+                        {/* Cool-down */}
+                        {day.cooldown && day.cooldown.length > 0 && (
+                          <div className="rounded-lg bg-background/50 px-3 py-2 space-y-1">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Moon className="h-3 w-3 text-blue-400" />
+                              <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Cool-Down</p>
+                            </div>
+                            {day.cooldown.map((item, ci) => (
+                              <p key={ci} className="text-[11px] text-muted-foreground">· {item}</p>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-
-                      {/* Cool-down */}
-                      {day.cooldown && day.cooldown.length > 0 && (
-                        <div className="rounded-lg bg-background/50 px-3 py-2 space-y-1">
-                          <div className="flex items-center gap-1.5 mb-1.5">
-                            <Moon className="h-3 w-3 text-blue-400" />
-                            <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Cool-Down</p>
-                          </div>
-                          {day.cooldown.map((item, ci) => (
-                            <p key={ci} className="text-[11px] text-muted-foreground">· {item}</p>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -197,7 +283,10 @@ function PhaseCard({ phase, defaultOpen }: { phase: ProgramPhase; defaultOpen: b
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {phase.progressionNotes && phase.progressionNotes.length > 0 && (
                   <div className="rounded-xl bg-background/60 border border-border/50 px-4 py-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Progression Rules</p>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Progression Rules</p>
+                    </div>
                     {phase.progressionNotes.map((n, i) => (
                       <p key={i} className="text-[11px] text-foreground mb-1">→ {n}</p>
                     ))}
@@ -221,64 +310,33 @@ function PhaseCard({ phase, defaultOpen }: { phase: ProgramPhase; defaultOpen: b
   );
 }
 
-export function ProgramTab({ latestPlan, isPro }: Props) {
-  const [goal, setGoal] = useState('Strength Peak');
-  const [daysPerWeek, setDaysPerWeek] = useState(4);
-  const [durationWeeks, setDurationWeeks] = useState(8);
+export function ProgramTab({ latestPlan, isPro, onTabChange }: Props) {
   const [program, setProgram] = useState<TrainingProgram | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [savedProgram, setSavedProgram] = useState<TrainingProgram | null>(null);
-  const [view, setView] = useState<'saved' | 'new'>('saved');
+  const [newProgram, setNewProgram] = useState<TrainingProgram | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API_BASE}/coach/program`, { credentials: 'include' })
       .then(r => r.json())
-      .then(d => {
-        if (d.program) {
-          setSavedProgram(d.program);
-          setView('saved');
-        } else {
-          setView('new');
-        }
-      })
-      .catch(() => setView('new'));
+      .then(d => { if (d.program) setProgram(d.program); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  async function generateProgram() {
-    if (!isPro) return toast.error('Pro feature');
-    setGenerating(true);
-    try {
-      const res = await fetch(`${API_BASE}/coach/program`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ goal, daysPerWeek, durationWeeks }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed');
-      setProgram(data);
-      setView('new');
-      toast.success('Program generated!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate program');
-    } finally {
-      setGenerating(false);
-    }
-  }
-
   async function saveProgram() {
-    if (!program) return;
+    if (!newProgram) return;
     setSaving(true);
     try {
       const res = await fetch(`${API_BASE}/coach/program`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ program }),
+        body: JSON.stringify({ program: newProgram }),
       });
       if (!res.ok) throw new Error('Save failed');
-      setSavedProgram(program);
+      setProgram(newProgram);
+      setNewProgram(null);
       toast.success('Program saved!');
     } catch {
       toast.error('Failed to save');
@@ -287,121 +345,80 @@ export function ProgramTab({ latestPlan, isPro }: Props) {
     }
   }
 
-  const displayProgram = view === 'saved' ? savedProgram : program;
+  const displayProgram = newProgram || program;
   const accessories = latestPlan?.bench_day_plan?.accessories?.slice(0, 3) || [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      {/* Program builder */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="p-5 space-y-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Build Your Program</p>
 
-          {/* Goal selector */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium">Training Goal</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {GOAL_OPTIONS.map(g => (
-                <button
-                  key={g.value}
-                  onClick={() => setGoal(g.value)}
-                  className={`rounded-xl border p-3 text-left transition-colors ${
-                    goal === g.value
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background hover:bg-muted/50'
-                  }`}
-                >
-                  <p className="text-xs font-semibold">{g.label}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{g.desc}</p>
-                </button>
-              ))}
+      {/* Empty state */}
+      {!displayProgram && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="p-10 flex flex-col items-center text-center gap-4">
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 border border-primary/20">
+              <Dumbbell className="h-7 w-7 text-primary" />
             </div>
-          </div>
-
-          {/* Days per week */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium">Days Per Week</p>
-            <div className="flex gap-2">
-              {DAYS_OPTIONS.map(d => (
-                <button
-                  key={d}
-                  onClick={() => setDaysPerWeek(d)}
-                  className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
-                    daysPerWeek === d
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background hover:bg-muted/50'
-                  }`}
-                >
-                  {d}
-                </button>
-              ))}
+            <div>
+              <p className="font-semibold">No program yet</p>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                Use the <span className="font-medium text-foreground">New Program</span> button in the top-right to generate your personalized training plan.
+              </p>
             </div>
-          </div>
-
-          {/* Duration */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium">Duration</p>
-            <div className="flex gap-2">
-              {DURATION_OPTIONS.map(w => (
-                <button
-                  key={w}
-                  onClick={() => setDurationWeeks(w)}
-                  className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
-                    durationWeeks === w
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background hover:bg-muted/50'
-                  }`}
-                >
-                  {w} wks
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <Button onClick={generateProgram} disabled={generating || !isPro} className="w-full rounded-xl">
-            {generating ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" />Generating phased program…</>
-            ) : (
-              <><Dumbbell className="h-4 w-4 mr-2" />Generate {durationWeeks}-Week Program</>
-            )}
-          </Button>
-          {!isPro && <p className="text-xs text-center text-muted-foreground">Program generation is a Pro feature.</p>}
-          {isPro && (
-            <p className="text-[10px] text-center text-muted-foreground">
-              Your program will be personalized using your consultation profile and diagnostic data.
-            </p>
-          )}
-        </Card>
-      </motion.div>
-
-      {/* View toggle if both exist */}
-      {savedProgram && program && program !== savedProgram && (
-        <div className="flex gap-2">
-          <Button size="sm" variant={view === 'saved' ? 'default' : 'outline'} className="rounded-xl text-xs" onClick={() => setView('saved')}>
-            Saved Program
-          </Button>
-          <Button size="sm" variant={view === 'new' ? 'default' : 'outline'} className="rounded-xl text-xs" onClick={() => setView('new')}>
-            New Program
-          </Button>
-        </div>
+          </Card>
+        </motion.div>
       )}
 
       {/* Program display */}
       {displayProgram && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          {/* Program header */}
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-bold text-base">{displayProgram.goal} — {displayProgram.durationWeeks} Weeks</p>
-              <p className="text-xs text-muted-foreground">{displayProgram.daysPerWeek} days/week · {displayProgram.phases?.length || 1} phase{(displayProgram.phases?.length || 1) > 1 ? 's' : ''}</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+
+          {/* Program overview banner */}
+          <Card className="p-5 space-y-4">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-base font-bold">{displayProgram.goal}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Personalized training program</p>
+              </div>
+              {newProgram && (
+                <Button onClick={saveProgram} disabled={saving} size="sm" variant="outline" className="rounded-xl text-xs shrink-0">
+                  {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                  Save Program
+                </Button>
+              )}
             </div>
-            {view === 'new' && program && (
-              <Button onClick={saveProgram} disabled={saving} size="sm" variant="outline" className="rounded-xl text-xs shrink-0">
-                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
-                Save Program
-              </Button>
+
+            {/* Stats strip */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-muted/40 px-3 py-2.5 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">Duration</p>
+                <p className="text-sm font-bold mt-0.5">{displayProgram.durationWeeks} weeks</p>
+              </div>
+              <div className="rounded-xl bg-muted/40 px-3 py-2.5 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">Frequency</p>
+                <p className="text-sm font-bold mt-0.5">{displayProgram.daysPerWeek}×/week</p>
+              </div>
+              <div className="rounded-xl bg-muted/40 px-3 py-2.5 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">Phases</p>
+                <p className="text-sm font-bold mt-0.5">{displayProgram.phases?.length || 1}</p>
+              </div>
+            </div>
+
+            {/* Phase timeline */}
+            {displayProgram.phases && displayProgram.phases.length > 1 && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2.5">Program Arc</p>
+                <PhaseTimeline phases={displayProgram.phases} />
+              </div>
             )}
-          </div>
+          </Card>
 
           {/* Phased display */}
           {displayProgram.phases && displayProgram.phases.length > 0 ? (
@@ -417,23 +434,25 @@ export function ProgramTab({ latestPlan, isPro }: Props) {
                 <Card key={week.weekNumber} className="p-5 space-y-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Week {week.weekNumber}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {week.days.map((day, di) => (
-                      <div key={di} className={`rounded-xl border p-3 space-y-2 ${getDayColor(day.day)}`}>
-                        <div>
-                          <p className="text-xs font-bold">{day.day}</p>
-                          <p className="text-[10px] opacity-70">{day.focus}</p>
-                        </div>
-                        <div className="space-y-1.5">
-                          {(day.sessions || []).map((s, si) => (
-                            <div key={si} className="rounded-lg bg-background/60 px-2 py-1.5">
-                              <p className="text-xs font-medium">{s.exercise}</p>
-                              <p className="text-[10px] text-muted-foreground">{s.sets}×{s.reps} @ {s.intensity}</p>
-                              {s.notes && <p className="text-[10px] text-muted-foreground italic">{s.notes}</p>}
+                    {week.days.map((day, di) => {
+                      const dayStyle = getDayStyle(day.day);
+                      return (
+                        <div key={di} className={`rounded-xl border overflow-hidden ${dayStyle.card}`}>
+                          <div className={`h-0.5 w-full ${dayStyle.bar}`} />
+                          <div className="p-3 space-y-2">
+                            <div>
+                              <p className="text-xs font-bold">{day.day}</p>
+                              <p className="text-[10px] opacity-70">{day.focus}</p>
                             </div>
-                          ))}
+                            <div className="space-y-1.5">
+                              {(day.sessions || []).map((s, si) => (
+                                <ExerciseRow key={si} ex={s} />
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Card>
               ))}
@@ -471,9 +490,14 @@ export function ProgramTab({ latestPlan, isPro }: Props) {
                 <BarChart2 className="h-3.5 w-3.5 text-primary" />
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">What to Track Each Session</p>
               </div>
-              {displayProgram.trackingMetrics.map((metric, i) => (
-                <p key={i} className="text-xs text-foreground">· {metric}</p>
-              ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {displayProgram.trackingMetrics.map((metric, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-2">
+                    <Target className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <p className="text-xs text-foreground">{metric}</p>
+                  </div>
+                ))}
+              </div>
             </Card>
           )}
         </motion.div>
@@ -481,12 +505,14 @@ export function ProgramTab({ latestPlan, isPro }: Props) {
 
       {/* Evidence-based accessories from latest analysis */}
       {accessories.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card className="p-5 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Evidence-Based Add-ons</p>
-            <p className="text-xs text-muted-foreground">From your most recent analysis — prioritized by impact on your identified weakness:</p>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Evidence-Based Add-ons</p>
+              <p className="text-xs text-muted-foreground mt-1">From your most recent analysis — prioritized by impact on your identified weakness:</p>
+            </div>
             {accessories.map((a: any, i: number) => (
-              <div key={i} className="flex items-start gap-3 rounded-lg bg-muted/30 px-3 py-2.5">
+              <div key={i} className="flex items-start gap-3 rounded-xl bg-muted/30 border border-border/40 px-3 py-3">
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                   a.priority === 1 ? 'bg-primary/10 text-primary' :
                   a.priority === 2 ? 'bg-amber-500/10 text-amber-600' :
@@ -495,8 +521,8 @@ export function ProgramTab({ latestPlan, isPro }: Props) {
                   P{a.priority}
                 </span>
                 <div>
-                  <p className="text-sm font-medium">{a.exercise_name}</p>
-                  <p className="text-xs text-muted-foreground">{a.sets}×{a.reps} — {a.why}</p>
+                  <p className="text-sm font-semibold">{a.exercise_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{a.sets}×{a.reps} — {a.why}</p>
                 </div>
               </div>
             ))}

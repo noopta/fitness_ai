@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BrandLogo } from '@/components/BrandLogo';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2, History, ArrowRight, Dumbbell, ChevronRight, Share2 } from 'lucide-react';
+import { Navbar } from '@/components/Navbar';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -59,29 +59,14 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
-      <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/">
-            <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-              <BrandLogo height={36} className="h-9 w-auto" />
-              <div className="text-sm font-semibold">LiftOff</div>
-            </a>
-          </Link>
-          <div className="flex items-center gap-2">
-            {user && (
-              <span className="hidden md:block text-xs text-muted-foreground">
-                {user.name || user.email}
-              </span>
-            )}
-            <Link href="/onboarding">
-              <Button size="sm" className="rounded-xl">
-                New Analysis
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar variant="full" rightSlot={
+        <Link href="/onboarding">
+          <Button size="sm" className="rounded-xl">
+            New Analysis
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
+      } />
 
       <main className="mx-auto max-w-4xl px-4 py-10">
         <motion.div

@@ -32,87 +32,7 @@ import snapshotAiSummary from "@assets/snapshot_ai_summary_1771264391948.png";
 import snapshotAnalysis from "@assets/snapshot_analysis_1771264391949.png";
 import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { BrandLogo } from "@/components/BrandLogo";
-
-function Nav() {
-  const { user, loading: authLoading, logout } = useAuth();
-  const [, navigate] = useLocation();
-
-  async function handleLogout() {
-    try {
-      await logout();
-      navigate("/");
-    } catch {
-      toast.error("Logout failed.");
-    }
-  }
-
-  return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-      <div className="container-tight flex items-center justify-between py-4">
-        <Link href="/" className="inline-flex items-center gap-3" data-testid="link-nav-home">
-          <BrandLogo height={36} className="h-9 w-auto" />
-          <div className="leading-tight">
-            <div className="text-sm font-semibold" data-testid="text-nav-brand">
-              LiftOff
-            </div>
-            <div className="text-xs text-muted-foreground" data-testid="text-nav-sub">
-              AI-Powered Diagnostics
-            </div>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-3">
-          {authLoading ? (
-            <div className="h-8 w-24 animate-pulse rounded-xl bg-muted" />
-          ) : user ? (
-            <>
-              <span className="hidden md:block text-sm font-medium text-foreground truncate max-w-[140px]" data-testid="text-nav-email">
-                {user.name ? user.name.split(' ')[0] : user.email}
-              </span>
-              <Link href="/pricing">
-                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-pricing">
-                  Pricing
-                </Button>
-              </Link>
-              <Link href="/history">
-                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-history">
-                  My Analyses
-                </Button>
-              </Link>
-              <Link href="/coach">
-                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-coach">
-                  AI Coach
-                </Button>
-              </Link>
-              <Button variant="ghost" size="sm" className="rounded-xl text-muted-foreground" onClick={handleLogout} data-testid="button-nav-logout">
-                Sign out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link href="/pricing">
-                <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" data-testid="button-nav-pricing">
-                  Pricing
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="rounded-xl" data-testid="button-nav-login">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm" className="rounded-xl" data-testid="button-nav-register">
-                  Get Started
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
+import { Navbar } from "@/components/Navbar";
 
 function ValuePill({
   icon,
@@ -572,7 +492,7 @@ export default function Signup() {
 
   return (
     <div className="page">
-      <Nav />
+      <Navbar variant="full" />
 
       <main className="container-tight">
         <section className="py-16 sm:py-24">
@@ -632,7 +552,7 @@ export default function Signup() {
                           data-testid="button-get-started"
                         >
                           <span>
-                            Go to Dashboard
+                            Run a Lift Analysis
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </span>
                         </Button>

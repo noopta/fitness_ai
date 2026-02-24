@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { liftCoachApi } from "@/lib/api";
 import { toast } from "sonner";
-import { BrandLogo } from "@/components/BrandLogo";
+import { Navbar } from "@/components/Navbar";
 
 type SnapshotRow = {
   id: string;
@@ -143,30 +143,6 @@ const defaultExercises = [
   "Overhead Press",
 ];
 
-function Header() {
-  return (
-    <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/">
-          <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <BrandLogo height={36} className="h-9 w-auto" />
-            <div>
-              <div className="text-sm font-semibold" data-testid="text-snapshot-title">
-                Strength snapshot
-              </div>
-              <div className="text-xs text-muted-foreground" data-testid="text-snapshot-subtitle">
-                Enter your current working weights
-              </div>
-            </div>
-          </a>
-        </Link>
-        <div className="hidden text-xs text-muted-foreground sm:block" data-testid="text-step">
-          Step 2 of 4
-        </div>
-      </div>
-    </header>
-  );
-}
 
 export default function Snapshot() {
   const [, setLocation] = useLocation();
@@ -338,7 +314,7 @@ export default function Snapshot() {
 
   return (
     <div className="min-h-screen grid-fade">
-      <Header />
+      <Navbar variant="step" title="Strength snapshot" subtitle="Enter your current working weights" stepLabel="Step 2 of 4" />
 
       <main className="mx-auto max-w-6xl px-4 py-10">
         <motion.div

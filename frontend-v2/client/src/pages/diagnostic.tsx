@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { liftCoachApi } from "@/lib/api";
 import { toast } from "sonner";
-import { BrandLogo } from "@/components/BrandLogo";
+import { Navbar } from "@/components/Navbar";
 
 type ChatRole = "assistant" | "user";
 
@@ -18,31 +18,6 @@ type Msg = {
   content: string;
 };
 
-function Header({ questionCount }: { questionCount: number }) {
-  return (
-    <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/">
-          <a className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <BrandLogo height={36} className="h-9 w-auto" />
-            <div>
-              <div className="text-sm font-semibold" data-testid="text-diagnostic-title">
-                Diagnostic interview
-              </div>
-              <div className="text-xs text-muted-foreground" data-testid="text-diagnostic-subtitle">
-                {questionCount > 0 ? `${questionCount} questions answered` : '4–8 questions, only when needed'}
-              </div>
-            </div>
-          </a>
-        </Link>
-
-        <div className="hidden text-xs text-muted-foreground sm:block" data-testid="text-step">
-          Step 3 of 4
-        </div>
-      </div>
-    </header>
-  );
-}
 
 function formatMessage(content: string) {
   // Split by numbered questions (e.g., **1.**, **2.**, **3.**)
@@ -293,7 +268,7 @@ export default function Diagnostic() {
 
   return (
     <div className="min-h-screen grid-fade">
-      <Header questionCount={questionCount} />
+      <Navbar variant="step" title="Diagnostic interview" subtitle={questionCount > 0 ? `${questionCount} questions answered` : '4–8 questions, only when needed'} stepLabel="Step 3 of 4" />
 
       <main className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">

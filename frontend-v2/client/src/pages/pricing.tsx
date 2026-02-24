@@ -1,11 +1,10 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, ChevronRight, Zap } from "lucide-react";
+import { ArrowRight, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
+import { Navbar } from "@/components/Navbar";
 
 const FREE_LIMIT = 2;
 const STRIPE_PRO_URL = "https://buy.stripe.com/9B614gaQ2gjIdxV26NfUQ01";
@@ -61,64 +60,6 @@ const tiers = [
   },
 ];
 
-function Nav() {
-  const { user, logout } = useAuth();
-  const [, navigate] = useLocation();
-
-  async function handleLogout() {
-    try {
-      await logout();
-      navigate("/");
-    } catch {
-      toast.error("Logout failed.");
-    }
-  }
-
-  return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-      <div className="container-tight flex items-center justify-between py-4">
-        <Link href="/" className="inline-flex items-center gap-3">
-          <BrandLogo height={36} className="h-9 w-auto" />
-          <div className="leading-tight">
-            <div className="text-sm font-semibold">LiftOff</div>
-            <div className="text-xs text-muted-foreground">AI-Powered Diagnostics</div>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          {user ? (
-            <>
-              <span className="hidden sm:block text-xs text-muted-foreground truncate max-w-[180px]">
-                {user.email}
-              </span>
-              <Link href="/onboarding">
-                <Button variant="ghost" size="sm" className="rounded-xl">
-                  Dashboard
-                </Button>
-              </Link>
-              <Button variant="ghost" size="sm" className="rounded-xl" onClick={handleLogout}>
-                Sign out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link href="/login">
-                <Button variant="ghost" className="rounded-xl">Sign In</Button>
-              </Link>
-              <Link href="/register">
-                <Button className="rounded-xl">
-                  Get Started
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
-
 export default function Pricing() {
   const { user } = useAuth();
 
@@ -131,7 +72,7 @@ export default function Pricing() {
 
   return (
     <div className="page">
-      <Nav />
+      <Navbar variant="full" />
 
       <main className="container-tight">
         <section className="py-16 sm:py-24">

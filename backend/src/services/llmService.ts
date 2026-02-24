@@ -250,8 +250,7 @@ TONE: Specific, data-driven, coach-like. Reference actual numbers from the signa
       { role: 'system', content: systemPrompt },
       { role: 'user', content: 'Analyze the snapshot data and generate 3 tailored diagnostic questions.' }
     ],
-    temperature: 0.6,
-    max_tokens: 900,
+    max_completion_tokens: 900,
     response_format: { type: 'json_object' }
   });
 
@@ -352,8 +351,7 @@ Current question count: ${questionCount}/8`;
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages,
-    temperature: 0.7,
-    max_tokens: 200
+    max_completion_tokens: 200
   });
 
   const assistantMessage = response.choices[0].message.content || '';
@@ -536,8 +534,7 @@ OUTPUT ONLY VALID JSON:
       { role: 'system', content: systemPrompt },
       { role: 'user', content: 'Generate the workout plan now.' }
     ],
-    temperature: 0.5,
-    max_tokens: 1500,
+    max_completion_tokens: 1500,
     response_format: { type: 'json_object' }
   });
 
@@ -898,8 +895,7 @@ OUTPUT FORMAT (JSON only):
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.5,
-    max_tokens: 600,
+    max_completion_tokens: 600,
     response_format: { type: 'json_object' },
   });
 
@@ -1114,8 +1110,7 @@ OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.6,
-    max_tokens: 3500,
+    max_completion_tokens: 3500,
     response_format: { type: 'json_object' },
   });
 
@@ -1167,8 +1162,7 @@ Output only the insight text, no JSON, no labels.`;
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.7,
-    max_tokens: 100,
+    max_completion_tokens: 100,
   });
 
   return response.choices[0].message.content?.trim() || 'Keep training consistently and track your progress.';
@@ -1194,8 +1188,7 @@ Output only the recommendation text, no JSON, no labels.`;
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.6,
-    max_tokens: 120,
+    max_completion_tokens: 120,
   });
 
   return response.choices[0].message.content?.trim() || 'Prioritize 7-9 hours of sleep and manage stress to optimize recovery.';
@@ -1220,7 +1213,7 @@ export interface TodayCoachingTipsParams {
 
 /**
  * Generates 2–3 specific coaching tips for today's session.
- * Lightweight GPT-4o call (max_tokens: 300).
+ * Lightweight GPT-4o call (max_completion_tokens: 300).
  */
 export async function generateTodayCoachingTips(params: TodayCoachingTipsParams): Promise<string> {
   const exerciseList = params.exercises
@@ -1256,8 +1249,7 @@ INSTRUCTIONS:
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.6,
-    max_tokens: 300,
+    max_completion_tokens: 300,
   });
 
   return response.choices[0].message.content?.trim() || '• Focus on quality over quantity today.\n• Stay hydrated and maintain consistent rest periods.';
@@ -1368,8 +1360,7 @@ OUTPUT — valid JSON only:
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
-    temperature: 0.5,
-    max_tokens: 900,
+    max_completion_tokens: 900,
     response_format: { type: 'json_object' },
   });
 
