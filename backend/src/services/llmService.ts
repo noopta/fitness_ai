@@ -245,7 +245,7 @@ OUTPUT FORMAT (JSON):
 TONE: Specific, data-driven, coach-like. Reference actual numbers from the signals.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: 'Analyze the snapshot data and generate 3 tailored diagnostic questions.' }
@@ -350,7 +350,7 @@ Current question count: ${questionCount}/8`;
   });
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages,
     temperature: 0.7,
     max_tokens: 200
@@ -531,7 +531,7 @@ OUTPUT ONLY VALID JSON:
 }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: 'Generate the workout plan now.' }
@@ -896,7 +896,7 @@ OUTPUT FORMAT (JSON only):
 }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.5,
     max_tokens: 600,
@@ -1112,7 +1112,7 @@ OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
 }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.6,
     max_tokens: 3500,
@@ -1165,7 +1165,7 @@ Be specific and actionable. Reference their data. Do not use generic phrases lik
 Output only the insight text, no JSON, no labels.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.7,
     max_tokens: 100,
@@ -1192,7 +1192,7 @@ Be specific. If energy is low, say why and what to do. If stress is high, recomm
 Output only the recommendation text, no JSON, no labels.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.6,
     max_tokens: 120,
@@ -1254,7 +1254,7 @@ INSTRUCTIONS:
 - Format as plain text with bullet points (•). No headers, no JSON, just the tips.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.6,
     max_tokens: 300,
