@@ -5,10 +5,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Loader2, Sparkles, ChevronRight, Dumbbell, Calendar, TrendingUp,
-  Zap, Moon, CheckCircle2, BedDouble, Plus, X, Activity
+  Zap, Moon, CheckCircle2, BedDouble, Plus, X, Activity, Heart
 } from 'lucide-react';
 import { EfficiencyGauge } from '@/components/EfficiencyGauge';
 import { StrengthRadar } from '@/components/StrengthRadar';
+import { LifeHappenedModal } from '@/components/coach/LifeHappenedModal';
 import { toast } from 'sonner';
 import type { DiagnosticSignalsSubset } from '@/lib/api';
 
@@ -165,6 +166,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
   const [todayLoading, setTodayLoading] = useState(true);
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
+  const [showLifeHappened, setShowLifeHappened] = useState(false);
 
   const latest = sessions[0];
   const latestPlan = latest?.plan;
@@ -276,6 +278,12 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
               Next training: <span className="font-semibold text-white">{todayData.nextTrainingDay}</span>
             </p>
           )}
+          <button
+            onClick={() => setShowLifeHappened(true)}
+            className="w-full rounded-xl border border-zinc-700 py-2.5 text-xs text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors flex items-center justify-center gap-1.5"
+          >
+            <Heart className="h-3.5 w-3.5" /> Something came up? Tell your coach
+          </button>
         </div>
       );
     }
@@ -334,13 +342,22 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
           </div>
         )}
 
-        {/* CTA */}
-        <button
-          onClick={() => onTabChange('program')}
-          className="w-full bg-white text-black rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 hover:bg-zinc-100 transition-colors mt-auto"
-        >
-          Start Workout <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* CTAs */}
+        <div className="flex gap-2 mt-auto">
+          <button
+            onClick={() => onTabChange('program')}
+            className="flex-1 bg-white text-black rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 hover:bg-zinc-100 transition-colors"
+          >
+            Start Workout <ChevronRight className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setShowLifeHappened(true)}
+            className="rounded-xl border border-zinc-700 px-3 py-3 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+            title="Life happened? Tell your coach"
+          >
+            <Heart className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     );
   }
@@ -614,6 +631,21 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
       {/* Workout detail modal */}
       {selectedDay && (
         <WorkoutDayModal day={selectedDay} onClose={() => setSelectedDay(null)} />
+      )}
+
+      {/* Life Happened modal */}
+      {showLifeHappened && (
+        <LifeHappenedModal
+          onClose={() => setShowLifeHappened(false)}
+          onApplied={() => {
+            setShowLifeHappened(false);
+            // Re-fetch today and schedule after adjustment
+            fetch(`${API_BASE}/coach/today`, { credentials: 'include' })
+              .then(r => r.json()).then(d => setTodayData(d)).catch(() => {});
+            fetch(`${API_BASE}/coach/schedule`, { credentials: 'include' })
+              .then(r => r.json()).then(d => setScheduleData(d)).catch(() => {});
+          }}
+        />
       )}
     </div>
   );

@@ -6,7 +6,7 @@ import twilio from 'twilio';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateTrainingProgram, generateCoachInsight,
-  generateTodayCoachingTips,
+  generateTodayCoachingTips, generateProgramAdjustment,
 } from '../services/llmService.js';
 
 const router = Router();
@@ -498,6 +498,125 @@ router.get('/coach/today', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Today endpoint error:', err);
     res.status(500).json({ error: 'Failed to load today\'s workout' });
+  }
+});
+
+// POST /api/coach/adjust - Analyze a life disruption and return an adjustment plan
+router.post('/coach/adjust', requireAuth, async (req, res) => {
+  try {
+    const { userInput } = req.body;
+    if (!userInput || typeof userInput !== 'string' || userInput.trim().length < 5) {
+      return res.status(400).json({ error: 'Please describe what happened.' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      include: {
+        sessions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } },
+        },
+      },
+    });
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Build today context (reuse schedule logic)
+    let phaseName: string | null = null;
+    let weekNumber: number | null = null;
+    let todaySession: { day: string; focus: string } | null = null;
+    let isRestDay = false;
+    let weekSchedule: Array<{ dayLabel: string; isTrainingDay: boolean; sessionName?: string }> = [];
+
+    if (user.savedProgram) {
+      const program = JSON.parse(user.savedProgram);
+      const startDate = user.programStartDate || new Date();
+      const msSinceStart = Date.now() - new Date(startDate).getTime();
+      const daysSinceStart = Math.floor(msSinceStart / (1000 * 60 * 60 * 24));
+      const wk = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
+      weekNumber = wk;
+
+      let cumulativeWeeks = 0;
+      let currentPhase = program.phases?.[0] || null;
+      if (program.phases) {
+        for (let i = 0; i < program.phases.length; i++) {
+          cumulativeWeeks += program.phases[i].durationWeeks;
+          if (wk <= cumulativeWeeks) { currentPhase = program.phases[i]; break; }
+          currentPhase = program.phases[i];
+        }
+      }
+      phaseName = currentPhase?.phaseName || null;
+
+      const trainingDays = currentPhase?.trainingDays || [];
+      const totalDays = trainingDays.length;
+      const dayInWeek = daysSinceStart % 7;
+      const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+      isRestDay = !session;
+      todaySession = session ? { day: session.day, focus: session.focus } : null;
+
+      // Build week schedule preview (Mon–Sun)
+      const today = new Date();
+      const dow = today.getDay();
+      const mondayOffset = dow === 0 ? -6 : 1 - dow;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset);
+      monday.setHours(0, 0, 0, 0);
+      const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        const daysForDate = Math.floor((date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
+        const diw = ((daysForDate % 7) + 7) % 7;
+        const s = diw < totalDays ? trainingDays[diw] : null;
+        weekSchedule.push({ dayLabel: DAY_LABELS[i], isTrainingDay: !!s, sessionName: s?.day });
+      }
+    }
+
+    const latestPlan = user.sessions[0]?.plans[0] ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
+    const primaryLimiter = latestPlan?.diagnosis?.[0]?.limiterName || null;
+
+    const adjustment = await generateProgramAdjustment({
+      userInput: userInput.trim(),
+      goal: user.coachGoal,
+      trainingAge: user.trainingAge,
+      primaryLimiter,
+      phaseName,
+      weekNumber,
+      todaySession,
+      isRestDay,
+      weekSchedule,
+    });
+
+    res.json(adjustment);
+  } catch (err) {
+    console.error('Adjust endpoint error:', err);
+    res.status(500).json({ error: 'Failed to analyze disruption' });
+  }
+});
+
+// POST /api/coach/apply-adjustment - Apply schedule shift to programStartDate
+router.post('/coach/apply-adjustment', requireAuth, async (req, res) => {
+  try {
+    const { shiftDays } = req.body;
+    if (typeof shiftDays !== 'number') return res.status(400).json({ error: 'shiftDays required' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.savedProgram) return res.status(400).json({ error: 'No active program' });
+
+    const currentStart = user.programStartDate || new Date();
+    const newStart = new Date(new Date(currentStart).getTime() + shiftDays * 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { programStartDate: newStart },
+    });
+
+    res.json({ success: true, newProgramStartDate: newStart.toISOString() });
+  } catch (err) {
+    console.error('Apply adjustment error:', err);
+    res.status(500).json({ error: 'Failed to apply adjustment' });
   }
 });
 

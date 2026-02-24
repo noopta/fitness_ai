@@ -1263,6 +1263,120 @@ INSTRUCTIONS:
   return response.choices[0].message.content?.trim() || '• Focus on quality over quantity today.\n• Stay hydrated and maintain consistent rest periods.';
 }
 
+// ─── Life Happened — Program Adjustment ───────────────────────────────────────
+
+export interface ProgramAdjustmentResult {
+  disruptionType: 'social_event' | 'illness' | 'travel' | 'injury' | 'work_stress' | 'missed_session' | 'other';
+  disruptionLabel: string;
+  severity: 'mild' | 'moderate' | 'significant';
+  physiologicalImpacts: string[];
+  trainingImpact: {
+    missedSessions: number;
+    intensityNote: string;
+    summary: string;
+  };
+  nutritionalAdvice: {
+    immediate: string[];
+    today: string[];
+    supplements: string[];
+  } | null;
+  suggestedShiftDays: number;   // days to add to programStartDate (positive = delay program)
+  adjustmentRationale: string;
+  coachNote: string;
+  recoveryTimeline: string;
+}
+
+export async function generateProgramAdjustment(params: {
+  userInput: string;
+  goal: string | null;
+  trainingAge: string | null;
+  primaryLimiter: string | null;
+  phaseName: string | null;
+  weekNumber: number | null;
+  todaySession: { day: string; focus: string } | null;
+  isRestDay: boolean;
+  weekSchedule: Array<{ dayLabel: string; isTrainingDay: boolean; sessionName?: string }>;
+}): Promise<ProgramAdjustmentResult> {
+  const scheduleText = params.weekSchedule
+    .map(d => `${d.dayLabel}: ${d.isTrainingDay ? `Lift — ${d.sessionName || 'Training'}` : 'Rest'}`)
+    .join('\n');
+
+  const todayContext = params.isRestDay
+    ? 'Today is a scheduled rest day.'
+    : params.todaySession
+      ? `Today's scheduled session: ${params.todaySession.day} (${params.todaySession.focus})`
+      : 'No session scheduled today.';
+
+  const prompt = `You are an elite strength coach and sports physiologist. An athlete has reported a disruption to their training. Analyze the situation and provide a specific, science-based recovery plan.
+
+ATHLETE CONTEXT:
+- Training goal: ${params.goal || 'general strength'}
+- Training age: ${params.trainingAge || 'intermediate'}
+- Current program phase: ${params.phaseName || 'active'}, Week ${params.weekNumber || '?'}
+- Primary weakness: ${params.primaryLimiter || 'none identified'}
+- ${todayContext}
+
+THIS WEEK'S SCHEDULE:
+${scheduleText}
+
+WHAT THE ATHLETE REPORTED:
+"${params.userInput}"
+
+YOUR TASK — provide a structured, specific analysis:
+
+1. DISRUPTION CLASSIFICATION: Identify what happened (social_event, illness, travel, injury, work_stress, missed_session, other)
+2. PHYSIOLOGICAL IMPACT: List the specific physiological effects (e.g. alcohol reduces MPS 37%, dehydration, cortisol spike from illness, sleep debt, etc.) — be precise with mechanisms, not generic
+3. TRAINING IMPACT: How many sessions affected, what intensity adjustment is needed today/tomorrow, severity
+4. NUTRITIONAL TRIAGE: Only if physiologically relevant (e.g. alcohol, illness, high stress) — give specific immediate actions, today's eating guidance, and any key supplements. If a simple schedule shift (travel, work meeting), set nutritionalAdvice to null.
+5. SCHEDULE ADJUSTMENT: Recommend how many days to delay the program (suggestedShiftDays: 0 if no change needed, 1 if missed 1 training day, etc.). This shifts all future training days forward by that many days.
+6. COACH NOTE: 2-3 sentences — acknowledge what happened, put it in context of their goal, and motivate them with a specific recovery action
+
+PHYSIOLOGICAL KNOWLEDGE TO APPLY:
+- Alcohol: reduces MPS ~37% for 24-48h, diuretic effect (1.5x fluid loss), disrupts REM sleep, depletes B vitamins and zinc, elevates cortisol
+- Illness: inflammatory state, protein catabolism, reduced glycogen, immune system prioritization over muscle repair
+- Poor sleep (<6h): ~20% reduction in strength, elevated cortisol, reduced GH release, increased RPE
+- Travel: circadian disruption, dehydration from flying, altered eating schedule
+- High stress: cortisol elevation impairs recovery, reduces testosterone:cortisol ratio
+- Alcohol + training: if same day, reduce volume 30-40%, focus technique over load; if day after, reduce intensity 20%
+
+OUTPUT — valid JSON only:
+{
+  "disruptionType": "social_event",
+  "disruptionLabel": "Night Out / Alcohol",
+  "severity": "moderate",
+  "physiologicalImpacts": [
+    "Alcohol reduces muscle protein synthesis by ~37% for 24-48 hours — limit of gains today",
+    "Diuretic effect: likely 500ml-1L of fluid deficit from last night",
+    "REM sleep disrupted: strength output today will be 15-20% below baseline"
+  ],
+  "trainingImpact": {
+    "missedSessions": 0,
+    "intensityNote": "Reduce working weight 15-20% today, keep RPE at 6-7 max — this is a technique day, not a PR day",
+    "summary": "..."
+  },
+  "nutritionalAdvice": {
+    "immediate": ["Drink 500ml water + electrolytes (sodium/potassium) right now", "Take 300mg magnesium glycinate"],
+    "today": ["40g protein within 2 hours of waking", "200-250g carbs today — replenish liver glycogen", "Avoid heavy saturated fats until evening — they slow gastric emptying"],
+    "supplements": ["Electrolytes", "B-complex vitamin (alcohol depletes B1, B6, B12)", "Zinc 25mg (zinc excreted in urine with alcohol metabolism)"]
+  },
+  "suggestedShiftDays": 0,
+  "adjustmentRationale": "No need to shift the schedule — you can still train today at reduced intensity. The physiology will catch up in 24-36 hours.",
+  "coachNote": "...",
+  "recoveryTimeline": "Full training capacity returns in 36-48 hours with proper hydration and nutrition"
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-5-mini',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.5,
+    max_tokens: 900,
+    response_format: { type: 'json_object' },
+  });
+
+  const content = response.choices[0].message.content || '{}';
+  return JSON.parse(content) as ProgramAdjustmentResult;
+}
+
 /**
  * Sends a user message to an existing thread and returns the assistant reply.
  */
