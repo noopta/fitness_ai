@@ -231,15 +231,20 @@ export function LifeHappenedModal({ onClose, onApplied }: Props) {
                 className="p-6 space-y-5"
               >
                 {/* Disruption header */}
-                <div className={`rounded-xl border p-4 space-y-1 ${SEVERITY_CONFIG[result.severity].bg} ${SEVERITY_CONFIG[result.severity].border}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold">{result.disruptionLabel}</span>
-                    <span className={`text-[11px] font-bold uppercase tracking-wide ${SEVERITY_CONFIG[result.severity].color}`}>
-                      {SEVERITY_CONFIG[result.severity].label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{result.coachNote}</p>
-                </div>
+                {(() => {
+                  const sev = SEVERITY_CONFIG[result.severity as keyof typeof SEVERITY_CONFIG] ?? SEVERITY_CONFIG.moderate;
+                  return (
+                    <div className={`rounded-xl border p-4 space-y-1 ${sev.bg} ${sev.border}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold">{result.disruptionLabel}</span>
+                        <span className={`text-[11px] font-bold uppercase tracking-wide ${sev.color}`}>
+                          {sev.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{result.coachNote}</p>
+                    </div>
+                  );
+                })()}
 
                 {/* Physiological impacts */}
                 <div className="space-y-2">
