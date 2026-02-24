@@ -278,12 +278,6 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
               Next training: <span className="font-semibold text-white">{todayData.nextTrainingDay}</span>
             </p>
           )}
-          <button
-            onClick={() => setShowLifeHappened(true)}
-            className="w-full rounded-xl border border-zinc-700 py-2.5 text-xs text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors flex items-center justify-center gap-1.5"
-          >
-            <Heart className="h-3.5 w-3.5" /> Something came up? Tell your coach
-          </button>
         </div>
       );
     }
@@ -342,22 +336,13 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
           </div>
         )}
 
-        {/* CTAs */}
-        <div className="flex gap-2 mt-auto">
-          <button
-            onClick={() => onTabChange('program')}
-            className="flex-1 bg-white text-black rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 hover:bg-zinc-100 transition-colors"
-          >
-            Start Workout <ChevronRight className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => setShowLifeHappened(true)}
-            className="rounded-xl border border-zinc-700 px-3 py-3 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
-            title="Life happened? Tell your coach"
-          >
-            <Heart className="h-4 w-4" />
-          </button>
-        </div>
+        {/* CTA */}
+        <button
+          onClick={() => onTabChange('program')}
+          className="w-full bg-white text-black rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 hover:bg-zinc-100 transition-colors mt-auto"
+        >
+          Start Workout <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
     );
   }
@@ -615,6 +600,37 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
           {renderInsightCard()}
         </div>
       </motion.div>
+
+      {/* Life Happened banner — only when program is active */}
+      {hasSavedProgram && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-500/15">
+                <Heart className="h-4.5 w-4.5 text-amber-500" style={{ width: 18, height: 18 }} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Life Happened?</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Missed a session, had a rough night out, feeling sick, or just overwhelmed? Tell your coach — get a personalized recovery plan with adjusted training and nutrition advice.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs border-amber-500/40 text-amber-600 hover:bg-amber-500/10 hover:border-amber-500/60 shrink-0 whitespace-nowrap"
+              onClick={() => setShowLifeHappened(true)}
+            >
+              Tell Your Coach <ChevronRight className="h-3.5 w-3.5 ml-1" />
+            </Button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Row 2: Profile + Latest Analysis + Strength Profile */}
       <motion.div
