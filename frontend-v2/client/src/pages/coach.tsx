@@ -14,6 +14,8 @@ import { AnalyticsTab } from '@/components/coach/AnalyticsTab';
 import { NutritionTab } from '@/components/coach/NutritionTab';
 import { ProgramTab } from '@/components/coach/ProgramTab';
 import { ChatTab } from '@/components/coach/ChatTab';
+import { ProgramSetup, type TrainingProgram } from '@/components/coach/ProgramSetup';
+import { ProgramWalkthrough } from '@/components/coach/ProgramWalkthrough';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -26,7 +28,7 @@ interface SessionSummary {
   archetype: string | null;
   efficiencyScore: number | null;
   accessories?: string[];
-  plan?: any;
+  plan: any;
 }
 
 interface CoachData {
@@ -36,6 +38,8 @@ interface CoachData {
   tier: string;
 }
 
+type CoachStage = 'onboarding' | 'program_setup' | 'program_walkthrough' | 'dashboard';
+
 const TABS = [
   { value: 'overview', label: 'Overview', icon: Sparkles },
   { value: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -44,17 +48,25 @@ const TABS = [
   { value: 'chat', label: 'Coach Chat', icon: MessageCircle },
 ];
 
+function deriveStage(user: any): CoachStage {
+  if (!user?.coachOnboardingDone) return 'onboarding';
+  if (user?.savedProgram) return 'dashboard';
+  return 'program_setup';
+}
+
 export default function CoachPage() {
   const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [coachData, setCoachData] = useState<CoachData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
-  // Local override so user can re-do onboarding without refreshing
-  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+  // Stage override: null means use derived stage
+  const [stageOverride, setStageOverride] = useState<CoachStage | null>(null);
+  // Generated program (in memory before saving)
+  const [generatedProgram, setGeneratedProgram] = useState<TrainingProgram | null>(null);
 
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
-  // Use local state if set, otherwise fall back to user profile
-  const showDashboard = onboardingDone ?? (user?.coachOnboardingDone ?? false);
+
+  const stage: CoachStage = stageOverride ?? deriveStage(user);
 
   useEffect(() => {
     if (!isPro) { setLoading(false); return; }
@@ -67,11 +79,33 @@ export default function CoachPage() {
 
   async function handleOnboardingComplete() {
     await refreshUser();
-    setOnboardingDone(true);
+    setStageOverride('program_setup');
   }
 
   function handleRestartOnboarding() {
-    setOnboardingDone(false);
+    setStageOverride('onboarding');
+  }
+
+  function handleProgramGenerated(program: TrainingProgram) {
+    setGeneratedProgram(program);
+    setStageOverride('program_walkthrough');
+  }
+
+  function handleProgramSaved() {
+    // Refresh user so savedProgram is populated
+    refreshUser().then(() => {
+      setStageOverride('dashboard');
+      setGeneratedProgram(null);
+    });
+  }
+
+  function handleAdjustProgram() {
+    setStageOverride('program_setup');
+  }
+
+  function handleRegenerateProgram() {
+    setStageOverride('program_setup');
+    setGeneratedProgram(null);
   }
 
   if (loading) {
@@ -85,6 +119,12 @@ export default function CoachPage() {
   const sessions = coachData?.sessionSummaries || [];
   const latestSession = sessions[0] || null;
   const latestPlan = latestSession?.plan || null;
+
+  // Parse coachProfile for passing to setup/walkthrough
+  let coachProfile: Record<string, any> | null = null;
+  try {
+    if (user?.coachProfile) coachProfile = JSON.parse(user.coachProfile);
+  } catch { /* ignore */ }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -107,7 +147,7 @@ export default function CoachPage() {
             <Link href="/history">
               <Button variant="ghost" size="sm" className="rounded-xl text-xs">My Analyses</Button>
             </Link>
-            {isPro && showDashboard && (
+            {isPro && stage === 'dashboard' && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -117,6 +157,18 @@ export default function CoachPage() {
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
                 Update Goals
+              </Button>
+            )}
+            {isPro && stage === 'dashboard' && user?.savedProgram && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-xl text-xs text-muted-foreground"
+                onClick={handleRegenerateProgram}
+                title="Regenerate program"
+              >
+                <Dumbbell className="h-3.5 w-3.5 mr-1" />
+                New Program
               </Button>
             )}
           </div>
@@ -158,23 +210,37 @@ export default function CoachPage() {
             </Link>
           </Card>
         </div>
-      ) : !showDashboard ? (
+      ) : stage === 'onboarding' ? (
         /* Onboarding interview */
         <CoachOnboarding
           userName={user?.name || null}
           userEmail={user?.email || null}
           existingAnswers={
-            user?.coachProfile
-              ? JSON.parse(user.coachProfile)
-              : {
-                  trainingAge: user?.trainingAge || '',
-                  equipment: user?.equipment || '',
-                  injuries: user?.constraintsText || '',
-                  budget: user?.coachBudget || '',
-                  primaryGoal: user?.coachGoal || '',
-                }
+            coachProfile || {
+              trainingAge: user?.trainingAge || '',
+              equipment: user?.equipment || '',
+              injuries: user?.constraintsText || '',
+              budget: user?.coachBudget || '',
+              primaryGoal: user?.coachGoal || '',
+            }
           }
           onComplete={handleOnboardingComplete}
+        />
+      ) : stage === 'program_setup' ? (
+        /* Program configuration */
+        <ProgramSetup
+          userName={user?.name || null}
+          coachProfile={coachProfile}
+          onGenerated={handleProgramGenerated}
+        />
+      ) : stage === 'program_walkthrough' && generatedProgram ? (
+        /* Animated program walkthrough */
+        <ProgramWalkthrough
+          program={generatedProgram}
+          userName={user?.name || null}
+          coachProfile={coachProfile}
+          onSaved={handleProgramSaved}
+          onAdjust={handleAdjustProgram}
         />
       ) : (
         /* Main tabbed dashboard */
@@ -213,6 +279,7 @@ export default function CoachPage() {
                     tier: user?.tier || 'free',
                     coachGoal: user?.coachGoal || null,
                   }}
+                  hasSavedProgram={!!user?.savedProgram}
                   onTabChange={setActiveTab}
                 />
               </TabsContent>

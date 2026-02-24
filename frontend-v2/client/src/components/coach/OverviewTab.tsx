@@ -3,7 +3,10 @@ import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles, ChevronRight, Dumbbell, Calendar, TrendingUp, Zap } from 'lucide-react';
+import {
+  Loader2, Sparkles, ChevronRight, Dumbbell, Calendar, TrendingUp,
+  Zap, Moon, Flame, CheckCircle2, BedDouble
+} from 'lucide-react';
 import { StrengthRadar } from '@/components/StrengthRadar';
 import { EfficiencyGauge } from '@/components/EfficiencyGauge';
 import type { DiagnosticSignalsSubset } from '@/lib/api';
@@ -28,9 +31,27 @@ interface UserProfile {
   coachGoal: string | null;
 }
 
+interface TodayData {
+  todaySession: {
+    day: string;
+    focus: string;
+    warmup: string[];
+    exercises: Array<{ exercise: string; sets: number; reps: string; intensity: string; notes?: string }>;
+    cooldown: string[];
+  } | null;
+  isRestDay: boolean;
+  weekNumber: number;
+  phaseNumber: number;
+  phaseName: string | null;
+  tips: string | null;
+  nextTrainingDay: string | null;
+  programGoal: string | null;
+}
+
 interface Props {
   sessions: SessionSummary[];
   user: UserProfile;
+  hasSavedProgram: boolean;
   onTabChange: (tab: string) => void;
 }
 
@@ -42,9 +63,20 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export function OverviewTab({ sessions, user, onTabChange }: Props) {
+function parseTips(tips: string): string[] {
+  return tips
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0 && (l.startsWith('•') || l.startsWith('-') || l.startsWith('*')))
+    .map(l => l.replace(/^[•\-*]\s*/, '').trim())
+    .filter(l => l.length > 0);
+}
+
+export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Props) {
   const [insight, setInsight] = useState<string | null>(null);
   const [insightLoading, setInsightLoading] = useState(true);
+  const [todayData, setTodayData] = useState<TodayData | null>(null);
+  const [todayLoading, setTodayLoading] = useState(true);
 
   const latest = sessions[0];
   const latestPlan = latest?.plan;
@@ -67,14 +99,147 @@ export function OverviewTab({ sessions, user, onTabChange }: Props) {
       .finally(() => setInsightLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!hasSavedProgram) {
+      setTodayLoading(false);
+      return;
+    }
+    fetch(`${API_BASE}/coach/today`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setTodayData(d))
+      .catch(() => {})
+      .finally(() => setTodayLoading(false));
+  }, [hasSavedProgram]);
+
   const daysSinceLastAnalysis = latest
     ? Math.floor((Date.now() - new Date(latest.createdAt).getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      {/* Profile summary */}
+
+      {/* Today's Workout section */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        {hasSavedProgram ? (
+          todayLoading ? (
+            <Card className="p-5 flex items-center gap-3 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+              <span className="text-sm">Loading today's workout…</span>
+            </Card>
+          ) : todayData && !todayData.isRestDay && todayData.todaySession ? (
+            <Card className="p-5 space-y-4 border-primary/30 bg-primary/5">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="rounded-lg bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wide">
+                      {todayData.phaseName} · Week {todayData.weekNumber}
+                    </span>
+                  </div>
+                  <p className="text-base font-bold">{todayData.todaySession.day}</p>
+                  <p className="text-xs text-muted-foreground">{todayData.todaySession.focus}</p>
+                </div>
+                <Flame className="h-5 w-5 text-orange-500 shrink-0 mt-1" />
+              </div>
+
+              {/* Exercise list (compact) */}
+              <div className="space-y-1.5">
+                {todayData.todaySession.exercises.slice(0, 5).map((ex, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg bg-background border px-3 py-2">
+                    <span className="text-xs font-medium">{ex.exercise}</span>
+                    <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
+                      {ex.sets}×{ex.reps} · {ex.intensity}
+                    </span>
+                  </div>
+                ))}
+                {todayData.todaySession.exercises.length > 5 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    +{todayData.todaySession.exercises.length - 5} more exercises
+                  </p>
+                )}
+              </div>
+
+              {/* Coach tips */}
+              {todayData.tips && (
+                <div className="rounded-xl bg-background border px-4 py-3">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wide mb-2">
+                    Coach Tips for Today
+                  </p>
+                  <ul className="space-y-1.5">
+                    {parseTips(todayData.tips).map((tip, i) => (
+                      <li key={i} className="text-xs flex items-start gap-1.5">
+                        <Zap className="h-3 w-3 shrink-0 mt-0.5 text-primary" />
+                        {tip}
+                      </li>
+                    ))}
+                    {parseTips(todayData.tips).length === 0 && (
+                      <li className="text-xs text-muted-foreground">{todayData.tips}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full rounded-xl text-xs"
+                onClick={() => onTabChange('program')}
+              >
+                View Full Program <ChevronRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </Card>
+          ) : todayData?.isRestDay ? (
+            <Card className="p-5 space-y-3 border-blue-500/20 bg-blue-500/5">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500/10">
+                  <BedDouble className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Rest Day</p>
+                  <p className="text-xs text-muted-foreground">Recovery is where gains are made</p>
+                </div>
+              </div>
+              <div className="rounded-xl bg-background border px-4 py-3 space-y-2">
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Recovery Focus</p>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li className="flex items-start gap-1.5"><Moon className="h-3 w-3 shrink-0 mt-0.5" />Aim for 8+ hours of sleep tonight</li>
+                  <li className="flex items-start gap-1.5"><Zap className="h-3 w-3 shrink-0 mt-0.5" />Prioritize protein: 0.8–1g per lb of bodyweight</li>
+                  <li className="flex items-start gap-1.5"><CheckCircle2 className="h-3 w-3 shrink-0 mt-0.5" />Light walking or stretching is fine</li>
+                </ul>
+              </div>
+              {todayData.nextTrainingDay && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Next training day: <span className="font-medium text-foreground">{todayData.nextTrainingDay}</span>
+                </p>
+              )}
+            </Card>
+          ) : null
+        ) : (
+          /* No program saved — CTA */
+          <Card className="p-5 border-dashed space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-muted">
+                <Dumbbell className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-bold">No program active</p>
+                <p className="text-xs text-muted-foreground">Generate your personalized training program</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              className="w-full rounded-xl text-xs"
+              onClick={() => onTabChange('program')}
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1" />
+              Generate Program
+            </Button>
+          </Card>
+        )}
+      </motion.div>
+
+      {/* Profile summary */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <Card className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">

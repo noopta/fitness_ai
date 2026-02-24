@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateTrainingProgram, generateCoachInsight,
+  generateTodayCoachingTips,
 } from '../services/llmService.js';
 
 const router = Router();
@@ -331,14 +332,148 @@ router.put('/coach/program', requireAuth, async (req, res) => {
   try {
     const { program } = req.body;
     if (!program) return res.status(400).json({ error: 'program required' });
+
+    // Check if this is a new program (no existing savedProgram)
+    const existing = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { savedProgram: true, programStartDate: true },
+    });
+    const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
+
     await prisma.user.update({
       where: { id: req.user!.id },
-      data: { savedProgram: JSON.stringify(program) },
+      data: {
+        savedProgram: JSON.stringify(program),
+        ...(isNewProgram ? { programStartDate: new Date() } : {}),
+      },
     });
     res.json({ success: true });
   } catch (err) {
     console.error('Save program error:', err);
     res.status(500).json({ error: 'Failed to save program' });
+  }
+});
+
+// GET /api/coach/today - Get today's workout from saved program
+router.get('/coach/today', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      include: {
+        wellnessCheckins: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+        sessions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } },
+        },
+      },
+    });
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.savedProgram) return res.json({ program: null });
+
+    const program = JSON.parse(user.savedProgram);
+    const startDate = user.programStartDate || new Date();
+
+    // Calculate which week we're on (1-indexed)
+    const msSinceStart = Date.now() - new Date(startDate).getTime();
+    const daysSinceStart = Math.floor(msSinceStart / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
+
+    // Find which phase we're in
+    let cumulativeWeeks = 0;
+    let currentPhase = program.phases?.[0] || null;
+    let phaseNumber = 1;
+    if (program.phases) {
+      for (let i = 0; i < program.phases.length; i++) {
+        cumulativeWeeks += program.phases[i].durationWeeks;
+        if (weekNumber <= cumulativeWeeks) {
+          currentPhase = program.phases[i];
+          phaseNumber = i + 1;
+          break;
+        }
+        currentPhase = program.phases[i];
+        phaseNumber = i + 1;
+      }
+    }
+
+    if (!currentPhase || !currentPhase.trainingDays) {
+      return res.json({
+        program: null,
+        weekNumber,
+        phaseNumber,
+        phaseName: currentPhase?.phaseName || null,
+      });
+    }
+
+    // Determine today's day of the week (0=Sun, 1=Mon, ...) and map to training day
+    const dayOfWeek = new Date().getDay(); // 0=Sun
+    // Training days are indexed within the week; we cycle through trainingDays
+    const trainingDays = currentPhase.trainingDays;
+    const totalDays = trainingDays.length;
+
+    // Use daysSinceStart mod 7 to pick which day in the template week
+    const dayInWeek = daysSinceStart % 7; // 0–6
+    // Find if today is a training day; simple mapping: first N days of week = training
+    const todaySession = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+    const isRestDay = !todaySession;
+
+    // Next training day
+    let nextTrainingDay: string | null = null;
+    if (isRestDay) {
+      // Find next training day index
+      for (let i = dayInWeek + 1; i < 7; i++) {
+        if (i < totalDays) {
+          nextTrainingDay = trainingDays[i].day;
+          break;
+        }
+      }
+      if (!nextTrainingDay && totalDays > 0) {
+        nextTrainingDay = trainingDays[0].day; // Next week
+      }
+    }
+
+    // Get wellness signals for tips
+    const latestCheckin = user.wellnessCheckins[0] || null;
+    const latestPlan = user.sessions[0]?.plans[0] ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
+    const primaryLimiter = latestPlan?.diagnosis?.[0]?.limiterName || null;
+
+    let tips: string | null = null;
+    if (!isRestDay && todaySession) {
+      try {
+        tips = await generateTodayCoachingTips({
+          dayName: todaySession.day,
+          dayFocus: todaySession.focus,
+          exercises: todaySession.exercises || [],
+          phaseName: currentPhase.phaseName,
+          weekNumber,
+          sleepHours: latestCheckin?.sleepHours ?? null,
+          stressLevel: latestCheckin?.stress ?? null,
+          energyLevel: latestCheckin?.energy ?? null,
+          trainingAge: user.trainingAge,
+          primaryLimiter,
+        });
+      } catch (e) {
+        console.error('Tips generation failed:', e);
+      }
+    }
+
+    res.json({
+      todaySession: isRestDay ? null : todaySession,
+      isRestDay,
+      weekNumber,
+      phaseNumber,
+      phaseName: currentPhase.phaseName,
+      tips,
+      nextTrainingDay,
+      programGoal: program.goal,
+    });
+  } catch (err) {
+    console.error('Today endpoint error:', err);
+    res.status(500).json({ error: 'Failed to load today\'s workout' });
   }
 });
 

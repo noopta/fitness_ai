@@ -1201,6 +1201,68 @@ Output only the recommendation text, no JSON, no labels.`;
   return response.choices[0].message.content?.trim() || 'Prioritize 7-9 hours of sleep and manage stress to optimize recovery.';
 }
 
+// ─── Today's Coaching Tips ────────────────────────────────────────────────────
+
+export interface TodayCoachingTipsParams {
+  dayName: string;
+  dayFocus: string;
+  exercises: ProgramExercise[];
+  phaseName: string;
+  weekNumber: number;
+  // Wellness signals from latest checkin
+  sleepHours?: number | null;
+  stressLevel?: number | null;  // 1–5
+  energyLevel?: number | null;  // 1–5
+  // Athlete profile
+  trainingAge?: string | null;
+  primaryLimiter?: string | null;
+}
+
+/**
+ * Generates 2–3 specific coaching tips for today's session.
+ * Lightweight GPT-4o call (max_tokens: 300).
+ */
+export async function generateTodayCoachingTips(params: TodayCoachingTipsParams): Promise<string> {
+  const exerciseList = params.exercises
+    .map(e => `- ${e.exercise}: ${e.sets}×${e.reps} @ ${e.intensity}`)
+    .join('\n');
+
+  const wellnessContext = [
+    params.sleepHours != null ? `Sleep last night: ${params.sleepHours}h` : null,
+    params.energyLevel != null ? `Energy: ${params.energyLevel}/5` : null,
+    params.stressLevel != null ? `Stress: ${params.stressLevel}/5` : null,
+  ].filter(Boolean).join(', ') || 'No wellness data';
+
+  const prompt = `You are an elite strength coach. Generate 2–3 specific, actionable coaching tips for today's training session. Be concise and direct.
+
+TODAY'S SESSION:
+- Day: ${params.dayName}
+- Focus: ${params.dayFocus}
+- Phase: ${params.phaseName} (Week ${params.weekNumber})
+- Exercises:
+${exerciseList}
+
+ATHLETE STATUS TODAY:
+- ${wellnessContext}
+- Training age: ${params.trainingAge || 'intermediate'}
+- Primary weakness: ${params.primaryLimiter || 'none identified'}
+
+INSTRUCTIONS:
+- Give 2–3 tips ONLY. Each tip must be specific to TODAY's session (not generic advice).
+- If energy/sleep is low, address that directly (modify intensity guidance).
+- Cover: nutrition timing, CNS load management, or recovery focus as relevant to the session.
+- Format as plain text with bullet points (•). No headers, no JSON, just the tips.`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.6,
+    max_tokens: 300,
+  });
+
+  return response.choices[0].message.content?.trim() || '• Focus on quality over quantity today.\n• Stay hydrated and maintain consistent rest periods.';
+}
+
 /**
  * Sends a user message to an existing thread and returns the assistant reply.
  */

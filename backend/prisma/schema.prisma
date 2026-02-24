@@ -33,6 +33,7 @@ model User {
   coachBudget        String?              // Weekly food budget (e.g. "$100/week")
   coachOnboardingDone Boolean @default(false) // Whether coach onboarding interview is complete
   coachProfile       String?              // Full JSON blob of onboarding interview answers
+  programStartDate   DateTime?            // When the saved program was first started
   updatedAt          DateTime  @default(now()) @updatedAt
   sessions           Session[]
   nutritionLogs      NutritionLog[]
