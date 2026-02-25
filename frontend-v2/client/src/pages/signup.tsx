@@ -551,23 +551,19 @@ export default function Signup() {
                       You're signed in as <span className="font-medium text-foreground">{user.email}</span>
                     </div>
                     <div className="mt-5 flex flex-wrap items-center gap-3">
-                      <Link href="/onboarding">
-                        <Button
-                          asChild
-                          className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                          data-testid="button-get-started"
-                        >
-                          <span>
-                            Run a Lift Analysis
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </span>
-                        </Button>
-                      </Link>
-                      <Link href="/history">
-                        <Button asChild variant="secondary" className="rounded-xl" data-testid="button-history">
-                          <span>My Analyses</span>
-                        </Button>
-                      </Link>
+                      <Button
+                        className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                        data-testid="button-get-started"
+                        asChild
+                      >
+                        <Link href="/onboarding">
+                          Run a Lift Analysis
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button asChild variant="secondary" className="rounded-xl" data-testid="button-history">
+                        <Link href="/history">My Analyses</Link>
+                      </Button>
                     </div>
                   </>
                 ) : (
@@ -595,28 +591,24 @@ export default function Signup() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-3">
-                      <Link href="/register">
-                        <Button
-                          asChild
-                          className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                          data-testid="button-get-started"
-                        >
-                          <span>
-                            Get Started Free
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </span>
-                        </Button>
-                      </Link>
-                      <Link href="/login">
-                        <Button
-                          asChild
-                          variant="secondary"
-                          className="rounded-xl"
-                          data-testid="button-sign-in"
-                        >
-                          <span>Sign In</span>
-                        </Button>
-                      </Link>
+                      <Button
+                        className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                        data-testid="button-get-started"
+                        asChild
+                      >
+                        <Link href="/register">
+                          Get Started Free
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="secondary"
+                        className="rounded-xl"
+                        data-testid="button-sign-in"
+                      >
+                        <Link href="/login">Sign In</Link>
+                      </Button>
                     </div>
 
                     <div className="mt-3 text-xs text-muted-foreground" data-testid="text-email-note">
@@ -830,11 +822,9 @@ export default function Signup() {
                       </div>
                     </div>
                   </div>
-                  <Link href="/register" className="flex-shrink-0">
-                    <Button asChild className="rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold shadow-sm">
-                      <span>Meet your coach <ArrowRight className="ml-2 h-4 w-4" /></span>
-                    </Button>
-                  </Link>
+                  <Button className="rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold shadow-sm flex-shrink-0" asChild>
+                    <Link href="/register">Meet your coach <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  </Button>
                 </div>
               </Card>
             </TabsContent>
@@ -1224,28 +1214,24 @@ export default function Signup() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3 md:justify-end">
-                <Link href="/register">
-                  <Button
-                    asChild
-                    className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                    data-testid="button-cta-join"
-                  >
-                    <span>
-                      Get Started Free
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </span>
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    asChild
-                    variant="secondary"
-                    className="rounded-xl"
-                    data-testid="button-cta-try"
-                  >
-                    <span>Sign In</span>
-                  </Button>
-                </Link>
+                <Button
+                  asChild
+                  className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+                  data-testid="button-cta-join"
+                >
+                  <Link href="/register">
+                    Get Started Free
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="secondary"
+                  className="rounded-xl"
+                  data-testid="button-cta-try"
+                >
+                  <Link href="/login">Sign In</Link>
+                </Button>
               </div>
             </div>
           </Card>

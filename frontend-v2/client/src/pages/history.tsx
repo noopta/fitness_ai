@@ -60,12 +60,12 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
       <Navbar variant="full" rightSlot={
-        <Link href="/onboarding">
-          <Button size="sm" className="rounded-xl">
+        <Button size="sm" className="rounded-xl" asChild>
+          <Link href="/onboarding">
             New Analysis
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       } />
 
       <main className="mx-auto max-w-4xl px-4 py-10">
@@ -103,9 +103,9 @@ export default function HistoryPage() {
               <p className="text-sm text-muted-foreground mb-5">
                 Run your first diagnostic to see your lift analysis here.
               </p>
-              <Link href="/onboarding">
-                <Button>Start Your First Analysis</Button>
-              </Link>
+              <Button asChild>
+                <Link href="/onboarding">Start Your First Analysis</Link>
+              </Button>
             </Card>
           ) : (
             <div className="space-y-6">

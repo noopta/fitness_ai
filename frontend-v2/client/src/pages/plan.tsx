@@ -281,12 +281,12 @@ export default function Plan() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <ShareAnalysis sessionId={sessionId} />
-                  <Link href="/history">
-                    <Button variant="outline" size="sm" className="shadow-xs">
+                  <Button variant="outline" size="sm" className="shadow-xs" asChild>
+                    <Link href="/history">
                       <History className="mr-2 h-4 w-4" />
                       History
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                   <Button
                     variant="secondary"
                     className="shadow-xs"

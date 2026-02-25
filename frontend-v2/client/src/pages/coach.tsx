@@ -192,12 +192,12 @@ export default function CoachPage() {
                 </div>
               ))}
             </div>
-            <Link href="/pricing">
-              <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold">
+            <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold" asChild>
+              <Link href="/pricing">
                 Upgrade to Pro
                 <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </Card>
         </div>
       ) : stage === 'onboarding' ? (

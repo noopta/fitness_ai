@@ -52,9 +52,9 @@ export default function AnalysisPage() {
         <Shield className="h-12 w-12 text-muted-foreground" />
         <h2 className="text-xl font-semibold">Analysis Not Found</h2>
         <p className="text-muted-foreground text-sm max-w-sm">This analysis is either private or no longer available.</p>
-        <Link href="/register">
-          <Button>Create Your Own Analysis</Button>
-        </Link>
+        <Button asChild>
+          <Link href="/register">Create Your Own Analysis</Link>
+        </Button>
       </div>
     );
   }
@@ -73,12 +73,12 @@ export default function AnalysisPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link href="/pricing" className="text-xs text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Link href="/register">
-              <Button size="sm">
+            <Button size="sm" asChild>
+              <Link href="/register">
                 Get Your Own Analysis
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </header>
@@ -180,12 +180,12 @@ export default function AnalysisPage() {
             <p className="text-sm text-muted-foreground mb-4">
               LiftOff diagnoses your exact weak points and prescribes targeted accessories. Free to try.
             </p>
-            <Link href="/register">
-              <Button>
+            <Button asChild>
+              <Link href="/register">
                 Create Free Account
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </Card>
         </motion.div>
       </main>

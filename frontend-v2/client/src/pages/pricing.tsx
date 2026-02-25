@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -143,18 +143,16 @@ export default function Pricing() {
 
                   <div className="mt-8">
                     {tier.href ? (
-                      <Link href={tier.href}>
-                        <Button
-                          variant={tier.ctaVariant}
-                          className="w-full rounded-xl"
-                          asChild
-                        >
-                          <span>
-                            {tier.cta}
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </span>
-                        </Button>
-                      </Link>
+                      <Button
+                        variant={tier.ctaVariant}
+                        className="w-full rounded-xl"
+                        asChild
+                      >
+                        <Link href={tier.href!}>
+                          {tier.cta}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
                     ) : (
                       <Button
                         variant={tier.ctaVariant}
