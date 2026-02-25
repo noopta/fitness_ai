@@ -143,7 +143,6 @@ const defaultExercises = [
   "Overhead Press",
 ];
 
-
 export default function Snapshot() {
   const [, setLocation] = useLocation();
   const [selectedLift, setSelectedLift] = useState<string>("");

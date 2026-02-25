@@ -71,12 +71,15 @@ export default function AnalysisPage() {
             <BrandLogo height={36} className="h-9 w-auto" />
             <div className="text-sm font-semibold">LiftOff — Shared Analysis</div>
           </div>
-          <Link href="/register">
-            <Button size="sm">
-              Get Your Own Analysis
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/pricing"><a className="text-xs text-muted-foreground hover:text-foreground">Pricing</a></Link>
+            <Link href="/register">
+              <Button size="sm">
+                Get Your Own Analysis
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

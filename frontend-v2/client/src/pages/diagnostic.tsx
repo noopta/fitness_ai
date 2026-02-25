@@ -18,7 +18,6 @@ type Msg = {
   content: string;
 };
 
-
 function formatMessage(content: string) {
   // Split by numbered questions (e.g., **1.**, **2.**, **3.**)
   const questionPattern = /\*\*(\d+)\.\*\*/g;

@@ -310,7 +310,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
 
         {/* Exercises */}
         <div className="space-y-2">
-          {session.exercises.slice(0, 5).map((ex, i) => (
+          {(session.exercises ?? []).slice(0, 5).map((ex, i) => (
             <div key={i} className="flex items-center justify-between bg-zinc-800 rounded-xl px-4 py-2.5">
               <span className="text-sm font-medium">{ex.exercise}</span>
               <span className="text-xs text-zinc-400 shrink-0 ml-3">
@@ -318,8 +318,8 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
               </span>
             </div>
           ))}
-          {session.exercises.length > 5 && (
-            <p className="text-xs text-zinc-500 text-center">+{session.exercises.length - 5} more exercises</p>
+          {(session.exercises?.length ?? 0) > 5 && (
+            <p className="text-xs text-zinc-500 text-center">+{(session.exercises?.length ?? 0) - 5} more exercises</p>
           )}
         </div>
 

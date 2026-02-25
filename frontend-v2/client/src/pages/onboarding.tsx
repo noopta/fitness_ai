@@ -34,7 +34,6 @@ function lbToKg(lb: number) {
   return lb * 0.453592;
 }
 
-
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();

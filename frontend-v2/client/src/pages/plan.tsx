@@ -19,7 +19,6 @@ import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { AccessoryVideoCard } from "@/components/AccessoryVideoCard";
 import { useAuth } from "@/context/AuthContext";
 
-
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border bg-white/60 p-4 shadow-xs backdrop-blur dark:bg-white/5">
