@@ -706,30 +706,43 @@ export default function Signup() {
 
             {/* ── AI Coach Tab ── */}
             <TabsContent value="coach" className="mt-0 space-y-4" data-testid="tab-content-coach">
-              {/* Cert knowledge strip */}
-              <Card className="card-min rounded-2xl p-5" data-testid="card-cert-strip">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div className="text-sm font-semibold">Trained on every major certification</div>
-                    <p className="mt-1 text-sm text-muted-foreground max-w-lg">
-                      Built on the combined curriculum of the 10 leading CPT certifications — more comprehensive knowledge than any single human trainer.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-                      {["10 certifications", "7,000+ pages of training science", "Evidence-based answers only"].map(s => (
-                        <div key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Check className="h-3 w-3 text-foreground flex-shrink-0" strokeWidth={2.5} />
-                          {s}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-1.5 sm:w-56 shrink-0">
-                    {(["NASM","ACE","ISSA","NSCA","ACSM","NCSF","NFPT","NESTA","NETA","IPTA"] as const).map(abbr => (
-                      <div key={abbr} className="flex items-center justify-center rounded-lg border bg-background px-1.5 py-1.5 text-[10px] font-bold tracking-tight">
-                        {abbr}
+              {/* Cert knowledge section */}
+              <Card className="card-min rounded-2xl p-6" data-testid="card-cert-strip">
+                <div className="mb-5">
+                  <div className="text-sm font-semibold">Trained on every major certification</div>
+                  <p className="mt-1 text-sm text-muted-foreground max-w-xl">
+                    Built on the combined curriculum of the 10 leading CPT certifications — more comprehensive knowledge than any single human trainer.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
+                    {["10 certifications", "7,000+ pages of training science", "Evidence-based answers only"].map(s => (
+                      <div key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Check className="h-3 w-3 text-foreground flex-shrink-0" strokeWidth={2.5} />
+                        {s}
                       </div>
                     ))}
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+                  {([
+                    { abbr: "NASM", name: "National Academy of Sports Medicine" },
+                    { abbr: "ACE", name: "American Council on Exercise" },
+                    { abbr: "ISSA", name: "Intl. Sports Sciences Assoc." },
+                    { abbr: "NSCA", name: "Natl. Strength & Conditioning" },
+                    { abbr: "ACSM", name: "American College of Sports Medicine" },
+                    { abbr: "NCSF", name: "Natl. Council on Strength & Fitness" },
+                    { abbr: "NFPT", name: "Natl. Federation of Professional Trainers" },
+                    { abbr: "NESTA", name: "Natl. Exercise & Sports Trainers Assoc." },
+                    { abbr: "NETA", name: "National Exercise Trainers Assoc." },
+                    { abbr: "IPTA", name: "Intl. Personal Training Academy" },
+                  ] as const).map(({ abbr, name }) => (
+                    <div
+                      key={abbr}
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-xl border bg-background px-3 py-4 text-center"
+                    >
+                      <span className="text-base font-bold tracking-tight">{abbr}</span>
+                      <span className="text-[10px] leading-tight text-muted-foreground">{name}</span>
+                    </div>
+                  ))}
                 </div>
               </Card>
 
