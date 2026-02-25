@@ -666,6 +666,66 @@ export default function Signup() {
           </motion.div>
         </section>
 
+        <section className="pb-16 sm:pb-24" data-testid="section-certifications">
+          <div className="max-w-3xl">
+            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-cert-eyebrow">
+              Certified knowledge base
+            </div>
+            <h2
+              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
+              data-testid="text-cert-title"
+            >
+              Trained on every major personal training certification
+            </h2>
+            <p
+              className="mt-3 text-sm leading-relaxed text-muted-foreground"
+              data-testid="text-cert-subtitle"
+            >
+              LiftOff's AI is built on the combined curriculum of the 10 leading CPT certifications — NASM, ACE, ISSA, NSCA, ACSM, and more. Every recommendation is grounded in the same exercise science that certified personal trainers study, giving you advice that's accurate, safe, and evidence-based.
+            </p>
+          </div>
+
+          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {([
+              { abbr: "NASM", name: "CPT", org: "National Academy of Sports Medicine" },
+              { abbr: "ACE", name: "CPT", org: "American Council on Exercise" },
+              { abbr: "ISSA", name: "CPT", org: "Int'l Sports Sciences Association" },
+              { abbr: "NSCA", name: "CSCS", org: "National Strength & Conditioning Assoc." },
+              { abbr: "ACSM", name: "CPT", org: "American College of Sports Medicine" },
+              { abbr: "NCSF", name: "CPT", org: "National Council on Strength & Fitness" },
+              { abbr: "NFPT", name: "CPT", org: "Nat'l Federation of Professional Trainers" },
+              { abbr: "NESTA", name: "CPT", org: "Nat'l Exercise & Sports Trainers Assoc." },
+              { abbr: "NETA", name: "CPT", org: "National Exercise Trainers Association" },
+              { abbr: "IPTA", name: "CPT", org: "Int'l Personal Trainer Academy" },
+            ] as const).map((cert) => (
+              <Card
+                key={cert.abbr}
+                className="card-min rounded-2xl p-4 flex flex-col gap-1"
+                data-testid={`card-cert-${cert.abbr.toLowerCase()}`}
+              >
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-base font-bold tracking-tight">{cert.abbr}</span>
+                  <span className="text-xs font-semibold text-primary">{cert.name}</span>
+                </div>
+                <p className="text-[11px] leading-tight text-muted-foreground">{cert.org}</p>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+            {[
+              "10 certifications",
+              "7,000+ pages of training science",
+              "Evidence-based answers only",
+            ].map((stat) => (
+              <div key={stat} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Check className="h-3.5 w-3.5 text-foreground flex-shrink-0" strokeWidth={2.5} />
+                <span>{stat}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="pb-16 sm:pb-24" data-testid="section-compare">
           <div className="max-w-3xl">
             <div className="text-xs font-semibold text-muted-foreground" data-testid="text-compare-eyebrow">
