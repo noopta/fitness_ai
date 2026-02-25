@@ -1062,16 +1062,15 @@ ATHLETE PROFILE:
 PROGRAM ARCHITECTURE:
 Use ${phaseStructure}.
 
-ELITE TRAINER REQUIREMENTS:
-1. PHASED PERIODIZATION — Each phase must have a distinct name (Foundation/Correction, Build/Hypertrophy, or Peak/Strength), a clinical rationale paragraph explaining why this phase is right for THIS specific athlete based on their profile and diagnostic data.
-2. BIOMECHANICS INTEGRATION — Exercise selection must directly address the identified weak phase and hypotheses. If a weak index was identified (e.g., low posterior_index = weak hip hinge), the Foundation phase must include corrective work for it. Include the diagnostic rationale in exercise notes.
-3. WARM-UP PROTOCOL — Each training day must include a 3–5 item specific warm-up tailored to the day's focus (e.g., hip mobility for leg days, thoracic rotation + band pull-aparts for upper days). Not generic — specific to the day's demands.
-4. COOL-DOWN/RECOVERY — 2–3 targeted stretches or recovery movements per session that address the weakness identified.
-5. DELOAD PROTOCOL — Each phase must include a specific deload rule: when to deload (e.g., if fatigue >7/10, after 4 weeks) and how (reduce volume by 40%, keep intensity).
-6. AUTOREGULATION — All intensity should use RPE or RIR, not fixed percentages. Include guidance on adjusting loads based on daily readiness.
-7. PROGRESSION RULES — Specific, measurable progression triggers per phase (not generic "add weight").
+REQUIREMENTS (be concise — brevity is critical for all text fields):
+1. Phase names: Foundation/Correction, Build/Hypertrophy, or Peak/Strength.
+2. rationale: 2 sentences max, specific to this athlete's profile/diagnostic data.
+3. Exercise selection must address the identified weak phase/limiter. notes: ≤8 words.
+4. warmup: exactly 3 items (short phrases). cooldown: exactly 2 items (short phrases).
+5. deloadProtocol: 1 sentence. progressionNotes: 2 items max, concise.
+6. All intensity uses RPE. autoregulationRules: 2 items. trackingMetrics: 2 items.
 
-OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
+OUTPUT FORMAT — Return valid JSON only:
 {
   "goal": "...",
   "daysPerWeek": ${params.daysPerWeek},
@@ -1080,60 +1079,31 @@ OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
     {
       "phaseNumber": 1,
       "phaseName": "Foundation",
-      "rationale": "2-3 sentences explaining why this phase is prescribed for THIS athlete based on their specific profile and diagnostic data",
+      "rationale": "2 sentences why this phase suits this specific athlete.",
       "durationWeeks": 4,
       "weeksLabel": "Weeks 1–4",
       "trainingDays": [
         {
           "day": "Upper — Horizontal Push/Pull",
-          "focus": "Corrective strength + movement quality",
-          "warmup": [
-            "5 min light rowing or bike",
-            "Band pull-aparts 2x20",
-            "Wall slides 2x10",
-            "Shoulder CARs 1x5/side"
-          ],
+          "focus": "Corrective strength",
+          "warmup": ["Band pull-aparts 2x20", "Wall slides 2x10", "Shoulder CARs 1x5/side"],
           "exercises": [
-            {
-              "exercise": "Bench Press",
-              "sets": 4,
-              "reps": "6",
-              "intensity": "RPE 7 (leave 3 in tank)",
-              "notes": "Focus on scapular retraction throughout. This directly addresses your identified lockout weakness."
-            }
+            {"exercise": "Bench Press", "sets": 4, "reps": "6", "intensity": "RPE 7", "notes": "Scapular retraction throughout"}
           ],
-          "cooldown": [
-            "Doorway pec stretch 2x30s/side",
-            "Child's pose thoracic extension 2x60s"
-          ]
+          "cooldown": ["Doorway pec stretch 2x30s", "Child's pose 60s"]
         }
       ],
-      "progressionNotes": [
-        "Add 2.5 lbs when all sets completed at RPE 7 or below",
-        "Progress to Phase 2 when you can hit all target reps at RPE ≤8 consistently for 2 sessions"
-      ],
-      "deloadProtocol": "After week 4 OR if perceived fatigue exceeds 7/10 for 3+ consecutive days: reduce volume by 40% (drop to 2-3 sets per exercise), maintain intensity (same RPE). Return to full volume after 1 week."
+      "progressionNotes": ["Add 2.5 lbs when RPE ≤7", "Move to Phase 2 after 2 clean sessions"],
+      "deloadProtocol": "After week 4: cut volume 40%, keep intensity 1 week."
     }
   ],
-  "autoregulationRules": [
-    "If arriving to the gym at energy <5/10: reduce all working sets by 1 and drop RPE target by 1",
-    "If a set feels unexpectedly hard (RPE 9+ on what should be RPE 7): take an extra rest minute, then reduce weight by 5% for remaining sets",
-    "Never sacrifice form for load — terminate a set early at any form breakdown"
-  ],
-  "trackingMetrics": [
-    "Log: weight used, sets completed, reps completed, RPE per set",
-    "Note: sticking point location on primary lift each session",
-    "Weekly: bodyweight (same time of day), subjective energy/fatigue (1-10)"
-  ]
+  "autoregulationRules": ["Energy <5/10: drop 1 set per exercise", "Unexpected RPE 9+: reduce load 5%"],
+  "trackingMetrics": ["Log weight, sets, reps, RPE per set", "Note sticking point on primary lift"]
 }`;
-
-  const ragQuery = `periodization training program ${params.goal || 'strength'} phases ${params.primaryLimiter || ''} ${params.selectedLift || ''} RPE progression`;
-  const ragContext = await buildRAGContext(ragQuery, 5);
-  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
-    messages: [{ role: 'user', content: finalPrompt }],
+    messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 8000,
     response_format: { type: 'json_object' },
   });
