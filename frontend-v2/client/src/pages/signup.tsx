@@ -28,6 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
 import snapshotTarget from "@assets/snapshot_target_1771266514838.png";
@@ -671,257 +672,190 @@ export default function Signup() {
           </motion.div>
         </section>
 
-        <section className="pb-16 sm:pb-24" data-testid="section-certifications">
+        {/* ── Products Section (tabbed) ────────────────────────────── */}
+        <section className="pb-16 sm:pb-24" data-testid="section-products">
           <div className="max-w-3xl">
-            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-cert-eyebrow">
-              Certified knowledge base
+            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-products-eyebrow">
+              What we build
             </div>
             <h2
               className="mt-2 text-balance text-2xl font-semibold tracking-tight"
-              data-testid="text-cert-title"
+              data-testid="text-products-title"
             >
-              Trained on every major personal training certification
+              Two tools. One platform built around your progress.
             </h2>
             <p
               className="mt-3 text-sm leading-relaxed text-muted-foreground"
-              data-testid="text-cert-subtitle"
+              data-testid="text-products-subtitle"
             >
-              LiftOff's AI is built on the combined curriculum of the 10 leading CPT certifications — NASM, ACE, ISSA, NSCA, ACSM, and more. Every recommendation is grounded in the same exercise science that certified personal trainers study, giving you advice that's accurate, safe, and evidence-based.
+              LiftOff is a precision lift diagnostic engine and an always-on AI personal coach — both trained on the same scientific foundation, built to work together.
             </p>
           </div>
 
-          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {([
-              { abbr: "NASM", name: "CPT", org: "National Academy of Sports Medicine" },
-              { abbr: "ACE", name: "CPT", org: "American Council on Exercise" },
-              { abbr: "ISSA", name: "CPT", org: "Int'l Sports Sciences Association" },
-              { abbr: "NSCA", name: "CSCS", org: "National Strength & Conditioning Assoc." },
-              { abbr: "ACSM", name: "CPT", org: "American College of Sports Medicine" },
-              { abbr: "NCSF", name: "CPT", org: "National Council on Strength & Fitness" },
-              { abbr: "NFPT", name: "CPT", org: "Nat'l Federation of Professional Trainers" },
-              { abbr: "NESTA", name: "CPT", org: "Nat'l Exercise & Sports Trainers Assoc." },
-              { abbr: "NETA", name: "CPT", org: "National Exercise Trainers Association" },
-              { abbr: "IPTA", name: "CPT", org: "Int'l Personal Trainer Academy" },
-            ] as const).map((cert) => (
-              <Card
-                key={cert.abbr}
-                className="card-min rounded-2xl p-4 flex flex-col gap-1"
-                data-testid={`card-cert-${cert.abbr.toLowerCase()}`}
-              >
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-bold tracking-tight">{cert.abbr}</span>
-                  <span className="text-xs font-semibold text-primary">{cert.name}</span>
+          <Tabs defaultValue="coach" className="mt-7">
+            <TabsList className="h-11 rounded-xl p-1 mb-6">
+              <TabsTrigger value="coach" className="rounded-lg px-5 text-sm font-medium data-[state=active]:shadow-sm">
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI Coach
+              </TabsTrigger>
+              <TabsTrigger value="diagnostic" className="rounded-lg px-5 text-sm font-medium data-[state=active]:shadow-sm">
+                <LineChart className="mr-2 h-4 w-4" />
+                Lift Diagnostics
+              </TabsTrigger>
+            </TabsList>
+
+            {/* ── AI Coach Tab ── */}
+            <TabsContent value="coach" className="mt-0 space-y-4" data-testid="tab-content-coach">
+              {/* Cert knowledge strip */}
+              <Card className="card-min rounded-2xl p-5" data-testid="card-cert-strip">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold">Trained on every major certification</div>
+                    <p className="mt-1 text-sm text-muted-foreground max-w-lg">
+                      Built on the combined curriculum of the 10 leading CPT certifications — more comprehensive knowledge than any single human trainer.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
+                      {["10 certifications", "7,000+ pages of training science", "Evidence-based answers only"].map(s => (
+                        <div key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Check className="h-3 w-3 text-foreground flex-shrink-0" strokeWidth={2.5} />
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5 sm:w-56 shrink-0">
+                    {(["NASM","ACE","ISSA","NSCA","ACSM","NCSF","NFPT","NESTA","NETA","IPTA"] as const).map(abbr => (
+                      <div key={abbr} className="flex items-center justify-center rounded-lg border bg-background px-1.5 py-1.5 text-[10px] font-bold tracking-tight">
+                        {abbr}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-[11px] leading-tight text-muted-foreground">{cert.org}</p>
               </Card>
-            ))}
-          </div>
 
-          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
-            {[
-              "10 certifications",
-              "7,000+ pages of training science",
-              "Evidence-based answers only",
-            ].map((stat) => (
-              <div key={stat} className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Check className="h-3.5 w-3.5 text-foreground flex-shrink-0" strokeWidth={2.5} />
-                <span>{stat}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── AI Coach Section ─────────────────────────────────────── */}
-        <section className="pb-16 sm:pb-24" data-testid="section-ai-coach">
-          <div className="max-w-3xl">
-            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-coach-eyebrow">
-              AI Personal Coach
-            </div>
-            <h2
-              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
-              data-testid="text-coach-title"
-            >
-              A coach that never cancels, never forgets, and outknows any trainer you've met.
-            </h2>
-            <p
-              className="mt-3 text-sm leading-relaxed text-muted-foreground"
-              data-testid="text-coach-subtitle"
-            >
-              Traditional personal trainers are limited by what they personally studied, available only on their schedule, and charge $80–$150 a session. LiftOff's AI coach is trained on every major certification, available around the clock, and automatically adapts your entire program when life gets in the way — at a fraction of the cost.
-            </p>
-          </div>
-
-          {/* Comparison table */}
-          <div className="mt-7">
-            <Card className="card-min rounded-2xl overflow-hidden" data-testid="card-coach-compare">
-              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x">
-                {/* Traditional trainer column */}
-                <div className="p-6">
-                  <div className="mb-4 text-sm font-semibold text-muted-foreground">Traditional Trainer</div>
-                  <div className="space-y-3.5">
-                    {([
-                      ["Cost", "$80–$150 per session"],
-                      ["Availability", "Their hours only — book in advance"],
-                      ["Knowledge", "1–2 certifications studied"],
-                      ["Cancellations", "It happens — rescheduling is on you"],
-                      ["When life disrupts training", '"Just skip the week"'],
-                      ["Remembers your history", "Only if they take good notes"],
-                      ["Judgment-free", "Depends on the trainer"],
-                      ["Location", "Their gym or yours — you commute"],
-                    ] as const).map(([label, value]) => (
-                      <div key={label} className="flex items-start gap-2.5 text-sm">
-                        <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border">
-                          <X className="h-3 w-3 text-muted-foreground" strokeWidth={2.5} />
-                        </span>
-                        <div className="min-w-0">
-                          <span className="font-medium">{label}:</span>
-                          <span className="ml-1 text-muted-foreground">{value}</span>
+              {/* Comparison table */}
+              <Card className="card-min rounded-2xl overflow-hidden" data-testid="card-coach-compare">
+                <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x">
+                  <div className="p-6">
+                    <div className="mb-4 text-sm font-semibold text-muted-foreground">Traditional Trainer</div>
+                    <div className="space-y-3.5">
+                      {([
+                        ["Cost", "$80–$150 per session"],
+                        ["Availability", "Their hours only — book in advance"],
+                        ["Knowledge", "1–2 certifications studied"],
+                        ["Cancellations", "It happens — rescheduling is on you"],
+                        ["When life disrupts training", '"Just skip the week"'],
+                        ["Remembers your history", "Only if they take good notes"],
+                        ["Judgment-free", "Depends on the trainer"],
+                        ["Location", "Their gym or yours — you commute"],
+                      ] as const).map(([label, value]) => (
+                        <div key={label} className="flex items-start gap-2.5 text-sm">
+                          <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border">
+                            <X className="h-3 w-3 text-muted-foreground" strokeWidth={2.5} />
+                          </span>
+                          <div className="min-w-0">
+                            <span className="font-medium">{label}:</span>
+                            <span className="ml-1 text-muted-foreground">{value}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                {/* LiftOff AI column */}
-                <div className="p-6 bg-primary/[0.03]">
-                  <div className="mb-4 text-sm font-semibold">LiftOff AI Coach</div>
-                  <div className="space-y-3.5">
-                    {([
-                      ["Cost", "Included — less than 1 session per month"],
-                      ["Availability", "24/7, instant response, any device"],
-                      ["Knowledge", "10 certifications + 7,000+ pages of science"],
-                      ["Cancellations", "Never. Not once."],
-                      ["When life disrupts training", "Physiological impact analysis + auto-reschedule in 2 min"],
-                      ["Remembers your history", "Perfect recall of every session, goal, and note"],
-                      ["Judgment-free", "Always. Ask anything."],
-                      ["Location", "Anywhere — phone, laptop, no commute"],
-                    ] as const).map(([label, value]) => (
-                      <div key={label} className="flex items-start gap-2.5 text-sm">
-                        <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" strokeWidth={2.5} />
-                        <div className="min-w-0">
-                          <span className="font-medium">{label}:</span>
-                          <span className="ml-1 text-muted-foreground">{value}</span>
+                  <div className="p-6 bg-primary/[0.03]">
+                    <div className="mb-4 text-sm font-semibold">LiftOff AI Coach</div>
+                    <div className="space-y-3.5">
+                      {([
+                        ["Cost", "Included — less than 1 session per month"],
+                        ["Availability", "24/7, instant response, any device"],
+                        ["Knowledge", "10 certifications + 7,000+ pages of science"],
+                        ["Cancellations", "Never. Not once."],
+                        ["When life disrupts training", "Physiological analysis + auto-reschedule in 2 min"],
+                        ["Remembers your history", "Perfect recall of every session, goal, and note"],
+                        ["Judgment-free", "Always. Ask anything."],
+                        ["Location", "Anywhere — phone, laptop, no commute"],
+                      ] as const).map(([label, value]) => (
+                        <div key={label} className="flex items-start gap-2.5 text-sm">
+                          <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" strokeWidth={2.5} />
+                          <div className="min-w-0">
+                            <span className="font-medium">{label}:</span>
+                            <span className="ml-1 text-muted-foreground">{value}</span>
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Feature cards */}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {([
+                  { icon: <Clock className="h-4 w-4" strokeWidth={1.8} />, title: "24/7 · Judgment-free", desc: "Nutrition question at midnight? Form check before a morning lift? Your coach is always there — no appointments, no awkwardness." },
+                  { icon: <RefreshCw className="h-4 w-4" strokeWidth={1.8} />, title: "Life Happened — auto-reschedule", desc: "Drank last night, got sick, or going on vacation? Tell the AI. It analyzes the physiological impact and adjusts your program in under two minutes." },
+                  { icon: <Brain className="h-4 w-4" strokeWidth={1.8} />, title: "Deeper than any human trainer", desc: "No trainer has read every major textbook. LiftOff's AI has — and recalls any of it instantly. Biomechanics, periodization, nutrition, injury prevention." },
+                  { icon: <ShieldCheck className="h-4 w-4" strokeWidth={1.8} />, title: "Built around your life", desc: "Onboards with a full health screen, nutrition baseline, and barrier assessment. Your program reflects your goals, schedule, and real life." },
+                ] as const).map(f => (
+                  <Card key={f.title} className="card-min rounded-2xl p-5">
+                    <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">{f.icon}</div>
+                    <div className="mt-3 text-sm font-semibold">{f.title}</div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Cost CTA */}
+              <Card className="card-min rounded-2xl p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border bg-background">
+                      <Sparkles className="h-4 w-4" strokeWidth={1.8} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold">100× the knowledge. 1/100th of the cost.</div>
+                      <div className="mt-0.5 text-sm text-muted-foreground">
+                        A personal trainer costs $150/session — ~$600/month. LiftOff gives you elite-level coaching daily for less than a single session.
                       </div>
-                    ))}
+                    </div>
                   </div>
+                  <Link href="/register" className="flex-shrink-0">
+                    <Button asChild className="rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold shadow-sm">
+                      <span>Meet your coach <ArrowRight className="ml-2 h-4 w-4" /></span>
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </TabsContent>
 
-          {/* Feature callout cards */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-247">
-              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
-                <Clock className="h-4 w-4" strokeWidth={1.8} />
+            {/* ── Lift Diagnostics Tab ── */}
+            <TabsContent value="diagnostic" className="mt-0 space-y-4" data-testid="tab-content-diagnostic">
+              <div className="max-w-3xl">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Enter your working weights for your target lift and related exercises. Our AI — trained on lift biomechanics, strength ratios, and muscle activation patterns — analyzes your data just like an elite coach would, but with precision and consistency. The result: a detailed diagnosis of your weak points and a targeted accessory plan to break through.
+                </p>
               </div>
-              <div className="mt-3 text-sm font-semibold">24/7 · Judgment-free</div>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                Nutrition question at midnight? Form check before a morning lift? Your coach is always there — no appointments, no awkwardness.
-              </p>
-            </Card>
 
-            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-life">
-              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
-                <RefreshCw className="h-4 w-4" strokeWidth={1.8} />
+              <div className="grid gap-3">
+                <ComparisonRow
+                  left="Generic programs assume everyone fails for the same reason."
+                  right="Analyzes YOUR working weights to see which muscles are lagging behind."
+                  testId="row-compare-1"
+                />
+                <ComparisonRow
+                  left="Apps can't tell if your weak lockout is triceps, technique, or leverage."
+                  right="Calculates strength ratios (e.g., close-grip vs bench) to identify limiters."
+                  testId="row-compare-2"
+                />
+                <ComparisonRow
+                  left="In-person coaches: $100+/session to diagnose weak points."
+                  right="AI analyzes lift phases, biomechanics, and prescribes targeted accessories."
+                  testId="row-compare-3"
+                />
               </div>
-              <div className="mt-3 text-sm font-semibold">Life Happened — auto-reschedule</div>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                Drank last night, got sick, or going on vacation? Tell the AI. It analyzes the physiological impact and adjusts your entire program — in under two minutes.
-              </p>
-            </Card>
 
-            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-knowledge">
-              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
-                <Brain className="h-4 w-4" strokeWidth={1.8} />
-              </div>
-              <div className="mt-3 text-sm font-semibold">Deeper than any human trainer</div>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                No trainer has read every major textbook. LiftOff's AI has — and recalls any of it instantly. Biomechanics, periodization, nutrition, injury prevention, all of it.
-              </p>
-            </Card>
-
-            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-personal">
-              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
-                <ShieldCheck className="h-4 w-4" strokeWidth={1.8} />
-              </div>
-              <div className="mt-3 text-sm font-semibold">Built around your life</div>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                Onboards with a full health screen, nutrition baseline, and barrier assessment. Your program reflects your goals, schedule, equipment, and real life — not a generic template.
-              </p>
-            </Card>
-          </div>
-
-          {/* Cost callout strip */}
-          <Card className="mt-4 card-min rounded-2xl p-5" data-testid="card-coach-cost">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border bg-background">
-                  <Sparkles className="h-4 w-4" strokeWidth={1.8} />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">100× the knowledge. 1/100th of the cost.</div>
-                  <div className="mt-0.5 text-sm text-muted-foreground">
-                    The average personal trainer costs $150/session — roughly $600/month for 1×/week. LiftOff gives you elite-level coaching, daily, for less than a single session.
-                  </div>
-                </div>
-              </div>
-              <Link href="/register" className="flex-shrink-0">
-                <Button
-                  asChild
-                  className="rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold shadow-sm hover:shadow-md"
-                  data-testid="button-coach-cta"
-                >
-                  <span>
-                    Meet your coach
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </span>
-                </Button>
-              </Link>
-            </div>
-          </Card>
+              <PreviewSection />
+            </TabsContent>
+          </Tabs>
         </section>
-
-        <section className="pb-16 sm:pb-24" data-testid="section-compare">
-          <div className="max-w-3xl">
-            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-compare-eyebrow">
-              How it works
-            </div>
-            <h2
-              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
-              data-testid="text-compare-title"
-            >
-              From your working weights to targeted accessories
-            </h2>
-            <p
-              className="mt-3 text-sm leading-relaxed text-muted-foreground"
-              data-testid="text-compare-subtitle"
-            >
-              Enter your working weights for your target lift and related exercises. Our AI—trained on lift biomechanics, strength ratios, and muscle activation patterns—analyzes your data just like an in-person coach would, but with precision and consistency. The result: a detailed diagnosis of your weak points and a targeted accessory plan to break through.
-            </p>
-          </div>
-
-          <div className="mt-7 grid gap-3">
-            <ComparisonRow
-              left="Generic programs assume everyone fails for the same reason."
-              right="Analyzes YOUR working weights to see which muscles are lagging behind."
-              testId="row-compare-1"
-            />
-            <ComparisonRow
-              left="Apps can't tell if your weak lockout is triceps, technique, or leverage."
-              right="Calculates strength ratios (e.g., close-grip vs bench) to identify limiters."
-              testId="row-compare-2"
-            />
-            <ComparisonRow
-              left="In-person coaches: $100+/session to diagnose weak points."
-              right="AI analyzes lift phases, biomechanics, and prescribes targeted accessories."
-              testId="row-compare-3"
-            />
-          </div>
-        </section>
-
-        <PreviewSection />
 
         <section className="pb-16 sm:pb-24" data-testid="section-wearables">
           <div className="max-w-3xl">
