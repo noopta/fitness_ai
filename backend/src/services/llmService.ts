@@ -4,6 +4,7 @@ import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
 import { runDiagnosticEngine, type DiagnosticSignals, type SnapshotInput, type SessionFlags } from '../engine/diagnosticEngine.js';
 import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
+import { buildRAGContext } from './ragService.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -244,10 +245,16 @@ OUTPUT FORMAT (JSON):
 
 TONE: Specific, data-driven, coach-like. Reference actual numbers from the signals.`;
 
+  const ragQuery = `${lift.name} training techniques, common weaknesses, strength assessment, ${signals.hypothesis_scores[0]?.label ?? ''}`;
+  const ragContext = await buildRAGContext(ragQuery, 4);
+  const finalSystemPrompt = ragContext
+    ? `${systemPrompt}\n\n${ragContext}`
+    : systemPrompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: finalSystemPrompt },
       { role: 'user', content: 'Analyze the snapshot data and generate 3 tailored diagnostic questions.' }
     ],
     max_completion_tokens: 2000,
@@ -528,10 +535,16 @@ OUTPUT ONLY VALID JSON:
   "track_next_time": ["..."]
 }`;
 
+  const ragQuery = `${lift.name} accessories exercises ${signals.hypothesis_scores[0]?.label ?? ''} ${signals.primary_phase} weakness correction`;
+  const ragContext = await buildRAGContext(ragQuery, 4);
+  const finalSystemPrompt = ragContext
+    ? `${systemPrompt}\n\n${ragContext}`
+    : systemPrompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: finalSystemPrompt },
       { role: 'user', content: 'Generate the workout plan now.' }
     ],
     max_completion_tokens: 3000,
@@ -820,8 +833,11 @@ export async function sendCoachMessage(threadId: string, userMessage: string): P
     content: userMessage,
   });
 
+  const ragContext = await buildRAGContext(userMessage, 4);
+
   const run = await openai.beta.threads.runs.createAndPoll(threadId, {
     assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+    additional_instructions: ragContext || undefined,
   });
 
   if (run.status !== 'completed') {
@@ -892,9 +908,13 @@ OUTPUT FORMAT (JSON only):
   "rationale": "..."
 }`;
 
+  const ragQuery = `nutrition plan macros protein carbs fat ${params.goal || 'strength'} strength training athlete`;
+  const ragContext = await buildRAGContext(ragQuery, 3);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 1500,
     response_format: { type: 'json_object' },
   });
@@ -1107,9 +1127,13 @@ OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
   ]
 }`;
 
+  const ragQuery = `periodization training program ${params.goal || 'strength'} phases ${params.primaryLimiter || ''} ${params.selectedLift || ''} RPE progression`;
+  const ragContext = await buildRAGContext(ragQuery, 5);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 6000,
     response_format: { type: 'json_object' },
   });
@@ -1385,8 +1409,11 @@ export async function sendChatMessage(threadId: string, userMessage: string): Pr
     content: userMessage,
   });
 
+  const ragContext = await buildRAGContext(userMessage, 4);
+
   const run = await openai.beta.threads.runs.createAndPoll(threadId, {
     assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+    additional_instructions: ragContext || undefined,
   });
 
   if (run.status !== 'completed') {

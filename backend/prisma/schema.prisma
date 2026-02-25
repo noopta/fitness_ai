@@ -116,3 +116,13 @@ model GeneratedPlan {
   createdAt DateTime @default(now())
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
+
+model KnowledgeChunk {
+  id         String   @id @default(uuid())
+  source     String   // "NASM" | "ACE" | "NCSF" | "NFPT"
+  chapter    String?  // Best-guess heading context extracted from surrounding text
+  content    String   // Raw text of the chunk (~600 tokens)
+  embedding  String   // JSON-serialised Float32 array (1536 dims, text-embedding-3-small)
+  tokenCount Int      @default(0)
+  createdAt  DateTime @default(now())
+}
