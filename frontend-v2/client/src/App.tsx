@@ -6,6 +6,7 @@ import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { FloatingCoachChat } from "@/components/FloatingCoachChat";
 import NotFound from "@/pages/not-found";
 import Signup from "./pages/signup";
 import Onboarding from "./pages/onboarding";
@@ -48,6 +49,7 @@ function App() {
           <Toaster />
           <SonnerToaster position="top-center" richColors />
           <Router />
+          <FloatingCoachChat />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

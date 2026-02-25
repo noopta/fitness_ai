@@ -3,8 +3,8 @@ import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BrandLogo } from '@/components/BrandLogo';
 import { useAuth } from '@/context/AuthContext';
+import { Navbar } from '@/components/Navbar';
 import { toast } from 'sonner';
 import { Loader2, Sparkles, Lock, ChevronRight, TrendingUp, Dumbbell, Apple, MessageCircle, BarChart3, RotateCcw } from 'lucide-react';
 
@@ -128,52 +128,42 @@ export default function CoachPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-        <div className="container max-w-7xl mx-auto px-4 flex items-center justify-between py-3">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <BrandLogo height={28} className="h-7 w-auto" />
-              <span className="text-sm font-semibold hidden sm:block">LiftOff</span>
-            </Link>
-            <span className="text-muted-foreground">/</span>
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">AI Coach</span>
-              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wide">Pro</span>
-            </div>
+      <Navbar
+        variant="full"
+        breadcrumb={
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold">AI Coach</span>
+            <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wide">Pro</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href="/history">
-              <Button variant="ghost" size="sm" className="rounded-xl text-xs">My Analyses</Button>
-            </Link>
-            {isPro && stage === 'dashboard' && (
+        }
+        rightSlot={
+          isPro && stage === 'dashboard' ? (
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 className="rounded-xl text-xs text-muted-foreground"
                 onClick={handleRestartOnboarding}
-                title="Update my goals"
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
                 Update Goals
               </Button>
-            )}
-            {isPro && stage === 'dashboard' && user?.savedProgram && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-xl text-xs text-muted-foreground"
-                onClick={handleRegenerateProgram}
-                title="Regenerate program"
-              >
-                <Dumbbell className="h-3.5 w-3.5 mr-1" />
-                New Program
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+              {user?.savedProgram && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-xl text-xs text-muted-foreground"
+                  onClick={handleRegenerateProgram}
+                >
+                  <Dumbbell className="h-3.5 w-3.5 mr-1" />
+                  New Program
+                </Button>
+              )}
+            </div>
+          ) : undefined
+        }
+      />
 
       {!isPro ? (
         /* Upgrade wall */

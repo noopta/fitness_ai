@@ -15,9 +15,11 @@ interface NavbarProps {
   stepLabel?: string;
   /** Full-mode only: extra content rendered on the right alongside auth buttons */
   rightSlot?: React.ReactNode;
+  /** Full-mode only: breadcrumb shown next to logo with a "/" divider */
+  breadcrumb?: React.ReactNode;
 }
 
-export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot }: NavbarProps) {
+export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot, breadcrumb }: NavbarProps) {
   const { user, loading: authLoading, logout } = useAuth();
   const [, navigate] = useLocation();
 
@@ -55,13 +57,21 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
       <div className="container-tight flex items-center justify-between py-4">
-        <Link href="/" className="inline-flex items-center gap-3">
-          <BrandLogo height={36} className="h-9 w-auto" />
-          <div className="leading-tight">
-            <div className="text-sm font-semibold">LiftOff</div>
-            <div className="text-xs text-muted-foreground">AI-Powered Diagnostics</div>
-          </div>
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <BrandLogo height={36} className="h-9 w-auto" />
+            <div className="leading-tight">
+              <div className="text-sm font-semibold">LiftOff</div>
+              <div className="text-xs text-muted-foreground">AI-Powered Diagnostics</div>
+            </div>
+          </Link>
+          {breadcrumb && (
+            <>
+              <span className="text-muted-foreground/50 text-base select-none">/</span>
+              {breadcrumb}
+            </>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           {rightSlot}
