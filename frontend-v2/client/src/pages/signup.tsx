@@ -6,16 +6,21 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import {
   ArrowRight,
+  Brain,
   Check,
   ChevronRight,
+  Clock,
   Dumbbell,
   LineChart,
   MessageCircle,
   NotebookPen,
+  RefreshCw,
   Scale,
+  ShieldCheck,
   Sparkles,
   Target,
   Wand2,
+  X,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -724,6 +729,158 @@ export default function Signup() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* ── AI Coach Section ─────────────────────────────────────── */}
+        <section className="pb-16 sm:pb-24" data-testid="section-ai-coach">
+          <div className="max-w-3xl">
+            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-coach-eyebrow">
+              AI Personal Coach
+            </div>
+            <h2
+              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
+              data-testid="text-coach-title"
+            >
+              A coach that never cancels, never forgets, and outknows any trainer you've met.
+            </h2>
+            <p
+              className="mt-3 text-sm leading-relaxed text-muted-foreground"
+              data-testid="text-coach-subtitle"
+            >
+              Traditional personal trainers are limited by what they personally studied, available only on their schedule, and charge $80–$150 a session. LiftOff's AI coach is trained on every major certification, available around the clock, and automatically adapts your entire program when life gets in the way — at a fraction of the cost.
+            </p>
+          </div>
+
+          {/* Comparison table */}
+          <div className="mt-7">
+            <Card className="card-min rounded-2xl overflow-hidden" data-testid="card-coach-compare">
+              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x">
+                {/* Traditional trainer column */}
+                <div className="p-6">
+                  <div className="mb-4 text-sm font-semibold text-muted-foreground">Traditional Trainer</div>
+                  <div className="space-y-3.5">
+                    {([
+                      ["Cost", "$80–$150 per session"],
+                      ["Availability", "Their hours only — book in advance"],
+                      ["Knowledge", "1–2 certifications studied"],
+                      ["Cancellations", "It happens — rescheduling is on you"],
+                      ["When life disrupts training", '"Just skip the week"'],
+                      ["Remembers your history", "Only if they take good notes"],
+                      ["Judgment-free", "Depends on the trainer"],
+                      ["Location", "Their gym or yours — you commute"],
+                    ] as const).map(([label, value]) => (
+                      <div key={label} className="flex items-start gap-2.5 text-sm">
+                        <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border">
+                          <X className="h-3 w-3 text-muted-foreground" strokeWidth={2.5} />
+                        </span>
+                        <div className="min-w-0">
+                          <span className="font-medium">{label}:</span>
+                          <span className="ml-1 text-muted-foreground">{value}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* LiftOff AI column */}
+                <div className="p-6 bg-primary/[0.03]">
+                  <div className="mb-4 text-sm font-semibold">LiftOff AI Coach</div>
+                  <div className="space-y-3.5">
+                    {([
+                      ["Cost", "Included — less than 1 session per month"],
+                      ["Availability", "24/7, instant response, any device"],
+                      ["Knowledge", "10 certifications + 7,000+ pages of science"],
+                      ["Cancellations", "Never. Not once."],
+                      ["When life disrupts training", "Physiological impact analysis + auto-reschedule in 2 min"],
+                      ["Remembers your history", "Perfect recall of every session, goal, and note"],
+                      ["Judgment-free", "Always. Ask anything."],
+                      ["Location", "Anywhere — phone, laptop, no commute"],
+                    ] as const).map(([label, value]) => (
+                      <div key={label} className="flex items-start gap-2.5 text-sm">
+                        <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" strokeWidth={2.5} />
+                        <div className="min-w-0">
+                          <span className="font-medium">{label}:</span>
+                          <span className="ml-1 text-muted-foreground">{value}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Feature callout cards */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-247">
+              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
+                <Clock className="h-4 w-4" strokeWidth={1.8} />
+              </div>
+              <div className="mt-3 text-sm font-semibold">24/7 · Judgment-free</div>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                Nutrition question at midnight? Form check before a morning lift? Your coach is always there — no appointments, no awkwardness.
+              </p>
+            </Card>
+
+            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-life">
+              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
+                <RefreshCw className="h-4 w-4" strokeWidth={1.8} />
+              </div>
+              <div className="mt-3 text-sm font-semibold">Life Happened — auto-reschedule</div>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                Drank last night, got sick, or going on vacation? Tell the AI. It analyzes the physiological impact and adjusts your entire program — in under two minutes.
+              </p>
+            </Card>
+
+            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-knowledge">
+              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
+                <Brain className="h-4 w-4" strokeWidth={1.8} />
+              </div>
+              <div className="mt-3 text-sm font-semibold">Deeper than any human trainer</div>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                No trainer has read every major textbook. LiftOff's AI has — and recalls any of it instantly. Biomechanics, periodization, nutrition, injury prevention, all of it.
+              </p>
+            </Card>
+
+            <Card className="card-min rounded-2xl p-5" data-testid="card-coach-feature-personal">
+              <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
+                <ShieldCheck className="h-4 w-4" strokeWidth={1.8} />
+              </div>
+              <div className="mt-3 text-sm font-semibold">Built around your life</div>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                Onboards with a full health screen, nutrition baseline, and barrier assessment. Your program reflects your goals, schedule, equipment, and real life — not a generic template.
+              </p>
+            </Card>
+          </div>
+
+          {/* Cost callout strip */}
+          <Card className="mt-4 card-min rounded-2xl p-5" data-testid="card-coach-cost">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl border bg-background">
+                  <Sparkles className="h-4 w-4" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">100× the knowledge. 1/100th of the cost.</div>
+                  <div className="mt-0.5 text-sm text-muted-foreground">
+                    The average personal trainer costs $150/session — roughly $600/month for 1×/week. LiftOff gives you elite-level coaching, daily, for less than a single session.
+                  </div>
+                </div>
+              </div>
+              <Link href="/register" className="flex-shrink-0">
+                <Button
+                  asChild
+                  className="rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold shadow-sm hover:shadow-md"
+                  data-testid="button-coach-cta"
+                >
+                  <span>
+                    Meet your coach
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </span>
+                </Button>
+              </Link>
+            </div>
+          </Card>
         </section>
 
         <section className="pb-16 sm:pb-24" data-testid="section-compare">
