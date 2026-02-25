@@ -252,7 +252,7 @@ TONE: Specific, data-driven, coach-like. Reference actual numbers from the signa
     : systemPrompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [
       { role: 'system', content: finalSystemPrompt },
       { role: 'user', content: 'Analyze the snapshot data and generate 3 tailored diagnostic questions.' }
@@ -356,7 +356,7 @@ Current question count: ${questionCount}/8`;
   });
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages,
     max_completion_tokens: 1000
   });
@@ -542,7 +542,7 @@ OUTPUT ONLY VALID JSON:
     : systemPrompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [
       { role: 'system', content: finalSystemPrompt },
       { role: 'user', content: 'Generate the workout plan now.' }
@@ -913,7 +913,7 @@ OUTPUT FORMAT (JSON only):
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 1500,
     response_format: { type: 'json_object' },
@@ -1132,9 +1132,9 @@ OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [{ role: 'user', content: finalPrompt }],
-    max_completion_tokens: 32000,
+    max_completion_tokens: 8000,
     response_format: { type: 'json_object' },
   });
 
@@ -1184,7 +1184,7 @@ Be specific and actionable. Reference their data. Do not use generic phrases lik
 Output only the insight text, no JSON, no labels.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 700,
   });
@@ -1210,7 +1210,7 @@ Be specific. If energy is low, say why and what to do. If stress is high, recomm
 Output only the recommendation text, no JSON, no labels.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 700,
   });
@@ -1271,7 +1271,7 @@ INSTRUCTIONS:
 - Format as plain text with bullet points (•). No headers, no JSON, just the tips.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 1000,
   });
@@ -1382,7 +1382,7 @@ OUTPUT — valid JSON only:
 }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-4.1-nano',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 2500,
     response_format: { type: 'json_object' },
