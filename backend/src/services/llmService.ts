@@ -1134,7 +1134,7 @@ OUTPUT FORMAT — Return valid JSON only, exactly matching this schema:
   const response = await openai.chat.completions.create({
     model: 'gpt-5-mini',
     messages: [{ role: 'user', content: finalPrompt }],
-    max_completion_tokens: 6000,
+    max_completion_tokens: 32000,
     response_format: { type: 'json_object' },
   });
 

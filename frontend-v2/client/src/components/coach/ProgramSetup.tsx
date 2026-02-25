@@ -46,6 +46,7 @@ interface Props {
   userName: string | null;
   coachProfile: Record<string, any> | null;
   onGenerated: (program: TrainingProgram) => void;
+  onUpdateIntake?: () => void;
 }
 
 const GOAL_OPTIONS = [
@@ -107,7 +108,7 @@ function inferDaysFromProfile(profile: Record<string, any> | null): number {
   return 4;
 }
 
-export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
+export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateIntake }: Props) {
   const [goal, setGoal] = useState<GoalId>(() => inferGoalFromProfile(coachProfile));
   const [durationWeeks, setDurationWeeks] = useState<number>(8);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(() => inferDaysFromProfile(coachProfile));
@@ -272,8 +273,23 @@ export function ProgramSetup({ userName, coachProfile, onGenerated }: Props) {
 
         {loading && (
           <p className="text-xs text-center text-muted-foreground">
-            This takes 15–30 seconds — your program is being personalized from your intake data.
+            This takes 30–60 seconds — your program is being personalized from your intake data.
           </p>
+        )}
+
+        {onUpdateIntake && (
+          <div className="text-center pt-2 border-t border-border/50">
+            <p className="text-xs text-muted-foreground">
+              Want to update your fitness profile first?{' '}
+              <button
+                onClick={onUpdateIntake}
+                className="underline hover:text-foreground transition-colors"
+                disabled={loading}
+              >
+                Re-take intake form
+              </button>
+            </p>
+          </div>
         )}
       </motion.div>
     </div>

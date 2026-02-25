@@ -222,6 +222,7 @@ export default function CoachPage() {
           userName={user?.name || null}
           coachProfile={coachProfile}
           onGenerated={handleProgramGenerated}
+          onUpdateIntake={handleRestartOnboarding}
         />
       ) : stage === 'program_walkthrough' && generatedProgram ? (
         /* Animated program walkthrough */
