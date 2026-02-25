@@ -116,8 +116,9 @@ export default function Plan() {
   function copy() {
     if (!plan) return;
 
-    const primary = plan.bench_day_plan.primary_lift;
-    const diag = plan.diagnosis[0];
+    const primary = plan.bench_day_plan?.primary_lift;
+    const diag = plan.diagnosis?.[0];
+    if (!primary) return;
 
     const text = [
       `LiftOff - ${selectedLiftLabel} Plan`,
@@ -129,7 +130,7 @@ export default function Plan() {
       `  ${primary.sets} x ${primary.reps} @ ${primary.intensity} (Rest: ${primary.rest_minutes} min)`,
       "",
       "Accessories:",
-      ...plan.bench_day_plan.accessories.map(a =>
+      ...(plan.bench_day_plan?.accessories || []).map(a =>
         `  • ${a.exercise_name}: ${a.sets} x ${a.reps} [${a.category}]\n    ${a.why}`
       ),
       "",
@@ -222,7 +223,7 @@ export default function Plan() {
 
   return (
     <div className="min-h-screen grid-fade">
-      <Header />
+      <Navbar variant="step" stepLabel="Step 4 of 4" />
 
       <main className="mx-auto max-w-6xl px-4 py-10">
         <ResultsChat

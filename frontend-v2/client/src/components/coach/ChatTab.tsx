@@ -84,7 +84,7 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
 
   useEffect(() => {
     setMessages(initialMessages);
-  }, [initialMessages.length]);
+  }, [initialMessages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const FREE_LIMIT = 2;
 const STRIPE_PRO_URL = "https://buy.stripe.com/9B614gaQ2gjIdxV26NfUQ01";

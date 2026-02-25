@@ -468,7 +468,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     let tips: string | null = null;
     if (!isRestDay && todaySession) {
       try {
-        tips = await generateTodayCoachingTips({
+        const tipsPromise = generateTodayCoachingTips({
           dayName: todaySession.day,
           dayFocus: todaySession.focus,
           exercises: todaySession.exercises || [],
@@ -479,7 +479,9 @@ router.get('/coach/today', requireAuth, async (req, res) => {
           energyLevel: latestCheckin?.energy ?? null,
           trainingAge: user.trainingAge,
           primaryLimiter,
-        });
+        }).catch(() => null);
+        const timeoutPromise = new Promise<null>(r => setTimeout(() => r(null), 8000));
+        tips = await Promise.race([tipsPromise, timeoutPromise]);
       } catch (e) {
         console.error('Tips generation failed:', e);
       }

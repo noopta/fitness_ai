@@ -72,7 +72,7 @@ export default function AnalysisPage() {
             <div className="text-sm font-semibold">LiftOff — Shared Analysis</div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/pricing"><a className="text-xs text-muted-foreground hover:text-foreground">Pricing</a></Link>
+            <Link href="/pricing" className="text-xs text-muted-foreground hover:text-foreground">Pricing</Link>
             <Link href="/register">
               <Button size="sm">
                 Get Your Own Analysis

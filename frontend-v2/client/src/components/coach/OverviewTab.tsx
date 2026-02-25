@@ -309,17 +309,31 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
         </div>
 
         {/* Exercises */}
-        <div className="space-y-2">
-          {(session.exercises ?? []).slice(0, 5).map((ex, i) => (
-            <div key={i} className="flex items-center justify-between bg-zinc-800 rounded-xl px-4 py-2.5">
-              <span className="text-sm font-medium">{ex.exercise}</span>
-              <span className="text-xs text-zinc-400 shrink-0 ml-3">
-                {ex.sets}×{ex.reps} · {ex.intensity}
-              </span>
+        <div className="space-y-2 flex-1">
+          {(session.exercises?.length ?? 0) === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-4 text-center">
+              <p className="text-sm text-zinc-400">Exercise details not available for this program.</p>
+              <button
+                onClick={() => onTabChange('program')}
+                className="text-xs text-zinc-300 underline underline-offset-2 hover:text-white transition-colors"
+              >
+                Regenerate program to see full workouts →
+              </button>
             </div>
-          ))}
-          {(session.exercises?.length ?? 0) > 5 && (
-            <p className="text-xs text-zinc-500 text-center">+{(session.exercises?.length ?? 0) - 5} more exercises</p>
+          ) : (
+            <>
+              {(session.exercises ?? []).slice(0, 5).map((ex, i) => (
+                <div key={i} className="flex items-center justify-between bg-zinc-800 rounded-xl px-4 py-2.5">
+                  <span className="text-sm font-medium">{ex.exercise}</span>
+                  <span className="text-xs text-zinc-400 shrink-0 ml-3">
+                    {ex.sets}×{ex.reps} · {ex.intensity}
+                  </span>
+                </div>
+              ))}
+              {(session.exercises?.length ?? 0) > 5 && (
+                <p className="text-xs text-zinc-500 text-center">+{(session.exercises?.length ?? 0) - 5} more exercises</p>
+              )}
+            </>
           )}
         </div>
 

@@ -22,20 +22,43 @@ const QUICK_PROMPTS = [
   'Injury prevention tips',
 ];
 
+/** Render inline **bold** segments within a string. */
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
 function renderMarkdown(text: string): React.ReactNode {
   return text.split('\n').map((line, i) => {
-    if (line.startsWith('### ')) return <p key={i} className="font-semibold text-xs mt-2 mb-0.5">{line.slice(4)}</p>;
-    if (line.startsWith('## ') || line.startsWith('# ')) return <p key={i} className="font-bold text-xs mt-2 mb-0.5">{line.replace(/^#+\s/, '')}</p>;
-    if (line.startsWith('- ') || line.startsWith('* ')) {
+    const trimmed = line.trimStart();
+    if (trimmed.startsWith('### ')) return <p key={i} className="font-semibold text-xs mt-2 mb-0.5">{renderInline(trimmed.slice(4))}</p>;
+    if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) return <p key={i} className="font-bold text-xs mt-2 mb-0.5">{renderInline(trimmed.replace(/^#+\s/, ''))}</p>;
+    // Bullet list (including indented sub-bullets)
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const indent = line.length - trimmed.length;
       return (
-        <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
+        <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed" style={{ paddingLeft: indent > 0 ? '1rem' : 0 }}>
           <span className="mt-1.5 h-1 w-1 rounded-full bg-current shrink-0" />
-          <span>{line.slice(2)}</span>
+          <span>{renderInline(trimmed.slice(2))}</span>
         </div>
       );
     }
-    if (line === '') return <div key={i} className="h-1.5" />;
-    return <p key={i} className="text-xs leading-relaxed">{line}</p>;
+    // Numbered list
+    const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+    if (numMatch) {
+      return (
+        <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
+          <span className="shrink-0 font-medium tabular-nums">{numMatch[1]}.</span>
+          <span>{renderInline(numMatch[2])}</span>
+        </div>
+      );
+    }
+    if (trimmed === '') return <div key={i} className="h-1.5" />;
+    return <p key={i} className="text-xs leading-relaxed">{renderInline(line)}</p>;
   });
 }
 
@@ -50,22 +73,23 @@ export function FloatingCoachChat() {
   const [location] = useLocation();
 
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
+  const isHidden = HIDDEN_PATHS.some(p => location.startsWith(p));
 
-  // Hide on pages where chat is already present or irrelevant
-  if (HIDDEN_PATHS.some(p => location.startsWith(p))) return null;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    if (open) {
+    if (!isHidden && open) {
       setTimeout(() => inputRef.current?.focus(), 150);
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [open]);
+  }, [open, isHidden]);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, sending]);
+    if (!isHidden) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, sending, isHidden]);
+
+  // Hide on pages where chat is already present or irrelevant
+  if (isHidden) return null;
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
