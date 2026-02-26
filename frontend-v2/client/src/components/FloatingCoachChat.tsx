@@ -164,17 +164,15 @@ export function FloatingCoachChat() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Link href="/register">
-                    <Button size="sm" className="rounded-xl text-xs" onClick={() => setOpen(false)}>
+                  <Button size="sm" className="rounded-xl text-xs" asChild>
+                    <Link href="/register" onClick={() => setOpen(false)}>
                       Get Started Free
                       <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                    </Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => setOpen(false)}>
-                      Sign In
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
+                  <Button size="sm" variant="outline" className="rounded-xl text-xs" asChild>
+                    <Link href="/login" onClick={() => setOpen(false)}>Sign In</Link>
+                  </Button>
                 </div>
               </div>
             ) : !isPro ? (
@@ -189,12 +187,12 @@ export function FloatingCoachChat() {
                     Upgrade to unlock 24/7 coaching, personalized programs, and life event rescheduling.
                   </p>
                 </div>
-                <Link href="/pricing">
-                  <Button size="sm" className="rounded-xl text-xs bg-gradient-to-r from-primary to-blue-600" onClick={() => setOpen(false)}>
+                <Button size="sm" className="rounded-xl text-xs bg-gradient-to-r from-primary to-blue-600" asChild>
+                  <Link href="/pricing" onClick={() => setOpen(false)}>
                     Upgrade to Pro
                     <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             ) : (
               /* Chat UI */

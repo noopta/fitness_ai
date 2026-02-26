@@ -137,32 +137,6 @@ export default function CoachPage() {
             <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wide">Pro</span>
           </div>
         }
-        rightSlot={
-          isPro && stage === 'dashboard' ? (
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-xl text-xs text-muted-foreground"
-                onClick={handleRestartOnboarding}
-              >
-                <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                Update Goals
-              </Button>
-              {user?.savedProgram && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-xl text-xs text-muted-foreground"
-                  onClick={handleRegenerateProgram}
-                >
-                  <Dumbbell className="h-3.5 w-3.5 mr-1" />
-                  New Program
-                </Button>
-              )}
-            </div>
-          ) : undefined
-        }
       />
 
       {!isPro ? (
@@ -240,21 +214,45 @@ export default function CoachPage() {
             {/* Tab bar */}
             <div className="border-b bg-background/80 backdrop-blur sticky top-[57px] z-30">
               <div className="container max-w-7xl mx-auto px-4">
-                <TabsList className="h-auto bg-transparent rounded-none p-0 gap-0 w-full justify-start overflow-x-auto">
-                  {TABS.map(tab => {
-                    const Icon = tab.icon;
-                    return (
-                      <TabsTrigger
-                        key={tab.value}
-                        value={tab.value}
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary px-4 py-3 text-xs font-medium flex items-center gap-1.5 shrink-0"
+                <div className="flex items-center">
+                  <TabsList className="h-auto bg-transparent rounded-none p-0 gap-0 flex-1 justify-start overflow-x-auto">
+                    {TABS.map(tab => {
+                      const Icon = tab.icon;
+                      return (
+                        <TabsTrigger
+                          key={tab.value}
+                          value={tab.value}
+                          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary px-4 py-3 text-xs font-medium flex items-center gap-1.5 shrink-0"
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          {tab.label}
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
+                  <div className="flex items-center gap-1 shrink-0 pl-2 border-l ml-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-xl text-xs text-muted-foreground h-8"
+                      onClick={handleRestartOnboarding}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Update Goals
+                    </Button>
+                    {user?.savedProgram && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-xl text-xs text-muted-foreground h-8"
+                        onClick={handleRegenerateProgram}
                       >
-                        <Icon className="h-3.5 w-3.5" />
-                        {tab.label}
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
+                        <Dumbbell className="h-3.5 w-3.5 mr-1" />
+                        New Program
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

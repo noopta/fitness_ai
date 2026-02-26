@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import twilio from 'twilio';
+import { cacheGet, cacheSet, cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateTrainingProgram, generateCoachInsight,
@@ -309,20 +310,30 @@ router.post('/coach/program', requireAuth, async (req, res) => {
       indices: ds.indices || {},
     } : null;
 
-    const program = await generateTrainingProgram({
-      goal,
-      daysPerWeek,
-      durationWeeks,
-      trainingAge: user.trainingAge,
-      equipment: user.equipment,
-      primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
-      selectedLift: user.sessions[0]?.selectedLift || null,
-      accessories,
-      coachProfile: user.coachProfile,
-      diagnosticSignals,
-    });
+    const [program, nutritionPlan] = await Promise.all([
+      generateTrainingProgram({
+        goal,
+        daysPerWeek,
+        durationWeeks,
+        trainingAge: user.trainingAge,
+        equipment: user.equipment,
+        primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
+        selectedLift: user.sessions[0]?.selectedLift || null,
+        accessories,
+        coachProfile: user.coachProfile,
+        diagnosticSignals,
+      }),
+      generateNutritionPlan({
+        goal,
+        weightKg: user.weightKg || null,
+        trainingAge: user.trainingAge,
+        primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
+        selectedLift: user.sessions[0]?.selectedLift || null,
+        budget: user.coachBudget || null,
+      }).catch(() => null),
+    ]);
 
-    res.json(program);
+    res.json({ ...program, nutritionPlan: nutritionPlan ?? undefined });
   } catch (err: any) {
     console.error('Program generation error:', err);
     res.status(500).json({ error: err.message || 'Failed to generate program' });
@@ -332,10 +343,18 @@ router.post('/coach/program', requireAuth, async (req, res) => {
 // GET /api/coach/program - Fetch saved program
 router.get('/coach/program', requireAuth, async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    const cacheKey = `program:${req.user!.id}`;
+    const cached = cacheGet<{ program: unknown }>(cacheKey);
+    if (cached) return res.json(cached);
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { savedProgram: true },
+    });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    const program = user.savedProgram ? JSON.parse(user.savedProgram) : null;
-    res.json({ program });
+    const result = { program: user.savedProgram ? JSON.parse(user.savedProgram) : null };
+    cacheSet(cacheKey, result); // no expiry — only cleared on save
+    res.json(result);
   } catch (err) {
     console.error('Get program error:', err);
     res.status(500).json({ error: 'Failed to fetch program' });
@@ -371,6 +390,10 @@ router.put('/coach/program', requireAuth, async (req, res) => {
       sendCoachSMS(`💪 Program created: ${updatedUser.name || 'User'} (${updatedUser.email}) — ${goalLabel}, ${weeks}wk, ${days}d/wk [${updatedUser.tier}]`);
     }
 
+    // Invalidate caches since program changed
+    cacheDelete(`program:${req.user!.id}`);
+    cacheClearByPrefix(`today:${req.user!.id}:`);
+
     res.json({ success: true });
   } catch (err) {
     console.error('Save program error:', err);
@@ -398,6 +421,13 @@ router.get('/coach/today', requireAuth, async (req, res) => {
 
     if (!user) return res.status(404).json({ error: 'User not found' });
     if (!user.savedProgram) return res.json({ program: null });
+
+    // Cache key includes date + latest check-in id so new check-ins bust the cache
+    const dateKey = new Date().toISOString().slice(0, 10);
+    const checkinId = user.wellnessCheckins[0]?.id || 'none';
+    const todayCacheKey = `today:${req.user!.id}:${dateKey}:${checkinId}`;
+    const cachedToday = cacheGet(todayCacheKey);
+    if (cachedToday) return res.json(cachedToday);
 
     const program = JSON.parse(user.savedProgram);
     const startDate = user.programStartDate || new Date();
@@ -487,7 +517,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       }
     }
 
-    res.json({
+    const todayResult = {
       todaySession: isRestDay ? null : todaySession,
       isRestDay,
       weekNumber,
@@ -496,7 +526,11 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       tips,
       nextTrainingDay,
       programGoal: program.goal,
-    });
+    };
+    // Cache until midnight
+    const midnight = new Date(); midnight.setHours(24, 0, 0, 0);
+    cacheSet(todayCacheKey, todayResult, midnight.getTime() - Date.now());
+    res.json(todayResult);
   } catch (err) {
     console.error('Today endpoint error:', err);
     res.status(500).json({ error: 'Failed to load today\'s workout' });

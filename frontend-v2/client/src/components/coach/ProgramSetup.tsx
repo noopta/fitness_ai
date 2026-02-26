@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Loader2, Dumbbell, Zap, Target, RefreshCw, Check } from 'lucide-react';
+import { Dumbbell, Zap, Target, RefreshCw, Check } from 'lucide-react';
+import { ProgramGenerating } from './ProgramGenerating';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -33,6 +34,12 @@ export interface ProgramPhase {
   deloadProtocol: string;
 }
 
+export interface NutritionPlanResult {
+  macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
+  foods: Array<{ name: string; reason: string }>;
+  rationale: string;
+}
+
 export interface TrainingProgram {
   goal: string;
   daysPerWeek: number;
@@ -40,6 +47,7 @@ export interface TrainingProgram {
   phases: ProgramPhase[];
   autoregulationRules: string[];
   trackingMetrics: string[];
+  nutritionPlan?: NutritionPlanResult;
 }
 
 interface Props {
@@ -137,6 +145,8 @@ export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateInta
       setLoading(false);
     }
   }
+
+  if (loading) return <ProgramGenerating />;
 
   const selectedGoalLabel = GOAL_OPTIONS.find(o => o.id === goal)?.label || goal;
 
@@ -261,21 +271,8 @@ export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateInta
           onClick={handleGenerate}
           disabled={loading}
         >
-          {loading ? (
-            <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Building your program…
-            </>
-          ) : (
-            'Generate My Program'
-          )}
+          Generate My Program
         </Button>
-
-        {loading && (
-          <p className="text-xs text-center text-muted-foreground">
-            This takes 30–60 seconds — your program is being personalized from your intake data.
-          </p>
-        )}
 
         {onUpdateIntake && (
           <div className="text-center pt-2 border-t border-border/50">

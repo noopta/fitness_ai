@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
   ChevronLeft, ChevronRight, Dumbbell, Zap, Target,
-  Loader2, CheckCircle2, RotateCcw, Calendar, Sparkles
+  Loader2, CheckCircle2, RotateCcw, Calendar, Sparkles, Apple, Beef, Wheat, Droplets
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { TrainingProgram, ProgramPhase } from './ProgramSetup';
+import type { TrainingProgram, ProgramPhase, NutritionPlanResult } from './ProgramSetup';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -304,6 +304,88 @@ function ProgressionSlide({ program }: { program: TrainingProgram }) {
   );
 }
 
+// ─── Nutrition Slide ──────────────────────────────────────────────────────────
+function NutritionSlide({ plan }: { plan: NutritionPlanResult }) {
+  const { macros, foods, rationale } = plan;
+  const total = macros.proteinG * 4 + macros.carbsG * 4 + macros.fatG * 9;
+  const proteinPct = total > 0 ? Math.round((macros.proteinG * 4 / total) * 100) : 33;
+  const carbsPct   = total > 0 ? Math.round((macros.carbsG   * 4 / total) * 100) : 33;
+  const fatPct     = total > 0 ? Math.round((macros.fatG     * 9 / total) * 100) : 34;
+
+  const macroRows = [
+    { icon: Beef,    label: 'Protein', grams: macros.proteinG, pct: proteinPct, color: 'bg-rose-500',   text: 'text-rose-600 dark:text-rose-400' },
+    { icon: Wheat,   label: 'Carbs',   grams: macros.carbsG,   pct: carbsPct,   color: 'bg-amber-500',  text: 'text-amber-600 dark:text-amber-400' },
+    { icon: Droplets,label: 'Fat',     grams: macros.fatG,     pct: fatPct,     color: 'bg-blue-500',   text: 'text-blue-600 dark:text-blue-400' },
+  ];
+
+  return (
+    <div className="space-y-5 py-4">
+      <div className="flex items-center gap-3">
+        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-green-500/10 shrink-0">
+          <Apple className="h-5 w-5 text-green-600 dark:text-green-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold">Your nutrition blueprint.</h2>
+          <p className="text-sm text-muted-foreground">Dialed in for your training goal.</p>
+        </div>
+      </div>
+
+      {/* Calorie target */}
+      <div className="rounded-xl bg-primary/5 border border-primary/20 px-5 py-4 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Daily Target</p>
+          <p className="text-3xl font-bold mt-0.5">{macros.calories.toLocaleString()}</p>
+        </div>
+        <p className="text-sm text-muted-foreground font-medium">kcal / day</p>
+      </div>
+
+      {/* Macro bars */}
+      <div className="space-y-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Macro Breakdown</p>
+        {macroRows.map(({ icon: Icon, label, grams, pct, color, text }) => (
+          <div key={label} className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5">
+                <Icon className={`h-3.5 w-3.5 ${text}`} />
+                <span className="font-medium">{label}</span>
+              </div>
+              <span className={`font-bold ${text}`}>{grams}g <span className="text-muted-foreground font-normal">({pct}%)</span></span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className={`h-full rounded-full ${color}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 * macroRows.findIndex(r => r.label === label) }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Rationale */}
+      <div className="rounded-xl bg-muted/40 border px-4 py-3">
+        <p className="text-xs leading-relaxed text-muted-foreground">{rationale}</p>
+      </div>
+
+      {/* Key foods */}
+      {foods && foods.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Prioritize These Foods</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {foods.slice(0, 6).map((food, i) => (
+              <div key={i} className="rounded-xl border bg-background px-3 py-2.5">
+                <p className="text-xs font-semibold">{food.name}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{food.reason}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Confirm Slide ────────────────────────────────────────────────────────────
 function ConfirmSlide({
   program, saving, onSave, onAdjust,
@@ -374,7 +456,9 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
   const phases = program.phases || [];
   const PHASE_START = 3;
   const progressionIdx = PHASE_START + phases.length;
-  const confirmIdx = progressionIdx + 1;
+  const hasNutrition = !!program.nutritionPlan;
+  const nutritionIdx = progressionIdx + 1;
+  const confirmIdx = hasNutrition ? nutritionIdx + 1 : progressionIdx + 1;
   const totalSlides = confirmIdx + 1;
 
   const [slide, setSlide] = useState(0);
@@ -422,6 +506,7 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
       return <PhaseSlide phase={phases[slide - PHASE_START]} />;
     }
     if (slide === progressionIdx) return <ProgressionSlide program={program} />;
+    if (hasNutrition && slide === nutritionIdx) return <NutritionSlide plan={program.nutritionPlan!} />;
     return (
       <ConfirmSlide program={program} saving={saving} onSave={handleSave} onAdjust={onAdjust} />
     );

@@ -478,11 +478,9 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
         )}
 
         <div className="flex gap-2 pt-1">
-          <Link href="/onboarding" className="flex-1">
-            <Button size="sm" variant="outline" className="w-full rounded-xl text-xs">
-              New Analysis
-            </Button>
-          </Link>
+          <Button size="sm" variant="outline" className="flex-1 w-full rounded-xl text-xs" asChild>
+            <Link href="/onboarding">New Analysis</Link>
+          </Button>
           <Button size="sm" className="flex-1 rounded-xl text-xs" onClick={() => onTabChange('chat')}>
             <Sparkles className="h-3.5 w-3.5 mr-1" />
             Ask Coach
@@ -500,9 +498,9 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
           <Dumbbell className="h-8 w-8 text-muted-foreground/40" />
           <p className="text-sm font-semibold">No analyses yet</p>
           <p className="text-xs text-muted-foreground">Run your first lift analysis to see results here.</p>
-          <Link href="/onboarding">
-            <Button size="sm" className="rounded-xl text-xs">Start Analysis</Button>
-          </Link>
+          <Button size="sm" className="rounded-xl text-xs" asChild>
+            <Link href="/onboarding">Start Analysis</Link>
+          </Button>
         </Card>
       );
     }
@@ -532,11 +530,11 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
           </div>
         )}
 
-        <Link href={`/analysis/${latest.id}`} className="mt-auto">
-          <Button variant="outline" size="sm" className="w-full rounded-xl text-xs">
+        <Button variant="outline" size="sm" className="w-full rounded-xl text-xs mt-auto" asChild>
+          <Link href={`/analysis/${latest.id}`}>
             View Full Analysis <ChevronRight className="h-3.5 w-3.5 ml-1" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </Card>
     );
   }
