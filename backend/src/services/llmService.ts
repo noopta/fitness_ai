@@ -337,8 +337,10 @@ RULES:
 
 Current question count: ${questionCount}/8`;
 
+  const ragQuery = `${lift.name} ${signals.hypothesis_scores[0]?.label ?? ''} diagnostic assessment strength training`;
+  const ragContext = await buildRAGContext(ragQuery, 3);
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: 'system', content: systemPrompt }
+    { role: 'system', content: ragContext ? `${systemPrompt}\n\n${ragContext}` : systemPrompt }
   ];
 
   context.conversationHistory.forEach(msg => {
@@ -1101,9 +1103,13 @@ OUTPUT FORMAT — Return valid JSON only:
   "trackingMetrics": ["Log weight, sets, reps, RPE per set", "Note sticking point on primary lift"]
 }`;
 
+  const ragQuery = `periodization training program ${params.goal || 'strength'} phases ${params.primaryLimiter || ''} ${params.selectedLift || ''} RPE progression`;
+  const ragContext = await buildRAGContext(ragQuery, 4);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 8000,
     response_format: { type: 'json_object' },
   });
@@ -1153,9 +1159,13 @@ ATHLETE DATA:
 Be specific and actionable. Reference their data. Do not use generic phrases like "keep up the good work."
 Output only the insight text, no JSON, no labels.`;
 
+  const ragQuery = `${params.selectedLift || 'strength training'} ${params.primaryLimiter || ''} coaching insight weakness correction`;
+  const ragContext = await buildRAGContext(ragQuery, 3);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 700,
   });
 
@@ -1179,9 +1189,12 @@ ${summary}
 Be specific. If energy is low, say why and what to do. If stress is high, recommend a concrete intervention.
 Output only the recommendation text, no JSON, no labels.`;
 
+  const ragContext = await buildRAGContext('athlete recovery sleep stress energy wellness fatigue management', 3);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 700,
   });
 
@@ -1240,9 +1253,13 @@ INSTRUCTIONS:
 - Cover: nutrition timing, CNS load management, or recovery focus as relevant to the session.
 - Format as plain text with bullet points (•). No headers, no JSON, just the tips.`;
 
+  const ragQuery = `${params.exercises.slice(0, 3).map(e => e.exercise).join(' ')} ${params.primaryLimiter || ''} coaching cues technique`;
+  const ragContext = await buildRAGContext(ragQuery, 3);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 1000,
   });
 
@@ -1351,9 +1368,13 @@ OUTPUT — valid JSON only:
   "recoveryTimeline": "Full training capacity returns in 36-48 hours with proper hydration and nutrition"
 }`;
 
+  const ragQuery = `training disruption recovery ${params.userInput.slice(0, 80)}`;
+  const ragContext = await buildRAGContext(ragQuery, 3);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 2500,
     response_format: { type: 'json_object' },
   });
