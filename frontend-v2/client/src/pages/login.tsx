@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BrandLogo } from '@/components/BrandLogo';
+import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -107,26 +108,29 @@ export default function Login() {
 
   if (oauthPending) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <BrandLogo height={48} className="h-12 w-auto" />
-          <p className="text-sm text-muted-foreground">Signing you in…</p>
-          <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary">
+        <Navbar variant="full" />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <p className="text-sm text-muted-foreground">Signing you in…</p>
+            <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary">
+      <Navbar variant="full" />
+      <div className="flex-1 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <div className="flex flex-col items-center mb-8">
-          <BrandLogo height={48} className="h-12 w-auto mb-3" />
+        <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">Sign in to LiftOff</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Don't have an account?{' '}
@@ -188,6 +192,7 @@ export default function Login() {
           </form>
         </Card>
       </motion.div>
+      </div>
     </div>
   );
 }
