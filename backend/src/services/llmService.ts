@@ -875,6 +875,22 @@ export interface NutritionPlanResult {
   macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
   foods: Array<{ name: string; reason: string }>;
   rationale: string;
+  impact?: {
+    bodyComposition: string; // e.g. "Lean muscle gain at ~0.5 lb/week"
+    energy: string;          // e.g. "High — carbs fuel 4× training sessions"
+    mood: string;            // e.g. "Stable — adequate calories prevent dips"
+    recovery: string;        // e.g. "Optimized — protein supports MPS"
+  };
+}
+
+export interface MealSuggestion {
+  name: string;
+  description: string;
+  mealType: string; // "breakfast" | "lunch" | "dinner" | "snack"
+  macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
+  estimatedCostUSD: number;
+  prepMinutes: number;
+  keyIngredients: string[];
 }
 
 export async function generateNutritionPlan(params: {
@@ -899,15 +915,21 @@ INSTRUCTIONS:
 - Calculate daily macros (protein, carbs, fat in grams) appropriate for the goal
 - Suggest 5–7 specific whole foods that support the training goal and weakness
 - Provide a brief rationale (2–3 sentences) explaining the macro split
+- Describe the expected impact across 4 dimensions (1 sentence each, specific and practical)
 
 OUTPUT FORMAT (JSON only):
 {
   "macros": { "proteinG": 180, "carbsG": 250, "fatG": 70, "calories": 2350 },
   "foods": [
-    { "name": "Chicken breast", "reason": "High protein for muscle repair" },
-    ...
+    { "name": "Chicken breast", "reason": "High protein for muscle repair" }
   ],
-  "rationale": "..."
+  "rationale": "...",
+  "impact": {
+    "bodyComposition": "Slight caloric surplus supports lean muscle gain at ~0.5 lb/week",
+    "energy": "High — sufficient carbohydrates fuel 4× weekly training sessions",
+    "mood": "Stable — adequate calorie intake prevents cortisol spikes and mood dips",
+    "recovery": "Optimized — 1.8g/kg protein maximizes muscle protein synthesis between sessions"
+  }
 }`;
 
   const ragQuery = `nutrition plan macros protein carbs fat ${params.goal || 'strength'} strength training athlete`;
@@ -923,6 +945,66 @@ OUTPUT FORMAT (JSON only):
 
   const content = response.choices[0].message.content || '{}';
   return JSON.parse(content) as NutritionPlanResult;
+}
+
+export async function generateMealSuggestions(params: {
+  macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
+  budget?: string | null;
+  goal?: string | null;
+  numberOfMeals?: number;
+}): Promise<MealSuggestion[]> {
+  const n = params.numberOfMeals || 5;
+  const dailyCalories = params.macros.calories;
+  const prompt = `You are a sports nutritionist and meal planning expert. Suggest ${n} practical meals that fit the macro targets below.
+
+DAILY TARGETS:
+- Calories: ${dailyCalories} kcal
+- Protein: ${params.macros.proteinG}g
+- Carbs: ${params.macros.carbsG}g
+- Fat: ${params.macros.fatG}g
+- Training goal: ${params.goal || 'strength'}
+${params.budget ? `- Weekly food budget: ${params.budget} — prioritize affordable, budget-friendly options` : ''}
+
+REQUIREMENTS:
+- Mix meal types: breakfast, lunch, dinner, snack
+- Each meal should fit naturally within the daily macro budget (don't exceed totals)
+- Use whole foods, minimal processing
+- Keep ingredients simple and widely available
+- Cost estimates in USD per serving
+- Prep time under 35 minutes for most meals
+${params.budget ? '- Prioritize cheap proteins (eggs, canned fish, chicken thighs, legumes)' : ''}
+
+OUTPUT FORMAT (JSON only — array, no wrapper):
+[
+  {
+    "name": "Chicken Rice Bowl",
+    "description": "Lean protein with complex carbs for sustained training energy",
+    "mealType": "lunch",
+    "macros": { "proteinG": 42, "carbsG": 55, "fatG": 8, "calories": 456 },
+    "estimatedCostUSD": 4,
+    "prepMinutes": 20,
+    "keyIngredients": ["180g chicken breast", "1 cup jasmine rice", "broccoli", "soy sauce"]
+  }
+]`;
+
+  const ragQuery = `meal planning sports nutrition practical recipes ${params.goal || 'strength'} athlete`;
+  const ragContext = await buildRAGContext(ragQuery, 2);
+  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1',
+    messages: [{ role: 'user', content: finalPrompt }],
+    max_completion_tokens: 2000,
+    response_format: { type: 'json_object' },
+  });
+
+  const content = response.choices[0].message.content || '{}';
+  // LLM may return { meals: [...] } or just the array wrapped in any key
+  const parsed = JSON.parse(content);
+  if (Array.isArray(parsed)) return parsed as MealSuggestion[];
+  // Try common wrapper keys
+  const arr = parsed.meals || parsed.suggestions || parsed.data || Object.values(parsed)[0];
+  return Array.isArray(arr) ? arr as MealSuggestion[] : [];
 }
 
 // ─── Coach Extras: Training Program ───────────────────────────────────────────

@@ -38,6 +38,22 @@ export interface NutritionPlanResult {
   macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
   foods: Array<{ name: string; reason: string }>;
   rationale: string;
+  impact?: {
+    bodyComposition: string;
+    energy: string;
+    mood: string;
+    recovery: string;
+  };
+}
+
+export interface MealSuggestion {
+  name: string;
+  description: string;
+  mealType: string;
+  macros: { proteinG: number; carbsG: number; fatG: number; calories: number };
+  estimatedCostUSD: number;
+  prepMinutes: number;
+  keyIngredients: string[];
 }
 
 export interface TrainingProgram {

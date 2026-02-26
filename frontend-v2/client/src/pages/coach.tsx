@@ -126,6 +126,15 @@ export default function CoachPage() {
     if (user?.coachProfile) coachProfile = JSON.parse(user.coachProfile);
   } catch { /* ignore */ }
 
+  // Parse savedProgram's embedded nutrition plan
+  let savedNutritionPlan: any = null;
+  try {
+    if (user?.savedProgram) {
+      const prog = JSON.parse(user.savedProgram);
+      savedNutritionPlan = prog?.nutritionPlan || null;
+    }
+  } catch { /* ignore */ }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar
@@ -288,6 +297,7 @@ export default function CoachPage() {
                   trainingAge={user?.trainingAge || null}
                   coachGoal={user?.coachGoal || null}
                   coachBudget={user?.coachBudget || null}
+                  savedNutritionPlan={savedNutritionPlan}
                   isPro={isPro}
                 />
               </TabsContent>

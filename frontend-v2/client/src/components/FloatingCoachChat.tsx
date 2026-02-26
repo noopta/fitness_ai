@@ -7,8 +7,8 @@ import { useAuth } from '@/context/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
-// Pages where the widget should be hidden (chat already present or auth flow)
-const HIDDEN_PATHS = ['/coach', '/login', '/register'];
+// Pages where the widget should be hidden (auth flow only)
+const HIDDEN_PATHS = ['/login', '/register'];
 
 interface Message {
   role: 'user' | 'assistant';

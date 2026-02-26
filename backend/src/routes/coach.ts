@@ -6,7 +6,7 @@ import twilio from 'twilio';
 import { cacheGet, cacheSet, cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
-  generateNutritionPlan, generateTrainingProgram, generateCoachInsight,
+  generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
   generateTodayCoachingTips, generateProgramAdjustment,
 } from '../services/llmService.js';
 
@@ -721,6 +721,54 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Schedule endpoint error:', err);
     res.status(500).json({ error: 'Failed to load schedule' });
+  }
+});
+
+// POST /api/coach/meal-suggestions - AI-generated meal ideas matching macros + budget
+const mealSuggestionsSchema = z.object({
+  macros: z.object({
+    proteinG: z.number(),
+    carbsG: z.number(),
+    fatG: z.number(),
+    calories: z.number(),
+  }),
+  budget: z.string().nullable().optional(),
+  goal: z.string().nullable().optional(),
+  numberOfMeals: z.number().int().min(3).max(10).optional(),
+});
+
+router.post('/coach/meal-suggestions', requireAuth, async (req, res) => {
+  try {
+    if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
+      return res.status(403).json({ error: 'Pro feature', upgrade: true });
+    }
+    const params = mealSuggestionsSchema.parse(req.body);
+    const meals = await generateMealSuggestions({
+      macros: params.macros,
+      budget: params.budget ?? null,
+      goal: params.goal ?? null,
+      numberOfMeals: params.numberOfMeals ?? 5,
+    });
+    res.json({ meals });
+  } catch (err: any) {
+    console.error('Meal suggestions error:', err);
+    res.status(500).json({ error: err.message || 'Failed to generate meal suggestions' });
+  }
+});
+
+// PUT /api/coach/budget - Save user's weekly food budget
+router.put('/coach/budget', requireAuth, async (req, res) => {
+  try {
+    const { budget } = req.body;
+    if (typeof budget !== 'string') return res.status(400).json({ error: 'budget string required' });
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { coachBudget: budget || null },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Budget save error:', err);
+    res.status(500).json({ error: 'Failed to save budget' });
   }
 });
 

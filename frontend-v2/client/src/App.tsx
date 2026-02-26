@@ -20,6 +20,17 @@ import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import CoachPage from "./pages/coach";
 
+// Stable wrapper components — defined at module level so the function reference
+// never changes between renders. Inline arrows like () => <ProtectedRoute .../>
+// inside Router() recreate a new component type on every render, causing React
+// error #310 (hook count mismatch) when auth state updates after OAuth redirects.
+const ProtectedOnboarding = () => <ProtectedRoute component={Onboarding} />;
+const ProtectedSnapshot   = () => <ProtectedRoute component={Snapshot} />;
+const ProtectedDiagnostic = () => <ProtectedRoute component={Diagnostic} />;
+const ProtectedPlan       = () => <ProtectedRoute component={Plan} />;
+const ProtectedHistory    = () => <ProtectedRoute component={HistoryPage} />;
+const ProtectedCoach      = () => <ProtectedRoute component={CoachPage} />;
+
 function Router() {
   return (
     <Switch>
@@ -29,13 +40,13 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/pricing" component={Pricing} />
-      <Route path="/mvp" component={() => <ProtectedRoute component={Onboarding} />} />
-      <Route path="/onboarding" component={() => <ProtectedRoute component={Onboarding} />} />
-      <Route path="/snapshot" component={() => <ProtectedRoute component={Snapshot} />} />
-      <Route path="/diagnostic" component={() => <ProtectedRoute component={Diagnostic} />} />
-      <Route path="/plan" component={() => <ProtectedRoute component={Plan} />} />
-      <Route path="/history" component={() => <ProtectedRoute component={HistoryPage} />} />
-      <Route path="/coach" component={() => <ProtectedRoute component={CoachPage} />} />
+      <Route path="/mvp" component={ProtectedOnboarding} />
+      <Route path="/onboarding" component={ProtectedOnboarding} />
+      <Route path="/snapshot" component={ProtectedSnapshot} />
+      <Route path="/diagnostic" component={ProtectedDiagnostic} />
+      <Route path="/plan" component={ProtectedPlan} />
+      <Route path="/history" component={ProtectedHistory} />
+      <Route path="/coach" component={ProtectedCoach} />
       <Route component={NotFound} />
     </Switch>
   );
