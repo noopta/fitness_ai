@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://liftoffai.vercel.app';
+
 const router = Router();
 const prisma = new PrismaClient();
 
@@ -18,6 +20,30 @@ router.get('/payments/status', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Payments status error:', err);
     res.status(500).json({ error: 'Failed to fetch payment status' });
+  }
+});
+
+// POST /api/payments/portal — Stripe billing portal session
+router.post('/payments/portal', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { stripeCustomerId: true },
+    });
+
+    if (!user?.stripeCustomerId) {
+      return res.status(400).json({ error: 'No billing account found. Please subscribe first.' });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: `${FRONTEND_URL}/settings`,
+    });
+
+    res.json({ url: session.url });
+  } catch (err: any) {
+    console.error('Portal session error:', err);
+    res.status(500).json({ error: 'Failed to create portal session' });
   }
 });
 

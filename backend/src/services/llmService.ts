@@ -881,6 +881,13 @@ export interface NutritionPlanResult {
     mood: string;            // e.g. "Stable — adequate calories prevent dips"
     recovery: string;        // e.g. "Optimized — protein supports MPS"
   };
+  expectedOutcomes?: {
+    tdee: number;            // Estimated total daily energy expenditure (kcal)
+    surplusOrDeficit: number; // positive = surplus, negative = deficit
+    weeklyWeightChangeLb: number;  // e.g. +0.5 or -1.0
+    monthlyWeightChangeLb: number; // weeklyWeightChangeLb * 4.33
+    strengthGainNote: string; // e.g. "At a 250 kcal surplus, expect +2–3% strength gain over 8 weeks"
+  };
 }
 
 export interface MealSuggestion {
@@ -893,9 +900,25 @@ export interface MealSuggestion {
   keyIngredients: string[];
 }
 
+// Mifflin-St Jeor BMR → TDEE estimate
+function estimateTDEE(params: { weightKg: number | null; heightCm: number | null; gender: string | null }): number | null {
+  if (!params.weightKg) return null;
+  const w = params.weightKg;
+  const h = params.heightCm || 170; // default 170cm if unknown
+  const age = 30; // default age if not collected
+  const isMale = params.gender === 'male' || !params.gender || params.gender === 'prefer_not_to_say';
+  // Mifflin-St Jeor
+  const bmr = isMale
+    ? 10 * w + 6.25 * h - 5 * age + 5
+    : 10 * w + 6.25 * h - 5 * age - 161;
+  // Activity multiplier: moderate (strength training 3-5x/week)
+  return Math.round(bmr * 1.55);
+}
+
 export async function generateNutritionPlan(params: {
   goal: string;
   weightKg: number | null;
+  heightCm?: number | null;
   trainingAge: string | null;
   primaryLimiter: string | null;
   selectedLift: string | null;
@@ -905,22 +928,32 @@ export async function generateNutritionPlan(params: {
   const genderNote = params.gender && params.gender !== 'prefer_not_to_say'
     ? `- Biological sex: ${params.gender} — adjust caloric targets accordingly (females typically need 200–400 fewer kcal/day than males of similar weight; females may also benefit from higher iron, calcium, and folate; males may benefit from zinc and vitamin D for testosterone support)`
     : '';
-  const prompt = `You are a certified sports nutritionist. Based on the athlete profile below, generate a macro plan and food recommendations.
+
+  const tdee = estimateTDEE({ weightKg: params.weightKg, heightCm: params.heightCm || null, gender: params.gender || null });
+  const tdeeNote = tdee
+    ? `- Estimated TDEE (Mifflin-St Jeor × 1.55 activity): ${tdee} kcal/day — use this as your maintenance baseline when setting caloric targets`
+    : '';
+
+  const prompt = `You are a certified sports nutritionist. Based on the athlete profile below, generate a macro plan and food recommendations using evidence-based formulas (Mifflin-St Jeor for TDEE, 0.7–1g/lb protein for strength athletes).
 
 ATHLETE PROFILE:
 - Goal: ${params.goal || 'general strength'}
-- Body weight: ${params.weightKg ? params.weightKg + ' kg' : 'unknown'}
+- Body weight: ${params.weightKg ? params.weightKg + ' kg (' + Math.round(params.weightKg * 2.205) + ' lb)' : 'unknown'}
+${params.heightCm ? `- Height: ${params.heightCm} cm` : ''}
 - Training age: ${params.trainingAge || 'intermediate'}
 - Primary lift: ${params.selectedLift || 'unknown'}
 - Primary weakness identified: ${params.primaryLimiter || 'none identified'}
+${tdeeNote}
 ${genderNote}
 ${params.budget ? `- Weekly food budget: ${params.budget} — suggest affordable, practical foods within this budget` : ''}
 
 INSTRUCTIONS:
-- Calculate daily macros (protein, carbs, fat in grams) appropriate for the goal
+- Calculate daily macros (protein, carbs, fat in grams) appropriate for the goal, anchored to the TDEE if provided
+- For fat loss: 300–500 kcal deficit. For muscle gain: 200–350 kcal surplus. For recomp/maintenance: at TDEE.
 - Suggest 5–7 specific whole foods that support the training goal and weakness
 - Provide a brief rationale (2–3 sentences) explaining the macro split
 - Describe the expected impact across 4 dimensions (1 sentence each, specific and practical)
+- Calculate expected outcomes: weekly weight change in lb (3500 kcal = 1 lb), monthly, and a strength note
 
 OUTPUT FORMAT (JSON only):
 {
@@ -934,6 +967,13 @@ OUTPUT FORMAT (JSON only):
     "energy": "High — sufficient carbohydrates fuel 4× weekly training sessions",
     "mood": "Stable — adequate calorie intake prevents cortisol spikes and mood dips",
     "recovery": "Optimized — 1.8g/kg protein maximizes muscle protein synthesis between sessions"
+  },
+  "expectedOutcomes": {
+    "tdee": 2600,
+    "surplusOrDeficit": -250,
+    "weeklyWeightChangeLb": -0.5,
+    "monthlyWeightChangeLb": -2.2,
+    "strengthGainNote": "At a 250 kcal deficit with adequate protein, expect strength maintenance or slight gain over 8 weeks"
   }
 }`;
 

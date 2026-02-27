@@ -731,21 +731,14 @@ export default function Signup() {
                   <div className="text-sm text-muted-foreground mt-1">$80–150 per session</div>
                   <div className="mt-6 space-y-5">
                     {([
-                      ["Cost", "$80–$150 per session"],
-                      ["Availability", "Their hours only — book ahead"],
+                      ["Cost", "$80–$150 per session — ~$600+/month"],
                       ["Knowledge base", "1–2 certifications studied"],
                       ["Cancellations", "It happens — rescheduling is on you"],
-                      ["Life disruptions", "Just skip the week"],
+                      ["Life disruptions", '"Just skip the week"'],
                       ["Remembers history", "Only if they take good notes"],
-                      ["Judgment-free", "Depends on the trainer"],
-                      ["Location", "Their gym or yours — you commute"],
                       ["Strength diagnostics", "Subjective eye test — easy to miss"],
                       ["Nutrition planning", "Generic macros or expensive RD referral"],
-                      ["Program adaptation", "Manual tweaks only when you ask"],
-                      ["Injury prevention", "Felt in the moment, reactive"],
-                      ["Progress analytics", "Notes in a notebook, if remembered"],
-                      ["Exercise library", "Verbal cues during your paid session"],
-                      ["Gender & hormone factors", "Rarely discussed"],
+                      ["Available", "Their hours only — book ahead"],
                     ] as [string, string][]).map(([label, text]) => (
                       <div key={label}>
                         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
@@ -772,20 +765,13 @@ export default function Signup() {
                   <div className="mt-6 space-y-5">
                     {([
                       ["Cost", "<$12/month — free to try"],
-                      ["Availability", "24/7, instant response, any device"],
                       ["Knowledge base", "10 certifications + 7,000+ pages of science"],
                       ["Cancellations", "Never cancels. Not once."],
                       ["Life disruptions", "Physiological analysis + auto-reschedule in 2 min"],
                       ["Remembers history", "Perfect recall of every session, goal, and note"],
-                      ["Judgment-free", "Always. Ask anything, any time."],
-                      ["Location", "Anywhere — phone, laptop, no commute"],
                       ["Strength diagnostics", "e1RM + strength ratios pinpoint your exact muscle limiter"],
-                      ["Nutrition planning", "Personalized caloric targets + meal suggestions by budget"],
-                      ["Program adaptation", "Wellness check-ins auto-adjust intensity and volume daily"],
-                      ["Injury prevention", "Strength ratio flags imbalances before injury occurs"],
-                      ["Progress analytics", "Balance scores, phase trends, and full session history"],
-                      ["Exercise library", "Curated video breakdowns with biomechanics for every accessory"],
-                      ["Gender & hormone factors", "Caloric targets + hormonal guidance adjusted by biological sex"],
+                      ["Nutrition planning", "TDEE-based targets + projected weekly weight outcomes"],
+                      ["Available", "24/7, instant response, judgment-free, any device"],
                     ] as [string, string][]).map(([label, text]) => (
                       <div key={label}>
                         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>

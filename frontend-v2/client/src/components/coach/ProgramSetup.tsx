@@ -44,6 +44,13 @@ export interface NutritionPlanResult {
     mood: string;
     recovery: string;
   };
+  expectedOutcomes?: {
+    tdee: number;
+    surplusOrDeficit: number;
+    weeklyWeightChangeLb: number;
+    monthlyWeightChangeLb: number;
+    strengthGainNote: string;
+  };
 }
 
 export interface MealSuggestion {

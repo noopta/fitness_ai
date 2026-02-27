@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Loader2, Sparkles, ChevronRight, Dumbbell, Calendar, TrendingUp,
-  Zap, Moon, CheckCircle2, BedDouble, Plus, X, Activity, Heart
+  Zap, Moon, CheckCircle2, BedDouble, Plus, X, Activity, Heart, ChevronDown
 } from 'lucide-react';
 import { EfficiencyGauge } from '@/components/EfficiencyGauge';
 import { StrengthRadar } from '@/components/StrengthRadar';
@@ -155,6 +155,61 @@ function WorkoutDayModal({ day, onClose }: { day: WeekDay; onClose: () => void }
       </div>
     </AnimatePresence>
   );
+}
+
+// ─── ICS export helper ───────────────────────────────────────────────────────
+
+function formatICSDate(dateStr: string): string {
+  // dateStr is YYYY-MM-DD
+  return dateStr.replace(/-/g, '') + 'T090000';
+}
+
+function exportToICS(days: WeekDay[]) {
+  const trainingDays = days.filter(d => d.isTrainingDay);
+  if (trainingDays.length === 0) {
+    toast.info('No training days this week to export.');
+    return;
+  }
+
+  const events = trainingDays.map(day => {
+    const dtStart = formatICSDate(day.date);
+    const dtEnd = day.date.replace(/-/g, '') + 'T103000'; // +1.5h
+    const title = day.session?.day || 'Training Day';
+    const description = day.session?.exercises
+      ?.slice(0, 5)
+      .map(ex => `${ex.exercise}: ${ex.sets}x${ex.reps} @ ${ex.intensity}`)
+      .join('\\n') || '';
+
+    return [
+      'BEGIN:VEVENT',
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:🏋️ ${title}`,
+      description ? `DESCRIPTION:${description}` : '',
+      `LOCATION:Gym`,
+      `STATUS:CONFIRMED`,
+      'END:VEVENT',
+    ].filter(Boolean).join('\r\n');
+  });
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//LiftOff//Training Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'liftoff-schedule.ics';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success('Calendar file downloaded — open it to import into Google Calendar, iCal, or Outlook.');
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
@@ -375,10 +430,10 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
             <h3 className="font-bold mt-0.5">Upcoming Week</h3>
           </div>
           <button
-            onClick={() => toast.info('Calendar integration coming soon!')}
+            onClick={() => exportToICS(days)}
             className="text-[11px] text-primary flex items-center gap-1 font-semibold hover:underline"
           >
-            <Plus className="h-3.5 w-3.5" /> Add to GCal
+            <Plus className="h-3.5 w-3.5" /> Add to Calendar
           </button>
         </div>
 
@@ -567,15 +622,23 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
   }
 
   // ── Coach Insight card ───────────────────────────────────────────────────
+  const INSIGHT_TRUNCATE = 140;
+  const [insightExpanded, setInsightExpanded] = useState(false);
+
   function renderInsightCard() {
     if (!insightLoading && !insight) return null;
+    const isLong = insight && insight.length > INSIGHT_TRUNCATE;
+    const displayText = isLong && !insightExpanded
+      ? insight!.slice(0, INSIGHT_TRUNCATE).trimEnd() + '…'
+      : insight;
+
     return (
       <Card className="p-4 border-primary/20 bg-primary/5">
         <div className="flex items-start gap-3">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10">
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-primary mb-1">Coach Insight</p>
             {insightLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -583,7 +646,18 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
                 Generating insight…
               </div>
             ) : (
-              <p className="text-sm text-foreground leading-relaxed">{insight}</p>
+              <div>
+                <p className="text-sm text-foreground leading-relaxed">{displayText}</p>
+                {isLong && (
+                  <button
+                    onClick={() => setInsightExpanded(v => !v)}
+                    className="mt-1.5 flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {insightExpanded ? 'Show less' : 'Show more'}
+                    <ChevronDown className={`h-3 w-3 transition-transform ${insightExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -644,15 +718,19 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange }: Pr
         </motion.div>
       )}
 
-      {/* Row 2: Profile + Latest Analysis + Strength Profile */}
+      {/* Row 2: (Profile + Latest Analysis stacked) + Strength Profile */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.08 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-5"
       >
-        {renderProfileCard()}
-        {renderLatestAnalysisCard()}
+        {/* Left: stacked cards at natural height */}
+        <div className="flex flex-col gap-5">
+          {renderProfileCard()}
+          {renderLatestAnalysisCard()}
+        </div>
+        {/* Right: Strength Profile fills the column */}
         {renderStrengthProfileCard()}
       </motion.div>
 

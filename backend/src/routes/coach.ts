@@ -257,13 +257,18 @@ router.post('/coach/nutrition-plan', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Pro feature', upgrade: true });
     }
     const params = nutritionPlanSchema.parse(req.body);
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { heightCm: true, coachProfile: true } });
+    const coachProfileObj = user?.coachProfile ? (() => { try { return JSON.parse(user.coachProfile!); } catch { return {}; } })() : {};
+    const resolvedGender = coachProfileObj?.gender || null;
     const plan = await generateNutritionPlan({
       goal: params.goal || 'general strength',
       weightKg: params.weightKg ?? null,
+      heightCm: user?.heightCm ?? null,
       trainingAge: params.trainingAge ?? null,
       primaryLimiter: params.primaryLimiter ?? null,
       selectedLift: params.selectedLift ?? null,
       budget: params.budget ?? null,
+      gender: resolvedGender,
     });
     res.json(plan);
   } catch (err: any) {
@@ -332,6 +337,7 @@ router.post('/coach/program', requireAuth, async (req, res) => {
       generateNutritionPlan({
         goal,
         weightKg: user.weightKg || null,
+        heightCm: user.heightCm || null,
         trainingAge: user.trainingAge,
         primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
         selectedLift: user.sessions[0]?.selectedLift || null,

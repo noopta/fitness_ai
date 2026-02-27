@@ -20,6 +20,7 @@ import HistoryPage from "./pages/history";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import CoachPage from "./pages/coach";
+import SettingsPage from "./pages/settings";
 
 // Error boundary — catches render crashes and shows a recovery UI instead of
 // a blank screen. Particularly important for catching hook-order errors and
@@ -69,6 +70,7 @@ const ProtectedDiagnostic = () => <ProtectedRoute component={Diagnostic} />;
 const ProtectedPlan       = () => <ProtectedRoute component={Plan} />;
 const ProtectedHistory    = () => <ProtectedRoute component={HistoryPage} />;
 const ProtectedCoach      = () => <ProtectedRoute component={CoachPage} />;
+const ProtectedSettings   = () => <ProtectedRoute component={SettingsPage} />;
 
 function Router() {
   return (
@@ -86,6 +88,7 @@ function Router() {
       <Route path="/plan" component={ProtectedPlan} />
       <Route path="/history" component={ProtectedHistory} />
       <Route path="/coach" component={ProtectedCoach} />
+      <Route path="/settings" component={ProtectedSettings} />
       <Route component={NotFound} />
     </Switch>
   );

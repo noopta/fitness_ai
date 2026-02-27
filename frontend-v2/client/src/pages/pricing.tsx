@@ -41,21 +41,21 @@ const tiers = [
     name: "Pro",
     price: "$12",
     period: "per month",
-    description: "Unlimited diagnostics, history, and video tutorials for serious lifters.",
+    description: "Your personal elite coach — available 24/7, never cancels, remembers everything.",
     cta: "Upgrade to Pro",
     ctaVariant: "default" as const,
     href: null, // handled by onClick
     badge: "Most popular",
     features: [
-      "Unlimited diagnostic analyses",
-      "All 9 supported lifts (including Olympic)",
-      "AI diagnostic interview",
-      "Phase breakdown & limiter identification",
-      "Accessory prescription",
-      "Share your analysis",
-      "Full session history",
-      "Exercise tutorial videos",
-      "Priority support",
+      "Unlimited diagnostic analyses — diagnose every lift, every week",
+      "Personalized multi-phase training program (4–16 weeks)",
+      "AI-generated nutrition plan with macro targets & meal ideas",
+      "Life Happened — auto-reschedule when life disrupts training",
+      "Wellness check-ins that auto-adjust volume and intensity",
+      "Full session history & strength analytics dashboard",
+      "Exercise tutorial videos for every prescribed accessory",
+      "Gender-calibrated caloric & hormonal recommendations",
+      "Priority support — responses within hours",
     ],
     missing: [],
   },
@@ -152,13 +152,11 @@ export default function Pricing() {
                   <div className="mt-8">
                     {tier.id === "free" ? (
                       user ? (
-                        <Button variant="outline" className="w-full rounded-xl" disabled={user.tier === "free"} asChild={user.tier !== "free"}>
-                          {user.tier === "free" ? (
-                            <span>Current Plan</span>
-                          ) : (
-                            <Link href="/coach">Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                          )}
-                        </Button>
+                        user.tier === "free" ? (
+                          <p className="w-full text-center text-sm font-semibold text-muted-foreground py-2">
+                            Current Plan
+                          </p>
+                        ) : null
                       ) : (
                         <Button variant="outline" className="w-full rounded-xl" asChild>
                           <Link href="/register">
@@ -168,9 +166,9 @@ export default function Pricing() {
                         </Button>
                       )
                     ) : user?.tier === "pro" ? (
-                      <Button variant="outline" className="w-full rounded-xl" disabled>
+                      <p className="w-full text-center text-sm font-semibold text-muted-foreground py-2">
                         Current Plan
-                      </Button>
+                      </p>
                     ) : (
                       <Button
                         variant={tier.ctaVariant}

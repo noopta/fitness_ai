@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import { PrismaClient } from '@prisma/client';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
@@ -10,6 +11,7 @@ import paymentsRoutes from './routes/payments.js';
 import coachRoutes from './routes/coach.js';
 import nutritionRoutes from './routes/nutrition.js';
 import wellnessRoutes from './routes/wellness.js';
+import OpenAI from 'openai';
 
 dotenv.config();
 
@@ -67,3 +69,36 @@ app.listen(PORT, () => {
   console.log(`🚀 LiftOff API running on http://localhost:${PORT}`);
   console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
 });
+
+// ── Daily coach thread cleanup ─────────────────────────────────────────────
+// Clears OpenAI Assistants threads once every 24h to reduce token storage costs.
+// Users will get a fresh thread on their next chat message.
+const prisma = new PrismaClient();
+const openaiForCleanup = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+async function clearCoachThreads() {
+  try {
+    const users = await prisma.user.findMany({
+      where: { coachThreadId: { not: null } },
+      select: { id: true, coachThreadId: true },
+    });
+
+    let cleared = 0;
+    for (const u of users) {
+      try {
+        await openaiForCleanup.beta.threads.del(u.coachThreadId!);
+      } catch {
+        // Thread may already be deleted — continue
+      }
+      await prisma.user.update({ where: { id: u.id }, data: { coachThreadId: null } });
+      cleared++;
+    }
+    if (cleared > 0) console.log(`✓ Daily cleanup: cleared ${cleared} coach thread(s)`);
+  } catch (err) {
+    console.error('Coach thread cleanup error:', err);
+  }
+}
+
+// Run once on startup (clears any stale threads), then every 24 hours
+clearCoachThreads();
+setInterval(clearCoachThreads, 24 * 60 * 60 * 1000);

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
   Loader2, Sparkles, Apple, UtensilsCrossed, Clock, DollarSign,
-  TrendingUp, Zap, Brain, Dumbbell, Check, AlertTriangle, ChevronDown, ChevronUp,
+  TrendingUp, Zap, Brain, Dumbbell, Check, AlertTriangle, ChevronDown, ChevronUp, Scale,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
@@ -92,6 +92,7 @@ function MacroBar({ label, grams, total, color }: { label: string; grams: number
 
 function NutritionPlanCard({ plan }: { plan: NutritionPlanResult }) {
   const [showFoods, setShowFoods] = useState(false);
+  const [outcomeView, setOutcomeView] = useState<'week' | 'month'>('week');
   const totalMacroG = plan.macros.proteinG + plan.macros.carbsG + plan.macros.fatG;
 
   return (
@@ -144,6 +145,75 @@ function NutritionPlanCard({ plan }: { plan: NutritionPlanResult }) {
         <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Coach Rationale</p>
         <p className="text-xs text-foreground leading-relaxed">{plan.rationale}</p>
       </div>
+
+      {/* Expected Outcomes */}
+      {plan.expectedOutcomes && (
+        <div className="rounded-xl border border-border/60 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 bg-muted/20 border-b">
+            <div className="flex items-center gap-2">
+              <Scale className="h-3.5 w-3.5 text-muted-foreground" />
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Expected Outcomes</p>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg bg-background border p-0.5">
+              {(['week', 'month'] as const).map(v => (
+                <button
+                  key={v}
+                  onClick={() => setOutcomeView(v)}
+                  className={`rounded-md px-2.5 py-1 text-[10px] font-bold transition-colors ${
+                    outcomeView === v ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Per {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="px-4 py-3 space-y-2.5">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg bg-muted/30 px-3 py-2.5 text-center">
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-1">TDEE (Maintenance)</p>
+                <p className="text-sm font-bold">{plan.expectedOutcomes.tdee.toLocaleString()} kcal</p>
+              </div>
+              <div className={`rounded-lg px-3 py-2.5 text-center ${
+                plan.expectedOutcomes.surplusOrDeficit >= 0
+                  ? 'bg-amber-500/10 border border-amber-500/20'
+                  : 'bg-emerald-500/10 border border-emerald-500/20'
+              }`}>
+                <p className="text-[10px] font-semibold uppercase tracking-wide mb-1 text-muted-foreground">
+                  {plan.expectedOutcomes.surplusOrDeficit >= 0 ? 'Caloric Surplus' : 'Caloric Deficit'}
+                </p>
+                <p className={`text-sm font-bold ${
+                  plan.expectedOutcomes.surplusOrDeficit >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
+                }`}>
+                  {plan.expectedOutcomes.surplusOrDeficit >= 0 ? '+' : ''}{plan.expectedOutcomes.surplusOrDeficit} kcal/day
+                </p>
+              </div>
+            </div>
+            <div className="rounded-lg bg-primary/5 border border-primary/20 px-4 py-3">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-wide mb-1">
+                Projected Weight Change — per {outcomeView}
+              </p>
+              {(() => {
+                const change = outcomeView === 'week'
+                  ? plan.expectedOutcomes!.weeklyWeightChangeLb
+                  : plan.expectedOutcomes!.monthlyWeightChangeLb;
+                const sign = change >= 0 ? '+' : '';
+                return (
+                  <p className="text-xl font-black">
+                    {sign}{change.toFixed(1)} <span className="text-sm font-semibold text-muted-foreground">lb</span>
+                  </p>
+                );
+              })()}
+            </div>
+            {plan.expectedOutcomes.strengthGainNote && (
+              <div className="flex items-start gap-2 rounded-lg bg-muted/20 px-3 py-2.5">
+                <TrendingUp className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                <p className="text-[11px] text-foreground leading-snug">{plan.expectedOutcomes.strengthGainNote}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Recommended foods (collapsed by default) */}
       <div>
