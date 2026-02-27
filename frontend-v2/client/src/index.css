@@ -126,10 +126,12 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    overflow-x: hidden;
   }
 
   /* Ensure all interactive elements show pointer cursor */
@@ -167,6 +169,11 @@
 
   .container-tight {
     @apply mx-auto w-full max-w-5xl px-4;
+  }
+
+  /* Safe area for notched devices (iPhone X+) */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
   }
 
   .card-min {

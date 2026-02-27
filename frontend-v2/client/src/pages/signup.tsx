@@ -228,12 +228,12 @@ function PreviewSection() {
       </div>
 
       <Card className="mt-8 card-min overflow-hidden rounded-2xl" data-testid="card-preview">
-        <div className="flex border-b overflow-hidden">
+        <div className="flex border-b overflow-x-auto overflow-y-hidden min-w-0">
           {previewSteps.map((item, idx) => (
             <button
               key={item.step}
               onClick={() => navigate(idx)}
-              className="relative flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-medium transition-colors -mb-px"
+              className="relative flex-1 min-w-[44px] flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-medium transition-colors -mb-px shrink-0"
               data-testid={`tab-preview-${item.step}`}
             >
               <motion.span
@@ -262,8 +262,8 @@ function PreviewSection() {
           ))}
         </div>
 
-        <div className="grid gap-0 lg:grid-cols-[0.42fr_0.58fr]" style={{ minHeight: 420 }}>
-          <div className="relative flex flex-col justify-between p-6 lg:p-8 overflow-hidden" style={{ minHeight: 320 }}>
+        <div className="grid gap-0 lg:grid-cols-[0.42fr_0.58fr] min-h-[320px] sm:min-h-[380px] lg:min-h-[420px]">
+          <div className="relative flex flex-col justify-between p-4 sm:p-6 lg:p-8 overflow-hidden min-h-[260px] sm:min-h-[300px] lg:min-h-[320px]">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={activeStep}
