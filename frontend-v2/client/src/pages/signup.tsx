@@ -18,6 +18,7 @@ import {
   Scale,
   ShieldCheck,
   Sparkles,
+  Star,
   Target,
   Wand2,
   X,
@@ -664,28 +665,26 @@ export default function Signup() {
         </section>
 
         {/* ── AI Coach Section ─────────────────────────────────────── */}
-        <section className="pb-16 sm:pb-24" data-testid="section-products">
-          <div className="max-w-3xl mb-7">
-            <div className="text-xs font-semibold text-muted-foreground" data-testid="text-products-eyebrow">
-              AI Coach
+        <section className="py-16 sm:py-24 px-4 bg-slate-50 dark:bg-slate-900/30" data-testid="section-products">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="text-center mb-10">
+              <h2
+                className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground"
+                data-testid="text-products-title"
+              >
+                Why LiftOff AI Coach?
+              </h2>
+              <p
+                className="mt-3 text-base text-muted-foreground"
+                data-testid="text-products-subtitle"
+              >
+                See how an AI Coach compares to traditional personal training.
+              </p>
             </div>
-            <h2
-              className="mt-2 text-balance text-2xl font-semibold tracking-tight"
-              data-testid="text-products-title"
-            >
-              An always-on coach trained on every major certification.
-            </h2>
-            <p
-              className="mt-3 text-sm leading-relaxed text-muted-foreground"
-              data-testid="text-products-subtitle"
-            >
-              LiftOff's AI coach combines the curriculum of 10 leading CPT certifications — more comprehensive knowledge than any single human trainer — available 24/7.
-            </p>
-          </div>
 
           <div className="space-y-4" data-testid="tab-content-coach">
               {/* Cert knowledge section */}
-              <Card className="card-min rounded-2xl p-6" data-testid="card-cert-strip">
+              <Card className="card-min rounded-2xl p-6 bg-background" data-testid="card-cert-strip">
                 <div className="mb-5">
                   <div className="text-sm font-semibold">Trained on every major certification</div>
                   <p className="mt-1 text-sm text-muted-foreground max-w-xl">
@@ -724,64 +723,82 @@ export default function Signup() {
                 </div>
               </Card>
 
-              {/* Comparison table */}
-              <div className="rounded-2xl border overflow-hidden shadow-sm" data-testid="card-coach-compare">
-                {/* Column headers */}
-                <div className="grid grid-cols-2">
-                  <div className="px-6 py-5 bg-muted/50 border-b border-r">
-                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Traditional Trainer</div>
-                    <div className="text-sm text-muted-foreground mt-1">$80–150 per session</div>
+              {/* Feature comparison — exact match to screenshot */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="card-coach-compare">
+                {/* Traditional Trainer */}
+                <Card className="rounded-2xl p-6 bg-background shadow-sm">
+                  <div className="text-xs font-bold text-foreground uppercase tracking-widest">Traditional Trainer</div>
+                  <div className="text-sm text-muted-foreground mt-1">$80–150 per session</div>
+                  <div className="mt-6 space-y-5">
+                    {([
+                      ["Cost", "$80–$150 per session"],
+                      ["Availability", "Their hours only — book ahead"],
+                      ["Knowledge base", "1–2 certifications studied"],
+                      ["Cancellations", "It happens — rescheduling is on you"],
+                      ["Life disruptions", "Just skip the week"],
+                      ["Remembers history", "Only if they take good notes"],
+                      ["Judgment-free", "Depends on the trainer"],
+                      ["Location", "Their gym or yours — you commute"],
+                      ["Strength diagnostics", "Subjective eye test — easy to miss"],
+                      ["Nutrition planning", "Generic macros or expensive RD referral"],
+                      ["Program adaptation", "Manual tweaks only when you ask"],
+                      ["Injury prevention", "Felt in the moment, reactive"],
+                      ["Progress analytics", "Notes in a notebook, if remembered"],
+                      ["Exercise library", "Verbal cues during your paid session"],
+                      ["Gender & hormone factors", "Rarely discussed"],
+                    ] as [string, string][]).map(([label, text]) => (
+                      <div key={label}>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
+                        <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500/15">
+                            <X className="h-3 w-3 text-red-500" strokeWidth={3} />
+                          </span>
+                          <span>{text}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="px-6 py-5 bg-primary/10 border-b relative">
-                    <div className="absolute top-4 right-5">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-bold text-background uppercase tracking-wide">
-                        <Sparkles className="h-2.5 w-2.5" /> Recommended
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-primary uppercase tracking-widest">LiftOff AI Coach</div>
-                    <div className="text-sm text-muted-foreground mt-1">Less than 1 session/month</div>
-                  </div>
-                </div>
+                </Card>
 
-                {/* Comparison rows */}
-                {([
-                  ["Cost", "$80–$150 per session", "<$12/month — free to try"],
-                  ["Availability", "Their hours only — book ahead", "24/7, instant response, any device"],
-                  ["Knowledge base", "1–2 certifications studied", "10 certifications + 7,000+ pages of science"],
-                  ["Cancellations", "It happens — rescheduling is on you", "Never cancels. Not once."],
-                  ["Life disruptions", '"Just skip the week"', "Physiological analysis + auto-reschedule in 2 min"],
-                  ["Remembers history", "Only if they take good notes", "Perfect recall of every session, goal, and note"],
-                  ["Judgment-free", "Depends on the trainer", "Always. Ask anything, any time."],
-                  ["Location", "Their gym or yours — you commute", "Anywhere — phone, laptop, no commute"],
-                  ["Strength diagnostics", "Subjective eye test — easy to miss", "e1RM + strength ratios pinpoint your exact muscle limiter"],
-                  ["Nutrition planning", "Generic macros or expensive RD referral", "Personalized caloric targets + meal suggestions by budget"],
-                  ["Program adaptation", "Manual tweaks only when you ask", "Wellness check-ins auto-adjust intensity and volume daily"],
-                  ["Injury prevention", "Felt in the moment, reactive", "Strength ratio flags imbalances before injury occurs"],
-                  ["Progress analytics", "Notes in a notebook, if remembered", "Balance scores, phase trends, and full session history"],
-                  ["Exercise library", "Verbal cues during your paid session", "Curated video breakdowns with biomechanics for every accessory"],
-                  ["Gender & hormone factors", "Rarely discussed", "Caloric targets + hormonal guidance adjusted by biological sex"],
-                ] as [string, string, string][]).map(([label, traditional, liftoff], i, arr) => (
-                  <div key={label} className={`grid grid-cols-2 ${i < arr.length - 1 ? 'border-b' : ''}`}>
-                    <div className="px-5 py-4 border-r bg-muted/10">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{label}</div>
-                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500/10">
-                          <X className="h-3 w-3 text-red-500" strokeWidth={3} />
-                        </span>
-                        <span>{traditional}</span>
-                      </div>
-                    </div>
-                    <div className="px-5 py-4 bg-primary/[0.03]">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{label}</div>
-                      <div className="flex items-start gap-2 text-sm">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15">
-                          <Check className="h-3 w-3 text-primary" strokeWidth={3} />
-                        </span>
-                        <span className="font-medium text-foreground">{liftoff}</span>
-                      </div>
-                    </div>
+                {/* LiftOff AI Coach */}
+                <Card className="rounded-2xl p-6 bg-background shadow-sm relative">
+                  <div className="text-xs font-bold text-foreground uppercase tracking-widest">LiftOff AI Coach</div>
+                  <div className="text-sm text-muted-foreground mt-1">Less than 1 session/month</div>
+                  <div className="absolute top-6 right-6">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-zinc-700 dark:bg-zinc-600 px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wide">
+                      <Star className="h-2.5 w-2.5" fill="currentColor" /> Recommended
+                    </span>
                   </div>
-                ))}
+                  <div className="mt-6 space-y-5">
+                    {([
+                      ["Cost", "<$12/month — free to try"],
+                      ["Availability", "24/7, instant response, any device"],
+                      ["Knowledge base", "10 certifications + 7,000+ pages of science"],
+                      ["Cancellations", "Never cancels. Not once."],
+                      ["Life disruptions", "Physiological analysis + auto-reschedule in 2 min"],
+                      ["Remembers history", "Perfect recall of every session, goal, and note"],
+                      ["Judgment-free", "Always. Ask anything, any time."],
+                      ["Location", "Anywhere — phone, laptop, no commute"],
+                      ["Strength diagnostics", "e1RM + strength ratios pinpoint your exact muscle limiter"],
+                      ["Nutrition planning", "Personalized caloric targets + meal suggestions by budget"],
+                      ["Program adaptation", "Wellness check-ins auto-adjust intensity and volume daily"],
+                      ["Injury prevention", "Strength ratio flags imbalances before injury occurs"],
+                      ["Progress analytics", "Balance scores, phase trends, and full session history"],
+                      ["Exercise library", "Curated video breakdowns with biomechanics for every accessory"],
+                      ["Gender & hormone factors", "Caloric targets + hormonal guidance adjusted by biological sex"],
+                    ] as [string, string][]).map(([label, text]) => (
+                      <div key={label}>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
+                        <div className="flex items-start gap-2 text-sm text-foreground">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500/15">
+                            <Check className="h-3 w-3 text-green-600" strokeWidth={3} />
+                          </span>
+                          <span>{text}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
               </div>
 
               {/* Feature cards */}
@@ -819,6 +836,7 @@ export default function Signup() {
                   </Button>
                 </div>
               </Card>
+          </div>
           </div>
         </section>
 
