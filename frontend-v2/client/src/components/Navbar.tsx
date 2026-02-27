@@ -89,6 +89,9 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
               <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" asChild>
                 <Link href="/coach">AI Coach</Link>
               </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl hidden sm:inline-flex" asChild>
+                <Link href="/settings">Settings</Link>
+              </Button>
               <Button variant="ghost" size="sm" className="rounded-xl text-muted-foreground" onClick={handleLogout}>
                 Sign out
               </Button>
