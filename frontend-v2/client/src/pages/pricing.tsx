@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Zap } from "lucide-react";
+import { ArrowRight, Check, Zap, FlaskConical, ShieldCheck, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
@@ -41,22 +41,20 @@ const tiers = [
     name: "Pro",
     price: "$12",
     period: "per month",
-    description: "Your personal elite coach — available 24/7, never cancels, remembers everything.",
+    description: "Science-first coaching built on 10 CPT certifications and 7,000+ pages of peer-reviewed training research — not opinion.",
     cta: "Upgrade to Pro",
     ctaVariant: "default" as const,
     href: null, // handled by onClick
     badge: "Most popular",
     features: [
-      "Smarter than any trainer — trained on 10 CPT certifications + 7,000+ pages of science",
-      "100% evidence-based — medical textbooks, biomechanics, no guesswork",
-      "Unlimited diagnostic analyses — diagnose every lift, every week",
-      "Personalized multi-phase training program (4–16 weeks)",
-      "AI-generated nutrition plan with macro targets & meal ideas",
-      "Life Happened — auto-reschedule when life disrupts training",
-      "Wellness check-ins that auto-adjust volume and intensity",
-      "Full session history & strength analytics dashboard",
-      "Exercise tutorial videos for every prescribed accessory",
-      "Gender-calibrated caloric & hormonal recommendations",
+      "Unlimited diagnostic analyses — evidence-based limiter identification every lift",
+      "Multi-phase programs built on periodization science (NSCA, NASM, ACSM)",
+      "Nutrition targets using Mifflin-St Jeor TDEE — not generic estimates",
+      "Life Happened — physiologically accurate recovery & auto-reschedule",
+      "Wellness check-ins backed by HRV and fatigue research",
+      "Strength ratio diagnostics to flag imbalances before injury",
+      "Full session history & analytics for measurable progression",
+      "Gender-calibrated caloric, hormonal, and micronutrient guidance",
       "Priority support — responses within hours",
     ],
     missing: [],
@@ -151,7 +149,25 @@ export default function Pricing() {
                     ))}
                   </div>
 
-                  <div className="mt-8">
+                  {tier.id === "pro" && (
+                    <div className="mt-5 rounded-xl bg-primary/5 border border-primary/15 px-4 py-3 space-y-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Built on science, not opinion</p>
+                      <div className="space-y-1.5">
+                        {[
+                          { icon: BookOpen, text: "10 CPT certifications — NASM, ACE, NSCA, ACSM + 6 more" },
+                          { icon: FlaskConical, text: "7,000+ pages of peer-reviewed training & nutrition research" },
+                          { icon: ShieldCheck, text: "Biologically accurate: uses Mifflin-St Jeor, RPE/RIR, strength ratios" },
+                        ].map(({ icon: Icon, text }) => (
+                          <div key={text} className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                            <Icon className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" strokeWidth={1.8} />
+                            {text}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-6">
                     {tier.id === "free" ? (
                       user ? (
                         user.tier === "free" ? (

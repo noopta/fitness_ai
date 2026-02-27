@@ -56,7 +56,7 @@ export default function Login() {
                 const saved = sessionStorage.getItem('liftoff_redirect');
                 const redirect = (saved && saved !== '/login' && saved !== '/register')
                   ? saved
-                  : '/onboarding';
+                  : '/';
                 sessionStorage.removeItem('liftoff_redirect');
                 setLocation(redirect);
                 return;
@@ -80,7 +80,7 @@ export default function Login() {
       const saved = sessionStorage.getItem('liftoff_redirect');
       const redirect = (saved && saved !== '/login' && saved !== '/register')
         ? saved
-        : '/onboarding';
+        : '/';
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     }
@@ -96,7 +96,7 @@ export default function Login() {
       const saved = sessionStorage.getItem('liftoff_redirect');
       const redirect = (saved && saved !== '/login' && saved !== '/register')
         ? saved
-        : '/onboarding';
+        : '/';
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     } catch (err: any) {
