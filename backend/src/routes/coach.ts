@@ -277,6 +277,7 @@ const programSchema = z.object({
   goal: z.string(),
   daysPerWeek: z.number().int().min(2).max(6),
   durationWeeks: z.number().int().min(2).max(16),
+  gender: z.string().nullable().optional(),
 });
 
 router.post('/coach/program', requireAuth, async (req, res) => {
@@ -284,7 +285,7 @@ router.post('/coach/program', requireAuth, async (req, res) => {
     if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
       return res.status(403).json({ error: 'Pro feature', upgrade: true });
     }
-    const { goal, daysPerWeek, durationWeeks } = programSchema.parse(req.body);
+    const { goal, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
@@ -310,6 +311,10 @@ router.post('/coach/program', requireAuth, async (req, res) => {
       indices: ds.indices || {},
     } : null;
 
+    // Resolve gender: request param > coachProfile JSON > null
+    const coachProfileObj = user.coachProfile ? (() => { try { return JSON.parse(user.coachProfile); } catch { return {}; } })() : {};
+    const resolvedGender = gender || coachProfileObj?.gender || null;
+
     const [program, nutritionPlan] = await Promise.all([
       generateTrainingProgram({
         goal,
@@ -322,6 +327,7 @@ router.post('/coach/program', requireAuth, async (req, res) => {
         accessories,
         coachProfile: user.coachProfile,
         diagnosticSignals,
+        gender: resolvedGender,
       }),
       generateNutritionPlan({
         goal,
@@ -330,6 +336,7 @@ router.post('/coach/program', requireAuth, async (req, res) => {
         primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
         selectedLift: user.sessions[0]?.selectedLift || null,
         budget: user.coachBudget || null,
+        gender: resolvedGender,
       }).catch(() => null),
     ]);
 

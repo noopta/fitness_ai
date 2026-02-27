@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BrandLogo } from '@/components/BrandLogo';
+import { Navbar } from '@/components/Navbar';
 import { Loader2, Shield, CheckCircle2, Target, Sparkles, ArrowRight } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
@@ -65,23 +65,14 @@ export default function AnalysisPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
-      <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <BrandLogo height={36} className="h-9 w-auto" />
-            <div className="text-sm font-semibold">LiftOff — Shared Analysis</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/pricing" className="text-xs text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Button size="sm" asChild>
-              <Link href="/register">
-                Get Your Own Analysis
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar variant="full" rightSlot={
+        <Button size="sm" asChild>
+          <Link href="/register">
+            Get Your Own Analysis
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      } />
 
       <main className="mx-auto max-w-4xl px-4 py-10">
         <motion.div

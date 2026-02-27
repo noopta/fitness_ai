@@ -147,7 +147,7 @@ export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateInta
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ goal, daysPerWeek, durationWeeks }),
+        body: JSON.stringify({ goal, daysPerWeek, durationWeeks, gender: coachProfile?.gender || null }),
       });
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));

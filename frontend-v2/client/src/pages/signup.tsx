@@ -28,7 +28,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
 import snapshotTarget from "@assets/snapshot_target_1771266514838.png";
@@ -557,7 +556,7 @@ export default function Signup() {
                         asChild
                       >
                         <Link href="/onboarding">
-                          Run a Lift Analysis
+                          Try Demo
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
@@ -664,40 +663,27 @@ export default function Signup() {
           </motion.div>
         </section>
 
-        {/* ── Products Section (tabbed) ────────────────────────────── */}
+        {/* ── AI Coach Section ─────────────────────────────────────── */}
         <section className="pb-16 sm:pb-24" data-testid="section-products">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl mb-7">
             <div className="text-xs font-semibold text-muted-foreground" data-testid="text-products-eyebrow">
-              What we build
+              AI Coach
             </div>
             <h2
               className="mt-2 text-balance text-2xl font-semibold tracking-tight"
               data-testid="text-products-title"
             >
-              Two tools. One platform built around your progress.
+              An always-on coach trained on every major certification.
             </h2>
             <p
               className="mt-3 text-sm leading-relaxed text-muted-foreground"
               data-testid="text-products-subtitle"
             >
-              LiftOff is a precision lift diagnostic engine and an always-on AI personal coach — both trained on the same scientific foundation, built to work together.
+              LiftOff's AI coach combines the curriculum of 10 leading CPT certifications — more comprehensive knowledge than any single human trainer — available 24/7.
             </p>
           </div>
 
-          <Tabs defaultValue="coach" className="mt-7">
-            <TabsList className="h-11 rounded-xl p-1 mb-6">
-              <TabsTrigger value="coach" className="rounded-lg px-5 text-sm font-medium data-[state=active]:shadow-sm">
-                <Sparkles className="mr-2 h-4 w-4" />
-                AI Coach
-              </TabsTrigger>
-              <TabsTrigger value="diagnostic" className="rounded-lg px-5 text-sm font-medium data-[state=active]:shadow-sm">
-                <LineChart className="mr-2 h-4 w-4" />
-                Lift Diagnostics
-              </TabsTrigger>
-            </TabsList>
-
-            {/* ── AI Coach Tab ── */}
-            <TabsContent value="coach" className="mt-0 space-y-4" data-testid="tab-content-coach">
+          <div className="space-y-4" data-testid="tab-content-coach">
               {/* Cert knowledge section */}
               <Card className="card-min rounded-2xl p-6" data-testid="card-cert-strip">
                 <div className="mb-5">
@@ -738,59 +724,58 @@ export default function Signup() {
                 </div>
               </Card>
 
-              {/* Comparison table */}
-              <Card className="card-min rounded-2xl overflow-hidden" data-testid="card-coach-compare">
-                <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x">
-                  <div className="p-6">
-                    <div className="mb-4 text-sm font-semibold text-muted-foreground">Traditional Trainer</div>
-                    <div className="space-y-3.5">
-                      {([
-                        ["Cost", "$80–$150 per session"],
-                        ["Availability", "Their hours only — book in advance"],
-                        ["Knowledge", "1–2 certifications studied"],
-                        ["Cancellations", "It happens — rescheduling is on you"],
-                        ["When life disrupts training", '"Just skip the week"'],
-                        ["Remembers your history", "Only if they take good notes"],
-                        ["Judgment-free", "Depends on the trainer"],
-                        ["Location", "Their gym or yours — you commute"],
-                      ] as const).map(([label, value]) => (
-                        <div key={label} className="flex items-start gap-2.5 text-sm">
-                          <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border">
-                            <X className="h-3 w-3 text-muted-foreground" strokeWidth={2.5} />
-                          </span>
-                          <div className="min-w-0">
-                            <span className="font-medium">{label}:</span>
-                            <span className="ml-1 text-muted-foreground">{value}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+              {/* Redesigned comparison table */}
+              <div className="rounded-2xl border overflow-hidden shadow-sm" data-testid="card-coach-compare">
+                {/* Column headers */}
+                <div className="grid grid-cols-2">
+                  <div className="px-5 py-4 bg-muted/40 border-b border-r">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Traditional Trainer</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">$80–150 per session</div>
                   </div>
-                  <div className="p-6 bg-primary/[0.03]">
-                    <div className="mb-4 text-sm font-semibold">LiftOff AI Coach</div>
-                    <div className="space-y-3.5">
-                      {([
-                        ["Cost", "Included — less than 1 session per month"],
-                        ["Availability", "24/7, instant response, any device"],
-                        ["Knowledge", "10 certifications + 7,000+ pages of science"],
-                        ["Cancellations", "Never. Not once."],
-                        ["When life disrupts training", "Physiological analysis + auto-reschedule in 2 min"],
-                        ["Remembers your history", "Perfect recall of every session, goal, and note"],
-                        ["Judgment-free", "Always. Ask anything."],
-                        ["Location", "Anywhere — phone, laptop, no commute"],
-                      ] as const).map(([label, value]) => (
-                        <div key={label} className="flex items-start gap-2.5 text-sm">
-                          <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" strokeWidth={2.5} />
-                          <div className="min-w-0">
-                            <span className="font-medium">{label}:</span>
-                            <span className="ml-1 text-muted-foreground">{value}</span>
-                          </div>
-                        </div>
-                      ))}
+                  <div className="px-5 py-4 bg-primary/10 border-b relative">
+                    <div className="absolute top-3 right-4">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground uppercase tracking-wide">
+                        <Sparkles className="h-2.5 w-2.5" /> Recommended
+                      </span>
                     </div>
+                    <div className="text-xs font-semibold text-primary uppercase tracking-wider">LiftOff AI Coach</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">Less than 1 session/month</div>
                   </div>
                 </div>
-              </Card>
+
+                {/* Comparison rows */}
+                {([
+                  ["Cost", "$80–$150 per session", "<$12/month — free to try"],
+                  ["Availability", "Their hours only — book ahead", "24/7, instant response, any device"],
+                  ["Knowledge base", "1–2 certifications studied", "10 certifications + 7,000+ pages of science"],
+                  ["Cancellations", "It happens — rescheduling is on you", "Never cancels. Not once."],
+                  ["Life disruptions", '"Just skip the week"', "Physiological analysis + auto-reschedule in 2 min"],
+                  ["Remembers history", "Only if they take good notes", "Perfect recall of every session, goal, and note"],
+                  ["Judgment-free", "Depends on the trainer", "Always. Ask anything, any time."],
+                  ["Location", "Their gym or yours — you commute", "Anywhere — phone, laptop, no commute"],
+                ] as const).map(([label, traditional, liftoff], i) => (
+                  <div key={label} className={`grid grid-cols-2 ${i < 7 ? 'border-b' : ''}`}>
+                    <div className="p-4 border-r bg-muted/10">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <span className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-red-500/10">
+                          <X className="h-2.5 w-2.5 text-red-500" strokeWidth={3} />
+                        </span>
+                        <span>{traditional}</span>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-primary/[0.03]">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
+                      <div className="flex items-start gap-2 text-sm">
+                        <span className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/15">
+                          <Check className="h-2.5 w-2.5 text-primary" strokeWidth={3} />
+                        </span>
+                        <span className="font-medium text-foreground">{liftoff}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               {/* Feature cards */}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -827,37 +812,44 @@ export default function Signup() {
                   </Button>
                 </div>
               </Card>
-            </TabsContent>
+          </div>
+        </section>
 
-            {/* ── Lift Diagnostics Tab ── */}
-            <TabsContent value="diagnostic" className="mt-0 space-y-4" data-testid="tab-content-diagnostic">
-              <div className="max-w-3xl">
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Enter your working weights for your target lift and related exercises. Our AI — trained on lift biomechanics, strength ratios, and muscle activation patterns — analyzes your data just like an elite coach would, but with precision and consistency. The result: a detailed diagnosis of your weak points and a targeted accessory plan to break through.
-                </p>
-              </div>
+        {/* ── Lift Diagnostics Section ──────────────────────────────── */}
+        <section className="pb-16 sm:pb-24" data-testid="tab-content-diagnostic">
+          <div className="max-w-3xl mb-7">
+            <div className="text-xs font-semibold text-muted-foreground">
+              Lift Diagnostics
+            </div>
+            <h2 className="mt-2 text-balance text-2xl font-semibold tracking-tight">
+              Find exactly what's holding your lift back.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Enter your working weights for your target lift and related exercises. Our AI — trained on lift biomechanics, strength ratios, and muscle activation patterns — analyzes your data just like an elite coach would, but with precision and consistency.
+            </p>
+          </div>
 
-              <div className="grid gap-3">
-                <ComparisonRow
-                  left="Generic programs assume everyone fails for the same reason."
-                  right="Analyzes YOUR working weights to see which muscles are lagging behind."
-                  testId="row-compare-1"
-                />
-                <ComparisonRow
-                  left="Apps can't tell if your weak lockout is triceps, technique, or leverage."
-                  right="Calculates strength ratios (e.g., close-grip vs bench) to identify limiters."
-                  testId="row-compare-2"
-                />
-                <ComparisonRow
-                  left="In-person coaches: $100+/session to diagnose weak points."
-                  right="AI analyzes lift phases, biomechanics, and prescribes targeted accessories."
-                  testId="row-compare-3"
-                />
-              </div>
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              <ComparisonRow
+                left="Generic programs assume everyone fails for the same reason."
+                right="Analyzes YOUR working weights to see which muscles are lagging behind."
+                testId="row-compare-1"
+              />
+              <ComparisonRow
+                left="Apps can't tell if your weak lockout is triceps, technique, or leverage."
+                right="Calculates strength ratios (e.g., close-grip vs bench) to identify limiters."
+                testId="row-compare-2"
+              />
+              <ComparisonRow
+                left="In-person coaches: $100+/session to diagnose weak points."
+                right="AI analyzes lift phases, biomechanics, and prescribes targeted accessories."
+                testId="row-compare-3"
+              />
+            </div>
 
-              <PreviewSection />
-            </TabsContent>
-          </Tabs>
+            <PreviewSection />
+          </div>
         </section>
 
         <section className="pb-16 sm:pb-24" data-testid="section-wearables">

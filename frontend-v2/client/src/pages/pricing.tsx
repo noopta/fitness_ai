@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,12 +63,20 @@ const tiers = [
 
 export default function Pricing() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
 
   function handleProClick() {
-    const url = user
-      ? `${STRIPE_PRO_URL}?client_reference_id=${user.id}`
-      : STRIPE_PRO_URL;
+    if (!user) {
+      navigate('/login?redirect=/pricing');
+      return;
+    }
+    const url = `${STRIPE_PRO_URL}?client_reference_id=${user.id}`;
     window.open(url, "_blank");
+  }
+
+  function handleFreeClick() {
+    if (user) return; // already signed in, button shown as disabled/link
+    navigate('/register');
   }
 
   return (
@@ -142,16 +150,26 @@ export default function Pricing() {
                   </div>
 
                   <div className="mt-8">
-                    {tier.href ? (
-                      <Button
-                        variant={tier.ctaVariant}
-                        className="w-full rounded-xl"
-                        asChild
-                      >
-                        <Link href={tier.href!}>
-                          {tier.cta}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
+                    {tier.id === "free" ? (
+                      user ? (
+                        <Button variant="outline" className="w-full rounded-xl" disabled={user.tier === "free"} asChild={user.tier !== "free"}>
+                          {user.tier === "free" ? (
+                            <span>Current Plan</span>
+                          ) : (
+                            <Link href="/coach">Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                          )}
+                        </Button>
+                      ) : (
+                        <Button variant="outline" className="w-full rounded-xl" asChild>
+                          <Link href="/register">
+                            {tier.cta}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )
+                    ) : user?.tier === "pro" ? (
+                      <Button variant="outline" className="w-full rounded-xl" disabled>
+                        Current Plan
                       </Button>
                     ) : (
                       <Button
@@ -159,7 +177,7 @@ export default function Pricing() {
                         className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold shadow-lg hover:shadow-xl"
                         onClick={handleProClick}
                       >
-                        {tier.cta}
+                        {user ? tier.cta : "Sign in to Upgrade"}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     )}

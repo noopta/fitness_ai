@@ -194,11 +194,11 @@ export function LifeHappenedModal({ onClose, onApplied }: Props) {
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center gap-5 py-16 px-6"
               >
-                <div className="relative">
+                <div className="flex items-center gap-4">
                   <div className="h-14 w-14 rounded-2xl bg-primary/10 grid place-items-center">
                     <Sparkles className="h-6 w-6 text-primary" />
                   </div>
-                  <Loader2 className="absolute -bottom-1 -right-1 h-5 w-5 animate-spin text-primary" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
                 <div className="text-center space-y-1">
                   <p className="font-semibold text-sm">Analyzing your situation…</p>

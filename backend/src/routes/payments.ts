@@ -56,6 +56,20 @@ router.post('/payments/webhook', async (req, res) => {
         });
         console.log(`✓ User ${userId} upgraded to pro`);
       }
+    } else if (event.type === 'customer.subscription.updated') {
+      const subscription = event.data.object;
+      const customerId = subscription.customer;
+      const status = subscription.status; // active, past_due, canceled, unpaid, etc.
+
+      const user = await prisma.user.findFirst({ where: { stripeCustomerId: customerId } });
+      if (user) {
+        const newTier = status === 'active' ? 'pro' : user.tier;
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { stripeSubStatus: status, tier: newTier }
+        });
+        console.log(`✓ User ${user.id} subscription updated: ${status}`);
+      }
     } else if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
       const customerId = subscription.customer;
@@ -67,6 +81,18 @@ router.post('/payments/webhook', async (req, res) => {
           data: { tier: 'free', stripeSubStatus: 'canceled' }
         });
         console.log(`✓ User ${user.id} downgraded to free`);
+      }
+    } else if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data.object;
+      const customerId = invoice.customer;
+
+      const user = await prisma.user.findFirst({ where: { stripeCustomerId: customerId } });
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { stripeSubStatus: 'past_due' }
+        });
+        console.log(`⚠ User ${user.id} payment failed — marked past_due`);
       }
     }
   } catch (err) {

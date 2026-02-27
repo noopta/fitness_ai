@@ -100,6 +100,17 @@ const STEPS: Step[] = [
     sectionIcon: Heart,
   },
   {
+    id: 'gender',
+    type: 'choice',
+    question: 'What is your biological sex?',
+    subtext: 'This calibrates caloric targets, hormone-related recommendations, and nutritional guidance. Males and females have different baseline calorie needs, hormonal profiles, and respond differently to certain vitamins and foods.',
+    choices: [
+      { value: 'male', label: 'Male', desc: 'Biological male' },
+      { value: 'female', label: 'Female', desc: 'Biological female' },
+      { value: 'prefer_not_to_say', label: 'Prefer not to say', desc: 'Skip this question' },
+    ],
+  },
+  {
     id: 'parqScreening',
     type: 'multiselect',
     question: 'PAR-Q Safety Screen — check any that apply to you',

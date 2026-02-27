@@ -900,7 +900,11 @@ export async function generateNutritionPlan(params: {
   primaryLimiter: string | null;
   selectedLift: string | null;
   budget?: string | null;
+  gender?: string | null;
 }): Promise<NutritionPlanResult> {
+  const genderNote = params.gender && params.gender !== 'prefer_not_to_say'
+    ? `- Biological sex: ${params.gender} — adjust caloric targets accordingly (females typically need 200–400 fewer kcal/day than males of similar weight; females may also benefit from higher iron, calcium, and folate; males may benefit from zinc and vitamin D for testosterone support)`
+    : '';
   const prompt = `You are a certified sports nutritionist. Based on the athlete profile below, generate a macro plan and food recommendations.
 
 ATHLETE PROFILE:
@@ -909,6 +913,7 @@ ATHLETE PROFILE:
 - Training age: ${params.trainingAge || 'intermediate'}
 - Primary lift: ${params.selectedLift || 'unknown'}
 - Primary weakness identified: ${params.primaryLimiter || 'none identified'}
+${genderNote}
 ${params.budget ? `- Weekly food budget: ${params.budget} — suggest affordable, practical foods within this budget` : ''}
 
 INSTRUCTIONS:
@@ -1071,6 +1076,7 @@ export async function generateTrainingProgram(params: {
     efficiencyScore?: number;
     indices?: Record<string, { value: number; confidence: number } | null>;
   } | null;
+  gender?: string | null;
 }): Promise<TrainingProgram> {
   // Parse coachProfile for richer context
   let profileContext = '';
@@ -1097,6 +1103,9 @@ export async function generateTrainingProgram(params: {
       if (profile.aestheticGoals) lines.push(`- Aesthetic goals: ${profile.aestheticGoals}`);
       if (profile.pastAttempts) lines.push(`- Past attempts/struggles: ${profile.pastAttempts}`);
       if (profile.commitment) lines.push(`- Commitment level: ${profile.commitment}`);
+      // Gender from profile or explicit param
+      const genderVal = params.gender || profile.gender;
+      if (genderVal && genderVal !== 'prefer_not_to_say') lines.push(`- Biological sex: ${genderVal} — factor into volume tolerance, hormonal recovery, and caloric needs`);
       profileContext = lines.length > 0 ? `\nFULL CONSULTATION PROFILE:\n${lines.join('\n')}` : '';
     } catch { /* ignore parse errors */ }
   }
