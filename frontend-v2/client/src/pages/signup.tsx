@@ -724,22 +724,22 @@ export default function Signup() {
                 </div>
               </Card>
 
-              {/* Redesigned comparison table */}
+              {/* Comparison table */}
               <div className="rounded-2xl border overflow-hidden shadow-sm" data-testid="card-coach-compare">
                 {/* Column headers */}
                 <div className="grid grid-cols-2">
-                  <div className="px-5 py-4 bg-muted/40 border-b border-r">
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Traditional Trainer</div>
-                    <div className="text-sm text-muted-foreground mt-0.5">$80–150 per session</div>
+                  <div className="px-6 py-5 bg-muted/50 border-b border-r">
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Traditional Trainer</div>
+                    <div className="text-sm text-muted-foreground mt-1">$80–150 per session</div>
                   </div>
-                  <div className="px-5 py-4 bg-primary/10 border-b relative">
-                    <div className="absolute top-3 right-4">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground uppercase tracking-wide">
+                  <div className="px-6 py-5 bg-primary/10 border-b relative">
+                    <div className="absolute top-4 right-5">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-bold text-background uppercase tracking-wide">
                         <Sparkles className="h-2.5 w-2.5" /> Recommended
                       </span>
                     </div>
-                    <div className="text-xs font-semibold text-primary uppercase tracking-wider">LiftOff AI Coach</div>
-                    <div className="text-sm text-muted-foreground mt-0.5">Less than 1 session/month</div>
+                    <div className="text-xs font-bold text-primary uppercase tracking-widest">LiftOff AI Coach</div>
+                    <div className="text-sm text-muted-foreground mt-1">Less than 1 session/month</div>
                   </div>
                 </div>
 
@@ -753,22 +753,29 @@ export default function Signup() {
                   ["Remembers history", "Only if they take good notes", "Perfect recall of every session, goal, and note"],
                   ["Judgment-free", "Depends on the trainer", "Always. Ask anything, any time."],
                   ["Location", "Their gym or yours — you commute", "Anywhere — phone, laptop, no commute"],
-                ] as const).map(([label, traditional, liftoff], i) => (
-                  <div key={label} className={`grid grid-cols-2 ${i < 7 ? 'border-b' : ''}`}>
-                    <div className="p-4 border-r bg-muted/10">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
+                  ["Strength diagnostics", "Subjective eye test — easy to miss", "e1RM + strength ratios pinpoint your exact muscle limiter"],
+                  ["Nutrition planning", "Generic macros or expensive RD referral", "Personalized caloric targets + meal suggestions by budget"],
+                  ["Program adaptation", "Manual tweaks only when you ask", "Wellness check-ins auto-adjust intensity and volume daily"],
+                  ["Injury prevention", "Felt in the moment, reactive", "Strength ratio flags imbalances before injury occurs"],
+                  ["Progress analytics", "Notes in a notebook, if remembered", "Balance scores, phase trends, and full session history"],
+                  ["Exercise library", "Verbal cues during your paid session", "Curated video breakdowns with biomechanics for every accessory"],
+                  ["Gender & hormone factors", "Rarely discussed", "Caloric targets + hormonal guidance adjusted by biological sex"],
+                ] as [string, string, string][]).map(([label, traditional, liftoff], i, arr) => (
+                  <div key={label} className={`grid grid-cols-2 ${i < arr.length - 1 ? 'border-b' : ''}`}>
+                    <div className="px-5 py-4 border-r bg-muted/10">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{label}</div>
                       <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-red-500/10">
-                          <X className="h-2.5 w-2.5 text-red-500" strokeWidth={3} />
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500/10">
+                          <X className="h-3 w-3 text-red-500" strokeWidth={3} />
                         </span>
                         <span>{traditional}</span>
                       </div>
                     </div>
-                    <div className="p-4 bg-primary/[0.03]">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</div>
+                    <div className="px-5 py-4 bg-primary/[0.03]">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{label}</div>
                       <div className="flex items-start gap-2 text-sm">
-                        <span className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/15">
-                          <Check className="h-2.5 w-2.5 text-primary" strokeWidth={3} />
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15">
+                          <Check className="h-3 w-3 text-primary" strokeWidth={3} />
                         </span>
                         <span className="font-medium text-foreground">{liftoff}</span>
                       </div>
