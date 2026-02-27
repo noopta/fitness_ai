@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { liftCoachApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
 import {
   ArrowRight,
   Brain,
@@ -26,8 +24,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import bodyMapFront from "@/assets/images/body-map-front.png";
 import bodyMapBack from "@/assets/images/body-map-back.png";
@@ -447,12 +443,78 @@ const BODY_AREAS = {
 
 type BodyAreaKey = keyof typeof BODY_AREAS;
 
+const HERO_VARIANTS = [
+  {
+    badges: [
+      { icon: "Zap", text: "24/7 AI Coach" },
+      { icon: "Brain", text: "10 certifications" },
+      { icon: "Target", text: "Lift diagnostics" },
+    ],
+    title: "Smarter than any trainer.",
+    titleMuted: " Trained on 10 certifications + 7,000 pages of science.",
+    subtitle: "LiftOff combines an elite AI coach with precision lift diagnostics. Get personalized programs, nutrition guidance, and biomechanical analysis — 24/7, judgment-free, never cancels. Plus pinpoint exactly what's limiting your bench, squat, or deadlift.",
+  },
+  {
+    badges: [
+      { icon: "MessageCircle", text: "Always-on coach" },
+      { icon: "Scale", text: "Strength diagnostics" },
+      { icon: "Sparkles", text: "Science-backed" },
+    ],
+    title: "The coach that never sleeps.",
+    titleMuted: " And the diagnostics that never guess.",
+    subtitle: "Two products in one: an AI coach trained on every major certification, and lift diagnostics that calculate your exact muscle limiters from your working weights. Programs, nutrition, injury prevention — plus e1RM and strength ratios to break plateaus.",
+  },
+  {
+    badges: [
+      { icon: "Brain", text: "Elite knowledge" },
+      { icon: "Clock", text: "24/7 availability" },
+      { icon: "ShieldCheck", text: "Lift analysis" },
+    ],
+    title: "More knowledge than any human trainer.",
+    titleMuted: " Plus diagnostics that find your exact limiter.",
+    subtitle: "No trainer has read every major textbook. LiftOff's AI has — and recalls it instantly. Get personalized coaching, nutrition, and program adaptation. Then run a diagnostic to pinpoint which muscles are holding back your bench, squat, or deadlift.",
+  },
+  {
+    badges: [
+      { icon: "RefreshCw", text: "Auto-reschedule" },
+      { icon: "NotebookPen", text: "Perfect recall" },
+      { icon: "Dumbbell", text: "Lift diagnostics" },
+    ],
+    title: "AI Coach + Lift Diagnostics.",
+    titleMuted: " The full stack for serious lifters.",
+    subtitle: "Your AI coach adapts when life happens — sick, travel, fatigue. It remembers every session and goal. And when you're stuck on a lift, our diagnostics use strength ratios and biomechanics to find your exact weak point. One platform. Zero guesswork.",
+  },
+  {
+    badges: [
+      { icon: "Sparkles", text: "AI Coach" },
+      { icon: "LineChart", text: "Diagnostics" },
+      { icon: "Zap", text: "Evidence-based" },
+    ],
+    title: "Break through your plateau.",
+    titleMuted: " Then break through the next.",
+    subtitle: "Start with lift diagnostics to find what's limiting you. Then level up with an AI coach trained on 10 certifications — programs, nutrition, wellness check-ins, Life Happened auto-reschedule. The smartest coach and the most precise diagnostics, together.",
+  },
+] as const;
+
+const BADGE_ICONS: Record<string, React.ReactNode> = {
+  Zap: <Zap className="h-3.5 w-3.5" />,
+  Brain: <Brain className="h-3.5 w-3.5" />,
+  Target: <Target className="h-3.5 w-3.5" />,
+  MessageCircle: <MessageCircle className="h-3.5 w-3.5" />,
+  Scale: <Scale className="h-3.5 w-3.5" />,
+  Sparkles: <Sparkles className="h-3.5 w-3.5" />,
+  Clock: <Clock className="h-3.5 w-3.5" />,
+  ShieldCheck: <ShieldCheck className="h-3.5 w-3.5" />,
+  RefreshCw: <RefreshCw className="h-3.5 w-3.5" />,
+  NotebookPen: <NotebookPen className="h-3.5 w-3.5" />,
+  Dumbbell: <Dumbbell className="h-3.5 w-3.5" />,
+  LineChart: <LineChart className="h-3.5 w-3.5" />,
+};
+
 export default function Signup() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const [selectedArea, setSelectedArea] = useState<BodyAreaKey>("shoulders");
-  const { user, loading: authLoading, refreshUser } = useAuth();
-  const [, navigate] = useLocation();
+  const { user, refreshUser } = useAuth();
+  const hero = HERO_VARIANTS[0];
 
   // Handle ?auth=success from Google OAuth (in case callback lands here instead of /login)
   useEffect(() => {
@@ -463,38 +525,8 @@ export default function Signup() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Do NOT auto-redirect logged-in users away — let them see the landing with their name
-
   const selectedAreaMeta = BODY_AREAS[selectedArea];
   const selectedAreaLabel = selectedAreaMeta.label;
-
-  const isValidEmail = useMemo(() => {
-    if (!email) return false;
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  }, [email]);
-
-  async function submit() {
-    if (!isValidEmail) {
-      toast.error("Please enter a valid email.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const result = await liftCoachApi.joinWaitlist(email.trim());
-      if (result.success) {
-        toast.success("You've joined the waitlist! Check your email for confirmation.");
-        setEmail("");
-      } else {
-        toast.error(result.message || "Something went wrong. Please try again.");
-      }
-    } catch (error) {
-      console.error("Waitlist signup error:", error);
-      toast.error("Failed to join waitlist. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="page">
@@ -508,36 +540,29 @@ export default function Signup() {
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="flex flex-wrap items-center gap-2">
-              <ValuePill
-                icon={<Zap className="h-3.5 w-3.5" />}
-                text="Lift phase analysis"
-                testId="badge-value-ai"
-              />
-              <ValuePill
-                icon={<Scale className="h-3.5 w-3.5" />}
-                text="Strength ratio insights"
-                testId="badge-value-prescription"
-              />
-              <ValuePill
-                icon={<Target className="h-3.5 w-3.5" />}
-                text="Targeted accessories"
-                testId="badge-value-bodymap"
-              />
+              {hero.badges.map((b, i) => (
+                <ValuePill
+                  key={i}
+                  icon={BADGE_ICONS[b.icon] ?? <Zap className="h-3.5 w-3.5" />}
+                  text={b.text}
+                  testId={`badge-value-${i}`}
+                />
+              ))}
             </div>
 
             <h1
               className="mt-6 text-balance text-4xl font-semibold tracking-tight sm:text-5xl"
               data-testid="text-signup-hero-title"
             >
-              Break through your plateau.
-              <span className="text-muted-foreground"> Then break through the next.</span>
+              {hero.title}
+              <span className="text-muted-foreground">{hero.titleMuted}</span>
             </h1>
 
             <p
               className="mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
               data-testid="text-signup-hero-subtitle"
             >
-              Stuck on your bench, squat, or deadlift? Traditional coaches analyze your mechanics in person—expensive and time-consuming. LiftOff brings that expertise to AI: we feed your working weights, strength ratios, and lift biomechanics into advanced analysis to diagnose <span className="font-medium text-foreground">exactly where in the lift you're failing</span>, <span className="font-medium text-foreground">which muscles are limiting you</span>, and <span className="font-medium text-foreground">what accessories to add</span>. Highly detailed. Highly accurate. No guesswork.
+              {hero.subtitle}
             </p>
 
             <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
@@ -569,35 +594,20 @@ export default function Signup() {
                 ) : (
                   <>
                     <div className="text-sm font-semibold" data-testid="text-email-title">
-                      Get notified at launch
+                      Try the lift diagnostic demo
                     </div>
                     <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
-                      Join the waitlist and be first to know when we launch.
+                      See what's limiting your bench, squat, or deadlift in under 2 minutes. Free, no credit card required.
                     </div>
 
-                    <div className="mt-5 grid gap-2">
-                      <Label data-testid="label-email">Email</Label>
-                      <Input
-                        type="email"
-                        placeholder="you@domain.com"
-                        className="h-11"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") submit();
-                        }}
-                        data-testid="input-email"
-                      />
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
                       <Button
                         className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
                         data-testid="button-get-started"
                         asChild
                       >
                         <Link href="/register">
-                          Get Started Free
+                          Try Demo
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
@@ -609,18 +619,6 @@ export default function Signup() {
                       >
                         <Link href="/login">Sign In</Link>
                       </Button>
-                    </div>
-
-                    <div className="mt-3 text-xs text-muted-foreground" data-testid="text-email-note">
-                      Or{' '}
-                      <button
-                        className="underline hover:text-foreground transition-colors"
-                        onClick={submit}
-                        disabled={loading}
-                      >
-                        {loading ? 'Joining...' : 'join the waitlist'}
-                      </button>
-                      {' '}to be notified at launch.
                     </div>
                   </>
                 )}
@@ -665,7 +663,7 @@ export default function Signup() {
         </section>
 
         {/* ── AI Coach Section ─────────────────────────────────────── */}
-        <section className="py-16 sm:py-24 px-4 bg-slate-50 dark:bg-slate-900/30" data-testid="section-products">
+        <section className="py-16 sm:py-24 px-4" data-testid="section-products">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center mb-10">
               <h2
@@ -1201,19 +1199,19 @@ export default function Signup() {
             <div className="grid gap-3 md:grid-cols-[1.2fr_0.8fr] md:items-center">
               <div>
                 <div className="text-xs font-semibold text-muted-foreground" data-testid="text-cta-eyebrow">
-                  Early access
+                  Ready to find your weak point?
                 </div>
                 <div
                   className="mt-2 text-balance text-2xl font-semibold tracking-tight"
                   data-testid="text-cta-title"
                 >
-                  Join the waitlist.
+                  Try the demo — free.
                 </div>
                 <div
                   className="mt-3 text-sm leading-relaxed text-muted-foreground"
                   data-testid="text-cta-subtitle"
                 >
-                  We'll notify you when LiftOff launches.
+                  Sign up in seconds. No credit card required. See what's limiting your lifts.
                 </div>
               </div>
               <div className="flex flex-wrap gap-3 md:justify-end">
@@ -1223,7 +1221,7 @@ export default function Signup() {
                   data-testid="button-cta-join"
                 >
                   <Link href="/register">
-                    Get Started Free
+                    Try Demo
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>

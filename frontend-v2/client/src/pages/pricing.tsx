@@ -47,6 +47,8 @@ const tiers = [
     href: null, // handled by onClick
     badge: "Most popular",
     features: [
+      "Smarter than any trainer — trained on 10 CPT certifications + 7,000+ pages of science",
+      "100% evidence-based — medical textbooks, biomechanics, no guesswork",
       "Unlimited diagnostic analyses — diagnose every lift, every week",
       "Personalized multi-phase training program (4–16 weeks)",
       "AI-generated nutrition plan with macro targets & meal ideas",
