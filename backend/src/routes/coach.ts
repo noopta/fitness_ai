@@ -269,6 +269,9 @@ router.post('/coach/nutrition-plan', requireAuth, async (req, res) => {
       selectedLift: params.selectedLift ?? null,
       budget: params.budget ?? null,
       gender: resolvedGender,
+      dietaryRestrictions: coachProfileObj?.dietaryRestrictions || null,
+      nutritionQuality: coachProfileObj?.nutritionQuality || null,
+      currentProteinIntake: coachProfileObj?.proteinIntake || null,
     });
     res.json(plan);
   } catch (err: any) {
@@ -343,6 +346,9 @@ router.post('/coach/program', requireAuth, async (req, res) => {
         selectedLift: user.sessions[0]?.selectedLift || null,
         budget: user.coachBudget || null,
         gender: resolvedGender,
+        dietaryRestrictions: coachProfileObj?.dietaryRestrictions || null,
+        nutritionQuality: coachProfileObj?.nutritionQuality || null,
+        currentProteinIntake: coachProfileObj?.proteinIntake || null,
       }).catch(() => null),
     ]);
 
@@ -756,11 +762,14 @@ router.post('/coach/meal-suggestions', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Pro feature', upgrade: true });
     }
     const params = mealSuggestionsSchema.parse(req.body);
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { coachProfile: true, coachBudget: true } });
+    const coachProfileObj = user?.coachProfile ? (() => { try { return JSON.parse(user.coachProfile!); } catch { return {}; } })() : {};
     const meals = await generateMealSuggestions({
       macros: params.macros,
-      budget: params.budget ?? null,
+      budget: params.budget ?? user?.coachBudget ?? null,
       goal: params.goal ?? null,
       numberOfMeals: params.numberOfMeals ?? 5,
+      dietaryRestrictions: coachProfileObj?.dietaryRestrictions || null,
     });
     res.json({ meals });
   } catch (err: any) {

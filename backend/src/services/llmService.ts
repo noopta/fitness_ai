@@ -900,6 +900,23 @@ export interface MealSuggestion {
   keyIngredients: string[];
 }
 
+/**
+ * Converts a dietary restriction value (from coachProfile) into a human-readable
+ * instruction block for LLM prompts.
+ */
+function buildDietaryNote(dietaryRestrictions: string | null | undefined): string {
+  if (!dietaryRestrictions || dietaryRestrictions === 'none') return '';
+  const map: Record<string, string> = {
+    vegetarian:   'DIETARY RESTRICTION: Vegetarian — no meat or fish. Use eggs, dairy, legumes, tofu, tempeh as protein sources.',
+    vegan:        'DIETARY RESTRICTION: Vegan — no animal products whatsoever (no meat, fish, eggs, dairy, honey). Use legumes, tofu, tempeh, edamame, seitan, nutritional yeast, plant-based protein.',
+    gluten_free:  'DIETARY RESTRICTION: Gluten-free — no wheat, barley, rye, or regular oats. Use rice, quinoa, certified GF oats, potatoes, corn.',
+    dairy_free:   'DIETARY RESTRICTION: Dairy-free — no milk, cheese, yogurt, whey, or butter. Use plant milks, dairy-free yogurt, plant-based protein powders (pea, rice, hemp).',
+    halal_kosher: 'DIETARY RESTRICTION: Halal/Kosher — no pork or pork derivatives; halal/kosher meat sourcing required. Avoid shellfish for kosher.',
+    allergies:    'DIETARY RESTRICTION: Food allergies reported — avoid common allergens (nuts, shellfish, etc.). Do not suggest nut-based foods, shellfish, or any high-allergen foods.',
+  };
+  return map[dietaryRestrictions] || `DIETARY RESTRICTION: ${dietaryRestrictions} — respect this restriction in all food suggestions.`;
+}
+
 // Mifflin-St Jeor BMR → TDEE estimate
 function estimateTDEE(params: { weightKg: number | null; heightCm: number | null; gender: string | null }): number | null {
   if (!params.weightKg) return null;
@@ -924,6 +941,9 @@ export async function generateNutritionPlan(params: {
   selectedLift: string | null;
   budget?: string | null;
   gender?: string | null;
+  dietaryRestrictions?: string | null;
+  nutritionQuality?: string | null;
+  currentProteinIntake?: string | null;
 }): Promise<NutritionPlanResult> {
   const genderNote = params.gender && params.gender !== 'prefer_not_to_say'
     ? `- Biological sex: ${params.gender} — adjust caloric targets accordingly (females typically need 200–400 fewer kcal/day than males of similar weight; females may also benefit from higher iron, calcium, and folate; males may benefit from zinc and vitamin D for testosterone support)`
@@ -933,6 +953,14 @@ export async function generateNutritionPlan(params: {
   const tdeeNote = tdee
     ? `- Estimated TDEE (Mifflin-St Jeor × 1.55 activity): ${tdee} kcal/day — use this as your maintenance baseline when setting caloric targets`
     : '';
+
+  // Build dietary restrictions note
+  const dietaryNote = buildDietaryNote(params.dietaryRestrictions);
+
+  const nutritionBaselineNote = [
+    params.nutritionQuality ? `- Current nutrition quality self-assessment: ${params.nutritionQuality}` : '',
+    params.currentProteinIntake ? `- Current estimated protein intake: ${params.currentProteinIntake}` : '',
+  ].filter(Boolean).join('\n');
 
   const prompt = `You are a certified sports nutritionist. Based on the athlete profile below, generate a macro plan and food recommendations using evidence-based formulas (Mifflin-St Jeor for TDEE, 0.7–1g/lb protein for strength athletes).
 
@@ -945,12 +973,14 @@ ${params.heightCm ? `- Height: ${params.heightCm} cm` : ''}
 - Primary weakness identified: ${params.primaryLimiter || 'none identified'}
 ${tdeeNote}
 ${genderNote}
+${nutritionBaselineNote}
+${dietaryNote ? dietaryNote : ''}
 ${params.budget ? `- Weekly food budget: ${params.budget} — suggest affordable, practical foods within this budget` : ''}
 
 INSTRUCTIONS:
 - Calculate daily macros (protein, carbs, fat in grams) appropriate for the goal, anchored to the TDEE if provided
 - For fat loss: 300–500 kcal deficit. For muscle gain: 200–350 kcal surplus. For recomp/maintenance: at TDEE.
-- Suggest 5–7 specific whole foods that support the training goal and weakness
+- Suggest 5–7 specific whole foods that support the training goal and weakness${dietaryNote ? '\n- ALL food suggestions MUST comply with the dietary restrictions above — do not suggest any excluded foods' : ''}
 - Provide a brief rationale (2–3 sentences) explaining the macro split
 - Describe the expected impact across 4 dimensions (1 sentence each, specific and practical)
 - Calculate expected outcomes: weekly weight change in lb (3500 kcal = 1 lb), monthly, and a strength note
@@ -997,9 +1027,12 @@ export async function generateMealSuggestions(params: {
   budget?: string | null;
   goal?: string | null;
   numberOfMeals?: number;
+  dietaryRestrictions?: string | null;
 }): Promise<MealSuggestion[]> {
   const n = params.numberOfMeals || 5;
   const dailyCalories = params.macros.calories;
+  const dietaryNote = buildDietaryNote(params.dietaryRestrictions);
+
   const prompt = `You are a sports nutritionist and meal planning expert. Suggest ${n} practical meals that fit the macro targets below.
 
 DAILY TARGETS:
@@ -1009,6 +1042,7 @@ DAILY TARGETS:
 - Fat: ${params.macros.fatG}g
 - Training goal: ${params.goal || 'strength'}
 ${params.budget ? `- Weekly food budget: ${params.budget} — prioritize affordable, budget-friendly options` : ''}
+${dietaryNote ? `\n${dietaryNote}` : ''}
 
 REQUIREMENTS:
 - Mix meal types: breakfast, lunch, dinner, snack
@@ -1017,6 +1051,7 @@ REQUIREMENTS:
 - Keep ingredients simple and widely available
 - Cost estimates in USD per serving
 - Prep time under 35 minutes for most meals
+${dietaryNote ? '- ALL meals MUST strictly comply with the dietary restriction above — no exceptions' : ''}
 ${params.budget ? '- Prioritize cheap proteins (eggs, canned fish, chicken thighs, legumes)' : ''}
 
 OUTPUT FORMAT (JSON only — array, no wrapper):
