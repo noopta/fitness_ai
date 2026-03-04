@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { authApi, loadToken, setToken, AuthUser } from '@/lib/api';
@@ -64,10 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (token) {
             await setToken(token);
             await refreshUser();
+          } else {
+            const authError = url.searchParams.get('auth');
+            if (authError === 'error') {
+              Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
+            }
           }
+        } else if (result.type === 'cancel') {
+          // User cancelled — no error needed
         }
       }
-    } catch {
+    } catch (err: any) {
+      Alert.alert('Sign In Failed', err?.message || 'Could not complete Google sign-in.');
     }
   }
 

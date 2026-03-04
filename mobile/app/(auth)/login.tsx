@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -40,12 +40,11 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Image
-              source={require('../../assets/axiom-logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Sign in to Axiom</Text>
+            <View style={styles.logoMark}>
+              <Text style={styles.logoText}>L</Text>
+            </View>
+            <Text style={styles.appName}>LiftOff</Text>
+            <Text style={styles.title}>Sign in to your account</Text>
             <View style={styles.subtitleRow}>
               <Text style={styles.subtitle}>Don't have an account? </Text>
               <Link href="/(auth)/register">
@@ -126,15 +125,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logo: {
+  logoMark: {
     width: 48,
     height: 48,
-    marginBottom: 16,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  logoText: {
+    color: colors.primaryForeground,
+    fontSize: 24,
+    fontWeight: fontWeight.bold,
+  },
+  appName: {
+    color: colors.foreground,
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    marginBottom: 4,
   },
   title: {
-    color: colors.foreground,
-    fontSize: fontSize['2xl'],
-    fontWeight: fontWeight.bold,
+    color: colors.mutedForeground,
+    fontSize: fontSize.sm,
   },
   subtitleRow: {
     flexDirection: 'row',

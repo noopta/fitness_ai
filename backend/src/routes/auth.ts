@@ -78,8 +78,8 @@ router.post('/auth/register', async (req, res) => {
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     // Fire-and-forget notification
-    sendAuthSMS(`🆕 New Axiom signup: ${data.name} (${data.email})`);
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier } });
+    sendAuthSMS(`🆕 New LiftOff signup: ${data.name} (${data.email})`);
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request', details: err.errors });
@@ -111,8 +111,8 @@ router.post('/auth/login', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
-    sendAuthSMS(`🔑 Axiom login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier } });
+    sendAuthSMS(`🔑 LiftOff login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request' });
@@ -127,7 +127,13 @@ router.get('/auth/google', (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const callbackUrl = encodeURIComponent(process.env.GOOGLE_CALLBACK_URL!);
   const scope = encodeURIComponent('openid email profile');
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${callbackUrl}&response_type=code&scope=${scope}&access_type=offline`;
+  // Encode mobile redirect_uri in state so it survives the OAuth round-trip
+  const mobileRedirect = req.query.redirect_uri as string | undefined;
+  const state = mobileRedirect
+    ? encodeURIComponent(Buffer.from(JSON.stringify({ mobileRedirect })).toString('base64'))
+    : '';
+  const stateParam = state ? `&state=${state}` : '';
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${callbackUrl}&response_type=code&scope=${scope}&access_type=offline${stateParam}`;
   res.redirect(url);
 });
 
@@ -185,7 +191,22 @@ router.get('/auth/google/callback', async (req, res) => {
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     sendAuthSMS(`${isNewUser ? '🆕 New Google signup' : '🔑 Google login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
-    res.redirect(`${process.env.FRONTEND_URL}/login?auth=success`);
+
+    // Check for mobile deep-link redirect in state param
+    let mobileRedirect: string | null = null;
+    try {
+      const rawState = req.query.state as string | undefined;
+      if (rawState) {
+        const decoded = JSON.parse(Buffer.from(decodeURIComponent(rawState), 'base64').toString());
+        mobileRedirect = decoded.mobileRedirect || null;
+      }
+    } catch { /* ignore malformed state */ }
+
+    if (mobileRedirect) {
+      res.redirect(`${mobileRedirect}?token=${token}`);
+    } else {
+      res.redirect(`${process.env.FRONTEND_URL}/login?auth=success`);
+    }
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
