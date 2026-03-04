@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  heightCm           Float?
+  weightKg           Float?
+  bodyCompTag        String?   // lean, average, heavy
+  trainingAge        String?   // beginner, intermediate, advanced
+  equipment          String?   // home, commercial, limited
+  constraintsText    String?
+  createdAt          DateTime  @default(now())
+  // Auth fields
+  name               String?
+  email              String?   @unique
+  hashedPassword     String?
+  googleId           String?   @unique
+  dateOfBirth        DateTime?
+  tier               String    @default("free")  // free | pro | enterprise
+  stripeCustomerId   String?
+  stripeSubStatus    String?
+  dailyAnalysisCount Int       @default(0)
+  dailyAnalysisDate  DateTime?
+  coachThreadId      String?              // OpenAI Assistants API thread ID for AI Coach
+  savedProgram       String?              // Saved AI-generated training program JSON
+  coachGoal          String?              // Free-text fitness goal from onboarding interview
+  coachBudget        String?              // Weekly food budget (e.g. "$100/week")
+  coachOnboardingDone Boolean @default(false) // Whether coach onboarding interview is complete
+  coachProfile       String?              // Full JSON blob of onboarding interview answers
+  programStartDate   DateTime?            // When the saved program was first started
+  updatedAt          DateTime  @default(now()) @updatedAt
+  sessions           Session[]
+  nutritionLogs      NutritionLog[]
+  wellnessCheckins   WellnessCheckin[]
+  bodyWeightLogs     BodyWeightLog[]
+}
+
+model NutritionLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  proteinG  Float
+  carbsG    Float
+  fatG      Float
+  notes     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model BodyWeightLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  weightLbs Float
+  notes     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model WellnessCheckin {
+  id         String   @id @default(uuid())
+  userId     String
+  date       String   // YYYY-MM-DD
+  mood       Int      // 1–5
+  energy     Int      // 1–5
+  sleepHours Float
+  stress     Int      // 1–5
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id               String               @id @default(uuid())
+  userId           String?
+  selectedLift     String
+  goal             String?              // strength_peak, hypertrophy, balanced
+  threadId         String?              // OpenAI Assistants API thread ID for chat
+  isPublic         Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  user             User?                @relation(fields: [userId], references: [id])
+  snapshots        ExerciseSnapshot[]
+  messages         DiagnosticMessage[]
+  plans            GeneratedPlan[]
+}
+
+model VideoCache {
+  id         String   @id @default(uuid())
+  exerciseId String   @unique
+  videoId    String
+  title      String
+  thumbnail  String
+  fetchedAt  DateTime @default(now())
+}
+
+model ExerciseSnapshot {
+  id          String   @id @default(uuid())
+  sessionId   String
+  exerciseId  String
+  weight      Float
+  sets        Int
+  repsSchema  String   // e.g., "8" or "6-8"
+  rpeOrRir    String?
+  createdAt   DateTime @default(now())
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model DiagnosticMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  role      String   // user, assistant
+  message   String
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedPlan {
+  id        String   @id @default(uuid())
+  sessionId String
+  planJson  String   // JSON stringified
+  planText  String
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeChunk {
+  id         String   @id @default(uuid())
+  source     String   // "NASM" | "ACE" | "NCSF" | "NFPT"
+  chapter    String?  // Best-guess heading context extracted from surrounding text
+  content    String   // Raw text of the chunk (~600 tokens)
+  embedding  String   // JSON-serialised Float32 array (1536 dims, text-embedding-3-small)
+  tokenCount Int      @default(0)
+  createdAt  DateTime @default(now())
+}

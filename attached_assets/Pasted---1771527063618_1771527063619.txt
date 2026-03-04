@@ -1,0 +1,33 @@
+                                                                                                                                                                              
+● Pushed. Here's where the repo stands:                                                                                                                                         
+                                                                                           
+  58 total commits — started from c34cc32 feat: Complete LiftOff MVP with backend up to today.                                                                                  
+                                                                                                                                                                                
+  Recent history (last 10 commits):                                                                                                                                             
+                                                                                                                                                                                
+  ┌─────────┬────────────────────────────────────────────────────────────┐                                                                                                      
+  │ Commit  │                        Description                         │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ 4260abb │ fix: RPE text parsing (just pushed)                        │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ 40bb018 │ fix: Snapshot save failing on mobile Chrome                │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ b87960e │ Add results chat (API integration, backend endpoint, UI)   │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ a8207e5 │ Fix dominance archetype always returning insufficient data │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ 8a4b25f │ Broaden parseSessionFlags patterns (missing phase scores)  │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ 58fbc72 │ Add AI chat endpoint (OpenAI Assistants API threads)       │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ e04d153 │ Fix: always use EC2 HTTPS for API calls                    │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ caa9c6d │ Fix: route local dev through Vite proxy (CORS)             │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ e200a4d │ Add accessory priority ranking, rename efficiency section  │
+  ├─────────┼────────────────────────────────────────────────────────────┤
+  │ 4dcb06f │ Improve strength profile + phase breakdown visualizations  │
+  └─────────┴────────────────────────────────────────────────────────────┘
+
+  The repo is up to date, origin/main is synced. The DEPLOYMENT_COMPLETE.md and SETUP_VERIFICATION.md files are untracked local-only docs — let me know if you want those
+  committed or ignored.

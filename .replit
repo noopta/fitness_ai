@@ -1,5 +1,5 @@
 entrypoint = "README.md"
-modules = ["nodejs-20"]
+modules = ["nodejs-22"]
 
 [nix]
 channel = "stable-24_05"
@@ -54,3 +54,6 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx eas build --platform android --profile preview"
+
+[agent]
+expertMode = true

@@ -1,0 +1,88 @@
+
+● Now try your request again from the frontend. You should get a clearer error
+  message that tells you exactly what's wrong. The error message will now show:
+
+  1. If session doesn't exist: {"error": "Session not found", "sessionId": 
+  "...", "message": "Please create a session first using POST /api/sessions"}
+  2. If validation fails: {"error": "Validation failed", "details": [array of 
+  specific validation errors]}
+
+  Can you try again and share:
+  1. The exact error message you get
+  2. The session ID your frontend is using
+  3. Whether you created a session first
+
+  Also, make sure your frontend:
+  1. First calls POST /api/sessions to create a session
+  2. Saves the returned session.id
+  3. Then calls POST /api/sessions/:id/snapshots with that saved session ID
+
+  Example flow:
+  // Step 1: Create session
+  const sessionResponse = await
+  fetch('https://luciuslab.xyz:4009/api/sessions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selectedLift: "flat-bench",
+      goal: "strength",
+      profile: { /* ... */ }
+    })
+  });
+  const { session } = await sessionResponse.json();
+  const sessionId = session.id;  // SAVE THIS!
+
+  // Step 2: Add snapshots using the session ID
+  const snapshotsResponse = await
+  fetch(`https://luciuslab.xyz:4009/api/sessions/${sessionId}/snapshots`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      snapshots: [ /* your snapshots */ ]
+    })
+  });
+
+> {,…}
+snapshots
+: 
+[{exerciseId: "flat_bench_press", weight: 225, weightUnit: "lbs", reps: 5, 
+date: "2026-02-13"},…] is the request 
+
+● I see the issue - you're sending the correct format. Let me check if there's
+  a validation issue with the exact data. Can you share the complete request
+  including what session ID you're using?
+
+  Let me test with your exact data to see what's failing:
+
+● Bash(curl -X POST 'https://luciuslab.xyz:4009/api/sessions/8adff0c1-6318-4124-a61
+      e-12afdfc194ac/snapshots' \
+        -H "Content-Type: application/json" \…)
+  ⎿  < HTTP/1.1 200 OK                    
+     < Server: nginx/1.24.0 (Ubuntu)
+     < Date: Fri, 13 Feb 2026 10:30:07 GMT
+     … +3 lines (ctrl+o to expand)
+
+● The request works perfectly! ✅ It returned 200 OK.
+
+  The issue is that your frontend is using a session ID that doesn't exist.
+
+  Can you check:
+
+  1. Open your browser console and look at the Network tab
+  2. Find the failed request to /snapshots
+  3. Look at the URL - what session ID is it using?
+  4. Did you create a session first?
+
+  The problem is likely one of these:
+
+  ❌ Frontend is using a hardcoded/old session ID
+  ❌ Session creation failed but frontend didn't handle the error
+  ❌ Session ID is not being saved correctly
+
+  Can you share your frontend code that:
+  1. Creates the session
+  2. Saves the session ID
+  3. Sends the snapshots request
+
+  Or share a screenshot of the Network tab showing both the session creation
+  request and the snapshots request?
