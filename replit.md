@@ -1,61 +1,99 @@
-# LiftOff - AI-Powered Lift Diagnostics
+# LiftOff / Axiom - AI-Powered Lift Diagnostics
 
 ## Overview
-LiftOff is an AI-powered strength training diagnostic web application that helps lifters identify limiting factors and provides personalized training programs with targeted accessories for compound movements (bench press, squat, deadlift).
+LiftOff (Axiom) is an AI-powered strength training diagnostic platform that helps lifters identify limiting factors and provides personalized training programs with targeted accessories for compound movements (bench press, squat, deadlift). The project includes both a web app and a React Native mobile app.
 
 ## Project Architecture
-The primary application lives in `frontend-v2/` — a React frontend served on port 5000 via Express. All backend logic runs on a remote EC2 server.
+All backend logic runs on a remote EC2 server. The project contains two frontends:
+1. `frontend-v2/` — React web app served on port 5000 via Express
+2. `mobile/` — React Native / Expo mobile app (also previews on port 5000 via Expo web)
 
 ### Directory Structure
-- `frontend-v2/` — Main application
+- `frontend-v2/` — Web application
   - `client/` — React frontend (Vite, React 19, Tailwind CSS v4, shadcn/ui, wouter)
   - `server/` — Express server for serving frontend (TypeScript, Express 5)
   - `shared/` — Shared types and Drizzle schema
   - `attached_assets/` — Static assets and documentation
-- `backend/` — Legacy backend (Prisma + SQLite, NOT used — backend runs on remote EC2)
+- `mobile/` — React Native / Expo mobile app
+  - `app/` — Expo Router file-based routes
+    - `(auth)/` — Auth screens (login, register)
+    - `(tabs)/` — Main tab screens (home, coach, history, settings)
+    - `diagnostic/` — Diagnostic funnel (onboarding → snapshot → chat → plan)
+    - `analysis/[sessionId].tsx` — Session detail view
+  - `src/` — Source code
+    - `components/ui/` — Reusable UI primitives (Button, Card, Input, Badge, Skeleton)
+    - `components/plan/` — Plan visualization (StrengthRadar, PhaseBreakdown, HypothesisRankings)
+    - `constants/theme.ts` — Design tokens (colors, spacing, radius, typography)
+    - `context/AuthContext.tsx` — Auth state management with AsyncStorage persistence
+    - `lib/api.ts` — API client with all endpoints and TypeScript types
+  - `assets/` — App icons and images
+- `backend/` — Legacy backend (NOT used — backend runs on remote EC2)
 
 ### Tech Stack
-- **Frontend**: React 19, TypeScript, Vite 7, Tailwind CSS v4, shadcn/ui, wouter, Framer Motion
-- **Local Server**: Express 5, TypeScript, tsx (serves frontend only)
-- **Remote Backend**: EC2 at `https://luciuslab.xyz:4009` (Node.js + Express + Prisma + SQLite + OpenAI GPT-4)
-- **Database**: PostgreSQL provisioned on Replit (for local schema), remote backend uses SQLite
+- **Web Frontend**: React 19, TypeScript, Vite 7, Tailwind CSS v4, shadcn/ui, wouter, Framer Motion
+- **Mobile App**: React Native 0.76, Expo SDK 52, Expo Router v4, TypeScript, React Query v5
+- **Local Server**: Express 5, TypeScript, tsx (serves web frontend only)
+- **Remote Backend**: EC2 at `https://api.airthreads.ai:4009` (Node.js + Express + Prisma + SQLite + OpenAI GPT-4)
 
 ### Remote Backend API
-Base URL: `https://luciuslab.xyz:4009/api`
+Base URL: `https://api.airthreads.ai:4009/api`
 
 Endpoints:
 - `GET /health` — Health check
-- `GET /api/lifts` — Get all supported lifts (returns array directly)
-- `GET /api/lifts/:id/exercises` — Get exercises for a lift (returns array directly)
-- `POST /api/sessions` — Create diagnostic session (returns flat `{sessionId, ...}`)
-- `POST /api/sessions/:id/snapshots` — Add exercise snapshots (expects `{snapshots: [...]}`)
-- `POST /api/sessions/:id/messages` — Send diagnostic message (returns `{aiResponse, complete, ...}`)
-- `POST /api/sessions/:id/generate` — Generate workout plan (returns `{plan: {...}}`)
-- `GET /api/sessions/:id` — Get session details (returns flat object)
-- `POST /api/waitlist` — Join waitlist (sends SMS + email notifications)
+- `GET /api/lifts` — Get all supported lifts
+- `GET /api/lifts/:id/exercises` — Get exercises for a lift
+- `POST /api/sessions` — Create diagnostic session
+- `POST /api/sessions/:id/snapshots` — Add exercise snapshots
+- `POST /api/sessions/:id/messages` — Send diagnostic message
+- `POST /api/sessions/:id/generate` — Generate workout plan
+- `GET /api/sessions/:id` — Get session details
+- `GET /api/sessions/:id/plan` — Get cached plan
+- `GET /api/sessions/history` — Get session history
+- `POST /api/auth/login` — Login
+- `POST /api/auth/register` — Register
+- `GET /api/auth/me` — Get current user
+- `POST /api/auth/logout` — Logout
+- `PUT /api/auth/profile` — Update profile
+- `POST /api/waitlist` — Join waitlist
 
 ### Key Configuration
-- Port: 5000 (frontend served via Express)
+- Port: 5000 (both web frontend and Expo web preview use this port)
 - Host: 0.0.0.0
-- Vite: allowedHosts enabled for Replit proxy
-- Build: `npm run build` in frontend-v2 (Vite + esbuild)
-- Production: `npm run start` in frontend-v2 (Node.js serving static files)
+- Web app: Vite allowedHosts enabled for Replit proxy
+- Mobile app: Expo Router with file-based routing, dark theme
+- Mobile auth: AsyncStorage-based token persistence (Bearer token header)
+- Web auth: Cookie-based sessions (credentials: 'include')
 
-### Scripts (frontend-v2)
-- `npm run dev` — Development server with Vite HMR
-- `npm run build` — Build for production
-- `npm run start` — Run production build
+### Workflows
+- **Dev Server** — Expo dev server for mobile app (`cd mobile && npx expo start --web --port 5000`)
+- **EAS Init/Update/Build** — EAS CLI workflows for publishing
 
-## Recent Changes
-- Initial Replit environment setup (Feb 2026)
-- Redirected all API calls to remote EC2 backend at `https://luciuslab.xyz:4009`
-- Aligned frontend interfaces and API methods with backend spec (Feb 13, 2026):
-  - Updated response shapes (flat objects, no wrapping)
-  - Fixed snapshot payload format (`{snapshots: [...]}` with correct fields)
-  - Fixed diagnostic chat to use `aiResponse` field
-  - Rewrote plan page for new WorkoutPlan structure (diagnosis + accessories + implementation)
-  - Added `joinWaitlist` to API client
+### Scripts
+- `mobile/`: `npm start` — Expo dev server
+- `frontend-v2/`: `npm run dev` — Vite dev server, `npm run build` — Production build
+
+## Mobile App Features
+1. **Auth**: Login/Register with email & password, AsyncStorage token persistence
+2. **Home Tab**: Welcome screen with "Start Diagnosis" CTA and feature overview
+3. **Diagnostic Funnel**:
+   - Onboarding: Lift selection (bench/squat/deadlift/Olympic lifts), profile inputs, imperial unit entry
+   - Snapshot: Accessory exercise weight entry with exercise picker
+   - Chat: AI diagnostic interview with chat bubbles
+   - Plan: Full results with diagnosis, StrengthRadar bars, PhaseBreakdown, HypothesisRankings, accessories ranked by impact
+4. **Coach Tab**: Pro feature with program/nutrition/analytics sections (gated by tier)
+5. **History Tab**: Session list with completion status, links to analysis detail view
+6. **Settings Tab**: Profile display, subscription info, sign out
+7. **Analysis Detail**: Full session review with diagnosis, snapshots, plan, chat history
 
 ## User Preferences
 - Uses remote EC2 backend — local backend code should NOT run
 - Imperial units for user input (lbs, feet/inches), converted to metric for backend
+- Dark theme matching web app color palette
+
+## Recent Changes
+- Created React Native / Expo mobile app in `mobile/` directory (Mar 2026)
+- Full diagnostic funnel (onboarding → snapshot → chat → plan)
+- Plan visualization components (StrengthRadar bars, PhaseBreakdown, HypothesisRankings)
+- Tab navigation (Home, Coach, History, Settings)
+- Auth with AsyncStorage token persistence
+- Analysis detail screen for viewing past sessions
