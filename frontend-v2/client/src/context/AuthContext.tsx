@@ -33,10 +33,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 async function apiFetch(path: string, options?: RequestInit) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>)
+  };
+  // Use stored Bearer token as fallback when cross-domain cookie is blocked
+  const bearerToken = sessionStorage.getItem('liftoff_bearer_token');
+  if (bearerToken) {
+    headers['Authorization'] = `Bearer ${bearerToken}`;
+  }
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options?.headers }
+    headers
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -80,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     await apiFetch('/auth/logout', { method: 'POST' });
+    sessionStorage.removeItem('liftoff_bearer_token');
     setUser(null);
   }
 

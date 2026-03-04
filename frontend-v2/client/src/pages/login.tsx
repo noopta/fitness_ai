@@ -33,7 +33,12 @@ export default function Login() {
 
     if (authParam === 'success') {
       setOauthPending(true);
-      // Strip query param from URL immediately to prevent re-triggering
+      // Store Bearer token from URL (cookie may be blocked by browser privacy features)
+      const urlToken = params.get('token');
+      if (urlToken) {
+        sessionStorage.setItem('liftoff_bearer_token', urlToken);
+      }
+      // Strip query params from URL immediately to prevent re-triggering
       window.history.replaceState({}, '', '/login');
 
       // Retry refreshUser up to 3 times with a short delay — cookie may need a

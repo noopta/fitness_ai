@@ -205,7 +205,9 @@ router.get('/auth/google/callback', async (req, res) => {
     if (mobileRedirect) {
       res.redirect(`${mobileRedirect}?token=${token}`);
     } else {
-      res.redirect(`${process.env.FRONTEND_URL}/login?auth=success`);
+      // Include token in URL so web frontend can use it as Bearer fallback
+      // (cross-domain cookies may be blocked by browser privacy features)
+      res.redirect(`${process.env.FRONTEND_URL}/login?auth=success&token=${token}`);
     }
   } catch (err) {
     console.error('Google OAuth callback error:', err);
