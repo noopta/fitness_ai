@@ -88,7 +88,7 @@ export default function PlanScreen() {
     const diag = plan.diagnosis?.[0];
 
     const text = [
-      `LiftOff - ${formatLiftName(selectedLift)} Plan`,
+      `Axiom - ${formatLiftName(selectedLift)} Plan`,
       '',
       `Diagnosis: ${diag?.limiterName || 'Unknown'}`,
       ...(diag?.evidence || []).map(e => `  - ${e}`),

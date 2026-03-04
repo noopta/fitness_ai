@@ -47,9 +47,9 @@ export default function RegisterScreen() {
         >
           <View style={styles.header}>
             <View style={styles.logoMark}>
-              <Text style={styles.logoText}>L</Text>
+              <Text style={styles.logoText}>A</Text>
             </View>
-            <Text style={styles.appName}>LiftOff</Text>
+            <Text style={styles.appName}>Axiom</Text>
             <Text style={styles.title}>Create your account</Text>
             <View style={styles.subtitleRow}>
               <Text style={styles.subtitle}>Already have an account? </Text>

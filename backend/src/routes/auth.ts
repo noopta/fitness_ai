@@ -78,7 +78,7 @@ router.post('/auth/register', async (req, res) => {
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     // Fire-and-forget notification
-    sendAuthSMS(`🆕 New LiftOff signup: ${data.name} (${data.email})`);
+    sendAuthSMS(`🆕 New Axiom signup: ${data.name} (${data.email})`);
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
@@ -111,7 +111,7 @@ router.post('/auth/login', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
-    sendAuthSMS(`🔑 LiftOff login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
+    sendAuthSMS(`🔑 Axiom login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
     if (err?.name === 'ZodError') {

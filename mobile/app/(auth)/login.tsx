@@ -41,9 +41,9 @@ export default function LoginScreen() {
         >
           <View style={styles.header}>
             <View style={styles.logoMark}>
-              <Text style={styles.logoText}>L</Text>
+              <Text style={styles.logoText}>A</Text>
             </View>
-            <Text style={styles.appName}>LiftOff</Text>
+            <Text style={styles.appName}>Axiom</Text>
             <Text style={styles.title}>Sign in to your account</Text>
             <View style={styles.subtitleRow}>
               <Text style={styles.subtitle}>Don't have an account? </Text>
