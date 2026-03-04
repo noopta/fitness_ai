@@ -31,7 +31,7 @@ All backend logic runs on a remote EC2 server. The project contains two frontend
 
 ### Tech Stack
 - **Web Frontend**: React 19, TypeScript, Vite 7, Tailwind CSS v4, shadcn/ui, wouter, Framer Motion
-- **Mobile App**: React Native 0.76, Expo SDK 52, Expo Router v4, TypeScript, React Query v5
+- **Mobile App**: React Native 0.81, Expo SDK 54, Expo Router v6, TypeScript, React Query v5
 - **Local Server**: Express 5, TypeScript, tsx (serves web frontend only)
 - **Remote Backend**: EC2 at `https://api.airthreads.ai:4009` (Node.js + Express + Prisma + SQLite + OpenAI GPT-4)
 
@@ -73,7 +73,7 @@ Endpoints:
 - `frontend-v2/`: `npm run dev` — Vite dev server, `npm run build` — Production build
 
 ## Mobile App Features
-1. **Auth**: Login/Register with email & password, AsyncStorage token persistence
+1. **Auth**: Login/Register with email & password, Google OAuth (via expo-web-browser), AsyncStorage token persistence
 2. **Home Tab**: Welcome screen with "Start Diagnosis" CTA and feature overview
 3. **Diagnostic Funnel**:
    - Onboarding: Lift selection (bench/squat/deadlift/Olympic lifts), profile inputs, imperial unit entry
@@ -92,6 +92,11 @@ Endpoints:
 
 ## Recent Changes
 - Created React Native / Expo mobile app in `mobile/` directory (Mar 2026)
+- Upgraded to Expo SDK 54 / React Native 0.81 / Expo Router v6
+- Theme updated to match web app's exact dark mode color palette (HSL-based, near-white primary)
+- Added Axiom logo to login/register screens
+- Added Google OAuth sign-in via expo-web-browser with deep link callback (scheme: liftoff)
+- Login and register screens match web app layout: Google button, "Or" divider, form fields
 - Full diagnostic funnel (onboarding → snapshot → chat → plan)
 - Plan visualization components (StrengthRadar bars, PhaseBreakdown, HypothesisRankings)
 - Tab navigation (Home, Coach, History, Settings)
