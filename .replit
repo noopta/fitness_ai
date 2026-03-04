@@ -8,14 +8,6 @@ channel = "stable-24_05"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 8081
-externalPort = 80
-
-[[ports]]
-localPort = 8082
-externalPort = 3000
-
 [workflows]
 runButton = "Project"
 
@@ -24,13 +16,13 @@ name = "Dev Server"
 mode = "sequential"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd mobile && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN npx expo start --web --port 5000"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd mobile && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 npx expo start --web --port 5000 --host lan"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "EAS Init"
