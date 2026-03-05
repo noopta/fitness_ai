@@ -1,18 +1,33 @@
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+let SecureStore: typeof import('expo-secure-store') | null = null;
+if (Platform.OS !== 'web') {
+  SecureStore = require('expo-secure-store');
+}
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
 const TOKEN_KEY = 'liftoff_auth_token';
 
 export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  if (SecureStore) {
+    return SecureStore.getItemAsync(TOKEN_KEY);
+  }
+  return AsyncStorage.getItem(TOKEN_KEY);
 }
 
 export async function setToken(token: string): Promise<void> {
-  return SecureStore.setItemAsync(TOKEN_KEY, token);
+  if (SecureStore) {
+    return SecureStore.setItemAsync(TOKEN_KEY, token);
+  }
+  await AsyncStorage.setItem(TOKEN_KEY, token);
 }
 
 export async function clearToken(): Promise<void> {
-  return SecureStore.deleteItemAsync(TOKEN_KEY);
+  if (SecureStore) {
+    return SecureStore.deleteItemAsync(TOKEN_KEY);
+  }
+  await AsyncStorage.removeItem(TOKEN_KEY);
 }
 
 async function apiFetch(path: string, options?: RequestInit, requiresAuth = true): Promise<any> {
