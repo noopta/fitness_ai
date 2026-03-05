@@ -29,17 +29,18 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* ── Brand row ── */}
+      {/* ── Logo (standalone top-left) ── */}
       <View style={styles.header}>
-        <View style={styles.brandRow}>
-          <AxiomLogo size={40} />
-          <Text style={styles.brandName}>AXIOM</Text>
-        </View>
+        <AxiomLogo size={44} />
       </View>
 
-      {/* ── Hero headline ── */}
+      {/* ── Heading block: "Axiom" + "AI Coach" + tagline ── */}
       <View style={styles.heroSection}>
-        <Text style={styles.heroTitle}>Your personal{'\n'}AI coach.</Text>
+        <Text style={styles.heroTitle}>Axiom</Text>
+        <Text style={styles.heroSubtitle}>AI Coach</Text>
+        <Text style={styles.heroTagline}>
+          Smarter than any trainer. Your{'\n'}personalized strength guide.
+        </Text>
       </View>
 
       {/* ── Features list ── */}
@@ -88,35 +89,38 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header
+  // Logo
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  brandName: {
-    fontSize: 13,
-    fontWeight: fontWeight.bold,
-    color: colors.foreground,
-    letterSpacing: 2,
-  },
 
-  // Hero
+  // Hero block
   heroSection: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
+    gap: 2,
   },
   heroTitle: {
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
-    letterSpacing: -1,
-    lineHeight: 46,
+    letterSpacing: -0.5,
+    lineHeight: 36,
+  },
+  heroSubtitle: {
+    fontSize: 30,
+    fontWeight: fontWeight.bold,
+    color: colors.mutedForeground,
+    letterSpacing: -0.5,
+    lineHeight: 36,
+    marginBottom: spacing.md,
+  },
+  heroTagline: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    lineHeight: 21,
   },
 
   // Features
