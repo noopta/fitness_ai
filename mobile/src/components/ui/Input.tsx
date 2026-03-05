@@ -1,46 +1,49 @@
-import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
-import { colors, radius, fontSize, fontWeight } from '@/constants/theme';
+import React from 'react';
+import {
+  TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle,
+} from 'react-native';
+import { colors, radius, spacing, fontSize } from '../../constants/theme';
 
 interface InputProps extends TextInputProps {
   label?: string;
-  hint?: string;
+  error?: string;
   containerStyle?: ViewStyle;
 }
 
-export function Input({ label, hint, containerStyle, style, ...props }: InputProps) {
+export function Input({ label, error, containerStyle, style, ...props }: InputProps) {
   return (
-    <View style={containerStyle}>
+    <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
-        style={[styles.input, style]}
+        style={[styles.input, error && styles.inputError, style]}
         placeholderTextColor={colors.mutedForeground}
         {...props}
       />
-      {hint && <Text style={styles.hint}>{hint}</Text>}
+      {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { gap: 6 },
   label: {
-    color: colors.foreground,
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
-    marginBottom: 6,
+    color: colors.foreground,
+    fontWeight: '500',
   },
   input: {
     backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 11,
     color: colors.foreground,
     fontSize: fontSize.base,
   },
-  hint: {
-    color: colors.mutedForeground,
+  inputError: { borderColor: colors.destructive },
+  error: {
     fontSize: fontSize.xs,
-    marginTop: 4,
+    color: colors.destructive,
   },
 });

@@ -1,257 +1,284 @@
-import { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { liftCoachApi, storage } from '@/lib/api';
-import { colors, fontSize, fontWeight, spacing, radius } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type Msg = {
-  id: string;
-  role: 'assistant' | 'user';
+import { liftCoachApi } from '../../src/lib/api';
+import { Button } from '../../src/components/ui/Button';
+import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
+
+interface Message {
+  role: 'user' | 'assistant';
   content: string;
+}
+
+const WELCOME_MESSAGE: Message = {
+  role: 'assistant',
+  content:
+    "I'm analyzing your training data. Let me ask you a few questions to better understand your strength limiters.",
 };
 
-function formatBoldText(content: string) {
-  const parts = content.split(/(\*\*.*?\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return (
-        <Text key={i} style={{ fontWeight: fontWeight.bold, color: colors.foreground }}>
-          {part.slice(2, -2)}
-        </Text>
-      );
-    }
-    return <Text key={i}>{part}</Text>;
-  });
-}
-
-function ChatBubble({ msg }: { msg: Msg }) {
-  const isUser = msg.role === 'user';
-  return (
-    <View style={[styles.bubbleRow, isUser && styles.bubbleRowUser]}>
-      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
-        <View style={styles.bubbleHeader}>
-          <View style={[styles.avatarBox, isUser && styles.avatarBoxUser]}>
-            <Ionicons
-              name={isUser ? 'person' : 'hardware-chip'}
-              size={14}
-              color={isUser ? colors.primaryForeground : colors.foreground}
-            />
-          </View>
-          <View style={styles.bubbleContent}>
-            <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>
-              {formatBoldText(msg.content)}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function LoadingBubble() {
-  return (
-    <View style={styles.bubbleRow}>
-      <View style={[styles.bubble, styles.bubbleAssistant]}>
-        <View style={styles.bubbleHeader}>
-          <View style={styles.avatarBox}>
-            <Ionicons name="hardware-chip" size={14} color={colors.primary} />
-          </View>
-          <Text style={styles.loadingText}>AI is analyzing...</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-export default function DiagnosticChatScreen() {
+export default function ChatScreen() {
   const router = useRouter();
-  const scrollRef = useRef<ScrollView>(null);
-  const [messages, setMessages] = useState<Msg[]>([
-    {
-      id: 'm0',
-      role: 'assistant',
-      content: "I'll ask a few quick questions to isolate your sticking point. Short answers are perfect.",
-    },
-  ]);
-  const [value, setValue] = useState('');
+  const params = useLocalSearchParams<{ sessionId?: string }>();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [done, setDone] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const storedSessionId = await storage.get('liftoff_session_id');
-      if (!storedSessionId) {
-        Alert.alert('Error', 'No session found. Please start from the beginning.');
+    initSession();
+  }, []);
+
+  async function initSession() {
+    try {
+      const paramId = params.sessionId as string | undefined;
+      const storedId = await AsyncStorage.getItem('axiom_session_id');
+      const sid = paramId || storedId;
+      if (!sid) {
+        Alert.alert('Error', 'Session not found. Please start over.');
         router.replace('/diagnostic/onboarding');
         return;
       }
-      setSessionId(storedSessionId);
-      await loadMessages(storedSessionId);
-    })();
-  }, []);
+      setSessionId(sid);
 
-  async function loadMessages(sid: string) {
-    setInitialLoading(true);
-    try {
-      const response = await liftCoachApi.getSession(sid);
-      const existingMessages = response.messages || (response as any).session?.messages || [];
+      const data = await liftCoachApi.getSession(sid);
+      const existingMessages: Message[] = (data.messages || data.session?.messages || []).map(
+        (m: any) => ({ role: m.role, content: m.content })
+      );
 
-      if (existingMessages.length > 0) {
-        const loadedMessages = existingMessages.map((msg: any, idx: number) => ({
-          id: `loaded-${idx}`,
-          role: msg.role,
-          content: msg.content,
-        }));
-        setMessages([messages[0], ...loadedMessages]);
-        setQuestionCount(existingMessages.filter((m: any) => m.role === 'user').length);
+      if (existingMessages.length === 0) {
+        setMessages([WELCOME_MESSAGE]);
       } else {
-        await getFirstQuestion(sid);
+        setMessages(existingMessages);
+        // Check if already complete
+        if (data.session?.status === 'complete' || data.status === 'complete') {
+          setIsComplete(true);
+        }
       }
-    } catch {
-      await getFirstQuestion(sid);
+    } catch (err: any) {
+      // If session fetch fails, show welcome message anyway
+      setMessages([WELCOME_MESSAGE]);
     } finally {
       setInitialLoading(false);
     }
   }
 
-  async function getFirstQuestion(sid: string) {
-    try {
-      const response = await liftCoachApi.sendMessage(sid, 'start');
-      const aiMsg = response.message || response.aiResponse || '';
-      if (!response.complete && aiMsg) {
-        setMessages(prev => [
-          ...prev,
-          { id: `a-${Date.now()}`, role: 'assistant', content: aiMsg },
-        ]);
-      }
-    } catch {
-      Alert.alert('Error', 'Failed to load initial question.');
-    }
+  function scrollToBottom() {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   }
 
   useEffect(() => {
-    setTimeout(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  }, [messages.length]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
 
-  async function send(text: string) {
-    if (!text.trim() || loading || !sessionId) return;
+  async function handleSend() {
+    const content = inputText.trim();
+    if (!content || loading || !sessionId) return;
 
-    const userMessage: Msg = { id: `u-${Date.now()}`, role: 'user', content: text.trim() };
-    setMessages(prev => [...prev, userMessage]);
-    setValue('');
+    const userMessage: Message = { role: 'user', content };
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText('');
     setLoading(true);
 
     try {
-      const response = await liftCoachApi.sendMessage(sessionId, text.trim());
+      const response = await liftCoachApi.sendMessage(sessionId, content);
+      const assistantContent =
+        response.message?.content ||
+        response.content ||
+        response.reply ||
+        'I understand. Let me continue the analysis.';
 
-      const aiMsg = response.message || response.aiResponse || '';
+      const assistantMessage: Message = { role: 'assistant', content: assistantContent };
+      setMessages((prev) => [...prev, assistantMessage]);
 
-      if (response.complete) {
-        setDone(true);
-        setMessages(prev => [
-          ...prev,
-          {
-            id: `a-${Date.now()}`,
-            role: 'assistant',
-            content: aiMsg || "That's enough signal. I have what I need to create your personalized plan.",
-          },
-        ]);
-      } else {
-        setMessages(prev => [
-          ...prev,
-          { id: `a-${Date.now()}`, role: 'assistant', content: aiMsg },
-        ]);
+      if (response.complete === true || response.message?.complete === true) {
+        setIsComplete(true);
       }
-
-      setQuestionCount(prev => prev + 1);
-    } catch {
-      Alert.alert('Error', 'Failed to send message. Please try again.');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to send message. Please try again.');
+      // Remove the user message on failure
+      setMessages((prev) => prev.filter((m) => m !== userMessage));
     } finally {
       setLoading(false);
     }
   }
 
+  async function handleGeneratePlan() {
+    if (!sessionId) return;
+    setGenerating(true);
+    try {
+      await liftCoachApi.generatePlan(sessionId);
+      router.push('/diagnostic/plan');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to generate plan. Please try again.');
+      setGenerating(false);
+    }
+  }
+
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <Stack.Screen options={{ title: 'AI Diagnostic' }} />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading session...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.navbar}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-        </TouchableOpacity>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>Step 3 of 4</Text>
-          <Text style={styles.navSubtitle}>
-            {questionCount > 0 ? `${questionCount} questions answered` : 'Diagnostic Interview'}
-          </Text>
-        </View>
-        <View style={styles.statusBadge}>
-          <Ionicons
-            name={done ? 'checkmark-circle' : 'hardware-chip'}
-            size={14}
-            color={colors.primary}
-          />
-          <Text style={styles.statusText}>{done ? 'Complete' : 'In progress'}</Text>
-        </View>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <Stack.Screen
+        options={{
+          headerTitle: () => (
+            <View style={styles.headerTitle}>
+              <Text style={styles.headerTitleText}>AI Diagnostic</Text>
+            </View>
+          ),
+          headerRight: () => (
+            <View style={styles.stepIndicator}>
+              <Text style={styles.stepText}>Step 3</Text>
+            </View>
+          ),
+        }}
+      />
 
       <KeyboardAvoidingView
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
+        {/* Messages */}
         <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={styles.chatContent}
+          ref={scrollViewRef}
+          style={styles.messagesList}
+          contentContainerStyle={styles.messagesContent}
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {messages.map(m => (
-            <ChatBubble key={m.id} msg={m} />
+          {messages.map((msg, index) => (
+            <View
+              key={index}
+              style={[
+                styles.messageRow,
+                msg.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant,
+              ]}
+            >
+              {msg.role === 'assistant' && (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>A</Text>
+                </View>
+              )}
+              <View
+                style={[
+                  styles.bubble,
+                  msg.role === 'user' ? styles.bubbleUser : styles.bubbleAssistant,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.bubbleText,
+                    msg.role === 'user' ? styles.bubbleTextUser : styles.bubbleTextAssistant,
+                  ]}
+                >
+                  {msg.content}
+                </Text>
+              </View>
+            </View>
           ))}
-          {(loading || initialLoading) && <LoadingBubble />}
+
+          {/* Loading indicator for assistant response */}
+          {loading && (
+            <View style={[styles.messageRow, styles.messageRowAssistant]}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>A</Text>
+              </View>
+              <View style={styles.bubbleAssistant}>
+                <ActivityIndicator size="small" color={colors.primary} style={{ padding: 4 }} />
+              </View>
+            </View>
+          )}
+
+          {/* Generate Plan Button */}
+          {isComplete && !generating && (
+            <View style={styles.generateContainer}>
+              <Text style={styles.generateHint}>
+                Your diagnostic interview is complete.
+              </Text>
+              <Button
+                onPress={handleGeneratePlan}
+                fullWidth
+                size="lg"
+                style={styles.generateBtn}
+              >
+                Generate My Plan
+              </Button>
+            </View>
+          )}
+
+          {generating && (
+            <View style={styles.generateContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={styles.generatingText}>Generating your personalized plan...</Text>
+            </View>
+          )}
         </ScrollView>
 
-        {done ? (
-          <View style={styles.doneBar}>
-            <Text style={styles.doneText}>Ready to generate your plan.</Text>
-            <Button onPress={() => router.push('/diagnostic/plan')} size="lg">
-              Generate Plan
-            </Button>
-          </View>
-        ) : (
+        {/* Input Bar */}
+        {!isComplete && (
           <View style={styles.inputBar}>
             <TextInput
-              style={styles.chatInput}
-              value={value}
-              onChangeText={setValue}
-              placeholder={loading ? 'AI is thinking...' : 'Type your answer...'}
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Type your response..."
               placeholderTextColor={colors.mutedForeground}
-              editable={!loading && !done}
-              onSubmitEditing={() => send(value)}
-              returnKeyType="send"
+              multiline
+              maxLength={1000}
+              returnKeyType="default"
+              editable={!loading}
             />
-            <TouchableOpacity
-              style={[styles.sendButton, (!value.trim() || loading) && styles.sendButtonDisabled]}
-              onPress={() => send(value)}
-              disabled={!value.trim() || loading || done}
+            <Pressable
+              onPress={handleSend}
+              disabled={!inputText.trim() || loading}
+              style={[
+                styles.sendBtn,
+                (!inputText.trim() || loading) && styles.sendBtnDisabled,
+              ]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="send" size={18} color={colors.primaryForeground} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {!done && (
-          <View style={styles.hintBar}>
-            <Text style={styles.hintText}>
-              Short answers are fine — e.g. "lockout", "drifts to face", "triceps give out"
-            </Text>
+              <Ionicons
+                name="send"
+                size={20}
+                color={
+                  !inputText.trim() || loading ? colors.mutedForeground : colors.primary
+                }
+              />
+            </Pressable>
           </View>
         )}
       </KeyboardAvoidingView>
@@ -260,57 +287,165 @@ export default function DiagnosticChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  navCenter: { alignItems: 'center' },
-  navTitle: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  navSubtitle: { color: colors.mutedForeground, fontSize: fontSize.xs, marginTop: 2 },
-  statusBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: colors.secondary, paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: radius.full, borderWidth: 1, borderColor: colors.border,
+  flex: { flex: 1 },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
   },
-  statusText: { color: colors.mutedForeground, fontSize: fontSize.xs },
-  chatContent: { padding: spacing.lg, paddingBottom: 16, gap: 10 },
-  bubbleRow: { flexDirection: 'row', justifyContent: 'flex-start' },
-  bubbleRowUser: { justifyContent: 'flex-end' },
-  bubble: { maxWidth: '85%', borderRadius: radius.lg, paddingHorizontal: 14, paddingVertical: 10 },
-  bubbleUser: { backgroundColor: colors.primary },
-  bubbleAssistant: { backgroundColor: colors.secondary, borderWidth: 1, borderColor: colors.border },
-  bubbleHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  avatarBox: {
-    width: 28, height: 28, borderRadius: radius.md,
-    borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background,
-    alignItems: 'center', justifyContent: 'center', marginTop: 2,
+  loadingText: {
+    fontSize: fontSize.base,
+    color: colors.mutedForeground,
   },
-  avatarBoxUser: { backgroundColor: 'rgba(255,255,255,0.2)', borderColor: 'rgba(255,255,255,0.3)' },
-  bubbleContent: { flex: 1 },
-  bubbleText: { color: colors.foreground, fontSize: fontSize.sm, lineHeight: 20 },
-  bubbleTextUser: { color: colors.primaryForeground },
-  loadingText: { color: colors.mutedForeground, fontSize: fontSize.sm, marginTop: 4 },
+
+  // Header
+  headerTitle: {
+    alignItems: 'center',
+  },
+  headerTitleText: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  stepIndicator: {
+    backgroundColor: colors.muted,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+    marginRight: spacing.sm,
+  },
+  stepText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    color: colors.mutedForeground,
+  },
+
+  // Messages
+  messagesList: {
+    flex: 1,
+  },
+  messagesContent: {
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    marginBottom: 4,
+  },
+  messageRowAssistant: {
+    justifyContent: 'flex-start',
+  },
+  messageRowUser: {
+    justifyContent: 'flex-end',
+  },
+
+  // Avatar
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#4f46e5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  avatarText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+    color: '#ffffff',
+  },
+
+  // Bubbles
+  bubble: {
+    maxWidth: '75%',
+    borderRadius: radius.lg,
+    padding: spacing.sm,
+    paddingHorizontal: 14,
+  },
+  bubbleAssistant: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderBottomLeftRadius: 4,
+  },
+  bubbleUser: {
+    backgroundColor: colors.primary,
+    borderBottomRightRadius: 4,
+  },
+  bubbleText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  bubbleTextAssistant: {
+    color: colors.foreground,
+  },
+  bubbleTextUser: {
+    color: '#ffffff',
+  },
+
+  // Generate plan
+  generateContainer: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  generateHint: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+  },
+  generateBtn: {
+    marginTop: 4,
+  },
+  generatingText: {
+    fontSize: fontSize.base,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+  },
+
+  // Input bar
   inputBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderTopWidth: 1, borderTopColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
   },
-  chatInput: {
-    flex: 1, backgroundColor: colors.secondary, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 12,
-    color: colors.foreground, fontSize: fontSize.base,
+  textInput: {
+    flex: 1,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: colors.foreground,
+    fontSize: fontSize.base,
+    maxHeight: 120,
+    minHeight: 44,
   },
-  sendButton: {
-    width: 44, height: 44, borderRadius: radius.md,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+  sendBtn: {
+    padding: 10,
+    marginBottom: 2,
   },
-  sendButtonDisabled: { opacity: 0.5 },
-  doneBar: {
-    padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, gap: 12,
+  sendBtnDisabled: {
+    opacity: 0.4,
   },
-  doneText: { color: colors.mutedForeground, fontSize: fontSize.sm, textAlign: 'center' },
-  hintBar: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
-  hintText: { color: colors.mutedForeground, fontSize: fontSize.xs, textAlign: 'center' },
 });

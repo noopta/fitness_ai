@@ -1,307 +1,332 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { storage, historyApi } from '@/lib/api';
-import { colors, fontSize, fontWeight, spacing, radius } from '@/constants/theme';
+import { liftCoachApi } from '../../src/lib/api';
+import { Card } from '../../src/components/ui/Card';
+import { Button } from '../../src/components/ui/Button';
+import { Badge } from '../../src/components/ui/Badge';
+import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
+import { colors, fontSize, fontWeight, spacing } from '../../src/constants/theme';
 
-interface HistorySession {
-  id: string;
-  selectedLift: string;
-  createdAt: string;
-  status: string;
-  primaryLimiter?: string;
-  confidence?: number;
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const LIFT_NAMES: Record<string, string> = {
+  flat_bench_press: 'Flat Bench Press',
+  incline_bench_press: 'Incline Bench Press',
+  deadlift: 'Deadlift',
+  barbell_back_squat: 'Barbell Back Squat',
+  barbell_front_squat: 'Barbell Front Squat',
+  clean_and_jerk: 'Clean & Jerk',
+  snatch: 'Snatch',
+  power_clean: 'Power Clean',
+  hang_clean: 'Hang Clean',
+};
+
+function toLiftName(key: string): string {
+  return LIFT_NAMES[key] ?? key
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
-function formatLiftName(id: string): string {
-  return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function HistoryScreen() {
-  const [sessions, setSessions] = useState<HistorySession[]>([]);
-  const [loading, setLoading] = useState(true);
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Session {
+  id: string;
+  selectedLift: string;
+  status?: string;
+  primaryLimiter?: string;
+  confidence?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ─── SessionCard ──────────────────────────────────────────────────────────────
+
+function SessionCard({ session }: { session: Session }) {
   const router = useRouter();
+  const isCompleted =
+    session.status === 'completed' || Boolean(session.primaryLimiter);
 
-  useEffect(() => {
-    historyApi.getHistory()
-      .then(data => {
-        const list = Array.isArray(data) ? data : (data as any)?.sessions ?? [];
-        setSessions(list);
-      })
-      .catch(() => setSessions([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const completed = sessions.filter(s => s.primaryLimiter != null);
-  const inProgress = sessions.filter(s => s.primaryLimiter == null);
-
-  async function openSession(s: HistorySession) {
-    await storage.set('liftoff_session_id', s.id);
-    await storage.set('liftoff_selected_lift', s.selectedLift);
-    if (s.primaryLimiter) {
-      router.push('/diagnostic/plan');
+  function handlePress() {
+    if (isCompleted) {
+      router.push(`/diagnostic/plan?sessionId=${session.id}`);
     } else {
-      router.push('/diagnostic/chat');
+      router.push(`/diagnostic/chat?sessionId=${session.id}`);
     }
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerIcon}>
-            <Ionicons name="time" size={20} color={colors.primary} />
-          </View>
-          <View>
-            <Text style={styles.title}>My Analyses</Text>
-            <Text style={styles.subtitle}>
-              {sessions.length === 0
-                ? 'No sessions yet'
-                : `${sessions.length} diagnostic session${sessions.length !== 1 ? 's' : ''}`}
-            </Text>
-          </View>
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.72 : 1 }]}
+    >
+      <Card style={styles.sessionCard}>
+        {/* Row 1: lift name + date */}
+        <View style={styles.row}>
+          <Text style={styles.liftName} numberOfLines={1}>
+            {toLiftName(session.selectedLift)}
+          </Text>
+          {session.createdAt && (
+            <Text style={styles.dateText}>{formatDate(session.createdAt)}</Text>
+          )}
         </View>
+
+        {/* Row 2: primary limiter + confidence badge */}
+        {session.primaryLimiter ? (
+          <View style={styles.row}>
+            <Text style={styles.limiterText} numberOfLines={2}>
+              {session.primaryLimiter}
+            </Text>
+            {session.confidence !== undefined && session.confidence !== null && (
+              <Badge variant="secondary">
+                {Math.round(session.confidence)}%
+              </Badge>
+            )}
+          </View>
+        ) : null}
+
+        {/* Row 3: status badge */}
+        <View style={styles.statusRow}>
+          <Badge variant={isCompleted ? 'success' : 'warning'}>
+            {isCompleted ? 'Completed' : 'In Progress'}
+          </Badge>
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={colors.mutedForeground}
+          />
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+
+function SectionHeader({ title, count }: { title: string; count: number }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <Badge variant="secondary">{String(count)}</Badge>
+    </View>
+  );
+}
+
+// ─── History Screen ───────────────────────────────────────────────────────────
+
+export default function HistoryScreen() {
+  const router = useRouter();
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadSessions() {
+      try {
+        const data = await liftCoachApi.getSessionHistory();
+        setSessions(Array.isArray(data) ? data : data.sessions ?? []);
+      } catch {
+        setSessions([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSessions();
+  }, []);
+
+  const completed = sessions.filter(
+    (s) => s.status === 'completed' || Boolean(s.primaryLimiter),
+  );
+  const inProgress = sessions.filter(
+    (s) => s.status !== 'completed' && !s.primaryLimiter,
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* ── Top bar ── */}
+      <View style={styles.topBar}>
+        <Text style={styles.screenTitle}>Session History</Text>
         <Button
-          size="sm"
           onPress={() => router.push('/diagnostic/onboarding')}
+          variant="outline"
+          size="sm"
         >
-          New
+          + New
         </Button>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={colors.mutedForeground} />
-          </View>
-        ) : sessions.length === 0 ? (
+      {/* ── Content ── */}
+      {loading ? (
+        <View style={styles.center}>
+          <LoadingSpinner message="Loading sessions…" />
+        </View>
+      ) : sessions.length === 0 ? (
+        /* Empty state */
+        <View style={styles.center}>
           <Card style={styles.emptyCard}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="barbell" size={28} color={colors.primary} />
+            <View style={styles.emptyInner}>
+              <Ionicons name="time-outline" size={40} color={colors.mutedForeground} />
+              <Text style={styles.emptyTitle}>No sessions yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Complete your first analysis to see your history here.
+              </Text>
+              <Button
+                onPress={() => router.push('/diagnostic/onboarding')}
+                size="sm"
+              >
+                Start Analysis
+              </Button>
             </View>
-            <Text style={styles.emptyTitle}>No analyses yet</Text>
-            <Text style={styles.emptyDescription}>
-              Run your first diagnostic to see your lift analysis here.
-            </Text>
-            <Button
-              onPress={() => router.push('/diagnostic/onboarding')}
-              style={{ marginTop: 20 }}
-            >
-              Start Your First Analysis
-            </Button>
           </Card>
-        ) : (
-          <View style={styles.list}>
-            {completed.length > 0 && (
-              <View>
-                <Text style={styles.sectionLabel}>COMPLETED - {completed.length}</Text>
-                {completed.map((s) => (
-                  <SessionCard key={s.id} session={s} onPress={() => openSession(s)} />
-                ))}
-              </View>
-            )}
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Completed */}
+          {completed.length > 0 && (
+            <View>
+              <SectionHeader title="Completed" count={completed.length} />
+              {completed.map((s) => (
+                <SessionCard key={s.id} session={s} />
+              ))}
+            </View>
+          )}
 
-            {inProgress.length > 0 && (
-              <View style={{ marginTop: completed.length > 0 ? 24 : 0 }}>
-                <Text style={styles.sectionLabel}>IN PROGRESS - {inProgress.length}</Text>
-                {inProgress.map((s) => (
-                  <SessionCard key={s.id} session={s} onPress={() => openSession(s)} />
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
+          {/* In Progress */}
+          {inProgress.length > 0 && (
+            <View>
+              <SectionHeader title="In Progress" count={inProgress.length} />
+              {inProgress.map((s) => (
+                <SessionCard key={s.id} session={s} />
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
 
-function SessionCard({ session: s, onPress }: { session: HistorySession; onPress: () => void }) {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card style={styles.sessionCard}>
-        <View style={styles.sessionRow}>
-          <View style={styles.sessionLeft}>
-            <View style={styles.sessionIcon}>
-              <Ionicons name="barbell-outline" size={16} color={colors.mutedForeground} />
-            </View>
-            <View style={styles.sessionInfo}>
-              <Text style={styles.sessionLift}>{formatLiftName(s.selectedLift)}</Text>
-              <Text style={styles.sessionDate}>{formatDate(s.createdAt)}</Text>
-              {s.primaryLimiter && (
-                <View style={styles.limiterRow}>
-                  <Text style={styles.limiterLabel}>Limiting factor: </Text>
-                  <Text style={styles.limiterValue}>{s.primaryLimiter}</Text>
-                  {s.confidence !== undefined && (
-                    <Badge variant="secondary" style={{ marginLeft: 6 }}>
-                      {`${Math.round(s.confidence * 100)}%`}
-                    </Badge>
-                  )}
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.sessionRight}>
-            <Badge variant={s.status === 'completed' ? 'default' : 'secondary'}>
-              {s.status === 'completed' ? 'Complete' : 'In progress'}
-            </Badge>
-            <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-          </View>
-        </View>
-      </Card>
-    </TouchableOpacity>
-  );
-}
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  headerRow: {
+
+  // Top bar
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: colors.foreground,
+  screenTitle: {
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
-  },
-  subtitle: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
-    marginTop: 2,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: 40,
-  },
-  center: {
-    paddingTop: 80,
-    alignItems: 'center',
-  },
-  emptyCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  emptyTitle: {
     color: colors.foreground,
+  },
+
+  // Scroll
+  scroll: { flex: 1 },
+  scrollContent: {
+    padding: spacing.md,
+    paddingBottom: spacing.xxl,
+    gap: 16,
+  },
+
+  // Section header
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  sectionTitle: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
+    color: colors.foreground,
   },
-  emptyDescription: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  list: {
+
+  // Session card
+  sessionCard: {
+    padding: 14,
+    marginBottom: 10,
     gap: 8,
   },
-  sectionLabel: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.semibold,
-    letterSpacing: 1,
-    marginBottom: 8,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    flexWrap: 'wrap',
   },
-  sessionCard: {
-    padding: 16,
-    marginBottom: 8,
-  },
-  sessionRow: {
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  sessionLeft: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
+  liftName: {
+    fontSize: 15,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
     flex: 1,
   },
-  sessionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+  dateText: {
+    fontSize: 12,
+    color: colors.mutedForeground,
+  },
+  limiterText: {
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    flex: 1,
+    lineHeight: 19,
+  },
+
+  // Center / empty
+  center: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: spacing.md,
   },
-  sessionInfo: {
-    flex: 1,
+  emptyCard: {
+    padding: spacing.md,
+    width: '100%',
   },
-  sessionLift: {
-    color: colors.foreground,
-    fontSize: fontSize.base,
+  emptyInner: {
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  emptyTitle: {
+    fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
-  },
-  sessionDate: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.xs,
-    marginTop: 2,
-  },
-  limiterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: 6,
-  },
-  limiterLabel: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.xs,
-  },
-  limiterValue: {
     color: colors.foreground,
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.medium,
   },
-  sessionRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  emptySubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
   },
 });

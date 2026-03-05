@@ -1,49 +1,44 @@
+import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, radius, fontSize, fontWeight } from '@/constants/theme';
+import { colors, radius, fontSize } from '../../constants/theme';
 
-type Variant = 'default' | 'secondary' | 'outline' | 'destructive';
+type Variant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive' | 'pro';
 
 interface BadgeProps {
-  children: string;
+  children: React.ReactNode;
   variant?: Variant;
   style?: ViewStyle;
 }
 
-const variantStyles: Record<Variant, { bg: string; text: string; border?: string }> = {
-  default: { bg: colors.primary, text: colors.primaryForeground },
-  secondary: { bg: colors.secondary, text: colors.secondaryForeground },
-  outline: { bg: 'transparent', text: colors.foreground, border: colors.border },
-  destructive: { bg: colors.destructive, text: colors.destructiveForeground },
-};
-
 export function Badge({ children, variant = 'default', style }: BadgeProps) {
-  const v = variantStyles[variant];
   return (
-    <View
-      style={[
-        styles.badge,
-        {
-          backgroundColor: v.bg,
-          borderWidth: v.border ? 1 : 0,
-          borderColor: v.border,
-        },
-        style,
-      ]}
-    >
-      <Text style={[styles.text, { color: v.text }]}>{children}</Text>
+    <View style={[styles.base, styles[variant], style]}>
+      <Text style={[styles.text, styles[`text_${variant}`]]}>{children}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  badge: {
+  base: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: radius.full,
     alignSelf: 'flex-start',
   },
-  text: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.semibold,
-  },
+  default: { backgroundColor: colors.primary },
+  secondary: { backgroundColor: colors.muted },
+  outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
+  success: { backgroundColor: '#14532d' },
+  warning: { backgroundColor: '#78350f' },
+  destructive: { backgroundColor: '#7f1d1d' },
+  pro: { backgroundColor: '#4c1d95' },
+
+  text: { fontSize: fontSize.xs, fontWeight: '600' },
+  text_default: { color: colors.primaryForeground },
+  text_secondary: { color: colors.mutedForeground },
+  text_outline: { color: colors.foreground },
+  text_success: { color: '#86efac' },
+  text_warning: { color: '#fcd34d' },
+  text_destructive: { color: '#fca5a5' },
+  text_pro: { color: '#c4b5fd' },
 });

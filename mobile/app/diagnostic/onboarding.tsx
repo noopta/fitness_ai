@@ -1,469 +1,486 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/context/AuthContext';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { liftCoachApi, authApi, storage } from '@/lib/api';
-import { colors, fontSize, fontWeight, spacing, radius } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const lifts = [
-  { id: 'flat_bench_press', label: 'Flat Bench Press', hint: 'Chest, triceps, shoulders', icon: 'barbell' as const },
-  { id: 'incline_bench_press', label: 'Incline Bench Press', hint: 'Upper chest focus', icon: 'trending-up' as const },
-  { id: 'deadlift', label: 'Deadlift', hint: 'Full posterior chain', icon: 'flash' as const },
-  { id: 'barbell_back_squat', label: 'Back Squat', hint: 'Legs & glutes', icon: 'fitness' as const },
-  { id: 'barbell_front_squat', label: 'Front Squat', hint: 'Quad dominant', icon: 'locate' as const },
-  { id: 'clean_and_jerk', label: 'Clean & Jerk', hint: 'Olympic - full body', icon: 'flame' as const },
-  { id: 'snatch', label: 'Snatch', hint: 'Olympic - explosive pull', icon: 'flame' as const },
-  { id: 'power_clean', label: 'Power Clean', hint: 'Olympic - power position', icon: 'flame' as const },
-  { id: 'hang_clean', label: 'Hang Clean', hint: 'Olympic - hang position', icon: 'flame' as const },
+import { liftCoachApi, authApi } from '../../src/lib/api';
+import { Button } from '../../src/components/ui/Button';
+import { Input } from '../../src/components/ui/Input';
+import { Card } from '../../src/components/ui/Card';
+import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
+import { useAuth } from '../../src/context/AuthContext';
+
+const LIFTS = [
+  { id: 'flat_bench_press', name: 'Flat Bench Press', icon: 'barbell-outline' },
+  { id: 'incline_bench_press', name: 'Incline Bench Press', icon: 'barbell-outline' },
+  { id: 'deadlift', name: 'Deadlift', icon: 'barbell-outline' },
+  { id: 'barbell_back_squat', name: 'Back Squat', icon: 'barbell-outline' },
+  { id: 'barbell_front_squat', name: 'Front Squat', icon: 'barbell-outline' },
+  { id: 'clean_and_jerk', name: 'Clean & Jerk', icon: 'flash-outline' },
+  { id: 'snatch', name: 'Snatch', icon: 'flash-outline' },
+  { id: 'power_clean', name: 'Power Clean', icon: 'flash-outline' },
+  { id: 'hang_clean', name: 'Hang Clean', icon: 'flash-outline' },
 ];
 
-const trainingAgeOptions = [
-  { value: 'beginner', label: 'Beginner (<1 year)' },
-  { value: 'intermediate', label: 'Intermediate (1-3 years)' },
-  { value: 'advanced', label: 'Advanced (3+ years)' },
-];
-
-const equipmentOptions = [
-  { value: 'commercial', label: 'Commercial Gym (full)' },
-  { value: 'limited', label: 'Limited (barbells + dumbbells)' },
-  { value: 'home', label: 'Home Gym (minimal)' },
-];
-
-function feetInToCm(ft: number, inch: number) {
-  return (ft * 12 + inch) * 2.54;
-}
-
-function lbToKg(lb: number) {
-  return lb * 0.453592;
-}
+type TrainingAge = 'beginner' | 'intermediate' | 'advanced';
+type Equipment = 'commercial_gym' | 'limited_equipment' | 'home_gym';
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [selectedLift, setSelectedLift] = useState('flat_bench_press');
-  const [loading, setLoading] = useState(false);
 
+  const [selectedLift, setSelectedLift] = useState('');
   const [currentWeight, setCurrentWeight] = useState('');
   const [currentSets, setCurrentSets] = useState('');
   const [currentReps, setCurrentReps] = useState('');
-
-  const [heightFeet, setHeightFeet] = useState('');
-  const [heightInches, setHeightInches] = useState('');
+  const [trainingAge, setTrainingAge] = useState<TrainingAge>('intermediate');
+  const [equipment, setEquipment] = useState<Equipment>('commercial_gym');
+  const [heightFt, setHeightFt] = useState('');
+  const [heightIn, setHeightIn] = useState('');
   const [weightLbs, setWeightLbs] = useState('');
   const [constraints, setConstraints] = useState('');
-  const [trainingAge, setTrainingAge] = useState('intermediate');
-  const [equipment, setEquipment] = useState('commercial');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      if (user.trainingAge) setTrainingAge(user.trainingAge);
-      if (user.equipment) setEquipment(user.equipment);
-      if (user.constraintsText) setConstraints(user.constraintsText);
-      if (user.heightCm) {
-        const totalInches = user.heightCm / 2.54;
-        setHeightFeet(Math.floor(totalInches / 12).toString());
-        setHeightInches(Math.round(totalInches % 12).toString());
+    loadSavedData();
+  }, []);
+
+  async function loadSavedData() {
+    try {
+      const [
+        savedLift, savedWeight, savedSets, savedReps,
+        savedAge, savedEquipment, savedHtFt, savedHtIn,
+        savedWtLbs, savedConstraints,
+      ] = await Promise.all([
+        AsyncStorage.getItem('axiom_selected_lift'),
+        AsyncStorage.getItem('axiom_target_weight'),
+        AsyncStorage.getItem('axiom_target_sets'),
+        AsyncStorage.getItem('axiom_target_reps'),
+        AsyncStorage.getItem('axiom_training_age'),
+        AsyncStorage.getItem('axiom_equipment'),
+        AsyncStorage.getItem('axiom_height_ft'),
+        AsyncStorage.getItem('axiom_height_in'),
+        AsyncStorage.getItem('axiom_weight_lbs'),
+        AsyncStorage.getItem('axiom_constraints'),
+      ]);
+
+      if (savedLift) setSelectedLift(savedLift);
+      if (savedWeight) setCurrentWeight(savedWeight);
+      if (savedSets) setCurrentSets(savedSets);
+      if (savedReps) setCurrentReps(savedReps);
+      if (savedAge) setTrainingAge(savedAge as TrainingAge);
+      if (savedEquipment) setEquipment(savedEquipment as Equipment);
+      if (savedHtFt) setHeightFt(savedHtFt);
+      if (savedHtIn) setHeightIn(savedHtIn);
+      if (savedWtLbs) setWeightLbs(savedWtLbs);
+      if (savedConstraints) setConstraints(savedConstraints);
+
+      // Pre-fill from user profile if available
+      if (user) {
+        if (user.trainingAge && !savedAge) setTrainingAge(user.trainingAge as TrainingAge);
+        if (user.equipment && !savedEquipment) setEquipment(user.equipment as Equipment);
+        if (user.heightCm && !savedHtFt) {
+          const totalInches = user.heightCm / 2.54;
+          const ft = Math.floor(totalInches / 12);
+          const inches = Math.round(totalInches % 12);
+          setHeightFt(String(ft));
+          setHeightIn(String(inches));
+        }
+        if (user.weightKg && !savedWtLbs) {
+          setWeightLbs(String(Math.round(user.weightKg * 2.20462)));
+        }
+        if (user.constraintsText && !savedConstraints) setConstraints(user.constraintsText);
       }
-      if (user.weightKg) {
-        setWeightLbs(Math.round(user.weightKg / 0.453592).toString());
-      }
+    } catch {
+      // Ignore storage errors
     }
-  }, [user]);
+  }
 
   async function handleContinue() {
-    if (!selectedLift || !currentWeight || !currentSets || !currentReps) return;
+    if (!selectedLift || !currentWeight) return;
 
     setLoading(true);
     try {
-      const profile: any = {
-        constraintsText: constraints || undefined,
+      await AsyncStorage.multiSet([
+        ['axiom_selected_lift', selectedLift],
+        ['axiom_target_weight', currentWeight],
+        ['axiom_target_sets', currentSets],
+        ['axiom_target_reps', currentReps],
+        ['axiom_training_age', trainingAge],
+        ['axiom_equipment', equipment],
+        ['axiom_height_ft', heightFt],
+        ['axiom_height_in', heightIn],
+        ['axiom_weight_lbs', weightLbs],
+        ['axiom_constraints', constraints],
+      ]);
+
+      // Compute metric values
+      let heightCm: number | undefined;
+      if (heightFt || heightIn) {
+        const ft = parseFloat(heightFt) || 0;
+        const inches = parseFloat(heightIn) || 0;
+        heightCm = Math.round((ft * 12 + inches) * 2.54);
+      }
+
+      let weightKg: number | undefined;
+      if (weightLbs) {
+        weightKg = parseFloat(weightLbs) / 2.20462;
+      }
+
+      // Fire-and-forget profile update
+      authApi.updateProfile({ trainingAge, equipment, heightCm, weightKg, constraintsText: constraints || undefined }).catch(() => {});
+
+      const session = await liftCoachApi.createSession({
+        selectedLift,
         trainingAge,
         equipment,
-      };
-
-      if (heightFeet) {
-        profile.heightCm = feetInToCm(parseFloat(heightFeet), parseFloat(heightInches) || 0);
-      }
-      if (weightLbs) {
-        profile.weightKg = lbToKg(parseFloat(weightLbs));
-      }
-
-      const response = await liftCoachApi.createSession({
-        selectedLift,
-        goal: 'strength_peak',
-        profile,
+        heightCm,
+        weightKg,
+        constraintsText: constraints || undefined,
       });
 
-      const sid = response.session?.id || response.sessionId || response.id || '';
-      await storage.set('liftoff_session_id', sid);
-      await storage.set('liftoff_selected_lift', selectedLift);
-      await storage.set('liftoff_target_lift_weight', currentWeight);
-      await storage.set('liftoff_target_lift_sets', currentSets);
-      await storage.set('liftoff_target_lift_reps', currentReps);
-
-      authApi.updateProfile({
-        trainingAge: profile.trainingAge,
-        equipment: profile.equipment,
-        constraintsText: profile.constraintsText,
-        heightCm: profile.heightCm,
-        weightKg: profile.weightKg,
-      }).catch(() => {});
-
+      await AsyncStorage.setItem('axiom_session_id', session.session?.id || session.id || '');
       router.push('/diagnostic/snapshot');
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create session');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to create session. Please try again.');
+    } finally {
       setLoading(false);
     }
   }
 
+  const canContinue = selectedLift.length > 0 && currentWeight.length > 0;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+    <SafeAreaView style={styles.safeArea}>
+      <Stack.Screen options={{ title: 'New Analysis', headerBackVisible: true }} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-          </TouchableOpacity>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Step 1 of 4</Text>
-            <Text style={styles.navSubtitle}>AI-Powered Lift Diagnostics</Text>
+        {/* Select Lift Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Select Your Lift</Text>
+          <View style={styles.liftGrid}>
+            {LIFTS.map((lift) => {
+              const isSelected = selectedLift === lift.id;
+              return (
+                <Pressable
+                  key={lift.id}
+                  onPress={() => setSelectedLift(lift.id)}
+                  style={[
+                    styles.liftCard,
+                    isSelected && styles.liftCardSelected,
+                  ]}
+                >
+                  <Ionicons
+                    name={lift.icon as any}
+                    size={22}
+                    color={isSelected ? colors.primary : colors.mutedForeground}
+                    style={styles.liftIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.liftName,
+                      isSelected && styles.liftNameSelected,
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {lift.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
-          <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <Text style={styles.pageTitle}>Diagnose Your Weak Points</Text>
-          <Text style={styles.pageDescription}>
-            Using your current working weights and lift mechanics, our AI identifies exactly where
-            you're struggling and prescribes targeted accessories.
+        {/* Current Performance Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Current Performance</Text>
+          <View style={styles.perfRow}>
+            <Input
+              label="Weight (lbs)"
+              placeholder="225"
+              value={currentWeight}
+              onChangeText={setCurrentWeight}
+              keyboardType="numeric"
+              containerStyle={styles.perfInput}
+            />
+            <Input
+              label="Sets"
+              placeholder="3"
+              value={currentSets}
+              onChangeText={setCurrentSets}
+              keyboardType="numeric"
+              containerStyle={styles.perfInput}
+            />
+            <Input
+              label="Reps"
+              placeholder="5"
+              value={currentReps}
+              onChangeText={setCurrentReps}
+              keyboardType="numeric"
+              containerStyle={styles.perfInput}
+            />
+          </View>
+        </View>
+
+        {/* Profile Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Your Profile{' '}
+            <Text style={styles.optionalLabel}>(Optional)</Text>
           </Text>
 
-          <Card style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="locate" size={18} color={colors.primary} />
-              <Text style={styles.cardTitle}>Select Your Target Lift</Text>
-            </View>
-
-            <View style={styles.liftGrid}>
-              {lifts.map((lift) => (
-                <TouchableOpacity
-                  key={lift.id}
+          {/* Training Age */}
+          <Text style={styles.fieldLabel}>Training Age</Text>
+          <View style={styles.chipRow}>
+            {(['beginner', 'intermediate', 'advanced'] as TrainingAge[]).map((level) => (
+              <Pressable
+                key={level}
+                onPress={() => setTrainingAge(level)}
+                style={[
+                  styles.chip,
+                  trainingAge === level && styles.chipSelected,
+                ]}
+              >
+                <Text
                   style={[
-                    styles.liftItem,
-                    selectedLift === lift.id && styles.liftItemSelected,
+                    styles.chipText,
+                    trainingAge === level && styles.chipTextSelected,
                   ]}
-                  onPress={() => setSelectedLift(lift.id)}
-                  activeOpacity={0.7}
                 >
-                  <View style={[
-                    styles.liftIcon,
-                    selectedLift === lift.id && styles.liftIconSelected,
-                  ]}>
-                    <Ionicons
-                      name={lift.icon}
-                      size={20}
-                      color={selectedLift === lift.id ? colors.primary : colors.mutedForeground}
-                    />
-                  </View>
-                  <View style={styles.liftInfo}>
-                    <Text style={[
-                      styles.liftLabel,
-                      selectedLift === lift.id && styles.liftLabelSelected,
-                    ]}>
-                      {lift.label}
-                    </Text>
-                    <Text style={styles.liftHint}>{lift.hint}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Card>
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
 
-          <Card style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="trending-up" size={18} color={colors.primary} />
-              <Text style={styles.cardTitle}>
-                Your Current {lifts.find(l => l.id === selectedLift)?.label}
-              </Text>
-            </View>
-            <Text style={styles.cardDescription}>
-              Enter your current working weight, sets, and reps.
-            </Text>
-
-            <View style={styles.inputRow}>
-              <Input
-                label="Weight (lbs)"
-                placeholder="185"
-                value={currentWeight}
-                onChangeText={setCurrentWeight}
-                keyboardType="numeric"
-                containerStyle={{ flex: 1 }}
-              />
-              <Input
-                label="Sets"
-                placeholder="3"
-                value={currentSets}
-                onChangeText={setCurrentSets}
-                keyboardType="numeric"
-                containerStyle={{ flex: 1 }}
-              />
-              <Input
-                label="Reps"
-                placeholder="8"
-                value={currentReps}
-                onChangeText={setCurrentReps}
-                keyboardType="numeric"
-                containerStyle={{ flex: 1 }}
-              />
-            </View>
-          </Card>
-
-          <Card style={styles.card}>
-            <Text style={styles.cardTitle}>Your Profile</Text>
-            <Text style={styles.cardDescription}>Optional but recommended for better results</Text>
-
-            <Text style={styles.selectLabel}>Training Age</Text>
-            <View style={styles.optionRow}>
-              {trainingAgeOptions.map((opt) => (
-                <TouchableOpacity
-                  key={opt.value}
+          {/* Equipment */}
+          <Text style={[styles.fieldLabel, { marginTop: spacing.md }]}>Equipment</Text>
+          <View style={styles.chipRow}>
+            {(
+              [
+                { value: 'commercial_gym', label: 'Commercial Gym' },
+                { value: 'limited_equipment', label: 'Limited' },
+                { value: 'home_gym', label: 'Home Gym' },
+              ] as { value: Equipment; label: string }[]
+            ).map((opt) => (
+              <Pressable
+                key={opt.value}
+                onPress={() => setEquipment(opt.value)}
+                style={[
+                  styles.chip,
+                  equipment === opt.value && styles.chipSelected,
+                ]}
+              >
+                <Text
                   style={[
-                    styles.optionChip,
-                    trainingAge === opt.value && styles.optionChipSelected,
+                    styles.chipText,
+                    equipment === opt.value && styles.chipTextSelected,
                   ]}
-                  onPress={() => setTrainingAge(opt.value)}
                 >
-                  <Text style={[
-                    styles.optionChipText,
-                    trainingAge === opt.value && styles.optionChipTextSelected,
-                  ]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
 
-            <Text style={styles.selectLabel}>Equipment Access</Text>
-            <View style={styles.optionRow}>
-              {equipmentOptions.map((opt) => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[
-                    styles.optionChip,
-                    equipment === opt.value && styles.optionChipSelected,
-                  ]}
-                  onPress={() => setEquipment(opt.value)}
-                >
-                  <Text style={[
-                    styles.optionChipText,
-                    equipment === opt.value && styles.optionChipTextSelected,
-                  ]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.inputRow}>
-              <Input
-                label="Height (ft)"
-                placeholder="5"
-                value={heightFeet}
-                onChangeText={setHeightFeet}
-                keyboardType="numeric"
-                containerStyle={{ flex: 1 }}
-              />
-              <Input
-                label="(in)"
-                placeholder="10"
-                value={heightInches}
-                onChangeText={setHeightInches}
-                keyboardType="numeric"
-                containerStyle={{ flex: 1 }}
-              />
-              <Input
-                label="Weight (lbs)"
-                placeholder="175"
-                value={weightLbs}
-                onChangeText={setWeightLbs}
-                keyboardType="numeric"
-                containerStyle={{ flex: 1 }}
-              />
-            </View>
-
+          {/* Height */}
+          <Text style={[styles.fieldLabel, { marginTop: spacing.md }]}>Height</Text>
+          <View style={styles.heightRow}>
             <Input
-              label="Injuries or Constraints (Optional)"
-              placeholder="e.g., shoulder impingement, lower back sensitivity..."
-              value={constraints}
-              onChangeText={setConstraints}
-              multiline
-              numberOfLines={2}
-              containerStyle={{ marginTop: 12 }}
-              style={{ minHeight: 60, textAlignVertical: 'top' }}
+              placeholder="5"
+              value={heightFt}
+              onChangeText={setHeightFt}
+              keyboardType="numeric"
+              containerStyle={styles.heightInput}
+              label="ft"
             />
-          </Card>
+            <Input
+              placeholder="10"
+              value={heightIn}
+              onChangeText={setHeightIn}
+              keyboardType="numeric"
+              containerStyle={styles.heightInput}
+              label="in"
+            />
+          </View>
 
-          <Button
-            onPress={handleContinue}
-            disabled={!selectedLift || !currentWeight || !currentSets || !currentReps}
-            loading={loading}
-            size="lg"
-            style={{ marginTop: 8, marginBottom: 32 }}
-          >
-            {loading ? 'Creating Session...' : 'Continue to Snapshot'}
-          </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          {/* Body Weight */}
+          <Input
+            label="Body Weight (lbs)"
+            placeholder="185"
+            value={weightLbs}
+            onChangeText={setWeightLbs}
+            keyboardType="numeric"
+            containerStyle={{ marginTop: spacing.md }}
+          />
+
+          {/* Constraints */}
+          <Input
+            label="Injuries / Constraints"
+            placeholder="e.g. left shoulder impingement, avoid overhead pressing..."
+            value={constraints}
+            onChangeText={setConstraints}
+            multiline
+            numberOfLines={3}
+            style={styles.textArea}
+            containerStyle={{ marginTop: spacing.md }}
+          />
+        </View>
+
+        {/* Continue Button */}
+        <Button
+          onPress={handleContinue}
+          disabled={!canContinue}
+          loading={loading}
+          fullWidth
+          size="lg"
+          style={styles.continueBtn}
+        >
+          Continue
+        </Button>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  navbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  navCenter: {
-    alignItems: 'center',
-  },
-  navTitle: {
-    color: colors.foreground,
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-  },
-  navSubtitle: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.xs,
-    marginTop: 2,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-  },
-  pageTitle: {
-    color: colors.foreground,
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  pageDescription: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  card: {
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    color: colors.foreground,
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.semibold,
-  },
-  cardDescription: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
-    marginBottom: 16,
-  },
-  liftGrid: {
-    gap: 8,
-  },
-  liftItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: colors.border,
-    gap: 12,
-  },
-  liftItemSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary + '08',
-  },
-  liftIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    backgroundColor: colors.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  liftIconSelected: {
-    backgroundColor: colors.primary + '15',
-  },
-  liftInfo: {
+  scroll: {
     flex: 1,
   },
-  liftLabel: {
-    color: colors.foreground,
-    fontSize: fontSize.base,
+  scrollContent: {
+    padding: spacing.md,
+    paddingBottom: spacing.xxl,
+  },
+
+  // Sections
+  section: {
+    marginBottom: spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
-  },
-  liftLabelSelected: {
-    color: colors.primary,
-  },
-  liftHint: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.xs,
-    marginTop: 2,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  selectLabel: {
     color: colors.foreground,
+    marginBottom: spacing.sm,
+  },
+  optionalLabel: {
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
-    marginTop: 12,
-    marginBottom: 8,
+    fontWeight: fontWeight.normal,
+    color: colors.mutedForeground,
   },
-  optionRow: {
-    gap: 8,
+
+  // Lift grid
+  liftGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
-  optionChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  liftCard: {
+    width: '47%',
+    backgroundColor: colors.card,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.secondary,
+    padding: spacing.sm,
+    paddingVertical: 12,
+    alignItems: 'center',
+    gap: 6,
   },
-  optionChipSelected: {
+  liftCardSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.primary + '15',
+    backgroundColor: colors.muted,
   },
-  optionChipText: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
+  liftIcon: {
+    marginBottom: 2,
   },
-  optionChipTextSelected: {
-    color: colors.primary,
+  liftName: {
+    fontSize: 13,
     fontWeight: fontWeight.medium,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+  },
+  liftNameSelected: {
+    color: colors.primary,
+  },
+
+  // Performance row
+  perfRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  perfInput: {
+    flex: 1,
+  },
+
+  // Field label
+  fieldLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    color: colors.foreground,
+    marginBottom: spacing.xs,
+  },
+
+  // Chips
+  chipRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    flexWrap: 'wrap',
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  chipSelected: {
+    backgroundColor: colors.muted,
+    borderColor: colors.primary,
+  },
+  chipText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    color: colors.mutedForeground,
+  },
+  chipTextSelected: {
+    color: colors.primary,
+  },
+
+  // Height
+  heightRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  heightInput: {
+    flex: 1,
+  },
+
+  // Textarea
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+    paddingTop: 10,
+  },
+
+  // Continue
+  continueBtn: {
+    marginTop: spacing.sm,
   },
 });

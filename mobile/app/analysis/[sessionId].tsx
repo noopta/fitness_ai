@@ -1,363 +1,534 @@
-import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { StrengthRadar } from '@/components/plan/StrengthRadar';
-import { PhaseBreakdown } from '@/components/plan/PhaseBreakdown';
-import { HypothesisRankings } from '@/components/plan/HypothesisRankings';
-import { liftCoachApi, SessionDetails, WorkoutPlan } from '@/lib/api';
-import { colors, fontSize, fontWeight, spacing, radius } from '@/constants/theme';
+import { liftCoachApi } from '../../src/lib/api';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from '../../src/components/ui/Card';
+import { Badge } from '../../src/components/ui/Badge';
+import { Button } from '../../src/components/ui/Button';
+import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
+import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
-function formatLiftName(id: string): string {
-  return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+const LIFT_LABELS: Record<string, string> = {
+  flat_bench_press: 'Flat Bench Press',
+  incline_bench_press: 'Incline Bench Press',
+  deadlift: 'Deadlift',
+  barbell_back_squat: 'Barbell Back Squat',
+  barbell_front_squat: 'Barbell Front Squat',
+  clean_and_jerk: 'Clean & Jerk',
+  snatch: 'Snatch',
+  power_clean: 'Power Clean',
+  hang_clean: 'Hang Clean',
+};
+
+function formatLiftName(raw: string): string {
+  if (!raw) return raw;
+  return LIFT_LABELS[raw] ?? raw.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-export default function AnalysisDetailScreen() {
+export default function PublicAnalysisScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
   const router = useRouter();
-  const [session, setSession] = useState<SessionDetails | null>(null);
-  const [plan, setPlan] = useState<WorkoutPlan | null>(null);
+  const { width: screenWidth } = useWindowDimensions();
+
+  const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!sessionId) return;
-    loadSession();
+    if (!sessionId) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const data = await liftCoachApi.getPublicSession(sessionId);
+        setPlan(data);
+      } catch (err: any) {
+        if (err?.status === 404) {
+          setNotFound(true);
+        } else {
+          setNotFound(true);
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [sessionId]);
 
-  async function loadSession() {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await liftCoachApi.getSession(sessionId!);
-      setSession(data);
-
-      try {
-        const planData = await liftCoachApi.getCachedPlan(sessionId!);
-        setPlan(planData.plan);
-      } catch {}
-    } catch (err: any) {
-      setError(err.message || 'Failed to load session.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleShare() {
-    if (!session) return;
-    const text = [
-      `Axiom Analysis - ${formatLiftName(session.selectedLift)}`,
-      `Date: ${formatDate(session.createdAt)}`,
-      session.diagnosis ? `Limiting Factor: ${session.diagnosis.primaryLimiter}` : '',
-      session.diagnosis?.reasoning ? `Reasoning: ${session.diagnosis.reasoning}` : '',
-    ].filter(Boolean).join('\n');
-    await Share.share({ message: text });
-  }
-
+  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>Analysis</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading analysis...</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <Stack.Screen options={{ title: 'Analysis' }} />
+        <View style={styles.centeredFill}>
+          <LoadingSpinner message="Loading analysis..." />
         </View>
       </SafeAreaView>
     );
   }
 
-  if (error || !session) {
+  // ── Not Found ────────────────────────────────────────────────────────────────
+  if (notFound || !plan) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>Analysis</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <View style={styles.center}>
-          <Ionicons name="alert-circle" size={48} color={colors.destructive} />
-          <Text style={styles.errorTitle}>Failed to Load</Text>
-          <Text style={styles.errorText}>{error || 'Session not found.'}</Text>
-          <Button onPress={loadSession} style={{ marginTop: 16 }}>Retry</Button>
+      <SafeAreaView style={styles.safeArea}>
+        <Stack.Screen options={{ title: 'Analysis' }} />
+        <View style={styles.centeredFill}>
+          <Card style={styles.notFoundCard}>
+            <CardHeader>
+              <CardTitle style={styles.notFoundTitle}>Analysis not found</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Text style={styles.mutedText}>
+                This analysis link may have expired or does not exist.
+              </Text>
+              <Button
+                style={styles.registerButton}
+                onPress={() => router.push('/(auth)/register')}
+              >
+                Create Free Account
+              </Button>
+            </CardContent>
+          </Card>
         </View>
       </SafeAreaView>
     );
   }
 
-  const liftName = formatLiftName(session.selectedLift);
+  // ── Derived data ─────────────────────────────────────────────────────────────
+  const diagnosis: any[] = plan.diagnosis ?? [];
+  const primaryDiagnosis = diagnosis[0] ?? null;
+  const topDiagnoses = diagnosis.slice(0, 3);
+  const primaryLift = plan.bench_day_plan?.primary_lift ?? null;
+  const accessories: any[] = plan.bench_day_plan?.accessories ?? [];
+  const topAccessories = accessories.slice(0, 4);
 
+  const maxConfidence = topDiagnoses.reduce(
+    (m: number, d: any) => Math.max(m, d.confidence ?? 0),
+    1,
+  );
+
+  // ── Loaded ───────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.navbar}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.navTitle} numberOfLines={1}>{liftName}</Text>
-        <TouchableOpacity onPress={handleShare}>
-          <Ionicons name="share-outline" size={22} color={colors.foreground} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
+      <Stack.Screen options={{ title: 'Analysis' }} />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── 1. Header Card ───────────────────────────────────────────────── */}
         <Card style={styles.headerCard}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerIcon}>
-              <Ionicons name="barbell" size={20} color={colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.headerTitle}>{liftName}</Text>
-              <Text style={styles.headerDate}>{formatDate(session.createdAt)}</Text>
-            </View>
-            <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
-              {session.status === 'completed' ? 'Complete' : 'In Progress'}
-            </Badge>
-          </View>
-        </Card>
-
-        {session.diagnosis && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="search" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Diagnosis</Text>
-            </View>
-
-            <View style={styles.diagnosisBox}>
-              <Text style={styles.diagnosisLabel}>Primary Limiting Factor</Text>
-              <Text style={styles.diagnosisValue}>{session.diagnosis.primaryLimiter}</Text>
-              {session.diagnosis.muscleGroup && (
-                <Badge variant="secondary" style={{ marginTop: 6 }}>
-                  {session.diagnosis.muscleGroup}
+          <CardHeader>
+            <Badge variant="default" style={styles.aiBadge}>AI Analysis</Badge>
+            <Text style={styles.liftName}>{formatLiftName(plan.selected_lift)}</Text>
+            {primaryDiagnosis && (
+              <View style={styles.limiterRow}>
+                <Text style={styles.limiterName}>{primaryDiagnosis.limiterName}</Text>
+                <Badge variant="outline" style={styles.confidenceBadge}>
+                  {Math.round((primaryDiagnosis.confidence ?? 0) * 100)}% confidence
                 </Badge>
-              )}
-            </View>
-
-            {session.diagnosis.reasoning && (
-              <View style={styles.reasoningBox}>
-                <Text style={styles.reasoningLabel}>Reasoning</Text>
-                <Text style={styles.reasoningText}>{session.diagnosis.reasoning}</Text>
               </View>
             )}
+          </CardHeader>
+        </Card>
+
+        {/* ── 2. Diagnosis Evidence Card ───────────────────────────────────── */}
+        {primaryDiagnosis && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Primary Limiter</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Text style={styles.diagnosisName}>{primaryDiagnosis.limiterName}</Text>
+              <Badge variant="secondary" style={styles.smallBadge}>
+                {Math.round((primaryDiagnosis.confidence ?? 0) * 100)}% confidence
+              </Badge>
+
+              {/* Evidence bullets */}
+              {Array.isArray(primaryDiagnosis.evidence) &&
+                primaryDiagnosis.evidence.length > 0 && (
+                  <View style={styles.evidenceList}>
+                    {primaryDiagnosis.evidence.map((item: string, i: number) => (
+                      <View key={i} style={styles.evidenceRow}>
+                        <Text style={styles.bullet}>•</Text>
+                        <Text style={styles.evidenceText}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+              {/* Top 3 confidence bars */}
+              {topDiagnoses.length > 1 && (
+                <View style={styles.barsSection}>
+                  <Text style={styles.barsSectionTitle}>All Candidates</Text>
+                  {topDiagnoses.map((d: any, i: number) => {
+                    const pct = maxConfidence > 0
+                      ? (d.confidence ?? 0) / maxConfidence
+                      : 0;
+                    const barWidth = Math.max(pct * (screenWidth - 80), 4);
+                    return (
+                      <View key={i} style={styles.barRow}>
+                        <Text style={styles.barLabel} numberOfLines={1}>
+                          {d.limiterName}
+                        </Text>
+                        <View style={styles.barTrack}>
+                          <View
+                            style={[
+                              styles.barFill,
+                              { width: barWidth },
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.barPct}>
+                          {Math.round((d.confidence ?? 0) * 100)}%
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </CardContent>
           </Card>
         )}
 
-        {session.snapshots && session.snapshots.length > 0 && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="list" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Strength Snapshot</Text>
-            </View>
-            <Text style={styles.sectionSubtitle}>{session.snapshots.length} exercises recorded</Text>
+        {/* ── 3. Primary Lift Card ─────────────────────────────────────────── */}
+        {primaryLift && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>{primaryLift.exercise_name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <View style={styles.statGrid}>
+                <View style={styles.statCell}>
+                  <Text style={styles.statValue}>
+                    {primaryLift.sets}×{primaryLift.reps}
+                  </Text>
+                  <Text style={styles.statLabel}>Volume</Text>
+                </View>
+                <View style={[styles.statCell, styles.statCellBordered]}>
+                  <Text style={styles.statValue}>{primaryLift.intensity}%</Text>
+                  <Text style={styles.statLabel}>Intensity</Text>
+                </View>
+                <View style={styles.statCell}>
+                  <Text style={styles.statValue}>{primaryLift.rest_minutes}min</Text>
+                  <Text style={styles.statLabel}>Rest</Text>
+                </View>
+              </View>
+            </CardContent>
+          </Card>
+        )}
 
-            {session.snapshots.map((snap, idx) => (
-              <View key={snap.id || idx} style={styles.snapRow}>
-                <Text style={styles.snapExercise}>
-                  {snap.exerciseId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </Text>
-                <View style={styles.snapStats}>
-                  <Badge variant="outline">{`${snap.weight} ${snap.weightUnit}`}</Badge>
-                  <Badge variant="outline">{`${snap.reps} reps`}</Badge>
-                  {snap.rpe && <Badge variant="outline">{`RPE ${snap.rpe}`}</Badge>}
-                  {snap.estimatedOneRepMax && (
-                    <Badge variant="secondary">{`E1RM: ${Math.round(snap.estimatedOneRepMax)}`}</Badge>
+        {/* ── 4. Accessories Card ──────────────────────────────────────────── */}
+        {topAccessories.length > 0 && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Recommended Accessories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {topAccessories.map((acc: any, i: number) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.accessoryItem,
+                    i < topAccessories.length - 1 && styles.accessoryDivider,
+                  ]}
+                >
+                  <View style={styles.accessoryHeader}>
+                    <Text style={styles.accessoryName}>{acc.name}</Text>
+                    {acc.priority && (
+                      <Badge variant="pro" style={styles.priorityBadge}>
+                        {acc.priority}
+                      </Badge>
+                    )}
+                  </View>
+                  <View style={styles.accessoryBadgeRow}>
+                    {acc.category && (
+                      <Badge variant="secondary" style={styles.smallBadge}>
+                        {acc.category}
+                      </Badge>
+                    )}
+                    {acc.impact && (
+                      <Badge variant="outline" style={styles.smallBadge}>
+                        {acc.impact}
+                      </Badge>
+                    )}
+                  </View>
+                  {acc.why && (
+                    <Text style={styles.accessoryWhy}>Why: {acc.why}</Text>
                   )}
                 </View>
-              </View>
-            ))}
-          </Card>
-        )}
-
-        {plan && plan.diagnostic_signals && Object.keys(plan.diagnostic_signals.indices).length > 0 && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="pulse" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Strength Profile</Text>
-            </View>
-            <StrengthRadar signals={plan.diagnostic_signals} liftId={session.selectedLift} />
-          </Card>
-        )}
-
-        {plan && plan.diagnostic_signals && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="bar-chart" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Phase Breakdown</Text>
-            </View>
-            <PhaseBreakdown
-              phaseScores={plan.diagnostic_signals.phase_scores}
-              primaryPhase={plan.diagnostic_signals.primary_phase}
-              primaryPhaseConfidence={plan.diagnostic_signals.primary_phase_confidence}
-              liftId={session.selectedLift}
-            />
-          </Card>
-        )}
-
-        {plan && plan.diagnostic_signals && plan.diagnostic_signals.hypothesis_scores.length > 0 && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="flash" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Hypothesis Rankings</Text>
-            </View>
-            <HypothesisRankings hypotheses={plan.diagnostic_signals.hypothesis_scores} />
-          </Card>
-        )}
-
-        {plan && plan.bench_day_plan && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="shield" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Prescribed Plan</Text>
-            </View>
-
-            <View style={styles.primaryLiftBox}>
-              <Text style={styles.primaryLiftLabel}>Primary Lift</Text>
-              <Text style={styles.primaryLiftName}>{plan.bench_day_plan.primary_lift.exercise_name}</Text>
-              <View style={styles.badgeRow}>
-                <Badge variant="secondary">
-                  {`${plan.bench_day_plan.primary_lift.sets} x ${plan.bench_day_plan.primary_lift.reps}`}
-                </Badge>
-                <Badge variant="outline">{plan.bench_day_plan.primary_lift.intensity}</Badge>
-              </View>
-            </View>
-
-            <Text style={[styles.sectionSubtitle, { marginTop: 16 }]}>
-              Accessories ({plan.bench_day_plan.accessories.length})
-            </Text>
-
-            {plan.bench_day_plan.accessories
-              .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
-              .map((acc, idx) => (
-                <View key={acc.exercise_id || idx} style={styles.accessoryItem}>
-                  <View style={styles.accessoryHeader}>
-                    <Text style={styles.accessoryName}>{acc.exercise_name}</Text>
-                    <Badge variant="outline">{`${acc.sets}x${acc.reps}`}</Badge>
-                  </View>
-                  <Text style={styles.accessoryWhy}>{acc.why}</Text>
-                  <View style={styles.badgeRow}>
-                    <Badge variant="secondary">{acc.category}</Badge>
-                    {acc.impact && <Badge variant="outline">{acc.impact}</Badge>}
-                  </View>
-                </View>
               ))}
+            </CardContent>
           </Card>
         )}
 
-        {session.messages && session.messages.length > 0 && (
-          <Card style={{ marginBottom: 32 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="chatbubbles" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Diagnostic Chat</Text>
-            </View>
-            <Text style={styles.sectionSubtitle}>{session.messages.length} messages</Text>
+        {/* ── 5. CTA Card ──────────────────────────────────────────────────── */}
+        <Card style={[styles.card, styles.ctaCard]}>
+          <CardHeader style={styles.ctaHeader}>
+            <CardTitle style={styles.ctaTitle}>Get Your Own Analysis</CardTitle>
+          </CardHeader>
+          <CardContent style={styles.ctaContent}>
+            <Text style={styles.ctaSubtitle}>
+              Join thousands of athletes identifying their strength limiters
+            </Text>
+            <Button
+              fullWidth
+              onPress={() => router.push('/(auth)/register')}
+              style={styles.ctaButton}
+            >
+              Create Free Account
+            </Button>
+          </CardContent>
+        </Card>
 
-            {session.messages.map((msg, idx) => (
-              <View
-                key={idx}
-                style={[styles.messageItem, msg.role === 'user' && styles.messageItemUser]}
-              >
-                <View style={styles.messageRoleBadge}>
-                  <Ionicons
-                    name={msg.role === 'user' ? 'person' : 'hardware-chip'}
-                    size={12}
-                    color={msg.role === 'user' ? colors.primary : colors.mutedForeground}
-                  />
-                  <Text style={styles.messageRoleText}>
-                    {msg.role === 'user' ? 'You' : 'AI'}
-                  </Text>
-                </View>
-                <Text style={styles.messageContent}>{msg.content}</Text>
-              </View>
-            ))}
-          </Card>
-        )}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  navTitle: { color: colors.foreground, fontSize: fontSize.lg, fontWeight: fontWeight.semibold, flex: 1, textAlign: 'center', marginHorizontal: 12 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  loadingText: { color: colors.mutedForeground, fontSize: fontSize.sm, marginTop: 12 },
-  errorTitle: { color: colors.foreground, fontSize: fontSize.lg, fontWeight: fontWeight.semibold, marginTop: 12 },
-  errorText: { color: colors.mutedForeground, fontSize: fontSize.sm, marginTop: 4, textAlign: 'center' },
-  scrollContent: { padding: spacing.lg },
-  headerCard: { marginBottom: 16 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerIcon: {
-    width: 44, height: 44, borderRadius: radius.md,
-    backgroundColor: colors.primary + '15', alignItems: 'center', justifyContent: 'center',
+  centeredFill: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
   },
-  headerTitle: { color: colors.foreground, fontSize: fontSize.lg, fontWeight: fontWeight.bold },
-  headerDate: { color: colors.mutedForeground, fontSize: fontSize.xs, marginTop: 2 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  sectionTitle: { color: colors.foreground, fontSize: fontSize.base, fontWeight: fontWeight.semibold },
-  sectionSubtitle: { color: colors.mutedForeground, fontSize: fontSize.sm, marginBottom: 12 },
-  diagnosisBox: {
-    backgroundColor: colors.primary + '10', borderWidth: 1, borderColor: colors.primary + '30',
-    borderRadius: radius.lg, padding: 14, marginBottom: 12,
+  scrollContent: {
+    padding: spacing.md,
+    gap: spacing.md,
   },
-  diagnosisLabel: { color: colors.mutedForeground, fontSize: fontSize.xs, fontWeight: fontWeight.semibold, marginBottom: 4 },
-  diagnosisValue: { color: colors.foreground, fontSize: fontSize.lg, fontWeight: fontWeight.bold },
-  reasoningBox: {
-    backgroundColor: colors.secondary, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg, padding: 14,
+
+  // ── Not Found ────────────────────────────────────────────────────────────────
+  notFoundCard: {
+    width: '100%',
+    maxWidth: 360,
   },
-  reasoningLabel: { color: colors.mutedForeground, fontSize: fontSize.xs, fontWeight: fontWeight.semibold, marginBottom: 4 },
-  reasoningText: { color: colors.foreground, fontSize: fontSize.sm, lineHeight: 20 },
-  snapRow: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
-    padding: 12, marginBottom: 8, backgroundColor: colors.secondary,
+  notFoundTitle: {
+    textAlign: 'center',
   },
-  snapExercise: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold, marginBottom: 6 },
-  snapStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  primaryLiftBox: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg,
-    padding: 14, backgroundColor: colors.secondary,
+  mutedText: {
+    color: colors.mutedForeground,
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+    marginBottom: spacing.md,
   },
-  primaryLiftLabel: { color: colors.mutedForeground, fontSize: fontSize.xs, fontWeight: fontWeight.semibold, marginBottom: 4 },
-  primaryLiftName: { color: colors.foreground, fontSize: fontSize.base, fontWeight: fontWeight.bold, marginBottom: 8 },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  registerButton: {
+    marginTop: spacing.sm,
+  },
+
+  // ── Header card ──────────────────────────────────────────────────────────────
+  headerCard: {
+    backgroundColor: 'rgba(99,102,241,0.10)',
+    borderColor: 'rgba(99,102,241,0.30)',
+  },
+  aiBadge: {
+    marginBottom: spacing.sm,
+  },
+  liftName: {
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    marginBottom: spacing.sm,
+  },
+  limiterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  limiterName: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    flexShrink: 1,
+  },
+  confidenceBadge: {
+    marginLeft: spacing.xs,
+  },
+
+  // ── Generic card ─────────────────────────────────────────────────────────────
+  card: {
+    marginBottom: 0,
+  },
+
+  // ── Diagnosis ────────────────────────────────────────────────────────────────
+  diagnosisName: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    marginBottom: spacing.sm,
+  },
+  smallBadge: {
+    marginBottom: spacing.sm,
+  },
+  evidenceList: {
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  evidenceRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'flex-start',
+  },
+  bullet: {
+    color: colors.primary,
+    fontSize: fontSize.base,
+    lineHeight: 22,
+  },
+  evidenceText: {
+    flex: 1,
+    color: colors.foreground,
+    fontSize: fontSize.sm,
+    lineHeight: 20,
+  },
+
+  // ── Confidence bars ──────────────────────────────────────────────────────────
+  barsSection: {
+    marginTop: spacing.md,
+    gap: spacing.sm,
+  },
+  barsSectionTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  barRow: {
+    gap: spacing.xs,
+  },
+  barLabel: {
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    marginBottom: 2,
+  },
+  barTrack: {
+    height: 6,
+    backgroundColor: colors.muted,
+    borderRadius: radius.full,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: 6,
+    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+  },
+  barPct: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    marginTop: 2,
+  },
+
+  // ── Stat grid ────────────────────────────────────────────────────────────────
+  statGrid: {
+    flexDirection: 'row',
+  },
+  statCell: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  statCellBordered: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.border,
+  },
+  statValue: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+  },
+  statLabel: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    marginTop: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // ── Accessories ──────────────────────────────────────────────────────────────
   accessoryItem: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
-    padding: 12, marginBottom: 8, backgroundColor: colors.secondary,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
   },
-  accessoryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  accessoryName: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold, flex: 1 },
-  accessoryWhy: { color: colors.mutedForeground, fontSize: fontSize.xs, lineHeight: 16, marginBottom: 8 },
-  messageItem: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
-    padding: 12, marginBottom: 8, backgroundColor: colors.secondary,
+  accessoryDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    marginBottom: spacing.xs,
   },
-  messageItemUser: { backgroundColor: colors.primary + '08', borderColor: colors.primary + '20' },
-  messageRoleBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  messageRoleText: { color: colors.mutedForeground, fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
-  messageContent: { color: colors.foreground, fontSize: fontSize.sm, lineHeight: 20 },
+  accessoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  accessoryName: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    flex: 1,
+  },
+  priorityBadge: {
+    flexShrink: 0,
+  },
+  accessoryBadgeRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    flexWrap: 'wrap',
+  },
+  accessoryWhy: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    lineHeight: 20,
+    marginTop: spacing.xs,
+  },
+
+  // ── CTA ──────────────────────────────────────────────────────────────────────
+  ctaCard: {
+    borderColor: 'rgba(99,102,241,0.30)',
+  },
+  ctaHeader: {
+    alignItems: 'center',
+  },
+  ctaTitle: {
+    textAlign: 'center',
+    fontSize: fontSize.xl,
+  },
+  ctaContent: {
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  ctaSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  ctaButton: {
+    marginTop: spacing.xs,
+  },
+
+  bottomSpacer: {
+    height: spacing.xl,
+  },
 });

@@ -90,15 +90,22 @@ Endpoints:
 - Imperial units for user input (lbs, feet/inches), converted to metric for backend
 - Dark theme matching web app color palette
 
+## Theme (Dark Mode)
+- Primary: `#fafafa` (near-white), PrimaryForeground: `#09090b` (near-black)
+- Background/Card: `#09090b`, Foreground: `#fafafa`
+- Muted/Border/Secondary/Accent: `#27272a`, MutedForeground: `#a1a1aa`
+- Destructive: `#7f1d1d`, Success: `#22c55e`, Warning: `#f59e0b`
+
 ## Recent Changes
-- Created React Native / Expo mobile app in `mobile/` directory (Mar 2026)
+- Rebuilt mobile app in `mobile/` from `mobileAlt/` base with full feature set (Mar 2026)
 - Upgraded to Expo SDK 54 / React Native 0.81 / Expo Router v6
-- Theme updated to match web app's exact dark mode color palette (HSL-based, near-white primary)
-- Added Axiom logo to login/register screens
-- Added Google OAuth sign-in via expo-web-browser with deep link callback (scheme: liftoff)
-- Login and register screens match web app layout: Google button, "Or" divider, form fields
+- Theme corrected: primary `#fafafa`, background `#09090b`, border/muted `#27272a`
+- Axiom logo image on welcome, login, register screens (assets/axiom-logo.png)
+- Google OAuth sign-in via expo-web-browser with deep link callback (scheme: axiom)
 - Full diagnostic funnel (onboarding → snapshot → chat → plan)
-- Plan visualization components (StrengthRadar bars, PhaseBreakdown, HypothesisRankings)
-- Tab navigation (Home, Coach, History, Settings)
-- Auth with AsyncStorage token persistence
+- Plan visualization (StrengthRadar, PhaseBreakdown, HypothesisRankings, EfficiencyGauge)
+- Coach dashboard with sub-tabs (Overview, Program, Nutrition, Analytics, Wellness, Chat)
+- Tab navigation (Home, History, Coach, Settings)
+- Auth with SecureStore (native) / AsyncStorage (web) token persistence
 - Analysis detail screen for viewing past sessions
+- `mobileAlt/` directory is a backup/reference copy

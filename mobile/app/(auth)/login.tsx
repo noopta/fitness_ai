@@ -1,109 +1,146 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { useAuth } from '@/context/AuthContext';
-import { colors, fontSize, fontWeight, spacing } from '@/constants/theme';
+import { useRouter } from 'expo-router';
+import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
+import { Button } from '../../src/components/ui/Button';
+import { Input } from '../../src/components/ui/Input';
+import { useAuth } from '../../src/context/AuthContext';
 
 export default function LoginScreen() {
-  const { login, googleLogin } = useAuth();
   const router = useRouter();
+  const { login, googleLogin } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleLogin() {
-    if (!email || !password) return;
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Missing Fields', 'Please enter your email and password.');
+      return;
+    }
     setSubmitting(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       router.replace('/(tabs)');
     } catch (err: any) {
-      Alert.alert('Login Failed', err.message || 'Please try again.');
+      Alert.alert(
+        'Sign In Failed',
+        err?.message || 'Invalid email or password. Please try again.'
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
+  async function handleGoogleLogin() {
+    setGoogleLoading(true);
+    try {
+      await googleLogin();
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <View style={styles.logoMark}>
-              <Text style={styles.logoText}>A</Text>
-            </View>
+          {/* Branding */}
+          <View style={styles.brandingSection}>
+            <Image
+              source={require('../../assets/axiom-logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.appName}>Axiom</Text>
-            <Text style={styles.title}>Sign in to your account</Text>
-            <View style={styles.subtitleRow}>
-              <Text style={styles.subtitle}>Don't have an account? </Text>
-              <Link href="/(auth)/register">
-                <Text style={styles.link}>Register</Text>
-              </Link>
-            </View>
           </View>
 
-          <Card style={styles.card}>
-            <Button
-              onPress={googleLogin}
-              variant="outline"
-              style={styles.googleButton}
-            >
-              <View style={styles.googleButtonInner}>
-                <Svg width={18} height={18} viewBox="0 0 24 24">
-                  <Path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <Path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <Path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                  <Path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                </Svg>
-                <Text style={styles.googleButtonText}>Continue with Google</Text>
-              </View>
-            </Button>
+          {/* Title */}
+          <Text style={styles.title}>Sign in to your account</Text>
 
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or</Text>
-              <View style={styles.dividerLine} />
-            </View>
+          {/* Google OAuth */}
+          <Button
+            variant="outline"
+            fullWidth
+            size="lg"
+            onPress={handleGoogleLogin}
+            loading={googleLoading}
+            style={styles.googleButton}
+          >
+            Continue with Google
+          </Button>
 
-            <Input
-              label="Email"
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+          {/* OR Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-            <Input
-              label="Password"
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              containerStyle={{ marginTop: 16 }}
-            />
+          {/* Email Input */}
+          <Input
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder="you@example.com"
+            containerStyle={styles.inputContainer}
+          />
 
-            <Button
-              onPress={handleLogin}
-              disabled={!email || !password}
-              loading={submitting}
-              style={{ marginTop: 24 }}
-            >
-              {submitting ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </Card>
+          {/* Password Input */}
+          <Input
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="••••••••"
+            containerStyle={styles.inputContainer}
+          />
+
+          {/* Sign In Button */}
+          <Button
+            variant="default"
+            fullWidth
+            size="lg"
+            onPress={handleLogin}
+            loading={submitting}
+            style={styles.signInButton}
+          >
+            Sign in
+          </Button>
+
+          {/* Register Link */}
+          <Pressable
+            onPress={() => router.push('/(auth)/register')}
+            style={styles.registerLink}
+          >
+            <Text style={styles.registerLinkText}>
+              Don't have an account?{' '}
+              <Text style={styles.registerLinkHighlight}>Register</Text>
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -111,78 +148,50 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  flex: { flex: 1 },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.xxl,
   },
-  header: {
+  brandingSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
   },
-  logoMark: {
-    width: 48,
-    height: 48,
+  logo: {
+    width: 56,
+    height: 56,
     borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  logoText: {
-    color: colors.primaryForeground,
-    fontSize: 24,
-    fontWeight: fontWeight.bold,
   },
   appName: {
-    color: colors.foreground,
-    fontSize: fontSize.xl,
+    fontSize: 22,
     fontWeight: fontWeight.bold,
-    marginBottom: 4,
+    color: colors.foreground,
+    letterSpacing: -0.5,
   },
   title: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
-  },
-  subtitleRow: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  subtitle: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
-  },
-  link: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.semibold,
     color: colors.foreground,
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
-    textDecorationLine: 'underline',
-  },
-  card: {
-    gap: 0,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   googleButton: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  googleButtonInner: {
+  dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-  },
-  googleButtonText: {
-    color: colors.foreground,
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
   },
   dividerLine: {
     flex: 1,
@@ -190,9 +199,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dividerText: {
-    color: colors.mutedForeground,
     fontSize: fontSize.xs,
-    marginHorizontal: 12,
-    textTransform: 'uppercase',
+    color: colors.mutedForeground,
+    fontWeight: fontWeight.medium,
+    letterSpacing: 1,
+  },
+  inputContainer: {
+    marginBottom: spacing.md,
+  },
+  signInButton: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  registerLink: {
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  registerLinkText: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+  },
+  registerLinkHighlight: {
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
   },
 });

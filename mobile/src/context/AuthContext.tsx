@@ -1,18 +1,35 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Platform, Alert } from 'react-native';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { authApi, loadToken, setToken, AuthUser } from '@/lib/api';
+import { Alert } from 'react-native';
+import { authApi, getToken, setToken, clearToken } from '../lib/api';
 
-const API_BASE_URL = 'https://api.airthreads.ai:4009/api';
+WebBrowser.maybeCompleteAuthSession();
+
+export interface AuthUser {
+  id: string;
+  name: string | null;
+  email: string | null;
+  tier: string;
+  heightCm?: number | null;
+  weightKg?: number | null;
+  trainingAge?: string | null;
+  equipment?: string | null;
+  constraintsText?: string | null;
+  coachGoal?: string | null;
+  coachBudget?: string | null;
+  coachOnboardingDone?: boolean;
+  coachProfile?: string | null;
+  savedProgram?: string | null;
+}
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, dateOfBirth?: string) => Promise<void>;
-  googleLogin: () => Promise<void>;
   logout: () => Promise<void>;
+  googleLogin: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -24,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function refreshUser() {
     try {
-      const data = await authApi.me();
+      const data = await authApi.getMe();
       setUser(data.user);
     } catch {
       setUser(null);
@@ -32,46 +49,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    loadToken()
-      .then(() => refreshUser())
-      .finally(() => setLoading(false));
+    // Check if token exists, if so load user
+    const init = async () => {
+      const token = await getToken();
+      if (token) {
+        await refreshUser();
+      }
+      setLoading(false);
+    };
+    init();
   }, []);
 
   async function login(email: string, password: string) {
     const data = await authApi.login(email, password);
+    if (data.token) await setToken(data.token);
     setUser(data.user);
   }
 
   async function register(name: string, email: string, password: string, dateOfBirth?: string) {
     const data = await authApi.register(name, email, password, dateOfBirth);
+    if (data.token) await setToken(data.token);
     setUser(data.user);
+  }
+
+  async function logout() {
+    try { await authApi.logout(); } catch { /* ignore */ }
+    await clearToken();
+    setUser(null);
   }
 
   async function googleLogin() {
     try {
       const redirectUri = Linking.createURL('/auth/callback');
-      const authUrl = `${API_BASE_URL}/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
-      if (Platform.OS === 'web') {
-        window.location.href = `${API_BASE_URL}/auth/google`;
-      } else {
-        const result = await WebBrowser.openAuthSessionAsync(
-          authUrl,
-          redirectUri
-        );
-        if (result.type === 'success' && result.url) {
-          const url = new URL(result.url);
-          const token = url.searchParams.get('token');
-          if (token) {
-            await setToken(token);
-            await refreshUser();
-          } else {
-            const authError = url.searchParams.get('auth');
-            if (authError === 'error') {
-              Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
-            }
+      const authUrl = `https://api.airthreads.ai:4009/api/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+
+      if (result.type === 'success' && result.url) {
+        const url = new URL(result.url);
+        const token = url.searchParams.get('token');
+        if (token) {
+          await setToken(token);
+          await refreshUser();
+        } else {
+          const authParam = url.searchParams.get('auth');
+          if (authParam === 'error') {
+            Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
           }
-        } else if (result.type === 'cancel') {
-          // User cancelled — no error needed
         }
       }
     } catch (err: any) {
@@ -79,13 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function logout() {
-    await authApi.logout();
-    setUser(null);
-  }
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

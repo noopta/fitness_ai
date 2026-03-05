@@ -1,475 +1,765 @@
-import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Share } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { StrengthRadar } from '@/components/plan/StrengthRadar';
-import { PhaseBreakdown } from '@/components/plan/PhaseBreakdown';
-import { HypothesisRankings } from '@/components/plan/HypothesisRankings';
-import { liftCoachApi, WorkoutPlan, storage } from '@/lib/api';
-import { colors, fontSize, fontWeight, spacing, radius } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function Stat({ label, value }: { label: string; value: string }) {
+import { liftCoachApi } from '../../src/lib/api';
+import { Button } from '../../src/components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
+import { Badge } from '../../src/components/ui/Badge';
+import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
+import { Separator } from '../../src/components/ui/Separator';
+import { StrengthRadar } from '../../src/components/StrengthRadar';
+import { PhaseBreakdown } from '../../src/components/PhaseBreakdown';
+import { HypothesisRankings } from '../../src/components/HypothesisRankings';
+import { EfficiencyGauge } from '../../src/components/EfficiencyGauge';
+import { UpgradePrompt } from '../../src/components/UpgradePrompt';
+import { useAuth } from '../../src/context/AuthContext';
+import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface AccessoryItem {
+  name: string;
+  priority: number;
+  category: string;
+  impact: string;
+  why: string;
+  sets: string;
+  reps: string;
+}
+
+interface PrimaryLift {
+  exercise_name: string;
+  sets: number;
+  reps: number;
+  intensity: number;
+  rest_minutes: number;
+}
+
+interface BenchDayPlan {
+  primary_lift: PrimaryLift;
+  accessories: AccessoryItem[];
+  progression_rules: string[];
+  track_next_time: string[];
+}
+
+interface DiagnosticSignals {
+  e1RMs?: Record<string, number>;
+  quad_index?: number;
+  posterior_index?: number;
+  back_tension_index?: number;
+  triceps_index?: number;
+  shoulder_index?: number;
+  primary_phase?: string;
+  phase_confidence?: number;
+  efficiency_score?: number;
+  hypotheses?: Array<{ name: string; score: number }>;
+  phase_scores?: Array<{ label: string; value: number }>;
+}
+
+interface DiagnosisEntry {
+  limiterName: string;
+  confidence: number;
+  evidence: string[];
+}
+
+interface Plan {
+  diagnosis: DiagnosisEntry[];
+  bench_day_plan: BenchDayPlan;
+  diagnosticSignals: DiagnosticSignals;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function hasIndexValues(signals: DiagnosticSignals): boolean {
   return (
-    <View style={styles.stat}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
-    </View>
+    signals.quad_index !== undefined ||
+    signals.posterior_index !== undefined ||
+    signals.back_tension_index !== undefined ||
+    signals.triceps_index !== undefined ||
+    signals.shoulder_index !== undefined
   );
 }
 
-function formatLiftName(id: string): string {
-  return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PlanScreen() {
   const router = useRouter();
-  const [plan, setPlan] = useState<WorkoutPlan | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedLift, setSelectedLift] = useState('');
+  const params = useLocalSearchParams<{ sessionId?: string }>();
+  const { user } = useAuth();
 
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
+  const [rateLimited, setRateLimited] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [sessionId, setSessionId] = useState('');
+
+  // ── Load plan on mount ──────────────────────────────────────────────────────
   useEffect(() => {
     loadPlan();
   }, []);
 
-  async function loadPlan() {
-    const sessionId = await storage.get('liftoff_session_id');
-    const lift = await storage.get('liftoff_selected_lift');
-    if (lift) setSelectedLift(lift);
-
-    if (!sessionId) {
-      setError('No session found.');
-      router.replace('/diagnostic/onboarding');
-      return;
-    }
-
-    const cacheKey = `liftoff_plan_${sessionId}`;
-    const cached = await storage.get(cacheKey);
-    if (cached) {
-      try {
-        setPlan(JSON.parse(cached));
-        setLoading(false);
-        return;
-      } catch {
-        await storage.remove(cacheKey);
-      }
-    }
-
-    setLoading(true);
+  const loadPlan = useCallback(async () => {
     try {
-      try {
-        const cachedPlan = await liftCoachApi.getCachedPlan(sessionId);
-        setPlan(cachedPlan.plan);
-        await storage.set(cacheKey, JSON.stringify(cachedPlan.plan));
-        return;
-      } catch {}
+      setLoading(true);
+      setError('');
 
-      const response = await liftCoachApi.generatePlan(sessionId);
-      setPlan(response.plan);
-      await storage.set(cacheKey, JSON.stringify(response.plan));
-    } catch (err: any) {
-      if (err.status === 429) {
-        setError('Rate limited. Please try again later or upgrade to Pro.');
-      } else {
-        setError('Failed to generate plan. Please try again.');
+      // Resolve sessionId from params or AsyncStorage
+      const paramId = params.sessionId as string | undefined;
+      const storedId = await AsyncStorage.getItem('axiom_session_id');
+      const resolvedId = paramId || storedId || '';
+
+      if (!resolvedId) {
+        setError('No session found');
+        return;
       }
+
+      setSessionId(resolvedId);
+
+      // Try cached plan first
+      try {
+        const cached = await liftCoachApi.getCachedPlan(resolvedId);
+        setPlan(cached);
+        return;
+      } catch (cacheErr: any) {
+        if ((cacheErr as any)?.status !== 404) {
+          // Non-404 errors on cached endpoint fall through to generate
+        }
+      }
+
+      // Fall back to generating
+      setGenerating(true);
+      try {
+        const generated = await liftCoachApi.generatePlan(resolvedId);
+        setPlan(generated);
+      } catch (genErr: any) {
+        if ((genErr as any)?.status === 429) {
+          setRateLimited(true);
+        } else {
+          setError((genErr as Error).message || 'Failed to generate plan');
+        }
+      } finally {
+        setGenerating(false);
+      }
+    } catch (err: any) {
+      setError((err as Error).message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
-  }
+  }, [params.sessionId]);
 
-  async function handleShare() {
-    if (!plan) return;
-    const primary = plan.bench_day_plan?.primary_lift;
-    const diag = plan.diagnosis?.[0];
+  // ── Share handler ──────────────────────────────────────────────────────────
+  const handleShare = useCallback(async () => {
+    if (!sessionId || sharing) return;
+    try {
+      setSharing(true);
+      const result = await liftCoachApi.sharePlan(sessionId);
+      const shareUrl: string = result?.shareUrl || result?.url || '';
+      if (shareUrl) {
+        await Clipboard.setStringAsync(shareUrl);
+        Alert.alert('Link copied!', 'Share link has been copied to your clipboard.');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', (err as Error).message || 'Could not generate share link');
+    } finally {
+      setSharing(false);
+    }
+  }, [sessionId, sharing]);
 
-    const text = [
-      `Axiom - ${formatLiftName(selectedLift)} Plan`,
-      '',
-      `Diagnosis: ${diag?.limiterName || 'Unknown'}`,
-      ...(diag?.evidence || []).map(e => `  - ${e}`),
-      '',
-      `Primary: ${primary?.exercise_name} ${primary?.sets}x${primary?.reps} @ ${primary?.intensity}`,
-      '',
-      'Accessories:',
-      ...(plan.bench_day_plan?.accessories || []).map(a =>
-        `  - ${a.exercise_name}: ${a.sets}x${a.reps} [${a.category}]`
-      ),
-    ].join('\n');
-
-    await Share.share({ message: text });
-  }
-
-  async function startNewSession() {
-    await storage.remove('liftoff_session_id');
-    await storage.remove('liftoff_selected_lift');
+  // ── New analysis handler ───────────────────────────────────────────────────
+  const handleNewAnalysis = useCallback(async () => {
+    await AsyncStorage.removeItem('axiom_session_id');
     router.replace('/diagnostic/onboarding');
-  }
+  }, [router]);
+
+  // ── Render states ──────────────────────────────────────────────────────────
+
+  const renderHeader = () => (
+    <Stack.Screen
+      options={{
+        title: 'Your Plan',
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.foreground,
+        headerTitleStyle: { fontWeight: fontWeight.semibold, fontSize: fontSize.lg },
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handleShare}
+            disabled={sharing || !plan}
+            style={styles.shareButton}
+          >
+            <Ionicons
+              name={sharing ? 'hourglass-outline' : 'share-outline'}
+              size={22}
+              color={plan ? colors.primary : colors.mutedForeground}
+            />
+          </TouchableOpacity>
+        ),
+      }}
+    />
+  );
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>Step 4 of 4</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingIcon}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-          <Text style={styles.loadingTitle}>Generating Your Personalized Plan</Text>
-          <Text style={styles.loadingDescription}>
-            Our AI is analyzing your lift mechanics, working weights, and diagnostic responses...
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        {renderHeader()}
+        <View style={styles.centeredState}>
+          <LoadingSpinner size="large" />
+          <Text style={styles.loadingText}>
+            {generating ? 'Generating your plan...' : 'Loading your plan...'}
           </Text>
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (rateLimited) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        {renderHeader()}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <UpgradePrompt
+            userId={user?.id}
+            reason="You've reached your free analysis limit. Upgrade to Pro for unlimited diagnoses."
+          />
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   if (error || !plan) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>Step 4 of 4</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <View style={[styles.loadingIcon, { backgroundColor: colors.red100 }]}>
-            <Ionicons name="shield" size={32} color={colors.destructive} />
-          </View>
-          <Text style={styles.loadingTitle}>Failed to Generate Plan</Text>
-          <Text style={styles.loadingDescription}>{error || 'Something went wrong.'}</Text>
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
-            <Button onPress={loadPlan}>Try Again</Button>
-            <Button variant="secondary" onPress={startNewSession}>Start Over</Button>
-          </View>
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        {renderHeader()}
+        <View style={styles.centeredState}>
+          <Card style={styles.errorCard}>
+            <CardContent style={styles.errorContent}>
+              <Ionicons name="alert-circle-outline" size={40} color={colors.destructive} />
+              <Text style={styles.errorTitle}>Something went wrong</Text>
+              <Text style={styles.errorMessage}>
+                {error || 'Unable to load your plan. Please try again.'}
+              </Text>
+              <Button onPress={loadPlan} style={styles.retryButton}>
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
         </View>
       </SafeAreaView>
     );
   }
 
-  const primaryDiagnosis = plan.diagnosis[0];
-  const primary = plan.bench_day_plan.primary_lift;
-  const accessories = plan.bench_day_plan.accessories;
+  // ── Destructure plan data safely ───────────────────────────────────────────
+  const signals = plan.diagnosticSignals ?? {};
+  const primaryDiagnosis = plan.diagnosis?.[0];
+  const primaryLift = plan.bench_day_plan?.primary_lift;
+  const accessories = [...(plan.bench_day_plan?.accessories ?? [])].sort(
+    (a, b) => (a.priority ?? 99) - (b.priority ?? 99),
+  );
+  const progressionRules = plan.bench_day_plan?.progression_rules ?? [];
+  const trackNextTime = plan.bench_day_plan?.track_next_time ?? [];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.navbar}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.navTitle}>Step 4 of 4</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      {renderHeader()}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Card style={styles.aiCard}>
-          <View style={styles.aiCardRow}>
-            <View style={styles.aiIcon}>
-              <Ionicons name="sparkles" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.aiCardContent}>
-              <Text style={styles.aiCardTitle}>AI Analysis Complete</Text>
-              <View style={styles.aiFactRow}>
-                <Text style={styles.aiFactLabel}>Limiting factor: </Text>
-                <Text style={styles.aiFactValue}>{primaryDiagnosis?.limiterName || 'Unknown'}</Text>
-                {primaryDiagnosis?.confidence && (
-                  <Badge variant="secondary" style={{ marginLeft: 8 }}>
-                    {`${Math.round(primaryDiagnosis.confidence * 100)}% confidence`}
+        {/* ── A) Diagnosis Card ───────────────────────────────────────────── */}
+        {primaryDiagnosis && (
+          <Card style={[styles.card, styles.diagnosisCard]}>
+            <CardHeader style={styles.diagnosisHeader}>
+              <View style={styles.diagnosisBadgeRow}>
+                <Badge variant="default">AI Diagnosis</Badge>
+                {primaryDiagnosis.confidence !== undefined && (
+                  <Badge variant="secondary">
+                    {Math.round(primaryDiagnosis.confidence * 100)}% confident
                   </Badge>
                 )}
               </View>
-              <Text style={styles.aiEvidence}>
-                {primaryDiagnosis?.evidence?.[0] || 'Analysis based on your lift data and diagnostic responses.'}
+              <Text style={styles.diagnosisTitle}>
+                {primaryDiagnosis.limiterName}
               </Text>
-            </View>
-          </View>
-        </Card>
+            </CardHeader>
 
-        <View style={styles.actionRow}>
-          <Button variant="outline" size="sm" onPress={handleShare}>
-            Share
-          </Button>
-          <Button variant="secondary" size="sm" onPress={() => router.push('/(tabs)/history')}>
-            History
-          </Button>
-          <Button size="sm" onPress={startNewSession}>
-            New Session
-          </Button>
-        </View>
+            <Separator />
 
-        <View style={styles.statsRow}>
-          <Stat label="Limiter" value={primaryDiagnosis?.limiterName || 'Unknown'} />
-          <Stat label="Confidence" value={primaryDiagnosis ? `${Math.round(primaryDiagnosis.confidence * 100)}%` : 'N/A'} />
-          <Stat label="Accessories" value={`${accessories.length}`} />
-        </View>
-
-        <Card style={{ marginBottom: 16 }}>
-          <Text style={styles.sectionTitle}>Diagnosis</Text>
-          <Text style={styles.sectionSubtitle}>Identified weak points based on your data</Text>
-
-          {plan.diagnosis.map((d, idx) => (
-            <View key={idx} style={styles.diagnosisItem}>
-              <View style={styles.diagnosisHeader}>
-                <Text style={styles.diagnosisLimiter}>{d.limiterName}</Text>
-                <Badge variant="outline">{`${Math.round(d.confidence * 100)}%`}</Badge>
-              </View>
-              {d.evidence.map((e, eIdx) => (
-                <View key={eIdx} style={styles.evidenceRow}>
-                  <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
-                  <Text style={styles.evidenceText}>{e}</Text>
+            <CardContent style={styles.evidenceContent}>
+              {(primaryDiagnosis.evidence ?? []).slice(0, 4).map((item, i) => (
+                <View key={i} style={styles.evidenceRow}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.evidenceText}>{item}</Text>
                 </View>
               ))}
-            </View>
-          ))}
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        {plan.diagnostic_signals && Object.keys(plan.diagnostic_signals.indices).length > 0 && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.vizHeader}>
-              <Ionicons name="pulse" size={16} color={colors.primary} />
-              <View>
+        {/* ── B) Visualizations ───────────────────────────────────────────── */}
+        {(hasIndexValues(signals) || signals.efficiency_score !== undefined) && (
+          <View style={styles.vizRow}>
+            {hasIndexValues(signals) && (
+              <View style={styles.vizBlock}>
                 <Text style={styles.vizTitle}>Strength Profile</Text>
-                <Text style={styles.vizSubtitle}>Muscle group indices (0-100)</Text>
+                <StrengthRadar data={signals} size={180} />
               </View>
-            </View>
-            <StrengthRadar signals={plan.diagnostic_signals} liftId={plan.selected_lift} />
+            )}
+            {signals.efficiency_score !== undefined && (
+              <View style={styles.vizBlock}>
+                <Text style={styles.vizTitle}>Efficiency Score</Text>
+                <EfficiencyGauge score={signals.efficiency_score} size={140} />
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* ── C) Phase Breakdown ──────────────────────────────────────────── */}
+        {signals.phase_scores && signals.phase_scores.length > 0 && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Training Phase Analysis</CardTitle>
+              {signals.primary_phase && (
+                <Text style={styles.subheading}>
+                  Primary: <Text style={styles.phaseHighlight}>{signals.primary_phase}</Text>
+                  {signals.phase_confidence !== undefined &&
+                    ` · ${Math.round(signals.phase_confidence * 100)}% confidence`}
+                </Text>
+              )}
+            </CardHeader>
+            <CardContent>
+              <PhaseBreakdown phases={signals.phase_scores} />
+            </CardContent>
           </Card>
         )}
 
-        {plan.diagnostic_signals && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.vizHeader}>
-              <Ionicons name="bar-chart" size={16} color={colors.primary} />
-              <View>
-                <Text style={styles.vizTitle}>Lift Phase Breakdown</Text>
-                <Text style={styles.vizSubtitle}>Where the signal is strongest</Text>
-              </View>
-            </View>
-            <PhaseBreakdown
-              phaseScores={plan.diagnostic_signals.phase_scores}
-              primaryPhase={plan.diagnostic_signals.primary_phase}
-              primaryPhaseConfidence={plan.diagnostic_signals.primary_phase_confidence}
-              liftId={plan.selected_lift}
-            />
+        {/* ── D) Hypothesis Rankings ─────────────────────────────────────── */}
+        {signals.hypotheses && signals.hypotheses.length > 0 && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Weakness Analysis</CardTitle>
+              <Text style={styles.subheading}>Top candidates ranked by score</Text>
+            </CardHeader>
+            <CardContent>
+              <HypothesisRankings hypotheses={signals.hypotheses} />
+            </CardContent>
           </Card>
         )}
 
-        {plan.diagnostic_signals && plan.diagnostic_signals.hypothesis_scores.length > 0 && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.vizHeader}>
-              <Ionicons name="flash" size={16} color={colors.primary} />
-              <View>
-                <Text style={styles.vizTitle}>Weakness Hypotheses</Text>
-                <Text style={styles.vizSubtitle}>Ranked by diagnostic confidence</Text>
+        {/* ── E) Primary Lift Card ────────────────────────────────────────── */}
+        {primaryLift && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Primary Lift Protocol</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Text style={styles.liftName}>{primaryLift.exercise_name}</Text>
+              <View style={styles.statGrid}>
+                <View style={styles.statCell}>
+                  <Text style={styles.statValue}>
+                    {primaryLift.sets}×{primaryLift.reps}
+                  </Text>
+                  <Text style={styles.statLabel}>Sets × Reps</Text>
+                </View>
+                <View style={[styles.statCell, styles.statCellBordered]}>
+                  <Text style={styles.statValue}>{primaryLift.intensity}%</Text>
+                  <Text style={styles.statLabel}>Intensity</Text>
+                </View>
+                <View style={styles.statCell}>
+                  <Text style={styles.statValue}>{primaryLift.rest_minutes}min</Text>
+                  <Text style={styles.statLabel}>Rest</Text>
+                </View>
               </View>
-            </View>
-            <HypothesisRankings hypotheses={plan.diagnostic_signals.hypothesis_scores} />
+            </CardContent>
           </Card>
         )}
 
-        <Card style={{ marginBottom: 16 }}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="locate" size={18} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Primary Lift</Text>
-          </View>
-
-          <View style={styles.primaryLiftBox}>
-            <Text style={styles.primaryLiftName}>{primary.exercise_name}</Text>
-            <View style={styles.badgeRow}>
-              <Badge variant="secondary">{`${primary.sets} x ${primary.reps}`}</Badge>
-              <Badge variant="outline">{primary.intensity}</Badge>
-              <Badge variant="outline">{`Rest ${primary.rest_minutes} min`}</Badge>
-            </View>
-          </View>
-        </Card>
-
-        <Card style={{ marginBottom: 16 }}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="shield" size={18} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Accessories</Text>
-          </View>
-          <Text style={styles.sectionSubtitle}>
-            Ranked by impact — prioritize the top ones if short on time
-          </Text>
-
-          {[...accessories]
-            .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
-            .map((a, idx) => {
-              const isTopPick = a.priority === 1;
-              return (
-                <View
-                  key={a.exercise_id || idx}
-                  style={[styles.accessoryCard, isTopPick && styles.accessoryCardTop]}
-                >
+        {/* ── F) Accessories ──────────────────────────────────────────────── */}
+        {accessories.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Targeted Accessories</Text>
+            {accessories.map((acc, i) => (
+              <Card key={`${acc.name}-${i}`} style={styles.accessoryCard}>
+                <CardContent style={styles.accessoryContent}>
                   <View style={styles.accessoryHeader}>
-                    <View style={styles.accessoryLeft}>
-                      <View style={[styles.rankBadge, isTopPick && styles.rankBadgeTop]}>
-                        <Text style={[styles.rankText, isTopPick && styles.rankTextTop]}>
-                          {isTopPick ? '★' : `${idx + 1}`}
-                        </Text>
-                      </View>
-                      <Text style={styles.accessoryName}>{a.exercise_name}</Text>
-                      {isTopPick && (
-                        <View style={styles.impactTag}>
-                          <Text style={styles.impactTagText}>Most Impactful</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Badge variant="secondary">{`${a.sets} x ${a.reps}`}</Badge>
-                  </View>
-                  <Text style={styles.accessoryWhy}>{a.why}</Text>
-                  <View style={styles.accessoryCategoryRow}>
-                    <Badge variant="outline">{a.category}</Badge>
-                    {a.impact && (
-                      <Badge
-                        variant={a.impact === 'high' ? 'destructive' : 'secondary'}
-                      >
-                        {a.impact}
-                      </Badge>
+                    <Text style={styles.accessoryName}>{acc.name}</Text>
+                    {acc.priority === 1 ? (
+                      <Badge variant="default">Most Impactful</Badge>
+                    ) : (
+                      <Badge variant="secondary">#{acc.priority}</Badge>
                     )}
                   </View>
+
+                  <View style={styles.accessoryBadgeRow}>
+                    {acc.category ? (
+                      <Badge variant="outline">{acc.category}</Badge>
+                    ) : null}
+                    {acc.impact ? (
+                      <Badge variant="secondary">{acc.impact}</Badge>
+                    ) : null}
+                  </View>
+
+                  <Text style={styles.accessorySetsReps}>
+                    {acc.sets} sets × {acc.reps} reps
+                  </Text>
+
+                  {acc.why ? (
+                    <Text style={styles.accessoryWhy}>Why: {acc.why}</Text>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ))}
+          </View>
+        )}
+
+        {/* ── G) Progression Rules ────────────────────────────────────────── */}
+        {progressionRules.length > 0 && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Progression Rules</CardTitle>
+            </CardHeader>
+            <CardContent style={styles.listContent}>
+              {progressionRules.map((rule, i) => (
+                <View key={i} style={styles.numberedRow}>
+                  <Text style={styles.numberLabel}>{i + 1}.</Text>
+                  <Text style={styles.ruleText}>{rule}</Text>
                 </View>
-              );
-            })}
-        </Card>
-
-        {plan.progression_rules.length > 0 && (
-          <Card style={{ marginBottom: 16 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="trending-up" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Progression Rules</Text>
-            </View>
-            {plan.progression_rules.map((rule, idx) => (
-              <View key={idx} style={styles.ruleRow}>
-                <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
-                <Text style={styles.ruleText}>{rule}</Text>
-              </View>
-            ))}
+              ))}
+            </CardContent>
           </Card>
         )}
 
-        {plan.track_next_time.length > 0 && (
-          <Card style={{ marginBottom: 32 }}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="eye" size={18} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Track Next Time</Text>
-            </View>
-            {plan.track_next_time.map((item, idx) => (
-              <View key={idx} style={styles.ruleRow}>
-                <Ionicons name="ellipse-outline" size={14} color={colors.mutedForeground} />
-                <Text style={styles.ruleText}>{item}</Text>
-              </View>
-            ))}
+        {/* ── H) Track Next Time ──────────────────────────────────────────── */}
+        {trackNextTime.length > 0 && (
+          <Card style={styles.card}>
+            <CardHeader>
+              <CardTitle>Track Next Time</CardTitle>
+            </CardHeader>
+            <CardContent style={styles.listContent}>
+              {trackNextTime.map((item, i) => (
+                <View key={i} style={styles.checkRow}>
+                  <Ionicons
+                    name="checkbox-outline"
+                    size={18}
+                    color={colors.primary}
+                    style={styles.checkIcon}
+                  />
+                  <Text style={styles.checkText}>{item}</Text>
+                </View>
+              ))}
+            </CardContent>
           </Card>
         )}
+
+        {/* ── I) Action Buttons ───────────────────────────────────────────── */}
+        <View style={styles.actions}>
+          <Button
+            variant="outline"
+            fullWidth
+            onPress={handleNewAnalysis}
+            style={styles.actionButton}
+          >
+            New Analysis
+          </Button>
+          <Button
+            variant="outline"
+            fullWidth
+            onPress={() => router.push('/(tabs)/history')}
+            style={styles.actionButton}
+          >
+            View History
+          </Button>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  navTitle: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  scrollContent: { padding: spacing.lg },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  loadingIcon: {
-    width: 64, height: 64, borderRadius: radius.lg,
-    backgroundColor: colors.primary + '15', alignItems: 'center', justifyContent: 'center',
-    marginBottom: 16,
+  scroll: {
+    flex: 1,
   },
-  loadingTitle: {
-    color: colors.foreground, fontSize: fontSize.xl, fontWeight: fontWeight.semibold, textAlign: 'center',
+  scrollContent: {
+    padding: spacing.md,
+    gap: spacing.md,
+    paddingBottom: spacing.xxl,
   },
-  loadingDescription: {
-    color: colors.mutedForeground, fontSize: fontSize.sm, textAlign: 'center',
-    marginTop: 8, lineHeight: 20, maxWidth: 300,
+
+  // ── Loading / Error states ─────────────────────────────────────────────────
+  centeredState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
   },
-  aiCard: {
-    backgroundColor: colors.primary + '10', borderColor: colors.primary + '30', marginBottom: 16,
+  loadingText: {
+    marginTop: spacing.md,
+    fontSize: fontSize.base,
+    color: colors.mutedForeground,
+    textAlign: 'center',
   },
-  aiCardRow: { flexDirection: 'row', gap: 12 },
-  aiIcon: {
-    width: 40, height: 40, borderRadius: radius.md,
-    backgroundColor: colors.primary + '15', alignItems: 'center', justifyContent: 'center',
+  errorCard: {
+    width: '100%',
   },
-  aiCardContent: { flex: 1 },
-  aiCardTitle: { color: colors.primary, fontSize: fontSize.lg, fontWeight: fontWeight.semibold, marginBottom: 8 },
-  aiFactRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
-  aiFactLabel: { color: colors.foreground, fontSize: fontSize.sm },
-  aiFactValue: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.bold },
-  aiEvidence: { color: colors.mutedForeground, fontSize: fontSize.sm, marginTop: 6, lineHeight: 18 },
-  actionRow: {
-    flexDirection: 'row', gap: 8, marginBottom: 16, justifyContent: 'flex-end',
+  errorContent: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingTop: spacing.md,
   },
-  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  stat: {
-    flex: 1, backgroundColor: colors.secondary, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.lg, padding: 12,
+  errorTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
   },
-  statLabel: { color: colors.mutedForeground, fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
-  statValue: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold, marginTop: 4 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  sectionTitle: { color: colors.foreground, fontSize: fontSize.base, fontWeight: fontWeight.semibold },
-  sectionSubtitle: { color: colors.mutedForeground, fontSize: fontSize.sm, marginBottom: 12 },
-  diagnosisItem: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg,
-    padding: 14, marginBottom: 8, backgroundColor: colors.secondary,
+  errorMessage: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 20,
   },
-  diagnosisHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  diagnosisLimiter: { color: colors.foreground, fontSize: fontSize.base, fontWeight: fontWeight.semibold },
-  evidenceRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
-  evidenceText: { color: colors.mutedForeground, fontSize: fontSize.sm, flex: 1, lineHeight: 18 },
-  vizHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  vizTitle: { color: colors.foreground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  vizSubtitle: { color: colors.mutedForeground, fontSize: fontSize.xs },
-  primaryLiftBox: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg,
-    padding: 14, backgroundColor: colors.secondary,
+  retryButton: {
+    marginTop: spacing.xs,
+    width: '100%',
   },
-  primaryLiftName: { color: colors.foreground, fontSize: fontSize.base, fontWeight: fontWeight.semibold, marginBottom: 8 },
-  badgeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+
+  // ── Share button ───────────────────────────────────────────────────────────
+  shareButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+
+  // ── Common card ───────────────────────────────────────────────────────────
+  card: {
+    marginBottom: 0, // gap handled by scrollContent
+  },
+
+  // ── A) Diagnosis ──────────────────────────────────────────────────────────
+  diagnosisCard: {
+    borderColor: '#3f3f46',
+  },
+  diagnosisHeader: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  diagnosisBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  diagnosisTitle: {
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    lineHeight: 30,
+  },
+  evidenceContent: {
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+  },
+  evidenceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  bulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+    marginTop: 6,
+    flexShrink: 0,
+  },
+  evidenceText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    lineHeight: 20,
+  },
+
+  // ── B) Visualizations ─────────────────────────────────────────────────────
+  vizRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    justifyContent: 'space-around',
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
+  vizBlock: {
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  vizTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // ── C) Phase ──────────────────────────────────────────────────────────────
+  subheading: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    marginTop: 2,
+  },
+  phaseHighlight: {
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
+  },
+
+  // ── E) Primary lift ───────────────────────────────────────────────────────
+  liftName: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    marginBottom: spacing.md,
+  },
+  statGrid: {
+    flexDirection: 'row',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  statCell: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    gap: 4,
+  },
+  statCellBordered: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.border,
+  },
+  statValue: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
+  statLabel: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+  },
+
+  // ── F) Accessories ────────────────────────────────────────────────────────
+  sectionTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+    marginBottom: spacing.sm,
+  },
   accessoryCard: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg,
-    padding: 14, marginBottom: 10, backgroundColor: colors.secondary,
+    marginBottom: spacing.sm,
   },
-  accessoryCardTop: {
-    borderColor: colors.primary + '40', backgroundColor: colors.primary + '08',
+  accessoryContent: {
+    gap: spacing.sm,
+    paddingTop: spacing.md,
   },
   accessoryHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginBottom: 8, flexWrap: 'wrap', gap: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
   },
-  accessoryLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  rankBadge: {
-    width: 24, height: 24, borderRadius: 12,
-    backgroundColor: colors.primary + '15', alignItems: 'center', justifyContent: 'center',
+  accessoryName: {
+    flex: 1,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
   },
-  rankBadgeTop: { backgroundColor: colors.primary },
-  rankText: { color: colors.primary, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
-  rankTextTop: { color: colors.primaryForeground },
-  accessoryName: { color: colors.foreground, fontSize: fontSize.base, fontWeight: fontWeight.semibold, flex: 1 },
-  impactTag: {
-    backgroundColor: colors.primary + '15', paddingHorizontal: 6, paddingVertical: 2, borderRadius: radius.full,
+  accessoryBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
-  impactTagText: { color: colors.primary, fontSize: 10, fontWeight: fontWeight.semibold },
-  accessoryWhy: { color: colors.mutedForeground, fontSize: fontSize.sm, lineHeight: 18, marginBottom: 8 },
-  accessoryCategoryRow: { flexDirection: 'row', gap: 6 },
-  ruleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8 },
-  ruleText: { color: colors.mutedForeground, fontSize: fontSize.sm, flex: 1, lineHeight: 18 },
+  accessorySetsReps: {
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    fontWeight: fontWeight.medium,
+  },
+  accessoryWhy: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    fontStyle: 'italic',
+    lineHeight: 19,
+  },
+
+  // ── G) Progression ────────────────────────────────────────────────────────
+  listContent: {
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+  },
+  numberedRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'flex-start',
+  },
+  numberLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
+    minWidth: 20,
+  },
+  ruleText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    lineHeight: 20,
+  },
+
+  // ── H) Track next time ────────────────────────────────────────────────────
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  checkIcon: {
+    marginTop: 1,
+    flexShrink: 0,
+  },
+  checkText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    lineHeight: 20,
+  },
+
+  // ── I) Actions ────────────────────────────────────────────────────────────
+  actions: {
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  actionButton: {
+    // fullWidth handles width
+  },
 });
