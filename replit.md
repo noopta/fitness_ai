@@ -99,7 +99,7 @@ Endpoints:
 ## Recent Changes
 - Synced `mobileAlt/` from GitHub repo `noopta/fitness_ai` (Mar 2026)
 - Dev Server workflow now runs from `mobileAlt/` directory
-- Resolved Expo SDK version to 52 with compatible dependencies
+- Using Expo SDK 54 / React Native 0.81.5 / React 19.1.0 / Expo Router v6
 - Fixed `expo-secure-store` web compatibility: falls back to AsyncStorage on web, SecureStore on native (`src/lib/api.ts`)
 - Added missing `app/diagnostic/_layout.tsx` default export (Stack navigator)
 - Installed missing deps: `expo-asset`, `expo-font`, `react-dom`, `react-native-web`
