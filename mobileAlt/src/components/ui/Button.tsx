@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { colors, radius, fontSize, fontWeight } from '../../constants/theme';
 
-type Variant = 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline' | 'default';
 type Size = 'sm' | 'default' | 'lg';
 
 interface ButtonProps {
@@ -21,19 +21,21 @@ interface ButtonProps {
 }
 
 export function Button({
-  onPress, children, variant = 'default', size = 'default',
+  onPress, children, variant = 'primary', size = 'default',
   disabled, loading, style, textStyle, fullWidth = false,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  // 'default' maps to 'primary' for backward compat
+  const resolvedVariant = variant === 'default' ? 'primary' : variant;
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
-      activeOpacity={0.7}
+      activeOpacity={0.82}
       style={[
         styles.base,
-        styles[variant],
+        styles[resolvedVariant],
         styles[`size_${size}`],
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
@@ -43,10 +45,10 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'outline' || variant === 'ghost' ? colors.primary : colors.primaryForeground}
+          color={resolvedVariant === 'primary' ? colors.primaryForeground : colors.foreground}
         />
       ) : (
-        <Text style={[styles.text, styles[`text_${variant}`], styles[`textSize_${size}`], textStyle]}>
+        <Text style={[styles.text, styles[`text_${resolvedVariant}`], styles[`textSize_${size}`], textStyle]}>
           {children}
         </Text>
       )}
@@ -62,33 +64,34 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   fullWidth: { width: '100%' },
-  disabled: { opacity: 0.5 },
+  disabled: { opacity: 0.4 },
 
   // Variants
-  default: { backgroundColor: colors.primary },
+  primary: { backgroundColor: colors.primary },
+  secondary: { backgroundColor: colors.muted },
+  ghost: { backgroundColor: 'transparent' },
+  destructive: { backgroundColor: colors.destructive },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.border,
   },
-  ghost: { backgroundColor: 'transparent' },
-  destructive: { backgroundColor: colors.destructive },
-  secondary: { backgroundColor: colors.secondary },
 
   // Sizes
-  size_sm: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.sm },
-  size_default: { paddingHorizontal: 16, paddingVertical: 11 },
-  size_lg: { paddingHorizontal: 24, paddingVertical: 14 },
+  size_sm: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.sm },
+  size_default: { paddingHorizontal: 18, paddingVertical: 13 },
+  size_lg: { paddingHorizontal: 24, paddingVertical: 16 },
 
-  // Text
+  // Text base
   text: { fontWeight: fontWeight.semibold },
-  text_default: { color: colors.primaryForeground },
-  text_outline: { color: colors.foreground },
+  text_primary: { color: colors.primaryForeground },
+  text_secondary: { color: colors.foreground },
   text_ghost: { color: colors.foreground },
   text_destructive: { color: colors.destructiveForeground },
-  text_secondary: { color: colors.foreground },
+  text_outline: { color: colors.foreground },
 
+  // Text sizes
   textSize_sm: { fontSize: fontSize.sm },
   textSize_default: { fontSize: fontSize.base },
-  textSize_lg: { fontSize: fontSize.lg },
+  textSize_lg: { fontSize: fontSize.base, fontWeight: fontWeight.semibold },
 });

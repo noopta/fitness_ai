@@ -1,56 +1,82 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
-import { Button } from '../../src/components/ui/Button';
+
+const FEATURES = [
+  {
+    icon: 'hardware-chip-outline' as const,
+    title: 'AI-Powered Analysis',
+    description: 'Data-driven diagnostics for every lift.',
+  },
+  {
+    icon: 'pulse-outline' as const,
+    title: 'Science-Backed',
+    description: 'Trained on 10 certifications & 7,000+ pages.',
+  },
+  {
+    icon: 'shield-checkmark-outline' as const,
+    title: '24/7 Availability',
+    description: 'Judgment-free coaching anytime, anywhere.',
+  },
+];
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Logo + Branding */}
-        <View style={styles.brandingSection}>
-          <View style={styles.logoMark}>
-            <Text style={styles.logoLetter}>A</Text>
-          </View>
-          <Text style={styles.appName}>Axiom</Text>
-          <Text style={styles.tagline}>AI-powered strength diagnosis.</Text>
+      {/* ── Brand row ── */}
+      <View style={styles.header}>
+        <View style={styles.brandRow}>
+          <AxiomLogo size={40} />
+          <Text style={styles.brandName}>AXIOM</Text>
         </View>
+      </View>
 
-        <View style={styles.spacer} />
+      {/* ── Hero headline ── */}
+      <View style={styles.heroSection}>
+        <Text style={styles.heroTitle}>Your personal{'\n'}AI coach.</Text>
+      </View>
 
-        {/* CTA Buttons */}
-        <View style={styles.actionsSection}>
-          <Button
-            variant="default"
-            fullWidth
-            size="lg"
+      {/* ── Features list ── */}
+      <View style={styles.featuresSection}>
+        {FEATURES.map((feat) => (
+          <View key={feat.title} style={styles.featureRow}>
+            <View style={styles.featureIconBox}>
+              <Ionicons name={feat.icon} size={20} color={colors.foreground} />
+            </View>
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>{feat.title}</Text>
+              <Text style={styles.featureDescription}>{feat.description}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.spacer} />
+
+      {/* ── Floating bottom pill ── */}
+      <View style={styles.actionContainer}>
+        <View style={styles.actionPill}>
+          <TouchableOpacity
+            style={styles.loginButton}
+            activeOpacity={0.7}
             onPress={() => router.push('/(auth)/login')}
           >
-            Sign In
-          </Button>
-
-          <Button
-            variant="outline"
-            fullWidth
-            size="lg"
+            <Text style={styles.loginText}>Log In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.getStartedButton}
+            activeOpacity={0.85}
             onPress={() => router.push('/(auth)/register')}
-            style={styles.createAccountButton}
           >
-            Create Account
-          </Button>
+            <Text style={styles.getStartedText}>Get Started</Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Bottom tagline */}
-        <Text style={styles.bottomTagline}>Your personal AI strength coach.</Text>
       </View>
     </SafeAreaView>
   );
@@ -61,56 +87,110 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl * 1.5,
-    paddingBottom: spacing.xl,
+
+  // Header
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
+  brandRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
-  brandingSection: {
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  logoMark: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoLetter: {
-    fontSize: 28,
-    fontWeight: fontWeight.bold,
-    color: '#ffffff',
-  },
-  appName: {
-    fontSize: 28,
+  brandName: {
+    fontSize: 13,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
-    letterSpacing: -0.5,
+    letterSpacing: 2,
   },
-  tagline: {
-    fontSize: 15,
-    color: colors.mutedForeground,
-    textAlign: 'center',
+
+  // Hero
+  heroSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
-  spacer: {
+  heroTitle: {
+    fontSize: 40,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    letterSpacing: -1,
+    lineHeight: 46,
+  },
+
+  // Features
+  featuresSection: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.lg,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  featureIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  featureText: {
     flex: 1,
+    gap: 2,
   },
-  actionsSection: {
-    width: '100%',
-    gap: spacing.sm + 4,
-    marginBottom: spacing.xl,
+  featureTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
   },
-  createAccountButton: {
-    marginTop: 0,
-  },
-  bottomTagline: {
+  featureDescription: {
     fontSize: fontSize.sm,
     color: colors.mutedForeground,
-    textAlign: 'center',
-    marginTop: spacing.sm,
+    lineHeight: 20,
+  },
+
+  spacer: { flex: 1 },
+
+  // Bottom pill
+  actionContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  actionPill: {
+    flexDirection: 'row',
+    backgroundColor: colors.foreground,
+    borderRadius: radius.xxl,
+    padding: 6,
+    alignItems: 'center',
+  },
+  loginButton: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.xl,
+  },
+  loginText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    color: 'rgba(255,255,255,0.65)',
+  },
+  getStartedButton: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.xl,
+  },
+  getStartedText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
   },
 });

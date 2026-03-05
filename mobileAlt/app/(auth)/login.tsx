@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
+  View, Text, StyleSheet, ScrollView, Pressable,
+  Alert, KeyboardAvoidingView, Platform, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
+import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
 import { useAuth } from '../../src/context/AuthContext';
+import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,10 +30,7 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       router.replace('/(tabs)');
     } catch (err: any) {
-      Alert.alert(
-        'Sign In Failed',
-        err?.message || 'Invalid email or password. Please try again.'
-      );
+      Alert.alert('Sign In Failed', err?.message || 'Invalid email or password. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -65,19 +57,18 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Branding */}
-          <View style={styles.brandingSection}>
-            <View style={styles.logoMark}>
-              <Text style={styles.logoLetter}>A</Text>
-            </View>
-            <Text style={styles.appName}>Axiom</Text>
+          <View style={styles.brandRow}>
+            <AxiomLogo size={36} />
+            <Text style={styles.brandName}>AXIOM</Text>
           </View>
 
-          {/* Title */}
-          <Text style={styles.title}>Sign in to your account</Text>
+          {/* Heading */}
+          <Text style={styles.title}>Welcome back.</Text>
+          <Text style={styles.subtitle}>Sign in to your account</Text>
 
           {/* Google OAuth */}
           <Button
-            variant="outline"
+            variant="secondary"
             fullWidth
             size="lg"
             onPress={handleGoogleLogin}
@@ -87,14 +78,14 @@ export default function LoginScreen() {
             Continue with Google
           </Button>
 
-          {/* OR Divider */}
+          {/* Divider */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Email Input */}
+          {/* Fields */}
           <Input
             label="Email"
             value={email}
@@ -105,8 +96,6 @@ export default function LoginScreen() {
             placeholder="you@example.com"
             containerStyle={styles.inputContainer}
           />
-
-          {/* Password Input */}
           <Input
             label="Password"
             value={password}
@@ -116,19 +105,19 @@ export default function LoginScreen() {
             containerStyle={styles.inputContainer}
           />
 
-          {/* Sign In Button */}
-          <Button
-            variant="default"
-            fullWidth
-            size="lg"
+          {/* Primary CTA */}
+          <TouchableOpacity
+            style={[styles.signInPill, submitting && { opacity: 0.5 }]}
+            activeOpacity={0.82}
             onPress={handleLogin}
-            loading={submitting}
-            style={styles.signInButton}
+            disabled={submitting}
           >
-            Sign in
-          </Button>
+            <Text style={styles.signInPillText}>
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </Text>
+          </TouchableOpacity>
 
-          {/* Register Link */}
+          {/* Register link */}
           <Pressable
             onPress={() => router.push('/(auth)/register')}
             style={styles.registerLink}
@@ -145,87 +134,76 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: colors.background },
+  keyboardView: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
   },
-  brandingSection: {
+
+  brandRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
+    gap: 10,
+    marginBottom: spacing.xxl,
   },
-  logoMark: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoLetter: {
-    fontSize: 28,
-    fontWeight: fontWeight.bold,
-    color: '#ffffff',
-  },
-  appName: {
-    fontSize: 22,
+  brandName: {
+    fontSize: 13,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
-    letterSpacing: -0.5,
+    letterSpacing: 2,
   },
+
   title: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.semibold,
+    fontSize: 32,
+    fontWeight: fontWeight.bold,
     color: colors.foreground,
-    textAlign: 'center',
+    letterSpacing: -0.8,
+    lineHeight: 36,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: fontSize.base,
+    color: colors.mutedForeground,
     marginBottom: spacing.xl,
   },
-  googleButton: {
-    marginBottom: spacing.lg,
-  },
+
+  googleButton: { marginBottom: spacing.lg },
+
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.lg,
     gap: spacing.sm,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: {
     fontSize: fontSize.xs,
     color: colors.mutedForeground,
     fontWeight: fontWeight.medium,
     letterSpacing: 1,
   },
-  inputContainer: {
-    marginBottom: spacing.md,
-  },
-  signInButton: {
+
+  inputContainer: { marginBottom: spacing.md },
+
+  // Black pill CTA
+  signInPill: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.xl,
+    paddingVertical: 17,
+    alignItems: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
   },
-  registerLink: {
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-  },
-  registerLinkText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-  },
-  registerLinkHighlight: {
-    color: colors.primary,
+  signInPillText: {
+    fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
   },
+
+  registerLink: { alignItems: 'center', paddingVertical: spacing.sm },
+  registerLinkText: { fontSize: fontSize.sm, color: colors.mutedForeground },
+  registerLinkHighlight: { color: colors.foreground, fontWeight: fontWeight.semibold },
 });

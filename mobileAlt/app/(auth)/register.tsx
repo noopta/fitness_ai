@@ -1,21 +1,15 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Linking,
+  View, Text, StyleSheet, ScrollView, Pressable,
+  Alert, KeyboardAvoidingView, Platform, Linking, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
+import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
 import { useAuth } from '../../src/context/AuthContext';
+import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -29,29 +23,16 @@ export default function RegisterScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleRegister() {
-    if (!name.trim()) {
-      Alert.alert('Missing Name', 'Please enter your name.');
-      return;
-    }
-    if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email address.');
-      return;
-    }
-    if (!password || password.length < 8) {
-      Alert.alert('Weak Password', 'Password must be at least 8 characters.');
-      return;
-    }
+    if (!name.trim()) { Alert.alert('Missing Name', 'Please enter your name.'); return; }
+    if (!email.trim()) { Alert.alert('Missing Email', 'Please enter your email address.'); return; }
+    if (!password || password.length < 8) { Alert.alert('Weak Password', 'Password must be at least 8 characters.'); return; }
 
     setSubmitting(true);
     try {
-      const dob = dateOfBirth.trim() || undefined;
-      await register(name.trim(), email.trim(), password, dob);
+      await register(name.trim(), email.trim(), password, dateOfBirth.trim() || undefined);
       router.replace('/(tabs)');
     } catch (err: any) {
-      Alert.alert(
-        'Registration Failed',
-        err?.message || 'Could not create your account. Please try again.'
-      );
+      Alert.alert('Registration Failed', err?.message || 'Could not create your account. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -59,23 +40,7 @@ export default function RegisterScreen() {
 
   async function handleGoogleLogin() {
     setGoogleLoading(true);
-    try {
-      await googleLogin();
-    } finally {
-      setGoogleLoading(false);
-    }
-  }
-
-  function openTerms() {
-    Linking.openURL('https://axiom.app/terms').catch(() => {
-      Alert.alert('Error', 'Could not open Terms of Service.');
-    });
-  }
-
-  function openPrivacy() {
-    Linking.openURL('https://axiom.app/privacy').catch(() => {
-      Alert.alert('Error', 'Could not open Privacy Policy.');
-    });
+    try { await googleLogin(); } finally { setGoogleLoading(false); }
   }
 
   return (
@@ -90,19 +55,18 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Branding */}
-          <View style={styles.brandingSection}>
-            <View style={styles.logoMark}>
-              <Text style={styles.logoLetter}>A</Text>
-            </View>
-            <Text style={styles.appName}>Axiom</Text>
+          <View style={styles.brandRow}>
+            <AxiomLogo size={36} />
+            <Text style={styles.brandName}>AXIOM</Text>
           </View>
 
-          {/* Title */}
-          <Text style={styles.title}>Create your account</Text>
+          {/* Heading */}
+          <Text style={styles.title}>Create account.</Text>
+          <Text style={styles.subtitle}>Start your AI coaching journey</Text>
 
           {/* Google OAuth */}
           <Button
-            variant="outline"
+            variant="secondary"
             fullWidth
             size="lg"
             onPress={handleGoogleLogin}
@@ -112,88 +76,47 @@ export default function RegisterScreen() {
             Continue with Google
           </Button>
 
-          {/* OR Divider */}
+          {/* Divider */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Name Input */}
-          <Input
-            label="Name"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-            autoCorrect={false}
-            placeholder="Your full name"
-            containerStyle={styles.inputContainer}
-          />
+          {/* Fields */}
+          <Input label="Name" value={name} onChangeText={setName} autoCapitalize="words" autoCorrect={false} placeholder="Your full name" containerStyle={styles.inputContainer} />
+          <Input label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} placeholder="you@example.com" containerStyle={styles.inputContainer} />
+          <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" containerStyle={styles.inputContainer} />
+          <Input label="Date of Birth (optional)" value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="YYYY-MM-DD" keyboardType="numbers-and-punctuation" autoCorrect={false} containerStyle={styles.inputContainer} />
 
-          {/* Email Input */}
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="you@example.com"
-            containerStyle={styles.inputContainer}
-          />
-
-          {/* Password Input */}
-          <Input
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            containerStyle={styles.inputContainer}
-          />
-
-          {/* Date of Birth Input */}
-          <Input
-            label="Date of Birth (optional)"
-            value={dateOfBirth}
-            onChangeText={setDateOfBirth}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numbers-and-punctuation"
-            autoCorrect={false}
-            containerStyle={styles.inputContainer}
-          />
-
-          {/* Sign Up Button */}
-          <Button
-            variant="default"
-            fullWidth
-            size="lg"
+          {/* Primary CTA */}
+          <TouchableOpacity
+            style={[styles.signUpPill, submitting && { opacity: 0.5 }]}
+            activeOpacity={0.82}
             onPress={handleRegister}
-            loading={submitting}
-            style={styles.signUpButton}
+            disabled={submitting}
           >
-            Sign up
-          </Button>
+            <Text style={styles.signUpPillText}>
+              {submitting ? 'Creating account…' : 'Create account'}
+            </Text>
+          </TouchableOpacity>
 
-          {/* Terms Text */}
+          {/* Terms */}
           <View style={styles.termsContainer}>
             <Text style={styles.termsText}>
               By signing up, you agree to our{' '}
-              <Text style={styles.termsLink} onPress={openTerms}>
+              <Text style={styles.termsLink} onPress={() => Linking.openURL('https://axiom.app/terms').catch(() => {})}>
                 Terms of Service
               </Text>
               {' '}and{' '}
-              <Text style={styles.termsLink} onPress={openPrivacy}>
+              <Text style={styles.termsLink} onPress={() => Linking.openURL('https://axiom.app/privacy').catch(() => {})}>
                 Privacy Policy
               </Text>
             </Text>
           </View>
 
-          {/* Sign In Link */}
-          <Pressable
-            onPress={() => router.push('/(auth)/login')}
-            style={styles.signInLink}
-          >
+          {/* Sign in link */}
+          <Pressable onPress={() => router.push('/(auth)/login')} style={styles.signInLink}>
             <Text style={styles.signInLinkText}>
               Already have an account?{' '}
               <Text style={styles.signInLinkHighlight}>Sign in</Text>
@@ -206,101 +129,80 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: colors.background },
+  keyboardView: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
   },
-  brandingSection: {
+
+  brandRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
+    gap: 10,
+    marginBottom: spacing.xxl,
   },
-  logoMark: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoLetter: {
-    fontSize: 28,
-    fontWeight: fontWeight.bold,
-    color: '#ffffff',
-  },
-  appName: {
-    fontSize: 22,
+  brandName: {
+    fontSize: 13,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
-    letterSpacing: -0.5,
+    letterSpacing: 2,
   },
+
   title: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.semibold,
+    fontSize: 32,
+    fontWeight: fontWeight.bold,
     color: colors.foreground,
-    textAlign: 'center',
+    letterSpacing: -0.8,
+    lineHeight: 36,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: fontSize.base,
+    color: colors.mutedForeground,
     marginBottom: spacing.xl,
   },
-  googleButton: {
-    marginBottom: spacing.lg,
-  },
+
+  googleButton: { marginBottom: spacing.lg },
+
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.lg,
     gap: spacing.sm,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: {
     fontSize: fontSize.xs,
     color: colors.mutedForeground,
     fontWeight: fontWeight.medium,
     letterSpacing: 1,
   },
-  inputContainer: {
-    marginBottom: spacing.md,
-  },
-  signUpButton: {
+
+  inputContainer: { marginBottom: spacing.md },
+
+  // Black pill CTA
+  signUpPill: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.xl,
+    paddingVertical: 17,
+    alignItems: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
   },
-  termsContainer: {
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.sm,
-  },
-  termsText: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  termsLink: {
-    color: colors.primary,
-    fontWeight: fontWeight.medium,
-  },
-  signInLink: {
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-  },
-  signInLinkText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-  },
-  signInLinkHighlight: {
-    color: colors.primary,
+  signUpPillText: {
+    fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
   },
+
+  termsContainer: { marginBottom: spacing.lg, paddingHorizontal: spacing.sm },
+  termsText: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center', lineHeight: 18 },
+  termsLink: { color: colors.foreground, fontWeight: fontWeight.medium },
+
+  signInLink: { alignItems: 'center', paddingVertical: spacing.sm },
+  signInLinkText: { fontSize: fontSize.sm, color: colors.mutedForeground },
+  signInLinkHighlight: { color: colors.foreground, fontWeight: fontWeight.semibold },
 });

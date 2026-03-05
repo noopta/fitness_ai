@@ -29,15 +29,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fontSize.sm,
     color: colors.foreground,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: 11,
+    paddingVertical: 13,
     color: colors.foreground,
     fontSize: fontSize.base,
   },
