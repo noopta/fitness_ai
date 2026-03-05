@@ -1,22 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Pressable,
+  View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { liftCoachApi } from '../../src/lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
-import { Button } from '../../src/components/ui/Button';
+import { Card } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
+import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
-
-// ─── Lift name map ────────────────────────────────────────────────────────────
 
 const LIFT_NAMES: Record<string, string> = {
   flat_bench_press: 'Flat Bench Press',
@@ -31,43 +25,19 @@ const LIFT_NAMES: Record<string, string> = {
 };
 
 function toLiftName(key: string): string {
-  return LIFT_NAMES[key] ?? key
-    .split('_')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
+  return LIFT_NAMES[key] ?? key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-// ─── Feature card data ────────────────────────────────────────────────────────
-
 const FEATURES = [
-  {
-    icon: 'analytics' as const,
-    title: 'AI Diagnosis',
-    description: 'Identify your exact strength limiters',
-  },
-  {
-    icon: 'body' as const,
-    title: 'Strength Profile',
-    description: 'Understand your muscle balance',
-  },
-  {
-    icon: 'barbell' as const,
-    title: 'Smart Accessories',
-    description: 'Targeted exercises for your limiters',
-  },
-  {
-    icon: 'chatbubbles' as const,
-    title: 'Anakin Coach',
-    description: 'Your AI personal coach',
-  },
+  { icon: 'analytics-outline' as const, title: 'AI Diagnosis', description: 'Identify your exact strength limiters' },
+  { icon: 'body-outline' as const, title: 'Strength Profile', description: 'Understand your muscle balance' },
+  { icon: 'barbell-outline' as const, title: 'Smart Accessories', description: 'Targeted exercises for your limiters' },
+  { icon: 'chatbubbles-outline' as const, title: 'AI Coach', description: 'Your personal AI strength coach' },
 ];
-
-// ─── SessionCard ──────────────────────────────────────────────────────────────
 
 interface Session {
   id: string;
@@ -76,43 +46,28 @@ interface Session {
   primaryLimiter?: string;
   confidence?: number;
   createdAt?: string;
-  updatedAt?: string;
 }
 
 function SessionCard({ session }: { session: Session }) {
   const router = useRouter();
-  const isCompleted =
-    session.status === 'completed' || Boolean(session.primaryLimiter);
-
-  function handlePress() {
-    if (isCompleted) {
-      router.push(`/diagnostic/plan?sessionId=${session.id}`);
-    } else {
-      router.push(`/diagnostic/chat?sessionId=${session.id}`);
-    }
-  }
+  const isCompleted = session.status === 'completed' || Boolean(session.primaryLimiter);
 
   return (
-    <Pressable onPress={handlePress} style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}>
-      <Card style={styles.sessionCard}>
+    <Pressable
+      onPress={() => router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`)}
+      style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+    >
+      <View style={styles.sessionCard}>
         <View style={styles.sessionCardInner}>
           <View style={styles.sessionRow}>
-            <Badge variant="default">
-              {toLiftName(session.selectedLift)}
-            </Badge>
-            {session.createdAt && (
-              <Text style={styles.sessionDate}>{formatDate(session.createdAt)}</Text>
-            )}
+            <Text style={styles.liftName}>{toLiftName(session.selectedLift)}</Text>
+            {session.createdAt && <Text style={styles.sessionDate}>{formatDate(session.createdAt)}</Text>}
           </View>
-
           {session.primaryLimiter && (
-            <Text style={styles.sessionLimiter} numberOfLines={2}>
-              {session.primaryLimiter}
-            </Text>
+            <Text style={styles.sessionLimiter} numberOfLines={2}>{session.primaryLimiter}</Text>
           )}
-
           <View style={styles.sessionRow}>
-            {session.confidence !== undefined && session.confidence !== null && (
+            {session.confidence != null && (
               <Badge variant="secondary">{Math.round(session.confidence)}% confidence</Badge>
             )}
             <Badge variant={isCompleted ? 'success' : 'warning'}>
@@ -120,12 +75,10 @@ function SessionCard({ session }: { session: Session }) {
             </Badge>
           </View>
         </View>
-      </Card>
+      </View>
     </Pressable>
   );
 }
-
-// ─── Home Screen ──────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -134,20 +87,13 @@ export default function HomeScreen() {
   const [sessionsLoading, setSessionsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadSessions() {
-      try {
-        const data = await liftCoachApi.getSessionHistory();
-        setSessions(Array.isArray(data) ? data : data.sessions ?? []);
-      } catch {
-        setSessions([]);
-      } finally {
-        setSessionsLoading(false);
-      }
-    }
-    loadSessions();
+    liftCoachApi.getSessionHistory()
+      .then((data) => setSessions(Array.isArray(data) ? data : data.sessions ?? []))
+      .catch(() => setSessions([]))
+      .finally(() => setSessionsLoading(false));
   }, []);
 
-  const recentSession: Session | null = sessions.length > 0 ? sessions[0] : null;
+  const recentSession = sessions[0] ?? null;
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
   return (
@@ -157,60 +103,47 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Greeting ── */}
-        <Card style={styles.greetingCard}>
-          <View style={styles.greetingInner}>
-            <View style={styles.greetingText}>
-              <Text style={styles.greetingTitle}>
-                Welcome back,{' '}
-                <Text style={styles.greetingName}>
-                  {user?.name ?? 'Athlete'}
-                </Text>
-                !
-              </Text>
-              <Text style={styles.greetingSubtitle}>
-                Ready to crush your next session?
-              </Text>
-            </View>
-            <Badge variant={isPro ? 'pro' : 'secondary'}>
-              {isPro ? 'Pro' : 'Free'}
-            </Badge>
-          </View>
-        </Card>
+        {/* ── Top bar ── */}
+        <View style={styles.topBar}>
+          <AxiomLogo size={32} />
+          <Badge variant={isPro ? 'pro' : 'secondary'}>{isPro ? 'Pro' : 'Free'}</Badge>
+        </View>
 
-        {/* ── CTA ── */}
-        <Card style={styles.ctaCard}>
-          <View style={styles.ctaInner}>
-            <View style={styles.ctaIconWrap}>
-              <Ionicons name="barbell-outline" size={32} color={colors.primary} />
-            </View>
-            <Text style={styles.ctaTitle}>Start New Analysis</Text>
-            <Text style={styles.ctaDescription}>
-              Get AI-powered diagnosis of your strength limiters
-            </Text>
-            <Button
-              onPress={() => router.push('/diagnostic/onboarding')}
-              fullWidth
-              style={styles.ctaButton}
-            >
-              Begin Analysis
-            </Button>
+        {/* ── Greeting ── */}
+        <View style={styles.greetingSection}>
+          <Text style={styles.greetingTitle}>
+            Good work,{'\n'}<Text style={styles.greetingName}>{user?.name ?? 'Athlete'}</Text>.
+          </Text>
+          <Text style={styles.greetingSubtitle}>Ready for your next session?</Text>
+        </View>
+
+        {/* ── Start Analysis CTA ── */}
+        <TouchableOpacity
+          style={styles.ctaCard}
+          activeOpacity={0.82}
+          onPress={() => router.push('/diagnostic/onboarding')}
+        >
+          <View style={styles.ctaIconBox}>
+            <Ionicons name="barbell-outline" size={22} color={colors.primaryForeground} />
           </View>
-        </Card>
+          <View style={styles.ctaText}>
+            <Text style={styles.ctaTitle}>Start New Analysis</Text>
+            <Text style={styles.ctaDescription}>AI-powered strength diagnostics</Text>
+          </View>
+          <Ionicons name="arrow-forward" size={18} color={colors.primaryForeground} />
+        </TouchableOpacity>
 
         {/* ── Features ── */}
-        <Text style={styles.sectionTitle}>Features</Text>
+        <Text style={styles.sectionTitle}>What Axiom does</Text>
         <View style={styles.featuresGrid}>
           {FEATURES.map((feat) => (
-            <Card key={feat.title} style={styles.featureCard}>
-              <View style={styles.featureInner}>
-                <View style={styles.featureIconCircle}>
-                  <Ionicons name={feat.icon} size={20} color={colors.primary} />
-                </View>
-                <Text style={styles.featureTitle}>{feat.title}</Text>
-                <Text style={styles.featureDescription}>{feat.description}</Text>
+            <View key={feat.title} style={styles.featureCard}>
+              <View style={styles.featureIconBox}>
+                <Ionicons name={feat.icon} size={18} color={colors.foreground} />
               </View>
-            </Card>
+              <Text style={styles.featureTitle}>{feat.title}</Text>
+              <Text style={styles.featureDescription}>{feat.description}</Text>
+            </View>
           ))}
         </View>
 
@@ -221,150 +154,97 @@ export default function HomeScreen() {
         ) : recentSession ? (
           <SessionCard session={recentSession} />
         ) : (
-          <Card style={styles.emptyCard}>
-            <View style={styles.emptyInner}>
-              <Ionicons name="barbell-outline" size={36} color={colors.mutedForeground} />
-              <Text style={styles.emptyText}>
-                No sessions yet. Start your first analysis!
-              </Text>
-              <Button
-                onPress={() => router.push('/diagnostic/onboarding')}
-                variant="outline"
-                size="sm"
-              >
-                Start Analysis
-              </Button>
-            </View>
-          </Card>
+          <View style={styles.emptyCard}>
+            <Ionicons name="barbell-outline" size={32} color={colors.mutedForeground} />
+            <Text style={styles.emptyText}>No sessions yet. Start your first analysis!</Text>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
-    gap: 12,
+  safeArea: { flex: 1, backgroundColor: colors.background },
+  scroll: { flex: 1 },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.lg },
+
+  // Top bar
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
   // Greeting
-  greetingCard: {
-    padding: spacing.md,
-  },
-  greetingInner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  greetingText: {
-    flex: 1,
-    marginRight: spacing.sm,
-  },
+  greetingSection: { gap: 4, marginTop: spacing.sm },
   greetingTitle: {
-    fontSize: fontSize.lg,
+    fontSize: 32,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
-    marginBottom: 4,
+    letterSpacing: -0.8,
+    lineHeight: 38,
   },
-  greetingName: {
-    color: colors.primary,
-  },
-  greetingSubtitle: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-  },
+  greetingName: { color: colors.foreground },
+  greetingSubtitle: { fontSize: fontSize.base, color: colors.mutedForeground },
 
-  // CTA
+  // CTA card (black)
   ctaCard: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.lg,
     padding: spacing.md,
-  },
-  ctaInner: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.md,
   },
-  ctaIconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.full,
-    backgroundColor: `${colors.primary}22`,
+  ctaIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaTitle: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    color: colors.foreground,
-    textAlign: 'center',
-  },
-  ctaDescription: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-  },
-  ctaButton: {
-    marginTop: 4,
-  },
+  ctaText: { flex: 1 },
+  ctaTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
+  ctaDescription: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
 
   // Section title
   sectionTitle: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     color: colors.foreground,
-    marginTop: 4,
-    marginBottom: 2,
   },
 
   // Features grid
-  featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
+  featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   featureCard: {
     width: '48%',
-    padding: 12,
-  },
-  featureInner: {
+    backgroundColor: colors.muted,
+    borderRadius: radius.md,
+    padding: spacing.md,
     gap: 6,
   },
-  featureIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.full,
-    backgroundColor: `${colors.primary}22`,
+  featureIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  featureTitle: {
-    fontSize: 14,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-  },
-  featureDescription: {
-    fontSize: 12,
-    color: colors.mutedForeground,
-    lineHeight: 17,
-  },
+  featureTitle: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  featureDescription: { fontSize: 12, color: colors.mutedForeground, lineHeight: 17 },
 
   // Session card
   sessionCard: {
-    padding: 0,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.background,
   },
-  sessionCardInner: {
-    padding: 12,
-    gap: 8,
-  },
+  sessionCardInner: { padding: spacing.md, gap: 8 },
   sessionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -372,33 +252,20 @@ const styles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
   },
-  sessionDate: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-  },
-  sessionLimiter: {
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-    lineHeight: 19,
-  },
+  liftName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },
+  sessionDate: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  sessionLimiter: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 19 },
 
   // Empty
   emptyCard: {
-    padding: spacing.md,
-  },
-  emptyInner: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 8,
+    gap: 10,
+    backgroundColor: colors.muted,
   },
-  emptyText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-  },
-
-  mutedText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-  },
+  emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center' },
+  mutedText: { fontSize: fontSize.sm, color: colors.mutedForeground },
 });

@@ -97,15 +97,12 @@ Endpoints:
 - Destructive: `#7f1d1d`, Success: `#22c55e`, Warning: `#f59e0b`
 
 ## Recent Changes
-- Rebuilt mobile app in `mobile/` from `mobileAlt/` base with full feature set (Mar 2026)
-- Upgraded to Expo SDK 54 / React Native 0.81 / Expo Router v6
-- Theme corrected: primary `#fafafa`, background `#09090b`, border/muted `#27272a`
-- Axiom logo image on welcome, login, register screens (assets/axiom-logo.png)
-- Google OAuth sign-in via expo-web-browser with deep link callback (scheme: axiom)
-- Full diagnostic funnel (onboarding → snapshot → chat → plan)
-- Plan visualization (StrengthRadar, PhaseBreakdown, HypothesisRankings, EfficiencyGauge)
-- Coach dashboard with sub-tabs (Overview, Program, Nutrition, Analytics, Wellness, Chat)
-- Tab navigation (Home, History, Coach, Settings)
-- Auth with SecureStore (native) / AsyncStorage (web) token persistence
-- Analysis detail screen for viewing past sessions
-- `mobileAlt/` directory is a backup/reference copy
+- Synced `mobileAlt/` from GitHub repo `noopta/fitness_ai` (Mar 2026)
+- Dev Server workflow now runs from `mobileAlt/` directory
+- Resolved Expo SDK version to 52 with compatible dependencies
+- Fixed `expo-secure-store` web compatibility: falls back to AsyncStorage on web, SecureStore on native (`src/lib/api.ts`)
+- Added missing `app/diagnostic/_layout.tsx` default export (Stack navigator)
+- Installed missing deps: `expo-asset`, `expo-font`, `react-dom`, `react-native-web`
+- App renders welcome screen with Log In / Get Started on web preview
+- CORS blocks API calls on web preview (expected; works on native devices)
+- `mobile/` directory contains the older rebuilt version

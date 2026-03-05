@@ -1,20 +1,29 @@
+// Axiom Design System — Monochrome "Hybrid Flow" palette
 export const colors = {
-  background: '#09090b',
-  foreground: '#fafafa',
-  primary: '#6366f1',
-  primaryForeground: '#ffffff',
-  secondary: '#1c1c1e',
-  secondaryForeground: '#fafafa',
-  card: '#18181b',
-  cardForeground: '#fafafa',
-  muted: '#27272a',
-  mutedForeground: '#a1a1aa',
-  border: '#3f3f46',
-  destructive: '#ef4444',
-  destructiveForeground: '#fafafa',
-  success: '#22c55e',
-  warning: '#f59e0b',
-  accent: '#8b5cf6',
+  // Base
+  background: '#FFFFFF',
+  foreground: '#000000',
+
+  // Primary action (black pill buttons)
+  primary: '#000000',
+  primaryForeground: '#FFFFFF',
+
+  // Secondary text / captions
+  muted: '#F3F4F6',           // gray-100 — subtle backgrounds, icon containers
+  mutedForeground: '#6B7280', // gray-500 — secondary text
+
+  // Cards
+  card: '#FFFFFF',
+  cardForeground: '#000000',
+
+  // Borders
+  border: '#E5E7EB', // gray-200
+
+  // Semantic — only for badges/alerts
+  destructive: '#DC2626',
+  destructiveForeground: '#FFFFFF',
+  success: '#16A34A',
+  warning: '#D97706',
 };
 
 export const spacing = {
@@ -27,9 +36,11 @@ export const spacing = {
 };
 
 export const radius = {
-  sm: 6,
-  md: 10,
+  sm: 8,
+  md: 12,
   lg: 16,
+  xl: 20,
+  xxl: 24,
   full: 9999,
 };
 
@@ -41,6 +52,7 @@ export const fontSize = {
   xl: 20,
   xxl: 24,
   xxxl: 30,
+  display: 38,
 };
 
 export const fontWeight = {

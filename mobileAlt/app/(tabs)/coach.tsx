@@ -312,16 +312,14 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: radius.full,
-    backgroundColor: `${colors.primary}22`,
+    backgroundColor: colors.foreground,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: `${colors.primary}44`,
   },
   headerAvatarText: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.bold,
-    color: colors.primary,
+    color: colors.primaryForeground,
   },
   headerText: {
     flex: 1,

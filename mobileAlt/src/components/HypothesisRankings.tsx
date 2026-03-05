@@ -17,7 +17,7 @@ export function HypothesisRankings({ hypotheses }: Props) {
 
   const getBarColor = (index: number): string => {
     if (index === 0) return colors.primary;
-    if (index === 1) return colors.accent;
+    if (index === 1) return colors.mutedForeground;
     return colors.mutedForeground;
   };
 

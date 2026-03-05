@@ -10,24 +10,26 @@ const API_BASE = 'https://api.airthreads.ai:4009/api';
 const TOKEN_KEY = 'liftoff_auth_token';
 
 export async function getToken(): Promise<string | null> {
-  if (SecureStore) {
-    return SecureStore.getItemAsync(TOKEN_KEY);
+  if (Platform.OS === 'web') {
+    return AsyncStorage.getItem(TOKEN_KEY);
   }
-  return AsyncStorage.getItem(TOKEN_KEY);
+  return SecureStore!.getItemAsync(TOKEN_KEY);
 }
 
 export async function setToken(token: string): Promise<void> {
-  if (SecureStore) {
-    return SecureStore.setItemAsync(TOKEN_KEY, token);
+  if (Platform.OS === 'web') {
+    await AsyncStorage.setItem(TOKEN_KEY, token);
+    return;
   }
-  await AsyncStorage.setItem(TOKEN_KEY, token);
+  return SecureStore!.setItemAsync(TOKEN_KEY, token);
 }
 
 export async function clearToken(): Promise<void> {
-  if (SecureStore) {
-    return SecureStore.deleteItemAsync(TOKEN_KEY);
+  if (Platform.OS === 'web') {
+    await AsyncStorage.removeItem(TOKEN_KEY);
+    return;
   }
-  await AsyncStorage.removeItem(TOKEN_KEY);
+  return SecureStore!.deleteItemAsync(TOKEN_KEY);
 }
 
 async function apiFetch(path: string, options?: RequestInit, requiresAuth = true): Promise<any> {

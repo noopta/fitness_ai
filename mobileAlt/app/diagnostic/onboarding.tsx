@@ -186,7 +186,7 @@ export default function OnboardingScreen() {
                   <Ionicons
                     name={lift.icon as any}
                     size={22}
-                    color={isSelected ? colors.primary : colors.mutedForeground}
+                    color={isSelected ? colors.primaryForeground : colors.mutedForeground}
                     style={styles.liftIcon}
                   />
                   <Text
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   },
   liftCard: {
     width: '47%',
-    backgroundColor: colors.card,
+    backgroundColor: colors.background,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -403,8 +403,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   liftCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}33`,
+    borderColor: colors.foreground,
+    backgroundColor: colors.foreground,
   },
   liftIcon: {
     marginBottom: 2,
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   liftNameSelected: {
-    color: colors.primary,
+    color: colors.primaryForeground,
   },
 
   // Performance row
@@ -451,8 +451,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   chipSelected: {
-    backgroundColor: `${colors.primary}33`,
-    borderColor: colors.primary,
+    backgroundColor: colors.foreground,
+    borderColor: colors.foreground,
   },
   chipText: {
     fontSize: fontSize.sm,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
   },
   chipTextSelected: {
-    color: colors.primary,
+    color: colors.primaryForeground,
   },
 
   // Height

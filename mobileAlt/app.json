@@ -14,7 +14,9 @@
     "scheme": "axiom",
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font"
     ],
     "ios": {
       "supportsTablet": false,
@@ -30,8 +32,15 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{"scheme": "axiom"}],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "axiom"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
