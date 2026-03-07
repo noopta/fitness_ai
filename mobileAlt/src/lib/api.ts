@@ -138,7 +138,7 @@ export const coachApi = {
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
   sendChat: (content: string) =>
-    apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ content }) }),
+    apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ message: content }) }),
   deleteThread: () => apiFetch('/coach/thread', { method: 'DELETE' }),
 
   // Insights

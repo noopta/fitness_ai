@@ -119,7 +119,7 @@ export default function PlanScreen() {
 
       // Resolve sessionId from params or AsyncStorage
       const paramId = params.sessionId as string | undefined;
-      const storedId = await AsyncStorage.getItem('liftoff_session_id');
+      const storedId = await AsyncStorage.getItem('axiom_session_id');
       const resolvedId = paramId || storedId || '';
 
       if (!resolvedId) {

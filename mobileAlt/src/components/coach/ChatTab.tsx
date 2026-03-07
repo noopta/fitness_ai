@@ -115,7 +115,7 @@ export function ChatTab({ coachData }: ChatTabProps) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 160 : 30}
     >
       {/* Messages */}
       <ScrollView
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: radius.full,
-    backgroundColor: `${colors.primary}22`,
+    backgroundColor: colors.foreground,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.bold,
-    color: colors.primary,
+    color: colors.primaryForeground,
   },
   bubble: {
     maxWidth: '78%',

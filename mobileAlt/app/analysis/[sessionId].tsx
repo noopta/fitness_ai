@@ -336,8 +336,8 @@ const styles = StyleSheet.create({
 
   // ── Header card ──────────────────────────────────────────────────────────────
   headerCard: {
-    backgroundColor: 'rgba(99,102,241,0.10)',
-    borderColor: 'rgba(99,102,241,0.30)',
+    backgroundColor: colors.muted,
+    borderColor: colors.border,
   },
   aiBadge: {
     marginBottom: spacing.sm,
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
 
   // ── CTA ──────────────────────────────────────────────────────────────────────
   ctaCard: {
-    borderColor: 'rgba(99,102,241,0.30)',
+    borderColor: colors.border,
   },
   ctaHeader: {
     alignItems: 'center',
