@@ -126,7 +126,19 @@ export default function CoachScreen() {
         coachApi.getMessages(),
         coachApi.getProgram(),
       ]);
-      setCoachData({ ...data, savedProgram: programResult?.program });
+
+      let resolvedProgram: any = null;
+      if (programResult) {
+        let prog = programResult?.program ?? programResult?.savedProgram ?? programResult;
+        if (typeof prog === 'string') {
+          try { prog = JSON.parse(prog); } catch { prog = null; }
+        }
+        if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
+          resolvedProgram = prog;
+        }
+      }
+
+      setCoachData({ ...data, savedProgram: resolvedProgram });
       await refreshUser();
     } catch {
       // Continue

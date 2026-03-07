@@ -113,6 +113,9 @@ Endpoints:
 - **ProgramTab**: Reads `phase.trainingDays` (not just `phase.days`), `phase.phaseName` (not just `phase.name`), `phase.durationWeeks`/`weeksLabel`, `day.day`, and `ex.intensity` from API response
 - **NutritionTab**: Extracts macros from `nutritionPlan.macros` sub-object (API structure: `{macros, foods, rationale, impact, expectedOutcomes}`); supports `proteinG`/`carbsG`/`fatG` camelCase field names
 - **Meal Suggestions**: API returns meal objects (not strings); now formats `{name, description, macros, prepMinutes}` into readable text
-- **WellnessTab**: `CheckinEntry` interface updated for backend fields (`stress`, `energy`, numeric `mood`); `moodEmoji()` handles both numeric (1-5) and string moods; fatigue column shows `stress` field; fixed `colMood` font size inconsistency
+- **WellnessTab**: `CheckinEntry` interface updated for backend fields (`stress`, `energy`, numeric `mood`); `moodEmoji()` handles both numeric (1-5) and string moods; fatigue column shows `stress` field; fixed `colMood` font size with explicit `moodCellText` style
 - **Chat (diagnostic)**: Reads `sessionId` from URL params via `useLocalSearchParams`, falls back to AsyncStorage; syncs resolved ID back to storage
 - **Settings Portal**: Expanded URL field coverage (`portal_url`, `sessionUrl`); context-specific error messages for Stripe issues; added debug logging
+- **Coach `handleProgramSave`**: Now uses same robust program parsing as `initCoach()` (handles JSON strings, nested `program`/`savedProgram` fields)
+- **Plan screen**: Unwraps `cached.plan` / `generated.plan` response wrapper; fixed `handleNewAnalysis` clearing wrong AsyncStorage key (`liftoff_session_id` → `axiom_session_id`)
+- **AnalyticsTab**: Fixed weight unit mismatch (kg → lbs), handles `weightLbs` field from API, user-friendly error for read-only database errors

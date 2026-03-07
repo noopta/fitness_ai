@@ -288,7 +288,7 @@ export function WellnessTab({ coachData }: WellnessTabProps) {
                   <Text style={[styles.checkinCell, styles.colSleep]}>
                     {c.sleepHours != null ? `${c.sleepHours}h` : '—'}
                   </Text>
-                  <Text style={[styles.checkinCell, styles.colMood]}>
+                  <Text style={[styles.checkinCell, styles.colMood, styles.moodCellText]}>
                     {moodEmoji(c.mood)}
                   </Text>
                 </View>
@@ -455,4 +455,5 @@ const styles = StyleSheet.create({
   colFatigue: { flex: 1, textAlign: 'center' },
   colSleep: { flex: 0.9, textAlign: 'center' },
   colMood: { flex: 0.6, textAlign: 'center' },
+  moodCellText: { fontSize: 16, lineHeight: 22 },
 });
