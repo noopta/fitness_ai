@@ -18,7 +18,8 @@ interface AnalyticsTabProps {
 
 interface BodyWeightEntry {
   id?: string;
-  weightKg: number;
+  weightKg?: number;
+  weightLbs?: number;
   date: string;
   createdAt?: string;
 }
@@ -67,7 +68,12 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
       setLogWeight('');
       await loadBodyWeight();
     } catch (err: any) {
-      setLogError(err?.message || 'Failed to log weight. Please try again.');
+      const msg = err?.message || 'Failed to log weight.';
+      if (msg.includes('readonly') || msg.includes('read-only') || msg.includes('read only')) {
+        setLogError('Server is temporarily unable to save data. Please try again later.');
+      } else {
+        setLogError(msg);
+      }
     } finally {
       setLogging(false);
     }
@@ -82,16 +88,20 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
     }
   }
 
+  function getWeight(entry: BodyWeightEntry): number {
+    return entry.weightLbs ?? entry.weightKg ?? 0;
+  }
+
   function getDelta(entries: BodyWeightEntry[], idx: number): string {
     if (idx >= entries.length - 1) return '—';
-    const diff = entries[idx].weightKg - entries[idx + 1].weightKg;
+    const diff = getWeight(entries[idx]) - getWeight(entries[idx + 1]);
     if (diff === 0) return '±0';
     return diff > 0 ? `+${diff.toFixed(1)}` : `${diff.toFixed(1)}`;
   }
 
   function getDeltaColor(entries: BodyWeightEntry[], idx: number): string {
     if (idx >= entries.length - 1) return colors.mutedForeground;
-    const diff = entries[idx].weightKg - entries[idx + 1].weightKg;
+    const diff = getWeight(entries[idx]) - getWeight(entries[idx + 1]);
     if (diff === 0) return colors.mutedForeground;
     return diff > 0 ? colors.destructive : colors.success;
   }
@@ -128,7 +138,7 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
           {/* Log form */}
           <View style={styles.logRow}>
             <Input
-              placeholder="Weight (kg)"
+              placeholder="Weight (lbs)"
               value={logWeight}
               onChangeText={setLogWeight}
               keyboardType="decimal-pad"
@@ -152,7 +162,7 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
               {/* Header */}
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellDate]}>Date</Text>
-                <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellWeight]}>Weight (kg)</Text>
+                <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellWeight]}>Weight (lbs)</Text>
                 <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellDelta]}>Change</Text>
               </View>
               {bodyWeightEntries.map((entry, idx) => (
@@ -164,7 +174,7 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
                     {formatDate(entry.date || entry.createdAt || '')}
                   </Text>
                   <Text style={[styles.tableCell, styles.cellWeight, styles.weightValue]}>
-                    {entry.weightKg.toFixed(1)}
+                    {getWeight(entry).toFixed(1)}
                   </Text>
                   <Text
                     style={[
@@ -192,7 +202,7 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
             <View style={styles.table}>
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <Text style={[styles.tableCell, styles.tableHeaderText, { flex: 2 }]}>Lift</Text>
-                <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellWeight]}>e1RM (kg)</Text>
+                <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellWeight]}>e1RM</Text>
               </View>
               {Object.entries(e1RMs).map(([lift, val], idx) => (
                 <View
