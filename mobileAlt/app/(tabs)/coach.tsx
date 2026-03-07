@@ -54,7 +54,8 @@ export default function CoachScreen() {
     // Pro user: fetch coach data
     try {
       const data = await coachApi.getMessages();
-      setCoachData(data);
+      // GET /coach/messages doesn't return savedProgram — enrich from user object
+      setCoachData({ ...data, savedProgram: user.savedProgram });
 
       const hasOnboarding = user.coachOnboardingDone;
       const hasProgram = !!(
@@ -91,8 +92,11 @@ export default function CoachScreen() {
 
   async function handleProgramSave() {
     try {
-      const data = await coachApi.getMessages();
-      setCoachData(data);
+      const [data, programResult] = await Promise.all([
+        coachApi.getMessages(),
+        coachApi.getProgram(),
+      ]);
+      setCoachData({ ...data, savedProgram: programResult?.program });
       await refreshUser();
     } catch {
       // Continue
