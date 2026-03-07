@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +33,7 @@ const WELCOME_MESSAGE: Message = {
 
 export default function ChatScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ sessionId?: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,11 +50,16 @@ export default function ChatScreen() {
 
   async function initSession() {
     try {
-      const sid = await AsyncStorage.getItem('axiom_session_id');
+      const paramId = params.sessionId as string | undefined;
+      const storedId = await AsyncStorage.getItem('axiom_session_id');
+      const sid = paramId || storedId;
       if (!sid) {
         Alert.alert('Error', 'Session not found. Please start over.');
         router.replace('/diagnostic/onboarding');
         return;
+      }
+      if (sid !== storedId) {
+        await AsyncStorage.setItem('axiom_session_id', sid);
       }
       setSessionId(sid);
 

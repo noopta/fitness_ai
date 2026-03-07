@@ -51,18 +51,28 @@ export default function CoachScreen() {
       return;
     }
 
-    // Pro user: fetch coach data
+    // Pro user: fetch coach data + program in parallel
     try {
-      const data = await coachApi.getMessages();
-      // GET /coach/messages doesn't return savedProgram — enrich from user object
-      setCoachData({ ...data, savedProgram: user.savedProgram });
+      const [data, programResult] = await Promise.all([
+        coachApi.getMessages().catch(() => ({})),
+        coachApi.getProgram().catch(() => null),
+      ]);
+
+      let resolvedProgram = user.savedProgram || data?.savedProgram || null;
+      if (programResult) {
+        const prog = programResult?.program ?? programResult;
+        if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
+          resolvedProgram = prog;
+        }
+      }
+      if (typeof resolvedProgram === 'string') {
+        try { resolvedProgram = JSON.parse(resolvedProgram); } catch { resolvedProgram = null; }
+      }
+
+      setCoachData({ ...data, savedProgram: resolvedProgram });
 
       const hasOnboarding = user.coachOnboardingDone;
-      const hasProgram = !!(
-        user.savedProgram ||
-        data?.savedProgram ||
-        data?.hasProgram
-      );
+      const hasProgram = !!(resolvedProgram);
 
       if (!hasOnboarding) {
         setStage('onboarding');
@@ -72,7 +82,6 @@ export default function CoachScreen() {
         setStage('dashboard');
       }
     } catch {
-      // Default to onboarding if fetch fails
       setStage('onboarding');
     } finally {
       setLoading(false);

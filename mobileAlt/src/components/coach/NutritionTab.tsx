@@ -68,10 +68,10 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
   }
 
   const calories: number | null = nutritionPlan?.calories ?? null;
-  const protein: number | null = nutritionPlan?.protein_g ?? nutritionPlan?.protein ?? null;
-  const carbs: number | null = nutritionPlan?.carbs_g ?? nutritionPlan?.carbs ?? null;
-  const fat: number | null = nutritionPlan?.fat_g ?? nutritionPlan?.fat ?? null;
-  const fiber: number | null = nutritionPlan?.fiber_g ?? nutritionPlan?.fiber ?? null;
+  const protein: number | null = nutritionPlan?.proteinG ?? nutritionPlan?.protein_g ?? nutritionPlan?.protein ?? null;
+  const carbs: number | null = nutritionPlan?.carbsG ?? nutritionPlan?.carbs_g ?? nutritionPlan?.carbs ?? null;
+  const fat: number | null = nutritionPlan?.fatG ?? nutritionPlan?.fat_g ?? nutritionPlan?.fat ?? null;
+  const fiber: number | null = nutritionPlan?.fiberG ?? nutritionPlan?.fiber_g ?? nutritionPlan?.fiber ?? null;
 
   // Progress bar percentages
   const proteinTarget = calories ? (calories * 0.35) / 4 : null;

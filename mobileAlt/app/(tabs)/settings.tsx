@@ -21,11 +21,24 @@ export default function SettingsScreen() {
     setPortalLoading(true);
     try {
       const data = await coachApi.getPaymentsPortal();
-      const url = data?.url ?? data?.portalUrl;
-      if (url) await Linking.openURL(url);
-      else Alert.alert('Error', 'Could not retrieve subscription portal link.');
+      console.log('[Settings] Portal response:', JSON.stringify(data));
+      const url = data?.url ?? data?.portalUrl ?? data?.portal_url ?? data?.sessionUrl;
+      if (url) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          'Portal Unavailable',
+          'The subscription portal could not be loaded. This may be a server configuration issue. Please contact support if this persists.',
+        );
+      }
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to open subscription portal.');
+      console.error('[Settings] Portal error:', err?.message, err);
+      const msg = err?.message ?? 'Failed to open subscription portal.';
+      if (msg.includes('Stripe') || msg.includes('customer')) {
+        Alert.alert('Subscription Error', 'Your account does not have an active Stripe subscription linked. Please contact support.');
+      } else {
+        Alert.alert('Error', msg);
+      }
     } finally {
       setPortalLoading(false);
     }
