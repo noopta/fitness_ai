@@ -112,7 +112,20 @@ export const liftCoachApi = {
     heightCm?: number;
     weightKg?: number;
     constraintsText?: string;
-  }) => apiFetch('/sessions', { method: 'POST', body: JSON.stringify(data) }),
+  }) => apiFetch('/sessions', {
+    method: 'POST',
+    body: JSON.stringify({
+      selectedLift: data.selectedLift,
+      goal: data.goal,
+      profile: {
+        trainingAge: data.trainingAge,
+        equipment: data.equipment,
+        heightCm: data.heightCm,
+        weightKg: data.weightKg,
+        constraintsText: data.constraintsText,
+      },
+    }),
+  }),
 
   addSnapshots: (sessionId: string, snapshots: Array<{
     exerciseId: string;
@@ -129,14 +142,14 @@ export const liftCoachApi = {
   sendMessage: (sessionId: string, content: string) =>
     apiFetch(`/sessions/${sessionId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ message: content }),
     }),
 
   // Results-page chat (Assistants API thread, separate from diagnostic messages)
   sendResultsChat: (sessionId: string, content: string) =>
     apiFetch(`/sessions/${sessionId}/chat`, {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ message: content }),
     }),
 
   generatePlan: (sessionId: string) =>
@@ -238,13 +251,21 @@ export const coachApi = {
 
 export const nutritionApi = {
   logMeal: (data: {
-    name: string;
-    calories?: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
     date?: string;
-  }) => apiFetch('/nutrition/log', { method: 'POST', body: JSON.stringify(data) }),
+    notes?: string;
+  }) => apiFetch('/nutrition/log', {
+    method: 'POST',
+    body: JSON.stringify({
+      date: data.date || new Date().toISOString().split('T')[0],
+      proteinG: data.proteinG,
+      carbsG: data.carbsG,
+      fatG: data.fatG,
+      ...(data.notes ? { notes: data.notes } : {}),
+    }),
+  }),
 
   getLog: (date?: string) =>
     apiFetch(`/nutrition/log${date ? `?date=${date}` : ''}`),

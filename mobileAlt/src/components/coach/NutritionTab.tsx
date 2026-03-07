@@ -88,8 +88,12 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
     setMealModalVisible(true);
     try {
       const result = await coachApi.getMealSuggestions({
-        calories: calories ?? 2000,
-        protein: protein ?? 150,
+        macros: {
+          proteinG: protein ?? 150,
+          carbsG: carbs ?? 200,
+          fatG: fat ?? 60,
+          calories: calories ?? 2000,
+        },
       });
       const suggestions: string[] = Array.isArray(result)
         ? result
