@@ -39,16 +39,44 @@ async function apiFetch(path: string, options?: RequestInit, requiresAuth = true
   };
   if (requiresAuth) {
     const token = await getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      console.warn(`[API] No auth token for ${path}`);
+    }
   }
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const error = new Error((err as any).error || `API error: ${res.status}`);
-    (error as any).status = res.status;
-    throw error;
+
+  const url = `${API_BASE}${path}`;
+  console.log(`[API] ${options?.method || 'GET'} ${url}`);
+
+  try {
+    const res = await fetch(url, { ...options, headers });
+    console.log(`[API] ${path} -> ${res.status}`);
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      let parsed: any = {};
+      try { parsed = JSON.parse(errBody); } catch {}
+      const message = parsed.error || parsed.message || `API error: ${res.status}`;
+      console.error(`[API] Error ${res.status} on ${path}: ${message}`);
+      const error = new Error(message);
+      (error as any).status = res.status;
+      throw error;
+    }
+
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      console.warn(`[API] Non-JSON response from ${path}`);
+      return { raw: text };
+    }
+  } catch (err: any) {
+    if (err?.status) throw err;
+    console.error(`[API] Network error on ${path}:`, err?.message || err);
+    throw new Error(`Network error: ${err?.message || 'Could not connect to server'}`);
   }
-  return res.json();
 }
 
 // ─── Auth API ────────────────────────────────────────────────────────────────
