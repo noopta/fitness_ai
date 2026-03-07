@@ -199,19 +199,35 @@ export const coachApi = {
 
   // Analytics / body weight
   getAnalytics: () => apiFetch('/coach/analytics'),
-  logBodyWeight: (weightKg: number, date?: string) =>
-    apiFetch('/coach/body-weight', { method: 'POST', body: JSON.stringify({ weightKg, date }) }),
+  logBodyWeight: (weightLbs: number, date?: string) =>
+    apiFetch('/coach/body-weight', {
+      method: 'POST',
+      body: JSON.stringify({ weightLbs, date: date || new Date().toISOString().split('T')[0] }),
+    }),
   getBodyWeight: () => apiFetch('/coach/body-weight'),
 
   // Wellness
   getWellnessCheckins: () => apiFetch('/wellness/checkins'),
   postCheckin: (data: {
-    hrv?: number;
-    fatigueLevel?: number;
+    date?: string;
+    mood?: number;
+    energy?: number;
     sleepHours?: number;
-    mood?: string;
+    stress?: number;
+    hrv?: number;
     notes?: string;
-  }) => apiFetch('/wellness/checkin', { method: 'POST', body: JSON.stringify(data) }),
+  }) => apiFetch('/wellness/checkin', {
+    method: 'POST',
+    body: JSON.stringify({
+      date: data.date || new Date().toISOString().split('T')[0],
+      mood: data.mood ?? 5,
+      energy: data.energy ?? 5,
+      sleepHours: data.sleepHours ?? 7,
+      stress: data.stress ?? 5,
+      ...(data.hrv !== undefined ? { hrv: data.hrv } : {}),
+      ...(data.notes ? { notes: data.notes } : {}),
+    }),
+  }),
 
   // Payments
   getPaymentsStatus: () => apiFetch('/payments/status'),

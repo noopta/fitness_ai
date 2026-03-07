@@ -90,10 +90,14 @@ export function WellnessTab({ coachData }: WellnessTabProps) {
   async function handleSubmit() {
     setSubmitting(true);
     try {
+      const moodIndex = MOODS.findIndex((m) => m.value === mood);
+      const moodScore = moodIndex >= 0 ? moodIndex + 1 : 3;
+      const stressScore = fatigue <= 10 ? Math.round(fatigue) : 5;
       await coachApi.postCheckin({
-        fatigueLevel: fatigue,
-        sleepHours: sleep ? parseFloat(sleep) : undefined,
-        mood: mood || undefined,
+        sleepHours: sleep ? parseFloat(sleep) : 7,
+        mood: moodScore,
+        energy: Math.max(1, 6 - stressScore),
+        stress: stressScore,
         hrv: hrv ? parseFloat(hrv) : undefined,
         notes: notes.trim() || undefined,
       });
