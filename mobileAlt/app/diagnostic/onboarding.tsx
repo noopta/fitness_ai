@@ -161,7 +161,7 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ title: 'New Analysis', headerBackVisible: true }} />
+      <Stack.Screen options={{ title: 'New Analysis', headerBackVisible: true, headerShown: true }} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}

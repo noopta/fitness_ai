@@ -151,6 +151,7 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
         options={{
+          headerShown: true,
           headerTitle: () => (
             <View style={styles.headerTitle}>
               <Text style={styles.headerTitleText}>AI Diagnostic</Text>
@@ -167,7 +168,7 @@ export default function ChatScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 30}
       >
         {/* Messages */}
         <ScrollView
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#4f46e5',
+    backgroundColor: colors.foreground,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.bold,
-    color: '#ffffff',
+    color: colors.primaryForeground,
   },
 
   // Bubbles

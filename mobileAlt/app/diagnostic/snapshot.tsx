@@ -122,16 +122,19 @@ export default function SnapshotScreen() {
 
   async function loadFromStorage() {
     try {
-      const [sid, lift] = await Promise.all([
+      const [sid, lift, savedWeight, savedSets, savedReps] = await Promise.all([
         AsyncStorage.getItem('axiom_session_id'),
         AsyncStorage.getItem('axiom_selected_lift'),
+        AsyncStorage.getItem('axiom_target_weight'),
+        AsyncStorage.getItem('axiom_target_sets'),
+        AsyncStorage.getItem('axiom_target_reps'),
       ]);
 
       const liftId = lift || '';
       setSessionId(sid || '');
       setSelectedLift(liftId);
 
-      // Initialize first row with primary lift exercise
+      // Initialize first row with primary lift exercise + autofill from onboarding
       const exercises = LIFT_EXERCISES[liftId] || [];
       const firstExercise = exercises[0];
       if (firstExercise) {
@@ -140,9 +143,9 @@ export default function SnapshotScreen() {
             id: generateId(),
             exerciseId: firstExercise.id,
             exerciseName: firstExercise.name,
-            weight: '',
-            sets: '',
-            reps: '',
+            weight: savedWeight || '',
+            sets: savedSets || '',
+            reps: savedReps || '',
             rpe: '',
           },
         ]);
@@ -152,9 +155,9 @@ export default function SnapshotScreen() {
             id: generateId(),
             exerciseId: '',
             exerciseName: '',
-            weight: '',
-            sets: '',
-            reps: '',
+            weight: savedWeight || '',
+            sets: savedSets || '',
+            reps: savedReps || '',
             rpe: '',
           },
         ]);
@@ -245,7 +248,7 @@ export default function SnapshotScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ title: 'Log Exercises' }} />
+      <Stack.Screen options={{ title: 'Log Exercises', headerShown: true }} />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -491,11 +494,11 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: colors.card,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     maxHeight: '70%',
