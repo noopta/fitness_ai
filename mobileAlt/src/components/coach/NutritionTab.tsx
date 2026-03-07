@@ -61,17 +61,18 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
         typeof coachData.savedProgram === 'string'
           ? JSON.parse(coachData.savedProgram)
           : coachData.savedProgram;
-      nutritionPlan = prog?.nutritionPlan ?? null;
+      nutritionPlan = prog?.nutritionPlan ?? prog?.nutrition ?? null;
     } catch {
       nutritionPlan = null;
     }
   }
 
-  const calories: number | null = nutritionPlan?.calories ?? null;
-  const protein: number | null = nutritionPlan?.proteinG ?? nutritionPlan?.protein_g ?? nutritionPlan?.protein ?? null;
-  const carbs: number | null = nutritionPlan?.carbsG ?? nutritionPlan?.carbs_g ?? nutritionPlan?.carbs ?? null;
-  const fat: number | null = nutritionPlan?.fatG ?? nutritionPlan?.fat_g ?? nutritionPlan?.fat ?? null;
-  const fiber: number | null = nutritionPlan?.fiberG ?? nutritionPlan?.fiber_g ?? nutritionPlan?.fiber ?? null;
+  const macros = nutritionPlan?.macros ?? nutritionPlan;
+  const calories: number | null = macros?.calories ?? nutritionPlan?.calories ?? null;
+  const protein: number | null = macros?.proteinG ?? macros?.protein_g ?? macros?.protein ?? null;
+  const carbs: number | null = macros?.carbsG ?? macros?.carbs_g ?? macros?.carbs ?? null;
+  const fat: number | null = macros?.fatG ?? macros?.fat_g ?? macros?.fat ?? null;
+  const fiber: number | null = macros?.fiberG ?? macros?.fiber_g ?? macros?.fiber ?? null;
 
   // Progress bar percentages
   const proteinTarget = calories ? (calories * 0.35) / 4 : null;
@@ -95,9 +96,30 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
           calories: calories ?? 2000,
         },
       });
-      const suggestions: string[] = Array.isArray(result)
+      const raw: any[] = Array.isArray(result)
         ? result
         : result?.suggestions ?? result?.meals ?? [];
+      const suggestions: string[] = raw.map((item: any) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') {
+          const parts: string[] = [];
+          if (item.name) parts.push(item.name);
+          if (item.description) parts.push(item.description);
+          if (item.macros) {
+            const m = item.macros;
+            const macroStr = [
+              m.proteinG != null ? `${m.proteinG}g protein` : null,
+              m.carbsG != null ? `${m.carbsG}g carbs` : null,
+              m.fatG != null ? `${m.fatG}g fat` : null,
+              m.calories != null ? `${m.calories} cal` : null,
+            ].filter(Boolean).join(', ');
+            if (macroStr) parts.push(`(${macroStr})`);
+          }
+          if (item.prepMinutes) parts.push(`${item.prepMinutes} min prep`);
+          return parts.join(' — ') || JSON.stringify(item);
+        }
+        return String(item);
+      });
       setMealSuggestions(suggestions);
     } catch {
       setMealSuggestions(['Could not load meal suggestions. Please try again.']);

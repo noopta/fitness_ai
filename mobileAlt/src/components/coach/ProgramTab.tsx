@@ -79,7 +79,7 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
           {phases.length > 0 && (
             <View style={styles.currentPhaseBadge}>
               <Text style={styles.currentPhaseText}>
-                Current Phase: {phases[currentPhaseIdx]?.name ?? `Phase ${currentPhaseIdx + 1}`}
+                Current Phase: {phases[currentPhaseIdx]?.name || phases[currentPhaseIdx]?.phaseName || `Phase ${currentPhaseIdx + 1}`}
               </Text>
             </View>
           )}
@@ -89,7 +89,7 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
       {/* Phase accordion */}
       {phases.map((phase: any, phaseIdx: number) => {
         const isExpanded = expandedPhase === phaseIdx;
-        const days: any[] = phase.days ?? [];
+        const days: any[] = phase.days ?? phase.trainingDays ?? [];
 
         return (
           <Card key={phaseIdx} style={styles.phaseCard}>
@@ -111,11 +111,11 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
                 </View>
                 <View style={styles.phaseInfo}>
                   <Text style={styles.phaseName}>
-                    {phase.name || `Phase ${phaseIdx + 1}`}
+                    {phase.name || phase.phaseName || `Phase ${phaseIdx + 1}`}
                   </Text>
                   <Text style={styles.phaseMeta}>
-                    {phase.weeks ? `${phase.weeks} weeks` : ''}
-                    {phase.weeks && phase.daysPerWeek ? ' · ' : ''}
+                    {(phase.weeks || phase.durationWeeks) ? `${phase.weeks || phase.durationWeeks} weeks` : phase.weeksLabel || ''}
+                    {(phase.weeks || phase.durationWeeks || phase.weeksLabel) && phase.daysPerWeek ? ' · ' : ''}
                     {phase.daysPerWeek ? `${phase.daysPerWeek} days/week` : ''}
                   </Text>
                 </View>
@@ -129,7 +129,7 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
                   <View key={dayIdx} style={styles.daySection}>
                     <View style={styles.dayHeader}>
                       <Text style={styles.dayName}>
-                        {day.name || `Day ${dayIdx + 1}`}
+                        {day.name || day.day || `Day ${dayIdx + 1}`}
                       </Text>
                       {day.focus && (
                         <Badge variant="secondary">{day.focus}</Badge>
@@ -156,8 +156,8 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
                               ) : ex.sets ? (
                                 <Text style={styles.exerciseSets}>{ex.sets} sets</Text>
                               ) : null}
-                              {ex.rpe ? (
-                                <Text style={styles.exerciseRpe}>RPE {ex.rpe}</Text>
+                              {(ex.rpe || ex.intensity) ? (
+                                <Text style={styles.exerciseRpe}>{ex.rpe ? `RPE ${ex.rpe}` : ex.intensity}</Text>
                               ) : null}
                             </View>
                           </View>

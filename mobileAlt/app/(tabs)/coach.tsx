@@ -58,15 +58,36 @@ export default function CoachScreen() {
         coachApi.getProgram().catch(() => null),
       ]);
 
-      let resolvedProgram = user.savedProgram || data?.savedProgram || null;
+      let resolvedProgram: any = null;
+
       if (programResult) {
-        const prog = programResult?.program ?? programResult;
+        let prog = programResult?.program ?? programResult?.savedProgram ?? programResult;
+        if (typeof prog === 'string') {
+          try { prog = JSON.parse(prog); } catch { prog = null; }
+        }
         if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
           resolvedProgram = prog;
         }
       }
-      if (typeof resolvedProgram === 'string') {
-        try { resolvedProgram = JSON.parse(resolvedProgram); } catch { resolvedProgram = null; }
+
+      if (!resolvedProgram && user.savedProgram) {
+        let parsed = user.savedProgram;
+        if (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+        }
+        if (parsed && typeof parsed === 'object') {
+          resolvedProgram = parsed;
+        }
+      }
+
+      if (!resolvedProgram && data?.savedProgram) {
+        let parsed = data.savedProgram;
+        if (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+        }
+        if (parsed && typeof parsed === 'object') {
+          resolvedProgram = parsed;
+        }
       }
 
       setCoachData({ ...data, savedProgram: resolvedProgram });
