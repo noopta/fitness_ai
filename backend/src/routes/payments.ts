@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://liftoffai.vercel.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
 const router = Router();
 const prisma = new PrismaClient();

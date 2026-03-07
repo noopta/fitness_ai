@@ -24,7 +24,7 @@ app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 // Middleware
 app.use(cookieParser());
 const ALLOWED_ORIGINS = [
-  process.env.FRONTEND_URL || 'https://liftoffmvp.io',
+  process.env.FRONTEND_URL || 'https://axiomtraining.io',
   // Allow localhost ports for local development
   'http://localhost:5000',
   'http://localhost:5173',
