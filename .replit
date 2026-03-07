@@ -29,7 +29,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd mobileAlt && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 npx expo start --web --port 5000 --host lan"
+args = "cd mobileAlt && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 npx expo start --tunnel --web --port 5000"
 waitForPort = 5000
 
 [[workflows.workflow]]
