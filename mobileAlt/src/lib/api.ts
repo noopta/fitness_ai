@@ -104,6 +104,13 @@ export const liftCoachApi = {
       body: JSON.stringify({ content }),
     }),
 
+  // Results-page chat (Assistants API thread, separate from diagnostic messages)
+  sendResultsChat: (sessionId: string, content: string) =>
+    apiFetch(`/sessions/${sessionId}/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+
   generatePlan: (sessionId: string) =>
     apiFetch(`/sessions/${sessionId}/generate`, { method: 'POST' }),
 
@@ -120,24 +127,39 @@ export const liftCoachApi = {
 
   getPublicSession: (sessionId: string) =>
     apiFetch(`/sessions/${sessionId}/public`, {}, false),
+
+  getExerciseVideo: (exerciseId: string) =>
+    apiFetch(`/exercises/${exerciseId}/video`),
 };
 
 // ─── Coach API ────────────────────────────────────────────────────────────────
 
 export const coachApi = {
+  // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
   sendChat: (content: string) =>
     apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ content }) }),
+  deleteThread: () => apiFetch('/coach/thread', { method: 'DELETE' }),
 
+  // Insights
+  getInsights: () => apiFetch('/coach/insights'),
+
+  // Program
   getProgram: () => apiFetch('/coach/program'),
   generateProgram: (data: any) =>
     apiFetch('/coach/program', { method: 'POST', body: JSON.stringify(data) }),
   updateProgram: (data: any) =>
     apiFetch('/coach/program', { method: 'PUT', body: JSON.stringify(data) }),
+  adjustProgram: (data: any) =>
+    apiFetch('/coach/adjust', { method: 'POST', body: JSON.stringify(data) }),
+  applyAdjustment: (data: any) =>
+    apiFetch('/coach/apply-adjustment', { method: 'POST', body: JSON.stringify(data) }),
 
+  // Today / schedule
   getToday: () => apiFetch('/coach/today'),
   getSchedule: () => apiFetch('/coach/schedule'),
 
+  // Nutrition
   generateNutritionPlan: (data: any) =>
     apiFetch('/coach/nutrition-plan', { method: 'POST', body: JSON.stringify(data) }),
   getMealSuggestions: (data: any) =>
@@ -147,11 +169,13 @@ export const coachApi = {
   adjustNutrition: (data: any) =>
     apiFetch('/coach/nutrition-adjustment', { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Analytics / body weight
   getAnalytics: () => apiFetch('/coach/analytics'),
   logBodyWeight: (weightKg: number, date?: string) =>
     apiFetch('/coach/body-weight', { method: 'POST', body: JSON.stringify({ weightKg, date }) }),
   getBodyWeight: () => apiFetch('/coach/body-weight'),
 
+  // Wellness
   getWellnessCheckins: () => apiFetch('/wellness/checkins'),
   postCheckin: (data: {
     hrv?: number;
@@ -161,5 +185,23 @@ export const coachApi = {
     notes?: string;
   }) => apiFetch('/wellness/checkin', { method: 'POST', body: JSON.stringify(data) }),
 
+  // Payments
+  getPaymentsStatus: () => apiFetch('/payments/status'),
   getPaymentsPortal: () => apiFetch('/payments/portal', { method: 'POST' }),
+};
+
+// ─── Nutrition Log API ────────────────────────────────────────────────────────
+
+export const nutritionApi = {
+  logMeal: (data: {
+    name: string;
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+    date?: string;
+  }) => apiFetch('/nutrition/log', { method: 'POST', body: JSON.stringify(data) }),
+
+  getLog: (date?: string) =>
+    apiFetch(`/nutrition/log${date ? `?date=${date}` : ''}`),
 };
