@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable,
-  Alert, KeyboardAvoidingView, Platform, Linking, TouchableOpacity,
+  Alert, KeyboardAvoidingView, Platform, Linking, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
-import { Button } from '../../src/components/ui/Button';
+import { GoogleLogo } from '../../src/components/ui/GoogleLogo';
 import { Input } from '../../src/components/ui/Input';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
@@ -65,16 +65,21 @@ export default function RegisterScreen() {
           <Text style={styles.subtitle}>Start your AI coaching journey</Text>
 
           {/* Google OAuth */}
-          <Button
-            variant="secondary"
-            fullWidth
-            size="lg"
+          <TouchableOpacity
+            style={[styles.googleButton, googleLoading && { opacity: 0.5 }]}
+            activeOpacity={0.82}
             onPress={handleGoogleLogin}
-            loading={googleLoading}
-            style={styles.googleButton}
+            disabled={googleLoading}
           >
-            Continue with Google
-          </Button>
+            {googleLoading ? (
+              <ActivityIndicator size="small" color={colors.foreground} />
+            ) : (
+              <>
+                <GoogleLogo size={20} />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.dividerRow}>
@@ -165,7 +170,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
 
-  googleButton: { marginBottom: spacing.lg },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    marginBottom: spacing.lg,
+  },
+  googleButtonText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
 
   dividerRow: {
     flexDirection: 'row',
