@@ -276,7 +276,7 @@ export default function CoachScreen() {
           <ProgramTab coachData={coachData} />
         )}
         {activeTab === 'Nutrition' && (
-          <NutritionTab coachData={coachData} />
+          <NutritionTab coachData={coachData} onRefresh={initCoach} />
         )}
         {activeTab === 'Analytics' && (
           <AnalyticsTab coachData={coachData} />

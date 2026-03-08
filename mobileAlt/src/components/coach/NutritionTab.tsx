@@ -15,6 +15,7 @@ import { coachApi } from '../../lib/api';
 
 interface NutritionTabProps {
   coachData: any;
+  onRefresh?: () => Promise<void> | void;
 }
 
 function ProgressBar({ value, color }: { value: number; color: string }) {
@@ -47,7 +48,7 @@ function MacroCard({ label, grams, progressPct, color, target }: MacroCardProps)
   );
 }
 
-export function NutritionTab({ coachData }: NutritionTabProps) {
+export function NutritionTab({ coachData, onRefresh }: NutritionTabProps) {
   const [mealModalVisible, setMealModalVisible] = useState(false);
   const [mealSuggestions, setMealSuggestions] = useState<string[]>([]);
   const [mealLoading, setMealLoading] = useState(false);
@@ -96,9 +97,15 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
           calories: calories ?? 2000,
         },
       });
+      console.log('[MealSuggestions] raw response:', JSON.stringify(result).slice(0, 500));
       const raw: any[] = Array.isArray(result)
         ? result
-        : result?.suggestions ?? result?.meals ?? [];
+        : result?.meals ?? result?.suggestions ?? result?.mealSuggestions ?? [];
+      console.log('[MealSuggestions] parsed items count:', raw.length);
+      if (raw.length === 0) {
+        setMealSuggestions(['No meal suggestions were returned. Please try again.']);
+        return;
+      }
       const suggestions: string[] = raw.map((item: any) => {
         if (typeof item === 'string') return item;
         if (item && typeof item === 'object') {
@@ -121,22 +128,33 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
         return String(item);
       });
       setMealSuggestions(suggestions);
-    } catch {
-      setMealSuggestions(['Could not load meal suggestions. Please try again.']);
+    } catch (err: any) {
+      console.error('[MealSuggestions] error:', err);
+      setMealSuggestions([err?.message || 'Could not load meal suggestions. Please try again.']);
     } finally {
       setMealLoading(false);
     }
   }
 
+  const [planError, setPlanError] = useState<string | null>(null);
+
   async function handleGeneratePlan() {
     setGeneratingPlan(true);
+    setPlanError(null);
     try {
-      await coachApi.generateNutritionPlan({
+      const plan = await coachApi.generateNutritionPlan({
         goal: coachData?.coachGoal ?? 'general',
       });
-      // Ideally parent would refresh coachData; for now show a message
-    } catch {
-      // silent
+      console.log('[NutritionTab] Generated plan:', JSON.stringify(plan).slice(0, 300));
+
+      const existingProgram = coachData?.savedProgram ?? {};
+      const merged = { ...existingProgram, nutritionPlan: plan };
+      await coachApi.updateProgram({ program: merged });
+
+      if (onRefresh) await onRefresh();
+    } catch (err: any) {
+      console.error('[NutritionTab] Generate plan error:', err);
+      setPlanError(err?.message || 'Failed to generate nutrition plan. Please try again.');
     } finally {
       setGeneratingPlan(false);
     }
@@ -164,6 +182,9 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
             >
               Generate Nutrition Plan
             </Button>
+            {planError && (
+              <Text style={styles.planErrorText}>{planError}</Text>
+            )}
           </CardContent>
         </Card>
       </ScrollView>
@@ -399,6 +420,12 @@ const styles = StyleSheet.create({
   progressBar: {
     height: '100%',
     borderRadius: radius.full,
+  },
+  planErrorText: {
+    fontSize: fontSize.sm,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
   modalBackdrop: {
     flex: 1,
