@@ -6,7 +6,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -89,7 +88,6 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
 
   async function handleGetMealSuggestions() {
     setMealLoading(true);
-    setMealModalVisible(true);
     try {
       const requestBody = {
         macros: {
@@ -102,44 +100,41 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
         numberOfMeals: 5,
         budget: coachBudget || null,
       };
-      console.log('[MealSuggestions] request body:', JSON.stringify(requestBody));
       const result = await coachApi.getMealSuggestions(requestBody);
-      console.log('[MealSuggestions] full response:', JSON.stringify(result));
       const raw: any[] = Array.isArray(result)
         ? result
         : result?.meals ?? result?.suggestions ?? result?.mealSuggestions ?? [];
-      console.log('[MealSuggestions] parsed items count:', raw.length);
       if (raw.length === 0) {
         setMealSuggestions(['No meal suggestions were returned. Please try again.']);
-        return;
-      }
-      const suggestions: string[] = raw.map((item: any) => {
-        if (typeof item === 'string') return item;
-        if (item && typeof item === 'object') {
-          const parts: string[] = [];
-          if (item.name) parts.push(item.name);
-          if (item.description) parts.push(item.description);
-          if (item.macros) {
-            const m = item.macros;
-            const macroStr = [
-              m.proteinG != null ? `${m.proteinG}g protein` : null,
-              m.carbsG != null ? `${m.carbsG}g carbs` : null,
-              m.fatG != null ? `${m.fatG}g fat` : null,
-              m.calories != null ? `${m.calories} cal` : null,
-            ].filter(Boolean).join(', ');
-            if (macroStr) parts.push(`(${macroStr})`);
+      } else {
+        const suggestions: string[] = raw.map((item: any) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            const parts: string[] = [];
+            if (item.name) parts.push(item.name);
+            if (item.description) parts.push(item.description);
+            if (item.macros) {
+              const m = item.macros;
+              const macroStr = [
+                m.proteinG != null ? `${m.proteinG}g protein` : null,
+                m.carbsG != null ? `${m.carbsG}g carbs` : null,
+                m.fatG != null ? `${m.fatG}g fat` : null,
+                m.calories != null ? `${m.calories} cal` : null,
+              ].filter(Boolean).join(', ');
+              if (macroStr) parts.push(`(${macroStr})`);
+            }
+            if (item.prepMinutes) parts.push(`${item.prepMinutes} min prep`);
+            return parts.join(' — ') || JSON.stringify(item);
           }
-          if (item.prepMinutes) parts.push(`${item.prepMinutes} min prep`);
-          return parts.join(' — ') || JSON.stringify(item);
-        }
-        return String(item);
-      });
-      setMealSuggestions(suggestions);
+          return String(item);
+        });
+        setMealSuggestions(suggestions);
+      }
     } catch (err: any) {
-      console.error('[MealSuggestions] error:', err);
       setMealSuggestions([err?.message || 'Could not load meal suggestions. Please try again.']);
     } finally {
       setMealLoading(false);
+      setMealModalVisible(true); // open modal only after results are ready
     }
   }
 
@@ -265,7 +260,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
       </Card>
 
       {/* Meal suggestions */}
-      <Button fullWidth variant="outline" onPress={handleGetMealSuggestions}>
+      <Button fullWidth variant="outline" onPress={handleGetMealSuggestions} loading={mealLoading} disabled={mealLoading}>
         View Meal Suggestions
       </Button>
 
@@ -285,25 +280,18 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Meal Suggestions</Text>
 
-            {mealLoading ? (
-              <View style={styles.modalLoading}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.modalLoadingText}>Generating suggestions...</Text>
-              </View>
-            ) : (
-              <ScrollView
-                style={styles.modalScroll}
-                showsVerticalScrollIndicator={false}
-                bounces={false}
-              >
-                {mealSuggestions.map((meal, i) => (
-                  <View key={i} style={styles.mealRow}>
-                    <View style={styles.mealBullet} />
-                    <Text style={styles.mealText}>{meal}</Text>
-                  </View>
-                ))}
-              </ScrollView>
-            )}
+            <ScrollView
+              style={styles.modalScroll}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              {mealSuggestions.map((meal, i) => (
+                <View key={i} style={styles.mealRow}>
+                  <View style={styles.mealBullet} />
+                  <Text style={styles.mealText}>{meal}</Text>
+                </View>
+              ))}
+            </ScrollView>
 
             <Pressable
               style={styles.closeBtnPill}

@@ -28,15 +28,32 @@ router.post('/payments/portal', requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { stripeCustomerId: true },
+      select: { stripeCustomerId: true, email: true },
     });
 
-    if (!user?.stripeCustomerId) {
+    let customerId = user?.stripeCustomerId;
+
+    // Fallback: look up Stripe customer by email if no customerId stored locally.
+    // This handles users who subscribed via the direct Stripe checkout link before
+    // the webhook was configured to save stripeCustomerId.
+    if (!customerId && user?.email) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        // Persist for future requests
+        await prisma.user.update({
+          where: { id: req.user!.id },
+          data: { stripeCustomerId: customerId },
+        });
+      }
+    }
+
+    if (!customerId) {
       return res.status(400).json({ error: 'No billing account found. Please subscribe first.' });
     }
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: user.stripeCustomerId,
+      customer: customerId,
       return_url: `${FRONTEND_URL}/settings`,
     });
 

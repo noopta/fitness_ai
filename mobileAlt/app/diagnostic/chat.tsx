@@ -109,7 +109,7 @@ export default function ChatScreen() {
     try {
       const response = await liftCoachApi.sendMessage(sessionId, content);
       const assistantContent =
-        response.message?.content ||
+        (typeof response.message === 'string' ? response.message : response.message?.content) ||
         response.content ||
         response.reply ||
         'I understand. Let me continue the analysis.';
