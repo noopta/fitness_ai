@@ -266,36 +266,41 @@ export function NutritionTab({ coachData, onRefresh }: NutritionTabProps) {
       <Modal
         visible={mealModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setMealModalVisible(false)}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setMealModalVisible(false)}
-        />
-        <View style={styles.modalSheet}>
-          <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>Meal Suggestions</Text>
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setMealModalVisible(false)}
+          />
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Meal Suggestions</Text>
 
-          {mealLoading ? (
-            <View style={styles.modalLoading}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.modalLoadingText}>Generating suggestions...</Text>
-            </View>
-          ) : (
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              {mealSuggestions.map((meal, i) => (
-                <View key={i} style={styles.mealRow}>
-                  <View style={styles.mealBullet} />
-                  <Text style={styles.mealText}>{meal}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          )}
+            {mealLoading ? (
+              <View style={styles.modalLoading}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={styles.modalLoadingText}>Generating suggestions...</Text>
+              </View>
+            ) : (
+              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                {mealSuggestions.map((meal, i) => (
+                  <View key={i} style={styles.mealRow}>
+                    <View style={styles.mealBullet} />
+                    <Text style={styles.mealText}>{meal}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
 
-          <Button fullWidth onPress={() => setMealModalVisible(false)} style={styles.closeBtn}>
-            Close
-          </Button>
+            <Pressable
+              style={styles.closeBtnPill}
+              onPress={() => setMealModalVisible(false)}
+            >
+              <Text style={styles.closeBtnText}>Close</Text>
+            </Pressable>
+          </View>
         </View>
       </Modal>
     </ScrollView>
@@ -427,16 +432,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
   },
-  modalBackdrop: {
+  modalOverlay: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalSheet: {
     backgroundColor: colors.card,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: spacing.md,
-    maxHeight: '60%',
+    paddingBottom: 34,
+    maxHeight: '65%',
     gap: spacing.md,
   },
   modalHandle: {
@@ -486,7 +496,16 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  closeBtn: {
+  closeBtnPill: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.xl,
+    paddingVertical: 14,
+    alignItems: 'center',
     marginTop: spacing.xs,
+  },
+  closeBtnText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
   },
 });
