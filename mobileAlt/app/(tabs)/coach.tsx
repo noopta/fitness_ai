@@ -276,7 +276,12 @@ export default function CoachScreen() {
           <ProgramTab coachData={coachData} />
         )}
         {activeTab === 'Nutrition' && (
-          <NutritionTab coachData={coachData} onRefresh={initCoach} />
+          <NutritionTab
+            coachData={coachData}
+            coachGoal={user?.coachGoal ?? null}
+            coachBudget={user?.coachBudget ?? null}
+            onRefresh={initCoach}
+          />
         )}
         {activeTab === 'Analytics' && (
           <AnalyticsTab coachData={coachData} />

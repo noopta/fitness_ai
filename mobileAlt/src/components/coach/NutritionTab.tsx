@@ -15,6 +15,8 @@ import { coachApi } from '../../lib/api';
 
 interface NutritionTabProps {
   coachData: any;
+  coachGoal?: string | null;
+  coachBudget?: string | null;
   onRefresh?: () => Promise<void> | void;
 }
 
@@ -48,7 +50,7 @@ function MacroCard({ label, grams, progressPct, color, target }: MacroCardProps)
   );
 }
 
-export function NutritionTab({ coachData, onRefresh }: NutritionTabProps) {
+export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: NutritionTabProps) {
   const [mealModalVisible, setMealModalVisible] = useState(false);
   const [mealSuggestions, setMealSuggestions] = useState<string[]>([]);
   const [mealLoading, setMealLoading] = useState(false);
@@ -96,9 +98,9 @@ export function NutritionTab({ coachData, onRefresh }: NutritionTabProps) {
           fatG: fat ?? 60,
           calories: calories ?? 2000,
         },
-        goal: coachData?.coachGoal || 'strength',
+        goal: coachGoal || 'strength',
         numberOfMeals: 5,
-        budget: coachData?.coachBudget ?? null,
+        budget: coachBudget || null,
       };
       console.log('[MealSuggestions] request body:', JSON.stringify(requestBody));
       const result = await coachApi.getMealSuggestions(requestBody);
@@ -148,7 +150,7 @@ export function NutritionTab({ coachData, onRefresh }: NutritionTabProps) {
     setPlanError(null);
     try {
       const plan = await coachApi.generateNutritionPlan({
-        goal: coachData?.coachGoal ?? 'general',
+        goal: coachGoal || 'general',
       });
       console.log('[NutritionTab] Generated plan:', JSON.stringify(plan).slice(0, 300));
 
