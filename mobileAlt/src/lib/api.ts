@@ -296,26 +296,3 @@ export const workoutsApi = {
   deleteWorkout: (id: string) => apiFetch(`/workouts/${id}`, { method: 'DELETE' }),
 };
 
-// ─── Nutrition Log API ────────────────────────────────────────────────────────
-
-export const nutritionApi = {
-  logMeal: (data: {
-    proteinG: number;
-    carbsG: number;
-    fatG: number;
-    date?: string;
-    notes?: string;
-  }) => apiFetch('/nutrition/log', {
-    method: 'POST',
-    body: JSON.stringify({
-      date: data.date || new Date().toISOString().split('T')[0],
-      proteinG: data.proteinG,
-      carbsG: data.carbsG,
-      fatG: data.fatG,
-      ...(data.notes ? { notes: data.notes } : {}),
-    }),
-  }),
-
-  getLog: (date?: string) =>
-    apiFetch(`/nutrition/log${date ? `?date=${date}` : ''}`),
-};
