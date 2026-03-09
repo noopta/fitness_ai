@@ -87,3 +87,8 @@ waitForPort = 5000
 
 [agent]
 expertMode = true
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "cd frontend-v2 && NODE_ENV=production node dist/index.cjs"]
+build = ["bash", "-c", "cd frontend-v2 && npm install && npm run build"]
