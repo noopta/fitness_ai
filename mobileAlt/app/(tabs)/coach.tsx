@@ -51,18 +51,49 @@ export default function CoachScreen() {
       return;
     }
 
-    // Pro user: fetch coach data
+    // Pro user: fetch coach data + program in parallel
     try {
-      const data = await coachApi.getMessages();
-      // GET /coach/messages doesn't return savedProgram — enrich from user object
-      setCoachData({ ...data, savedProgram: user.savedProgram });
+      const [data, programResult] = await Promise.all([
+        coachApi.getMessages().catch(() => ({})),
+        coachApi.getProgram().catch(() => null),
+      ]);
+
+      let resolvedProgram: any = null;
+
+      if (programResult) {
+        let prog = programResult?.program ?? programResult?.savedProgram ?? programResult;
+        if (typeof prog === 'string') {
+          try { prog = JSON.parse(prog); } catch { prog = null; }
+        }
+        if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
+          resolvedProgram = prog;
+        }
+      }
+
+      if (!resolvedProgram && user.savedProgram) {
+        let parsed = user.savedProgram;
+        if (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+        }
+        if (parsed && typeof parsed === 'object') {
+          resolvedProgram = parsed;
+        }
+      }
+
+      if (!resolvedProgram && data?.savedProgram) {
+        let parsed = data.savedProgram;
+        if (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch { parsed = null; }
+        }
+        if (parsed && typeof parsed === 'object') {
+          resolvedProgram = parsed;
+        }
+      }
+
+      setCoachData({ ...data, savedProgram: resolvedProgram });
 
       const hasOnboarding = user.coachOnboardingDone;
-      const hasProgram = !!(
-        user.savedProgram ||
-        data?.savedProgram ||
-        data?.hasProgram
-      );
+      const hasProgram = !!(resolvedProgram);
 
       if (!hasOnboarding) {
         setStage('onboarding');
@@ -72,7 +103,6 @@ export default function CoachScreen() {
         setStage('dashboard');
       }
     } catch {
-      // Default to onboarding if fetch fails
       setStage('onboarding');
     } finally {
       setLoading(false);
@@ -96,7 +126,19 @@ export default function CoachScreen() {
         coachApi.getMessages(),
         coachApi.getProgram(),
       ]);
-      setCoachData({ ...data, savedProgram: programResult?.program });
+
+      let resolvedProgram: any = null;
+      if (programResult) {
+        let prog = programResult?.program ?? programResult?.savedProgram ?? programResult;
+        if (typeof prog === 'string') {
+          try { prog = JSON.parse(prog); } catch { prog = null; }
+        }
+        if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
+          resolvedProgram = prog;
+        }
+      }
+
+      setCoachData({ ...data, savedProgram: resolvedProgram });
       await refreshUser();
     } catch {
       // Continue
@@ -234,7 +276,12 @@ export default function CoachScreen() {
           <ProgramTab coachData={coachData} />
         )}
         {activeTab === 'Nutrition' && (
-          <NutritionTab coachData={coachData} />
+          <NutritionTab
+            coachData={coachData}
+            coachGoal={user?.coachGoal ?? null}
+            coachBudget={user?.coachBudget ?? null}
+            onRefresh={initCoach}
+          />
         )}
         {activeTab === 'Analytics' && (
           <AnalyticsTab coachData={coachData} />

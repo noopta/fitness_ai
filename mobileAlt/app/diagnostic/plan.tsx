@@ -132,7 +132,8 @@ export default function PlanScreen() {
       // Try cached plan first
       try {
         const cached = await liftCoachApi.getCachedPlan(resolvedId);
-        setPlan(cached);
+        const planData = cached?.plan ?? cached;
+        setPlan(planData);
         return;
       } catch (cacheErr: any) {
         if ((cacheErr as any)?.status !== 404) {
@@ -144,7 +145,8 @@ export default function PlanScreen() {
       setGenerating(true);
       try {
         const generated = await liftCoachApi.generatePlan(resolvedId);
-        setPlan(generated);
+        const genPlan = generated?.plan ?? generated;
+        setPlan(genPlan);
       } catch (genErr: any) {
         if ((genErr as any)?.status === 429) {
           setRateLimited(true);
@@ -181,7 +183,7 @@ export default function PlanScreen() {
 
   // ── New analysis handler ───────────────────────────────────────────────────
   const handleNewAnalysis = useCallback(async () => {
-    await AsyncStorage.removeItem('liftoff_session_id');
+    await AsyncStorage.removeItem('axiom_session_id');
     router.replace('/diagnostic/onboarding');
   }, [router]);
 

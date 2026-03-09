@@ -15,6 +15,9 @@ import { coachApi } from '../../lib/api';
 
 interface NutritionTabProps {
   coachData: any;
+  coachGoal?: string | null;
+  coachBudget?: string | null;
+  onRefresh?: () => Promise<void> | void;
 }
 
 function ProgressBar({ value, color }: { value: number; color: string }) {
@@ -47,7 +50,7 @@ function MacroCard({ label, grams, progressPct, color, target }: MacroCardProps)
   );
 }
 
-export function NutritionTab({ coachData }: NutritionTabProps) {
+export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: NutritionTabProps) {
   const [mealModalVisible, setMealModalVisible] = useState(false);
   const [mealSuggestions, setMealSuggestions] = useState<string[]>([]);
   const [mealLoading, setMealLoading] = useState(false);
@@ -61,17 +64,18 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
         typeof coachData.savedProgram === 'string'
           ? JSON.parse(coachData.savedProgram)
           : coachData.savedProgram;
-      nutritionPlan = prog?.nutritionPlan ?? null;
+      nutritionPlan = prog?.nutritionPlan ?? prog?.nutrition ?? null;
     } catch {
       nutritionPlan = null;
     }
   }
 
-  const calories: number | null = nutritionPlan?.calories ?? null;
-  const protein: number | null = nutritionPlan?.protein_g ?? nutritionPlan?.protein ?? null;
-  const carbs: number | null = nutritionPlan?.carbs_g ?? nutritionPlan?.carbs ?? null;
-  const fat: number | null = nutritionPlan?.fat_g ?? nutritionPlan?.fat ?? null;
-  const fiber: number | null = nutritionPlan?.fiber_g ?? nutritionPlan?.fiber ?? null;
+  const macros = nutritionPlan?.macros ?? nutritionPlan;
+  const calories: number | null = macros?.calories ?? nutritionPlan?.calories ?? null;
+  const protein: number | null = macros?.proteinG ?? macros?.protein_g ?? macros?.protein ?? null;
+  const carbs: number | null = macros?.carbsG ?? macros?.carbs_g ?? macros?.carbs ?? null;
+  const fat: number | null = macros?.fatG ?? macros?.fat_g ?? macros?.fat ?? null;
+  const fiber: number | null = macros?.fiberG ?? macros?.fiber_g ?? macros?.fiber ?? null;
 
   // Progress bar percentages
   const proteinTarget = calories ? (calories * 0.35) / 4 : null;
@@ -87,34 +91,77 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
     setMealLoading(true);
     setMealModalVisible(true);
     try {
-      const result = await coachApi.getMealSuggestions({
+      const requestBody = {
         macros: {
           proteinG: protein ?? 150,
           carbsG: carbs ?? 200,
           fatG: fat ?? 60,
           calories: calories ?? 2000,
         },
-      });
-      const suggestions: string[] = Array.isArray(result)
+        goal: coachGoal || 'strength',
+        numberOfMeals: 5,
+        budget: coachBudget || null,
+      };
+      console.log('[MealSuggestions] request body:', JSON.stringify(requestBody));
+      const result = await coachApi.getMealSuggestions(requestBody);
+      console.log('[MealSuggestions] full response:', JSON.stringify(result));
+      const raw: any[] = Array.isArray(result)
         ? result
-        : result?.suggestions ?? result?.meals ?? [];
+        : result?.meals ?? result?.suggestions ?? result?.mealSuggestions ?? [];
+      console.log('[MealSuggestions] parsed items count:', raw.length);
+      if (raw.length === 0) {
+        setMealSuggestions(['No meal suggestions were returned. Please try again.']);
+        return;
+      }
+      const suggestions: string[] = raw.map((item: any) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') {
+          const parts: string[] = [];
+          if (item.name) parts.push(item.name);
+          if (item.description) parts.push(item.description);
+          if (item.macros) {
+            const m = item.macros;
+            const macroStr = [
+              m.proteinG != null ? `${m.proteinG}g protein` : null,
+              m.carbsG != null ? `${m.carbsG}g carbs` : null,
+              m.fatG != null ? `${m.fatG}g fat` : null,
+              m.calories != null ? `${m.calories} cal` : null,
+            ].filter(Boolean).join(', ');
+            if (macroStr) parts.push(`(${macroStr})`);
+          }
+          if (item.prepMinutes) parts.push(`${item.prepMinutes} min prep`);
+          return parts.join(' — ') || JSON.stringify(item);
+        }
+        return String(item);
+      });
       setMealSuggestions(suggestions);
-    } catch {
-      setMealSuggestions(['Could not load meal suggestions. Please try again.']);
+    } catch (err: any) {
+      console.error('[MealSuggestions] error:', err);
+      setMealSuggestions([err?.message || 'Could not load meal suggestions. Please try again.']);
     } finally {
       setMealLoading(false);
     }
   }
 
+  const [planError, setPlanError] = useState<string | null>(null);
+
   async function handleGeneratePlan() {
     setGeneratingPlan(true);
+    setPlanError(null);
     try {
-      await coachApi.generateNutritionPlan({
-        goal: coachData?.coachGoal ?? 'general',
+      const plan = await coachApi.generateNutritionPlan({
+        goal: coachGoal || 'general',
       });
-      // Ideally parent would refresh coachData; for now show a message
-    } catch {
-      // silent
+      console.log('[NutritionTab] Generated plan:', JSON.stringify(plan).slice(0, 300));
+
+      const existingProgram = coachData?.savedProgram ?? {};
+      const merged = { ...existingProgram, nutritionPlan: plan };
+      await coachApi.updateProgram({ program: merged });
+
+      if (onRefresh) await onRefresh();
+    } catch (err: any) {
+      console.error('[NutritionTab] Generate plan error:', err);
+      setPlanError(err?.message || 'Failed to generate nutrition plan. Please try again.');
     } finally {
       setGeneratingPlan(false);
     }
@@ -142,6 +189,9 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
             >
               Generate Nutrition Plan
             </Button>
+            {planError && (
+              <Text style={styles.planErrorText}>{planError}</Text>
+            )}
           </CardContent>
         </Card>
       </ScrollView>
@@ -227,33 +277,42 @@ export function NutritionTab({ coachData }: NutritionTabProps) {
         onRequestClose={() => setMealModalVisible(false)}
       >
         <Pressable
-          style={styles.modalBackdrop}
+          style={styles.modalOverlay}
           onPress={() => setMealModalVisible(false)}
-        />
-        <View style={styles.modalSheet}>
-          <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>Meal Suggestions</Text>
+        >
+          <View style={styles.modalSpacer} />
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Meal Suggestions</Text>
 
-          {mealLoading ? (
-            <View style={styles.modalLoading}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.modalLoadingText}>Generating suggestions...</Text>
-            </View>
-          ) : (
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              {mealSuggestions.map((meal, i) => (
-                <View key={i} style={styles.mealRow}>
-                  <View style={styles.mealBullet} />
-                  <Text style={styles.mealText}>{meal}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          )}
+            {mealLoading ? (
+              <View style={styles.modalLoading}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={styles.modalLoadingText}>Generating suggestions...</Text>
+              </View>
+            ) : (
+              <ScrollView
+                style={styles.modalScroll}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                {mealSuggestions.map((meal, i) => (
+                  <View key={i} style={styles.mealRow}>
+                    <View style={styles.mealBullet} />
+                    <Text style={styles.mealText}>{meal}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
 
-          <Button fullWidth onPress={() => setMealModalVisible(false)} style={styles.closeBtn}>
-            Close
-          </Button>
-        </View>
+            <Pressable
+              style={styles.closeBtnPill}
+              onPress={() => setMealModalVisible(false)}
+            >
+              <Text style={styles.closeBtnText}>Close</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
       </Modal>
     </ScrollView>
   );
@@ -378,16 +437,26 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: radius.full,
   },
-  modalBackdrop: {
+  planErrorText: {
+    fontSize: fontSize.sm,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginTop: spacing.sm,
+  },
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
+  modalSpacer: {
+    flex: 1,
+  },
   modalSheet: {
     backgroundColor: colors.card,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: spacing.md,
-    maxHeight: '60%',
+    paddingBottom: 34,
+    maxHeight: '70%',
     gap: spacing.md,
   },
   modalHandle: {
@@ -437,7 +506,16 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  closeBtn: {
+  closeBtnPill: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.xl,
+    paddingVertical: 14,
+    alignItems: 'center',
     marginTop: spacing.xs,
+  },
+  closeBtnText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
   },
 });

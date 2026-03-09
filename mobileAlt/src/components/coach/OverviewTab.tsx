@@ -19,12 +19,17 @@ interface OverviewTabProps {
 interface TodayWorkout {
   title?: string;
   name?: string;
+  day?: string;
+  focus?: string;
   exercises?: Array<{
     name?: string;
     exercise?: string;
     sets?: number;
     reps?: number | string;
+    intensity?: string;
+    notes?: string;
   }>;
+  warmup?: string[];
 }
 
 export function OverviewTab({ coachData, onGoToProgram }: OverviewTabProps) {
@@ -36,8 +41,9 @@ export function OverviewTab({ coachData, onGoToProgram }: OverviewTabProps) {
     async function loadToday() {
       try {
         const data = await coachApi.getToday();
-        setTodayWorkout(data);
-      } catch {
+        const session = data?.todaySession ?? data?.session ?? data;
+        setTodayWorkout(session);
+      } catch (err: any) {
         setTodayError('Could not load today\'s workout.');
       } finally {
         setTodayLoading(false);
@@ -46,7 +52,6 @@ export function OverviewTab({ coachData, onGoToProgram }: OverviewTabProps) {
     loadToday();
   }, []);
 
-  // Parse program summary from coachData
   let savedProgram: any = null;
   if (coachData?.savedProgram) {
     try {
@@ -91,11 +96,14 @@ export function OverviewTab({ coachData, onGoToProgram }: OverviewTabProps) {
           ) : (
             <View style={styles.workoutContent}>
               <Text style={styles.workoutTitle}>
-                {todayWorkout.title || todayWorkout.name || 'Today\'s Session'}
+                {todayWorkout.title || todayWorkout.name || todayWorkout.day || 'Today\'s Session'}
               </Text>
-              {todayWorkout.exercises && todayWorkout.exercises.length > 0 ? (
+              {todayWorkout.focus ? (
+                <Text style={styles.workoutFocus}>{todayWorkout.focus}</Text>
+              ) : null}
+              {(todayWorkout.exercises ?? []).length > 0 ? (
                 <View style={styles.exerciseList}>
-                  {todayWorkout.exercises.map((ex, i) => (
+                  {todayWorkout.exercises.map((ex: any, i: number) => (
                     <View key={i} style={styles.exerciseRow}>
                       <Text style={styles.exerciseName}>
                         {ex.name || ex.exercise || `Exercise ${i + 1}`}
@@ -240,6 +248,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.primary,
     fontWeight: fontWeight.semibold,
+  },
+  workoutFocus: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    marginBottom: 4,
   },
   summaryContent: {
     gap: spacing.md,

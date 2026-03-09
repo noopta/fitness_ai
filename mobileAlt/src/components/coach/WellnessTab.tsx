@@ -21,8 +21,10 @@ interface WellnessTabProps {
 interface CheckinEntry {
   id?: string;
   fatigueLevel?: number;
+  stress?: number;
   sleepHours?: number;
-  mood?: string;
+  mood?: number | string;
+  energy?: number;
   hrv?: number;
   notes?: string;
   createdAt?: string;
@@ -37,7 +39,12 @@ const MOODS = [
   { emoji: '😄', value: 'great', label: 'Great' },
 ];
 
-function moodEmoji(mood: string | undefined): string {
+function moodEmoji(mood: number | string | undefined): string {
+  if (mood === undefined || mood === null) return '—';
+  if (typeof mood === 'number') {
+    const idx = Math.max(0, Math.min(mood - 1, MOODS.length - 1));
+    return MOODS[idx]?.emoji ?? '—';
+  }
   const found = MOODS.find((m) => m.value === mood);
   return found ? found.emoji : '—';
 }
@@ -276,12 +283,12 @@ export function WellnessTab({ coachData }: WellnessTabProps) {
                     {formatDate(c.createdAt || c.date)}
                   </Text>
                   <Text style={[styles.checkinCell, styles.colFatigue]}>
-                    {c.fatigueLevel != null ? `${c.fatigueLevel}/10` : '—'}
+                    {c.stress != null ? `${c.stress}/10` : c.fatigueLevel != null ? `${c.fatigueLevel}/10` : '—'}
                   </Text>
                   <Text style={[styles.checkinCell, styles.colSleep]}>
                     {c.sleepHours != null ? `${c.sleepHours}h` : '—'}
                   </Text>
-                  <Text style={[styles.checkinCell, styles.colMood]}>
+                  <Text style={[styles.checkinCell, styles.colMood, styles.moodCellText]}>
                     {moodEmoji(c.mood)}
                   </Text>
                 </View>
@@ -447,5 +454,6 @@ const styles = StyleSheet.create({
   colDate: { flex: 1.3 },
   colFatigue: { flex: 1, textAlign: 'center' },
   colSleep: { flex: 0.9, textAlign: 'center' },
-  colMood: { flex: 0.6, textAlign: 'center', fontSize: 18 },
+  colMood: { flex: 0.6, textAlign: 'center' },
+  moodCellText: { fontSize: 16, lineHeight: 22 },
 });
