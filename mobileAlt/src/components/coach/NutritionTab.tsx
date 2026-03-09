@@ -273,15 +273,15 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
       <Modal
         visible={mealModalVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setMealModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setMealModalVisible(false)}
-          />
-          <View style={styles.modalSheet}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setMealModalVisible(false)}
+        >
+          <View style={styles.modalSpacer} />
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Meal Suggestions</Text>
 
@@ -291,7 +291,11 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
                 <Text style={styles.modalLoadingText}>Generating suggestions...</Text>
               </View>
             ) : (
-              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={styles.modalScroll}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
                 {mealSuggestions.map((meal, i) => (
                   <View key={i} style={styles.mealRow}>
                     <View style={styles.mealBullet} />
@@ -307,8 +311,8 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
             >
               <Text style={styles.closeBtnText}>Close</Text>
             </Pressable>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </ScrollView>
   );
@@ -441,11 +445,10 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalSpacer: {
+    flex: 1,
   },
   modalSheet: {
     backgroundColor: colors.card,
@@ -453,7 +456,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: spacing.md,
     paddingBottom: 34,
-    maxHeight: '65%',
+    maxHeight: '70%',
     gap: spacing.md,
   },
   modalHandle: {
