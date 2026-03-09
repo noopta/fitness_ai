@@ -471,21 +471,22 @@ const styles = StyleSheet.create({
 
   // Rest day
   restDayCard: {
-    borderColor: '#8b5cf620',
+    borderColor: '#8b5cf625',
     backgroundColor: '#8b5cf608',
   },
   restDayContent: {
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.md,
+    paddingTop: spacing.lg,   // Override CardContent's paddingTop:0
+    paddingBottom: spacing.lg,
   },
   restDayIcon: {
-    width: 56, height: 56,
-    borderRadius: 28,
-    backgroundColor: '#8b5cf615',
+    width: 60, height: 60,
+    borderRadius: 30,
+    backgroundColor: '#8b5cf618',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   restDayTitle: {
     fontSize: fontSize.xl,
@@ -548,6 +549,7 @@ const styles = StyleSheet.create({
   },
   workoutCardHeader: {
     gap: spacing.xs,
+    paddingTop: spacing.md,   // Explicit top padding since CardHeader already has padding
     paddingBottom: spacing.sm,
   },
   workoutHeaderTop: {
@@ -658,21 +660,31 @@ const styles = StyleSheet.create({
   scheduleContent: { paddingTop: 0 },
   scheduleScroll: { gap: spacing.xs, paddingVertical: 4 },
   dayCell: {
+    // Rest day default: muted grey
     alignItems: 'center',
-    width: 50,
+    width: 52,
     paddingVertical: spacing.sm,
     paddingHorizontal: 4,
     borderRadius: radius.md,
     gap: 3,
     backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   dayCellToday: {
+    // Today: primary color, regardless of training/rest
     backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   dayCellTraining: {
-    backgroundColor: `${colors.primary}15`,
-    borderWidth: 1,
-    borderColor: `${colors.primary}30`,
+    // Future/past training day: green accent
+    backgroundColor: '#22c55e12',
+    borderColor: '#22c55e30',
+  },
+  dayCellTodayRest: {
+    // Today but rest day: purple
+    backgroundColor: '#8b5cf6',
+    borderColor: '#8b5cf6',
   },
   dayLabel: {
     fontSize: 10,
@@ -690,7 +702,7 @@ const styles = StyleSheet.create({
   trainingDot: {
     width: 6, height: 6,
     borderRadius: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: '#22c55e',
   },
   trainingDotToday: {
     backgroundColor: '#fff',
@@ -698,7 +710,7 @@ const styles = StyleSheet.create({
   restIcon: { marginTop: 1 },
   dayFocus: {
     fontSize: 9,
-    color: colors.primary,
+    color: '#22c55e',
     fontWeight: fontWeight.medium,
     textAlign: 'center',
   },

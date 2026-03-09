@@ -6,7 +6,10 @@ import {
   Modal,
   Pressable,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
+
+const MEAL_SHEET_HEIGHT = Dimensions.get('window').height * 0.75;
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -113,7 +116,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
         ));
       }
     } catch (err: any) {
-      setMealSuggestions([err?.message || 'Could not load meal suggestions. Please try again.']);
+      setMealSuggestions([{ name: err?.message || 'Could not load meal suggestions. Please try again.' }]);
     } finally {
       setMealLoading(false);
       setMealModalVisible(true); // open modal only after results are ready
@@ -465,8 +468,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingBottom: 34,
-    maxHeight: '80%',
-    flex: 0,
+    height: MEAL_SHEET_HEIGHT,
   },
   modalHandle: {
     width: 40,
@@ -497,12 +499,12 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
   },
   modalScroll: {
-    flexShrink: 1,
-    maxHeight: 400,
+    flex: 1,
+    minHeight: 0,
   },
   modalScrollContent: {
     gap: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
   },
   // New meal card styles
   mealCard: {

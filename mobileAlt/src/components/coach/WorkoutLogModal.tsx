@@ -10,7 +10,12 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from 'react-native';
+
+const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { workoutsApi } from '../../lib/api';
@@ -119,9 +124,15 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <Pressable style={styles.overlay} onPress={handleClose}>
-        <View style={styles.spacer} />
-        <Pressable style={styles.sheet} onPress={() => {}}>
+      <KeyboardAvoidingView
+        style={styles.kavWrapper}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Pressable style={styles.overlay} onPress={handleClose}>
+          <View style={styles.spacer} />
+        </Pressable>
+
+        <View style={styles.sheet}>
           <View style={styles.handle} />
 
           {/* Header */}
@@ -132,7 +143,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             <View style={styles.headerTextBlock}>
               <Text style={styles.headerTitle}>Log Workout</Text>
               <Text style={styles.headerSub}>
-                {workoutTitle ? workoutTitle : 'Record today\'s session'}
+                {workoutTitle ? workoutTitle : "Record today's session"}
               </Text>
             </View>
             <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
@@ -272,8 +283,8 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
               )}
             </TouchableOpacity>
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -281,8 +292,12 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  overlay: {
+  kavWrapper: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   spacer: { flex: 1 },
@@ -290,7 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
+    height: SHEET_HEIGHT,
     paddingBottom: 34,
   },
   handle: {
@@ -328,11 +343,11 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
   },
   closeBtn: { padding: spacing.xs },
-  body: { flex: 1 },
+  body: { flex: 1, minHeight: 0 },
   bodyContent: {
     padding: spacing.md,
     gap: spacing.sm,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   row: {
     flexDirection: 'row',
