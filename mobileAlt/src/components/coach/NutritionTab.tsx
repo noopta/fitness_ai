@@ -89,15 +89,20 @@ export function NutritionTab({ coachData, onRefresh }: NutritionTabProps) {
     setMealLoading(true);
     setMealModalVisible(true);
     try {
-      const result = await coachApi.getMealSuggestions({
+      const requestBody = {
         macros: {
           proteinG: protein ?? 150,
           carbsG: carbs ?? 200,
           fatG: fat ?? 60,
           calories: calories ?? 2000,
         },
-      });
-      console.log('[MealSuggestions] raw response:', JSON.stringify(result).slice(0, 500));
+        goal: coachData?.coachGoal || 'strength',
+        numberOfMeals: 5,
+        budget: coachData?.coachBudget ?? null,
+      };
+      console.log('[MealSuggestions] request body:', JSON.stringify(requestBody));
+      const result = await coachApi.getMealSuggestions(requestBody);
+      console.log('[MealSuggestions] full response:', JSON.stringify(result));
       const raw: any[] = Array.isArray(result)
         ? result
         : result?.meals ?? result?.suggestions ?? result?.mealSuggestions ?? [];
