@@ -37,6 +37,7 @@ model User {
   updatedAt          DateTime  @default(now()) @updatedAt
   sessions           Session[]
   nutritionLogs      NutritionLog[]
+  mealEntries        MealEntry[]
   wellnessCheckins   WellnessCheckin[]
   bodyWeightLogs     BodyWeightLog[]
   workoutLogs        WorkoutLog[]
@@ -49,6 +50,22 @@ model NutritionLog {
   proteinG  Float
   carbsG    Float
   fatG      Float
+  calories  Float    @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model MealEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  name      String
+  mealType  String   @default("meal") // breakfast | lunch | dinner | snack | meal
+  calories  Float    @default(0)
+  proteinG  Float    @default(0)
+  carbsG    Float    @default(0)
+  fatG      Float    @default(0)
   notes     String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])

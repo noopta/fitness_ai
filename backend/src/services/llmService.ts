@@ -1088,18 +1088,20 @@ REQUIREMENTS:
 ${dietaryNote ? '- ALL meals MUST strictly comply with the dietary restriction above — no exceptions' : ''}
 ${params.budget ? '- Prioritize cheap proteins (eggs, canned fish, chicken thighs, legumes)' : ''}
 
-OUTPUT FORMAT (JSON only — array, no wrapper):
-[
-  {
-    "name": "Chicken Rice Bowl",
-    "description": "Lean protein with complex carbs for sustained training energy",
-    "mealType": "lunch",
-    "macros": { "proteinG": 42, "carbsG": 55, "fatG": 8, "calories": 456 },
-    "estimatedCostUSD": 4,
-    "prepMinutes": 20,
-    "keyIngredients": ["180g chicken breast", "1 cup jasmine rice", "broccoli", "soy sauce"]
-  }
-]`;
+OUTPUT FORMAT (JSON object with "meals" array):
+{
+  "meals": [
+    {
+      "name": "Chicken Rice Bowl",
+      "description": "Lean protein with complex carbs for sustained training energy",
+      "mealType": "lunch",
+      "macros": { "proteinG": 42, "carbsG": 55, "fatG": 8, "calories": 456 },
+      "estimatedCostUSD": 4,
+      "prepMinutes": 20,
+      "keyIngredients": ["180g chicken breast", "1 cup jasmine rice", "broccoli", "soy sauce"]
+    }
+  ]
+}`;
 
   const ragQuery = `meal planning sports nutrition practical recipes ${params.goal || 'strength'} athlete`;
   const ragContext = await buildRAGContext(ragQuery, 2);

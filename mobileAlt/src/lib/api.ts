@@ -250,6 +250,30 @@ export const coachApi = {
   getStrengthProfile: () => apiFetch('/strength-profile'),
 };
 
+// ─── Nutrition / Meal Logging API ─────────────────────────────────────────────
+
+export const nutritionApi = {
+  // Individual meal entries
+  getMeals: (date?: string) =>
+    apiFetch(`/nutrition/meals${date ? `?date=${date}` : ''}`),
+  logMeal: (data: {
+    date: string;
+    name: string;
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal';
+    calories: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+    notes?: string;
+  }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }),
+  deleteMeal: (id: string) =>
+    apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
+
+  // History / aggregated daily data
+  getHistory: (days?: number) =>
+    apiFetch(`/nutrition/history${days ? `?days=${days}` : ''}`),
+};
+
 // ─── Workouts API ─────────────────────────────────────────────────────────────
 
 export const workoutsApi = {
