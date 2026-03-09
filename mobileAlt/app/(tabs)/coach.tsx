@@ -270,6 +270,7 @@ export default function CoachScreen() {
           <OverviewTab
             coachData={coachData}
             onGoToProgram={() => setActiveTab('Program')}
+            onRefresh={initCoach}
           />
         )}
         {activeTab === 'Program' && (

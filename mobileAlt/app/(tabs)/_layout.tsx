@@ -39,6 +39,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="strength-profile"
+        options={{
+          title: 'Strength',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="trending-up-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="coach"
         options={{
           title: 'Coach',

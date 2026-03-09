@@ -51,7 +51,7 @@ function MacroCard({ label, grams, progressPct, color, target }: MacroCardProps)
 
 export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: NutritionTabProps) {
   const [mealModalVisible, setMealModalVisible] = useState(false);
-  const [mealSuggestions, setMealSuggestions] = useState<string[]>([]);
+  const [mealSuggestions, setMealSuggestions] = useState<any[]>([]);
   const [mealLoading, setMealLoading] = useState(false);
   const [generatingPlan, setGeneratingPlan] = useState(false);
 
@@ -105,30 +105,12 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
         ? result
         : result?.meals ?? result?.suggestions ?? result?.mealSuggestions ?? [];
       if (raw.length === 0) {
-        setMealSuggestions(['No meal suggestions were returned. Please try again.']);
+        setMealSuggestions([{ name: 'No suggestions returned', description: 'Please try again.' }]);
       } else {
-        const suggestions: string[] = raw.map((item: any) => {
-          if (typeof item === 'string') return item;
-          if (item && typeof item === 'object') {
-            const parts: string[] = [];
-            if (item.name) parts.push(item.name);
-            if (item.description) parts.push(item.description);
-            if (item.macros) {
-              const m = item.macros;
-              const macroStr = [
-                m.proteinG != null ? `${m.proteinG}g protein` : null,
-                m.carbsG != null ? `${m.carbsG}g carbs` : null,
-                m.fatG != null ? `${m.fatG}g fat` : null,
-                m.calories != null ? `${m.calories} cal` : null,
-              ].filter(Boolean).join(', ');
-              if (macroStr) parts.push(`(${macroStr})`);
-            }
-            if (item.prepMinutes) parts.push(`${item.prepMinutes} min prep`);
-            return parts.join(' — ') || JSON.stringify(item);
-          }
-          return String(item);
-        });
-        setMealSuggestions(suggestions);
+        // Store objects (or wrap strings) for richer rendering
+        setMealSuggestions(raw.map((item: any) =>
+          typeof item === 'string' ? { name: item } : item
+        ));
       }
     } catch (err: any) {
       setMealSuggestions([err?.message || 'Could not load meal suggestions. Please try again.']);
@@ -279,16 +261,54 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
           <Pressable style={styles.modalSheet} onPress={() => {}}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Meal Suggestions</Text>
+            <Text style={styles.modalSubtitle}>{mealSuggestions.length} meals matched to your macros</Text>
 
             <ScrollView
               style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
               showsVerticalScrollIndicator={false}
               bounces={false}
             >
-              {mealSuggestions.map((meal, i) => (
-                <View key={i} style={styles.mealRow}>
-                  <View style={styles.mealBullet} />
-                  <Text style={styles.mealText}>{meal}</Text>
+              {mealSuggestions.map((meal: any, i: number) => (
+                <View key={i} style={styles.mealCard}>
+                  <View style={styles.mealCardHeader}>
+                    <Text style={styles.mealName}>{meal.name || `Meal ${i + 1}`}</Text>
+                    {meal.mealType ? (
+                      <View style={styles.mealTypeBadge}>
+                        <Text style={styles.mealTypeText}>{meal.mealType}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  {meal.description ? (
+                    <Text style={styles.mealDesc}>{meal.description}</Text>
+                  ) : null}
+                  {meal.macros ? (
+                    <View style={styles.mealMacroRow}>
+                      {meal.macros.proteinG != null && (
+                        <View style={[styles.macroPill, { backgroundColor: '#3b82f620' }]}>
+                          <Text style={[styles.macroPillText, { color: '#3b82f6' }]}>{meal.macros.proteinG}g P</Text>
+                        </View>
+                      )}
+                      {meal.macros.carbsG != null && (
+                        <View style={[styles.macroPill, { backgroundColor: '#f59e0b20' }]}>
+                          <Text style={[styles.macroPillText, { color: '#f59e0b' }]}>{meal.macros.carbsG}g C</Text>
+                        </View>
+                      )}
+                      {meal.macros.fatG != null && (
+                        <View style={[styles.macroPill, { backgroundColor: '#ec489920' }]}>
+                          <Text style={[styles.macroPillText, { color: '#ec4899' }]}>{meal.macros.fatG}g F</Text>
+                        </View>
+                      )}
+                      {meal.macros.calories != null && (
+                        <View style={[styles.macroPill, { backgroundColor: '#6366f120' }]}>
+                          <Text style={[styles.macroPillText, { color: '#6366f1' }]}>{meal.macros.calories} cal</Text>
+                        </View>
+                      )}
+                    </View>
+                  ) : null}
+                  {meal.prepMinutes != null && (
+                    <Text style={styles.mealPrepTime}>{meal.prepMinutes} min prep</Text>
+                  )}
                 </View>
               ))}
             </ScrollView>
@@ -442,10 +462,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: spacing.md,
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.md,
     paddingBottom: 34,
-    maxHeight: '70%',
-    gap: spacing.md,
+    maxHeight: '80%',
+    flex: 0,
   },
   modalHandle: {
     width: 40,
@@ -453,12 +474,18 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: colors.border,
     alignSelf: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
   modalTitle: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
     color: colors.foreground,
+  },
+  modalSubtitle: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    marginTop: 2,
+    marginBottom: spacing.sm,
   },
   modalLoading: {
     alignItems: 'center',
@@ -470,36 +497,73 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
   },
   modalScroll: {
-    flex: 1,
+    flexShrink: 1,
+    maxHeight: 400,
   },
-  mealRow: {
+  modalScrollContent: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  // New meal card styles
+  mealCard: {
+    backgroundColor: colors.muted,
+    borderRadius: radius.lg,
+    padding: spacing.sm,
+    gap: 6,
+  },
+  mealCardHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    justifyContent: 'space-between',
+    gap: spacing.xs,
   },
-  mealBullet: {
-    width: 6,
-    height: 6,
-    borderRadius: radius.full,
-    backgroundColor: colors.primary,
-    marginTop: 6,
-    flexShrink: 0,
-  },
-  mealText: {
-    fontSize: fontSize.sm,
-    color: colors.foreground,
+  mealName: {
     flex: 1,
-    lineHeight: 20,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  mealTypeBadge: {
+    backgroundColor: `${colors.primary}20`,
+    borderRadius: radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  mealTypeText: {
+    fontSize: 10,
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
+    textTransform: 'capitalize',
+  },
+  mealDesc: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    lineHeight: 17,
+  },
+  mealMacroRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+  },
+  macroPill: {
+    borderRadius: radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  macroPillText: {
+    fontSize: 10,
+    fontWeight: fontWeight.semibold,
+  },
+  mealPrepTime: {
+    fontSize: 10,
+    color: colors.mutedForeground,
   },
   closeBtnPill: {
     backgroundColor: colors.foreground,
     borderRadius: radius.xl,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
   closeBtnText: {
     fontSize: fontSize.base,

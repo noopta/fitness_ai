@@ -245,6 +245,31 @@ export const coachApi = {
   // Payments
   getPaymentsStatus: () => apiFetch('/payments/status'),
   getPaymentsPortal: () => apiFetch('/payments/portal', { method: 'POST' }),
+
+  // Strength profile
+  getStrengthProfile: () => apiFetch('/strength-profile'),
+};
+
+// ─── Workouts API ─────────────────────────────────────────────────────────────
+
+export const workoutsApi = {
+  getWorkouts: () => apiFetch('/workouts'),
+  getWorkoutByDate: (date: string) => apiFetch(`/workouts/${date}`),
+  logWorkout: (data: {
+    date: string;
+    title?: string;
+    exercises: Array<{
+      name: string;
+      sets: number;
+      reps: string;
+      weightKg?: number | null;
+      rpe?: number | null;
+      notes?: string | null;
+    }>;
+    notes?: string;
+    duration?: number;
+  }) => apiFetch('/workouts', { method: 'POST', body: JSON.stringify(data) }),
+  deleteWorkout: (id: string) => apiFetch(`/workouts/${id}`, { method: 'DELETE' }),
 };
 
 // ─── Nutrition Log API ────────────────────────────────────────────────────────
