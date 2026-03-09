@@ -242,6 +242,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         coachOnboardingDone: true,
         coachProfile: true,
         savedProgram: true,
+        programStartDate: true,
       }
     });
     if (!user) {

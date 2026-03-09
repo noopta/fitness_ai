@@ -55,7 +55,7 @@ function deriveStage(user: any): CoachStage {
 }
 
 export default function CoachPage() {
-  const { user, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [coachData, setCoachData] = useState<CoachData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -69,13 +69,16 @@ export default function CoachPage() {
   const stage: CoachStage = stageOverride ?? deriveStage(user);
 
   useEffect(() => {
+    // Wait for auth to finish before deciding whether to fetch
+    if (authLoading) return;
     if (!isPro) { setLoading(false); return; }
+    setLoading(true);
     fetch(`${API_BASE}/coach/messages`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => setCoachData(data))
       .catch(() => toast.error('Failed to load Anakin'))
       .finally(() => setLoading(false));
-  }, [isPro]);
+  }, [isPro, authLoading]);
 
   async function handleOnboardingComplete() {
     await refreshUser();

@@ -18,6 +18,7 @@ export interface AuthUser {
   coachOnboardingDone?: boolean;
   coachProfile?: string | null; // JSON blob of full onboarding answers
   savedProgram?: string | null; // Saved AI-generated training program JSON
+  programStartDate?: string | null;
 }
 
 interface AuthContextType {
