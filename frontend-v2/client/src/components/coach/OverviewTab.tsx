@@ -11,6 +11,8 @@ import { EfficiencyGauge } from '@/components/EfficiencyGauge';
 import { StrengthRadar } from '@/components/StrengthRadar';
 import { LifeHappenedModal } from '@/components/coach/LifeHappenedModal';
 import { CheckInCard } from '@/components/coach/CheckInCard';
+import { FullScheduleModal } from '@/components/coach/FullScheduleModal';
+import { ExerciseDetailModal, type ExerciseDetail } from '@/components/coach/ExerciseDetailModal';
 import { toast } from 'sonner';
 import type { DiagnosticSignalsSubset } from '@/lib/api';
 
@@ -102,7 +104,11 @@ function truncate(str: string, len: number) {
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 
-function WorkoutDayModal({ day, onClose }: { day: WeekDay; onClose: () => void }) {
+function WorkoutDayModal({ day, onClose, onExerciseClick }: {
+  day: WeekDay;
+  onClose: () => void;
+  onExerciseClick: (ex: ExerciseDetail) => void;
+}) {
   const session = day.session;
   return (
     <AnimatePresence>
@@ -138,13 +144,18 @@ function WorkoutDayModal({ day, onClose }: { day: WeekDay; onClose: () => void }
 
           {session?.exercises && session.exercises.length > 0 ? (
             <div className="space-y-2">
+              <p className="text-[10px] text-muted-foreground mb-1">Tap an exercise for details & video</p>
               {session.exercises.map((ex, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-2.5">
+                <button
+                  key={i}
+                  onClick={() => onExerciseClick(ex)}
+                  className="w-full flex items-center justify-between rounded-xl bg-muted/50 hover:bg-muted px-4 py-2.5 transition-colors text-left"
+                >
                   <span className="text-sm font-medium">{ex.exercise}</span>
                   <span className="text-xs text-muted-foreground shrink-0 ml-3">
                     {ex.sets}×{ex.reps} · {ex.intensity}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           ) : (
@@ -224,6 +235,8 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [showLifeHappened, setShowLifeHappened] = useState(false);
+  const [showFullSchedule, setShowFullSchedule] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseDetail | null>(null);
 
   const latest = sessions[0];
   const latestPlan = latest?.plan;
@@ -380,12 +393,16 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
           ) : (
             <>
               {(session.exercises ?? []).slice(0, 5).map((ex, i) => (
-                <div key={i} className="flex items-center justify-between bg-zinc-800 rounded-xl px-4 py-2.5">
+                <button
+                  key={i}
+                  onClick={() => setSelectedExercise(ex)}
+                  className="w-full flex items-center justify-between bg-zinc-800 hover:bg-zinc-700 rounded-xl px-4 py-2.5 transition-colors text-left"
+                >
                   <span className="text-sm font-medium">{ex.exercise}</span>
                   <span className="text-xs text-zinc-400 shrink-0 ml-3">
                     {ex.sets}×{ex.reps} · {ex.intensity}
                   </span>
-                </div>
+                </button>
               ))}
               {(session.exercises?.length ?? 0) > 5 && (
                 <p className="text-xs text-zinc-500 text-center">+{(session.exercises?.length ?? 0) - 5} more exercises</p>
@@ -420,7 +437,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
   // ── Schedule card ────────────────────────────────────────────────────────
   function renderScheduleCard() {
-    const days = scheduleData?.weekDays?.slice(0, 5) ?? [];
+    const days = scheduleData?.weekDays ?? [];
     const phaseName = scheduleData?.phaseName || todayData?.phaseName || null;
     const weekNumber = scheduleData?.weekNumber || todayData?.weekNumber || null;
 
@@ -441,26 +458,26 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
         {/* Day tiles */}
         {days.length > 0 ? (
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-7 gap-1">
             {days.map((day, i) => (
               <button
                 key={i}
-                onClick={() => day.session || !day.isTrainingDay ? setSelectedDay(day) : undefined}
+                onClick={() => setSelectedDay(day)}
                 className={[
-                  'rounded-xl px-1 py-2.5 flex flex-col items-center gap-1 text-center transition-all',
+                  'rounded-xl px-0.5 py-2 flex flex-col items-center gap-1 text-center transition-all',
                   day.isToday
                     ? 'bg-zinc-900 text-white'
                     : 'bg-muted/50 hover:bg-muted text-foreground',
-                  (day.isTrainingDay || !day.isTrainingDay) ? 'cursor-pointer' : '',
+                  'cursor-pointer',
                 ].join(' ')}
               >
-                <span className={`text-[10px] font-semibold ${day.isToday ? 'text-zinc-400' : 'text-muted-foreground'}`}>
+                <span className={`text-[9px] font-semibold ${day.isToday ? 'text-zinc-400' : 'text-muted-foreground'}`}>
                   {day.dayLabel}
                 </span>
-                <span className="text-xl font-bold leading-none">{day.dateNumber}</span>
+                <span className="text-base font-bold leading-none">{day.dateNumber}</span>
                 <span
                   className={[
-                    'text-[9px] font-bold uppercase rounded-full px-1.5 py-0.5 mt-0.5',
+                    'text-[8px] font-bold uppercase rounded-full px-1 py-0.5 mt-0.5',
                     day.isTrainingDay
                       ? day.isToday ? 'bg-green-500/30 text-green-300' : 'bg-green-500/15 text-green-600 dark:text-green-400'
                       : day.isToday ? 'bg-zinc-700 text-zinc-400' : 'bg-muted text-muted-foreground',
@@ -485,7 +502,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
         )}
 
         <button
-          onClick={() => onTabChange('program')}
+          onClick={() => setShowFullSchedule(true)}
           className="w-full flex items-center justify-center gap-1.5 text-sm text-foreground/80 border rounded-xl py-2.5 hover:bg-muted/50 transition-colors mt-auto"
         >
           <Calendar className="h-4 w-4" />
@@ -743,7 +760,21 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
       {/* Workout detail modal */}
       {selectedDay && (
-        <WorkoutDayModal day={selectedDay} onClose={() => setSelectedDay(null)} />
+        <WorkoutDayModal
+          day={selectedDay}
+          onClose={() => setSelectedDay(null)}
+          onExerciseClick={(ex) => { setSelectedDay(null); setSelectedExercise(ex); }}
+        />
+      )}
+
+      {/* Exercise detail + video modal */}
+      {selectedExercise && (
+        <ExerciseDetailModal exercise={selectedExercise} onClose={() => setSelectedExercise(null)} />
+      )}
+
+      {/* Full schedule / calendar modal */}
+      {showFullSchedule && (
+        <FullScheduleModal onClose={() => setShowFullSchedule(false)} />
       )}
 
       {/* Life Happened modal */}

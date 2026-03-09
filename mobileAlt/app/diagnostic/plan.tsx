@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,12 +32,15 @@ import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constan
 
 interface AccessoryItem {
   name: string;
+  exercise_id?: string;
   priority: number;
   category: string;
   impact: string;
   why: string;
   sets: string;
   reps: string;
+  videoUrl?: string;
+  videoTitle?: string;
 }
 
 interface PrimaryLift {
@@ -78,6 +82,97 @@ interface Plan {
   diagnosis: DiagnosisEntry[];
   bench_day_plan: BenchDayPlan;
   diagnosticSignals: DiagnosticSignals;
+}
+
+// ─── Normalization ────────────────────────────────────────────────────────────
+
+/**
+ * Normalize the raw plan JSON from the backend (snake_case) into the shape
+ * that our UI components expect (camelCase for top-level keys, flat index values).
+ */
+function normalizePlan(raw: any): Plan {
+  // Resolve diagnostic signals from either camelCase or snake_case key
+  const ds = raw.diagnostic_signals ?? raw.diagnosticSignals ?? {};
+  // Indices may be nested ({ shoulder_index: { value, confidence } }) or already flat
+  const indices = ds.indices ?? {};
+
+  function flatIndex(key: string): number | undefined {
+    if (indices[key] !== undefined) {
+      return typeof indices[key] === 'object' ? indices[key]?.value : indices[key];
+    }
+    return typeof ds[key] === 'object' ? ds[key]?.value : ds[key];
+  }
+
+  // efficiency_score may be an object { score, explanation } or a plain number
+  const rawEff = ds.efficiency_score;
+  const efficiencyScore: number | undefined =
+    rawEff === undefined
+      ? undefined
+      : typeof rawEff === 'object'
+      ? rawEff?.score
+      : rawEff;
+
+  // phase_scores: [{ phase_id, points }] → [{ label, value }]
+  const rawPhases: any[] = ds.phase_scores ?? [];
+  const phaseScores = rawPhases.map((p: any) => ({
+    label: p.phase_id ?? p.label ?? '',
+    value: p.points ?? p.value ?? 0,
+  }));
+
+  // hypothesis_scores: [{ key, label, score }] → [{ name, score }]
+  const rawHyp: any[] = ds.hypothesis_scores ?? ds.hypotheses ?? [];
+  const hypotheses = rawHyp.map((h: any) => ({
+    name: h.label ?? h.name ?? h.key ?? '',
+    score: h.score ?? 0,
+  }));
+
+  const normalizedSignals: DiagnosticSignals = {
+    quad_index: flatIndex('quad_index'),
+    posterior_index: flatIndex('posterior_index'),
+    back_tension_index: flatIndex('back_tension_index'),
+    triceps_index: flatIndex('triceps_index'),
+    shoulder_index: flatIndex('shoulder_index'),
+    primary_phase: ds.primary_phase,
+    phase_confidence: ds.primary_phase_confidence ?? ds.phase_confidence,
+    efficiency_score: efficiencyScore,
+    phase_scores: phaseScores.length > 0 ? phaseScores : undefined,
+    hypotheses: hypotheses.length > 0 ? hypotheses : undefined,
+    e1RMs: ds.e1RMs ?? ds.e1rms,
+  };
+
+  // Normalize accessories: exercise_name → name
+  const rawAccessories: any[] = raw.bench_day_plan?.accessories ?? [];
+  const accessories: AccessoryItem[] = rawAccessories.map((a: any) => ({
+    ...a,
+    name: a.exercise_name ?? a.name ?? '',
+    exercise_id: a.exercise_id,
+  }));
+
+  // Normalize diagnosis: may be array or object
+  let diagnosis: DiagnosisEntry[] = [];
+  if (Array.isArray(raw.diagnosis)) {
+    diagnosis = raw.diagnosis.map((d: any) => ({
+      limiterName: d.limiterName ?? d.limiter_name ?? d.name ?? '',
+      confidence: d.confidence ?? 0,
+      evidence: d.evidence ?? [],
+    }));
+  } else if (raw.diagnosis && typeof raw.diagnosis === 'object') {
+    diagnosis = [{
+      limiterName: raw.diagnosis.limiterName ?? raw.diagnosis.limiter_name ?? raw.diagnosis.name ?? '',
+      confidence: raw.diagnosis.confidence ?? 0,
+      evidence: raw.diagnosis.evidence ?? [],
+    }];
+  }
+
+  return {
+    ...raw,
+    diagnosis,
+    diagnosticSignals: normalizedSignals,
+    bench_day_plan: {
+      ...raw.bench_day_plan,
+      accessories,
+    },
+  };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -129,33 +224,58 @@ export default function PlanScreen() {
 
       setSessionId(resolvedId);
 
+      let rawPlan: any = null;
+
       // Try cached plan first
       try {
         const cached = await liftCoachApi.getCachedPlan(resolvedId);
-        const planData = cached?.plan ?? cached;
-        setPlan(planData);
-        return;
+        rawPlan = cached?.plan ?? cached;
       } catch (cacheErr: any) {
         if ((cacheErr as any)?.status !== 404) {
           // Non-404 errors on cached endpoint fall through to generate
         }
       }
 
-      // Fall back to generating
-      setGenerating(true);
-      try {
-        const generated = await liftCoachApi.generatePlan(resolvedId);
-        const genPlan = generated?.plan ?? generated;
-        setPlan(genPlan);
-      } catch (genErr: any) {
-        if ((genErr as any)?.status === 429) {
-          setRateLimited(true);
-        } else {
-          setError((genErr as Error).message || 'Failed to generate plan');
+      if (!rawPlan) {
+        // Fall back to generating
+        setGenerating(true);
+        try {
+          const generated = await liftCoachApi.generatePlan(resolvedId);
+          rawPlan = generated?.plan ?? generated;
+        } catch (genErr: any) {
+          if ((genErr as any)?.status === 429) {
+            setRateLimited(true);
+          } else {
+            setError((genErr as Error).message || 'Failed to generate plan');
+          }
+          return;
+        } finally {
+          setGenerating(false);
         }
-      } finally {
-        setGenerating(false);
       }
+
+      const normalized = normalizePlan(rawPlan);
+
+      // Fetch videos for accessories that have exercise_id (fire-and-forget per accessory)
+      const accessories = normalized.bench_day_plan?.accessories ?? [];
+      const withVideos = await Promise.all(
+        accessories.map(async (acc: AccessoryItem) => {
+          if (!acc.exercise_id) return acc;
+          try {
+            const vid = await liftCoachApi.getExerciseVideo(acc.exercise_id);
+            return {
+              ...acc,
+              videoUrl: vid?.videoUrl ?? vid?.url ?? vid?.link ?? undefined,
+              videoTitle: vid?.videoTitle ?? vid?.title ?? undefined,
+            };
+          } catch {
+            return acc;
+          }
+        }),
+      );
+      normalized.bench_day_plan = { ...normalized.bench_day_plan, accessories: withVideos };
+
+      setPlan(normalized);
     } catch (err: any) {
       setError((err as Error).message || 'Something went wrong');
     } finally {
@@ -425,6 +545,18 @@ export default function PlanScreen() {
 
                   {acc.why ? (
                     <Text style={styles.accessoryWhy}>Why: {acc.why}</Text>
+                  ) : null}
+
+                  {acc.videoUrl ? (
+                    <TouchableOpacity
+                      style={styles.videoLink}
+                      onPress={() => Linking.openURL(acc.videoUrl!)}
+                    >
+                      <Ionicons name="play-circle-outline" size={16} color={colors.primary} />
+                      <Text style={styles.videoLinkText}>
+                        {acc.videoTitle ? acc.videoTitle : 'Watch Demo Video'}
+                      </Text>
+                    </TouchableOpacity>
                   ) : null}
                 </CardContent>
               </Card>
@@ -714,6 +846,18 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     fontStyle: 'italic',
     lineHeight: 19,
+  },
+  videoLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  videoLinkText: {
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    fontWeight: fontWeight.medium,
+    flexShrink: 1,
   },
 
   // ── G) Progression ────────────────────────────────────────────────────────

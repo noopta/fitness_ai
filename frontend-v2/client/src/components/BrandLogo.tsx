@@ -6,7 +6,7 @@ interface BrandLogoProps {
 export function BrandLogo({ className = "", height = 36 }: BrandLogoProps) {
   return (
     <img
-      src="/axiom-logo.png"
+      src="/axiom-logo-light-transparent.png"
       alt="Axiom"
       height={height}
       className={className}

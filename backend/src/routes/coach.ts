@@ -9,6 +9,7 @@ import {
   generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal,
 } from '../services/llmService.js';
+import { getExerciseVideo } from '../services/youtubeService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -388,10 +389,13 @@ router.get('/coach/program', requireAuth, async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { savedProgram: true },
+      select: { savedProgram: true, programStartDate: true },
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    const result = { program: user.savedProgram ? JSON.parse(user.savedProgram) : null };
+    const result = {
+      program: user.savedProgram ? JSON.parse(user.savedProgram) : null,
+      programStartDate: user.programStartDate ? user.programStartDate.toISOString() : null,
+    };
     cacheSet(cacheKey, result); // no expiry — only cleared on save
     res.json(result);
   } catch (err) {
@@ -724,20 +728,19 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
     const trainingDays = currentPhase?.trainingDays || [];
     const totalDays = trainingDays.length;
 
-    // Start of current ISO week (Monday)
+    // Start of current week (Sunday)
     const today = new Date();
     const dow = today.getDay(); // 0=Sun
-    const mondayOffset = dow === 0 ? -6 : 1 - dow;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
-    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - dow);
+    sunday.setHours(0, 0, 0, 0);
 
-    const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const weekDays = [];
 
     for (let i = 0; i < 7; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + i);
 
       const daysForDate = Math.floor(
         (date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
@@ -760,6 +763,22 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Schedule endpoint error:', err);
     res.status(500).json({ error: 'Failed to load schedule' });
+  }
+});
+
+// GET /api/coach/exercise-video?name=... - Fetch YouTube tutorial for a free-form exercise name
+router.get('/coach/exercise-video', requireAuth, async (req, res) => {
+  try {
+    const name = (req.query.name as string || '').trim();
+    if (!name) return res.status(400).json({ error: 'name query param required' });
+    // Use a slug as cache key so the same exercise always hits cache
+    const cacheKey = name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    const video = await getExerciseVideo(cacheKey, name);
+    if (!video) return res.status(404).json({ error: 'No video found' });
+    res.json(video);
+  } catch (err) {
+    console.error('Coach exercise-video error:', err);
+    res.status(500).json({ error: 'Failed to fetch video' });
   }
 });
 
@@ -902,6 +921,130 @@ router.get('/coach/body-weight', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Body weight fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch body weight logs' });
+  }
+});
+
+// GET /api/strength-profile — aggregate diagnostic + workout data for strength profile page
+router.get('/strength-profile', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+
+    // Fetch sessions with plans (last 20)
+    const sessions = await prisma.session.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    });
+
+    // Fetch workout logs (last 90 days)
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split('T')[0];
+    const workoutLogs = await prisma.workoutLog.findMany({
+      where: { userId, date: { gte: ninetyDaysAgoStr } },
+      orderBy: { date: 'asc' },
+    });
+
+    // Fetch body weight logs (last 90 days)
+    const weightLogs = await prisma.bodyWeightLog.findMany({
+      where: { userId, date: { gte: ninetyDaysAgoStr } },
+      orderBy: { date: 'asc' },
+    });
+
+    // Build session history with key stats
+    const sessionHistory = sessions.map(s => {
+      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      const signals = plan?.diagnostic_signals;
+      return {
+        id: s.id,
+        date: s.createdAt.toISOString().split('T')[0],
+        selectedLift: s.selectedLift,
+        primaryLimiter: plan?.diagnosis?.[0]?.limiterName || null,
+        efficiencyScore: signals?.efficiency_score?.score ?? null,
+        indices: signals?.indices || null,
+        hypothesisScores: signals?.hypothesis_scores || [],
+      };
+    });
+
+    // Latest diagnostic signals (for indices / radar)
+    const latestWithSignals = sessionHistory.find(s => s.indices);
+
+    // Top limiters by frequency
+    const limiterCounts: Record<string, number> = {};
+    for (const s of sessionHistory) {
+      if (s.primaryLimiter) {
+        limiterCounts[s.primaryLimiter] = (limiterCounts[s.primaryLimiter] || 0) + 1;
+      }
+    }
+    const topLimiters = Object.entries(limiterCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    // Efficiency score trend (for line chart)
+    const efficiencyTrend = sessionHistory
+      .filter(s => s.efficiencyScore !== null)
+      .map(s => ({ date: s.date, score: s.efficiencyScore, lift: s.selectedLift }))
+      .reverse();
+
+    // Exercise progression from workout logs (group by exercise name, track max weight over time)
+    const parsedLogs = workoutLogs.map(l => ({ ...l, exercises: JSON.parse(l.exercises) as any[] }));
+    const exerciseProgression: Record<string, Array<{ date: string; maxWeightKg: number; sets: number; reps: string }>> = {};
+    for (const log of parsedLogs) {
+      for (const ex of log.exercises) {
+        if (ex.weightKg == null) continue;
+        const key = ex.name.toLowerCase().trim();
+        if (!exerciseProgression[key]) exerciseProgression[key] = [];
+        const existing = exerciseProgression[key].find(e => e.date === log.date);
+        if (existing) {
+          existing.maxWeightKg = Math.max(existing.maxWeightKg, ex.weightKg);
+        } else {
+          exerciseProgression[key].push({ date: log.date, maxWeightKg: ex.weightKg, sets: ex.sets, reps: ex.reps });
+        }
+      }
+    }
+
+    // Only include exercises with at least 2 data points
+    const progressionData = Object.entries(exerciseProgression)
+      .filter(([, data]) => data.length >= 2)
+      .map(([name, data]) => ({
+        name: name.replace(/\b\w/g, c => c.toUpperCase()),
+        data: data.sort((a, b) => a.date.localeCompare(b.date)),
+      }))
+      .slice(0, 8); // Top 8 exercises
+
+    // Total workout volume per week (for bar chart)
+    const weeklyVolume: Record<string, { totalSets: number; totalExercises: number }> = {};
+    for (const log of parsedLogs) {
+      const weekStart = new Date(log.date + 'T00:00:00');
+      const dow = weekStart.getDay();
+      weekStart.setDate(weekStart.getDate() - dow);
+      const weekKey = weekStart.toISOString().split('T')[0];
+      if (!weeklyVolume[weekKey]) weeklyVolume[weekKey] = { totalSets: 0, totalExercises: 0 };
+      for (const ex of log.exercises) {
+        weeklyVolume[weekKey].totalSets += ex.sets || 0;
+        weeklyVolume[weekKey].totalExercises++;
+      }
+    }
+    const weeklyVolumeData = Object.entries(weeklyVolume)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([week, v]) => ({ week, ...v }));
+
+    res.json({
+      latestIndices: latestWithSignals?.indices || null,
+      efficiencyTrend,
+      topLimiters,
+      sessionHistory: sessionHistory.slice(0, 10),
+      progressionData,
+      weeklyVolumeData,
+      weightLogs: weightLogs.map(w => ({ date: w.date, weightLbs: w.weightLbs })),
+      totalSessions: sessions.length,
+      totalWorkouts: workoutLogs.length,
+    });
+  } catch (err) {
+    console.error('Strength profile error:', err);
+    res.status(500).json({ error: 'Failed to load strength profile' });
   }
 });
 

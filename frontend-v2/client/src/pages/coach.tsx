@@ -41,11 +41,11 @@ interface CoachData {
 type CoachStage = 'onboarding' | 'program_setup' | 'program_walkthrough' | 'dashboard';
 
 const TABS = [
-  { value: 'overview', label: 'Overview', icon: Sparkles },
-  { value: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { value: 'nutrition', label: 'Nutrition', icon: Apple },
-  { value: 'program', label: 'Program', icon: Dumbbell },
-  { value: 'chat', label: 'Coach Chat', icon: MessageCircle },
+  { value: 'overview', label: 'Overview', mobileLabel: 'Home', icon: Sparkles },
+  { value: 'analytics', label: 'Analytics', mobileLabel: 'Stats', icon: BarChart3 },
+  { value: 'nutrition', label: 'Nutrition', mobileLabel: 'Food', icon: Apple },
+  { value: 'program', label: 'Program', mobileLabel: 'Plan', icon: Dumbbell },
+  { value: 'chat', label: 'Coach Chat', mobileLabel: 'Chat', icon: MessageCircle },
 ];
 
 function deriveStage(user: any): CoachStage {
@@ -219,24 +219,26 @@ export default function CoachPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
             {/* Tab bar */}
             <div className="border-b bg-background/80 backdrop-blur sticky top-[57px] z-30">
-              <div className="container max-w-7xl mx-auto px-4">
-                <div className="flex items-center">
-                  <TabsList className="h-auto bg-transparent rounded-none p-0 gap-0 flex-1 justify-start overflow-x-auto">
+              <div className="container max-w-7xl mx-auto px-2 sm:px-4">
+                <div className="flex items-center gap-0">
+                  <TabsList className="h-auto bg-transparent rounded-none p-0 gap-0 flex-1 justify-start">
                     {TABS.map(tab => {
                       const Icon = tab.icon;
                       return (
                         <TabsTrigger
                           key={tab.value}
                           value={tab.value}
-                          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary px-4 py-3 text-xs font-medium flex items-center gap-1.5 shrink-0"
+                          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary px-2.5 sm:px-4 py-3 text-xs font-medium flex items-center gap-1 sm:gap-1.5 shrink-0"
                         >
-                          <Icon className="h-3.5 w-3.5" />
-                          {tab.label}
+                          <Icon className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                          <span className="hidden sm:inline">{tab.label}</span>
+                          <span className="sm:hidden text-[10px]">{tab.mobileLabel}</span>
                         </TabsTrigger>
                       );
                     })}
                   </TabsList>
-                  <div className="flex items-center gap-1 shrink-0 pl-2 border-l ml-2">
+                  {/* Secondary actions — hidden on mobile to avoid overflow */}
+                  <div className="hidden sm:flex items-center gap-1 shrink-0 pl-2 border-l ml-2">
                     <Button
                       variant="ghost"
                       size="sm"

@@ -39,6 +39,7 @@ model User {
   nutritionLogs      NutritionLog[]
   wellnessCheckins   WellnessCheckin[]
   bodyWeightLogs     BodyWeightLog[]
+  workoutLogs        WorkoutLog[]
 }
 
 model NutritionLog {
@@ -126,6 +127,19 @@ model GeneratedPlan {
   planText  String
   createdAt DateTime @default(now())
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model WorkoutLog {
+  id         String   @id @default(uuid())
+  userId     String
+  date       String   // YYYY-MM-DD
+  title      String?  // e.g. "Push Day", "Leg Day"
+  exercises  String   // JSON array of WorkoutExercise
+  notes      String?
+  duration   Int?     // minutes
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
 }
 
 model KnowledgeChunk {

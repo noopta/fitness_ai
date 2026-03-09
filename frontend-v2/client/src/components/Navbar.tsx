@@ -66,6 +66,12 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
         <Link href="/history" onClick={closeMobile}>My Analyses</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/workouts" onClick={closeMobile}>Workouts</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/strength-profile" onClick={closeMobile}>Strength Profile</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/coach" onClick={closeMobile}>AI Coach</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
@@ -124,6 +130,12 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/history">My Analyses</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                <Link href="/workouts">Workouts</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                <Link href="/strength-profile">Strength Profile</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/coach">AI Coach</Link>

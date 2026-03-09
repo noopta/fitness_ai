@@ -38,23 +38,38 @@ export default function AnalysisPage() {
       .finally(() => setLoading(false));
   }, [sessionId]);
 
+  const navbarSlot = (
+    <Button size="sm" asChild>
+      <Link href="/register">
+        Get Your Own Analysis
+        <ArrowRight className="ml-2 h-4 w-4" />
+      </Link>
+    </Button>
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
+        <Navbar variant="full" rightSlot={navbarSlot} />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
       </div>
     );
   }
 
   if (notFound || !plan) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <Shield className="h-12 w-12 text-muted-foreground" />
-        <h2 className="text-xl font-semibold">Analysis Not Found</h2>
-        <p className="text-muted-foreground text-sm max-w-sm">This analysis is either private or no longer available.</p>
-        <Button asChild>
-          <Link href="/register">Create Your Own Analysis</Link>
-        </Button>
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
+        <Navbar variant="full" rightSlot={navbarSlot} />
+        <div className="flex flex-col items-center justify-center gap-4 py-32 p-6 text-center">
+          <Shield className="h-12 w-12 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Analysis Not Found</h2>
+          <p className="text-muted-foreground text-sm max-w-sm">This analysis is either private or no longer available.</p>
+          <Button asChild>
+            <Link href="/register">Create Your Own Analysis</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -65,14 +80,7 @@ export default function AnalysisPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
-      <Navbar variant="full" rightSlot={
-        <Button size="sm" asChild>
-          <Link href="/register">
-            Get Your Own Analysis
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      } />
+      <Navbar variant="full" rightSlot={navbarSlot} />
 
       <main className="mx-auto max-w-4xl px-4 py-10">
         <motion.div

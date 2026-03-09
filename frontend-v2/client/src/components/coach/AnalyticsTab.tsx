@@ -159,7 +159,7 @@ export function AnalyticsTab() {
                     <BarChart data={limiterData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 9 }} width={90} />
                       <ChartTooltip
                         contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
                         formatter={(val: any) => [val, 'Sessions']}
@@ -211,7 +211,7 @@ export function AnalyticsTab() {
                   <BarChart data={hypothesisData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-                    <YAxis dataKey="label" type="category" tick={{ fontSize: 10 }} width={160} />
+                    <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={110} />
                     <ChartTooltip
                       contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
                       formatter={(val: any) => [`${val}/100`, 'Avg Score']}

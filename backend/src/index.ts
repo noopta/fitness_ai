@@ -11,6 +11,7 @@ import paymentsRoutes from './routes/payments.js';
 import coachRoutes from './routes/coach.js';
 import nutritionRoutes from './routes/nutrition.js';
 import wellnessRoutes from './routes/wellness.js';
+import workoutsRoutes from './routes/workouts.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -25,6 +26,10 @@ app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(cookieParser());
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'https://axiomtraining.io',
+  'https://liftoffmvp.io',
+  'https://www.liftoffmvp.io',
+  'https://axiomtraining.io',
+  'https://www.axiomtraining.io',
   // Allow localhost ports for local development
   'http://localhost:5000',
   'http://localhost:5173',
@@ -55,6 +60,7 @@ app.use('/api', paymentsRoutes);
 app.use('/api', coachRoutes);
 app.use('/api', nutritionRoutes);
 app.use('/api', wellnessRoutes);
+app.use('/api', workoutsRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);
