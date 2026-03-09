@@ -5,7 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Loader2, Sparkles, ChevronRight, Dumbbell, Calendar, TrendingUp,
-  Zap, Moon, CheckCircle2, BedDouble, Plus, X, Activity, Heart, ChevronDown
+  Zap, Moon, CheckCircle2, BedDouble, Plus, X, Activity, Heart, ChevronDown,
+  ClipboardList, Save,
 } from 'lucide-react';
 import { EfficiencyGauge } from '@/components/EfficiencyGauge';
 import { StrengthRadar } from '@/components/StrengthRadar';
@@ -100,6 +101,152 @@ function parseTips(tips: string): string[] {
 
 function truncate(str: string, len: number) {
   return str.length > len ? str.slice(0, len) + '…' : str;
+}
+
+// ─── Quick Workout Log Modal ─────────────────────────────────────────────────
+
+interface QuickLogEntry {
+  name: string;
+  sets: number;
+  reps: string;
+  weightKg: string;
+  rpe: string;
+}
+
+function QuickLogModal({
+  session,
+  onClose,
+}: {
+  session: { day: string; focus: string; exercises: Array<{ exercise: string; sets: number; reps: string; intensity: string }> };
+  onClose: () => void;
+}) {
+  const today = new Date().toISOString().split('T')[0];
+  const [entries, setEntries] = useState<QuickLogEntry[]>(
+    session.exercises.map(ex => ({
+      name: ex.exercise,
+      sets: ex.sets,
+      reps: ex.reps,
+      weightKg: '',
+      rpe: '',
+    }))
+  );
+  const [saving, setSaving] = useState(false);
+
+  function update(i: number, field: keyof QuickLogEntry, value: string | number) {
+    setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, [field]: value } : e));
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      const exercises = entries.map(e => ({
+        name: e.name,
+        sets: e.sets,
+        reps: e.reps,
+        weightKg: e.weightKg !== '' ? parseFloat(e.weightKg) : null,
+        rpe: e.rpe !== '' ? parseFloat(e.rpe) : null,
+        notes: null,
+      }));
+
+      const res = await fetch(`${API_BASE}/workouts`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today, title: session.day, exercises, notes: null, duration: null }),
+      });
+
+      if (!res.ok) throw new Error();
+      toast.success('Workout logged!');
+      onClose();
+    } catch {
+      toast.error('Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <motion.div
+          className="absolute inset-0 bg-black/60"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={onClose}
+        />
+        <motion.div
+          className="relative bg-background w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl z-10 flex flex-col max-h-[88dvh]"
+          initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-5 border-b shrink-0">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Log Today's Workout</p>
+              <h3 className="font-bold text-base mt-0.5">{session.day}</h3>
+            </div>
+            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Exercise rows */}
+          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
+            <p className="text-xs text-muted-foreground mb-1">Fill in weights and RPE. Tap Save when done.</p>
+            {entries.map((entry, i) => (
+              <div key={i} className="rounded-xl border bg-muted/30 p-3 space-y-2">
+                <p className="text-sm font-semibold">{entry.name}</p>
+                <div className="grid grid-cols-4 gap-2">
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-muted-foreground block mb-1">Sets</label>
+                    <input
+                      type="number" min="1" max="20"
+                      value={entry.sets}
+                      onChange={e => update(i, 'sets', parseInt(e.target.value) || 1)}
+                      className="w-full rounded-lg border bg-background px-2 py-1.5 text-sm text-center outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-muted-foreground block mb-1">Reps</label>
+                    <input
+                      type="text"
+                      value={entry.reps}
+                      onChange={e => update(i, 'reps', e.target.value)}
+                      className="w-full rounded-lg border bg-background px-2 py-1.5 text-sm text-center outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-muted-foreground block mb-1">Weight (kg)</label>
+                    <input
+                      type="number" min="0" step="0.5" placeholder="—"
+                      value={entry.weightKg}
+                      onChange={e => update(i, 'weightKg', e.target.value)}
+                      className="w-full rounded-lg border bg-background px-2 py-1.5 text-sm text-center outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-muted-foreground block mb-1">RPE</label>
+                    <input
+                      type="number" min="1" max="10" step="0.5" placeholder="—"
+                      value={entry.rpe}
+                      onChange={e => update(i, 'rpe', e.target.value)}
+                      className="w-full rounded-lg border bg-background px-2 py-1.5 text-sm text-center outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <div className="p-5 border-t shrink-0">
+            <Button onClick={save} disabled={saving} className="w-full rounded-xl">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              Save Workout
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
 }
 
 // ─── Sub-components ────────────────────────────────────────────────────────
@@ -237,6 +384,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
   const [showLifeHappened, setShowLifeHappened] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseDetail | null>(null);
+  const [showQuickLog, setShowQuickLog] = useState(false);
 
   const latest = sessions[0];
   const latestPlan = latest?.plan;
@@ -424,13 +572,23 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
           </div>
         )}
 
-        {/* CTA */}
-        <button
-          onClick={() => onTabChange('program')}
-          className="w-full bg-white text-black rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 hover:bg-zinc-100 transition-colors mt-auto"
-        >
-          Start Workout <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* CTAs */}
+        <div className="flex gap-2 mt-auto">
+          <button
+            onClick={() => onTabChange('program')}
+            className="flex-1 bg-white text-black rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 hover:bg-zinc-100 transition-colors"
+          >
+            Start <ChevronRight className="h-4 w-4" />
+          </button>
+          {(session.exercises?.length ?? 0) > 0 && (
+            <button
+              onClick={() => setShowQuickLog(true)}
+              className="flex-1 bg-zinc-700 text-white rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-zinc-600 transition-colors"
+            >
+              <ClipboardList className="h-4 w-4" /> Log
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -706,11 +864,6 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
         </div>
       </motion.div>
 
-      {/* Check-in card — driven by accountability preference */}
-      {coachProfile?.accountability && (
-        <CheckInCard accountability={coachProfile.accountability} />
-      )}
-
       {/* Life Happened banner — only when program is active */}
       {hasSavedProgram && (
         <motion.div
@@ -742,6 +895,11 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
         </motion.div>
       )}
 
+      {/* Daily check-in card — below Life Happened */}
+      {coachProfile?.accountability && (
+        <CheckInCard accountability={coachProfile.accountability} />
+      )}
+
       {/* Row 2: (Profile + Latest Analysis stacked) + Strength Profile */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -770,6 +928,11 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
       {/* Exercise detail + video modal */}
       {selectedExercise && (
         <ExerciseDetailModal exercise={selectedExercise} onClose={() => setSelectedExercise(null)} />
+      )}
+
+      {/* Quick log modal */}
+      {showQuickLog && todayData?.todaySession && (
+        <QuickLogModal session={todayData.todaySession} onClose={() => setShowQuickLog(false)} />
       )}
 
       {/* Full schedule / calendar modal */}

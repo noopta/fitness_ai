@@ -476,8 +476,10 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     const startDate = user.programStartDate || new Date();
 
     // Calculate which week we're on (1-indexed)
-    const msSinceStart = Date.now() - new Date(startDate).getTime();
-    const daysSinceStart = Math.floor(msSinceStart / (1000 * 60 * 60 * 24));
+    // Anchor to calendar-day boundaries (midnight) so this matches the schedule endpoint
+    const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0);
+    const startMidnight = new Date(startDate); startMidnight.setHours(0, 0, 0, 0);
+    const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
     const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
 
     // Find which phase we're in
@@ -506,8 +508,6 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       });
     }
 
-    // Determine today's day of the week (0=Sun, 1=Mon, ...) and map to training day
-    const dayOfWeek = new Date().getDay(); // 0=Sun
     // Training days are indexed within the week; we cycle through trainingDays
     const trainingDays = currentPhase.trainingDays;
     const totalDays = trainingDays.length;
@@ -611,8 +611,9 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
     if (user.savedProgram) {
       const program = JSON.parse(user.savedProgram);
       const startDate = user.programStartDate || new Date();
-      const msSinceStart = Date.now() - new Date(startDate).getTime();
-      const daysSinceStart = Math.floor(msSinceStart / (1000 * 60 * 60 * 24));
+      const _todayMid = new Date(); _todayMid.setHours(0, 0, 0, 0);
+      const _startMid = new Date(startDate); _startMid.setHours(0, 0, 0, 0);
+      const daysSinceStart = Math.floor((_todayMid.getTime() - _startMid.getTime()) / (1000 * 60 * 60 * 24));
       const wk = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
       weekNumber = wk;
 
