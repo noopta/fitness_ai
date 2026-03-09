@@ -711,8 +711,10 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
     const program = JSON.parse(user.savedProgram);
     const startDate = user.programStartDate || new Date();
 
-    const msSinceStart = Date.now() - new Date(startDate).getTime();
-    const daysSinceStart = Math.floor(msSinceStart / (1000 * 60 * 60 * 24));
+    // Midnight-anchor both today and start to match the /coach/today endpoint logic
+    const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0);
+    const startMidnight = new Date(startDate); startMidnight.setHours(0, 0, 0, 0);
+    const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
     const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
 
     // Find current phase
@@ -732,9 +734,8 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
     // Start of current week (Sunday)
     const today = new Date();
     const dow = today.getDay(); // 0=Sun
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() - dow);
-    sunday.setHours(0, 0, 0, 0);
+    const sunday = new Date(todayMidnight);
+    sunday.setDate(todayMidnight.getDate() - dow);
 
     const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const weekDays = [];
@@ -743,8 +744,9 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
       const date = new Date(sunday);
       date.setDate(sunday.getDate() + i);
 
+      // Both date and startMidnight are midnight-anchored — no fractional-day rounding errors
       const daysForDate = Math.floor(
-        (date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+        (date.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24)
       );
       const dayInWeek = ((daysForDate % 7) + 7) % 7;
       const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;

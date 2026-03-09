@@ -496,6 +496,22 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
               Next training: <span className="font-semibold text-white">{todayData.nextTrainingDay}</span>
             </p>
           )}
+          {/* Log button — disabled on rest days */}
+          <div className="flex gap-2 mt-auto">
+            <button
+              disabled
+              className="flex-1 bg-zinc-800 text-zinc-600 rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1 cursor-not-allowed"
+            >
+              Start <ChevronRight className="h-4 w-4" />
+            </button>
+            <button
+              disabled
+              className="flex-1 bg-zinc-800 rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed opacity-40 line-through decoration-zinc-500"
+            >
+              <ClipboardList className="h-4 w-4 text-zinc-600" />
+              <span className="text-zinc-600">Log</span>
+            </button>
+          </div>
         </div>
       );
     }
@@ -580,14 +596,18 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
           >
             Start <ChevronRight className="h-4 w-4" />
           </button>
-          {(session.exercises?.length ?? 0) > 0 && (
-            <button
-              onClick={() => setShowQuickLog(true)}
-              className="flex-1 bg-zinc-700 text-white rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-zinc-600 transition-colors"
-            >
-              <ClipboardList className="h-4 w-4" /> Log
-            </button>
-          )}
+          <button
+            onClick={() => (session.exercises?.length ?? 0) > 0 ? setShowQuickLog(true) : undefined}
+            disabled={(session.exercises?.length ?? 0) === 0}
+            className={[
+              'flex-1 rounded-xl py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors',
+              (session.exercises?.length ?? 0) > 0
+                ? 'bg-zinc-700 text-white hover:bg-zinc-600'
+                : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-40',
+            ].join(' ')}
+          >
+            <ClipboardList className="h-4 w-4" /> Log
+          </button>
         </div>
       </div>
     );

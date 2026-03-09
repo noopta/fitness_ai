@@ -59,14 +59,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary">
-      <Navbar variant="full" rightSlot={
-        <Button size="sm" className="rounded-xl" asChild>
-          <Link href="/onboarding">
-            New Analysis
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      } />
+      <Navbar variant="full" />
 
       <main className="mx-auto max-w-4xl px-4 py-10">
         <motion.div
