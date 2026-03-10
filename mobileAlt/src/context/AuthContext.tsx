@@ -85,13 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
 
       if (result.type === 'success' && result.url) {
-        const url = new URL(result.url);
-        const token = url.searchParams.get('token');
+        const parsed = Linking.parse(result.url);
+        const token = parsed.queryParams?.token as string | undefined;
         if (token) {
           await setToken(token);
           await refreshUser();
         } else {
-          const authParam = url.searchParams.get('auth');
+          const authParam = parsed.queryParams?.auth as string | undefined;
           if (authParam === 'error') {
             Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
           }

@@ -139,9 +139,23 @@ router.get('/auth/google', (req, res) => {
 
 // GET /api/auth/google/callback — handle OAuth code exchange
 router.get('/auth/google/callback', async (req, res) => {
+  // Parse mobile redirect_uri from state early so errors can redirect back to the app
+  let mobileRedirect: string | null = null;
+  try {
+    const rawState = req.query.state as string | undefined;
+    if (rawState) {
+      const decoded = JSON.parse(Buffer.from(decodeURIComponent(rawState), 'base64').toString());
+      mobileRedirect = decoded.mobileRedirect || null;
+    }
+  } catch { /* ignore malformed state */ }
+
+  const errorRedirect = mobileRedirect
+    ? `${mobileRedirect}?auth=error`
+    : `${process.env.FRONTEND_URL}/login?auth=error`;
+
   const code = req.query.code as string;
   if (!code) {
-    return res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
+    return res.redirect(errorRedirect);
   }
 
   try {
@@ -160,7 +174,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
     const tokens = await tokenRes.json() as any;
     if (!tokens.id_token) {
-      return res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
+      return res.redirect(errorRedirect);
     }
 
     // Decode id_token (JWT, no need to verify signature for profile data since we trust Google's response)
@@ -192,16 +206,6 @@ router.get('/auth/google/callback', async (req, res) => {
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     sendAuthSMS(`${isNewUser ? '🆕 New Google signup' : '🔑 Google login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
 
-    // Check for mobile deep-link redirect in state param
-    let mobileRedirect: string | null = null;
-    try {
-      const rawState = req.query.state as string | undefined;
-      if (rawState) {
-        const decoded = JSON.parse(Buffer.from(decodeURIComponent(rawState), 'base64').toString());
-        mobileRedirect = decoded.mobileRedirect || null;
-      }
-    } catch { /* ignore malformed state */ }
-
     if (mobileRedirect) {
       res.redirect(`${mobileRedirect}?token=${token}`);
     } else {
@@ -211,7 +215,7 @@ router.get('/auth/google/callback', async (req, res) => {
     }
   } catch (err) {
     console.error('Google OAuth callback error:', err);
-    res.redirect(`${process.env.FRONTEND_URL}/login?auth=error`);
+    res.redirect(errorRedirect);
   }
 });
 
