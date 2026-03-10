@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, X, CheckCircle2, Heart } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -130,10 +131,8 @@ export function CheckInCard({ accountability }: Props) {
   async function handleSubmit() {
     setSubmitting(true);
     try {
-      const resp = await fetch(`${API_BASE}/wellness/checkin`, {
+      const resp = await authFetch(`${API_BASE}/wellness/checkin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           date: todayStr(),
           mood,

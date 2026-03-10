@@ -6,6 +6,7 @@ import {
   CheckCircle2, ChevronRight, Sparkles, Clock, Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -59,10 +60,8 @@ export function LifeHappenedModal({ onClose, onApplied }: Props) {
     if (input.trim().length < 5) return;
     setStage('loading');
     try {
-      const res = await fetch(`${API_BASE}/coach/adjust`, {
+      const res = await authFetch(`${API_BASE}/coach/adjust`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInput: input.trim() }),
       });
       if (!res.ok) throw new Error('Failed to analyze');
@@ -79,10 +78,8 @@ export function LifeHappenedModal({ onClose, onApplied }: Props) {
     if (!result) return;
     setApplying(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/apply-adjustment`, {
+      const res = await authFetch(`${API_BASE}/coach/apply-adjustment`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ shiftDays: result.suggestedShiftDays }),
       });
       if (!res.ok) throw new Error('Failed');

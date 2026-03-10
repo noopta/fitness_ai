@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Loader2, Info, Dumbbell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -48,7 +49,7 @@ export function ExerciseDetailModal({ exercise, onClose }: Props) {
 
   useEffect(() => {
     const name = encodeURIComponent(exercise.exercise);
-    fetch(`${API_BASE}/coach/exercise-video?name=${name}`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/exercise-video?name=${name}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.videoId) setVideo(d); })
       .catch(() => {})

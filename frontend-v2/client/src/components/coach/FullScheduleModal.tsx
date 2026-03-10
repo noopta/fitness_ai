@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Dumbbell, Moon, ChevronDown, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -123,7 +124,7 @@ export function FullScheduleModal({ onClose }: Props) {
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set([0]));
 
   useEffect(() => {
-    fetch(`${API_BASE}/coach/program`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/program`)
       .then(r => r.json())
       .then(d => {
         if (d.program) setProgram(d.program);

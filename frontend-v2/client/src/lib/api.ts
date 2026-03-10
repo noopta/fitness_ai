@@ -3,6 +3,20 @@
 // Override with VITE_API_URL env var if you need to point elsewhere.
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
+/**
+ * Authenticated fetch — sends cookie + Bearer token fallback.
+ * Use this for all authenticated API calls to handle cross-domain cookie blocking.
+ */
+export function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  const token = sessionStorage.getItem('liftoff_bearer_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(url, { ...options, credentials: 'include', headers });
+}
+
 export interface LiftData {
   id: string;
   name: string;

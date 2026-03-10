@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { authFetch } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { Loader2, BarChart3, HelpCircle } from 'lucide-react';
 import {
@@ -57,7 +58,7 @@ export function AnalyticsTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/coach/analytics`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/analytics`)
       .then(r => r.json())
       .then(d => setData(d))
       .catch(() => {})
@@ -72,7 +73,7 @@ export function AnalyticsTab() {
     );
   }
 
-  if (!data || data.dataPoints.length === 0) {
+  if (!data || !Array.isArray(data.dataPoints) || data.dataPoints.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3 text-center p-6">
         <BarChart3 className="h-10 w-10 text-muted-foreground/40" />

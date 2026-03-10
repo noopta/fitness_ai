@@ -9,6 +9,7 @@ import {
   Clock, Calendar, CheckCircle2, X, Save, Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -201,10 +202,8 @@ function WorkoutForm({ onSaved }: { onSaved: (log: WorkoutLog) => void }) {
 
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/workouts`, {
+      const res = await authFetch(`${API_BASE}/workouts`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date,
           title: title.trim() || null,
@@ -349,9 +348,8 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
     if (!confirm('Delete this workout log?')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/workouts/${log.id}`, {
+      const res = await authFetch(`${API_BASE}/workouts/${log.id}`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (!res.ok) throw new Error();
       onDelete(log.id);
@@ -445,7 +443,7 @@ export default function WorkoutsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/workouts`, { credentials: 'include' })
+    authFetch(`${API_BASE}/workouts`)
       .then(r => r.ok ? r.json() : [])
       .then(data => setLogs(data))
       .catch(() => {})

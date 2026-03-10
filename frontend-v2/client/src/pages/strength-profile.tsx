@@ -11,6 +11,7 @@ import {
 import {
   Dumbbell, TrendingUp, Target, Loader2, Activity, Calendar, BarChart3,
 } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -58,7 +59,7 @@ export default function StrengthProfilePage() {
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/strength-profile`, { credentials: 'include' })
+    authFetch(`${API_BASE}/strength-profile`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d) {

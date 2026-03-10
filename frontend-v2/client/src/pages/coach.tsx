@@ -16,6 +16,7 @@ import { ProgramTab } from '@/components/coach/ProgramTab';
 import { ChatTab } from '@/components/coach/ChatTab';
 import { ProgramSetup, type TrainingProgram } from '@/components/coach/ProgramSetup';
 import { ProgramWalkthrough } from '@/components/coach/ProgramWalkthrough';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -73,7 +74,7 @@ export default function CoachPage() {
     if (authLoading) return;
     if (!isPro) { setLoading(false); return; }
     setLoading(true);
-    fetch(`${API_BASE}/coach/messages`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/messages`)
       .then(r => r.json())
       .then(data => setCoachData(data))
       .catch(() => toast.error('Failed to load Anakin'))

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dumbbell } from 'lucide-react';
 import { ProgramGenerating } from './ProgramGenerating';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -107,10 +108,8 @@ export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateInta
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch(`${API_BASE}/coach/program`, {
+      const resp = await authFetch(`${API_BASE}/coach/program`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         // goal is intentionally omitted — backend infers from trainingPreference
         body: JSON.stringify({ daysPerWeek, durationWeeks, gender: coachProfile?.gender || null }),
       });

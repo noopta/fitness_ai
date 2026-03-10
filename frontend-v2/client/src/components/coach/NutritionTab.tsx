@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -141,10 +142,8 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
   async function saveAdjustment() {
     setAdjustSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/nutrition-adjustment`, {
+      const res = await authFetch(`${API_BASE}/coach/nutrition-adjustment`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ calorieAdjustment: calorieAdjust }),
       });
       if (!res.ok) throw new Error('Failed');
@@ -512,14 +511,14 @@ export function NutritionTab({
 
   useEffect(() => {
     // Fetch nutrition logs
-    fetch(`${API_BASE}/nutrition/log`, { credentials: 'include' })
+    authFetch(`${API_BASE}/nutrition/log`)
       .then(r => r.json())
       .then(d => setLogs(d.logs || []))
       .catch(() => {})
       .finally(() => setLogsLoading(false));
 
     // Fetch body weight logs (parallel)
-    fetch(`${API_BASE}/coach/body-weight`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/body-weight`)
       .then(r => r.json())
       .then(d => setBwLogs(d.logs || []))
       .catch(() => {})
@@ -542,10 +541,8 @@ export function NutritionTab({
   async function saveLog() {
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/nutrition/log`, {
+      const res = await authFetch(`${API_BASE}/nutrition/log`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           date: form.date,
           proteinG: Number(form.proteinG) || 0,
@@ -571,10 +568,8 @@ export function NutritionTab({
   async function saveBwLog() {
     setBwSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/body-weight`, {
+      const res = await authFetch(`${API_BASE}/coach/body-weight`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           date: bwForm.date,
           weightLbs: Number(bwForm.weightLbs),
@@ -599,10 +594,8 @@ export function NutritionTab({
     if (!isPro) return toast.error('Pro feature');
     setAiLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/nutrition-plan`, {
+      const res = await authFetch(`${API_BASE}/coach/nutrition-plan`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           goal: coachGoal || latestSession?.plan?.goal || 'strength_peak',
           weightKg,
@@ -626,10 +619,8 @@ export function NutritionTab({
     if (!isPro || !activePlan) return;
     setMealsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/meal-suggestions`, {
+      const res = await authFetch(`${API_BASE}/coach/meal-suggestions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           macros: activePlan.macros,
           budget: budget || null,
@@ -650,10 +641,8 @@ export function NutritionTab({
   async function saveBudget() {
     setBudgetSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/budget`, {
+      const res = await authFetch(`${API_BASE}/coach/budget`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ budget: budget.trim() }),
       });
       if (!res.ok) throw new Error('Failed to save budget');

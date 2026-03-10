@@ -16,6 +16,7 @@ import { FullScheduleModal } from '@/components/coach/FullScheduleModal';
 import { ExerciseDetailModal, type ExerciseDetail } from '@/components/coach/ExerciseDetailModal';
 import { toast } from 'sonner';
 import type { DiagnosticSignalsSubset } from '@/lib/api';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -148,10 +149,8 @@ function QuickLogModal({
         notes: null,
       }));
 
-      const res = await fetch(`${API_BASE}/workouts`, {
+      const res = await authFetch(`${API_BASE}/workouts`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: today, title: session.day, exercises, notes: null, duration: null }),
       });
 
@@ -400,7 +399,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
     : null;
 
   useEffect(() => {
-    fetch(`${API_BASE}/coach/insights`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/insights`)
       .then(r => r.json())
       .then(d => setInsight(d.insight || null))
       .catch(() => {})
@@ -409,7 +408,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
   useEffect(() => {
     if (!hasSavedProgram) { setTodayLoading(false); return; }
-    fetch(`${API_BASE}/coach/today`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/today`)
       .then(r => r.json())
       .then(d => setTodayData(d))
       .catch(() => {})
@@ -418,7 +417,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
   useEffect(() => {
     if (!hasSavedProgram) return;
-    fetch(`${API_BASE}/coach/schedule`, { credentials: 'include' })
+    authFetch(`${API_BASE}/coach/schedule`)
       .then(r => r.json())
       .then(d => setScheduleData(d))
       .catch(() => {});
@@ -967,9 +966,9 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
           onApplied={() => {
             setShowLifeHappened(false);
             // Re-fetch today and schedule after adjustment
-            fetch(`${API_BASE}/coach/today`, { credentials: 'include' })
+            authFetch(`${API_BASE}/coach/today`)
               .then(r => r.json()).then(d => setTodayData(d)).catch(() => {});
-            fetch(`${API_BASE}/coach/schedule`, { credentials: 'include' })
+            authFetch(`${API_BASE}/coach/schedule`)
               .then(r => r.json()).then(d => setScheduleData(d)).catch(() => {});
           }}
         />
