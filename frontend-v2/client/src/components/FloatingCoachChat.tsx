@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -98,10 +99,8 @@ export function FloatingCoachChat() {
     setInput('');
     setSending(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/chat`, {
+      const res = await authFetch(`${API_BASE}/coach/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ message: trimmed }),
       });
       const data = await res.json();

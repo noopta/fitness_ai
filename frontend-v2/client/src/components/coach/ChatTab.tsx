@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Send, Loader2, RotateCcw } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -97,10 +98,8 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
     setInput('');
     setSending(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/chat`, {
+      const res = await authFetch(`${API_BASE}/coach/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ message: trimmed }),
       });
       const data = await res.json();
@@ -120,7 +119,7 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
     if (!confirm('Reset your conversation? This cannot be undone.')) return;
     setResetting(true);
     try {
-      await fetch(`${API_BASE}/coach/thread`, { method: 'DELETE', credentials: 'include' });
+      await authFetch(`${API_BASE}/coach/thread`, { method: 'DELETE' });
       setMessages([]);
       toast.success('Conversation reset');
     } catch {
