@@ -8,6 +8,7 @@ import {
   Zap, BarChart2, RotateCcw, Dumbbell, CalendarDays, ArrowRight,
   Target, TrendingUp,
 } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -54,6 +55,7 @@ interface Props {
   latestPlan: any;
   isPro: boolean;
   onTabChange?: (tab: string) => void;
+  savedProgram?: string | null; // used to trigger re-fetch when program changes
 }
 
 const PHASE_COLORS: Record<string, { bg: string; border: string; text: string; badge: string; dot: string }> = {
@@ -310,28 +312,28 @@ function PhaseCard({ phase, defaultOpen }: { phase: ProgramPhase; defaultOpen: b
   );
 }
 
-export function ProgramTab({ latestPlan, isPro, onTabChange }: Props) {
+export function ProgramTab({ latestPlan, isPro, onTabChange, savedProgram }: Props) {
   const [program, setProgram] = useState<TrainingProgram | null>(null);
   const [saving, setSaving] = useState(false);
   const [newProgram, setNewProgram] = useState<TrainingProgram | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Re-fetch whenever the saved program changes (e.g. after generating a new one)
   useEffect(() => {
-    fetch(`${API_BASE}/coach/program`, { credentials: 'include' })
+    setLoading(true);
+    authFetch(`${API_BASE}/coach/program`)
       .then(r => r.json())
-      .then(d => { if (d.program) setProgram(d.program); })
+      .then(d => { if (d.program) setProgram(d.program); else setProgram(null); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [savedProgram]);
 
   async function saveProgram() {
     if (!newProgram) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/coach/program`, {
+      const res = await authFetch(`${API_BASE}/coach/program`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ program: newProgram }),
       });
       if (!res.ok) throw new Error('Save failed');

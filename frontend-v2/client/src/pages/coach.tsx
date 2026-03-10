@@ -310,7 +310,7 @@ export default function CoachPage() {
               </TabsContent>
 
               <TabsContent value="program" className="mt-0 h-full">
-                <ProgramTab latestPlan={latestPlan} isPro={isPro} />
+                <ProgramTab latestPlan={latestPlan} isPro={isPro} savedProgram={user?.savedProgram} />
               </TabsContent>
 
               <TabsContent value="chat" className="mt-0" style={{ height: 'calc(100vh - 120px)' }}>
