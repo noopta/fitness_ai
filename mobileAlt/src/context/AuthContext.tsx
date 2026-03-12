@@ -102,12 +102,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.type === 'success' && result.url) {
         const url = result.url;
         console.log('[Auth] OAuth success URL (first 100):', url.slice(0, 100));
-        const tokenMatch = url.match(/[?&]token=([^&]+)/);
-        const authMatch = url.match(/[?&]auth=([^&]+)/);
+        const tokenMatch = url.match(/[?&]token=([^&#]+)/);
+        const authMatch = url.match(/[?&]auth=([^&#]+)/);
         const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
         const authParam = authMatch ? authMatch[1] : null;
-        console.log('[Auth] Token present:', !!token, 'len:', token?.length, 'authParam:', authParam);
-        console.log('[Auth] Token value:', token);
+        console.log('[Auth] Token present:', !!token, 'authParam:', authParam);
 
         if (token) {
           await setToken(token);
