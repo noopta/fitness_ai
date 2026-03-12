@@ -94,20 +94,51 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
-    setMessages(prev => [...prev, { role: 'user', content: trimmed }]);
+
+    const history = messages.map(m => ({ role: m.role, content: m.content }));
+    setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '' }]);
     setInput('');
     setSending(true);
+
     try {
-      const res = await authFetch(`${API_BASE}/coach/chat`, {
+      const res = await authFetch(`${API_BASE}/coach/chat/stream`, {
         method: 'POST',
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify({ message: trimmed, history }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Chat failed');
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Chat failed');
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (payload === '[DONE]') break;
+          try {
+            const { chunk } = JSON.parse(payload);
+            if (chunk) {
+              setMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: 'assistant', content: updated[updated.length - 1].content + chunk };
+                return updated;
+              });
+            }
+          } catch { /* ignore malformed chunk */ }
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to get response');
-      setMessages(prev => prev.slice(0, -1));
+      setMessages(prev => prev.slice(0, -2)); // remove both user + empty assistant
       setInput(trimmed);
     } finally {
       setSending(false);

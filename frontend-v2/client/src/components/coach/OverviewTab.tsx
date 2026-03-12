@@ -440,19 +440,22 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
   useEffect(() => {
     if (!hasSavedProgram) { setTodayLoading(false); return; }
+
+    // Fetch dashboard first (one request, both schedule + cached today if warm),
+    // then fetch /coach/today for the full today payload (tips, nextTrainingDay, etc.)
+    authFetch(`${API_BASE}/coach/dashboard`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.schedule) setScheduleData(d.schedule);
+        if (d.today) { setTodayData(d.today); setTodayLoading(false); }
+      })
+      .catch(() => {});
+
     authFetch(`${API_BASE}/coach/today`)
       .then(r => r.json())
       .then(d => setTodayData(d))
       .catch(() => {})
       .finally(() => setTodayLoading(false));
-  }, [hasSavedProgram]);
-
-  useEffect(() => {
-    if (!hasSavedProgram) return;
-    authFetch(`${API_BASE}/coach/schedule`)
-      .then(r => r.json())
-      .then(d => setScheduleData(d))
-      .catch(() => {});
   }, [hasSavedProgram]);
 
   // ── Today's workout card (dark) ──────────────────────────────────────────

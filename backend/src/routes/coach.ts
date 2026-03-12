@@ -216,7 +216,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     res.flushHeaders();
 
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1-mini',
       messages,
       stream: true,
       max_tokens: 600,
@@ -527,6 +527,8 @@ router.put('/coach/program', requireAuth, async (req, res) => {
     // Invalidate caches since program changed
     cacheDelete(`program:${req.user!.id}`);
     cacheClearByPrefix(`today:${req.user!.id}:`);
+    cacheClearByPrefix(`schedule:${req.user!.id}:`);
+    cacheClearByPrefix(`dashboard:${req.user!.id}:`);
 
     res.json({ success: true });
   } catch (err) {
@@ -784,6 +786,11 @@ router.post('/coach/apply-adjustment', requireAuth, async (req, res) => {
       data: { programStartDate: newStart },
     });
 
+    // Bust schedule/today/dashboard caches since start date changed
+    cacheClearByPrefix(`today:${req.user!.id}:`);
+    cacheClearByPrefix(`schedule:${req.user!.id}:`);
+    cacheClearByPrefix(`dashboard:${req.user!.id}:`);
+
     res.json({ success: true, newProgramStartDate: newStart.toISOString() });
   } catch (err) {
     console.error('Apply adjustment error:', err);
@@ -792,70 +799,123 @@ router.post('/coach/apply-adjustment', requireAuth, async (req, res) => {
 });
 
 // GET /api/coach/schedule - Get the current week's schedule (Mon–Sun)
+// Shared helper — computes schedule data for a user with a saved program.
+function buildScheduleData(user: { savedProgram: string | null; programStartDate: Date | null }) {
+  if (!user.savedProgram) return { weekDays: [], weekNumber: null, phaseName: null };
+
+  const program = JSON.parse(user.savedProgram);
+  const startDate = user.programStartDate || new Date();
+
+  const todayMidnight = estMidnight();
+  const startMidnight = estMidnight(new Date(startDate));
+  const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
+  const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
+
+  let cumulativeWeeks = 0;
+  let currentPhase = program.phases?.[0] || null;
+  if (program.phases) {
+    for (let i = 0; i < program.phases.length; i++) {
+      cumulativeWeeks += program.phases[i].durationWeeks;
+      if (weekNumber <= cumulativeWeeks) { currentPhase = program.phases[i]; break; }
+      currentPhase = program.phases[i];
+    }
+  }
+
+  const trainingDays = currentPhase?.trainingDays || [];
+  const totalDays = trainingDays.length;
+
+  const dow = new Date(getESTDateString() + 'T12:00:00Z').getUTCDay();
+  const sunday = new Date(todayMidnight);
+  sunday.setUTCDate(todayMidnight.getUTCDate() - dow);
+
+  const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const weekDays = [];
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(sunday);
+    date.setUTCDate(sunday.getUTCDate() + i);
+    const daysForDate = Math.floor((date.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
+    const dayInWeek = ((daysForDate % 7) + 7) % 7;
+    const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+    const dateEST = date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+    weekDays.push({
+      date: date.toISOString(),
+      dayLabel: DAY_LABELS[i],
+      dateNumber: parseInt(dateEST.split('-')[2]),
+      monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),
+      isToday: dateEST === getESTDateString(),
+      isTrainingDay: !!session,
+      session: session || null,
+    });
+  }
+
+  return { weekDays, weekNumber, phaseName: currentPhase?.phaseName || null };
+}
+
 router.get('/coach/schedule', requireAuth, async (req, res) => {
   try {
+    const dateKey = getESTDateString();
+    const scheduleCacheKey = `schedule:${req.user!.id}:${dateKey}`;
+    const cached = cacheGet(scheduleCacheKey);
+    if (cached) return res.json(cached);
+
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!user || !user.savedProgram) {
       return res.json({ weekDays: [], weekNumber: null, phaseName: null });
     }
 
-    const program = JSON.parse(user.savedProgram);
-    const startDate = user.programStartDate || new Date();
+    const result = buildScheduleData(user);
 
-    // Use EST calendar dates so the week view doesn't flip at midnight UTC
-    const todayMidnight = estMidnight();
-    const startMidnight = estMidnight(new Date(startDate));
-    const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
-    const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
+    const tomorrowEST = new Date(getESTDateString() + 'T12:00:00Z');
+    tomorrowEST.setUTCDate(tomorrowEST.getUTCDate() + 1);
+    cacheSet(scheduleCacheKey, result, tomorrowEST.getTime() - Date.now());
 
-    // Find current phase
-    let cumulativeWeeks = 0;
-    let currentPhase = program.phases?.[0] || null;
-    if (program.phases) {
-      for (let i = 0; i < program.phases.length; i++) {
-        cumulativeWeeks += program.phases[i].durationWeeks;
-        if (weekNumber <= cumulativeWeeks) { currentPhase = program.phases[i]; break; }
-        currentPhase = program.phases[i];
-      }
-    }
-
-    const trainingDays = currentPhase?.trainingDays || [];
-    const totalDays = trainingDays.length;
-
-    // Start of current week (Sunday) in EST
-    const dow = new Date(getESTDateString() + 'T12:00:00Z').getUTCDay(); // 0=Sun
-    const sunday = new Date(todayMidnight);
-    sunday.setUTCDate(todayMidnight.getUTCDate() - dow);
-
-    const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    const weekDays = [];
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(sunday);
-      date.setUTCDate(sunday.getUTCDate() + i);
-
-      const daysForDate = Math.floor(
-        (date.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const dayInWeek = ((daysForDate % 7) + 7) % 7;
-      const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
-      const dateEST = date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-
-      weekDays.push({
-        date: date.toISOString(),
-        dayLabel: DAY_LABELS[i],
-        dateNumber: parseInt(dateEST.split('-')[2]),
-        monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),
-        isToday: dateEST === getESTDateString(),
-        isTrainingDay: !!session,
-        session: session || null,
-      });
-    }
-
-    res.json({ weekDays, weekNumber, phaseName: currentPhase?.phaseName || null });
+    res.json(result);
   } catch (err) {
     console.error('Schedule endpoint error:', err);
     res.status(500).json({ error: 'Failed to load schedule' });
+  }
+});
+
+// GET /api/coach/dashboard - Returns today's workout + schedule in one request (both cached)
+router.get('/coach/dashboard', requireAuth, async (req, res) => {
+  try {
+    const dateKey = getESTDateString();
+    const dashCacheKey = `dashboard:${req.user!.id}:${dateKey}`;
+    const cached = cacheGet(dashCacheKey);
+    if (cached) return res.json(cached);
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      include: {
+        wellnessCheckins: { orderBy: { createdAt: 'desc' }, take: 1, select: { id: true } },
+      },
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Build schedule
+    const schedule = buildScheduleData(user);
+
+    // Build today — reuse /coach/today cache if already warm
+    const checkinId = user.wellnessCheckins[0]?.id || 'none';
+    const todayCacheKey = `today:${user.id}:${dateKey}:${checkinId}`;
+    const todayCached = cacheGet(todayCacheKey);
+    // We intentionally skip re-computing today here if cache is cold — the full
+    // /coach/today endpoint handles that with its richer logic (tips, nextTrainingDay, etc).
+    // Dashboard returns schedule immediately plus today from cache if warm.
+    const today = todayCached ?? null;
+
+    const result = { today, schedule };
+
+    const tomorrowEST = new Date(getESTDateString() + 'T12:00:00Z');
+    tomorrowEST.setUTCDate(tomorrowEST.getUTCDate() + 1);
+    cacheSet(dashCacheKey, result, tomorrowEST.getTime() - Date.now());
+
+    res.json(result);
+  } catch (err) {
+    console.error('Dashboard endpoint error:', err);
+    res.status(500).json({ error: 'Failed to load dashboard' });
   }
 });
 

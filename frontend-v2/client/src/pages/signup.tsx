@@ -1194,50 +1194,6 @@ export default function Signup() {
           </div>
         </section>
 
-        <section className="pb-16 sm:pb-24" data-testid="section-cta">
-          <Card className="card-min rounded-2xl p-7">
-            <div className="grid gap-3 md:grid-cols-[1.2fr_0.8fr] md:items-center">
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground" data-testid="text-cta-eyebrow">
-                  Ready to find your weak point?
-                </div>
-                <div
-                  className="mt-2 text-balance text-2xl font-semibold tracking-tight"
-                  data-testid="text-cta-title"
-                >
-                  Try the demo — free.
-                </div>
-                <div
-                  className="mt-3 text-sm leading-relaxed text-muted-foreground"
-                  data-testid="text-cta-subtitle"
-                >
-                  Sign up in seconds. No credit card required. See what's limiting your lifts.
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3 md:justify-end">
-                <Button
-                  asChild
-                  className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                  data-testid="button-cta-join"
-                >
-                  <Link href="/register">
-                    Try Demo
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="secondary"
-                  className="rounded-xl"
-                  data-testid="button-cta-try"
-                >
-                  <Link href="/login">Sign In</Link>
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </section>
-
         <footer className="border-t py-10">
           <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3" data-testid="text-footer-brand">
