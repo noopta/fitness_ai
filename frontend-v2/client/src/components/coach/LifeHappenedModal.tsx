@@ -317,12 +317,12 @@ export function LifeHappenedModal({ onClose, onApplied }: Props) {
                     {result.suggestedShiftDays === 0 ? (
                       <p className="text-xs font-semibold text-green-600 flex items-center gap-1.5">
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        No schedule change needed
+                        No schedule change needed — pick up with the next session as planned
                       </p>
                     ) : (
                       <p className="text-xs font-semibold flex items-center gap-1.5">
                         <Clock className="h-3.5 w-3.5 text-amber-500" />
-                        Shift program back by {result.suggestedShiftDays} day{result.suggestedShiftDays !== 1 ? 's' : ''}
+                        Push program forward by {result.suggestedShiftDays} day{result.suggestedShiftDays !== 1 ? 's' : ''}
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">{result.adjustmentRationale}</p>

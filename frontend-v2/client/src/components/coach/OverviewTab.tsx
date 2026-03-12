@@ -116,12 +116,20 @@ interface QuickLogEntry {
 
 function QuickLogModal({
   session,
+  date,
   onClose,
 }: {
   session: { day: string; focus: string; exercises: Array<{ exercise: string; sets: number; reps: string; intensity: string }> };
+  /** YYYY-MM-DD in EST. Defaults to today. */
+  date?: string;
   onClose: () => void;
 }) {
-  const today = new Date().toISOString().split('T')[0];
+  // Default to today in the user's local timezone
+  const todayLocal = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const logDate = date || todayLocal;
+  const isToday = logDate === todayLocal;
+  const isFuture = logDate > todayLocal;
+
   const [entries, setEntries] = useState<QuickLogEntry[]>(
     session.exercises.map(ex => ({
       name: ex.exercise,
@@ -151,11 +159,11 @@ function QuickLogModal({
 
       const res = await authFetch(`${API_BASE}/workouts`, {
         method: 'POST',
-        body: JSON.stringify({ date: today, title: session.day, exercises, notes: null, duration: null }),
+        body: JSON.stringify({ date: logDate, title: session.day, exercises, notes: null, duration: null }),
       });
 
       if (!res.ok) throw new Error();
-      toast.success('Workout logged!');
+      toast.success(isToday ? 'Workout logged!' : 'Workout logged for ' + logDate + '!');
       onClose();
     } catch {
       toast.error('Failed to save. Please try again.');
@@ -163,6 +171,8 @@ function QuickLogModal({
       setSaving(false);
     }
   }
+
+  const logLabel = isToday ? "Log Today's Workout" : isFuture ? "Log Upcoming Workout" : "Log Missed Workout";
 
   return (
     <AnimatePresence>
@@ -179,8 +189,13 @@ function QuickLogModal({
           {/* Header */}
           <div className="flex items-center justify-between p-5 border-b shrink-0">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Log Today's Workout</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{logLabel}</p>
               <h3 className="font-bold text-base mt-0.5">{session.day}</h3>
+              {!isToday && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {new Date(logDate + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                </p>
+              )}
             </div>
             <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted transition-colors">
               <X className="h-4 w-4" />
@@ -250,12 +265,18 @@ function QuickLogModal({
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 
-function WorkoutDayModal({ day, onClose, onExerciseClick }: {
+function WorkoutDayModal({ day, onClose, onExerciseClick, onLog }: {
   day: WeekDay;
   onClose: () => void;
   onExerciseClick: (ex: ExerciseDetail) => void;
+  onLog: () => void;
 }) {
   const session = day.session;
+  const todayLocal = new Date().toLocaleDateString('en-CA');
+  // Convert the backend ISO date to a local YYYY-MM-DD string
+  const dayDateLocal = new Date(day.date).toLocaleDateString('en-CA');
+  const isFuture = dayDateLocal > todayLocal;
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
@@ -303,6 +324,15 @@ function WorkoutDayModal({ day, onClose, onExerciseClick }: {
                   </span>
                 </button>
               ))}
+              {!isFuture && (
+                <button
+                  onClick={onLog}
+                  className="w-full mt-3 flex items-center justify-center gap-2 rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  <Save className="h-4 w-4" />
+                  {day.isToday ? 'Log Today\'s Workout' : 'Log Missed Workout'}
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
@@ -384,6 +414,8 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
   const [showFullSchedule, setShowFullSchedule] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseDetail | null>(null);
   const [showQuickLog, setShowQuickLog] = useState(false);
+  // When logging from a selected schedule day (may be past, today, or today's card)
+  const [quickLogDay, setQuickLogDay] = useState<WeekDay | null>(null);
 
   const latest = sessions[0];
   const latestPlan = latest?.plan;
@@ -941,6 +973,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
           day={selectedDay}
           onClose={() => setSelectedDay(null)}
           onExerciseClick={(ex) => { setSelectedDay(null); setSelectedExercise(ex); }}
+          onLog={() => { setQuickLogDay(selectedDay); setSelectedDay(null); }}
         />
       )}
 
@@ -949,9 +982,18 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
         <ExerciseDetailModal exercise={selectedExercise} onClose={() => setSelectedExercise(null)} />
       )}
 
-      {/* Quick log modal */}
+      {/* Quick log modal — from Today's workout card */}
       {showQuickLog && todayData?.todaySession && (
         <QuickLogModal session={todayData.todaySession} onClose={() => setShowQuickLog(false)} />
+      )}
+
+      {/* Quick log modal — from schedule day tile */}
+      {quickLogDay?.session && (
+        <QuickLogModal
+          session={quickLogDay.session}
+          date={new Date(quickLogDay.date).toLocaleDateString('en-CA')}
+          onClose={() => setQuickLogDay(null)}
+        />
       )}
 
       {/* Full schedule / calendar modal */}
