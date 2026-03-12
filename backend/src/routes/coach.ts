@@ -20,9 +20,10 @@ function getESTDateString(date: Date = new Date()): string {
   return date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // 'YYYY-MM-DD'
 }
 
-// Returns midnight UTC for a given EST calendar date, suitable for day-diff arithmetic.
+// Returns noon UTC for a given EST calendar date, suitable for both day-diff arithmetic
+// and display (midnight UTC = 7 PM EST the prior day, causing off-by-one in toLocaleDateString).
 function estMidnight(date: Date = new Date()): Date {
-  return new Date(getESTDateString(date) + 'T00:00:00Z');
+  return new Date(getESTDateString(date) + 'T12:00:00Z');
 }
 
 let twilioClient: ReturnType<typeof twilio> | null = null;
@@ -581,8 +582,8 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       nextTrainingDay,
       programGoal: program.goal,
     };
-    // Cache until midnight EST
-    const tomorrowEST = new Date(getESTDateString() + 'T00:00:00Z');
+    // Cache until the next EST day (use noon UTC of tomorrow EST to avoid timezone bleed)
+    const tomorrowEST = new Date(getESTDateString() + 'T12:00:00Z');
     tomorrowEST.setUTCDate(tomorrowEST.getUTCDate() + 1);
     cacheSet(todayCacheKey, todayResult, tomorrowEST.getTime() - Date.now());
     res.json(todayResult);
