@@ -288,10 +288,10 @@ export default function StrengthProfilePage() {
                     <LineChart data={ex.data}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="date" tickFormatter={formatShortDate} tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 11 }} width={40} unit="kg" />
+                      <YAxis tick={{ fontSize: 11 }} width={45} unit=" lbs" />
                       <ChartTooltip
                         contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
-                        formatter={(v: any) => [`${v}kg`, 'Max Weight']}
+                        formatter={(v: any) => [`${v} lbs`, 'Max Weight']}
                         labelFormatter={formatShortDate}
                       />
                       <Line type="monotone" dataKey="maxWeightKg" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} />

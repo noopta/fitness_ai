@@ -228,9 +228,9 @@ function QuickLogModal({
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-bold uppercase text-muted-foreground block mb-1">Weight (kg)</label>
+                    <label className="text-[9px] font-bold uppercase text-muted-foreground block mb-1">Weight (lbs)</label>
                     <input
-                      type="number" min="0" step="0.5" placeholder="—"
+                      type="number" min="0" step="2.5" placeholder="—"
                       value={entry.weightKg}
                       onChange={e => update(i, 'weightKg', e.target.value)}
                       className="w-full rounded-lg border bg-background px-2 py-1.5 text-sm text-center outline-none focus:ring-1 focus:ring-primary"

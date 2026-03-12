@@ -124,11 +124,11 @@ function ExerciseRow({
           />
         </div>
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Weight (kg)</label>
+          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Weight (lbs)</label>
           <input
             type="number"
             min="0"
-            step="0.5"
+            step="2.5"
             placeholder="—"
             value={ex.weightKg ?? ''}
             onChange={e => update('weightKg', e.target.value === '' ? null : parseFloat(e.target.value))}
@@ -408,7 +408,7 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
                   <div className="flex flex-wrap gap-1 shrink-0 justify-end">
                     <Badge variant="secondary" className="text-[10px]">{ex.sets}×{ex.reps}</Badge>
                     {ex.weightKg != null && (
-                      <Badge variant="outline" className="text-[10px]">{ex.weightKg}kg</Badge>
+                      <Badge variant="outline" className="text-[10px]">{ex.weightKg} lbs</Badge>
                     )}
                     {ex.rpe != null && (
                       <Badge variant="outline" className="text-[10px]">RPE {ex.rpe}</Badge>
