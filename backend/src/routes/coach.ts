@@ -14,6 +14,17 @@ import { getExerciseVideo } from '../services/youtubeService.js';
 const router = Router();
 const prisma = new PrismaClient();
 
+// Returns the current calendar date string (YYYY-MM-DD) in America/New_York (EST/EDT).
+// The server runs UTC; without this, after 7 PM EST (midnight UTC) the "today" date flips a day early.
+function getESTDateString(date: Date = new Date()): string {
+  return date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // 'YYYY-MM-DD'
+}
+
+// Returns midnight UTC for a given EST calendar date, suitable for day-diff arithmetic.
+function estMidnight(date: Date = new Date()): Date {
+  return new Date(getESTDateString(date) + 'T00:00:00Z');
+}
+
 let twilioClient: ReturnType<typeof twilio> | null = null;
 if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN &&
     process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
@@ -466,7 +477,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     if (!user.savedProgram) return res.json({ program: null });
 
     // Cache key includes date + latest check-in id so new check-ins bust the cache
-    const dateKey = new Date().toISOString().slice(0, 10);
+    const dateKey = getESTDateString();
     const checkinId = user.wellnessCheckins[0]?.id || 'none';
     const todayCacheKey = `today:${req.user!.id}:${dateKey}:${checkinId}`;
     const cachedToday = cacheGet(todayCacheKey);
@@ -475,10 +486,10 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     const program = JSON.parse(user.savedProgram);
     const startDate = user.programStartDate || new Date();
 
-    // Calculate which week we're on (1-indexed)
-    // Anchor to calendar-day boundaries (midnight) so this matches the schedule endpoint
-    const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0);
-    const startMidnight = new Date(startDate); startMidnight.setHours(0, 0, 0, 0);
+    // Calculate which week we're on (1-indexed).
+    // Use EST calendar dates so the day doesn't flip before midnight EST.
+    const todayMidnight = estMidnight();
+    const startMidnight = estMidnight(new Date(startDate));
     const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
     const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
 
@@ -570,9 +581,10 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       nextTrainingDay,
       programGoal: program.goal,
     };
-    // Cache until midnight
-    const midnight = new Date(); midnight.setHours(24, 0, 0, 0);
-    cacheSet(todayCacheKey, todayResult, midnight.getTime() - Date.now());
+    // Cache until midnight EST
+    const tomorrowEST = new Date(getESTDateString() + 'T00:00:00Z');
+    tomorrowEST.setUTCDate(tomorrowEST.getUTCDate() + 1);
+    cacheSet(todayCacheKey, todayResult, tomorrowEST.getTime() - Date.now());
     res.json(todayResult);
   } catch (err) {
     console.error('Today endpoint error:', err);
@@ -611,8 +623,8 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
     if (user.savedProgram) {
       const program = JSON.parse(user.savedProgram);
       const startDate = user.programStartDate || new Date();
-      const _todayMid = new Date(); _todayMid.setHours(0, 0, 0, 0);
-      const _startMid = new Date(startDate); _startMid.setHours(0, 0, 0, 0);
+      const _todayMid = estMidnight();
+      const _startMid = estMidnight(new Date(startDate));
       const daysSinceStart = Math.floor((_todayMid.getTime() - _startMid.getTime()) / (1000 * 60 * 60 * 24));
       const wk = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
       weekNumber = wk;
@@ -635,18 +647,17 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
       isRestDay = !session;
       todaySession = session ? { day: session.day, focus: session.focus } : null;
 
-      // Build week schedule preview (Mon–Sun)
-      const today = new Date();
-      const dow = today.getDay();
+      // Build week schedule preview (Mon–Sun) using EST dates
+      const todayEST = estMidnight();
+      const dow = new Date(getESTDateString() + 'T12:00:00Z').getUTCDay();
       const mondayOffset = dow === 0 ? -6 : 1 - dow;
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + mondayOffset);
-      monday.setHours(0, 0, 0, 0);
+      const monday = new Date(todayEST);
+      monday.setUTCDate(todayEST.getUTCDate() + mondayOffset);
       const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
       for (let i = 0; i < 7; i++) {
         const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        const daysForDate = Math.floor((date.getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
+        date.setUTCDate(monday.getUTCDate() + i);
+        const daysForDate = Math.floor((date.getTime() - estMidnight(new Date(startDate)).getTime()) / (1000 * 60 * 60 * 24));
         const diw = ((daysForDate % 7) + 7) % 7;
         const s = diw < totalDays ? trainingDays[diw] : null;
         weekSchedule.push({ dayLabel: DAY_LABELS[i], isTrainingDay: !!s, sessionName: s?.day });
@@ -711,9 +722,9 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
     const program = JSON.parse(user.savedProgram);
     const startDate = user.programStartDate || new Date();
 
-    // Midnight-anchor both today and start to match the /coach/today endpoint logic
-    const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0);
-    const startMidnight = new Date(startDate); startMidnight.setHours(0, 0, 0, 0);
+    // Use EST calendar dates so the week view doesn't flip at midnight UTC
+    const todayMidnight = estMidnight();
+    const startMidnight = estMidnight(new Date(startDate));
     const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
     const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
 
@@ -731,32 +742,31 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
     const trainingDays = currentPhase?.trainingDays || [];
     const totalDays = trainingDays.length;
 
-    // Start of current week (Sunday)
-    const today = new Date();
-    const dow = today.getDay(); // 0=Sun
+    // Start of current week (Sunday) in EST
+    const dow = new Date(getESTDateString() + 'T12:00:00Z').getUTCDay(); // 0=Sun
     const sunday = new Date(todayMidnight);
-    sunday.setDate(todayMidnight.getDate() - dow);
+    sunday.setUTCDate(todayMidnight.getUTCDate() - dow);
 
     const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const weekDays = [];
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(sunday);
-      date.setDate(sunday.getDate() + i);
+      date.setUTCDate(sunday.getUTCDate() + i);
 
-      // Both date and startMidnight are midnight-anchored — no fractional-day rounding errors
       const daysForDate = Math.floor(
         (date.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24)
       );
       const dayInWeek = ((daysForDate % 7) + 7) % 7;
       const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+      const dateEST = date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
       weekDays.push({
         date: date.toISOString(),
         dayLabel: DAY_LABELS[i],
-        dateNumber: date.getDate(),
-        monthLabel: date.toLocaleDateString('en-US', { month: 'short' }),
-        isToday: date.toDateString() === today.toDateString(),
+        dateNumber: parseInt(dateEST.split('-')[2]),
+        monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),
+        isToday: dateEST === getESTDateString(),
         isTrainingDay: !!session,
         session: session || null,
       });
