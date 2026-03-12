@@ -107,9 +107,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (token) {
           await setToken(token);
-          await refreshUser();
+          try {
+            const data = await authApi.getMe();
+            setUser(data.user);
+          } catch (err: any) {
+            await clearToken();
+            Alert.alert('Sign In Failed', 'Could not verify your account. Please try again.');
+          }
         } else if (authParam === 'error') {
           Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
+        } else if (result.type === 'success') {
+          Alert.alert('Sign In Failed', 'No token received. Please try again.');
         }
       }
     } catch (err: any) {
