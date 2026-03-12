@@ -187,7 +187,7 @@ export function FullScheduleModal({ onClose }: Props) {
 
           {/* Phase legend */}
           {program && (
-            <div className="px-5 pt-4 pb-2 flex flex-wrap gap-2 shrink-0">
+            <div className="px-3 sm:px-5 pt-4 pb-2 flex flex-wrap gap-2 shrink-0">
               {program.phases.map((phase, i) => {
                 const color = PHASE_COLORS[i % PHASE_COLORS.length];
                 return (
@@ -202,7 +202,7 @@ export function FullScheduleModal({ onClose }: Props) {
           )}
 
           {/* Scrollable calendar body */}
-          <div className="overflow-y-auto flex-1 px-5 pb-6">
+          <div className="overflow-y-auto flex-1 px-3 sm:px-5 pb-6">
             {loading && (
               <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
                 Loading program…
@@ -264,7 +264,7 @@ export function FullScheduleModal({ onClose }: Props) {
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         Week {week.weekNumber}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] text-muted-foreground hidden sm:inline">
                         {formatShortDate(week.startDate)} – {formatShortDate(week.endDate)}
                       </span>
                     </div>
@@ -293,12 +293,16 @@ export function FullScheduleModal({ onClose }: Props) {
                           <span className={`text-base font-bold leading-none ${day.isToday ? 'text-white' : ''}`}>
                             {day.date.getDate()}
                           </span>
-                          <span className={`text-[8px] font-bold uppercase mt-1 ${day.isToday ? 'text-zinc-300' : ''}`}>
-                            {day.isTraining
-                              ? (day.trainingDay?.focus?.split(' ').slice(0, 2).join(' ') || 'Lift')
-                              : <Moon className="h-2.5 w-2.5 inline opacity-50" />
-                            }
-                          </span>
+                          {day.isTraining ? (
+                            <>
+                              <Dumbbell className={`h-3 w-3 mt-1 sm:hidden ${day.isToday ? 'text-zinc-300' : 'opacity-60'}`} />
+                              <span className={`text-[8px] font-bold uppercase mt-1 hidden sm:block truncate max-w-full leading-none ${day.isToday ? 'text-zinc-300' : ''}`}>
+                                {day.trainingDay?.focus?.split(' ').slice(0, 2).join(' ') || 'Lift'}
+                              </span>
+                            </>
+                          ) : (
+                            <Moon className={`h-2.5 w-2.5 mt-1 opacity-50 ${day.isToday ? 'text-zinc-300' : ''}`} />
+                          )}
                         </div>
                       ))}
                     </div>

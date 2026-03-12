@@ -118,11 +118,13 @@ function QuickLogModal({
   session,
   date,
   onClose,
+  onSaved,
 }: {
   session: { day: string; focus: string; exercises: Array<{ exercise: string; sets: number; reps: string; intensity: string }> };
   /** YYYY-MM-DD in EST. Defaults to today. */
   date?: string;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   // Default to today in the user's local timezone
   const todayLocal = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
@@ -164,6 +166,7 @@ function QuickLogModal({
 
       if (!res.ok) throw new Error();
       toast.success(isToday ? 'Workout logged!' : 'Workout logged for ' + logDate + '!');
+      onSaved?.();
       onClose();
     } catch {
       toast.error('Failed to save. Please try again.');
@@ -265,11 +268,12 @@ function QuickLogModal({
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 
-function WorkoutDayModal({ day, onClose, onExerciseClick, onLog }: {
+function WorkoutDayModal({ day, onClose, onExerciseClick, onLog, isLogged }: {
   day: WeekDay;
   onClose: () => void;
   onExerciseClick: (ex: ExerciseDetail) => void;
   onLog: () => void;
+  isLogged?: boolean;
 }) {
   const session = day.session;
   const todayLocal = new Date().toLocaleDateString('en-CA');
@@ -301,12 +305,20 @@ function WorkoutDayModal({ day, onClose, onExerciseClick, onLog }: {
               <h3 className="text-lg font-bold">{session?.day || 'Rest Day'}</h3>
               {session?.focus && <p className="text-xs text-muted-foreground mt-0.5">{session.focus}</p>}
             </div>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              {isLogged && (
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-green-600 dark:text-green-400 bg-green-500/10 rounded-full px-2.5 py-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Logged
+                </span>
+              )}
+              <button
+                onClick={onClose}
+                className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {session?.exercises && session.exercises.length > 0 ? (
@@ -409,6 +421,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
   const [todayData, setTodayData] = useState<TodayData | null>(null);
   const [todayLoading, setTodayLoading] = useState(true);
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
+  const [loggedDates, setLoggedDates] = useState<Set<string>>(new Set());
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [showLifeHappened, setShowLifeHappened] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
@@ -416,6 +429,13 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
   const [showQuickLog, setShowQuickLog] = useState(false);
   // When logging from a selected schedule day (may be past, today, or today's card)
   const [quickLogDay, setQuickLogDay] = useState<WeekDay | null>(null);
+
+  function refreshLoggedDates() {
+    authFetch(`${API_BASE}/workouts`)
+      .then(r => r.json())
+      .then((logs: Array<{ date: string }>) => setLoggedDates(new Set(logs.map(l => l.date))))
+      .catch(() => {});
+  }
 
   const latest = sessions[0];
   const latestPlan = latest?.plan;
@@ -437,6 +457,10 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
       .catch(() => {})
       .finally(() => setInsightLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (hasSavedProgram) refreshLoggedDates();
+  }, [hasSavedProgram]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!hasSavedProgram) { setTodayLoading(false); return; }
@@ -671,34 +695,44 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
         {/* Day tiles */}
         {days.length > 0 ? (
           <div className="grid grid-cols-7 gap-1">
-            {days.map((day, i) => (
-              <button
-                key={i}
-                onClick={() => setSelectedDay(day)}
-                className={[
-                  'rounded-xl px-0.5 py-2 flex flex-col items-center gap-1 text-center transition-all',
-                  day.isToday
-                    ? 'bg-zinc-900 text-white'
-                    : 'bg-muted/50 hover:bg-muted text-foreground',
-                  'cursor-pointer',
-                ].join(' ')}
-              >
-                <span className={`text-[9px] font-semibold ${day.isToday ? 'text-zinc-400' : 'text-muted-foreground'}`}>
-                  {day.dayLabel}
-                </span>
-                <span className="text-base font-bold leading-none">{day.dateNumber}</span>
-                <span
+            {days.map((day, i) => {
+              const dateStr = new Date(day.date).toLocaleDateString('en-CA');
+              const isLogged = day.isTrainingDay && loggedDates.has(dateStr);
+              return (
+                <button
+                  key={i}
+                  onClick={() => setSelectedDay(day)}
                   className={[
-                    'text-[8px] font-bold uppercase rounded-full px-1 py-0.5 mt-0.5',
-                    day.isTrainingDay
-                      ? day.isToday ? 'bg-green-500/30 text-green-300' : 'bg-green-500/15 text-green-600 dark:text-green-400'
-                      : day.isToday ? 'bg-zinc-700 text-zinc-400' : 'bg-muted text-muted-foreground',
+                    'rounded-xl px-0.5 py-2 flex flex-col items-center gap-1 text-center transition-all',
+                    day.isToday
+                      ? 'bg-zinc-900 text-white'
+                      : isLogged
+                      ? 'bg-green-500/10 hover:bg-green-500/15 text-foreground'
+                      : 'bg-muted/50 hover:bg-muted text-foreground',
+                    'cursor-pointer',
                   ].join(' ')}
                 >
-                  {day.isTrainingDay ? 'Lift' : 'Rest'}
-                </span>
-              </button>
-            ))}
+                  <span className={`text-[9px] font-semibold ${day.isToday ? 'text-zinc-400' : 'text-muted-foreground'}`}>
+                    {day.dayLabel}
+                  </span>
+                  <span className="text-base font-bold leading-none">{day.dateNumber}</span>
+                  {isLogged ? (
+                    <CheckCircle2 className={`h-3.5 w-3.5 mt-0.5 ${day.isToday ? 'text-green-400' : 'text-green-500'}`} />
+                  ) : (
+                    <span
+                      className={[
+                        'text-[8px] font-bold uppercase rounded-full px-1 py-0.5 mt-0.5',
+                        day.isTrainingDay
+                          ? day.isToday ? 'bg-green-500/30 text-green-300' : 'bg-green-500/15 text-green-600 dark:text-green-400'
+                          : day.isToday ? 'bg-zinc-700 text-zinc-400' : 'bg-muted text-muted-foreground',
+                      ].join(' ')}
+                    >
+                      {day.isTrainingDay ? 'Lift' : 'Rest'}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center py-6 gap-2 text-muted-foreground">
@@ -974,6 +1008,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
       {selectedDay && (
         <WorkoutDayModal
           day={selectedDay}
+          isLogged={selectedDay.isTrainingDay && loggedDates.has(new Date(selectedDay.date).toLocaleDateString('en-CA'))}
           onClose={() => setSelectedDay(null)}
           onExerciseClick={(ex) => { setSelectedDay(null); setSelectedExercise(ex); }}
           onLog={() => { setQuickLogDay(selectedDay); setSelectedDay(null); }}
@@ -987,7 +1022,11 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
 
       {/* Quick log modal — from Today's workout card */}
       {showQuickLog && todayData?.todaySession && (
-        <QuickLogModal session={todayData.todaySession} onClose={() => setShowQuickLog(false)} />
+        <QuickLogModal
+          session={todayData.todaySession}
+          onSaved={refreshLoggedDates}
+          onClose={() => setShowQuickLog(false)}
+        />
       )}
 
       {/* Quick log modal — from schedule day tile */}
@@ -995,6 +1034,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
         <QuickLogModal
           session={quickLogDay.session}
           date={new Date(quickLogDay.date).toLocaleDateString('en-CA')}
+          onSaved={refreshLoggedDates}
           onClose={() => setQuickLogDay(null)}
         />
       )}

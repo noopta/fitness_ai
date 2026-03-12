@@ -9,6 +9,32 @@ export interface VideoData {
   thumbnail: string;
 }
 
+async function searchYouTube(exerciseName: string, suffix: string, apiKey: string): Promise<VideoData | null> {
+  const query = encodeURIComponent(`${exerciseName} ${suffix}`);
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json() as any;
+
+  if (data.error) {
+    const code = data.error.code;
+    if (code === 403) {
+      console.error('YouTube API quota exceeded or access forbidden:', data.error.message);
+    } else {
+      console.error('YouTube API error:', code, data.error.message);
+    }
+    return null;
+  }
+
+  if (!data.items || data.items.length === 0) return null;
+
+  const item = data.items[0];
+  return {
+    videoId: item.id.videoId,
+    title: item.snippet.title,
+    thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+  };
+}
+
 export async function getExerciseVideo(exerciseId: string, exerciseName: string): Promise<VideoData | null> {
   // Check cache first
   const cached = await prisma.videoCache.findUnique({ where: { exerciseId } });
@@ -26,26 +52,24 @@ export async function getExerciseVideo(exerciseId: string, exerciseName: string)
   }
 
   try {
-    const query = encodeURIComponent(`${exerciseName} exercise tutorial form`);
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${apiKey}`;
-    const res = await fetch(url);
-    const data = await res.json() as any;
+    // Primary search — specific query
+    let video = await searchYouTube(exerciseName, 'exercise tutorial form', apiKey);
 
-    if (!data.items || data.items.length === 0) return null;
+    // Fallback — simpler query if primary returns nothing
+    if (!video) {
+      video = await searchYouTube(exerciseName, 'exercise how to', apiKey);
+    }
 
-    const item = data.items[0];
-    const videoId = item.id.videoId;
-    const title = item.snippet.title;
-    const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '';
+    if (!video) return null;
 
     // Upsert cache
     await prisma.videoCache.upsert({
       where: { exerciseId },
-      create: { exerciseId, videoId, title, thumbnail },
-      update: { videoId, title, thumbnail, fetchedAt: new Date() }
+      create: { exerciseId, videoId: video.videoId, title: video.title, thumbnail: video.thumbnail },
+      update: { videoId: video.videoId, title: video.title, thumbnail: video.thumbnail, fetchedAt: new Date() }
     });
 
-    return { videoId, title, thumbnail };
+    return video;
   } catch (err) {
     console.error('YouTube fetch error:', err);
     return null;
