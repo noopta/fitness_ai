@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { cacheDelete } from '../services/cacheService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -31,12 +32,14 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
         where: { id: existing.id },
         data,
       });
+      cacheDelete(`userctx:${userId}`);
       return res.json(updated);
     }
 
     const created = await prisma.nutritionLog.create({
       data: { userId, ...data },
     });
+    cacheDelete(`userctx:${userId}`);
     res.status(201).json(created);
   } catch (err: any) {
     console.error('Nutrition log error:', err);

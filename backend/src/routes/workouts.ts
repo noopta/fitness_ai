@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { cacheDelete } from '../services/cacheService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -75,6 +76,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
       },
     });
 
+    cacheDelete(`userctx:${req.user!.id}`);
     res.status(201).json({ ...log, exercises });
   } catch (err) {
     console.error('Create workout error:', err);
@@ -107,6 +109,7 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
       },
     });
 
+    cacheDelete(`userctx:${req.user!.id}`);
     res.json({ ...updated, exercises });
   } catch (err) {
     console.error('Update workout error:', err);

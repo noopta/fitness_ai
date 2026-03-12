@@ -10,6 +10,7 @@ import {
   generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal,
 } from '../services/llmService.js';
+import { buildRAGContext } from '../services/ragService.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
@@ -165,7 +166,185 @@ router.post('/coach/chat', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/coach/chat/stream - Streaming chat with gpt-4o-mini via SSE
+// ─── Full user context builder for streaming chat ─────────────────────────────
+// Cached per user (TTL: 90 min). Bust on any data write.
+const USER_CTX_TTL = 90 * 60 * 1000;
+
+async function buildFullUserContext(userId: string): Promise<string> {
+  const cacheKey = `userctx:${userId}`;
+  const cached = cacheGet<string>(cacheKey);
+  if (cached) return cached;
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().slice(0, 10);
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+  const fourteenDaysAgoStr = fourteenDaysAgo.toISOString().slice(0, 10);
+
+  const [user, workoutLogs, nutritionLogs, wellnessCheckins, bodyWeightLogs] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        sessions: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            plans: { orderBy: { createdAt: 'desc' }, take: 1 },
+            snapshots: true,
+          },
+        },
+      },
+    }),
+    prisma.workoutLog.findMany({
+      where: { userId, date: { gte: thirtyDaysAgoStr } },
+      orderBy: { date: 'desc' },
+    }),
+    prisma.nutritionLog.findMany({
+      where: { userId, date: { gte: fourteenDaysAgoStr } },
+      orderBy: { date: 'desc' },
+    }),
+    prisma.wellnessCheckin.findMany({
+      where: { userId, date: { gte: fourteenDaysAgoStr } },
+      orderBy: { date: 'desc' },
+    }),
+    prisma.bodyWeightLog.findMany({
+      where: { userId, date: { gte: thirtyDaysAgoStr } },
+      orderBy: { date: 'desc' },
+    }),
+  ]);
+
+  if (!user) return '';
+
+  const lines: string[] = [];
+  lines.push('=== ATHLETE PROFILE ===');
+  if (user.name) lines.push(`Name: ${user.name}`);
+  if (user.email) lines.push(`Email: ${user.email}`);
+  if (user.trainingAge) lines.push(`Training age: ${user.trainingAge}`);
+  if (user.equipment) lines.push(`Equipment: ${user.equipment}`);
+  if (user.constraintsText) lines.push(`Constraints/injuries: ${user.constraintsText}`);
+  if (user.weightKg) lines.push(`Body weight: ${user.weightKg} kg (${Math.round(user.weightKg * 2.205)} lbs)`);
+  if (user.heightCm) lines.push(`Height: ${user.heightCm} cm`);
+  if (user.coachGoal) lines.push(`Primary goal: ${user.coachGoal}`);
+  if (user.coachBudget) lines.push(`Weekly food budget: ${user.coachBudget}`);
+  if (user.coachProfile) lines.push(`Coach profile notes: ${user.coachProfile}`);
+
+  // Active training program
+  if (user.savedProgram) {
+    try {
+      const prog = JSON.parse(user.savedProgram);
+      lines.push('\n=== ACTIVE TRAINING PROGRAM ===');
+      if (prog.programName) lines.push(`Program: ${prog.programName}`);
+      if (prog.weeksTotal) lines.push(`Duration: ${prog.weeksTotal} weeks`);
+      if (prog.daysPerWeek) lines.push(`Days/week: ${prog.daysPerWeek}`);
+      if (prog.primaryGoal) lines.push(`Goal: ${prog.primaryGoal}`);
+      if (prog.coachNote) lines.push(`Coach note: ${prog.coachNote}`);
+      if (prog.weeks && Array.isArray(prog.weeks)) {
+        lines.push('Weeks:');
+        for (const week of prog.weeks.slice(0, 4)) {
+          lines.push(`  Week ${week.weekNumber} (${week.focus || ''}): ${week.days?.length || 0} training days`);
+          if (week.days) {
+            for (const day of week.days) {
+              const exNames = (day.exercises || []).map((e: any) => e.exercise).join(', ');
+              lines.push(`    ${day.day}: ${day.sessionType || ''} — ${exNames}`);
+            }
+          }
+        }
+      }
+      if (prog.nutritionPlan) {
+        const n = prog.nutritionPlan;
+        lines.push(`Nutrition plan: ${n.calories} kcal — P:${n.proteinG}g C:${n.carbsG}g F:${n.fatG}g`);
+        if (n.mealTiming) lines.push(`Meal timing: ${n.mealTiming}`);
+      }
+    } catch { /* skip bad JSON */ }
+  }
+
+  // Diagnostic sessions
+  if (user.sessions.length > 0) {
+    lines.push('\n=== DIAGNOSTIC ANALYSIS HISTORY ===');
+    for (const s of user.sessions) {
+      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      lines.push(`\n--- ${s.selectedLift.replace(/_/g, ' ').toUpperCase()} (${new Date(s.createdAt).toLocaleDateString()}) ---`);
+      if (s.snapshots.length > 0) {
+        lines.push('  Working weights logged:');
+        for (const snap of s.snapshots) {
+          lines.push(`    ${snap.exerciseId}: ${snap.weight} lbs × ${snap.sets}×${snap.repsSchema}${snap.rpeOrRir ? ` @ RPE ${snap.rpeOrRir}` : ''}`);
+        }
+      }
+      if (plan?.diagnosis?.length > 0) {
+        lines.push('  Limiters identified:');
+        for (const d of plan.diagnosis) {
+          lines.push(`    [${Math.round((d.confidence || 0) * 100)}%] ${d.limiterName}: ${(d.evidence || []).join('; ')}`);
+        }
+      }
+      if (plan?.dominance_archetype) lines.push(`  Archetype: ${plan.dominance_archetype.label}`);
+      if (plan?.diagnostic_signals?.efficiency_score?.score != null) {
+        lines.push(`  Muscle balance score: ${plan.diagnostic_signals.efficiency_score.score}/100`);
+      }
+      if (plan?.diagnostic_signals?.primary_phase) {
+        lines.push(`  Primary weak phase: ${plan.diagnostic_signals.primary_phase}`);
+      }
+      if (plan?.bench_day_plan?.accessories?.length > 0) {
+        lines.push('  Prescribed accessories:');
+        for (const a of plan.bench_day_plan.accessories) {
+          lines.push(`    ${a.exercise_name}: ${a.sets}×${a.reps} — ${a.why}`);
+        }
+      }
+      if (plan?.progression_rules?.length > 0) {
+        lines.push(`  Progression: ${plan.progression_rules.join('; ')}`);
+      }
+    }
+  }
+
+  // Recent workout logs
+  if (workoutLogs.length > 0) {
+    lines.push('\n=== RECENT WORKOUT LOGS (last 30 days) ===');
+    for (const log of workoutLogs) {
+      const exs: any[] = JSON.parse(log.exercises);
+      const summary = exs.map((e: any) =>
+        `${e.name} ${e.sets}×${e.reps}${e.weightKg != null ? ` @ ${e.weightKg} lbs` : ''}${e.rpe ? ` RPE ${e.rpe}` : ''}`
+      ).join(' | ');
+      lines.push(`  ${log.date} — ${log.title || 'Workout'}: ${summary}`);
+      if (log.notes) lines.push(`    Notes: ${log.notes}`);
+    }
+  }
+
+  // Nutrition logs
+  if (nutritionLogs.length > 0) {
+    lines.push('\n=== NUTRITION LOGS (last 14 days) ===');
+    for (const log of nutritionLogs) {
+      lines.push(`  ${log.date}: ${Math.round(log.calories)} kcal — P:${log.proteinG}g C:${log.carbsG}g F:${log.fatG}g${log.notes ? ` (${log.notes})` : ''}`);
+    }
+  }
+
+  // Wellness check-ins
+  if (wellnessCheckins.length > 0) {
+    lines.push('\n=== WELLNESS CHECK-INS (last 14 days) ===');
+    for (const c of wellnessCheckins) {
+      lines.push(`  ${c.date}: mood ${c.mood}/5, energy ${c.energy}/5, sleep ${c.sleepHours}h, stress ${c.stress}/5`);
+    }
+  }
+
+  // Body weight trend
+  if (bodyWeightLogs.length > 0) {
+    lines.push('\n=== BODY WEIGHT LOG (last 30 days) ===');
+    const recent = bodyWeightLogs.slice(0, 5);
+    for (const w of recent) {
+      lines.push(`  ${w.date}: ${w.weightLbs} lbs${w.notes ? ` (${w.notes})` : ''}`);
+    }
+    if (bodyWeightLogs.length > 5) {
+      const oldest = bodyWeightLogs[bodyWeightLogs.length - 1].weightLbs;
+      const newest = bodyWeightLogs[0].weightLbs;
+      const delta = newest - oldest;
+      lines.push(`  Trend: ${delta >= 0 ? '+' : ''}${delta.toFixed(1)} lbs over ${bodyWeightLogs.length} entries`);
+    }
+  }
+
+  const ctx = lines.join('\n');
+  cacheSet(cacheKey, ctx, USER_CTX_TTL);
+  return ctx;
+}
+
+// POST /api/coach/chat/stream - Streaming chat with gpt-4.1-mini via SSE
 router.post('/coach/chat/stream', requireAuth, async (req, res) => {
   try {
     if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
@@ -178,31 +357,20 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     };
     if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      include: {
-        sessions: {
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } }
-        }
-      }
-    });
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const sessionSummaries = user.sessions.map(s => {
-      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
-      return `- ${s.selectedLift}: ${plan?.diagnosis?.[0]?.limiterName ?? 'analyzed'} (${plan?.diagnosis?.[0]?.confidence ?? '?'}% confidence)`;
-    }).join('\n');
+    // Build full user context (cached, DB hit only on cold cache) + RAG in parallel
+    const [userContext, ragContext] = await Promise.all([
+      buildFullUserContext(req.user!.id),
+      buildRAGContext(message, 3),
+    ]);
 
     const systemPrompt = [
-      `You are Anakin, an expert AI strength coach. Be concise, practical, and encouraging.`,
-      user.name ? `User: ${user.name}` : '',
-      user.trainingAge ? `Training age: ${user.trainingAge}` : '',
-      user.equipment ? `Equipment: ${user.equipment}` : '',
-      user.constraintsText ? `Constraints: ${user.constraintsText}` : '',
-      sessionSummaries ? `Recent analyses:\n${sessionSummaries}` : '',
-    ].filter(Boolean).join('\n');
+      `You are Anakin, an expert AI strength and fitness coach with expertise equivalent to NSCA-CSCS, ACE, and ISSN certifications.`,
+      `You have full access to this athlete's complete profile, training history, nutrition data, wellness check-ins, and active program below.`,
+      `Reference specific data from their profile when relevant. Be direct, evidence-based, practical, and encouraging.`,
+      `Use markdown formatting for structured responses. All weights are in lbs.`,
+      userContext,
+      ragContext || '',
+    ].filter(Boolean).join('\n\n');
 
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
@@ -219,7 +387,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
       model: 'gpt-4.1-mini',
       messages,
       stream: true,
-      max_tokens: 600,
+      max_tokens: 800,
     });
 
     for await (const chunk of stream) {
@@ -529,6 +697,7 @@ router.put('/coach/program', requireAuth, async (req, res) => {
     cacheClearByPrefix(`today:${req.user!.id}:`);
     cacheClearByPrefix(`schedule:${req.user!.id}:`);
     cacheClearByPrefix(`dashboard:${req.user!.id}:`);
+    cacheDelete(`userctx:${req.user!.id}`);
 
     res.json({ success: true });
   } catch (err) {
@@ -786,10 +955,11 @@ router.post('/coach/apply-adjustment', requireAuth, async (req, res) => {
       data: { programStartDate: newStart },
     });
 
-    // Bust schedule/today/dashboard caches since start date changed
+    // Bust schedule/today/dashboard/userctx caches since start date changed
     cacheClearByPrefix(`today:${req.user!.id}:`);
     cacheClearByPrefix(`schedule:${req.user!.id}:`);
     cacheClearByPrefix(`dashboard:${req.user!.id}:`);
+    cacheDelete(`userctx:${req.user!.id}`);
 
     res.json({ success: true, newProgramStartDate: newStart.toISOString() });
   } catch (err) {
@@ -1051,6 +1221,7 @@ router.post('/coach/body-weight', requireAuth, async (req, res) => {
         data: { userId, date, weightLbs, notes: notes || null },
       });
     }
+    cacheDelete(`userctx:${userId}`);
     res.json(entry);
   } catch (err: any) {
     console.error('Body weight log error:', err);
