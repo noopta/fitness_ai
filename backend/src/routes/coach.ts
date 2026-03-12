@@ -3,12 +3,15 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import twilio from 'twilio';
+import OpenAI from 'openai';
 import { cacheGet, cacheSet, cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal,
 } from '../services/llmService.js';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
 
 const router = Router();
@@ -159,6 +162,82 @@ router.post('/coach/chat', requireAuth, async (req, res) => {
   } catch (err: any) {
     console.error('Coach chat error:', err);
     res.status(500).json({ error: err.message || 'Coach chat failed' });
+  }
+});
+
+// POST /api/coach/chat/stream - Streaming chat with gpt-4o-mini via SSE
+router.post('/coach/chat/stream', requireAuth, async (req, res) => {
+  try {
+    if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
+      return res.status(403).json({ error: 'AI Coach is a pro feature', upgrade: true });
+    }
+
+    const { message, history } = req.body as {
+      message: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+    };
+    if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      include: {
+        sessions: {
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } }
+        }
+      }
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const sessionSummaries = user.sessions.map(s => {
+      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      return `- ${s.selectedLift}: ${plan?.diagnosis?.[0]?.limiterName ?? 'analyzed'} (${plan?.diagnosis?.[0]?.confidence ?? '?'}% confidence)`;
+    }).join('\n');
+
+    const systemPrompt = [
+      `You are Anakin, an expert AI strength coach. Be concise, practical, and encouraging.`,
+      user.name ? `User: ${user.name}` : '',
+      user.trainingAge ? `Training age: ${user.trainingAge}` : '',
+      user.equipment ? `Equipment: ${user.equipment}` : '',
+      user.constraintsText ? `Constraints: ${user.constraintsText}` : '',
+      sessionSummaries ? `Recent analyses:\n${sessionSummaries}` : '',
+    ].filter(Boolean).join('\n');
+
+    const messages: OpenAI.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt },
+      ...((history ?? []).slice(-12) as OpenAI.ChatCompletionMessageParam[]),
+      { role: 'user', content: message },
+    ];
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages,
+      stream: true,
+      max_tokens: 600,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content ?? '';
+      if (text) {
+        res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
+      }
+    }
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err: any) {
+    console.error('Coach stream error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message || 'Stream failed' });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: err.message ?? 'Stream error' })}\n\n`);
+      res.end();
+    }
   }
 });
 

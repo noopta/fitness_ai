@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Pressable,
   TouchableOpacity,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
@@ -69,6 +71,158 @@ interface OverviewTabProps {
   onRefresh?: () => void;
 }
 
+// ─── Day Workout Sheet ────────────────────────────────────────────────────────
+
+const SHEET_HEIGHT = Dimensions.get('window').height * 0.72;
+
+function DayWorkoutSheet({
+  day,
+  visible,
+  onClose,
+  onLogged,
+}: {
+  day: WeekDay;
+  visible: boolean;
+  onClose: () => void;
+  onLogged: () => void;
+}) {
+  const [logVisible, setLogVisible] = useState(false);
+
+  const exercises = day.session?.exercises ?? [];
+  const isRestDay = !day.isTrainingDay;
+
+  return (
+    <>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+        <Pressable style={sheet.overlay} onPress={onClose}>
+          <View style={sheet.spacer} />
+        </Pressable>
+        <View style={sheet.container}>
+          <View style={sheet.handle} />
+          <View style={sheet.header}>
+            <View>
+              <Text style={sheet.dayLabel}>
+                {day.dayLabel} · {day.monthLabel} {day.dateNumber}
+              </Text>
+              <Text style={sheet.title}>
+                {isRestDay ? 'Rest Day' : (day.session?.focus ?? day.session?.day ?? 'Training Day')}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={onClose} style={sheet.closeBtn}>
+              <Ionicons name="close" size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={sheet.body}
+            contentContainerStyle={sheet.bodyContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {isRestDay ? (
+              <View style={sheet.restBox}>
+                <Ionicons name="moon-outline" size={32} color="#8b5cf6" />
+                <Text style={sheet.restText}>Rest & Recovery Day</Text>
+              </View>
+            ) : exercises.length === 0 ? (
+              <Text style={sheet.emptyText}>No exercises defined for this day.</Text>
+            ) : (
+              <>
+                <Text style={sheet.sectionTitle}>EXERCISES</Text>
+                {exercises.map((ex, i) => (
+                  <View key={i} style={[sheet.exRow, i < exercises.length - 1 && sheet.exRowBorder]}>
+                    <Text style={sheet.exName}>{ex.exercise ?? ex.name ?? `Exercise ${i + 1}`}</Text>
+                    <View style={sheet.exMeta}>
+                      {ex.sets && ex.reps ? (
+                        <Text style={sheet.exSets}>{ex.sets} × {ex.reps}</Text>
+                      ) : null}
+                      {ex.intensity ? (
+                        <Text style={sheet.exIntensity}>{ex.intensity}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
+          </ScrollView>
+
+          {!isRestDay && (
+            <View style={sheet.footer}>
+              <TouchableOpacity
+                style={sheet.logBtn}
+                onPress={() => setLogVisible(true)}
+              >
+                <Ionicons name="barbell-outline" size={16} color="#fff" />
+                <Text style={sheet.logBtnText}>Log This Workout</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </Modal>
+
+      <WorkoutLogModal
+        visible={logVisible}
+        onClose={() => setLogVisible(false)}
+        onSaved={() => { setLogVisible(false); onLogged(); }}
+        todayExercises={exercises}
+        date={day.date}
+        workoutTitle={day.session?.focus ?? day.session?.day ?? undefined}
+      />
+    </>
+  );
+}
+
+const sheet = StyleSheet.create({
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+  spacer: { flex: 1 },
+  container: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: SHEET_HEIGHT,
+    paddingBottom: 34,
+  },
+  handle: {
+    width: 40, height: 4, borderRadius: radius.full,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dayLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, marginBottom: 2 },
+  title: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
+  closeBtn: { padding: 4 },
+  body: { flex: 1 },
+  bodyContent: { padding: spacing.md, gap: spacing.sm },
+  sectionTitle: {
+    fontSize: 10, fontWeight: fontWeight.bold, color: colors.mutedForeground,
+    letterSpacing: 0.8, marginBottom: 4,
+  },
+  exRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
+  exRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
+  exName: { flex: 1, fontSize: fontSize.sm, color: colors.foreground, marginRight: spacing.sm },
+  exMeta: { alignItems: 'flex-end', gap: 2 },
+  exSets: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.primary },
+  exIntensity: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  restBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+  restText: { fontSize: fontSize.base, color: '#8b5cf6', fontWeight: fontWeight.medium },
+  emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', paddingVertical: spacing.lg },
+  footer: { padding: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
+  logBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: spacing.xs, backgroundColor: colors.primary,
+    borderRadius: radius.lg, paddingVertical: 14,
+  },
+  logBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
+});
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTabProps) {
@@ -79,6 +233,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   const [lifeHappenedVisible, setLifeHappenedVisible] = useState(false);
   const [logWorkoutVisible, setLogWorkoutVisible] = useState(false);
   const [workoutSaved, setWorkoutSaved] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
+  const [pastLogVisible, setPastLogVisible] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -219,7 +375,13 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                   </CardTitle>
                 </View>
                 {todayData?.todaySession?.focus && todayData.todaySession.day && (
-                  <Badge variant="default">{todayData.todaySession.focus}</Badge>
+                  <View style={styles.focusBadgeWrap}>
+                    <Badge variant="default">
+                      {todayData.todaySession.focus.length > 18
+                        ? todayData.todaySession.focus.slice(0, 18) + '…'
+                        : todayData.todaySession.focus}
+                    </Badge>
+                  </View>
                 )}
               </View>
               {todayData?.weekNumber != null && (
@@ -298,8 +460,10 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                 contentContainerStyle={styles.scheduleScroll}
               >
                 {scheduleData!.weekDays.map((day, i) => (
-                  <View
+                  <TouchableOpacity
                     key={i}
+                    activeOpacity={0.7}
+                    onPress={() => { setSelectedDay(day); setPastLogVisible(true); }}
                     style={[
                       styles.dayCell,
                       day.isToday && styles.dayCellToday,
@@ -332,7 +496,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                     ) : !day.isTrainingDay ? (
                       <Text style={[styles.dayFocus, { color: colors.mutedForeground }]}>Rest</Text>
                     ) : null}
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </ScrollView>
             </CardContent>
@@ -415,6 +579,16 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           todayData?.todaySession?.day || todayData?.todaySession?.focus || undefined
         }
       />
+
+      {/* Day workout detail + log sheet */}
+      {selectedDay && (
+        <DayWorkoutSheet
+          day={selectedDay}
+          visible={pastLogVisible}
+          onClose={() => setPastLogVisible(false)}
+          onLogged={() => { setPastLogVisible(false); setWorkoutSaved(true); setTimeout(() => setWorkoutSaved(false), 3000); }}
+        />
+      )}
     </>
   );
 }
@@ -557,6 +731,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.sm,
+  },
+  focusBadgeWrap: {
+    flexShrink: 1,
+    maxWidth: 130,
   },
   workoutDayLabel: {
     fontSize: 10,

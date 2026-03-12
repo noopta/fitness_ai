@@ -43,17 +43,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await authApi.getMe();
       setUser(data.user);
-    } catch {
-      setUser(null);
+    } catch (err: any) {
+      // Only clear user on explicit auth rejection (401/403), not network errors
+      if (err?.status === 401 || err?.status === 403) {
+        await clearToken();
+        setUser(null);
+      }
+      // On network errors, keep the current user state intact
     }
   }
 
   useEffect(() => {
-    // Check if token exists, if so load user
     const init = async () => {
       const token = await getToken();
       if (token) {
-        await refreshUser();
+        try {
+          const data = await authApi.getMe();
+          setUser(data.user);
+        } catch (err: any) {
+          if (err?.status === 401 || err?.status === 403) {
+            await clearToken();
+            setUser(null);
+          }
+          // Network/server errors: still allow app to load (user stays null → redirect to login)
+        }
       }
       setLoading(false);
     };
@@ -85,16 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
 
       if (result.type === 'success' && result.url) {
-        const parsed = Linking.parse(result.url);
-        const token = parsed.queryParams?.token as string | undefined;
+        // Manually extract token from URL to handle Expo Go exp:// and axiom:// schemes
+        const url = result.url;
+        const tokenMatch = url.match(/[?&]token=([^&]+)/);
+        const authMatch = url.match(/[?&]auth=([^&]+)/);
+        const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
+        const authParam = authMatch ? authMatch[1] : null;
+
         if (token) {
           await setToken(token);
           await refreshUser();
-        } else {
-          const authParam = parsed.queryParams?.auth as string | undefined;
-          if (authParam === 'error') {
-            Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
-          }
+        } else if (authParam === 'error') {
+          Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
         }
       }
     } catch (err: any) {

@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
@@ -165,20 +166,51 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
 
   // Parse nutrition plan from saved program
   let nutritionPlan: any = null;
+  let savedProg: any = null;
   if (coachData?.savedProgram) {
     try {
-      const prog =
+      savedProg =
         typeof coachData.savedProgram === 'string'
           ? JSON.parse(coachData.savedProgram)
           : coachData.savedProgram;
-      nutritionPlan = prog?.nutritionPlan ?? prog?.nutrition ?? null;
+      nutritionPlan = savedProg?.nutritionPlan ?? savedProg?.nutrition ?? null;
     } catch {
       nutritionPlan = null;
     }
   }
 
   const macros = nutritionPlan?.macros ?? nutritionPlan;
-  const targetCalories: number | null = macros?.calories ?? nutritionPlan?.calories ?? null;
+  const baseTargetCalories: number | null = macros?.calories ?? nutritionPlan?.calories ?? null;
+
+  // Adjustable calorie state (initialized from plan, user can tweak)
+  const [calorieAdjust, setCalorieAdjust] = useState<number>(0);
+  const [calorieInput, setCalorieInput] = useState<string>('');
+
+  const targetCalories: number | null = baseTargetCalories !== null
+    ? baseTargetCalories + calorieAdjust
+    : null;
+
+  // Weight projection data
+  const weeklyWeightChangeLb: number | null = nutritionPlan?.expectedOutcomes?.weeklyWeightChangeLb ?? null;
+  const totalWeeks: number = savedProg?.durationWeeks ?? 0;
+  const currentWeek: number = coachData?.currentWeek ?? 1;
+  const weeksRemaining = Math.max(0, totalWeeks - currentWeek);
+  // Adjust projected weekly change based on calorie adjustment (3500 kcal ≈ 1 lb)
+  const adjustedWeeklyChange: number | null = weeklyWeightChangeLb !== null
+    ? weeklyWeightChangeLb + (calorieAdjust * 7) / 3500
+    : null;
+  const currentWeightLbs: number | null = (() => {
+    try {
+      const bw = coachData?.currentWeightLbs ?? coachData?.weightKg
+        ? (coachData.weightKg ? coachData.weightKg * 2.205 : null)
+        : null;
+      return bw;
+    } catch { return null; }
+  })();
+  const targetWeightLbs: number | null =
+    currentWeightLbs !== null && adjustedWeeklyChange !== null && weeksRemaining > 0
+      ? currentWeightLbs + adjustedWeeklyChange * weeksRemaining
+      : null;
   const targetProtein: number | null = macros?.proteinG ?? macros?.protein_g ?? macros?.protein ?? null;
   const targetCarbs: number | null = macros?.carbsG ?? macros?.carbs_g ?? macros?.carbs ?? null;
   const targetFat: number | null = macros?.fatG ?? macros?.fat_g ?? macros?.fat ?? null;
@@ -336,6 +368,68 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
             <ProgressBar value={caloriePct} color={colors.primary} height={6} />
           </CardContent>
         </Card>
+
+        {/* ── Weight Projection + Calorie Adjustment ── */}
+        {(adjustedWeeklyChange !== null || targetCalories !== null) && (
+          <Card style={styles.card}>
+            <CardHeader><CardTitle>Weekly Projection</CardTitle></CardHeader>
+            <CardContent style={styles.projContent}>
+              {adjustedWeeklyChange !== null && (
+                <View style={styles.projRow}>
+                  <Text style={styles.projLabel}>Projected weight change/week</Text>
+                  <Text style={[
+                    styles.projValue,
+                    { color: adjustedWeeklyChange < 0 ? colors.success : adjustedWeeklyChange > 0 ? colors.destructive : colors.foreground }
+                  ]}>
+                    {adjustedWeeklyChange > 0 ? '+' : ''}{adjustedWeeklyChange.toFixed(2)} lbs
+                  </Text>
+                </View>
+              )}
+              {targetWeightLbs !== null && (
+                <View style={styles.projRow}>
+                  <Text style={styles.projLabel}>Target weight at program end</Text>
+                  <Text style={[styles.projValue, { color: colors.primary }]}>
+                    {targetWeightLbs.toFixed(1)} lbs
+                  </Text>
+                </View>
+              )}
+              {baseTargetCalories !== null && (
+                <View style={styles.calAdjustSection}>
+                  <Text style={styles.calAdjustLabel}>Adjust daily calories</Text>
+                  <View style={styles.calAdjustRow}>
+                    <TouchableOpacity
+                      style={styles.calAdjustBtn}
+                      onPress={() => setCalorieAdjust(a => Math.max(a - 50, -500))}
+                    >
+                      <Text style={styles.calAdjustBtnText}>−50</Text>
+                    </TouchableOpacity>
+                    <View style={styles.calAdjustDisplay}>
+                      <Text style={styles.calAdjustDisplayVal}>
+                        {targetCalories} kcal
+                      </Text>
+                      {calorieAdjust !== 0 && (
+                        <Text style={[styles.calAdjustDiff, { color: calorieAdjust > 0 ? colors.destructive : colors.success }]}>
+                          {calorieAdjust > 0 ? '+' : ''}{calorieAdjust} from plan
+                        </Text>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.calAdjustBtn}
+                      onPress={() => setCalorieAdjust(a => Math.min(a + 50, 500))}
+                    >
+                      <Text style={styles.calAdjustBtnText}>+50</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {calorieAdjust !== 0 && (
+                    <TouchableOpacity onPress={() => setCalorieAdjust(0)} style={styles.resetBtn}>
+                      <Text style={styles.resetBtnText}>Reset to plan</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* ── Macro targets ── */}
         <Card style={styles.card}>
@@ -657,4 +751,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14, alignItems: 'center', marginTop: spacing.sm,
   },
   closeBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
+
+  // Projection card
+  projContent: { paddingTop: 0, gap: spacing.sm },
+  projRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 },
+  projLabel: { fontSize: fontSize.sm, color: colors.mutedForeground, flex: 1 },
+  projValue: { fontSize: fontSize.sm, fontWeight: fontWeight.bold },
+  calAdjustSection: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm, gap: spacing.xs },
+  calAdjustLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, fontWeight: fontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
+  calAdjustRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  calAdjustBtn: {
+    backgroundColor: colors.muted, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
+    paddingHorizontal: spacing.md, paddingVertical: 8,
+  },
+  calAdjustBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  calAdjustDisplay: { flex: 1, alignItems: 'center' },
+  calAdjustDisplayVal: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
+  calAdjustDiff: { fontSize: 10, fontWeight: fontWeight.medium },
+  resetBtn: { alignSelf: 'center' },
+  resetBtnText: { fontSize: fontSize.xs, color: colors.primary, fontWeight: fontWeight.medium },
 });

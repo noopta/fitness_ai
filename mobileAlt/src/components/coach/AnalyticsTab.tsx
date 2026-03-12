@@ -5,8 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
-import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
+import Svg, { Polyline, Circle, Line, Text as SvgText, Path } from 'react-native-svg';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -88,6 +89,160 @@ const chartStyles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: spacing.sm,
   },
+});
+
+// ─── Weight Projection Chart ──────────────────────────────────────────────────
+
+interface ProjectionPoint {
+  label: string;
+  actual: number | null;
+  projected: number | null;
+}
+
+function WeightProjectionChart({
+  entries,
+  weeklyChangeLbs,
+  totalWeeks,
+  currentWeek,
+}: {
+  entries: BodyWeightEntry[];
+  weeklyChangeLbs: number;
+  totalWeeks: number;
+  currentWeek: number;
+}) {
+  const WIDTH = Dimensions.get('window').width - 80;
+  const HEIGHT = 110;
+  const PAD_H = 36;
+  const PAD_V = 14;
+
+  // Build actual data from entries (last 4 weeks = 28 days)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const points: ProjectionPoint[] = [];
+
+  // Past 4 weeks (actual)
+  for (let w = -4; w <= 0; w++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + w * 7);
+    const str = d.toISOString().split('T')[0];
+    const entry = entries.find(e => {
+      const eDate = (e.date || e.createdAt || '').split('T')[0];
+      // match within ±3 days
+      const diff = Math.abs(new Date(eDate).getTime() - d.getTime()) / 86400000;
+      return diff <= 3;
+    });
+    points.push({
+      label: `W${w === 0 ? 'Now' : w}`,
+      actual: entry ? (entry.weightLbs ?? entry.weightKg ?? null) : null,
+      projected: null,
+    });
+  }
+
+  // Future projection: remaining weeks from now to program end
+  const weeksRemaining = Math.max(0, totalWeeks - currentWeek);
+  const latestActual = entries.length > 0 ? (entries[0].weightLbs ?? entries[0].weightKg ?? null) : null;
+  if (latestActual !== null && weeksRemaining > 0) {
+    const projWeeks = Math.min(weeksRemaining, 8);
+    for (let w = 1; w <= projWeeks; w++) {
+      points.push({
+        label: `+${w}w`,
+        actual: null,
+        projected: latestActual + weeklyChangeLbs * w,
+      });
+    }
+  }
+
+  if (points.length < 2) return null;
+
+  // Gather all non-null values for scale
+  const allVals = points.flatMap(p => [p.actual, p.projected]).filter((v): v is number => v !== null);
+  if (allVals.length < 2) return null;
+
+  const minV = Math.min(...allVals) - 2;
+  const maxV = Math.max(...allVals) + 2;
+  const range = maxV - minV || 1;
+
+  const toX = (i: number) => PAD_H + (i / (points.length - 1)) * (WIDTH - PAD_H * 2);
+  const toY = (v: number) => PAD_V + (1 - (v - minV) / range) * (HEIGHT - PAD_V * 2);
+
+  // Build path for actual line
+  const actualPts = points.map((p, i) => p.actual !== null ? `${toX(i).toFixed(1)},${toY(p.actual).toFixed(1)}` : null).filter(Boolean);
+  const projPts = points.map((p, i) => p.projected !== null ? `${toX(i).toFixed(1)},${toY(p.projected).toFixed(1)}` : null).filter(Boolean);
+
+  // Bridge: if there's a latest actual adjacent to first projected
+  const lastActualIdx = points.reduce((acc, p, i) => p.actual !== null ? i : acc, -1);
+  const firstProjIdx = points.findIndex(p => p.projected !== null);
+  let bridgePath = '';
+  if (lastActualIdx >= 0 && firstProjIdx > lastActualIdx) {
+    const x1 = toX(lastActualIdx).toFixed(1);
+    const y1 = toY(points[lastActualIdx].actual!).toFixed(1);
+    const x2 = toX(firstProjIdx).toFixed(1);
+    const y2 = toY(points[firstProjIdx].projected!).toFixed(1);
+    bridgePath = `M${x1},${y1} L${x2},${y2}`;
+  }
+
+  const trend = weeklyChangeLbs <= 0 ? colors.success : colors.destructive;
+
+  return (
+    <View style={projStyles.wrapper}>
+      <Svg width={WIDTH} height={HEIGHT}>
+        {/* Baseline */}
+        <Line x1={PAD_H} y1={HEIGHT - PAD_V} x2={WIDTH - PAD_H} y2={HEIGHT - PAD_V} stroke={colors.border} strokeWidth="1" />
+        {/* Actual line */}
+        {actualPts.length >= 2 && (
+          <Polyline points={actualPts.join(' ')} fill="none" stroke={colors.primary} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        )}
+        {/* Bridge dashed */}
+        {bridgePath ? (
+          <Path d={bridgePath} fill="none" stroke={trend} strokeWidth="1.5" strokeDasharray="4,4" />
+        ) : null}
+        {/* Projected line */}
+        {projPts.length >= 2 && (
+          <Polyline points={projPts.join(' ')} fill="none" stroke={trend} strokeWidth="2" strokeDasharray="5,4" strokeLinejoin="round" strokeLinecap="round" />
+        )}
+        {/* Actual dots */}
+        {points.map((p, i) =>
+          p.actual !== null ? (
+            <Circle key={`a${i}`} cx={toX(i)} cy={toY(p.actual)} r="3" fill={colors.primary} />
+          ) : null
+        )}
+        {/* Last projected dot */}
+        {(() => {
+          const last = [...points].reverse().find(p => p.projected !== null);
+          const lastIdx = last ? points.lastIndexOf(last) : -1;
+          return last && lastIdx >= 0 ? (
+            <Circle cx={toX(lastIdx)} cy={toY(last.projected!)} r="3" fill={trend} />
+          ) : null;
+        })()}
+        {/* Y axis labels */}
+        <SvgText x={2} y={toY(maxV - 2) + 4} fontSize="9" fill={colors.mutedForeground}>{Math.round(maxV - 2)}</SvgText>
+        <SvgText x={2} y={toY(minV + 2) + 4} fontSize="9" fill={colors.mutedForeground}>{Math.round(minV + 2)}</SvgText>
+      </Svg>
+      <View style={projStyles.legend}>
+        <View style={projStyles.legendItem}>
+          <View style={[projStyles.legendDot, { backgroundColor: colors.primary }]} />
+          <Text style={projStyles.legendText}>Actual</Text>
+        </View>
+        <View style={projStyles.legendItem}>
+          <View style={[projStyles.legendDot, { backgroundColor: trend }]} />
+          <Text style={projStyles.legendText}>Projected</Text>
+        </View>
+        <Text style={projStyles.legendChange}>
+          {weeklyChangeLbs > 0 ? '+' : ''}{weeklyChangeLbs.toFixed(1)} lbs/week
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+const projStyles = StyleSheet.create({
+  wrapper: { gap: spacing.xs },
+  legend: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: 2 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 10, color: colors.mutedForeground },
+  legendChange: { marginLeft: 'auto', fontSize: 10, color: colors.mutedForeground, fontStyle: 'italic' },
 });
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -180,6 +335,28 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
   const totalSessions = coachData?.totalSessions ?? coachData?.sessionCount ?? null;
   const tableEntries = bodyWeightEntries.slice(0, 7);
 
+  // Weight projection from nutrition plan
+  let weeklyChangeLbs: number | null = null;
+  let totalWeeks = 0;
+  let currentWeek = 1;
+  try {
+    const prog = typeof coachData?.savedProgram === 'string'
+      ? JSON.parse(coachData.savedProgram)
+      : coachData?.savedProgram;
+    const nutritionPlan = prog?.nutritionPlan ?? prog?.nutrition;
+    weeklyChangeLbs = nutritionPlan?.expectedOutcomes?.weeklyWeightChangeLb ?? null;
+    totalWeeks = prog?.durationWeeks ?? 0;
+    currentWeek = coachData?.currentWeek ?? 1;
+  } catch {}
+
+  const latestWeight = bodyWeightEntries.length > 0
+    ? (bodyWeightEntries[0].weightLbs ?? bodyWeightEntries[0].weightKg ?? null)
+    : null;
+  const weeksRemaining = Math.max(0, totalWeeks - currentWeek);
+  const targetWeight = latestWeight !== null && weeklyChangeLbs !== null && weeksRemaining > 0
+    ? latestWeight + weeklyChangeLbs * weeksRemaining
+    : null;
+
   return (
     <ScrollView
       style={styles.container}
@@ -223,6 +400,26 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
           ) : (
             <>
               <WeightChart entries={bodyWeightEntries} />
+
+              {/* Weight projection */}
+              {weeklyChangeLbs !== null && totalWeeks > 0 && (
+                <>
+                  <Text style={styles.projTitle}>Weight Projection</Text>
+                  <WeightProjectionChart
+                    entries={bodyWeightEntries}
+                    weeklyChangeLbs={weeklyChangeLbs}
+                    totalWeeks={totalWeeks}
+                    currentWeek={currentWeek}
+                  />
+                  {targetWeight !== null && (
+                    <View style={styles.targetWeightRow}>
+                      <Text style={styles.targetWeightLabel}>Target at program end</Text>
+                      <Text style={styles.targetWeightValue}>{targetWeight.toFixed(1)} lbs</Text>
+                    </View>
+                  )}
+                </>
+              )}
+
               <View style={styles.table}>
                 <View style={[styles.tableRow, styles.tableHeader]}>
                   <Text style={[styles.tableCell, styles.tableHeaderText, styles.cellDate]}>Date</Text>
@@ -311,4 +508,15 @@ const styles = StyleSheet.create({
   cellWeight: { flex: 1.2, textAlign: 'right' },
   cellDelta: { flex: 0.8, textAlign: 'right' },
   weightValue: { color: colors.foreground, fontWeight: fontWeight.medium },
+  projTitle: {
+    fontSize: fontSize.xs, fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm,
+  },
+  targetWeightRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: `${colors.primary}10`, borderRadius: radius.md,
+    paddingHorizontal: spacing.sm, paddingVertical: 8, marginTop: 4,
+  },
+  targetWeightLabel: { fontSize: fontSize.xs, color: colors.primary },
+  targetWeightValue: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.primary },
 });

@@ -11,7 +11,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
-import { coachApi } from '../../lib/api';
+import { getToken } from '../../lib/api';
+
+const API_BASE = 'https://api.airthreads.ai:4009/api';
 
 interface ChatTabProps {
   coachData: any;
@@ -79,31 +81,79 @@ export function ChatTab({ coachData }: ChatTabProps) {
     const text = inputText.trim();
     if (!text || sending) return;
 
-    const userMsg: ChatMessage = { role: 'user', content: text, _isTemp: true };
+    const userMsg: ChatMessage = { role: 'user', content: text };
+    const historyForRequest = messages.filter((m) => !m._isTemp).slice(-12);
+
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setSending(true);
 
+    // Add a streaming placeholder for the assistant reply
+    const streamId = `stream-${Date.now()}`;
+    setMessages((prev) => [...prev, { role: 'assistant', content: '', id: streamId, _isTemp: true }]);
+
     try {
-      const data = await coachApi.sendChat(text);
-      const reply: string =
-        data?.message ?? data?.reply ?? data?.content ?? 'Sorry, I could not generate a response.';
-      const assistantMsg: ChatMessage = { role: 'assistant', content: reply };
-      // Replace temp user message with confirmed + add assistant reply
-      setMessages((prev) => {
-        const withoutTemp = prev.map((m) =>
-          m._isTemp ? { ...m, _isTemp: false } : m
-        );
-        return [...withoutTemp, assistantMsg];
-      });
-    } catch (err: any) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: err?.message ?? 'Something went wrong. Please try again.',
+      const token = await getToken();
+      const response = await fetch(`${API_BASE}/coach/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      ]);
+        body: JSON.stringify({
+          message: text,
+          history: historyForRequest.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        let msg = `Error ${response.status}`;
+        try { msg = JSON.parse(errText).error ?? msg; } catch {}
+        throw new Error(msg);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const raw = decoder.decode(value, { stream: true });
+          // Parse SSE lines
+          for (const line of raw.split('\n')) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') break;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.chunk) {
+                accumulated += parsed.chunk;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamId ? { ...m, content: accumulated } : m
+                  )
+                );
+              }
+            } catch {}
+          }
+        }
+      }
+
+      // Mark the streaming message as final
+      setMessages((prev) =>
+        prev.map((m) => (m.id === streamId ? { ...m, _isTemp: false } : m))
+      );
+    } catch (err: any) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === streamId
+            ? { ...m, content: err?.message ?? 'Something went wrong. Please try again.', _isTemp: false }
+            : m
+        )
+      );
     } finally {
       setSending(false);
     }
@@ -129,8 +179,8 @@ export function ChatTab({ coachData }: ChatTabProps) {
           <MessageBubble key={msg.id ?? `msg-${idx}`} msg={msg} />
         ))}
 
-        {/* Typing indicator */}
-        {sending && (
+        {/* Typing indicator — only show when sending but no content streamed yet */}
+        {sending && messages.every((m) => !m._isTemp || m.content.length > 0) === false && (
           <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarText}>A</Text>
