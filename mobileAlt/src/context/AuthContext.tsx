@@ -106,7 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const authMatch = url.match(/[?&]auth=([^&]+)/);
         const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
         const authParam = authMatch ? authMatch[1] : null;
-        console.log('[Auth] Token present:', !!token, 'authParam:', authParam);
+        console.log('[Auth] Token present:', !!token, 'len:', token?.length, 'authParam:', authParam);
+        console.log('[Auth] Token value:', token);
 
         if (token) {
           await setToken(token);
