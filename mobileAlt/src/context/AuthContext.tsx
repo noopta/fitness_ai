@@ -94,33 +94,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function googleLogin() {
     try {
       const redirectUri = Linking.createURL('/auth/callback');
+      console.log('[Auth] Google OAuth redirect URI:', redirectUri);
       const authUrl = `https://api.airthreads.ai:4009/api/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      console.log('[Auth] OAuth result type:', result.type);
 
       if (result.type === 'success' && result.url) {
-        // Manually extract token from URL to handle Expo Go exp:// and axiom:// schemes
         const url = result.url;
+        console.log('[Auth] OAuth success URL (first 100):', url.slice(0, 100));
         const tokenMatch = url.match(/[?&]token=([^&]+)/);
         const authMatch = url.match(/[?&]auth=([^&]+)/);
         const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
         const authParam = authMatch ? authMatch[1] : null;
+        console.log('[Auth] Token present:', !!token, 'authParam:', authParam);
 
         if (token) {
           await setToken(token);
+          // Verify by calling /auth/me with the token directly (avoids SecureStore async race)
           try {
-            const data = await authApi.getMe();
-            setUser(data.user);
+            const res = await fetch('https://api.airthreads.ai:4009/api/auth/me', {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json().catch(() => ({}));
+            console.log('[Auth] /auth/me status:', res.status, 'user:', data?.user?.email);
+            if (!res.ok) {
+              await clearToken();
+              Alert.alert('Sign In Failed', `Verification failed (${res.status}: ${data.error ?? 'unknown'}). Please try again.`);
+            } else {
+              setUser(data.user);
+            }
           } catch (err: any) {
+            // Network error — still store token, let user proceed
+            console.log('[Auth] /auth/me network error, attempting to continue:', err?.message);
+            Alert.alert('Sign In Failed', `Network error during verification. Please check connection and try again.`);
             await clearToken();
-            Alert.alert('Sign In Failed', 'Could not verify your account. Please try again.');
           }
         } else if (authParam === 'error') {
           Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
-        } else if (result.type === 'success') {
-          Alert.alert('Sign In Failed', 'No token received. Please try again.');
+        } else {
+          Alert.alert('Sign In Failed', `No token in redirect URL. Please try again.`);
         }
+      } else if (result.type === 'cancel' || result.type === 'dismiss') {
+        // User cancelled — no alert needed
+      } else {
+        Alert.alert('Sign In Failed', `Unexpected result: ${result.type}. Please try again.`);
       }
     } catch (err: any) {
+      console.log('[Auth] Google OAuth error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Google sign-in.');
     }
   }

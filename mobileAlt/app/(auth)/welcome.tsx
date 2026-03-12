@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
+import { clearToken } from '../../src/lib/api';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 
 const FEATURES = [
@@ -26,6 +27,11 @@ const FEATURES = [
 
 export default function WelcomeScreen() {
   const router = useRouter();
+
+  async function handleClearAndRetry() {
+    await clearToken();
+    router.replace('/(auth)/login');
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -79,6 +85,11 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Trouble signing in */}
+      <TouchableOpacity style={styles.troubleLink} onPress={handleClearAndRetry}>
+        <Text style={styles.troubleText}>Having trouble signing in? Tap to reset & try again</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -158,6 +169,18 @@ const styles = StyleSheet.create({
   },
 
   spacer: { flex: 1 },
+
+  troubleLink: {
+    paddingBottom: spacing.sm,
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  troubleText: {
+    fontSize: 11,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
 
   // Bottom pill
   actionContainer: {
