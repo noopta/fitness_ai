@@ -1187,7 +1187,7 @@ export function CoachOnboarding({ userName, onComplete }: Props) {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-y-auto">
-      <div className="w-full max-w-lg py-8">
+      <div className="w-full max-w-lg py-8 pb-24 sm:pb-8">
         {/* Fixed top: icon + progress */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

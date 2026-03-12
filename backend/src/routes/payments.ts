@@ -52,15 +52,38 @@ router.post('/payments/portal', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'No billing account found. Please subscribe first.' });
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${FRONTEND_URL}/settings`,
-    });
+    // Try to create portal session; if customer ID is stale, clear it and re-lookup by email
+    let portalSession;
+    try {
+      portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${FRONTEND_URL}/settings`,
+      });
+    } catch (stripeErr: any) {
+      if (stripeErr?.code === 'resource_missing' && user?.email) {
+        // Stale customer ID — clear it, then try email lookup
+        await prisma.user.update({ where: { id: req.user!.id }, data: { stripeCustomerId: null } });
 
-    res.json({ url: session.url });
+        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        if (customers.data.length === 0) {
+          return res.status(400).json({ error: 'No active subscription found. Please subscribe first.' });
+        }
+        const freshCustomerId = customers.data[0].id;
+        await prisma.user.update({ where: { id: req.user!.id }, data: { stripeCustomerId: freshCustomerId } });
+
+        portalSession = await stripe.billingPortal.sessions.create({
+          customer: freshCustomerId,
+          return_url: `${FRONTEND_URL}/settings`,
+        });
+      } else {
+        throw stripeErr;
+      }
+    }
+
+    res.json({ url: portalSession.url });
   } catch (err: any) {
     console.error('Portal session error:', err);
-    res.status(500).json({ error: 'Failed to create portal session' });
+    res.status(500).json({ error: err?.message || 'Failed to create portal session' });
   }
 });
 

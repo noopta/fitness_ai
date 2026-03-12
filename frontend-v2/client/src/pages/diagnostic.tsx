@@ -180,12 +180,13 @@ export default function Diagnostic() {
     try {
       const response = await liftCoachApi.getSession(sessionId);
       const existingMessages = (response as any).session?.messages || response.messages || [];
-      
+
       if (existingMessages.length > 0) {
-        const loadedMessages = existingMessages.map((msg, idx) => ({
+        const loadedMessages = existingMessages.map((msg: any, idx: number) => ({
           id: `loaded-${idx}`,
           role: msg.role,
-          content: msg.content
+          // Backend stores as 'message' field; frontend Msg type uses 'content'
+          content: msg.content ?? msg.message ?? '',
         }));
         setMessages([messages[0], ...loadedMessages]);
         setQuestionCount(existingMessages.filter(m => m.role === 'user').length);
