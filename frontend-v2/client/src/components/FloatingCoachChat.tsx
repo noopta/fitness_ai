@@ -5,6 +5,7 @@ import { MessageCircle, X, Send, Loader2, Sparkles, ArrowRight } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/api';
+import { CoachMarkdown } from '@/components/CoachMarkdown';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -22,46 +23,6 @@ const QUICK_PROMPTS = [
   'Help me with nutrition',
   'Injury prevention tips',
 ];
-
-/** Render inline **bold** segments within a string. */
-function renderInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
-      : part
-  );
-}
-
-function renderMarkdown(text: string): React.ReactNode {
-  return text.split('\n').map((line, i) => {
-    const trimmed = line.trimStart();
-    if (trimmed.startsWith('### ')) return <p key={i} className="font-semibold text-xs mt-2 mb-0.5">{renderInline(trimmed.slice(4))}</p>;
-    if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) return <p key={i} className="font-bold text-xs mt-2 mb-0.5">{renderInline(trimmed.replace(/^#+\s/, ''))}</p>;
-    // Bullet list (including indented sub-bullets)
-    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      const indent = line.length - trimmed.length;
-      return (
-        <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed" style={{ paddingLeft: indent > 0 ? '1rem' : 0 }}>
-          <span className="mt-1.5 h-1 w-1 rounded-full bg-current shrink-0" />
-          <span>{renderInline(trimmed.slice(2))}</span>
-        </div>
-      );
-    }
-    // Numbered list
-    const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
-    if (numMatch) {
-      return (
-        <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
-          <span className="shrink-0 font-medium tabular-nums">{numMatch[1]}.</span>
-          <span>{renderInline(numMatch[2])}</span>
-        </div>
-      );
-    }
-    if (trimmed === '') return <div key={i} className="h-1.5" />;
-    return <p key={i} className="text-xs leading-relaxed">{renderInline(line)}</p>;
-  });
-}
 
 export function FloatingCoachChat() {
   const [open, setOpen] = useState(false);
@@ -255,36 +216,35 @@ export function FloatingCoachChat() {
                   )}
 
                   <AnimatePresence initial={false}>
-                    {messages.map((msg, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.18 }}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[88%] rounded-2xl px-3 py-2.5 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/60 border'}`}>
-                          {msg.role === 'assistant' ? (
-                            <div className="space-y-0.5">{renderMarkdown(msg.content)}</div>
-                          ) : (
-                            <p className="text-xs leading-relaxed">{msg.content}</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
+                    {messages.map((msg, i) => {
+                      const isLastEmptyAssistant = i === messages.length - 1 && msg.role === 'assistant' && msg.content === '' && sending;
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.18 }}
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-[88%] rounded-2xl px-3 py-2.5 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/60 border'}`}>
+                            {msg.role === 'assistant' ? (
+                              isLastEmptyAssistant ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:0ms]" />
+                                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:150ms]" />
+                                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:300ms]" />
+                                </div>
+                              ) : (
+                                <CoachMarkdown content={msg.content} compact />
+                              )
+                            ) : (
+                              <p className="text-xs leading-relaxed">{msg.content}</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </AnimatePresence>
-
-                  {sending && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                      <div className="bg-muted/60 border rounded-2xl px-3 py-2.5">
-                        <div className="flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:0ms]" />
-                          <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:150ms]" />
-                          <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:300ms]" />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
 
                   <div ref={bottomRef} />
                 </div>

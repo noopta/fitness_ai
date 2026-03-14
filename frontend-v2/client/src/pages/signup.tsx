@@ -35,6 +35,7 @@ import snapshotAnalysis from "@assets/snapshot_analysis_1771264391949.png";
 import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Navbar } from "@/components/Navbar";
+import { HeroVariant4 } from "@/components/HeroVariants";
 
 function ValuePill({
   icon,
@@ -443,7 +444,7 @@ const BODY_AREAS = {
 
 type BodyAreaKey = keyof typeof BODY_AREAS;
 
-const HERO_VARIANTS = [
+const HERO_COPY = [
   {
     badges: [
       { icon: "Zap", text: "24/7 AI Coach" },
@@ -514,7 +515,7 @@ const BADGE_ICONS: Record<string, React.ReactNode> = {
 export default function Signup() {
   const [selectedArea, setSelectedArea] = useState<BodyAreaKey>("shoulders");
   const { user, refreshUser } = useAuth();
-  const hero = HERO_VARIANTS[0];
+  const hero = HERO_COPY[0];
 
   // Handle ?auth=success from Google OAuth (in case callback lands here instead of /login)
   useEffect(() => {
@@ -525,8 +526,72 @@ export default function Signup() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Allow hero image overflow for variant 4 (3D tilted web view)
+  useEffect(() => {
+    document.documentElement.style.overflowX = "visible";
+    document.body.style.overflowX = "visible";
+    return () => {
+      document.documentElement.style.overflowX = "";
+      document.body.style.overflowX = "hidden";
+    };
+  }, []);
+
   const selectedAreaMeta = BODY_AREAS[selectedArea];
   const selectedAreaLabel = selectedAreaMeta.label;
+
+  const ctaCard = (
+    <Card className="card-min rounded-2xl p-6" data-testid="card-email">
+      {user ? (
+        <>
+          <div className="text-sm font-semibold" data-testid="text-email-title">
+            Welcome back{user.name ? `, ${user.name}` : ""}
+          </div>
+          <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
+            You're signed in as <span className="font-medium text-foreground">{user.email}</span>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Button
+              className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+              data-testid="button-get-started"
+              asChild
+            >
+              <Link href="/onboarding">
+                Try Demo
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" className="rounded-xl" data-testid="button-history">
+              <Link href="/history">My Analyses</Link>
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="text-sm font-semibold" data-testid="text-email-title">
+            Try the lift diagnostic demo
+          </div>
+          <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
+            See what's limiting your bench, squat, or deadlift in under 2 minutes. Free, no credit card required.
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Button
+              className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
+              data-testid="button-get-started"
+              asChild
+            >
+              <Link href="/register">
+                Try Demo
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" className="rounded-xl" data-testid="button-sign-in">
+              <Link href="/login">Sign In</Link>
+            </Button>
+          </div>
+        </>
+      )}
+    </Card>
+  );
 
   return (
     <div className="page">
@@ -539,126 +604,16 @@ export default function Signup() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="flex flex-wrap items-center gap-2">
-              {hero.badges.map((b, i) => (
-                <ValuePill
-                  key={i}
-                  icon={BADGE_ICONS[b.icon] ?? <Zap className="h-3.5 w-3.5" />}
-                  text={b.text}
-                  testId={`badge-value-${i}`}
-                />
-              ))}
-            </div>
-
-            <h1
-              className="mt-6 text-balance text-4xl font-semibold tracking-tight sm:text-5xl"
-              data-testid="text-signup-hero-title"
-            >
-              {hero.title}
-              <span className="text-muted-foreground">{hero.titleMuted}</span>
-            </h1>
-
-            <p
-              className="mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
-              data-testid="text-signup-hero-subtitle"
-            >
-              {hero.subtitle}
-            </p>
-
-            <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <Card className="card-min rounded-2xl p-6" data-testid="card-email">
-                {user ? (
-                  <>
-                    <div className="text-sm font-semibold" data-testid="text-email-title">
-                      Welcome back{user.name ? `, ${user.name}` : ""}
-                    </div>
-                    <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
-                      You're signed in as <span className="font-medium text-foreground">{user.email}</span>
-                    </div>
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                      <Button
-                        className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                        data-testid="button-get-started"
-                        asChild
-                      >
-                        <Link href="/onboarding">
-                          Try Demo
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button asChild variant="secondary" className="rounded-xl" data-testid="button-history">
-                        <Link href="/history">My Analyses</Link>
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-sm font-semibold" data-testid="text-email-title">
-                      Try the lift diagnostic demo
-                    </div>
-                    <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
-                      See what's limiting your bench, squat, or deadlift in under 2 minutes. Free, no credit card required.
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                      <Button
-                        className="rounded-xl shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-blue-600 font-semibold"
-                        data-testid="button-get-started"
-                        asChild
-                      >
-                        <Link href="/register">
-                          Try Demo
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="secondary"
-                        className="rounded-xl"
-                        data-testid="button-sign-in"
-                      >
-                        <Link href="/login">Sign In</Link>
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </Card>
-
-              <Card className="card-min rounded-2xl p-6" data-testid="card-proof">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-xl border bg-background">
-                    <LineChart className="h-4 w-4" strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold" data-testid="text-proof-title">
-                      Data-driven diagnosis
-                    </div>
-                    <div className="mt-1 text-sm text-muted-foreground" data-testid="text-proof-subtitle">
-                      Your lifts tell the story
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-5" />
-
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  {[
-                    "Pinpoints where in the lift you're failing (bottom, midpoint, lockout)",
-                    "Calculates strength ratios to identify muscle limiters",
-                    "Prescribes specific accessories to break through your plateau",
-                  ].map((t, idx) => (
-                    <div
-                      key={t}
-                      className="flex items-start gap-3"
-                      data-testid={`row-proof-${idx}`}
-                    >
-                      <Check className="mt-0.5 h-4 w-4 text-foreground" strokeWidth={2} />
-                      <p>{t}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
+            <HeroVariant4
+              content={{
+                badges: hero.badges,
+                title: hero.title,
+                titleMuted: hero.titleMuted,
+                subtitle: hero.subtitle,
+              }}
+              cta={{ user, children: ctaCard }}
+              badgeIcons={BADGE_ICONS}
+            />
           </motion.div>
         </section>
 

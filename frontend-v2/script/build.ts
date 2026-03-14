@@ -1,5 +1,5 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite";
+import { execSync } from "child_process";
 import { rm, readFile } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
@@ -36,7 +36,7 @@ async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
-  await viteBuild();
+  execSync("npx vite build", { stdio: "inherit" });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));

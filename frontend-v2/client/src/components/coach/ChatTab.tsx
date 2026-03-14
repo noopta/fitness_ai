@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Send, Loader2, RotateCcw } from 'lucide-react';
 import { authFetch } from '@/lib/api';
+import { CoachMarkdown } from '@/components/CoachMarkdown';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -32,43 +33,6 @@ const STARTER_QUESTIONS = [
   'How should I adjust my nutrition for my goals?',
   'What injury risks should I watch out for?',
 ];
-
-function renderMarkdown(text: string): React.ReactNode {
-  const lines = text.split('\n');
-  return lines.map((line, i) => {
-    if (line.startsWith('### ')) return <p key={i} className="font-semibold text-sm mt-3 mb-1">{line.slice(4)}</p>;
-    if (line.startsWith('## ')) return <p key={i} className="font-bold text-sm mt-4 mb-1">{line.slice(3)}</p>;
-    if (line.startsWith('# ')) return <p key={i} className="font-bold text-base mt-4 mb-1">{line.slice(2)}</p>;
-    if (line.startsWith('- ') || line.startsWith('* ')) {
-      return (
-        <div key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-current shrink-0" />
-          <span>{applyInline(line.slice(2))}</span>
-        </div>
-      );
-    }
-    if (/^\d+\. /.test(line)) {
-      const match = line.match(/^(\d+)\. (.*)/);
-      if (match) return (
-        <div key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-          <span className="shrink-0 font-semibold">{match[1]}.</span>
-          <span>{applyInline(match[2])}</span>
-        </div>
-      );
-    }
-    if (line === '') return <div key={i} className="h-2" />;
-    return <p key={i} className="text-sm leading-relaxed">{applyInline(line)}</p>;
-  });
-}
-
-function applyInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? <strong key={i}>{part.slice(2, -2)}</strong>
-      : part
-  );
-}
 
 interface Props {
   initialMessages?: Message[];
@@ -205,36 +169,35 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
         )}
 
         <AnimatePresence initial={false}>
-          {messages.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/60 border'}`}>
-                {msg.role === 'assistant' ? (
-                  <div className="space-y-0.5">{renderMarkdown(msg.content)}</div>
-                ) : (
-                  <p className="text-sm leading-relaxed">{msg.content}</p>
-                )}
-              </div>
-            </motion.div>
-          ))}
+          {messages.map((msg, i) => {
+            const isLastEmptyAssistant = i === messages.length - 1 && msg.role === 'assistant' && msg.content === '' && sending;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/60 border'}`}>
+                  {msg.role === 'assistant' ? (
+                    isLastEmptyAssistant ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+                      </div>
+                    ) : (
+                      <CoachMarkdown content={msg.content} />
+                    )
+                  ) : (
+                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
-
-        {sending && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="bg-muted/60 border rounded-2xl px-4 py-3">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         <div ref={bottomRef} />
       </div>
