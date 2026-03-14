@@ -526,11 +526,18 @@ export default function Signup() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Allow hero image overflow for variant 4 (3D tilted web view)
+  // Allow hero image overflow for variant 4 (3D tilted web view) on desktop only
   useEffect(() => {
-    document.documentElement.style.overflowX = "visible";
-    document.body.style.overflowX = "visible";
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => {
+      const v = mq.matches ? "visible" : "hidden";
+      document.documentElement.style.overflowX = v;
+      document.body.style.overflowX = v;
+    };
+    apply();
+    mq.addEventListener("change", apply);
     return () => {
+      mq.removeEventListener("change", apply);
       document.documentElement.style.overflowX = "";
       document.body.style.overflowX = "hidden";
     };

@@ -183,35 +183,31 @@ export function HeroVariant3({ content, cta, badgeIcons }: HeroVariantProps) {
 // ── Variant 4: Web view only, perspective tilt (3D) ───────────────────────────
 export function HeroVariant4({ content, cta, badgeIcons }: HeroVariantProps) {
   return (
-    <div className="space-y-8 overflow-visible">
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center overflow-visible">
+    <div className="space-y-6 sm:space-y-8 overflow-x-hidden lg:overflow-visible">
+      <div className="grid gap-6 sm:gap-8 lg:gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             {content.badges.map((b, i) => (
               <ValuePill key={i} icon={badgeIcons[b.icon as string] ?? null} text={b.text} />
             ))}
           </div>
-          <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-4 sm:mt-6 text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
             {content.title}
             <span className="text-muted-foreground">{content.titleMuted}</span>
           </h1>
-          <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <p className="mt-3 sm:mt-5 max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-lg">
             {content.subtitle}
           </p>
         </div>
         <motion.div
-          initial={{ opacity: 0, rotateY: 15 }}
-          animate={{ opacity: 1, rotateY: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="perspective-[1200px] flex justify-start overflow-visible"
-          style={{ perspective: "1200px" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="perspective-[1200px] flex justify-center lg:justify-start w-full min-w-0"
         >
           <div
-            className="rounded-2xl border shadow-2xl overflow-hidden transition-transform hover:scale-[1.02] w-[135%] min-w-[135%] max-w-none"
-            style={{
-              transform: "rotateY(-6deg) rotateX(2deg)",
-              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            }}
+            className="rounded-xl sm:rounded-2xl border shadow-xl sm:shadow-2xl overflow-hidden transition-transform hover:scale-[1.01] sm:hover:scale-[1.02] w-full max-w-full lg:w-[135%] lg:min-w-[135%] lg:max-w-none lg:[transform:rotateY(-6deg)_rotateX(2deg)]"
+            style={{ boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}
           >
             <img
               src={dashboardHero}
@@ -221,7 +217,7 @@ export function HeroVariant4({ content, cta, badgeIcons }: HeroVariantProps) {
           </div>
         </motion.div>
       </div>
-      <div className="flex justify-center lg:justify-start">{cta.children}</div>
+      <div className="flex justify-center lg:justify-start pt-2">{cta.children}</div>
     </div>
   );
 }
