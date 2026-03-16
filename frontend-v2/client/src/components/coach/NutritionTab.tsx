@@ -7,7 +7,7 @@ import {
   Loader2, Sparkles, Apple, UtensilsCrossed, Clock, DollarSign,
   TrendingUp, Zap, Brain, Dumbbell, Check, AlertTriangle, ChevronDown, ChevronUp, Scale, Target,
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
 import { authFetch } from '@/lib/api';
 
@@ -728,6 +728,15 @@ export function NutritionTab({
     .slice(-7)
     .map(l => ({ date: l.date.slice(5), protein: l.proteinG, carbs: l.carbsG, fat: l.fatG }));
 
+  // Calorie history chart (last 30 days with entries)
+  const calorieChartData = [...logs]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(l => ({
+      label: l.date.slice(5),
+      calories: Math.round(l.proteinG * 4 + l.carbsG * 4 + l.fatG * 9),
+    }));
+  const calorieTarget = activePlan?.macros.calories ?? null;
+
   // Budget minimum warning
   const weeklyUSD = budget ? parseWeeklyUSD(budget) : null;
   const belowMinimum = weeklyUSD !== null && weeklyUSD < 40;
@@ -1281,6 +1290,59 @@ export function NutritionTab({
                 );
               })}
             </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Calorie history chart */}
+      {calorieChartData.length > 1 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <Card className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Daily Calories Over Time</p>
+              {calorieTarget && (
+                <span className="text-[10px] text-muted-foreground">Target: {calorieTarget} kcal</span>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={calorieChartData} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
+                <YAxis
+                  tick={{ fontSize: 9 }}
+                  domain={['auto', 'auto']}
+                  tickFormatter={(v: number) => `${v}`}
+                  width={38}
+                />
+                {calorieTarget && (
+                  <ReferenceLine
+                    y={calorieTarget}
+                    stroke="#ec4899"
+                    strokeDasharray="4 3"
+                    strokeWidth={1.5}
+                    label={{ value: 'target', position: 'right', fontSize: 9, fill: '#ec4899' }}
+                  />
+                )}
+                <Tooltip
+                  contentStyle={{
+                    background: 'hsl(var(--background))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: 8,
+                    fontSize: 11,
+                  }}
+                  formatter={(value: number) => [`${value} kcal`, 'Calories']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="calories"
+                  stroke="#ec4899"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: '#ec4899', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
+                  connectNulls={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </Card>
         </motion.div>
       )}
