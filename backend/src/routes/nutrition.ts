@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
+import { parseMealMacros } from '../services/llmService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -118,6 +119,21 @@ router.delete('/nutrition/meals/:id', requireAuth, async (req, res) => {
   } catch (err: any) {
     console.error('Meal delete error:', err);
     res.status(500).json({ error: 'Failed to delete meal' });
+  }
+});
+
+// POST /api/nutrition/parse-meal - Parse free-text meal description into macros
+router.post('/nutrition/parse-meal', requireAuth, async (req, res) => {
+  try {
+    const { description } = req.body;
+    if (!description || typeof description !== 'string' || description.trim().length < 3) {
+      return res.status(400).json({ error: 'Please provide a meal description' });
+    }
+    const result = await parseMealMacros(description.trim());
+    res.json(result);
+  } catch (err: any) {
+    console.error('Parse meal error:', err);
+    res.status(500).json({ error: 'Failed to analyze meal' });
   }
 });
 

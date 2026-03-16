@@ -1626,3 +1626,53 @@ export async function sendChatMessage(threadId: string, userMessage: string): Pr
 
   return content.text.value;
 }
+
+// ─── Meal Macro Parser ─────────────────────────────────────────────────────────
+
+export interface ParsedMealMacros {
+  name: string;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  calories: number;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal';
+  confidence: 'high' | 'medium' | 'low';
+  notes: string;
+}
+
+export async function parseMealMacros(description: string): Promise<ParsedMealMacros> {
+  const prompt = `You are a nutrition expert with deep knowledge of restaurant menus, packaged foods, and home cooking. A user described a meal — extract the macros as accurately as possible.
+
+MEAL DESCRIPTION: "${description}"
+
+INSTRUCTIONS:
+- Use your knowledge of specific restaurant items (e.g. Osmow's, McDonald's, Chipotle, Subway, etc.)
+- For home-cooked meals with stated weights/volumes, calculate based on standard nutritional data
+- Use standard portion sizes when amounts aren't specified
+- If confidence is low (unusual item, ambiguous description), note it in the "notes" field
+- Round to nearest gram/calorie
+- For zero-calorie beverages (diet coke, water, black coffee): set their macros to 0 but include them in the name
+- mealType should be your best guess: breakfast, lunch, dinner, snack, or meal
+
+OUTPUT FORMAT (JSON only, no explanation):
+{
+  "name": "Short descriptive meal name",
+  "proteinG": 42,
+  "carbsG": 55,
+  "fatG": 12,
+  "calories": 496,
+  "mealType": "lunch",
+  "confidence": "high",
+  "notes": "Based on Osmow's standard oz box portion sizes"
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 400,
+    response_format: { type: 'json_object' },
+  });
+
+  const raw = response.choices[0].message.content || '{}';
+  return JSON.parse(raw) as ParsedMealMacros;
+}

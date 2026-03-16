@@ -503,6 +503,12 @@ export function NutritionTab({
   const [bwForm, setBwForm] = useState({ date: todayStr(), weightLbs: '', notes: '' });
   const [bwSaving, setBwSaving] = useState(false);
 
+  // Meal description parser
+  const [mealDesc, setMealDesc] = useState('');
+  const [mealParsing, setMealParsing] = useState(false);
+  const [parsedMeal, setParsedMeal] = useState<{ name: string; proteinG: number; carbsG: number; fatG: number; calories: number; mealType: string; confidence: string; notes: string } | null>(null);
+  const [mealAdding, setMealAdding] = useState(false);
+
   // The active plan (saved takes priority over on-demand)
   const activePlan = savedNutritionPlan || aiPlan;
 
@@ -652,6 +658,63 @@ export function NutritionTab({
       toast.error('Failed to save budget');
     } finally {
       setBudgetSaving(false);
+    }
+  }
+
+  async function parseMeal() {
+    if (!mealDesc.trim()) return;
+    setMealParsing(true);
+    setParsedMeal(null);
+    try {
+      const res = await authFetch(`${API_BASE}/nutrition/parse-meal`, {
+        method: 'POST',
+        body: JSON.stringify({ description: mealDesc }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to analyze meal');
+      setParsedMeal(data);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to analyze meal');
+    } finally {
+      setMealParsing(false);
+    }
+  }
+
+  async function addParsedMealToLog() {
+    if (!parsedMeal) return;
+    setMealAdding(true);
+    try {
+      const res = await authFetch(`${API_BASE}/nutrition/meals`, {
+        method: 'POST',
+        body: JSON.stringify({
+          date: form.date,
+          name: parsedMeal.name,
+          mealType: parsedMeal.mealType || 'meal',
+          proteinG: parsedMeal.proteinG,
+          carbsG: parsedMeal.carbsG,
+          fatG: parsedMeal.fatG,
+          calories: parsedMeal.calories,
+          notes: mealDesc,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || 'Failed to add meal');
+      }
+      // Add macros to the daily log form so the user can save totals
+      setForm(f => ({
+        ...f,
+        proteinG: String((Number(f.proteinG) || 0) + parsedMeal.proteinG),
+        carbsG: String((Number(f.carbsG) || 0) + parsedMeal.carbsG),
+        fatG: String((Number(f.fatG) || 0) + parsedMeal.fatG),
+      }));
+      toast.success(`${parsedMeal.name} added to log`);
+      setParsedMeal(null);
+      setMealDesc('');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to add meal');
+    } finally {
+      setMealAdding(false);
     }
   }
 
@@ -1077,6 +1140,71 @@ export function NutritionTab({
               </Button>
             </div>
           </div>
+        </Card>
+      </motion.div>
+
+      {/* Describe a Meal */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.17 }}>
+        <Card className="p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <UtensilsCrossed className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Log a Meal by Description</p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={mealDesc}
+              onChange={e => setMealDesc(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && parseMeal()}
+              placeholder='e.g. "osmow\'s oz box" or "0.6 lbs ground beef, 1 cup rice"'
+              className="flex-1 rounded-lg border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <Button onClick={parseMeal} disabled={mealParsing || !mealDesc.trim()} size="sm" className="rounded-xl text-xs shrink-0 gap-1">
+              {mealParsing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {!mealParsing && 'Analyze'}
+            </Button>
+          </div>
+          <AnimatePresence>
+            {parsedMeal && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="rounded-xl border bg-muted/20 p-4 space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">{parsedMeal.name}</p>
+                    {parsedMeal.notes && <p className="text-[11px] text-muted-foreground mt-0.5">{parsedMeal.notes}</p>}
+                  </div>
+                  <span className={`shrink-0 text-[10px] rounded-full px-2 py-0.5 font-medium ${
+                    parsedMeal.confidence === 'high' ? 'bg-green-500/15 text-green-600' :
+                    parsedMeal.confidence === 'medium' ? 'bg-yellow-500/15 text-yellow-600' :
+                    'bg-red-500/15 text-red-500'
+                  }`}>
+                    {parsedMeal.confidence} confidence
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  {[
+                    { label: 'Protein', value: `${parsedMeal.proteinG}g`, color: '#6366f1' },
+                    { label: 'Carbs', value: `${parsedMeal.carbsG}g`, color: '#22c55e' },
+                    { label: 'Fat', value: `${parsedMeal.fatG}g`, color: '#f59e0b' },
+                    { label: 'Calories', value: `${parsedMeal.calories}`, color: 'hsl(var(--foreground))' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="rounded-lg border p-2" style={{ borderColor: color + '30' }}>
+                      <p className="text-[10px] text-muted-foreground">{label}</p>
+                      <p className="text-sm font-bold" style={{ color }}>{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={addParsedMealToLog} disabled={mealAdding} size="sm" className="w-full rounded-xl text-xs">
+                  {mealAdding ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                  Add to {form.date === todayStr() ? "Today's" : form.date} Log
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Card>
       </motion.div>
 
