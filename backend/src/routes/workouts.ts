@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
+import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -65,6 +66,13 @@ router.post('/workouts', requireAuth, async (req, res) => {
     }
 
     const { date, title, exercises, notes, duration } = parsed.data;
+
+    // Fire-and-forget normalization — doesn't block the response
+    const names = exercises.map(e => e.name);
+    normalizeExerciseBatch(names).catch(err =>
+      console.error('[workouts] normalization error on create:', err)
+    );
+
     const log = await prisma.workoutLog.create({
       data: {
         userId: req.user!.id,
@@ -98,6 +106,13 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
     }
 
     const { date, title, exercises, notes, duration } = parsed.data;
+
+    // Fire-and-forget normalization for any new exercise names
+    const names = exercises.map(e => e.name);
+    normalizeExerciseBatch(names).catch(err =>
+      console.error('[workouts] normalization error on update:', err)
+    );
+
     const updated = await prisma.workoutLog.update({
       where: { id: req.params.id },
       data: {

@@ -1676,3 +1676,81 @@ OUTPUT FORMAT (JSON only, no explanation):
   const raw = response.choices[0].message.content || '{}';
   return JSON.parse(raw) as ParsedMealMacros;
 }
+
+
+// ─── Strength Profile Insights ────────────────────────────────────────────────
+
+export interface StrengthProfileInsightsParams {
+  lifts: Array<{
+    name: string;
+    current1RMkg: number;
+    monthlyGainPct: number | null;
+    sessionCount: number;
+    category: string;
+  }>;
+  overallStrengthIndex: number | null;
+  strengthTier: string;
+  bodyweightKg: number;
+  radarScores: Record<string, number>;
+  recentDiagnoses: string[];
+  totalLogs: number;
+}
+
+export async function generateStrengthProfileInsights(
+  params: StrengthProfileInsightsParams
+): Promise<string[]> {
+  const liftSummary = params.lifts.map(l =>
+    `${l.name}: est. 1RM ${l.current1RMkg}kg, ${l.monthlyGainPct != null ? l.monthlyGainPct + '% this month' : 'no monthly data'}, ${l.sessionCount} logged sessions`
+  ).join('\n');
+
+  const radarSummary = Object.entries(params.radarScores)
+    .map(([cat, score]) => `${cat}: ${score}/10`)
+    .join(', ');
+
+  const diagSummary = params.recentDiagnoses.length
+    ? params.recentDiagnoses.slice(0, 2).join('\n\n').substring(0, 600)
+    : 'No diagnostic data available.';
+
+  const prompt = `You are an elite strength coach AI. Generate 4 specific, data-driven insights for this athlete's strength profile.
+
+ATHLETE DATA:
+- Overall Strength Index: ${params.overallStrengthIndex ?? 'N/A'}/100 (${params.strengthTier})
+- Bodyweight: ${params.bodyweightKg}kg
+- Total logged sessions: ${params.totalLogs}
+- Movement balance (0-10): ${radarSummary}
+
+LIFT ESTIMATES:
+${liftSummary}
+
+RECENT DIAGNOSTIC NOTES:
+${diagSummary}
+
+Generate exactly 4 bullet insights. Rules:
+- Be specific and reference actual numbers from the data
+- Mix: 1 strength ratio insight, 1 imbalance/balance insight, 1 progress insight, 1 actionable recommendation
+- Keep each under 25 words
+- Do NOT use generic advice — every insight must reference actual data points
+- Return as JSON array of 4 strings (no bullet characters in the strings)
+
+Example format:
+["insight 1", "insight 2", "insight 3", "insight 4"]`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 300,
+    response_format: { type: 'json_object' },
+  });
+
+  try {
+    const raw = response.choices[0].message.content || '{}';
+    // response_format json_object wraps arrays, handle both
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.slice(0, 4);
+    // Some models return { insights: [...] }
+    const arr = parsed.insights ?? parsed.bullets ?? parsed.data ?? Object.values(parsed)[0];
+    return Array.isArray(arr) ? arr.slice(0, 4) : [];
+  } catch {
+    return [];
+  }
+}

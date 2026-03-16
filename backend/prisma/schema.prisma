@@ -8,45 +8,44 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(uuid())
-  heightCm           Float?
-  weightKg           Float?
-  bodyCompTag        String?   // lean, average, heavy
-  trainingAge        String?   // beginner, intermediate, advanced
-  equipment          String?   // home, commercial, limited
-  constraintsText    String?
-  createdAt          DateTime  @default(now())
-  // Auth fields
-  name               String?
-  email              String?   @unique
-  hashedPassword     String?
-  googleId           String?   @unique
-  dateOfBirth        DateTime?
-  tier               String    @default("free")  // free | pro | enterprise
-  stripeCustomerId   String?
-  stripeSubStatus    String?
-  dailyAnalysisCount Int       @default(0)
-  dailyAnalysisDate  DateTime?
-  coachThreadId      String?              // OpenAI Assistants API thread ID for AI Coach
-  savedProgram       String?              // Saved AI-generated training program JSON
-  coachGoal          String?              // Free-text fitness goal from onboarding interview
-  coachBudget        String?              // Weekly food budget (e.g. "$100/week")
-  coachOnboardingDone Boolean @default(false) // Whether coach onboarding interview is complete
-  coachProfile       String?              // Full JSON blob of onboarding interview answers
-  programStartDate   DateTime?            // When the saved program was first started
-  updatedAt          DateTime  @default(now()) @updatedAt
-  sessions           Session[]
-  nutritionLogs      NutritionLog[]
-  mealEntries        MealEntry[]
-  wellnessCheckins   WellnessCheckin[]
-  bodyWeightLogs     BodyWeightLog[]
-  workoutLogs        WorkoutLog[]
+  id                  String            @id @default(uuid())
+  heightCm            Float?
+  weightKg            Float?
+  bodyCompTag         String?
+  trainingAge         String?
+  equipment           String?
+  constraintsText     String?
+  createdAt           DateTime          @default(now())
+  name                String?
+  email               String?           @unique
+  hashedPassword      String?
+  googleId            String?           @unique
+  dateOfBirth         DateTime?
+  tier                String            @default("free")
+  stripeCustomerId    String?
+  stripeSubStatus     String?
+  dailyAnalysisCount  Int               @default(0)
+  dailyAnalysisDate   DateTime?
+  coachThreadId       String?
+  savedProgram        String?
+  coachGoal           String?
+  coachBudget         String?
+  coachOnboardingDone Boolean           @default(false)
+  updatedAt           DateTime          @default(now()) @updatedAt
+  coachProfile        String?
+  programStartDate    DateTime?
+  bodyWeightLogs      BodyWeightLog[]
+  mealEntries         MealEntry[]
+  nutritionLogs       NutritionLog[]
+  sessions            Session[]
+  wellnessCheckins    WellnessCheckin[]
+  workoutLogs         WorkoutLog[]
 }
 
 model NutritionLog {
   id        String   @id @default(uuid())
   userId    String
-  date      String   // YYYY-MM-DD
+  date      String
   proteinG  Float
   carbsG    Float
   fatG      Float
@@ -59,9 +58,9 @@ model NutritionLog {
 model MealEntry {
   id        String   @id @default(uuid())
   userId    String
-  date      String   // YYYY-MM-DD
+  date      String
   name      String
-  mealType  String   @default("meal") // breakfast | lunch | dinner | snack | meal
+  mealType  String   @default("meal")
   calories  Float    @default(0)
   proteinG  Float    @default(0)
   carbsG    Float    @default(0)
@@ -74,7 +73,7 @@ model MealEntry {
 model BodyWeightLog {
   id        String   @id @default(uuid())
   userId    String
-  date      String   // YYYY-MM-DD
+  date      String
   weightLbs Float
   notes     String?
   createdAt DateTime @default(now())
@@ -84,27 +83,27 @@ model BodyWeightLog {
 model WellnessCheckin {
   id         String   @id @default(uuid())
   userId     String
-  date       String   // YYYY-MM-DD
-  mood       Int      // 1–5
-  energy     Int      // 1–5
+  date       String
+  mood       Int
+  energy     Int
   sleepHours Float
-  stress     Int      // 1–5
+  stress     Int
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
 }
 
 model Session {
-  id               String               @id @default(uuid())
-  userId           String?
-  selectedLift     String
-  goal             String?              // strength_peak, hypertrophy, balanced
-  threadId         String?              // OpenAI Assistants API thread ID for chat
-  isPublic         Boolean              @default(false)
-  createdAt        DateTime             @default(now())
-  user             User?                @relation(fields: [userId], references: [id])
-  snapshots        ExerciseSnapshot[]
-  messages         DiagnosticMessage[]
-  plans            GeneratedPlan[]
+  id           String              @id @default(uuid())
+  userId       String?
+  selectedLift String
+  goal         String?
+  threadId     String?
+  isPublic     Boolean             @default(false)
+  createdAt    DateTime            @default(now())
+  messages     DiagnosticMessage[]
+  snapshots    ExerciseSnapshot[]
+  plans        GeneratedPlan[]
+  user         User?               @relation(fields: [userId], references: [id])
 }
 
 model VideoCache {
@@ -117,21 +116,21 @@ model VideoCache {
 }
 
 model ExerciseSnapshot {
-  id          String   @id @default(uuid())
-  sessionId   String
-  exerciseId  String
-  weight      Float
-  sets        Int
-  repsSchema  String   // e.g., "8" or "6-8"
-  rpeOrRir    String?
-  createdAt   DateTime @default(now())
-  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  sessionId  String
+  exerciseId String
+  weight     Float
+  sets       Int
+  repsSchema String
+  rpeOrRir   String?
+  createdAt  DateTime @default(now())
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model DiagnosticMessage {
   id        String   @id @default(uuid())
   sessionId String
-  role      String   // user, assistant
+  role      String
   message   String
   createdAt DateTime @default(now())
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -140,31 +139,40 @@ model DiagnosticMessage {
 model GeneratedPlan {
   id        String   @id @default(uuid())
   sessionId String
-  planJson  String   // JSON stringified
+  planJson  String
   planText  String
   createdAt DateTime @default(now())
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model WorkoutLog {
-  id         String   @id @default(uuid())
-  userId     String
-  date       String   // YYYY-MM-DD
-  title      String?  // e.g. "Push Day", "Leg Day"
-  exercises  String   // JSON array of WorkoutExercise
-  notes      String?
-  duration   Int?     // minutes
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
-  user       User     @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
+  userId    String
+  date      String
+  title     String?
+  exercises String
+  notes     String?
+  duration  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model KnowledgeChunk {
   id         String   @id @default(uuid())
-  source     String   // "NASM" | "ACE" | "NCSF" | "NFPT"
-  chapter    String?  // Best-guess heading context extracted from surrounding text
-  content    String   // Raw text of the chunk (~600 tokens)
-  embedding  String   // JSON-serialised Float32 array (1536 dims, text-embedding-3-small)
+  source     String
+  chapter    String?
+  content    String
+  embedding  String
   tokenCount Int      @default(0)
   createdAt  DateTime @default(now())
+}
+
+model ExerciseNormalization {
+  rawName       String   @id
+  canonicalName String
+  category      String   // push | pull | legs | hinge | core
+  primaryMuscle String
+  isCompound    Boolean  @default(false)
+  createdAt     DateTime @default(now())
 }

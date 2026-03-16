@@ -12,6 +12,7 @@ import coachRoutes from './routes/coach.js';
 import nutritionRoutes from './routes/nutrition.js';
 import wellnessRoutes from './routes/wellness.js';
 import workoutsRoutes from './routes/workouts.js';
+import strengthRoutes from './routes/strength.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api', coachRoutes);
 app.use('/api', nutritionRoutes);
 app.use('/api', wellnessRoutes);
 app.use('/api', workoutsRoutes);
+app.use('/api', strengthRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);
