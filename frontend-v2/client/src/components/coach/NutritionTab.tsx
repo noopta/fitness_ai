@@ -1156,7 +1156,7 @@ export function NutritionTab({
               value={mealDesc}
               onChange={e => setMealDesc(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && parseMeal()}
-              placeholder='e.g. "osmow\'s oz box" or "0.6 lbs ground beef, 1 cup rice"'
+              placeholder={`e.g. "osmow's oz box" or "0.6 lbs ground beef, 1 cup rice"`}
               className="flex-1 rounded-lg border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             <Button onClick={parseMeal} disabled={mealParsing || !mealDesc.trim()} size="sm" className="rounded-xl text-xs shrink-0 gap-1">
