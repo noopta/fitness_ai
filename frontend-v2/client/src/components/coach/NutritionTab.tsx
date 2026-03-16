@@ -1119,6 +1119,37 @@ export function NutritionTab({
             ))}
           </div>
 
+          {activePlan && (
+            <div className="space-y-2.5 pt-1">
+              {[
+                { label: 'Protein', current: protein, target: activePlan.macros.proteinG, unit: 'g', color: '#6366f1' },
+                { label: 'Carbs', current: carbs, target: activePlan.macros.carbsG, unit: 'g', color: '#22c55e' },
+                { label: 'Fat', current: fat, target: activePlan.macros.fatG, unit: 'g', color: '#f59e0b' },
+                { label: 'Calories', current: calories, target: activePlan.macros.calories, unit: 'kcal', color: '#ec4899' },
+              ].map(({ label, current, target, unit, color }) => {
+                const pct = Math.min((current / target) * 100, 100);
+                const over = current > target;
+                return (
+                  <div key={label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] text-muted-foreground">{label}</span>
+                      <span className="text-[11px] font-medium" style={{ color: over ? '#ef4444' : color }}>
+                        {current}{unit === 'g' ? 'g' : ''} <span className="text-muted-foreground font-normal">/ {target}{unit === 'g' ? 'g' : ' kcal'}</span>
+                        {over && <span className="text-red-500 ml-1">+{current - target}{unit === 'g' ? 'g' : ''}</span>}
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, backgroundColor: over ? '#ef4444' : color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="text-sm">
               <span className="text-muted-foreground">Total: </span>
@@ -1161,7 +1192,7 @@ export function NutritionTab({
             />
             <Button onClick={parseMeal} disabled={mealParsing || !mealDesc.trim()} size="sm" className="rounded-xl text-xs shrink-0 gap-1">
               {mealParsing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-              {!mealParsing && 'Analyze'}
+              {!mealParsing && 'Get Macros'}
             </Button>
           </div>
           <AnimatePresence>
