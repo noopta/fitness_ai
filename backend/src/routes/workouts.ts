@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
+import { recomputeStrengthProfileInBackground } from './strength.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -85,6 +86,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
     });
 
     cacheDelete(`userctx:${req.user!.id}`);
+    recomputeStrengthProfileInBackground(req.user!.id);
     res.status(201).json({ ...log, exercises });
   } catch (err) {
     console.error('Create workout error:', err);
@@ -125,6 +127,7 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
     });
 
     cacheDelete(`userctx:${req.user!.id}`);
+    recomputeStrengthProfileInBackground(req.user!.id);
     res.json({ ...updated, exercises });
   } catch (err) {
     console.error('Update workout error:', err);
@@ -140,6 +143,7 @@ router.delete('/workouts/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Workout log not found' });
     }
     await prisma.workoutLog.delete({ where: { id: req.params.id } });
+    recomputeStrengthProfileInBackground(req.user!.id);
     res.json({ success: true });
   } catch (err) {
     console.error('Delete workout error:', err);
