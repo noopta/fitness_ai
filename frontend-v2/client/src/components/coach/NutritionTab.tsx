@@ -563,6 +563,11 @@ export function NutritionTab({
         const next = prev.filter(l => l.date !== form.date);
         return [data, ...next].sort((a, b) => b.date.localeCompare(a.date));
       });
+      // Re-fetch full log list to ensure chart + recent logs are in sync
+      authFetch(`${API_BASE}/nutrition/log`)
+        .then(r => r.json())
+        .then(d => { if (d.logs) setLogs(d.logs); })
+        .catch(() => {});
       toast.success('Log saved');
     } catch (err: any) {
       toast.error(err.message || 'Failed to save');
@@ -684,6 +689,7 @@ export function NutritionTab({
     if (!parsedMeal) return;
     setMealAdding(true);
     try {
+      // 1. Save the individual meal entry
       const res = await authFetch(`${API_BASE}/nutrition/meals`, {
         method: 'POST',
         body: JSON.stringify({
@@ -701,14 +707,39 @@ export function NutritionTab({
         const d = await res.json();
         throw new Error(d.error || 'Failed to add meal');
       }
-      // Add macros to the daily log form so the user can save totals
+
+      // 2. Compute new accumulated daily totals
+      const newProtein = (Number(form.proteinG) || 0) + parsedMeal.proteinG;
+      const newCarbs = (Number(form.carbsG) || 0) + parsedMeal.carbsG;
+      const newFat = (Number(form.fatG) || 0) + parsedMeal.fatG;
+
+      // 3. Update form fields so the UI reflects the new totals
       setForm(f => ({
         ...f,
-        proteinG: String((Number(f.proteinG) || 0) + parsedMeal.proteinG),
-        carbsG: String((Number(f.carbsG) || 0) + parsedMeal.carbsG),
-        fatG: String((Number(f.fatG) || 0) + parsedMeal.fatG),
+        proteinG: String(newProtein),
+        carbsG: String(newCarbs),
+        fatG: String(newFat),
       }));
-      toast.success(`${parsedMeal.name} added to log`);
+
+      // 4. Auto-save accumulated totals to NutritionLog so data persists on refresh
+      const logRes = await authFetch(`${API_BASE}/nutrition/log`, {
+        method: 'POST',
+        body: JSON.stringify({
+          date: form.date,
+          proteinG: newProtein,
+          carbsG: newCarbs,
+          fatG: newFat,
+        }),
+      });
+      if (logRes.ok) {
+        const logData = await logRes.json();
+        setLogs(prev => {
+          const next = prev.filter(l => l.date !== form.date);
+          return [logData, ...next].sort((a, b) => b.date.localeCompare(a.date));
+        });
+      }
+
+      toast.success(`${parsedMeal.name} added to daily log`);
       setParsedMeal(null);
       setMealDesc('');
     } catch (err: any) {
