@@ -562,23 +562,23 @@ export default function Signup() {
               data-testid="button-get-started"
               asChild
             >
-              <Link href="/onboarding">
-                Try Demo
+              <Link href="/coach">
+                Open AI Coach
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="secondary" className="rounded-xl" data-testid="button-history">
-              <Link href="/history">My Analyses</Link>
+              <Link href="/history">My History</Link>
             </Button>
           </div>
         </>
       ) : (
         <>
           <div className="text-sm font-semibold" data-testid="text-email-title">
-            Try the lift diagnostic demo
+            Meet your AI coach — free to try
           </div>
           <div className="mt-1 text-sm text-muted-foreground" data-testid="text-email-subtitle">
-            See what's limiting your bench, squat, or deadlift in under 2 minutes. Free, no credit card required.
+            Get a personalized program, nutrition guidance, and 24/7 coaching. No credit card required.
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button
@@ -587,7 +587,7 @@ export default function Signup() {
               asChild
             >
               <Link href="/register">
-                Try Demo
+                Start for Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

@@ -531,18 +531,17 @@ export function NutritionTab({
       .finally(() => setBwLogsLoading(false));
   }, []);
 
+  // When the selected date or logs change, populate the form fields with that day's existing log (or clear them)
   useEffect(() => {
-    const todayLog = logs.find(l => l.date === todayStr());
-    if (todayLog) {
-      setForm({
-        date: todayLog.date,
-        proteinG: String(todayLog.proteinG),
-        carbsG: String(todayLog.carbsG),
-        fatG: String(todayLog.fatG),
-        notes: todayLog.notes || '',
-      });
-    }
-  }, [logs]);
+    const selectedLog = logs.find(l => l.date === form.date);
+    setForm(f => ({
+      ...f,
+      proteinG: selectedLog ? String(selectedLog.proteinG) : '',
+      carbsG: selectedLog ? String(selectedLog.carbsG) : '',
+      fatG: selectedLog ? String(selectedLog.fatG) : '',
+      notes: selectedLog ? (selectedLog.notes || '') : '',
+    }));
+  }, [form.date, logs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function saveLog() {
     setSaving(true);
