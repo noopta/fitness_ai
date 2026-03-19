@@ -182,7 +182,7 @@ async function buildFullUserContext(userId: string): Promise<string> {
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
   const fourteenDaysAgoStr = fourteenDaysAgo.toISOString().slice(0, 10);
 
-  const [user, workoutLogs, nutritionLogs, wellnessCheckins, bodyWeightLogs] = await Promise.all([
+  const [user, workoutLogs, nutritionLogs, mealEntries, wellnessCheckins, bodyWeightLogs] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -200,7 +200,11 @@ async function buildFullUserContext(userId: string): Promise<string> {
       orderBy: { date: 'desc' },
     }),
     prisma.nutritionLog.findMany({
-      where: { userId, date: { gte: fourteenDaysAgoStr } },
+      where: { userId, date: { gte: thirtyDaysAgoStr } },
+      orderBy: { date: 'desc' },
+    }),
+    prisma.mealEntry.findMany({
+      where: { userId, date: { gte: thirtyDaysAgoStr } },
       orderBy: { date: 'desc' },
     }),
     prisma.wellnessCheckin.findMany({
@@ -308,11 +312,32 @@ async function buildFullUserContext(userId: string): Promise<string> {
     }
   }
 
-  // Nutrition logs
-  if (nutritionLogs.length > 0) {
-    lines.push('\n=== NUTRITION LOGS (last 14 days) ===');
+  // Nutrition logs + individual meal entries grouped by date
+  if (nutritionLogs.length > 0 || mealEntries.length > 0) {
+    lines.push('\n=== NUTRITION LOGS (last 30 days) ===');
+    // Build a map of date → meal entries for quick lookup
+    const mealsByDate = new Map<string, typeof mealEntries>();
+    for (const m of mealEntries) {
+      if (!mealsByDate.has(m.date)) mealsByDate.set(m.date, []);
+      mealsByDate.get(m.date)!.push(m);
+    }
+    // Print daily totals with individual meals nested underneath
     for (const log of nutritionLogs) {
       lines.push(`  ${log.date}: ${Math.round(log.calories)} kcal — P:${log.proteinG}g C:${log.carbsG}g F:${log.fatG}g${log.notes ? ` (${log.notes})` : ''}`);
+      const meals = mealsByDate.get(log.date);
+      if (meals?.length) {
+        for (const m of meals) {
+          lines.push(`    • ${m.name} — ${Math.round(m.calories)} kcal P:${m.proteinG}g C:${m.carbsG}g F:${m.fatG}g${m.notes ? ` (${m.notes})` : ''}`);
+        }
+        mealsByDate.delete(log.date); // mark as printed
+      }
+    }
+    // Any meal entries on dates that don't have a daily total yet
+    for (const [date, meals] of mealsByDate) {
+      lines.push(`  ${date}: (meal entries only)`);
+      for (const m of meals) {
+        lines.push(`    • ${m.name} — ${Math.round(m.calories)} kcal P:${m.proteinG}g C:${m.carbsG}g F:${m.fatG}g${m.notes ? ` (${m.notes})` : ''}`);
+      }
     }
   }
 
