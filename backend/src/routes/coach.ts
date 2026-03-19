@@ -387,7 +387,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
       model: 'gpt-5.4-nano',
       messages,
       stream: true,
-      max_tokens: 800,
+      max_completion_tokens: 800,
     });
 
     for await (const chunk of stream) {
