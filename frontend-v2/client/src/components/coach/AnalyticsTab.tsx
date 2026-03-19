@@ -77,8 +77,10 @@ export function AnalyticsTab() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3 text-center p-6">
         <BarChart3 className="h-10 w-10 text-muted-foreground/40" />
-        <p className="font-semibold">No data yet</p>
-        <p className="text-sm text-muted-foreground">Complete your first analysis to see progress charts here.</p>
+        <p className="font-semibold">No diagnostic data yet</p>
+        <p className="text-sm text-muted-foreground max-w-xs">
+          Run a <strong>Lift Analysis</strong> (bench, squat, or deadlift) from the Diagnostics tab to populate these charts. Each session adds data points here — limiters, phase weaknesses, and balance scores over time.
+        </p>
       </div>
     );
   }

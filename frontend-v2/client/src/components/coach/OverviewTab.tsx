@@ -410,7 +410,17 @@ function exportToICS(days: WeekDay[]) {
   a.download = 'axiom-schedule.ics';
   a.click();
   URL.revokeObjectURL(url);
-  toast.success('Calendar file downloaded — open it to import into Google Calendar, iCal, or Outlook.');
+  toast.success(
+    <div className="space-y-1">
+      <p className="font-semibold">Schedule downloaded as axiom-schedule.ics</p>
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        <strong>Google Calendar:</strong> calendar.google.com → Settings → Import &amp; Export → Import<br />
+        <strong>Apple Calendar:</strong> Double-click the downloaded file<br />
+        <strong>Outlook:</strong> File → Open &amp; Export → Import/Export → iCalendar
+      </p>
+    </div>,
+    { duration: 8000 }
+  );
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
