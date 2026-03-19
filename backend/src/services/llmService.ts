@@ -1579,7 +1579,7 @@ OUTPUT — valid JSON only:
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-nano',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 2500,
     response_format: { type: 'json_object' },

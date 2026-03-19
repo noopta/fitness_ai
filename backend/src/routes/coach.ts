@@ -384,7 +384,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     res.flushHeaders();
 
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: 'gpt-5.4-nano',
       messages,
       stream: true,
       max_tokens: 800,
@@ -1036,6 +1036,20 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
     }
 
     const result = buildScheduleData(user);
+
+    // Mark days that have a logged workout
+    if (result.weekDays.length > 0) {
+      const weekStart = result.weekDays[0].date.slice(0, 10);
+      const weekEnd = result.weekDays[6].date.slice(0, 10);
+      const logs = await prisma.workoutLog.findMany({
+        where: { userId: req.user!.id, date: { gte: weekStart, lte: weekEnd } },
+        select: { date: true },
+      });
+      const loggedDates = new Set(logs.map((l: { date: string }) => l.date.slice(0, 10)));
+      for (const day of result.weekDays) {
+        (day as any).isLogged = loggedDates.has(day.date.slice(0, 10));
+      }
+    }
 
     const tomorrowEST = new Date(getESTDateString() + 'T12:00:00Z');
     tomorrowEST.setUTCDate(tomorrowEST.getUTCDate() + 1);
