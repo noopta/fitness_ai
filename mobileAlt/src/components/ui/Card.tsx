@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { colors, radius, spacing, fontSize, fontWeight } from '../../constants/theme';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function Card({ children, style }: CardProps) {
@@ -13,7 +13,7 @@ export function Card({ children, style }: CardProps) {
 
 interface CardHeaderProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 export function CardHeader({ children, style }: CardHeaderProps) {
   return <View style={[styles.header, style]}>{children}</View>;
@@ -29,7 +29,7 @@ export function CardTitle({ children, style }: CardTitleProps) {
 
 interface CardContentProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 export function CardContent({ children, style }: CardContentProps) {
   return <View style={[styles.content, style]}>{children}</View>;

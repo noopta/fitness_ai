@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kill 591171)",
+      "Bash(pkill -f metro)",
+      "Bash(xargs kill:*)",
+      "Bash(node gen_token.js)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcyZjljZWM4LThjNzMtNGMxMi1iN2Y5LWZhZGUyM2MwMmU3NSIsImVtYWlsIjoiaW5xdWlyaWVzQGF4aW9tdHJhaW5pbmcuaW8iLCJ0aWVyIjoicHJvIiwiaWF0IjoxNzczMjg0MjczLCJleHAiOjE3NzMyODc4NzN9.Hq8NQ6fcC5UE6qxWBDNwkuf3hkjtiyNd4HrOogdH3pI\" curl -s https://api.airthreads.ai:4009/api/auth/me -H \"Authorization: Bearer $TOKEN\")",
+      "Read(//lib/systemd/system/**)",
+      "Bash(node --input-type=module:*)",
+      "Bash(head -50 echo \"\" curl -s https://api.airthreads.ai:4009/api/coach/chat/stream -H \"Authorization: Bearer badtoken\" -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"test\"\"\"\"}')",
+      "Bash(git add:*)"
+    ]
+  }
+}

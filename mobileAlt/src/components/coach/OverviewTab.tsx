@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
+  ActivityIndicator,
+  Animated,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { Badge } from '../ui/Badge';
 import { coachApi } from '../../lib/api';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
@@ -52,6 +54,7 @@ interface WeekDay {
   monthLabel: string;
   isToday: boolean;
   isTrainingDay: boolean;
+  isLogged?: boolean;
   session: {
     day: string;
     focus: string;
@@ -80,24 +83,41 @@ function DayWorkoutSheet({
   visible,
   onClose,
   onLogged,
+  onVideoPress,
 }: {
   day: WeekDay;
   visible: boolean;
   onClose: () => void;
   onLogged: () => void;
+  onVideoPress: (exerciseName: string) => void;
 }) {
   const [logVisible, setLogVisible] = useState(false);
+  const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(translateY, { toValue: 0, damping: 22, stiffness: 180, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: SHEET_HEIGHT, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
 
   const exercises = day.session?.exercises ?? [];
   const isRestDay = !day.isTrainingDay;
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <Pressable style={sheet.overlay} onPress={onClose}>
-          <View style={sheet.spacer} />
-        </Pressable>
-        <View style={sheet.container}>
+      <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+        <Animated.View style={[sheet.root, { opacity: backdropOpacity }]}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+          <Animated.View style={[sheet.container, { transform: [{ translateY }] }]}>
           <View style={sheet.handle} />
           <View style={sheet.header}>
             <View>
@@ -128,19 +148,28 @@ function DayWorkoutSheet({
             ) : (
               <>
                 <Text style={sheet.sectionTitle}>EXERCISES</Text>
-                {exercises.map((ex, i) => (
-                  <View key={i} style={[sheet.exRow, i < exercises.length - 1 && sheet.exRowBorder]}>
-                    <Text style={sheet.exName}>{ex.exercise ?? ex.name ?? `Exercise ${i + 1}`}</Text>
-                    <View style={sheet.exMeta}>
-                      {ex.sets && ex.reps ? (
-                        <Text style={sheet.exSets}>{ex.sets} × {ex.reps}</Text>
-                      ) : null}
-                      {ex.intensity ? (
-                        <Text style={sheet.exIntensity}>{ex.intensity}</Text>
-                      ) : null}
-                    </View>
-                  </View>
-                ))}
+                {exercises.map((ex, i) => {
+                  const exName = ex.exercise ?? ex.name ?? `Exercise ${i + 1}`;
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.7}
+                      style={[sheet.exRow, i < exercises.length - 1 && sheet.exRowBorder]}
+                      onPress={() => onVideoPress(exName)}
+                    >
+                      <Text style={sheet.exName}>{exName}</Text>
+                      <View style={sheet.exMeta}>
+                        {ex.sets && ex.reps ? (
+                          <Text style={sheet.exSets}>{ex.sets} × {ex.reps}</Text>
+                        ) : null}
+                        {ex.intensity ? (
+                          <Text style={sheet.exIntensity}>{ex.intensity}</Text>
+                        ) : null}
+                        <Ionicons name="play-circle-outline" size={16} color={colors.mutedForeground} />
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </>
             )}
           </ScrollView>
@@ -156,7 +185,8 @@ function DayWorkoutSheet({
               </TouchableOpacity>
             </View>
           )}
-        </View>
+          </Animated.View>
+        </Animated.View>
       </Modal>
 
       <WorkoutLogModal
@@ -172,8 +202,11 @@ function DayWorkoutSheet({
 }
 
 const sheet = StyleSheet.create({
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  spacer: { flex: 1 },
+  root: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
   container: {
     backgroundColor: colors.card,
     borderTopLeftRadius: 24,
@@ -235,6 +268,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   const [workoutSaved, setWorkoutSaved] = useState(false);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [pastLogVisible, setPastLogVisible] = useState(false);
+  const [loadingVideoEx, setLoadingVideoEx] = useState<string | null>(null);
+  const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -334,89 +369,101 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           </View>
         )}
 
-        {/* ── Today's Workout Card ─────────────────────────────────────────── */}
+        {/* ── Today's Workout Card (dark) ──────────────────────────────────── */}
         {todayData?.isRestDay ? (
-          <Card style={[styles.card, styles.restDayCard]}>
-            <CardContent style={styles.restDayContent}>
-              <View style={styles.restDayIcon}>
-                <Ionicons name="moon-outline" size={28} color="#8b5cf6" />
+          <View style={dark.card}>
+            {/* header */}
+            <View style={dark.headerRow}>
+              <View style={dark.labelRow}>
+                <View style={dark.dotRest} />
+                <Text style={dark.labelText}>TODAY</Text>
               </View>
-              <Text style={styles.restDayTitle}>Rest Day</Text>
-              <Text style={styles.restDaySubtitle}>Recovery & adaptation — today you grow</Text>
-              {todayData.nextTrainingDay && (
-                <View style={styles.nextDayRow}>
-                  <Ionicons name="calendar-outline" size={13} color={colors.mutedForeground} />
-                  <Text style={styles.nextDayText}>Next training: {todayData.nextTrainingDay}</Text>
+              {(todayData.phaseName ?? scheduleData?.phaseName) && (
+                <View style={dark.phasePill}>
+                  <Text style={dark.phasePillText}>
+                    {(todayData.phaseName ?? scheduleData?.phaseName)!.toUpperCase()}
+                    {todayData.weekNumber ? ` · W${todayData.weekNumber}` : ''}
+                  </Text>
                 </View>
               )}
-              {todayData.tips && parseTips(todayData.tips).length > 0 && (
-                <View style={styles.tipsBox}>
-                  <Text style={styles.tipsLabel}>RECOVERY TIPS</Text>
-                  {parseTips(todayData.tips).slice(0, 3).map((tip, i) => (
-                    <View key={i} style={styles.tipRow}>
-                      <View style={styles.tipDot} />
-                      <Text style={styles.tipText}>{tip}</Text>
-                    </View>
-                  ))}
+            </View>
+            <Text style={dark.title}>Rest Day</Text>
+            <Text style={dark.subtitle}>Recovery is where gains are made</Text>
+            <View style={dark.tipsBox}>
+              <Text style={dark.tipsLabel}>RECOVERY FOCUS</Text>
+              {[
+                'Aim for 8+ hours of sleep tonight',
+                'Prioritize protein: 0.8–1g per lb of bodyweight',
+                'Light walking or stretching is fine',
+              ].map((tip, i) => (
+                <View key={i} style={dark.tipRow}>
+                  <Ionicons name="checkmark-outline" size={12} color="#71717a" style={{ marginTop: 1 }} />
+                  <Text style={dark.tipText}>{tip}</Text>
                 </View>
-              )}
-            </CardContent>
-          </Card>
+              ))}
+            </View>
+            {todayData.nextTrainingDay && (
+              <Text style={dark.nextDay}>
+                Next training: <Text style={{ color: '#fff', fontWeight: '600' }}>{todayData.nextTrainingDay}</Text>
+              </Text>
+            )}
+          </View>
         ) : (
-          <Card style={[styles.card, styles.workoutCard]}>
-            <CardHeader style={styles.workoutCardHeader}>
-              <View style={styles.workoutHeaderTop}>
-                <View>
-                  <Text style={styles.workoutDayLabel}>TODAY'S WORKOUT</Text>
-                  <CardTitle style={styles.workoutTitle}>
-                    {todayData?.todaySession?.day ||
-                      todayData?.todaySession?.focus ||
-                      'Training Day'}
-                  </CardTitle>
-                </View>
-                {todayData?.todaySession?.focus && todayData.todaySession.day && (
-                  <View style={styles.focusBadgeWrap}>
-                    <Badge variant="default">
-                      {todayData.todaySession.focus.length > 18
-                        ? todayData.todaySession.focus.slice(0, 18) + '…'
-                        : todayData.todaySession.focus}
-                    </Badge>
-                  </View>
-                )}
+          <View style={dark.card}>
+            {/* header row */}
+            <View style={dark.headerRow}>
+              <View style={dark.labelRow}>
+                <View style={dark.dotActive} />
+                <Text style={dark.labelText}>TODAY'S WORKOUT</Text>
               </View>
-              {todayData?.weekNumber != null && (
-                <Text style={styles.weekLabel}>
-                  Week {todayData.weekNumber}
-                  {todayData.phaseName ? ` · ${todayData.phaseName}` : ''}
-                </Text>
+              {(todayData?.phaseName ?? scheduleData?.phaseName) && (
+                <View style={dark.phasePill}>
+                  <Text style={dark.phasePillText}>
+                    {(todayData?.phaseName ?? scheduleData?.phaseName)!.toUpperCase()}
+                    {todayData?.weekNumber ? ` · W${todayData.weekNumber}` : ''}
+                  </Text>
+                </View>
               )}
-            </CardHeader>
+            </View>
 
-            <CardContent style={styles.exerciseListContent}>
+            {/* title + focus */}
+            <Text style={dark.title}>
+              {todayData?.todaySession?.day || todayData?.todaySession?.focus || 'Training Day'}
+            </Text>
+            {todayData?.todaySession?.focus && todayData.todaySession.day && (
+              <Text style={dark.subtitle}>{todayData.todaySession.focus}</Text>
+            )}
+
+            {/* exercise list */}
+            <View style={dark.exList}>
               {todayExercises.length === 0 ? (
-                <Text style={styles.emptyText}>No exercises listed for today.</Text>
+                <Text style={dark.emptyText}>No exercises listed for today.</Text>
               ) : (
-                todayExercises.map((ex, i) => (
-                  <View
-                    key={i}
-                    style={[styles.exerciseRow, i < todayExercises.length - 1 && styles.exerciseRowBorder]}
-                  >
-                    <Text style={styles.exerciseName}>
-                      {ex.exercise ?? ex.name ?? `Exercise ${i + 1}`}
-                    </Text>
-                    <View style={styles.exerciseMeta}>
-                      {ex.sets && ex.reps ? (
-                        <Text style={styles.exerciseSets}>{ex.sets} × {ex.reps}</Text>
-                      ) : null}
-                      {ex.intensity ? (
-                        <Text style={styles.exerciseIntensity}>{ex.intensity}</Text>
-                      ) : null}
-                    </View>
-                  </View>
-                ))
+                todayExercises.map((ex, i) => {
+                  const exName = ex.exercise ?? ex.name ?? `Exercise ${i + 1}`;
+                  const isLoadingThis = loadingVideoEx === exName;
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.7}
+                      style={[dark.exRow, i < todayExercises.length - 1 && dark.exRowBorder]}
+                      onPress={() => openExerciseVideo(exName, setLoadingVideoEx, (videoId, title) => setVideoModal({ videoId, title }))}
+                    >
+                      <Text style={dark.exName}>{exName}</Text>
+                      <View style={dark.exRight}>
+                        {ex.sets && ex.reps ? (
+                          <Text style={dark.exMeta}>{ex.sets}×{ex.reps}{ex.intensity ? ` · ${ex.intensity}` : ''}</Text>
+                        ) : null}
+                        {isLoadingThis
+                          ? <ActivityIndicator size="small" color="#71717a" />
+                          : <Ionicons name="play-circle-outline" size={16} color="#71717a" />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
               )}
-            </CardContent>
-          </Card>
+            </View>
+          </View>
         )}
 
         {/* ── Action buttons ───────────────────────────────────────────────── */}
@@ -432,7 +479,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             style={[styles.actionBtn, styles.lifeBtn]}
             onPress={() => setLifeHappenedVisible(true)}
           >
-            <Ionicons name="heart-outline" size={16} color={colors.foreground} />
+            <Ionicons name="heart-outline" size={16} color="#d97706" />
             <Text style={styles.lifeBtnText}>Life Happened</Text>
           </TouchableOpacity>
         </View>
@@ -468,6 +515,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                       styles.dayCell,
                       day.isToday && styles.dayCellToday,
                       day.isTrainingDay && !day.isToday && styles.dayCellTraining,
+                      day.isLogged && !day.isToday && styles.dayCellLogged,
                     ]}
                   >
                     <Text style={[styles.dayLabel, day.isToday && styles.dayLabelToday]}>
@@ -476,7 +524,13 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                     <Text style={[styles.dateNum, day.isToday && styles.dateNumToday]}>
                       {day.dateNumber}
                     </Text>
-                    {day.isTrainingDay ? (
+                    {day.isLogged ? (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color={day.isToday ? '#fff' : '#22c55e'}
+                      />
+                    ) : day.isTrainingDay ? (
                       <View style={[styles.trainingDot, day.isToday && styles.trainingDotToday]} />
                     ) : (
                       <Ionicons
@@ -488,7 +542,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                     )}
                     {day.session?.focus ? (
                       <Text
-                        style={[styles.dayFocus, day.isToday && styles.dayFocusToday]}
+                        style={[styles.dayFocus, day.isToday && styles.dayFocusToday, day.isLogged && !day.isToday && styles.dayFocusLogged]}
                         numberOfLines={1}
                       >
                         {day.session.focus}
@@ -510,6 +564,30 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
               <CardTitle>Program Progress</CardTitle>
             </CardHeader>
             <CardContent style={styles.cardContent}>
+
+              {/* Current phase — clean row at the top */}
+              {(todayData?.phaseName ?? scheduleData?.phaseName) && (() => {
+                const phaseName = todayData?.phaseName ?? scheduleData?.phaseName!;
+                const phase = savedProgram?.phases?.find((p: any) =>
+                  p.phaseName?.toLowerCase() === phaseName.toLowerCase()
+                );
+                return (
+                  <View style={styles.phaseHeaderRow}>
+                    <View style={styles.phaseHeaderLeft}>
+                      <Text style={styles.phaseHeaderLabel}>CURRENT PHASE</Text>
+                      <Text style={styles.phaseHeaderName}>{phaseName}</Text>
+                      {phase?.focus && <Text style={styles.phaseHeaderFocus}>{phase.focus}</Text>}
+                    </View>
+                    {phase?.durationWeeks && (
+                      <View style={styles.phaseHeaderBadge}>
+                        <Text style={styles.phaseHeaderBadgeText}>{phase.durationWeeks}w</Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })()}
+
+              {/* Stats row */}
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>{savedProgram.durationWeeks ?? '—'}</Text>
@@ -530,7 +608,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
               {totalWeeks > 0 && (
                 <View style={styles.progressSection}>
                   <View style={styles.progressLabelRow}>
-                    <Text style={styles.progressLabel}>Progress</Text>
+                    <Text style={styles.progressLabel}>Overall Progress</Text>
                     <Text style={styles.progressPct}>{Math.round(progressPct)}%</Text>
                   </View>
                   <View style={styles.progressTrack}>
@@ -538,12 +616,6 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                   </View>
                   <Text style={styles.progressSub}>Week {currentWeek} of {totalWeeks}</Text>
                 </View>
-              )}
-
-              {!savedProgram && onGoToProgram && (
-                <Pressable onPress={onGoToProgram}>
-                  <Text style={styles.linkText}>Set up a program</Text>
-                </Pressable>
               )}
             </CardContent>
           </Card>
@@ -587,13 +659,65 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           visible={pastLogVisible}
           onClose={() => setPastLogVisible(false)}
           onLogged={() => { setPastLogVisible(false); setWorkoutSaved(true); setTimeout(() => setWorkoutSaved(false), 3000); }}
+          onVideoPress={(name) => {
+            setPastLogVisible(false);
+            openExerciseVideo(name, setLoadingVideoEx, (videoId, title) => setVideoModal({ videoId, title }));
+          }}
         />
       )}
+
+      {/* ── Video modal ────────────────────────────────────────────────────── */}
+      <Modal
+        visible={!!videoModal}
+        transparent
+        animationType="none"
+        onRequestClose={() => setVideoModal(null)}
+      >
+        <View style={videoStyles.backdrop}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setVideoModal(null)} />
+          <View style={videoStyles.sheet}>
+            <View style={videoStyles.handle} />
+            <View style={videoStyles.header}>
+              <Text style={videoStyles.title} numberOfLines={1}>{videoModal?.title ?? ''}</Text>
+              <TouchableOpacity onPress={() => setVideoModal(null)} style={videoStyles.closeBtn}>
+                <Ionicons name="close" size={20} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+            {videoModal && (
+              <WebView
+                style={videoStyles.webview}
+                source={{ uri: `https://www.youtube.com/embed/${videoModal.videoId}?autoplay=1&playsinline=1` }}
+                allowsFullscreenVideo
+                mediaPlaybackRequiresUserAction={false}
+                javaScriptEnabled
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async function openExerciseVideo(
+  exerciseName: string,
+  setLoadingEx: (n: string | null) => void,
+  onResult: (videoId: string, title: string) => void,
+) {
+  setLoadingEx(exerciseName);
+  try {
+    const res = await coachApi.getExerciseVideo(exerciseName);
+    if (res?.videoId) {
+      onResult(res.videoId, exerciseName);
+    }
+  } catch {
+    // silently ignore
+  } finally {
+    setLoadingEx(null);
+  }
+}
 
 function parseTips(tips: string): string[] {
   return tips
@@ -603,6 +727,151 @@ function parseTips(tips: string): string[] {
     .map(l => l.replace(/^[•\-*]\s*/, '').trim())
     .filter(l => l.length > 0);
 }
+
+// ─── Dark card styles (Today's Workout) ──────────────────────────────────────
+
+const dark = StyleSheet.create({
+  card: {
+    backgroundColor: '#18181b',
+    borderRadius: 20,
+    padding: 20,
+    gap: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dotActive: {
+    width: 7, height: 7, borderRadius: 4,
+    backgroundColor: '#4ade80',
+  },
+  dotRest: {
+    width: 7, height: 7, borderRadius: 4,
+    backgroundColor: '#52525b',
+  },
+  labelText: {
+    fontSize: 10, fontWeight: '700', color: '#71717a', letterSpacing: 1,
+  },
+  phasePill: {
+    backgroundColor: '#27272a',
+    borderRadius: 100,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  phasePillText: {
+    fontSize: 10, fontWeight: '700', color: '#a1a1aa', letterSpacing: 0.5,
+  },
+  title: {
+    fontSize: 24, fontWeight: '700', color: '#fff',
+  },
+  subtitle: {
+    fontSize: 13, color: '#a1a1aa', marginTop: -8,
+  },
+  exList: {
+    backgroundColor: '#27272a',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  exRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  exRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#3f3f46',
+  },
+  exName: {
+    flex: 1,
+    fontSize: 13, fontWeight: '500', color: '#fff',
+    marginRight: 8,
+  },
+  exRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  exMeta: {
+    fontSize: 11, color: '#71717a',
+  },
+  emptyText: {
+    fontSize: 13, color: '#52525b', textAlign: 'center', padding: 16,
+  },
+  tipsBox: {
+    backgroundColor: '#27272a',
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+  },
+  tipsLabel: {
+    fontSize: 9, fontWeight: '700', color: '#52525b', letterSpacing: 1,
+  },
+  tipRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 12, color: '#a1a1aa', lineHeight: 17,
+  },
+  nextDay: {
+    fontSize: 12, color: '#71717a', textAlign: 'center',
+  },
+});
+
+// ─── Video modal styles ───────────────────────────────────────────────────────
+
+const VIDEO_HEIGHT = Dimensions.get('window').width * (9 / 16);
+
+const videoStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
+    overflow: 'hidden',
+  },
+  handle: {
+    width: 40, height: 4, borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginTop: 10, marginBottom: 4,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  title: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.foreground,
+    marginRight: 8,
+  },
+  closeBtn: { padding: 4 },
+  webview: {
+    width: '100%',
+    height: VIDEO_HEIGHT,
+    backgroundColor: '#000',
+  },
+});
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -722,31 +991,43 @@ const styles = StyleSheet.create({
     backgroundColor: `${colors.primary}06`,
   },
   workoutCardHeader: {
-    gap: spacing.xs,
-    paddingTop: spacing.md,   // Explicit top padding since CardHeader already has padding
+    gap: 4,
+    paddingTop: spacing.md,
     paddingBottom: spacing.sm,
-  },
-  workoutHeaderTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  focusBadgeWrap: {
-    flexShrink: 1,
-    maxWidth: 130,
   },
   workoutDayLabel: {
     fontSize: 10,
     fontWeight: fontWeight.bold,
     color: colors.primary,
     letterSpacing: 0.8,
-    marginBottom: 2,
   },
   workoutTitle: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
+  },
+  workoutMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: 4,
+  },
+  focusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.primary}15`,
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: `${colors.primary}25`,
+  },
+  focusPillText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
   },
   weekLabel: {
     fontSize: fontSize.xs,
@@ -809,14 +1090,14 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   lifeBtn: {
-    backgroundColor: colors.muted,
+    backgroundColor: 'rgba(245,158,11,0.08)',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(245,158,11,0.3)',
   },
   lifeBtnText: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
-    color: colors.foreground,
+    color: '#d97706',
   },
   savedBanner: {
     flexDirection: 'row',
@@ -860,10 +1141,14 @@ const styles = StyleSheet.create({
     borderColor: '#22c55e30',
   },
   dayCellTodayRest: {
-    // Today but rest day: purple
     backgroundColor: '#8b5cf6',
     borderColor: '#8b5cf6',
   },
+  dayCellLogged: {
+    backgroundColor: '#22c55e10',
+    borderColor: '#22c55e40',
+  },
+  dayFocusLogged: { color: '#22c55e' },
   dayLabel: {
     fontSize: 10,
     fontWeight: fontWeight.semibold,
@@ -897,6 +1182,37 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.mutedForeground,
     marginTop: 2,
+  },
+
+  // Phase header row
+  phaseHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  phaseHeaderLeft: { flex: 1, gap: 2 },
+  phaseHeaderLabel: {
+    fontSize: 9, fontWeight: fontWeight.bold, color: colors.primary,
+    letterSpacing: 0.8,
+  },
+  phaseHeaderName: {
+    fontSize: fontSize.base, fontWeight: fontWeight.bold, color: colors.foreground,
+  },
+  phaseHeaderFocus: {
+    fontSize: fontSize.xs, color: colors.mutedForeground,
+  },
+  phaseHeaderBadge: {
+    backgroundColor: `${colors.primary}15`,
+    borderRadius: radius.full,
+    paddingHorizontal: 10, paddingVertical: 4,
+    marginLeft: spacing.sm,
+  },
+  phaseHeaderBadgeText: {
+    fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.primary,
   },
 
   // Program progress

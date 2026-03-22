@@ -12,16 +12,15 @@ import { ProgramWalkthrough } from '../../src/components/coach/ProgramWalkthroug
 import { OverviewTab } from '../../src/components/coach/OverviewTab';
 import { ProgramTab } from '../../src/components/coach/ProgramTab';
 import { NutritionTab } from '../../src/components/coach/NutritionTab';
-import { AnalyticsTab } from '../../src/components/coach/AnalyticsTab';
 import { WellnessTab } from '../../src/components/coach/WellnessTab';
 import { ChatTab } from '../../src/components/coach/ChatTab';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Stage = 'loading' | 'upgrade' | 'onboarding' | 'setup' | 'walkthrough' | 'dashboard';
-type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Analytics' | 'Wellness' | 'Chat';
+type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
-const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Analytics', 'Wellness', 'Chat'];
+const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
 
 // ─── Coach Screen ─────────────────────────────────────────────────────────────
 
@@ -283,9 +282,6 @@ export default function CoachScreen() {
             coachBudget={user?.coachBudget ?? null}
             onRefresh={initCoach}
           />
-        )}
-        {activeTab === 'Analytics' && (
-          <AnalyticsTab coachData={coachData} />
         )}
         {activeTab === 'Wellness' && (
           <WellnessTab coachData={coachData} />

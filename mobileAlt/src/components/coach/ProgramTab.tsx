@@ -4,11 +4,17 @@ import {
   Text,
   ScrollView,
   Pressable,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { coachApi } from '../../lib/api';
 
 interface ProgramTabProps {
   coachData: any;
@@ -16,6 +22,18 @@ interface ProgramTabProps {
 
 export function ProgramTab({ coachData }: ProgramTabProps) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(0);
+  const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
+  const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
+
+  async function openVideo(exerciseName: string) {
+    setLoadingVideo(exerciseName);
+    try {
+      const res = await coachApi.getExerciseVideo(exerciseName);
+      if (res?.videoId) setVideoModal({ videoId: res.videoId, title: exerciseName });
+    } catch { /* silent */ } finally {
+      setLoadingVideo(null);
+    }
+  }
 
   let savedProgram: any = null;
   if (coachData?.savedProgram) {
@@ -55,6 +73,7 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
     : 0;
 
   return (
+    <>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -138,30 +157,38 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
 
                     {day.exercises && day.exercises.length > 0 ? (
                       <View style={styles.exerciseList}>
-                        {day.exercises.map((ex: any, exIdx: number) => (
-                          <View key={exIdx} style={styles.exerciseRow}>
-                            <View style={styles.exerciseLeft}>
-                              <Text style={styles.exerciseName}>
-                                {ex.name || ex.exercise || `Exercise ${exIdx + 1}`}
-                              </Text>
-                              {ex.notes ? (
-                                <Text style={styles.exerciseNotes}>{ex.notes}</Text>
-                              ) : null}
-                            </View>
-                            <View style={styles.exerciseRight}>
-                              {ex.sets && ex.reps ? (
-                                <Text style={styles.exerciseSets}>
-                                  {ex.sets} × {ex.reps}
-                                </Text>
-                              ) : ex.sets ? (
-                                <Text style={styles.exerciseSets}>{ex.sets} sets</Text>
-                              ) : null}
-                              {(ex.rpe || ex.intensity) ? (
-                                <Text style={styles.exerciseRpe}>{ex.rpe ? `RPE ${ex.rpe}` : ex.intensity}</Text>
-                              ) : null}
-                            </View>
-                          </View>
-                        ))}
+                        {day.exercises.map((ex: any, exIdx: number) => {
+                          const exName = ex.name || ex.exercise || `Exercise ${exIdx + 1}`;
+                          const isLoading = loadingVideo === exName;
+                          return (
+                            <TouchableOpacity
+                              key={exIdx}
+                              activeOpacity={0.7}
+                              style={styles.exerciseRow}
+                              onPress={() => openVideo(exName)}
+                            >
+                              <View style={styles.exerciseLeft}>
+                                <Text style={styles.exerciseName}>{exName}</Text>
+                                {ex.notes ? (
+                                  <Text style={styles.exerciseNotes}>{ex.notes}</Text>
+                                ) : null}
+                              </View>
+                              <View style={styles.exerciseRight}>
+                                {ex.sets && ex.reps ? (
+                                  <Text style={styles.exerciseSets}>{ex.sets} × {ex.reps}</Text>
+                                ) : ex.sets ? (
+                                  <Text style={styles.exerciseSets}>{ex.sets} sets</Text>
+                                ) : null}
+                                {(ex.rpe || ex.intensity) ? (
+                                  <Text style={styles.exerciseRpe}>{ex.rpe ? `RPE ${ex.rpe}` : ex.intensity}</Text>
+                                ) : null}
+                                {isLoading
+                                  ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+                                  : <Ionicons name="play-circle-outline" size={16} color={colors.mutedForeground} />}
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
                       </View>
                     ) : (
                       <Text style={styles.noExercises}>No exercises listed</Text>
@@ -184,6 +211,37 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
         );
       })}
     </ScrollView>
+
+    {/* ── Video modal ── */}
+    <Modal
+      visible={!!videoModal}
+      transparent
+      animationType="none"
+      onRequestClose={() => setVideoModal(null)}
+    >
+      <View style={styles.videoBackdrop}>
+        <TouchableOpacity style={StyleSheet.absoluteFillObject as any} onPress={() => setVideoModal(null)} activeOpacity={1} />
+        <View style={styles.videoSheet}>
+          <View style={styles.videoHandle} />
+          <View style={styles.videoHeader}>
+            <Text style={styles.videoTitle} numberOfLines={1}>{videoModal?.title ?? ''}</Text>
+            <TouchableOpacity onPress={() => setVideoModal(null)} style={styles.videoClose}>
+              <Ionicons name="close" size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+          {videoModal && (
+            <WebView
+              style={styles.webview}
+              source={{ uri: `https://www.youtube.com/embed/${videoModal.videoId}?autoplay=1&playsinline=1` }}
+              allowsFullscreenVideo
+              mediaPlaybackRequiresUserAction={false}
+              javaScriptEnabled
+            />
+          )}
+        </View>
+      </View>
+    </Modal>
+  </>
   );
 }
 
@@ -367,4 +425,40 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginVertical: spacing.xs,
   },
+
+  // Video modal
+  videoBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end',
+  },
+  videoSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
+  },
+  videoHandle: {
+    width: 40, height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  videoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  videoTitle: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  videoClose: { padding: 4 },
+  webview: { height: 220 },
 });

@@ -48,6 +48,9 @@ function todayStr() {
 }
 
 export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props) {
+  const [mode, setMode] = useState<'manual' | 'describe'>('manual');
+  const [mealDesc, setMealDesc] = useState('');
+  const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(prefill?.name ?? '');
   const [mealType, setMealType] = useState<string>(prefill?.mealType ?? 'meal');
@@ -56,6 +59,27 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
   const [carbs, setCarbs] = useState(prefill?.carbsG ? String(prefill.carbsG) : '');
   const [fat, setFat] = useState(prefill?.fatG ? String(prefill.fatG) : '');
   const [notes, setNotes] = useState('');
+
+  async function handleParseMeal() {
+    if (mealDesc.trim().length < 3) return;
+    setParsing(true);
+    try {
+      const result = await nutritionApi.parseMeal(mealDesc.trim());
+      if (result) {
+        setName(result.name ?? mealDesc.trim());
+        setMealType(result.mealType ?? 'meal');
+        setCalories(result.calories ? String(Math.round(result.calories)) : '');
+        setProtein(result.proteinG ? String(Math.round(result.proteinG)) : '');
+        setCarbs(result.carbsG ? String(Math.round(result.carbsG)) : '');
+        setFat(result.fatG ? String(Math.round(result.fatG)) : '');
+        setMode('manual');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Could not analyze meal. Try entering manually.');
+    } finally {
+      setParsing(false);
+    }
+  }
 
   function handleClose() {
     onClose();
@@ -117,12 +141,64 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
             </TouchableOpacity>
           </View>
 
+          {/* Mode toggle */}
+          <View style={styles.modeRow}>
+            <TouchableOpacity
+              style={[styles.modeBtn, mode === 'manual' && styles.modeBtnActive]}
+              onPress={() => setMode('manual')}
+            >
+              <Text style={[styles.modeBtnText, mode === 'manual' && styles.modeBtnTextActive]}>Manual</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modeBtn, mode === 'describe' && styles.modeBtnActive]}
+              onPress={() => setMode('describe')}
+            >
+              <Ionicons name="sparkles" size={12} color={mode === 'describe' ? colors.primary : colors.mutedForeground} />
+              <Text style={[styles.modeBtnText, mode === 'describe' && styles.modeBtnTextActive]}>Describe</Text>
+            </TouchableOpacity>
+          </View>
+
           <ScrollView
             style={styles.body}
             contentContainerStyle={styles.bodyContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* Describe mode */}
+            {mode === 'describe' && (
+              <View style={styles.describeSection}>
+                <Text style={styles.describeHint}>
+                  Describe what you ate and AI will estimate the macros for you.
+                </Text>
+                <TextInput
+                  style={[styles.input, styles.describeInput]}
+                  placeholder={'e.g. "2 scrambled eggs with toast and a glass of OJ"'}
+                  placeholderTextColor={colors.mutedForeground}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  value={mealDesc}
+                  onChangeText={setMealDesc}
+                />
+                <TouchableOpacity
+                  style={[styles.saveBtn, (parsing || mealDesc.trim().length < 3) && styles.saveBtnDisabled]}
+                  onPress={handleParseMeal}
+                  disabled={parsing || mealDesc.trim().length < 3}
+                >
+                  {parsing ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="sparkles" size={16} color="#fff" />
+                      <Text style={styles.saveBtnText}>Analyze Meal</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Manual mode */}
+            {mode === 'manual' && <>
             {/* Meal name */}
             <Text style={styles.fieldLabel}>Meal Name</Text>
             <TextInput
@@ -235,6 +311,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                 </>
               )}
             </TouchableOpacity>
+            </>}
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -335,4 +412,32 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
+
+  // Mode toggle
+  modeRow: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    backgroundColor: colors.muted,
+    borderRadius: radius.lg,
+    padding: 3,
+  },
+  modeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 7,
+    borderRadius: radius.md,
+  },
+  modeBtnActive: { backgroundColor: colors.background },
+  modeBtnText: { fontSize: fontSize.xs, color: colors.mutedForeground, fontWeight: fontWeight.medium },
+  modeBtnTextActive: { color: colors.foreground },
+
+  // Describe mode
+  describeSection: { gap: spacing.sm },
+  describeHint: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 18 },
+  describeInput: { minHeight: 90, textAlignVertical: 'top' },
 });

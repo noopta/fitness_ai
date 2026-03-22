@@ -6,165 +6,310 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../src/context/AuthContext';
+import Svg, { Polyline, Circle, Line, Text as SvgText, Polygon, Path } from 'react-native-svg';
 import { coachApi } from '../../src/lib/api';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
-import { Badge } from '../../src/components/ui/Badge';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
-import { StrengthRadar } from '../../src/components/StrengthRadar';
+
+const SCREEN_W = Dimensions.get('window').width;
+const CARD_W = SCREEN_W - spacing.md * 2;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface IndexScore { value: number; confidence: number }
-interface EfficiencyPoint { date: string; score: number; lift: string }
-interface LimiterEntry { name: string; count: number }
-interface SessionEntry {
-  id: string;
-  date: string;
-  selectedLift: string;
-  primaryLimiter: string | null;
-  efficiencyScore: number | null;
+interface WeekPoint { week: string; rm: number; rmLbs: number }
+
+interface LiftSummary {
+  canonicalName: string;
+  category: string;
+  primaryMuscle: string;
+  isCompound: boolean;
+  current1RMkg: number;
+  current1RMLbs: number;
+  monthlyGainPct: number | null;
+  totalTonnageKg: number;
+  sessionCount: number;
+  weekSeries: WeekPoint[];
 }
-interface ProgressionPoint { date: string; maxWeightKg: number; sets: number; reps: string }
-interface ExerciseProgression { name: string; data: ProgressionPoint[] }
-interface WeekVolume { week: string; totalSets: number; totalExercises: number }
 
 interface StrengthProfileData {
-  latestIndices: Record<string, IndexScore> | null;
-  efficiencyTrend: EfficiencyPoint[];
-  topLimiters: LimiterEntry[];
-  sessionHistory: SessionEntry[];
-  progressionData: ExerciseProgression[];
-  weeklyVolumeData: WeekVolume[];
-  totalSessions: number;
-  totalWorkouts: number;
+  overallStrengthIndex: number | null;
+  strengthTier: string;
+  maturityLabel: string;
+  maturityPct: number;
+  totalLogs: number;
+  monthTonnageKg: number;
+  radarScores: Record<string, number>;
+  lifts: LiftSummary[];
+  aiInsights: string[];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers / Constants ──────────────────────────────────────────────────────
 
-function formatLiftName(id: string) {
-  return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
+const CATEGORY_COLOR: Record<string, string> = {
+  push:  '#6366f1',
+  pull:  '#22c55e',
+  legs:  '#f59e0b',
+  hinge: '#ef4444',
+  core:  '#8b5cf6',
+};
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
+const TIER_COLOR: Record<string, string> = {
+  'Not enough data': colors.mutedForeground,
+  Beginner:     '#a1a1aa',
+  Novice:       '#60a5fa',
+  Intermediate: '#22c55e',
+  Advanced:     '#a78bfa',
+  Elite:        '#fbbf24',
+};
 
-function confidenceColor(c: number): string {
-  if (c >= 0.7) return '#22c55e';
-  if (c >= 0.4) return '#f59e0b';
-  return '#94a3b8';
-}
+const MATURITY_COLOR: Record<string, string> = {
+  Bronze: '#b45309',
+  Silver: '#64748b',
+  Gold:   '#d97706',
+};
 
-// ─── Mini bar chart for limiters ──────────────────────────────────────────────
+// ─── Gain Badge ───────────────────────────────────────────────────────────────
 
-function LimiterBar({ name, count, maxCount }: { name: string; count: number; maxCount: number }) {
-  const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
-  return (
-    <View style={limiterStyles.row}>
-      <Text style={limiterStyles.name} numberOfLines={1}>{name}</Text>
-      <View style={limiterStyles.track}>
-        <View style={[limiterStyles.fill, { width: `${pct}%` as any }]} />
-      </View>
-      <Text style={limiterStyles.count}>{count}x</Text>
+function GainBadge({ pct }: { pct: number | null }) {
+  if (pct === null) return <Text style={{ fontSize: fontSize.xs, color: colors.mutedForeground }}>—</Text>;
+  if (pct > 0) return (
+    <View style={gainStyles.badge}>
+      <Ionicons name="trending-up" size={11} color="#22c55e" />
+      <Text style={[gainStyles.text, { color: '#22c55e' }]}>+{pct}%</Text>
     </View>
+  );
+  if (pct < 0) return (
+    <View style={gainStyles.badge}>
+      <Ionicons name="trending-down" size={11} color="#ef4444" />
+      <Text style={[gainStyles.text, { color: '#ef4444' }]}>{pct}%</Text>
+    </View>
+  );
+  return <Text style={{ fontSize: fontSize.xs, color: colors.mutedForeground }}>0%</Text>;
+}
+
+const gainStyles = StyleSheet.create({
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  text: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
+});
+
+// ─── SVG Sparkline ────────────────────────────────────────────────────────────
+
+function Sparkline({ data, color }: { data: WeekPoint[]; color: string }) {
+  const W = CARD_W - spacing.md * 4;
+  const H = 48;
+  const PH = 4; const PV = 4;
+  if (data.length < 2) {
+    return (
+      <View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 10, color: colors.mutedForeground }}>Not enough data</Text>
+      </View>
+    );
+  }
+  const vals = data.map(d => d.rmLbs);
+  const minV = Math.min(...vals); const maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+  const toX = (i: number) => PH + (i / (data.length - 1)) * (W - PH * 2);
+  const toY = (v: number) => PV + (1 - (v - minV) / range) * (H - PV * 2);
+  const pts = data.map((d, i) => `${toX(i).toFixed(1)},${toY(d.rmLbs).toFixed(1)}`).join(' ');
+  return (
+    <Svg width={W} height={H}>
+      <Polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <Circle cx={toX(data.length - 1)} cy={toY(vals[vals.length - 1])} r="3" fill={color} />
+    </Svg>
   );
 }
 
-const limiterStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: 8,
-  },
-  name: {
-    width: 130,
-    fontSize: fontSize.xs,
-    color: colors.foreground,
-  },
-  track: {
-    flex: 1,
-    height: 8,
-    backgroundColor: colors.muted,
-    borderRadius: radius.full,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-  },
-  count: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    width: 28,
-    textAlign: 'right',
-  },
-});
+// ─── Movement Balance Radar ────────────────────────────────────────────────────
 
-// ─── Efficiency sparkline (simple inline bars) ────────────────────────────────
-
-function EfficiencyTrend({ data }: { data: EfficiencyPoint[] }) {
-  if (data.length === 0) return null;
-  const last8 = data.slice(-8);
-  const max = Math.max(...last8.map(d => d.score), 95);
+function MovementRadar({ scores }: { scores: Record<string, number> }) {
+  const SIZE = 180;
+  const cx = SIZE / 2; const cy = SIZE / 2; const R = 70;
+  const cats = ['push', 'pull', 'legs', 'hinge', 'core'];
+  const n = cats.length;
+  const toPoint = (i: number, r: number) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  };
+  // Grid rings
+  const rings = [0.25, 0.5, 0.75, 1.0].map(pct => {
+    const pts = cats.map((_, i) => toPoint(i, R * pct));
+    return pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  });
+  // Data polygon
+  const dataPoints = cats.map((c, i) => {
+    const v = Math.min(10, Math.max(0, scores[c] ?? 0));
+    return toPoint(i, (v / 10) * R);
+  });
+  const dataPoly = dataPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  // Axis lines
+  const axes = cats.map((_, i) => toPoint(i, R));
   return (
-    <View style={trendStyles.container}>
-      {last8.map((pt, i) => {
-        const h = Math.max(4, (pt.score / max) * 48);
+    <Svg width={SIZE} height={SIZE + 24}>
+      {/* Grid rings */}
+      {rings.map((pts, i) => (
+        <Polygon key={i} points={pts} fill="none" stroke={colors.border} strokeWidth="1" opacity={0.6} />
+      ))}
+      {/* Axis lines */}
+      {axes.map((pt, i) => (
+        <Line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y} stroke={colors.border} strokeWidth="1" opacity={0.4} />
+      ))}
+      {/* Data area */}
+      <Polygon points={dataPoly} fill="#6366f1" fillOpacity={0.18} stroke="#6366f1" strokeWidth="2" />
+      {/* Dots */}
+      {dataPoints.map((pt, i) => (
+        <Circle key={i} cx={pt.x} cy={pt.y} r="4" fill={CATEGORY_COLOR[cats[i]] ?? '#6366f1'} />
+      ))}
+      {/* Labels */}
+      {cats.map((cat, i) => {
+        const lPt = toPoint(i, R + 14);
         return (
-          <View key={i} style={trendStyles.colWrap}>
-            <View style={[trendStyles.bar, { height: h }]} />
-            <Text style={trendStyles.score}>{pt.score}</Text>
-            <Text style={trendStyles.lift} numberOfLines={1}>
-              {pt.lift.split('_')[0]}
-            </Text>
-          </View>
+          <SvgText key={i} x={lPt.x} y={lPt.y + 4} fontSize="10" fill={colors.mutedForeground} textAnchor="middle" fontWeight="600">
+            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+          </SvgText>
         );
       })}
+    </Svg>
+  );
+}
+
+// ─── Lift Card ─────────────────────────────────────────────────────────────────
+
+function LiftCard({ lift }: { lift: LiftSummary }) {
+  const [expanded, setExpanded] = useState(false);
+  const color = CATEGORY_COLOR[lift.category] ?? '#6366f1';
+  return (
+    <TouchableOpacity onPress={() => setExpanded(e => !e)} activeOpacity={0.85}>
+      <View style={[liftStyles.card, { borderLeftColor: color, borderLeftWidth: 3 }]}>
+        <View style={liftStyles.row}>
+          <View style={liftStyles.left}>
+            <View style={liftStyles.titleRow}>
+              <Text style={liftStyles.name} numberOfLines={1}>{lift.canonicalName}</Text>
+              <View style={[liftStyles.catBadge, { backgroundColor: color + '22' }]}>
+                <Text style={[liftStyles.catText, { color }]}>{lift.category}</Text>
+              </View>
+            </View>
+            <Text style={liftStyles.muscle}>{lift.primaryMuscle}</Text>
+          </View>
+          <View style={liftStyles.right}>
+            <Text style={liftStyles.rm1}>{lift.current1RMLbs} <Text style={liftStyles.rmUnit}>lbs</Text></Text>
+            <Text style={liftStyles.rmKg}>{lift.current1RMkg} kg est. 1RM</Text>
+            <GainBadge pct={lift.monthlyGainPct} />
+          </View>
+        </View>
+        <View style={liftStyles.sparkWrap}>
+          <Sparkline data={lift.weekSeries} color={color} />
+        </View>
+        {expanded && (
+          <View style={liftStyles.expandedRow}>
+            <View style={liftStyles.stat}>
+              <Text style={liftStyles.statVal}>{lift.sessionCount}</Text>
+              <Text style={liftStyles.statLbl}>Sessions</Text>
+            </View>
+            <View style={liftStyles.stat}>
+              <Text style={liftStyles.statVal}>{(lift.totalTonnageKg / 1000).toFixed(1)}t</Text>
+              <Text style={liftStyles.statLbl}>Total Tonnage</Text>
+            </View>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const liftStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.muted,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  left: { flex: 1, gap: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexWrap: 'wrap' },
+  name: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  catBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.full },
+  catText: { fontSize: 9, fontWeight: fontWeight.semibold, textTransform: 'capitalize' },
+  muscle: { fontSize: 10, color: colors.mutedForeground, textTransform: 'capitalize' },
+  right: { alignItems: 'flex-end', gap: 1 },
+  rm1: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
+  rmUnit: { fontSize: fontSize.xs, fontWeight: fontWeight.normal, color: colors.mutedForeground },
+  rmKg: { fontSize: 10, color: colors.mutedForeground },
+  sparkWrap: { marginTop: 4 },
+  expandedRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs, paddingTop: spacing.xs, borderTopWidth: 1, borderTopColor: colors.border },
+  stat: { flex: 1, alignItems: 'center' },
+  statVal: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.foreground },
+  statLbl: { fontSize: 10, color: colors.mutedForeground },
+});
+
+// ─── 1RM Trend Chart (multi-line) ─────────────────────────────────────────────
+
+function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
+  const compound = lifts.filter(l => l.isCompound && l.weekSeries.length >= 2).slice(0, 5);
+  if (compound.length === 0) return null;
+  const W = CARD_W - spacing.md * 2; const H = 140; const PH = 40; const PV = 16;
+  // Collect all weeks
+  const weekSet = new Set<string>();
+  for (const l of compound) l.weekSeries.forEach(p => weekSet.add(p.week));
+  const weeks = Array.from(weekSet).sort().slice(-8);
+  if (weeks.length < 2) return null;
+  const allVals = compound.flatMap(l => l.weekSeries.map(p => p.rmLbs));
+  const minV = Math.min(...allVals); const maxV = Math.max(...allVals); const range = maxV - minV || 1;
+  const toX = (i: number) => PH + (i / (weeks.length - 1)) * (W - PH * 2);
+  const toY = (v: number) => PV + (1 - (v - minV) / range) * (H - PV * 2);
+  return (
+    <View>
+      <Svg width={W} height={H}>
+        <Line x1={PH} y1={H - PV} x2={W - PH} y2={H - PV} stroke={colors.border} strokeWidth="1" />
+        {compound.map((lift, li) => {
+          const color = CATEGORY_COLOR[lift.category] ?? '#6366f1';
+          const pts = weeks.map((wk, i) => {
+            const pt = lift.weekSeries.find(p => p.week === wk);
+            return pt ? `${toX(i).toFixed(1)},${toY(pt.rmLbs).toFixed(1)}` : null;
+          }).filter(Boolean) as string[];
+          if (pts.length < 2) return null;
+          return (
+            <Polyline key={li} points={pts.join(' ')} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+          );
+        })}
+        {/* X axis labels (every other week) */}
+        {weeks.map((wk, i) => i % 2 === 0 ? (
+          <SvgText key={i} x={toX(i)} y={H - 2} fontSize="8" fill={colors.mutedForeground} textAnchor="middle">
+            {wk.split('-')[1] ?? wk}
+          </SvgText>
+        ) : null)}
+        {/* Y axis labels */}
+        <SvgText x={2} y={PV + 4} fontSize="8" fill={colors.mutedForeground}>{Math.round(maxV)}</SvgText>
+        <SvgText x={2} y={H - PV} fontSize="8" fill={colors.mutedForeground}>{Math.round(minV)}</SvgText>
+      </Svg>
+      {/* Legend */}
+      <View style={trendStyles.legend}>
+        {compound.map((lift, i) => (
+          <View key={i} style={trendStyles.legendItem}>
+            <View style={[trendStyles.legendDot, { backgroundColor: CATEGORY_COLOR[lift.category] ?? '#6366f1' }]} />
+            <Text style={trendStyles.legendText} numberOfLines={1}>{lift.canonicalName}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
 const trendStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
-    height: 80,
-    paddingBottom: 20,
-  },
-  colWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  bar: {
-    width: '80%',
-    backgroundColor: colors.primary,
-    borderRadius: 3,
-    marginBottom: 2,
-  },
-  score: {
-    fontSize: 9,
-    color: colors.mutedForeground,
-    marginBottom: 1,
-  },
-  lift: {
-    fontSize: 8,
-    color: colors.mutedForeground,
-  },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.xs },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 10, color: colors.mutedForeground, maxWidth: 90 },
 });
 
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 export default function StrengthProfileScreen() {
-  const { user } = useAuth();
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -172,7 +317,7 @@ export default function StrengthProfileScreen() {
   const loadData = useCallback(async () => {
     try {
       const result = await coachApi.getStrengthProfile();
-      if (result) setData(result);
+      if (result) setData(result as StrengthProfileData);
     } catch {
       // Non-fatal
     } finally {
@@ -181,23 +326,9 @@ export default function StrengthProfileScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  function onRefresh() {
-    setRefreshing(true);
-    loadData();
-  }
-
-  // Build flat radar data from latestIndices
-  const radarData: Record<string, number> = {};
-  if (data?.latestIndices) {
-    for (const [key, val] of Object.entries(data.latestIndices)) {
-      radarData[key] = typeof val === 'object' ? (val as IndexScore).value : (val as number);
-    }
-  }
-  const hasRadar = Object.keys(radarData).length > 0;
+  function onRefresh() { setRefreshing(true); loadData(); }
 
   if (loading) {
     return (
@@ -206,14 +337,14 @@ export default function StrengthProfileScreen() {
           <Text style={styles.headerTitle}>Strength Profile</Text>
           <Text style={styles.headerSub}>Powered by Anakin</Text>
         </View>
-        <View style={styles.loader}>
-          <LoadingSpinner size="large" />
-        </View>
+        <View style={styles.loader}><LoadingSpinner size="large" /></View>
       </SafeAreaView>
     );
   }
 
-  const isEmpty = !data || (data.totalSessions === 0 && data.totalWorkouts === 0);
+  const isEmpty = !data || data.totalLogs === 0;
+  const tierColor = TIER_COLOR[data?.strengthTier ?? ''] ?? colors.mutedForeground;
+  const matColor = MATURITY_COLOR[data?.maturityLabel ?? ''] ?? colors.mutedForeground;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -233,170 +364,128 @@ export default function StrengthProfileScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
-        {/* Adaptive learning banner */}
-        <View style={styles.learnBanner}>
-          <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
-          <Text style={styles.learnText}>
-            Your profile learns from every session — the more you train and log, the smarter and more accurate the analysis becomes.
-          </Text>
-        </View>
-
         {isEmpty ? (
           <Card style={styles.card}>
             <CardContent style={styles.emptyContent}>
               <Ionicons name="barbell-outline" size={40} color={colors.mutedForeground} />
               <Text style={styles.emptyTitle}>No data yet</Text>
               <Text style={styles.emptyDesc}>
-                Complete a diagnostic analysis or log workouts to build your strength profile. Anakin will track your progress and surface smart insights over time.
+                Log workouts with weights to start building your strength profile. 1RM estimates appear after your first session.
               </Text>
             </CardContent>
           </Card>
         ) : (
           <>
-            {/* Stats overview */}
-            <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Text style={styles.statNum}>{data!.totalSessions}</Text>
-                <Text style={styles.statLabel}>Analyses</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statNum}>{data!.totalWorkouts}</Text>
-                <Text style={styles.statLabel}>Workouts</Text>
-              </View>
-              {(data!.efficiencyTrend ?? []).length > 0 && (
-                <View style={styles.statCard}>
-                  <Text style={styles.statNum}>
-                    {data!.efficiencyTrend[data!.efficiencyTrend.length - 1]?.score ?? '—'}
-                  </Text>
-                  <Text style={styles.statLabel}>Latest Score</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Strength radar */}
-            {hasRadar && (
-              <Card style={styles.card}>
-                <CardHeader>
-                  <CardTitle>Strength Indices</CardTitle>
-                  <Text style={styles.cardSub}>Based on your diagnostic analyses</Text>
-                </CardHeader>
-                <CardContent style={styles.radarContent}>
-                  <StrengthRadar data={radarData} size={200} />
-                  {data?.latestIndices && (
-                    <View style={styles.indexList}>
-                      {Object.entries(data.latestIndices).map(([key, val]) => {
-                        const score = typeof val === 'object' ? val.value : val;
-                        const conf = typeof val === 'object' ? val.confidence : 1;
-                        const label = key.replace(/_index$/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                        return (
-                          <View key={key} style={styles.indexRow}>
-                            <Text style={styles.indexLabel}>{label}</Text>
-                            <View style={styles.indexRight}>
-                              <Text style={styles.indexScore}>{score}</Text>
-                              <View style={[styles.confDot, { backgroundColor: confidenceColor(conf) }]} />
-                            </View>
-                          </View>
-                        );
-                      })}
+            {/* ── Hero Stats ── */}
+            <Card style={styles.card}>
+              <CardContent style={styles.heroContent}>
+                {/* Strength Index + Tier */}
+                <View style={styles.heroTop}>
+                  <View style={styles.heroLeft}>
+                    {data!.overallStrengthIndex !== null ? (
+                      <>
+                        <Text style={styles.heroIndex}>{data!.overallStrengthIndex}</Text>
+                        <Text style={styles.heroIndexLabel}>Strength Index</Text>
+                      </>
+                    ) : (
+                      <Text style={[styles.heroIndexLabel, { marginTop: 8 }]}>Index building…</Text>
+                    )}
+                    <View style={[styles.tierBadge, { borderColor: tierColor }]}>
+                      <Text style={[styles.tierText, { color: tierColor }]}>{data!.strengthTier}</Text>
                     </View>
-                  )}
-                  <Text style={styles.confLegend}>
-                    <View style={[styles.confDot, { backgroundColor: '#22c55e' }]} /> High conf{'  '}
-                    <View style={[styles.confDot, { backgroundColor: '#f59e0b' }]} /> Medium{'  '}
-                    <View style={[styles.confDot, { backgroundColor: '#94a3b8' }]} /> Low
-                  </Text>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Efficiency trend */}
-            {(data!.efficiencyTrend ?? []).length > 0 && (
-              <Card style={styles.card}>
-                <CardHeader>
-                  <CardTitle>Efficiency Trend</CardTitle>
-                  <Text style={styles.cardSub}>Last {Math.min(data!.efficiencyTrend.length, 8)} analyses</Text>
-                </CardHeader>
-                <CardContent>
-                  <EfficiencyTrend data={data!.efficiencyTrend} />
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Top limiters */}
-            {(data!.topLimiters ?? []).length > 0 && (
-              <Card style={styles.card}>
-                <CardHeader>
-                  <CardTitle>Recurring Limiters</CardTitle>
-                  <Text style={styles.cardSub}>Most common weaknesses identified across sessions</Text>
-                </CardHeader>
-                <CardContent>
-                  {data!.topLimiters.map((l, i) => (
-                    <LimiterBar
-                      key={i}
-                      name={l.name}
-                      count={l.count}
-                      maxCount={data!.topLimiters[0]?.count ?? 1}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Weekly volume */}
-            {(data!.weeklyVolumeData ?? []).length > 0 && (
-              <Card style={styles.card}>
-                <CardHeader>
-                  <CardTitle>Weekly Volume</CardTitle>
-                </CardHeader>
-                <CardContent style={styles.volumeContent}>
-                  {data!.weeklyVolumeData.slice(-6).map((w, i) => (
-                    <View key={i} style={styles.volumeRow}>
-                      <Text style={styles.volumeWeek}>
-                        {new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </Text>
-                      <Text style={styles.volumeSets}>{w.totalSets} sets</Text>
-                      <Text style={styles.volumeExercises}>{w.totalExercises} exercises</Text>
-                    </View>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recent sessions */}
-            {(data!.sessionHistory ?? []).length > 0 && (
-              <Card style={styles.card}>
-                <CardHeader>
-                  <CardTitle>Recent Analyses</CardTitle>
-                </CardHeader>
-                <CardContent style={styles.sessionList}>
-                  {data!.sessionHistory.slice(0, 5).map((s, i) => (
-                    <View key={s.id} style={[styles.sessionRow, i < 4 && styles.sessionRowBorder]}>
-                      <View style={styles.sessionLeft}>
-                        <Text style={styles.sessionLift}>{formatLiftName(s.selectedLift)}</Text>
-                        {s.primaryLimiter ? (
-                          <Text style={styles.sessionLimiter}>{s.primaryLimiter}</Text>
-                        ) : null}
-                        <Text style={styles.sessionDate}>{formatDate(s.date)}</Text>
+                  </View>
+                  <View style={styles.heroRight}>
+                    {/* Maturity progress */}
+                    <View style={styles.maturityRow}>
+                      <View style={[styles.matBadge, { backgroundColor: matColor + '22' }]}>
+                        <Text style={[styles.matText, { color: matColor }]}>{data!.maturityLabel}</Text>
                       </View>
-                      {s.efficiencyScore != null && (
-                        <View style={styles.sessionScore}>
-                          <Text style={styles.sessionScoreNum}>{s.efficiencyScore}</Text>
-                          <Text style={styles.sessionScoreLabel}>score</Text>
-                        </View>
-                      )}
+                      <Text style={styles.matPct}>{data!.maturityPct}%</Text>
                     </View>
+                    <View style={styles.matBar}>
+                      <View style={[styles.matBarFill, { width: `${data!.maturityPct}%` as any, backgroundColor: matColor }]} />
+                    </View>
+                    <Text style={styles.matSubtitle}>{data!.totalLogs} workouts logged</Text>
+                  </View>
+                </View>
+
+                {/* Stats row */}
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statVal}>{data!.totalLogs}</Text>
+                    <Text style={styles.statLbl}>Total Logs</Text>
+                  </View>
+                  <View style={[styles.statItem, styles.statBorder]}>
+                    <Text style={styles.statVal}>{data!.monthTonnageKg >= 1000 ? `${(data!.monthTonnageKg / 1000).toFixed(1)}t` : `${data!.monthTonnageKg}kg`}</Text>
+                    <Text style={styles.statLbl}>Month Tonnage</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statVal}>{(data!.lifts ?? []).filter(l => l.isCompound).length}</Text>
+                    <Text style={styles.statLbl}>Compounds</Text>
+                  </View>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* ── Movement Balance Radar ── */}
+            {data!.radarScores && Object.keys(data!.radarScores).length > 0 && (
+              <Card style={styles.card}>
+                <CardHeader><CardTitle>Movement Balance</CardTitle></CardHeader>
+                <CardContent style={styles.radarContent}>
+                  <MovementRadar scores={data!.radarScores} />
+                  <View style={styles.radarLegend}>
+                    {Object.entries(data!.radarScores).map(([cat, score]) => (
+                      <View key={cat} style={styles.radarLegendItem}>
+                        <View style={[styles.radarDot, { backgroundColor: CATEGORY_COLOR[cat] ?? '#6366f1' }]} />
+                        <Text style={styles.radarCat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</Text>
+                        <Text style={styles.radarScore}>{score}/10</Text>
+                      </View>
+                    ))}
+                  </View>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── 1RM Trend Chart ── */}
+            {(data!.lifts ?? []).some(l => l.isCompound && l.weekSeries.length >= 2) && (
+              <Card style={styles.card}>
+                <CardHeader>
+                  <CardTitle>1RM Trends</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TrendChart lifts={data!.lifts ?? []} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── Individual Lift Cards ── */}
+            {(data!.lifts ?? []).length > 0 && (
+              <Card style={styles.card}>
+                <CardHeader><CardTitle>Lift Breakdown</CardTitle></CardHeader>
+                <CardContent style={{ paddingTop: spacing.xs }}>
+                  {(data!.lifts ?? []).slice(0, 10).map((lift, i) => (
+                    <LiftCard key={i} lift={lift} />
                   ))}
                 </CardContent>
               </Card>
             )}
 
-            {/* Smart suggestions note */}
-            <View style={styles.smartBox}>
-              <Ionicons name="bulb-outline" size={16} color={colors.primary} />
-              <Text style={styles.smartText}>
-                As you continue logging workouts and running analyses, Anakin learns your patterns and can offer increasingly precise programming, target your exact weak points, and predict plateaus before they happen.
-              </Text>
-            </View>
+            {/* ── AI Insights ── */}
+            {(data!.aiInsights ?? []).length > 0 && (
+              <Card style={styles.card}>
+                <CardHeader>
+                  <CardTitle>AI Insights</CardTitle>
+                </CardHeader>
+                <CardContent style={styles.insightsContent}>
+                  {data!.aiInsights.map((insight, i) => (
+                    <View key={i} style={styles.insightRow}>
+                      <Ionicons name="bulb-outline" size={14} color="#fbbf24" style={styles.insightIcon} />
+                      <Text style={styles.insightText}>{insight}</Text>
+                    </View>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
       </ScrollView>
@@ -407,244 +496,58 @@ export default function StrengthProfileScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  safeArea: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.xs,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
   },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    color: colors.foreground,
-  },
-  headerSub: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    marginTop: 1,
-  },
-  refreshBtn: {
-    padding: spacing.xs,
-  },
-  loader: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerTitle: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, color: colors.foreground },
+  headerSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 1 },
+  refreshBtn: { padding: spacing.xs },
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { flex: 1 },
-  scrollContent: {
-    padding: spacing.md,
-    gap: spacing.md,
-    paddingBottom: spacing.xxl,
-  },
-
-  // Adaptive learning banner
-  learnBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-    backgroundColor: `${colors.primary}10`,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: `${colors.primary}25`,
-    padding: spacing.sm,
-  },
-  learnText: {
-    flex: 1,
-    fontSize: fontSize.xs,
-    color: colors.foreground,
-    lineHeight: 17,
-  },
-
-  // Stats row
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.sm,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statNum: {
-    fontSize: fontSize.xxl,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
-  },
-  statLabel: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-  },
-
-  // Cards
+  scrollContent: { padding: spacing.md, gap: spacing.md, paddingBottom: 80 },
   card: {},
-  cardSub: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    marginTop: 2,
-  },
+
+  // Hero
+  heroContent: { gap: spacing.md },
+  heroTop: { flexDirection: 'row', gap: spacing.md },
+  heroLeft: { flex: 1, alignItems: 'center', gap: spacing.xs },
+  heroIndex: { fontSize: 40, fontWeight: fontWeight.bold, color: colors.foreground, lineHeight: 44 },
+  heroIndexLabel: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  tierBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3 },
+  tierText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
+  heroRight: { flex: 1.4, gap: spacing.xs, justifyContent: 'center' },
+  maturityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  matBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
+  matText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
+  matPct: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  matBar: { height: 6, backgroundColor: colors.muted, borderRadius: radius.full, overflow: 'hidden' },
+  matBarFill: { height: '100%', borderRadius: radius.full },
+  matSubtitle: { fontSize: 10, color: colors.mutedForeground },
+  statsRow: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
+  statItem: { flex: 1, alignItems: 'center', gap: 2 },
+  statBorder: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: colors.border },
+  statVal: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
+  statLbl: { fontSize: 10, color: colors.mutedForeground },
 
   // Radar
-  radarContent: {
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingTop: 0,
-  },
-  indexList: {
-    width: '100%',
-    gap: 6,
-  },
-  indexRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 3,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  indexLabel: {
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-  },
-  indexRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  indexScore: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-    color: colors.primary,
-  },
-  confDot: {
-    width: 8, height: 8,
-    borderRadius: 4,
-  },
-  confLegend: {
-    fontSize: 10,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-  },
+  radarContent: { alignItems: 'center', gap: spacing.sm },
+  radarLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
+  radarLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  radarDot: { width: 8, height: 8, borderRadius: 4 },
+  radarCat: { fontSize: 11, color: colors.foreground, fontWeight: fontWeight.medium },
+  radarScore: { fontSize: 10, color: colors.mutedForeground },
 
-  // Volume
-  volumeContent: {
-    paddingTop: 0,
-    gap: 0,
-  },
-  volumeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: spacing.sm,
-  },
-  volumeWeek: {
-    width: 72,
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-  },
-  volumeSets: {
-    flex: 1,
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-    fontWeight: fontWeight.medium,
-  },
-  volumeExercises: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-  },
-
-  // Sessions
-  sessionList: {
-    paddingTop: 0,
-    gap: 0,
-  },
-  sessionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
-  },
-  sessionRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  sessionLeft: { flex: 1 },
-  sessionLift: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-  },
-  sessionLimiter: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    marginTop: 1,
-  },
-  sessionDate: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    marginTop: 2,
-  },
-  sessionScore: {
-    alignItems: 'center',
-  },
-  sessionScoreNum: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
-  },
-  sessionScoreLabel: {
-    fontSize: 9,
-    color: colors.mutedForeground,
-  },
+  // Insights
+  insightsContent: { gap: spacing.sm },
+  insightRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
+  insightIcon: { marginTop: 1 },
+  insightText: { flex: 1, fontSize: fontSize.sm, color: colors.foreground, lineHeight: 20 },
 
   // Empty
-  emptyContent: {
-    alignItems: 'center',
-    paddingVertical: spacing.xxl,
-    gap: spacing.md,
-  },
-  emptyTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-  },
-  emptyDesc: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: spacing.md,
-  },
-
-  // Smart box
-  smartBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-    backgroundColor: colors.muted,
-    borderRadius: radius.lg,
-    padding: spacing.sm,
-  },
-  smartText: {
-    flex: 1,
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    lineHeight: 17,
-  },
+  emptyContent: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.md },
+  emptyTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.foreground },
+  emptyDesc: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20, paddingHorizontal: spacing.md },
 });

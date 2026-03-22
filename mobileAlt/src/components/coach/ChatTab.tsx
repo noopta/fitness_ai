@@ -175,9 +175,11 @@ export function ChatTab({ coachData }: ChatTabProps) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {messages.map((msg, idx) => (
-          <MessageBubble key={msg.id ?? `msg-${idx}`} msg={msg} />
-        ))}
+        {messages.map((msg, idx) =>
+          msg._isTemp && msg.content.length === 0 ? null : (
+            <MessageBubble key={msg.id ?? `msg-${idx}`} msg={msg} />
+          )
+        )}
 
         {/* Typing indicator — only show when sending but no content streamed yet */}
         {sending && messages.every((m) => !m._isTemp || m.content.length > 0) === false && (

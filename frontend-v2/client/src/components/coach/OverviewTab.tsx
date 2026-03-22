@@ -154,7 +154,7 @@ function QuickLogModal({
         name: e.name,
         sets: e.sets,
         reps: e.reps,
-        weightKg: e.weightKg !== '' ? parseFloat(e.weightKg) : null,
+        weightKg: e.weightKg !== '' ? Math.round((parseFloat(e.weightKg) / 2.2046) * 10) / 10 : null,
         rpe: e.rpe !== '' ? parseFloat(e.rpe) : null,
         notes: null,
       }));

@@ -102,7 +102,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
           name: ex.name.trim(),
           sets: parseInt(ex.sets, 10) || 1,
           reps: ex.reps.trim(),
-          weightKg: ex.weightKg ? parseFloat(ex.weightKg) : null,
+          weightKg: ex.weightKg ? parseFloat(ex.weightKg) / 2.205 : null,
           rpe: ex.rpe ? parseFloat(ex.rpe) : null,
           notes: ex.notes.trim() || null,
         })),
@@ -214,10 +214,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                     />
                   </View>
                   <View style={styles.inlineField}>
-                    <Text style={styles.inlineLabel}>Weight (kg)</Text>
+                    <Text style={styles.inlineLabel}>Weight (lbs)</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="80"
+                      placeholder="175"
                       placeholderTextColor={colors.mutedForeground}
                       keyboardType="decimal-pad"
                       value={ex.weightKg}

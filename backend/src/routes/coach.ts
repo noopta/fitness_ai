@@ -1431,9 +1431,6 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
 
     const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
 
-    // Already dismissed — don't show again
-    if (profile.welcomeDismissed) return res.json({ message: null });
-
     // Return cached message if already generated
     if (profile.welcomeMessage) return res.json({ message: profile.welcomeMessage });
 

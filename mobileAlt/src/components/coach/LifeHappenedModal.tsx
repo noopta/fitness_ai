@@ -108,14 +108,13 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <Pressable style={styles.overlay} onPress={handleClose}>
-        <View style={styles.spacer} />
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
 
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerIcon}>
-              <Ionicons name="heart-outline" size={18} color={colors.primary} />
+              <Ionicons name="heart-outline" size={18} color="#f59e0b" />
             </View>
             <View style={styles.headerTextBlock}>
               <Text style={styles.headerTitle}>Life Happened</Text>
@@ -317,13 +316,13 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
   },
-  spacer: { flex: 1 },
   sheet: {
     backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '88%',
+    maxHeight: '92%',
     paddingBottom: 34,
   },
   handle: {
@@ -346,7 +345,7 @@ const styles = StyleSheet.create({
   headerIcon: {
     width: 36, height: 36,
     borderRadius: radius.lg,
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: 'rgba(245,158,11,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -364,7 +363,7 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
     borderRadius: radius.md,
   },
-  body: { flex: 1 },
+  body: { maxHeight: '70%' },
   bodyContent: { paddingBottom: spacing.lg },
   stagePad: { padding: spacing.md, gap: spacing.md },
 
