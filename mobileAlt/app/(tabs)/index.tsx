@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity,
 } from 'react-native';
@@ -31,6 +31,17 @@ function toLiftName(key: string): string {
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+const GREETINGS: Array<{ title: string; subtitle: string }> = [
+  { title: 'Good work,', subtitle: 'Ready for your next session?' },
+  { title: 'Welcome back,', subtitle: 'Your AI coach is ready.' },
+  { title: "Let's get after it,", subtitle: 'Time to find your limiters.' },
+  { title: 'Stay consistent,', subtitle: 'Every session counts.' },
+  { title: 'Keep pushing,', subtitle: "What are we working on today?" },
+  { title: 'Good to see you,', subtitle: 'Progress is progress.' },
+  { title: 'One rep at a time,', subtitle: 'Your strength is building.' },
+  { title: 'Show up again,', subtitle: "That's how champions are made." },
+];
 
 const FEATURES = [
   { icon: 'analytics-outline' as const, title: 'AI Diagnosis', description: 'Identify your exact strength limiters' },
@@ -88,6 +99,11 @@ export default function HomeScreen() {
   const [strengthProfile, setStrengthProfile] = useState<any>(null);
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
 
+  const greeting = useMemo(
+    () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)],
+    [],
+  );
+
   useEffect(() => {
     liftCoachApi.getSessionHistory()
       .then((data) => setSessions(Array.isArray(data) ? data : data.sessions ?? []))
@@ -125,9 +141,9 @@ export default function HomeScreen() {
         {/* ── Greeting ── */}
         <View style={styles.greetingSection}>
           <Text style={styles.greetingTitle}>
-            Good work,{'\n'}<Text style={styles.greetingName}>{user?.name ?? 'Athlete'}</Text>.
+            {greeting.title}{'\n'}<Text style={styles.greetingName}>{user?.name ?? 'Athlete'}</Text>.
           </Text>
-          <Text style={styles.greetingSubtitle}>Ready for your next session?</Text>
+          <Text style={styles.greetingSubtitle}>{greeting.subtitle}</Text>
         </View>
 
         {/* ── Anakin Welcome Message ── */}
@@ -148,21 +164,38 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── Start Analysis CTA ── */}
-        <TouchableOpacity
-          style={styles.ctaCard}
-          activeOpacity={0.82}
-          onPress={() => router.push('/diagnostic/onboarding')}
-        >
-          <View style={styles.ctaIconBox}>
-            <Ionicons name="barbell-outline" size={22} color={colors.primaryForeground} />
-          </View>
-          <View style={styles.ctaText}>
-            <Text style={styles.ctaTitle}>Start New Analysis</Text>
-            <Text style={styles.ctaDescription}>AI-powered strength diagnostics</Text>
-          </View>
-          <Ionicons name="arrow-forward" size={18} color={colors.primaryForeground} />
-        </TouchableOpacity>
+        {/* ── Quick Actions ── */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity
+            style={styles.ctaCard}
+            activeOpacity={0.82}
+            onPress={() => router.push('/diagnostic/onboarding')}
+          >
+            <View style={styles.ctaIconBox}>
+              <Ionicons name="barbell-outline" size={20} color={colors.primaryForeground} />
+            </View>
+            <View style={styles.ctaText}>
+              <Text style={styles.ctaTitle}>New Analysis</Text>
+              <Text style={styles.ctaDescription}>Find your limiters</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={16} color={colors.primaryForeground} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.coachCard}
+            activeOpacity={0.82}
+            onPress={() => router.push('/(tabs)/coach')}
+          >
+            <View style={styles.coachIconBox}>
+              <Ionicons name="sparkles" size={20} color={colors.foreground} />
+            </View>
+            <View style={styles.ctaText}>
+              <Text style={styles.coachTitle}>Talk to Anakin</Text>
+              <Text style={styles.coachDescription}>Your AI coach</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={16} color={colors.foreground} />
+          </TouchableOpacity>
+        </View>
 
         {/* ── Features ── */}
         <Text style={styles.sectionTitle}>What Axiom does</Text>
@@ -256,7 +289,10 @@ const styles = StyleSheet.create({
   greetingName: { color: colors.foreground },
   greetingSubtitle: { fontSize: fontSize.base, color: colors.mutedForeground },
 
-  // CTA card (black)
+  // Quick actions row
+  quickActions: { gap: spacing.sm },
+
+  // Primary CTA card (black)
   ctaCard: {
     backgroundColor: colors.foreground,
     borderRadius: radius.lg,
@@ -266,8 +302,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   ctaIconBox: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: radius.sm,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
@@ -276,6 +312,26 @@ const styles = StyleSheet.create({
   ctaText: { flex: 1 },
   ctaTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
   ctaDescription: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+
+  // Coach CTA card (muted)
+  coachCard: {
+    backgroundColor: colors.muted,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  coachIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coachTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
+  coachDescription: { fontSize: fontSize.sm, color: colors.mutedForeground, marginTop: 2 },
 
   // Section title
   sectionTitle: {
