@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { liftCoachApi, coachApi } from '../../src/lib/api';
-import { Card } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
-import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const LIFT_NAMES: Record<string, string> = {
   flat_bench_press: 'Flat Bench Press',
@@ -24,6 +24,17 @@ const LIFT_NAMES: Record<string, string> = {
   hang_clean: 'Hang Clean',
 };
 
+const GREETINGS = [
+  "Let's get to work,",
+  'Welcome back,',
+  "Let's get after it,",
+  'Stay consistent,',
+  'Keep pushing,',
+  'Good to see you,',
+  'One rep at a time,',
+  'Show up again,',
+];
+
 function toLiftName(key: string): string {
   return LIFT_NAMES[key] ?? key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
@@ -32,23 +43,15 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-const GREETINGS: Array<{ title: string; subtitle: string }> = [
-  { title: 'Good work,', subtitle: 'Ready for your next session?' },
-  { title: 'Welcome back,', subtitle: 'Your AI coach is ready.' },
-  { title: "Let's get after it,", subtitle: 'Time to find your limiters.' },
-  { title: 'Stay consistent,', subtitle: 'Every session counts.' },
-  { title: 'Keep pushing,', subtitle: "What are we working on today?" },
-  { title: 'Good to see you,', subtitle: 'Progress is progress.' },
-  { title: 'One rep at a time,', subtitle: 'Your strength is building.' },
-  { title: 'Show up again,', subtitle: "That's how champions are made." },
-];
+function derivePhaseLabel(maturity?: string, sessionCount?: number): string {
+  if (maturity === 'advanced') return 'Phase 3: Mastery';
+  if (maturity === 'intermediate') return 'Phase 2: Development';
+  if (sessionCount != null && sessionCount >= 9) return 'Phase 3: Mastery';
+  if (sessionCount != null && sessionCount >= 4) return 'Phase 2: Development';
+  return 'Phase 1: Foundation';
+}
 
-const FEATURES = [
-  { icon: 'analytics-outline' as const, title: 'AI Diagnosis', description: 'Identify your exact strength limiters' },
-  { icon: 'body-outline' as const, title: 'Strength Profile', description: 'Understand your muscle balance' },
-  { icon: 'barbell-outline' as const, title: 'Smart Accessories', description: 'Targeted exercises for your limiters' },
-  { icon: 'chatbubbles-outline' as const, title: 'AI Coach', description: 'Your personal AI strength coach' },
-];
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Session {
   id: string;
@@ -59,10 +62,11 @@ interface Session {
   createdAt?: string;
 }
 
+// ─── Session card ─────────────────────────────────────────────────────────────
+
 function SessionCard({ session }: { session: Session }) {
   const router = useRouter();
   const isCompleted = session.status === 'completed' || Boolean(session.primaryLimiter);
-
   return (
     <Pressable
       onPress={() => router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`)}
@@ -91,6 +95,8 @@ function SessionCard({ session }: { session: Session }) {
   );
 }
 
+// ─── Main screen ──────────────────────────────────────────────────────────────
+
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -99,10 +105,7 @@ export default function HomeScreen() {
   const [strengthProfile, setStrengthProfile] = useState<any>(null);
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
 
-  const greeting = useMemo(
-    () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)],
-    [],
-  );
+  const greeting = useMemo(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)], []);
 
   useEffect(() => {
     liftCoachApi.getSessionHistory()
@@ -124,6 +127,8 @@ export default function HomeScreen() {
 
   const recentSession = sessions[0] ?? null;
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
+  const phaseLabel = derivePhaseLabel(strengthProfile?.maturityTier, sessions.length);
+  const firstName = user?.name?.split(' ')[0] ?? 'Athlete';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -132,138 +137,139 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Top bar ── */}
+        {/* ── Phase label + tier badge ── */}
         <View style={styles.topBar}>
-          <AxiomLogo size={32} />
-          <Badge variant={isPro ? 'pro' : 'secondary'}>{isPro ? 'Pro' : 'Free'}</Badge>
+          <Text style={styles.phaseLabel}>{phaseLabel.toUpperCase()}</Text>
+          {isPro && <Badge variant="pro">PRO</Badge>}
         </View>
 
-        {/* ── Greeting ── */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greetingTitle}>
-            {greeting.title}{'\n'}<Text style={styles.greetingName}>{user?.name ?? 'Athlete'}</Text>.
-          </Text>
-          <Text style={styles.greetingSubtitle}>{greeting.subtitle}</Text>
-        </View>
+        {/* ── Greeting headline ── */}
+        <Text style={styles.greetingTitle}>
+          {greeting}{'\n'}{firstName}.
+        </Text>
 
-        {/* ── Anakin Welcome Message ── */}
-        {welcomeMessage && (
-          <View style={styles.welcomeCard}>
-            <View style={styles.welcomeHeader}>
-              <View style={styles.welcomeAvatarRow}>
-                <View style={styles.welcomeAvatar}>
-                  <Ionicons name="sparkles" size={14} color={colors.primaryForeground} />
-                </View>
-                <Text style={styles.welcomeFrom}>Anakin</Text>
-              </View>
-              <TouchableOpacity onPress={dismissWelcome} hitSlop={12}>
-                <Ionicons name="close" size={18} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.welcomeText}>{welcomeMessage}</Text>
-          </View>
-        )}
-
-        {/* ── Quick Actions ── */}
-        <View style={styles.quickActions}>
+        {/* ── Hero card ── */}
+        {isPro ? (
+          /* Paid: Coach Anakin card */
           <TouchableOpacity
-            style={styles.ctaCard}
-            activeOpacity={0.82}
+            style={styles.heroCard}
+            activeOpacity={0.85}
+            onPress={() => router.push('/(tabs)/coach')}
+          >
+            <View style={styles.heroIconBox}>
+              <Ionicons name="sparkles" size={22} color={colors.primaryForeground} />
+            </View>
+            <View style={styles.heroBottom}>
+              <View style={styles.heroTextCol}>
+                <Text style={styles.heroTitle}>Coach{'\n'}Anakin</Text>
+                <Text style={styles.heroSubtitle}>Open Dashboard</Text>
+              </View>
+              <View style={styles.heroArrowBtn}>
+                <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          /* Free: New Analysis card */
+          <TouchableOpacity
+            style={styles.heroCard}
+            activeOpacity={0.85}
             onPress={() => router.push('/diagnostic/onboarding')}
           >
-            <View style={styles.ctaIconBox}>
-              <Ionicons name="barbell-outline" size={20} color={colors.primaryForeground} />
+            <View style={styles.heroIconBox}>
+              <Ionicons name="barbell-outline" size={22} color={colors.primaryForeground} />
             </View>
-            <View style={styles.ctaText}>
-              <Text style={styles.ctaTitle}>New Analysis</Text>
-              <Text style={styles.ctaDescription}>Find your limiters</Text>
+            <View style={styles.heroBottom}>
+              <View style={styles.heroTextCol}>
+                <Text style={styles.heroTitle}>New{'\n'}Analysis</Text>
+                <Text style={styles.heroSubtitle}>Begin Session</Text>
+              </View>
+              <View style={styles.heroArrowBtn}>
+                <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
+              </View>
             </View>
-            <Ionicons name="arrow-forward" size={16} color={colors.primaryForeground} />
           </TouchableOpacity>
+        )}
 
+        {/* ── Secondary card ── */}
+        {isPro ? (
+          /* Paid: Anakin's Note */
+          welcomeMessage ? (
+            <View style={styles.noteCard}>
+              <View style={styles.noteHeader}>
+                <View style={styles.noteAvatarRow}>
+                  <View style={styles.noteAvatar}>
+                    <Ionicons name="sparkles" size={12} color={colors.primaryForeground} />
+                  </View>
+                  <Text style={styles.noteLabel}>ANAKIN'S NOTE</Text>
+                </View>
+                <TouchableOpacity onPress={dismissWelcome} hitSlop={12}>
+                  <Ionicons name="close" size={18} color={colors.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.noteText}>"{welcomeMessage}"</Text>
+            </View>
+          ) : null
+        ) : (
+          /* Free: Unlock AI Coaching upsell */
           <TouchableOpacity
-            style={styles.coachCard}
+            style={styles.upsellCard}
             activeOpacity={0.82}
             onPress={() => router.push('/(tabs)/coach')}
           >
-            <View style={styles.coachIconBox}>
-              <Ionicons name="sparkles" size={20} color={colors.foreground} />
+            <View style={styles.upsellIconBox}>
+              <Ionicons name="sparkles" size={18} color={colors.mutedForeground} />
             </View>
-            <View style={styles.ctaText}>
-              <Text style={styles.coachTitle}>Talk to Anakin</Text>
-              <Text style={styles.coachDescription}>Your AI coach</Text>
+            <View style={styles.upsellText}>
+              <Text style={styles.upsellTitle}>Unlock AI Coaching</Text>
+              <Text style={styles.upsellSubtitle}>
+                Get personalized programming and feedback from Anakin.
+              </Text>
             </View>
-            <Ionicons name="arrow-forward" size={16} color={colors.foreground} />
+            <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
-        </View>
+        )}
 
-        {/* ── Features ── */}
-        <Text style={styles.sectionTitle}>What Axiom does</Text>
-        <View style={styles.featuresGrid}>
-          {FEATURES.map((feat) => (
-            <View key={feat.title} style={styles.featureCard}>
-              <View style={styles.featureIconBox}>
-                <Ionicons name={feat.icon} size={18} color={colors.foreground} />
-              </View>
-              <Text style={styles.featureTitle}>{feat.title}</Text>
-              <Text style={styles.featureDescription}>{feat.description}</Text>
+        {/* ── New Analysis row (for paid users, as a secondary action) ── */}
+        {isPro && (
+          <TouchableOpacity
+            style={styles.rowAction}
+            activeOpacity={0.8}
+            onPress={() => router.push('/diagnostic/onboarding')}
+          >
+            <View style={styles.rowActionIcon}>
+              <Ionicons name="barbell-outline" size={18} color={colors.foreground} />
             </View>
-          ))}
-        </View>
-
-        {/* ── Strength Profile ── */}
-        {strengthProfile && (strengthProfile.indices || strengthProfile.dominanceArchetype) && (
-          <>
-            <Text style={styles.sectionTitle}>Strength Profile</Text>
-            <Card>
-              <View style={styles.spCard}>
-                {strengthProfile.dominanceArchetype && (
-                  <View style={styles.spArchetypeRow}>
-                    <Ionicons name="body-outline" size={16} color={colors.foreground} />
-                    <Text style={styles.spArchetype}>{strengthProfile.dominanceArchetype}</Text>
-                    {strengthProfile.efficiencyScore != null && (
-                      <View style={styles.spScoreBadge}>
-                        <Text style={styles.spScoreText}>{strengthProfile.efficiencyScore}</Text>
-                      </View>
-                    )}
-                  </View>
-                )}
-                {strengthProfile.indices && (
-                  <View style={styles.spIndices}>
-                    {Object.entries(strengthProfile.indices as Record<string, number>).map(([key, val]) => (
-                      <View key={key} style={styles.spIndexRow}>
-                        <Text style={styles.spIndexLabel}>
-                          {key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                        </Text>
-                        <View style={styles.spIndexTrack}>
-                          <View style={[styles.spIndexBar, { width: `${Math.min(val, 100)}%` as any }]} />
-                        </View>
-                        <Text style={styles.spIndexVal}>{Math.round(val)}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            </Card>
-          </>
+            <View style={styles.rowActionText}>
+              <Text style={styles.rowActionTitle}>New Analysis</Text>
+              <Text style={styles.rowActionSubtitle}>Record a manual movement</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+          </TouchableOpacity>
         )}
 
         {/* ── Recent Session ── */}
-        <Text style={styles.sectionTitle}>Recent Session</Text>
-        {sessionsLoading ? (
-          <Text style={styles.mutedText}>Loading…</Text>
-        ) : recentSession ? (
-          <SessionCard session={recentSession} />
-        ) : (
-          <View style={styles.emptyCard}>
-            <Ionicons name="barbell-outline" size={32} color={colors.mutedForeground} />
-            <Text style={styles.emptyText}>No sessions yet. Start your first analysis!</Text>
-          </View>
+        {(recentSession || !sessionsLoading) && (
+          <>
+            <Text style={styles.sectionTitle}>Recent Session</Text>
+            {sessionsLoading ? (
+              <Text style={styles.mutedText}>Loading…</Text>
+            ) : recentSession ? (
+              <SessionCard session={recentSession} />
+            ) : (
+              <View style={styles.emptyCard}>
+                <Ionicons name="barbell-outline" size={32} color={colors.mutedForeground} />
+                <Text style={styles.emptyText}>No sessions yet. Start your first analysis!</Text>
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
@@ -271,94 +277,164 @@ const styles = StyleSheet.create({
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.lg },
 
   // Top bar
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  phaseLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+    letterSpacing: 1.2,
   },
 
   // Greeting
-  greetingSection: { gap: 4, marginTop: spacing.sm },
   greetingTitle: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: fontWeight.bold,
     color: colors.foreground,
+    letterSpacing: -1,
+    lineHeight: 42,
+  },
+
+  // Hero card (large black card)
+  heroCard: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    height: 220,
+    justifyContent: 'space-between',
+  },
+  heroIconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroBottom: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  heroTextCol: { gap: 4 },
+  heroTitle: {
+    fontSize: 34,
+    fontWeight: fontWeight.bold,
+    color: colors.primaryForeground,
     letterSpacing: -0.8,
     lineHeight: 38,
   },
-  greetingName: { color: colors.foreground },
-  greetingSubtitle: { fontSize: fontSize.base, color: colors.mutedForeground },
+  heroSubtitle: {
+    fontSize: fontSize.sm,
+    color: 'rgba(255,255,255,0.55)',
+  },
+  heroArrowBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primaryForeground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
-  // Quick actions row
-  quickActions: { gap: spacing.sm },
-
-  // Primary CTA card (black)
-  ctaCard: {
+  // Anakin's Note card (paid)
+  noteCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  noteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  noteAvatarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  noteAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: radius.full,
     backgroundColor: colors.foreground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noteLabel: {
+    fontSize: 11,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+    letterSpacing: 1,
+  },
+  noteText: {
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    lineHeight: 21,
+  },
+
+  // Upsell card (free)
+  upsellCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: radius.lg,
     padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
   },
-  ctaIconBox: {
-    width: 40,
-    height: 40,
+  upsellIconBox: {
+    width: 38,
+    height: 38,
     borderRadius: radius.sm,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaText: { flex: 1 },
-  ctaTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
-  ctaDescription: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-
-  // Coach CTA card (muted)
-  coachCard: {
     backgroundColor: colors.muted,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  coachIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.sm,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  coachTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
-  coachDescription: { fontSize: fontSize.sm, color: colors.mutedForeground, marginTop: 2 },
+  upsellText: { flex: 1, gap: 2 },
+  upsellTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  upsellSubtitle: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    lineHeight: 17,
+  },
 
-  // Section title
+  // Row action (secondary action for paid users)
+  rowAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  rowActionIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.sm,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowActionText: { flex: 1, gap: 2 },
+  rowActionTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  rowActionSubtitle: { fontSize: fontSize.xs, color: colors.mutedForeground },
+
+  // Section
   sectionTitle: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     color: colors.foreground,
   },
-
-  // Features grid
-  featuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  featureCard: {
-    width: '48%',
-    backgroundColor: colors.muted,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: 6,
-  },
-  featureIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureTitle: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
-  featureDescription: { fontSize: 12, color: colors.mutedForeground, lineHeight: 17 },
 
   // Session card
   sessionCard: {
@@ -392,61 +468,4 @@ const styles = StyleSheet.create({
   },
   emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center' },
   mutedText: { fontSize: fontSize.sm, color: colors.mutedForeground },
-
-  // Welcome card
-  welcomeCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    backgroundColor: colors.card,
-    gap: spacing.sm,
-  },
-  welcomeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  welcomeAvatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  welcomeAvatar: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.full,
-    backgroundColor: colors.foreground,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  welcomeFrom: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-  },
-  welcomeText: {
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-    lineHeight: 21,
-  },
-
-  // Strength profile card
-  spCard: { padding: spacing.md, gap: spacing.sm },
-  spArchetypeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: 4 },
-  spArchetype: { flex: 1, fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
-  spScoreBadge: {
-    backgroundColor: colors.foreground, borderRadius: radius.full,
-    paddingHorizontal: 8, paddingVertical: 2,
-  },
-  spScoreText: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.primaryForeground },
-  spIndices: { gap: 6 },
-  spIndexRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  spIndexLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, width: 110 },
-  spIndexTrack: {
-    flex: 1, height: 5, borderRadius: radius.full,
-    backgroundColor: colors.muted, overflow: 'hidden',
-  },
-  spIndexBar: { height: '100%', borderRadius: radius.full, backgroundColor: colors.foreground },
-  spIndexVal: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.foreground, width: 24, textAlign: 'right' },
 });
