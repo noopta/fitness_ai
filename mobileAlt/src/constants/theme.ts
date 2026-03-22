@@ -1,29 +1,29 @@
-// Axiom Design System — Monochrome "Hybrid Flow" palette
+// Axiom Design System — Light palette
 export const colors = {
   // Base
-  background: '#FFFFFF',
-  foreground: '#000000',
+  background: '#ffffff',
+  foreground: '#09090b',
 
-  // Primary action (black pill buttons)
-  primary: '#000000',
-  primaryForeground: '#FFFFFF',
+  // Primary action
+  primary: '#09090b',
+  primaryForeground: '#ffffff',
 
   // Secondary text / captions
-  muted: '#F3F4F6',           // gray-100 — subtle backgrounds, icon containers
-  mutedForeground: '#6B7280', // gray-500 — secondary text
+  muted: '#f4f4f5',           // zinc-100 — subtle backgrounds, icon containers
+  mutedForeground: '#71717a', // zinc-500 — secondary text
 
   // Cards
-  card: '#FFFFFF',
-  cardForeground: '#000000',
+  card: '#ffffff',
+  cardForeground: '#09090b',
 
   // Borders
-  border: '#E5E7EB', // gray-200
+  border: '#e4e4e7', // zinc-200
 
   // Semantic — only for badges/alerts
-  destructive: '#DC2626',
+  destructive: '#ef4444',
   destructiveForeground: '#FFFFFF',
-  success: '#16A34A',
-  warning: '#D97706',
+  success: '#22c55e',
+  warning: '#f59e0b',
 };
 
 export const spacing = {
