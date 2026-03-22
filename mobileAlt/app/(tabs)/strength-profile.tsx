@@ -383,10 +383,12 @@ export default function StrengthProfileScreen() {
                 <View style={styles.heroTop}>
                   <View style={styles.heroLeft}>
                     {data!.overallStrengthIndex !== null ? (
-                      <>
+                      <View style={styles.heroIndexRow}>
                         <Text style={styles.heroIndex}>{data!.overallStrengthIndex}</Text>
-                        <Text style={styles.heroIndexLabel}>Strength Index</Text>
-                      </>
+                        <View style={styles.heroIndexMeta}>
+                          <Text style={styles.heroIndexLabel}>Strength{'\n'}Index</Text>
+                        </View>
+                      </View>
                     ) : (
                       <Text style={[styles.heroIndexLabel, { marginTop: 8 }]}>Index building…</Text>
                     )}

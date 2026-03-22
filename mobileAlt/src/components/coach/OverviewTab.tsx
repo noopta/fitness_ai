@@ -84,12 +84,14 @@ function DayWorkoutSheet({
   onClose,
   onLogged,
   onVideoPress,
+  loadingVideo,
 }: {
   day: WeekDay;
   visible: boolean;
   onClose: () => void;
   onLogged: () => void;
   onVideoPress: (exerciseName: string) => void;
+  loadingVideo: string | null;
 }) {
   const [logVisible, setLogVisible] = useState(false);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
@@ -150,12 +152,13 @@ function DayWorkoutSheet({
                 <Text style={sheet.sectionTitle}>EXERCISES</Text>
                 {exercises.map((ex, i) => {
                   const exName = ex.exercise ?? ex.name ?? `Exercise ${i + 1}`;
+                  const isLoadingThis = loadingVideo === exName;
                   return (
                     <TouchableOpacity
                       key={i}
                       activeOpacity={0.7}
                       style={[sheet.exRow, i < exercises.length - 1 && sheet.exRowBorder]}
-                      onPress={() => onVideoPress(exName)}
+                      onPress={() => !isLoadingThis && onVideoPress(exName)}
                     >
                       <Text style={sheet.exName}>{exName}</Text>
                       <View style={sheet.exMeta}>
@@ -165,7 +168,9 @@ function DayWorkoutSheet({
                         {ex.intensity ? (
                           <Text style={sheet.exIntensity}>{ex.intensity}</Text>
                         ) : null}
-                        <Ionicons name="play-circle-outline" size={16} color={colors.mutedForeground} />
+                        {isLoadingThis
+                          ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+                          : <Ionicons name="play-circle-outline" size={16} color={colors.mutedForeground} />}
                       </View>
                     </TouchableOpacity>
                   );
@@ -659,8 +664,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           visible={pastLogVisible}
           onClose={() => setPastLogVisible(false)}
           onLogged={() => { setPastLogVisible(false); setWorkoutSaved(true); setTimeout(() => setWorkoutSaved(false), 3000); }}
+          loadingVideo={loadingVideoEx}
           onVideoPress={(name) => {
-            setPastLogVisible(false);
             openExerciseVideo(name, setLoadingVideoEx, (videoId, title) => setVideoModal({ videoId, title }));
           }}
         />
