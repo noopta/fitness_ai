@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Pressable,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -11,18 +11,6 @@ import { Badge } from '../../src/components/ui/Badge';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const LIFT_NAMES: Record<string, string> = {
-  flat_bench_press: 'Flat Bench Press',
-  incline_bench_press: 'Incline Bench Press',
-  deadlift: 'Deadlift',
-  barbell_back_squat: 'Barbell Back Squat',
-  barbell_front_squat: 'Barbell Front Squat',
-  clean_and_jerk: 'Clean & Jerk',
-  snatch: 'Snatch',
-  power_clean: 'Power Clean',
-  hang_clean: 'Hang Clean',
-};
 
 const GREETINGS = [
   "Let's get to work,",
@@ -35,14 +23,6 @@ const GREETINGS = [
   'Show up again,',
 ];
 
-function toLiftName(key: string): string {
-  return LIFT_NAMES[key] ?? key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 function derivePhaseLabel(maturity?: string, sessionCount?: number): string {
   if (maturity === 'advanced') return 'Phase 3: Mastery';
   if (maturity === 'intermediate') return 'Phase 2: Development';
@@ -51,57 +31,12 @@ function derivePhaseLabel(maturity?: string, sessionCount?: number): string {
   return 'Phase 1: Foundation';
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Session {
-  id: string;
-  selectedLift: string;
-  status?: string;
-  primaryLimiter?: string;
-  confidence?: number;
-  createdAt?: string;
-}
-
-// ─── Session card ─────────────────────────────────────────────────────────────
-
-function SessionCard({ session }: { session: Session }) {
-  const router = useRouter();
-  const isCompleted = session.status === 'completed' || Boolean(session.primaryLimiter);
-  return (
-    <Pressable
-      onPress={() => router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`)}
-      style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-    >
-      <View style={styles.sessionCard}>
-        <View style={styles.sessionCardInner}>
-          <View style={styles.sessionRow}>
-            <Text style={styles.liftName}>{toLiftName(session.selectedLift)}</Text>
-            {session.createdAt && <Text style={styles.sessionDate}>{formatDate(session.createdAt)}</Text>}
-          </View>
-          {session.primaryLimiter && (
-            <Text style={styles.sessionLimiter} numberOfLines={2}>{session.primaryLimiter}</Text>
-          )}
-          <View style={styles.sessionRow}>
-            {session.confidence != null && (
-              <Badge variant="secondary">{Math.round(session.confidence)}% confidence</Badge>
-            )}
-            <Badge variant={isCompleted ? 'success' : 'warning'}>
-              {isCompleted ? 'Completed' : 'In Progress'}
-            </Badge>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [strengthProfile, setStrengthProfile] = useState<any>(null);
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
 
@@ -110,8 +45,7 @@ export default function HomeScreen() {
   useEffect(() => {
     liftCoachApi.getSessionHistory()
       .then((data) => setSessions(Array.isArray(data) ? data : data.sessions ?? []))
-      .catch(() => setSessions([]))
-      .finally(() => setSessionsLoading(false));
+      .catch(() => setSessions([]));
     coachApi.getStrengthProfile()
       .then((data) => setStrengthProfile(data))
       .catch(() => {});
@@ -120,12 +54,6 @@ export default function HomeScreen() {
       .catch(() => {});
   }, []);
 
-  function dismissWelcome() {
-    setWelcomeMessage(null);
-    coachApi.dismissWelcomeMessage().catch(() => {});
-  }
-
-  const recentSession = sessions[0] ?? null;
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
   const phaseLabel = derivePhaseLabel(strengthProfile?.maturityTier, sessions.length);
   const firstName = user?.name?.split(' ')[0] ?? 'Athlete';
@@ -196,16 +124,11 @@ export default function HomeScreen() {
           /* Paid: Anakin's Note */
           welcomeMessage ? (
             <View style={styles.noteCard}>
-              <View style={styles.noteHeader}>
-                <View style={styles.noteAvatarRow}>
-                  <View style={styles.noteAvatar}>
-                    <Ionicons name="sparkles" size={12} color={colors.primaryForeground} />
-                  </View>
-                  <Text style={styles.noteLabel}>ANAKIN'S NOTE</Text>
+              <View style={styles.noteAvatarRow}>
+                <View style={styles.noteAvatar}>
+                  <Ionicons name="sparkles" size={12} color={colors.primaryForeground} />
                 </View>
-                <TouchableOpacity onPress={dismissWelcome} hitSlop={12}>
-                  <Ionicons name="close" size={18} color={colors.mutedForeground} />
-                </TouchableOpacity>
+                <Text style={styles.noteLabel}>ANAKIN'S NOTE</Text>
               </View>
               <Text style={styles.noteText}>"{welcomeMessage}"</Text>
             </View>
@@ -248,22 +171,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {/* ── Recent Session ── */}
-        {(recentSession || !sessionsLoading) && (
-          <>
-            <Text style={styles.sectionTitle}>Recent Session</Text>
-            {sessionsLoading ? (
-              <Text style={styles.mutedText}>Loading…</Text>
-            ) : recentSession ? (
-              <SessionCard session={recentSession} />
-            ) : (
-              <View style={styles.emptyCard}>
-                <Ionicons name="barbell-outline" size={32} color={colors.mutedForeground} />
-                <Text style={styles.emptyText}>No sessions yet. Start your first analysis!</Text>
-              </View>
-            )}
-          </>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -345,11 +252,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
-  noteHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   noteAvatarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   noteAvatar: {
     width: 22,
@@ -429,43 +331,4 @@ const styles = StyleSheet.create({
   },
   rowActionSubtitle: { fontSize: fontSize.xs, color: colors.mutedForeground },
 
-  // Section
-  sectionTitle: {
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-  },
-
-  // Session card
-  sessionCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.background,
-  },
-  sessionCardInner: { padding: spacing.md, gap: 8 },
-  sessionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  liftName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },
-  sessionDate: { fontSize: fontSize.xs, color: colors.mutedForeground },
-  sessionLimiter: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 19 },
-
-  // Empty
-  emptyCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.muted,
-  },
-  emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center' },
-  mutedText: { fontSize: fontSize.sm, color: colors.mutedForeground },
 });
