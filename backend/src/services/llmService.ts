@@ -1754,3 +1754,43 @@ Example format:
     return [];
   }
 }
+
+// ─── Personal Welcome Message ──────────────────────────────────────────────────
+
+export async function generateWelcomeMessage(params: {
+  name: string | null;
+  coachGoal: string | null;
+  trainingAge: string | null;
+  primaryLimiter: string | null;
+  selectedLift: string | null;
+  phaseName: string | null;
+}): Promise<string> {
+  const prompt = `You are Anakin, an elite AI strength and fitness coach. Write a short, personal welcome message for a new athlete who just set up their profile and program.
+
+ATHLETE:
+- Name: ${params.name || 'Athlete'}
+- Goal: ${params.coachGoal || 'general strength'}
+- Training age: ${params.trainingAge || 'intermediate'}
+- Primary lift analyzed: ${params.selectedLift || 'not yet analyzed'}
+- Main limiter identified: ${params.primaryLimiter || 'not yet diagnosed'}
+- Current program phase: ${params.phaseName || 'not started'}
+
+RULES:
+- 2-3 sentences maximum. No more.
+- Reference their SPECIFIC goal and limiter if available — make it feel like you already know them
+- Be direct, warm, and confident — like a coach who's studied their file before the first session
+- Do NOT use generic phrases like "Welcome to Axiom" or "I'm here to help"
+- Do NOT use emojis
+- Write in first person as Anakin speaking directly to them
+- If no limiter is known yet, reference their goal and what the program will focus on
+
+Example tone: "Your deadlift off-the-floor weakness is the first thing we're fixing — that's why I've loaded your first phase with trap bar pulls and Romanian deadlifts. With your strength goals and three years in the gym, we should see a measurable shift in 6 weeks."`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 120,
+  });
+
+  return (response.choices[0].message.content || '').trim();
+}

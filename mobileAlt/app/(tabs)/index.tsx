@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
-import { liftCoachApi } from '../../src/lib/api';
+import { liftCoachApi, coachApi } from '../../src/lib/api';
 import { Card } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
@@ -85,13 +85,26 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [strengthProfile, setStrengthProfile] = useState<any>(null);
+  const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
 
   useEffect(() => {
     liftCoachApi.getSessionHistory()
       .then((data) => setSessions(Array.isArray(data) ? data : data.sessions ?? []))
       .catch(() => setSessions([]))
       .finally(() => setSessionsLoading(false));
+    coachApi.getStrengthProfile()
+      .then((data) => setStrengthProfile(data))
+      .catch(() => {});
+    coachApi.getWelcomeMessage()
+      .then((data) => setWelcomeMessage(data.message ?? null))
+      .catch(() => {});
   }, []);
+
+  function dismissWelcome() {
+    setWelcomeMessage(null);
+    coachApi.dismissWelcomeMessage().catch(() => {});
+  }
 
   const recentSession = sessions[0] ?? null;
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
@@ -116,6 +129,24 @@ export default function HomeScreen() {
           </Text>
           <Text style={styles.greetingSubtitle}>Ready for your next session?</Text>
         </View>
+
+        {/* ── Anakin Welcome Message ── */}
+        {welcomeMessage && (
+          <View style={styles.welcomeCard}>
+            <View style={styles.welcomeHeader}>
+              <View style={styles.welcomeAvatarRow}>
+                <View style={styles.welcomeAvatar}>
+                  <Ionicons name="sparkles" size={14} color={colors.primaryForeground} />
+                </View>
+                <Text style={styles.welcomeFrom}>Anakin</Text>
+              </View>
+              <TouchableOpacity onPress={dismissWelcome} hitSlop={12}>
+                <Ionicons name="close" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.welcomeText}>{welcomeMessage}</Text>
+          </View>
+        )}
 
         {/* ── Start Analysis CTA ── */}
         <TouchableOpacity
@@ -146,6 +177,43 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+
+        {/* ── Strength Profile ── */}
+        {strengthProfile && (strengthProfile.indices || strengthProfile.dominanceArchetype) && (
+          <>
+            <Text style={styles.sectionTitle}>Strength Profile</Text>
+            <Card>
+              <View style={styles.spCard}>
+                {strengthProfile.dominanceArchetype && (
+                  <View style={styles.spArchetypeRow}>
+                    <Ionicons name="body-outline" size={16} color={colors.foreground} />
+                    <Text style={styles.spArchetype}>{strengthProfile.dominanceArchetype}</Text>
+                    {strengthProfile.efficiencyScore != null && (
+                      <View style={styles.spScoreBadge}>
+                        <Text style={styles.spScoreText}>{strengthProfile.efficiencyScore}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+                {strengthProfile.indices && (
+                  <View style={styles.spIndices}>
+                    {Object.entries(strengthProfile.indices as Record<string, number>).map(([key, val]) => (
+                      <View key={key} style={styles.spIndexRow}>
+                        <Text style={styles.spIndexLabel}>
+                          {key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                        </Text>
+                        <View style={styles.spIndexTrack}>
+                          <View style={[styles.spIndexBar, { width: `${Math.min(val, 100)}%` as any }]} />
+                        </View>
+                        <Text style={styles.spIndexVal}>{Math.round(val)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </Card>
+          </>
+        )}
 
         {/* ── Recent Session ── */}
         <Text style={styles.sectionTitle}>Recent Session</Text>
@@ -268,4 +336,61 @@ const styles = StyleSheet.create({
   },
   emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center' },
   mutedText: { fontSize: fontSize.sm, color: colors.mutedForeground },
+
+  // Welcome card
+  welcomeCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    gap: spacing.sm,
+  },
+  welcomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  welcomeAvatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  welcomeAvatar: {
+    width: 26,
+    height: 26,
+    borderRadius: radius.full,
+    backgroundColor: colors.foreground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomeFrom: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  welcomeText: {
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    lineHeight: 21,
+  },
+
+  // Strength profile card
+  spCard: { padding: spacing.md, gap: spacing.sm },
+  spArchetypeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: 4 },
+  spArchetype: { flex: 1, fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  spScoreBadge: {
+    backgroundColor: colors.foreground, borderRadius: radius.full,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+  spScoreText: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.primaryForeground },
+  spIndices: { gap: 6 },
+  spIndexRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  spIndexLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, width: 110 },
+  spIndexTrack: {
+    flex: 1, height: 5, borderRadius: radius.full,
+    backgroundColor: colors.muted, overflow: 'hidden',
+  },
+  spIndexBar: { height: '100%', borderRadius: radius.full, backgroundColor: colors.foreground },
+  spIndexVal: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.foreground, width: 24, textAlign: 'right' },
 });

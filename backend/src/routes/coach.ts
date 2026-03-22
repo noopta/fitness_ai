@@ -8,7 +8,7 @@ import { cacheGet, cacheSet, cacheDelete, cacheClearByPrefix } from '../services
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
-  generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal,
+  generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal, generateWelcomeMessage,
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
 
@@ -1408,6 +1408,86 @@ router.get('/strength-profile', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Strength profile error:', err);
     res.status(500).json({ error: 'Failed to load strength profile' });
+  }
+});
+
+// ─── GET /api/coach/welcome ────────────────────────────────────────────────────
+// Returns a personalised welcome message from Anakin. Generated once on first
+// call, stored in coachProfile JSON, never regenerated unless dismissed+reset.
+
+router.get('/coach/welcome', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      include: {
+        sessions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } },
+        },
+      },
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
+
+    // Already dismissed — don't show again
+    if (profile.welcomeDismissed) return res.json({ message: null });
+
+    // Return cached message if already generated
+    if (profile.welcomeMessage) return res.json({ message: profile.welcomeMessage });
+
+    // Generate fresh message
+    const latestPlan = user.sessions[0]?.plans[0]
+      ? JSON.parse(user.sessions[0].plans[0].planJson)
+      : null;
+    const primaryLimiter = latestPlan?.diagnosis?.[0]?.limiterName ?? null;
+    const selectedLift = user.sessions[0]?.selectedLift ?? null;
+
+    let phaseName: string | null = null;
+    if (user.savedProgram) {
+      try {
+        const prog = JSON.parse(user.savedProgram);
+        phaseName = prog.phases?.[0]?.phaseName ?? null;
+      } catch { /* ignore */ }
+    }
+
+    const message = await generateWelcomeMessage({
+      name: user.name,
+      coachGoal: user.coachGoal,
+      trainingAge: user.trainingAge,
+      primaryLimiter,
+      selectedLift,
+      phaseName,
+    });
+
+    // Persist so future calls are instant
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { coachProfile: JSON.stringify({ ...profile, welcomeMessage: message }) },
+    });
+
+    res.json({ message });
+  } catch (err) {
+    console.error('Welcome message error:', err);
+    res.status(500).json({ error: 'Failed to generate welcome message' });
+  }
+});
+
+// POST /api/coach/welcome/dismiss — user taps X, never show again
+router.post('/coach/welcome/dismiss', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { coachProfile: JSON.stringify({ ...profile, welcomeDismissed: true }) },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Dismiss welcome error:', err);
+    res.status(500).json({ error: 'Failed to dismiss' });
   }
 });
 

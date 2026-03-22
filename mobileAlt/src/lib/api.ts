@@ -252,6 +252,10 @@ export const coachApi = {
   // Strength profile
   getStrengthProfile: () => apiFetch('/strength/profile'),
 
+  // Welcome message
+  getWelcomeMessage: () => apiFetch('/coach/welcome'),
+  dismissWelcomeMessage: () => apiFetch('/coach/welcome/dismiss', { method: 'POST' }),
+
   // Exercise video
   getExerciseVideo: (name: string) =>
     apiFetch(`/coach/exercise-video?name=${encodeURIComponent(name)}`),
