@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { LoadingSpinner } from '../src/components/ui/LoadingSpinner';
 import { colors } from '../src/constants/theme';
+import { usePushNotifications } from '../src/lib/usePushNotifications';
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,9 @@ function RootNavigator() {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  // Register for push notifications when authenticated
+  usePushNotifications(!!user);
 
   useEffect(() => {
     if (loading) return;

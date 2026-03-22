@@ -5,9 +5,54 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
 import { recomputeStrengthProfileInBackground } from './strength.js';
+import { notifyStreakMilestone } from '../services/notificationService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// ─── Streak helper ────────────────────────────────────────────────────────────
+
+function updateStreakInBackground(userId: string, workoutDate: string): void {
+  (async () => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { currentStreak: true, longestStreak: true, lastWorkoutDate: true },
+      });
+      if (!user) return;
+
+      const last = user.lastWorkoutDate;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      let newStreak: number;
+      if (!last || last < yesterdayStr) {
+        // Gap > 1 day or first workout ever — reset
+        newStreak = 1;
+      } else if (last === yesterdayStr || last === workoutDate) {
+        // Consecutive day or same-day re-log
+        newStreak = last === workoutDate ? user.currentStreak : user.currentStreak + 1;
+      } else {
+        newStreak = user.currentStreak + 1;
+      }
+
+      const newLongest = Math.max(newStreak, user.longestStreak);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { currentStreak: newStreak, longestStreak: newLongest, lastWorkoutDate: workoutDate },
+      });
+
+      // Fire streak milestone notifications (7, 14, 30 days)
+      if ([7, 14, 30].includes(newStreak)) {
+        notifyStreakMilestone(userId, newStreak).catch(() => {});
+      }
+    } catch (err) {
+      console.error('[streak] update error:', err);
+    }
+  })();
+}
 
 const exerciseSchema = z.object({
   name: z.string().min(1),
@@ -87,6 +132,10 @@ router.post('/workouts', requireAuth, async (req, res) => {
 
     cacheDelete(`userctx:${req.user!.id}`);
     recomputeStrengthProfileInBackground(req.user!.id);
+
+    // ── Streak tracking ───────────────────────────────────────────────────────
+    updateStreakInBackground(req.user!.id, parsed.data.date);
+
     res.status(201).json({ ...log, exercises });
   } catch (err) {
     console.error('Create workout error:', err);

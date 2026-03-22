@@ -276,4 +276,62 @@ router.get('/strength/profile', requireAuth, async (req, res) => {
   }
 });
 
+// ─── GET /api/strength/share-card ─────────────────────────────────────────────
+// Returns a public-friendly PR summary for a user — used to populate shareable
+// PR cards on web and mobile. No auth required so the card link works publicly.
+
+router.get('/strength/share-card/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, weightKg: true },
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const logs = await prisma.workoutLog.findMany({
+      where: { userId },
+      orderBy: { date: 'asc' },
+    });
+
+    const allNorms = await prisma.exerciseNormalization.findMany();
+    const normMap = new Map(allNorms.map(n => [n.rawName, n]));
+
+    const liftBest = new Map<string, number>();
+
+    for (const log of logs) {
+      let exercises: Array<{ name: string; sets: number; reps: string; weightKg?: number | null }>;
+      try { exercises = JSON.parse(log.exercises); } catch { continue; }
+
+      for (const ex of exercises) {
+        if (!ex.weightKg || ex.weightKg <= 0) continue;
+        const norm = normMap.get(ex.name.trim());
+        if (!norm?.isCompound) continue; // Only show compound lifts on share card
+        const canonical = norm.canonicalName;
+        const reps = parseInt(ex.reps.match(/^(\d+)/)?.[1] ?? '0', 10);
+        const oneRM = reps > 0 && reps <= 15 ? Math.round(ex.weightKg * (1 + reps / 30)) : 0;
+        if (oneRM > (liftBest.get(canonical) ?? 0)) liftBest.set(canonical, oneRM);
+      }
+    }
+
+    const topLifts = Array.from(liftBest.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name, rmKg]) => ({
+        name,
+        rmKg,
+        rmLbs: Math.round(rmKg * 2.2046),
+      }));
+
+    res.json({
+      userName: user.name || 'Axiom Athlete',
+      topLifts,
+      shareUrl: `https://axiomtraining.io/strength/${userId}`,
+    });
+  } catch (err) {
+    console.error('Share card error:', err);
+    res.status(500).json({ error: 'Failed to build share card' });
+  }
+});
+
 export default router;

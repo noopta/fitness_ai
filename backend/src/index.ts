@@ -13,6 +13,7 @@ import nutritionRoutes from './routes/nutrition.js';
 import wellnessRoutes from './routes/wellness.js';
 import workoutsRoutes from './routes/workouts.js';
 import strengthRoutes from './routes/strength.js';
+import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -110,3 +111,30 @@ async function clearCoachThreads() {
 // Run once on startup (clears any stale threads), then every 24 hours
 clearCoachThreads();
 setInterval(clearCoachThreads, 24 * 60 * 60 * 1000);
+
+// ── Notification schedulers ────────────────────────────────────────────────
+// Nightly at 8pm ET: contextual push notifications (session reminders, re-engagement, streaks)
+// Weekly on Sunday at 8pm ET: weekly progress summary
+
+function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
+  function getNextMs() {
+    const now = new Date();
+    const target = new Date();
+    target.setHours(hour, 0, 0, 0);
+    if (dayOfWeek !== null) {
+      const diff = (dayOfWeek - now.getDay() + 7) % 7;
+      target.setDate(now.getDate() + (diff === 0 && now >= target ? 7 : diff));
+    } else if (now >= target) {
+      target.setDate(target.getDate() + 1);
+    }
+    return target.getTime() - now.getTime();
+  }
+  function schedule() {
+    setTimeout(() => { fn(); schedule(); }, getNextMs());
+  }
+  schedule();
+}
+
+scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
+scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
+console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary)');

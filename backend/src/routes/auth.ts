@@ -300,4 +300,22 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
   }
 });
 
+// PUT /api/auth/push-token — store Expo push token for the authenticated user
+router.put('/auth/push-token', requireAuth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ error: 'token required' });
+    }
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { expoPushToken: token },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Push token update error:', err);
+    res.status(500).json({ error: 'Failed to save push token' });
+  }
+});
+
 export default router;

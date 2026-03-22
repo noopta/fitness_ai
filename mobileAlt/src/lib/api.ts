@@ -99,6 +99,9 @@ export const authApi = {
     weightKg?: number;
     constraintsText?: string;
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),
+
+  registerPushToken: (token: string) =>
+    apiFetch('/auth/push-token', { method: 'PUT', body: JSON.stringify({ token }) }),
 };
 
 // ─── Lift Coach API ───────────────────────────────────────────────────────────
@@ -247,7 +250,11 @@ export const coachApi = {
   getPaymentsPortal: () => apiFetch('/payments/portal', { method: 'POST' }),
 
   // Strength profile
-  getStrengthProfile: () => apiFetch('/strength-profile'),
+  getStrengthProfile: () => apiFetch('/strength/profile'),
+
+  // Exercise video
+  getExerciseVideo: (name: string) =>
+    apiFetch(`/coach/exercise-video?name=${encodeURIComponent(name)}`),
 };
 
 // ─── Nutrition / Meal Logging API ─────────────────────────────────────────────
@@ -272,6 +279,10 @@ export const nutritionApi = {
   // History / aggregated daily data
   getHistory: (days?: number) =>
     apiFetch(`/nutrition/history${days ? `?days=${days}` : ''}`),
+
+  // AI meal parser — describe a meal, get macros back
+  parseMeal: (description: string) =>
+    apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description }) }),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────
