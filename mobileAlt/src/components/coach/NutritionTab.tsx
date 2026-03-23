@@ -525,6 +525,17 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
           </CardContent>
         </Card>
 
+        {/* ── Macro targets ── */}
+        <Card style={styles.card}>
+          <CardHeader><CardTitle>Macronutrients</CardTitle></CardHeader>
+          <CardContent style={styles.macroGrid}>
+            <MacroCard label="Protein" grams={targetProtein} logged={loggedProtein} color="#3b82f6" />
+            <MacroCard label="Carbs" grams={targetCarbs} logged={loggedCarbs} color="#f59e0b" />
+            <MacroCard label="Fat" grams={targetFat} logged={loggedFat} color="#ec4899" />
+            <MacroCard label="Fiber" grams={targetFiber} logged={0} color="#22c55e" target="25-35g" />
+          </CardContent>
+        </Card>
+
         {/* ── Log a Meal by Description ── */}
         <Card style={styles.card}>
           <CardHeader>
@@ -659,17 +670,6 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
             </CardContent>
           </Card>
         )}
-
-        {/* ── Macro targets ── */}
-        <Card style={styles.card}>
-          <CardHeader><CardTitle>Macronutrients</CardTitle></CardHeader>
-          <CardContent style={styles.macroGrid}>
-            <MacroCard label="Protein" grams={targetProtein} logged={loggedProtein} color="#3b82f6" />
-            <MacroCard label="Carbs" grams={targetCarbs} logged={loggedCarbs} color="#f59e0b" />
-            <MacroCard label="Fat" grams={targetFat} logged={loggedFat} color="#ec4899" />
-            <MacroCard label="Fiber" grams={targetFiber} logged={0} color="#22c55e" target="25-35g" />
-          </CardContent>
-        </Card>
 
         {/* ── Today's meals ── */}
         <Card style={styles.card}>

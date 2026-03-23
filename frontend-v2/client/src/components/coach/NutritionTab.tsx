@@ -1157,23 +1157,15 @@ export function NutritionTab({
         <Card className="p-5 space-y-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Daily Macro Log</p>
 
-          {/* Date + Today's Calories */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <input
               type="date"
               value={form.date}
               onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
               className="rounded-lg border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
-            <div className="text-right">
-              <p className="text-2xl font-black tabular-nums">{calories}</p>
-              <p className="text-[10px] text-muted-foreground">
-                kcal{activePlan ? ` / ${activePlan.macros.calories} target` : ''}
-              </p>
-            </div>
           </div>
 
-          {/* Macronutrients */}
           <div className="grid grid-cols-3 gap-3">
             {[
               { key: 'proteinG', label: 'Protein (g)', color: '#6366f1', target: activePlan?.macros.proteinG },
@@ -1229,17 +1221,26 @@ export function NutritionTab({
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2">
-            <input
-              type="text"
-              value={form.notes}
-              onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-              placeholder="Notes (optional)"
-              className="rounded-lg border bg-muted/30 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 w-40"
-            />
-            <Button onClick={saveLog} disabled={saving} size="sm" className="rounded-xl text-xs">
-              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
-            </Button>
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <span className="text-muted-foreground">Total: </span>
+              <span className="font-bold">{calories} kcal</span>
+              {activePlan && (
+                <span className="text-muted-foreground text-xs ml-1">/ {activePlan.macros.calories} target</span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={form.notes}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="Notes (optional)"
+                className="rounded-lg border bg-muted/30 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 w-40"
+              />
+              <Button onClick={saveLog} disabled={saving} size="sm" className="rounded-xl text-xs">
+                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
+              </Button>
+            </div>
           </div>
         </Card>
       </motion.div>
