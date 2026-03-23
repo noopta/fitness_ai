@@ -1684,7 +1684,7 @@ OUTPUT FORMAT (JSON only, no explanation):
 // ─── Meal Photo Analysis (Gemini Vision) ──────────────────────────────────────
 
 export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealMacros> {
-  const model = gemini.getGenerativeModel({ model: 'gemini-2.5-pro-preview-03-25' });
+  const model = gemini.getGenerativeModel({ model: 'gemini-3.1-pro-preview' });
 
   const prompt = `You are a nutrition expert analyzing a photo of a meal. Identify all food items visible, estimate portion sizes based on visual cues (plate size, utensils, hand if visible), and calculate macros.
 
