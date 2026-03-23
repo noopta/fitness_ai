@@ -287,6 +287,10 @@ export const nutritionApi = {
   // AI meal parser — describe a meal, get macros back
   parseMeal: (description: string) =>
     apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description }) }),
+
+  // Gemini vision — analyze a photo of a meal, get macros back
+  analyzePhoto: (imageBase64: string, mimeType: string) =>
+    apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────

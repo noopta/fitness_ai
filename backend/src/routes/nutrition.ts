@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
-import { parseMealMacros } from '../services/llmService.js';
+import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -183,6 +183,52 @@ router.get('/nutrition/history', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Nutrition history error:', err);
     res.status(500).json({ error: 'Failed to fetch nutrition history' });
+  }
+});
+
+// POST /api/nutrition/analyze-photo — Gemini vision meal photo analysis
+const photoSchema = z.object({
+  imageBase64: z.string().min(1),
+  mimeType: z.string().regex(/^image\/(jpeg|png|webp|heic)$/),
+});
+
+const FREE_DAILY_PHOTO_LIMIT = 10;
+
+router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
+  try {
+    const { imageBase64, mimeType } = photoSchema.parse(req.body);
+    const userId = req.user!.id;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Rate limit free users
+    if (user.tier === 'free') {
+      const today = new Date().toISOString().slice(0, 10);
+      const isNewDay = user.dailyPhotoScanDate !== today;
+      const count = isNewDay ? 0 : user.dailyPhotoScanCount;
+
+      if (count >= FREE_DAILY_PHOTO_LIMIT) {
+        return res.status(429).json({
+          error: `Free users can scan up to ${FREE_DAILY_PHOTO_LIMIT} photos per day. Upgrade to Axiom Pro for unlimited scans.`
+        });
+      }
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          dailyPhotoScanCount: count + 1,
+          dailyPhotoScanDate: today,
+        },
+      });
+    }
+
+    const result = await analyzeMealPhoto(imageBase64, mimeType);
+    res.json(result);
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request' });
+    console.error('Meal photo analysis error:', err);
+    res.status(500).json({ error: 'Failed to analyze photo' });
   }
 });
 

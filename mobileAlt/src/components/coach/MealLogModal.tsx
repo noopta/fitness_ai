@@ -13,8 +13,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { nutritionApi } from '../../lib/api';
 
@@ -47,10 +50,30 @@ function todayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
+function prefillForm(
+  result: any,
+  setName: (v: string) => void,
+  setMealType: (v: string) => void,
+  setCalories: (v: string) => void,
+  setProtein: (v: string) => void,
+  setCarbs: (v: string) => void,
+  setFat: (v: string) => void,
+  fallbackName?: string,
+) {
+  setName(result.name ?? fallbackName ?? '');
+  setMealType(result.mealType ?? 'meal');
+  setCalories(result.calories ? String(Math.round(result.calories)) : '');
+  setProtein(result.proteinG ? String(Math.round(result.proteinG)) : '');
+  setCarbs(result.carbsG ? String(Math.round(result.carbsG)) : '');
+  setFat(result.fatG ? String(Math.round(result.fatG)) : '');
+}
+
 export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props) {
-  const [mode, setMode] = useState<'manual' | 'describe'>('manual');
+  const [mode, setMode] = useState<'manual' | 'describe' | 'scan'>('manual');
   const [mealDesc, setMealDesc] = useState('');
   const [parsing, setParsing] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(prefill?.name ?? '');
   const [mealType, setMealType] = useState<string>(prefill?.mealType ?? 'meal');
@@ -66,18 +89,76 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
     try {
       const result = await nutritionApi.parseMeal(mealDesc.trim());
       if (result) {
-        setName(result.name ?? mealDesc.trim());
-        setMealType(result.mealType ?? 'meal');
-        setCalories(result.calories ? String(Math.round(result.calories)) : '');
-        setProtein(result.proteinG ? String(Math.round(result.proteinG)) : '');
-        setCarbs(result.carbsG ? String(Math.round(result.carbsG)) : '');
-        setFat(result.fatG ? String(Math.round(result.fatG)) : '');
+        prefillForm(result, setName, setMealType, setCalories, setProtein, setCarbs, setFat, mealDesc.trim());
         setMode('manual');
       }
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not analyze meal. Try entering manually.');
     } finally {
       setParsing(false);
+    }
+  }
+
+  async function handlePickPhoto(useCamera: boolean) {
+    const permFn = useCamera
+      ? ImagePicker.requestCameraPermissionsAsync
+      : ImagePicker.requestMediaLibraryPermissionsAsync;
+    const { status } = await permFn();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', `Please allow ${useCamera ? 'camera' : 'photo library'} access in Settings.`);
+      return;
+    }
+
+    const pickFn = useCamera
+      ? ImagePicker.launchCameraAsync
+      : ImagePicker.launchImageLibraryAsync;
+
+    const result = await pickFn({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+
+    // Compress and resize to ≤1024px
+    const compressed = await ImageManipulator.manipulateAsync(
+      asset.uri,
+      [{ resize: { width: 1024 } }],
+      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+    );
+
+    setPhotoUri(compressed.uri);
+    await analyzePhoto(compressed.uri);
+  }
+
+  async function analyzePhoto(uri: string) {
+    setScanning(true);
+    try {
+      // Convert to base64
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // strip data:image/jpeg;base64, prefix
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const analysisResult = await nutritionApi.analyzePhoto(base64, 'image/jpeg');
+      if (analysisResult) {
+        prefillForm(analysisResult, setName, setMealType, setCalories, setProtein, setCarbs, setFat);
+        setMode('manual');
+      }
+    } catch (err: any) {
+      const msg = err?.message || 'Could not analyze photo.';
+      Alert.alert('Analysis failed', `${msg}\n\nTry describing the meal instead.`);
+    } finally {
+      setScanning(false);
     }
   }
 
@@ -103,8 +184,8 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
         fatG: parseFloat(fat) || 0,
         notes: notes.trim() || undefined,
       });
-      // Reset form
       setName(''); setMealType('meal'); setCalories(''); setProtein(''); setCarbs(''); setFat(''); setNotes('');
+      setPhotoUri(null);
       handleClose();
       onSaved();
     } catch (err: any) {
@@ -156,6 +237,13 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
               <Ionicons name="sparkles" size={12} color={mode === 'describe' ? colors.primary : colors.mutedForeground} />
               <Text style={[styles.modeBtnText, mode === 'describe' && styles.modeBtnTextActive]}>Describe</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modeBtn, mode === 'scan' && styles.modeBtnActive]}
+              onPress={() => setMode('scan')}
+            >
+              <Ionicons name="camera-outline" size={12} color={mode === 'scan' ? colors.primary : colors.mutedForeground} />
+              <Text style={[styles.modeBtnText, mode === 'scan' && styles.modeBtnTextActive]}>Scan</Text>
+            </TouchableOpacity>
           </View>
 
           <ScrollView
@@ -194,6 +282,41 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                     </>
                   )}
                 </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Scan mode */}
+            {mode === 'scan' && (
+              <View style={styles.scanSection}>
+                <Text style={styles.describeHint}>
+                  Take a photo of your meal and Gemini AI will estimate the calories and macros.
+                </Text>
+
+                {scanning ? (
+                  <View style={styles.scanningBox}>
+                    {photoUri && (
+                      <Image source={{ uri: photoUri }} style={styles.photoPreview} resizeMode="cover" />
+                    )}
+                    <View style={styles.scanningOverlay}>
+                      <ActivityIndicator size="large" color={colors.primary} />
+                      <Text style={styles.scanningText}>Analyzing your meal…</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.scanBtn} onPress={() => handlePickPhoto(true)}>
+                      <Ionicons name="camera" size={24} color={colors.primary} />
+                      <Text style={styles.scanBtnText}>Take Photo</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.scanBtn, styles.scanBtnSecondary]} onPress={() => handlePickPhoto(false)}>
+                      <Ionicons name="images-outline" size={24} color={colors.mutedForeground} />
+                      <Text style={[styles.scanBtnText, { color: colors.mutedForeground }]}>Choose from Library</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.scanTip}>
+                      Tip: include a reference object like a fork or plate for better portion estimates.
+                    </Text>
+                  </>
+                )}
               </View>
             )}
 
@@ -440,4 +563,39 @@ const styles = StyleSheet.create({
   describeSection: { gap: spacing.sm },
   describeHint: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 18 },
   describeInput: { minHeight: 90, textAlignVertical: 'top' },
+
+  // Scan mode
+  scanSection: { gap: spacing.md },
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: `${colors.primary}12`,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radius.lg,
+    paddingVertical: 18,
+  },
+  scanBtnSecondary: {
+    backgroundColor: colors.muted,
+    borderColor: colors.border,
+  },
+  scanBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.primary },
+  scanTip: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center', lineHeight: 18 },
+  scanningBox: {
+    height: 220,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.muted,
+  },
+  photoPreview: { width: '100%', height: '100%' },
+  scanningOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  scanningText: { color: '#fff', fontSize: fontSize.sm, fontWeight: fontWeight.medium },
 });
