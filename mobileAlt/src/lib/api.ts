@@ -218,7 +218,7 @@ export const coachApi = {
   logBodyWeight: (weightLbs: number, date?: string) =>
     apiFetch('/coach/body-weight', {
       method: 'POST',
-      body: JSON.stringify({ weightLbs, date: date || new Date().toISOString().split('T')[0] }),
+      body: JSON.stringify({ weightLbs, date: date || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() }),
     }),
   getBodyWeight: () => apiFetch('/coach/body-weight'),
 
@@ -235,7 +235,7 @@ export const coachApi = {
   }) => apiFetch('/wellness/checkin', {
     method: 'POST',
     body: JSON.stringify({
-      date: data.date || new Date().toISOString().split('T')[0],
+      date: data.date || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })(),
       mood: data.mood ?? 5,
       energy: data.energy ?? 5,
       sleepHours: data.sleepHours ?? 7,
@@ -287,6 +287,10 @@ export const nutritionApi = {
   // AI meal parser — describe a meal, get macros back
   parseMeal: (description: string) =>
     apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description }) }),
+
+  // Gemini vision — analyze a photo of a meal, get macros back
+  analyzePhoto: (imageBase64: string, mimeType: string) =>
+    apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────

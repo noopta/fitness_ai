@@ -196,8 +196,11 @@ function LiftCard({ lift }: { lift: LiftSummary }) {
             <Text style={liftStyles.muscle}>{lift.primaryMuscle}</Text>
           </View>
           <View style={liftStyles.right}>
-            <Text style={liftStyles.rm1}>{lift.current1RMLbs} <Text style={liftStyles.rmUnit}>lbs</Text></Text>
-            <Text style={liftStyles.rmKg}>{lift.current1RMkg} kg est. 1RM</Text>
+            <View style={liftStyles.rmRow}>
+              <Text style={liftStyles.rm1}>{lift.current1RMLbs}</Text>
+              <Text style={liftStyles.rmUnit}> lbs</Text>
+            </View>
+            <Text style={liftStyles.rmKg}>{lift.current1RMkg} kg · est. 1RM</Text>
             <GainBadge pct={lift.monthlyGainPct} />
           </View>
         </View>
@@ -237,8 +240,9 @@ const liftStyles = StyleSheet.create({
   catText: { fontSize: 9, fontWeight: fontWeight.semibold, textTransform: 'capitalize' },
   muscle: { fontSize: 10, color: colors.mutedForeground, textTransform: 'capitalize' },
   right: { alignItems: 'flex-end', gap: 1 },
-  rm1: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
-  rmUnit: { fontSize: fontSize.xs, fontWeight: fontWeight.normal, color: colors.mutedForeground },
+  rmRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  rm1: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, color: colors.foreground, lineHeight: 26 },
+  rmUnit: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, lineHeight: 22 },
   rmKg: { fontSize: 10, color: colors.mutedForeground },
   sparkWrap: { marginTop: 4 },
   expandedRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs, paddingTop: spacing.xs, borderTopWidth: 1, borderTopColor: colors.border },
@@ -396,6 +400,7 @@ export default function StrengthProfileScreen() {
                       <Text style={[styles.tierText, { color: tierColor }]}>{data!.strengthTier}</Text>
                     </View>
                   </View>
+                  <View style={styles.heroSep} />
                   <View style={styles.heroRight}>
                     {/* Maturity progress */}
                     <View style={styles.maturityRow}>
@@ -514,17 +519,20 @@ const styles = StyleSheet.create({
 
   // Hero
   heroContent: { gap: spacing.md },
-  heroTop: { flexDirection: 'row', gap: spacing.md },
-  heroLeft: { flex: 1, alignItems: 'center', gap: spacing.xs },
-  heroIndex: { fontSize: 40, fontWeight: fontWeight.bold, color: colors.foreground, lineHeight: 44 },
-  heroIndexLabel: { fontSize: fontSize.xs, color: colors.mutedForeground },
-  tierBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3 },
+  heroTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  heroLeft: { alignItems: 'flex-start', gap: spacing.sm },
+  heroIndexRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
+  heroIndexMeta: { paddingBottom: 4 },
+  heroIndex: { fontSize: 52, fontWeight: fontWeight.bold, color: colors.foreground, lineHeight: 56 },
+  heroIndexLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 16 },
+  tierBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3, alignSelf: 'flex-start' },
   tierText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
-  heroRight: { flex: 1.4, gap: spacing.xs, justifyContent: 'center' },
+  heroRight: { flex: 1, gap: spacing.sm, justifyContent: 'center' },
   maturityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   matBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
   matText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
   matPct: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  heroSep: { width: 1, height: 64, backgroundColor: colors.border },
   matBar: { height: 6, backgroundColor: colors.muted, borderRadius: radius.full, overflow: 'hidden' },
   matBarFill: { height: '100%', borderRadius: radius.full },
   matSubtitle: { fontSize: 10, color: colors.mutedForeground },

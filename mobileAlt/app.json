@@ -16,11 +16,22 @@
       "expo-router",
       "expo-secure-store",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Axiom uses your photo library to analyze meals and estimate calories.",
+          "cameraPermission": "Axiom uses your camera to take photos of meals for calorie estimation."
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.axiom.mobile"
+      "bundleIdentifier": "com.axiom.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
+        "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories."
+      }
     },
     "android": {
       "adaptiveIcon": {

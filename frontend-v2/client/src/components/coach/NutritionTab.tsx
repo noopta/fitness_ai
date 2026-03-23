@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
   Loader2, Sparkles, Apple, UtensilsCrossed, Clock, DollarSign,
-  TrendingUp, Zap, Brain, Dumbbell, Check, AlertTriangle, ChevronDown, ChevronUp, Scale, Target,
+  TrendingUp, Zap, Brain, Dumbbell, Check, AlertTriangle, ChevronDown, ChevronUp, Scale, Target, Camera,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
@@ -42,7 +42,8 @@ interface Props {
 }
 
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 // Parse budget string into weekly USD amount for minimum warning
@@ -508,6 +509,8 @@ export function NutritionTab({
   const [mealParsing, setMealParsing] = useState(false);
   const [parsedMeal, setParsedMeal] = useState<{ name: string; proteinG: number; carbsG: number; fatG: number; calories: number; mealType: string; confidence: string; notes: string } | null>(null);
   const [mealAdding, setMealAdding] = useState(false);
+  const [photoScanning, setPhotoScanning] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   // The active plan (saved takes priority over on-demand)
   const activePlan = savedNutritionPlan || aiPlan;
@@ -681,6 +684,35 @@ export function NutritionTab({
       toast.error(err.message || 'Failed to analyze meal');
     } finally {
       setMealParsing(false);
+    }
+  }
+
+  async function scanMealPhoto(file: File) {
+    setPhotoScanning(true);
+    setParsedMeal(null);
+    setPhotoPreview(URL.createObjectURL(file));
+    try {
+      // Resize via canvas to ≤1024px before encoding
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 1024 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+      const res = await authFetch(`${API_BASE}/nutrition/analyze-photo`, {
+        method: 'POST',
+        body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to analyze photo');
+      setParsedMeal(data);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to analyze photo');
+      setPhotoPreview(null);
+    } finally {
+      setPhotoScanning(false);
     }
   }
 
@@ -1269,6 +1301,83 @@ export function NutritionTab({
                   ))}
                 </div>
                 <Button onClick={addParsedMealToLog} disabled={mealAdding} size="sm" className="w-full rounded-xl text-xs">
+                  {mealAdding ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                  Add to {form.date === todayStr() ? "Today's" : form.date} Log
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      </motion.div>
+
+      {/* Scan a Meal Photo */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.19 }}>
+        <Card className="p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Camera className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Scan Meal Photo</p>
+            <span className="ml-auto text-[10px] bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">AI Vision</span>
+          </div>
+          <p className="text-xs text-muted-foreground">Take or upload a photo of your meal — Gemini AI will estimate the calories and macros.</p>
+
+          {photoScanning ? (
+            <div className="relative rounded-xl overflow-hidden border" style={{ height: 200 }}>
+              {photoPreview && <img src={photoPreview} alt="meal" className="w-full h-full object-cover" />}
+              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin text-white" />
+                <p className="text-white text-xs font-medium">Analyzing your meal…</p>
+              </div>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:bg-muted/30 transition-colors">
+              <Camera className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">Click to take or upload a photo</p>
+              <p className="text-xs text-muted-foreground">JPEG, PNG, or WEBP</p>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) scanMealPhoto(f); e.target.value = ''; }}
+              />
+            </label>
+          )}
+
+          <AnimatePresence>
+            {parsedMeal && !photoScanning && photoPreview && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="rounded-xl border bg-muted/20 p-4 space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">{parsedMeal.name}</p>
+                    {parsedMeal.notes && <p className="text-[11px] text-muted-foreground mt-0.5">{parsedMeal.notes}</p>}
+                  </div>
+                  <span className={`shrink-0 text-[10px] rounded-full px-2 py-0.5 font-medium ${
+                    parsedMeal.confidence === 'high' ? 'bg-green-500/15 text-green-600' :
+                    parsedMeal.confidence === 'medium' ? 'bg-yellow-500/15 text-yellow-600' :
+                    'bg-red-500/15 text-red-500'
+                  }`}>
+                    {parsedMeal.confidence} confidence
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  {[
+                    { label: 'Protein', value: `${parsedMeal.proteinG}g`, color: '#6366f1' },
+                    { label: 'Carbs', value: `${parsedMeal.carbsG}g`, color: '#22c55e' },
+                    { label: 'Fat', value: `${parsedMeal.fatG}g`, color: '#f59e0b' },
+                    { label: 'Calories', value: `${parsedMeal.calories}`, color: 'hsl(var(--foreground))' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="rounded-lg border p-2" style={{ borderColor: color + '30' }}>
+                      <p className="text-[10px] text-muted-foreground">{label}</p>
+                      <p className="text-sm font-bold" style={{ color }}>{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={() => { addParsedMealToLog(); setPhotoPreview(null); }} disabled={mealAdding} size="sm" className="w-full rounded-xl text-xs">
                   {mealAdding ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Check className="h-3.5 w-3.5 mr-1" />}
                   Add to {form.date === todayStr() ? "Today's" : form.date} Log
                 </Button>

@@ -20,6 +20,9 @@ import { Button } from '../ui/Button';
 import Svg, { Polyline, Circle, Line, Text as SvgText, Path } from 'react-native-svg';
 import { coachApi, nutritionApi } from '../../lib/api';
 import { MealLogModal } from './MealLogModal';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { Image } from 'react-native';
 
 const MEAL_SHEET_HEIGHT = Dimensions.get('window').height * 0.75;
 const CHART_WIDTH = Dimensions.get('window').width - spacing.md * 4;
@@ -183,7 +186,7 @@ interface NutritionTabProps {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -273,6 +276,9 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
   // Adjustable calorie state (initialized from plan, user can tweak)
   const [calorieAdjust, setCalorieAdjust] = useState<number>(0);
   const [calorieInput, setCalorieInput] = useState<string>('');
+  const [photoScanning, setPhotoScanning] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [scannedMeal, setScannedMeal] = useState<{ name: string; proteinG: number; carbsG: number; fatG: number; calories: number; mealType: string; confidence: string; notes: string } | null>(null);
 
   const targetCalories: number | null = baseTargetCalories !== null
     ? baseTargetCalories + calorieAdjust
@@ -387,6 +393,68 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
       });
       setMealDesc('');
       setParsedMeal(null);
+      loadMealData();
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to log meal.');
+    }
+  }
+
+  async function handlePickAndScanPhoto(useCamera: boolean) {
+    const permFn = useCamera
+      ? ImagePicker.requestCameraPermissionsAsync
+      : ImagePicker.requestMediaLibraryPermissionsAsync;
+    const { status } = await permFn();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', `Please allow ${useCamera ? 'camera' : 'photo library'} access in Settings.`);
+      return;
+    }
+    const result = await (useCamera ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync)({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    const compressed = await ImageManipulator.manipulateAsync(
+      result.assets[0].uri,
+      [{ resize: { width: 1024 } }],
+      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    setPhotoUri(compressed.uri);
+    setScannedMeal(null);
+    setPhotoScanning(true);
+    try {
+      const resp = await fetch(compressed.uri);
+      const blob = await resp.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const analysisResult = await nutritionApi.analyzePhoto(base64, 'image/jpeg');
+      if (analysisResult) setScannedMeal(analysisResult);
+    } catch (err: any) {
+      Alert.alert('Analysis failed', err?.message || 'Could not analyze photo. Try describing the meal instead.');
+      setPhotoUri(null);
+    } finally {
+      setPhotoScanning(false);
+    }
+  }
+
+  async function handleAddScannedMeal() {
+    if (!scannedMeal) return;
+    try {
+      await nutritionApi.logMeal({
+        date: todayStr(),
+        name: scannedMeal.name,
+        mealType: (scannedMeal.mealType as any) || 'meal',
+        calories: scannedMeal.calories,
+        proteinG: scannedMeal.proteinG,
+        carbsG: scannedMeal.carbsG,
+        fatG: scannedMeal.fatG,
+      });
+      setScannedMeal(null);
+      setPhotoUri(null);
       loadMealData();
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
@@ -525,6 +593,17 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
           </CardContent>
         </Card>
 
+        {/* ── Macro targets ── */}
+        <Card style={styles.card}>
+          <CardHeader><CardTitle>Macronutrients</CardTitle></CardHeader>
+          <CardContent style={styles.macroGrid}>
+            <MacroCard label="Protein" grams={targetProtein} logged={loggedProtein} color="#3b82f6" />
+            <MacroCard label="Carbs" grams={targetCarbs} logged={loggedCarbs} color="#f59e0b" />
+            <MacroCard label="Fat" grams={targetFat} logged={loggedFat} color="#ec4899" />
+            <MacroCard label="Fiber" grams={targetFiber} logged={0} color="#22c55e" target="25-35g" />
+          </CardContent>
+        </Card>
+
         {/* ── Log a Meal by Description ── */}
         <Card style={styles.card}>
           <CardHeader>
@@ -598,6 +677,80 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
           </CardContent>
         </Card>
 
+        {/* ── Scan a Meal Photo ── */}
+        <Card style={styles.card}>
+          <CardHeader>
+            <View style={styles.descCardHeader}>
+              <Ionicons name="camera-outline" size={13} color={colors.mutedForeground} />
+              <Text style={styles.descCardLabel}>SCAN A MEAL PHOTO</Text>
+              <View style={styles.aiVisionBadge}>
+                <Text style={styles.aiVisionText}>AI Vision</Text>
+              </View>
+            </View>
+          </CardHeader>
+          <CardContent style={styles.descCardContent}>
+            {photoScanning ? (
+              <View style={styles.scanningBox}>
+                {photoUri && <Image source={{ uri: photoUri }} style={styles.photoPreview} resizeMode="cover" />}
+                <View style={styles.scanningOverlay}>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                  <Text style={styles.scanningText}>Analyzing your meal…</Text>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.scanBtnRow}>
+                <TouchableOpacity style={styles.scanActionBtn} onPress={() => handlePickAndScanPhoto(true)}>
+                  <Ionicons name="camera" size={20} color={colors.primary} />
+                  <Text style={styles.scanActionBtnText}>Take Photo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.scanActionBtn, styles.scanActionBtnSecondary]} onPress={() => handlePickAndScanPhoto(false)}>
+                  <Ionicons name="images-outline" size={20} color={colors.mutedForeground} />
+                  <Text style={[styles.scanActionBtnText, { color: colors.mutedForeground }]}>Library</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {scannedMeal && !photoScanning && (
+              <View style={styles.parsedCard}>
+                <View style={styles.parsedHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.parsedName}>{scannedMeal.name}</Text>
+                    {scannedMeal.notes ? (
+                      <Text style={styles.parsedNotes} numberOfLines={1}>{scannedMeal.notes}</Text>
+                    ) : null}
+                  </View>
+                  <View style={[styles.confidenceBadge, {
+                    backgroundColor: scannedMeal.confidence === 'high' ? '#22c55e15' :
+                      scannedMeal.confidence === 'medium' ? '#f59e0b15' : '#ef444415',
+                  }]}>
+                    <Text style={[styles.confidenceText, {
+                      color: scannedMeal.confidence === 'high' ? '#16a34a' :
+                        scannedMeal.confidence === 'medium' ? '#d97706' : '#dc2626',
+                    }]}>{scannedMeal.confidence}</Text>
+                  </View>
+                </View>
+                <View style={styles.parsedMacros}>
+                  {[
+                    { label: 'Protein', value: `${scannedMeal.proteinG}g`, color: '#6366f1' },
+                    { label: 'Carbs', value: `${scannedMeal.carbsG}g`, color: '#22c55e' },
+                    { label: 'Fat', value: `${scannedMeal.fatG}g`, color: '#f59e0b' },
+                    { label: 'Calories', value: String(scannedMeal.calories), color: colors.foreground },
+                  ].map(({ label, value, color }) => (
+                    <View key={label} style={[styles.parsedMacroTile, { borderColor: color + '30' }]}>
+                      <Text style={styles.parsedMacroLabel}>{label}</Text>
+                      <Text style={[styles.parsedMacroVal, { color }]}>{value}</Text>
+                    </View>
+                  ))}
+                </View>
+                <TouchableOpacity style={styles.addToLogBtn} onPress={handleAddScannedMeal}>
+                  <Ionicons name="add-circle-outline" size={15} color="#fff" />
+                  <Text style={styles.addToLogBtnText}>Add to Today's Log</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </CardContent>
+        </Card>
+
         {/* ── Weight Projection + Calorie Adjustment ── */}
         {(adjustedWeeklyChange !== null || targetCalories !== null) && (
           <Card style={styles.card}>
@@ -659,17 +812,6 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
             </CardContent>
           </Card>
         )}
-
-        {/* ── Macro targets ── */}
-        <Card style={styles.card}>
-          <CardHeader><CardTitle>Macronutrients</CardTitle></CardHeader>
-          <CardContent style={styles.macroGrid}>
-            <MacroCard label="Protein" grams={targetProtein} logged={loggedProtein} color="#3b82f6" />
-            <MacroCard label="Carbs" grams={targetCarbs} logged={loggedCarbs} color="#f59e0b" />
-            <MacroCard label="Fat" grams={targetFat} logged={loggedFat} color="#ec4899" />
-            <MacroCard label="Fiber" grams={targetFiber} logged={0} color="#22c55e" target="25-35g" />
-          </CardContent>
-        </Card>
 
         {/* ── Today's meals ── */}
         <Card style={styles.card}>
@@ -1133,4 +1275,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.md, paddingVertical: 10,
   },
   addToLogBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: '#fff' },
+  aiVisionBadge: { marginLeft: 'auto', backgroundColor: `${colors.primary}18`, borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+  aiVisionText: { fontSize: 9, fontWeight: fontWeight.semibold, color: colors.primary },
+  scanBtnRow: { flexDirection: 'row', gap: spacing.sm },
+  scanActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, backgroundColor: `${colors.primary}12`, borderWidth: 1, borderColor: colors.primary, borderRadius: radius.lg, paddingVertical: 16 },
+  scanActionBtnSecondary: { backgroundColor: colors.muted, borderColor: colors.border },
+  scanActionBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.primary },
+  scanningBox: { height: 180, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.muted },
+  photoPreview: { width: '100%', height: '100%' },
+  scanningOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  scanningText: { color: '#fff', fontSize: fontSize.sm, fontWeight: fontWeight.medium },
 });

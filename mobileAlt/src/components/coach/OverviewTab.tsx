@@ -76,24 +76,23 @@ interface OverviewTabProps {
 
 // ─── Day Workout Sheet ────────────────────────────────────────────────────────
 
-const SHEET_HEIGHT = Dimensions.get('window').height * 0.72;
+const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
+const SHEET_VIDEO_HEIGHT = Dimensions.get('window').width * (9 / 16);
 
 function DayWorkoutSheet({
   day,
   visible,
   onClose,
   onLogged,
-  onVideoPress,
-  loadingVideo,
 }: {
   day: WeekDay;
   visible: boolean;
   onClose: () => void;
   onLogged: () => void;
-  onVideoPress: (exerciseName: string) => void;
-  loadingVideo: string | null;
 }) {
   const [logVisible, setLogVisible] = useState(false);
+  const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
+  const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -158,7 +157,7 @@ function DayWorkoutSheet({
                       key={i}
                       activeOpacity={0.7}
                       style={[sheet.exRow, i < exercises.length - 1 && sheet.exRowBorder]}
-                      onPress={() => !isLoadingThis && onVideoPress(exName)}
+                      onPress={() => !isLoadingThis && openExerciseVideo(exName, setLoadingVideo, (videoId, title) => setSheetVideo({ videoId, title }))}
                     >
                       <Text style={sheet.exName}>{exName}</Text>
                       <View style={sheet.exMeta}>
@@ -175,6 +174,26 @@ function DayWorkoutSheet({
                     </TouchableOpacity>
                   );
                 })}
+
+                {/* Inline video player within the sheet */}
+                {sheetVideo && (
+                  <View style={sheet.videoWrap}>
+                    <View style={sheet.videoHeader}>
+                      <Text style={sheet.videoTitle} numberOfLines={1}>{sheetVideo.title}</Text>
+                      <TouchableOpacity onPress={() => setSheetVideo(null)} style={sheet.videoClose}>
+                        <Ionicons name="close-circle" size={20} color={colors.mutedForeground} />
+                      </TouchableOpacity>
+                    </View>
+                    <WebView
+                      style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#000' }}
+                      source={{ uri: buildVideoUri(sheetVideo.videoId) }}
+                      allowsFullscreenVideo
+                      mediaPlaybackRequiresUserAction={false}
+                      javaScriptEnabled
+                      domStorageEnabled
+                    />
+                  </View>
+                )}
               </>
             )}
           </ScrollView>
@@ -252,6 +271,10 @@ const sheet = StyleSheet.create({
   restBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
   restText: { fontSize: fontSize.base, color: '#8b5cf6', fontWeight: fontWeight.medium },
   emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', paddingVertical: spacing.lg },
+  videoWrap: { marginTop: spacing.sm, borderRadius: radius.md, overflow: 'hidden', backgroundColor: '#000' },
+  videoHeader: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.muted, paddingHorizontal: spacing.sm, paddingVertical: 8 },
+  videoTitle: { flex: 1, fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.foreground, marginRight: 8 },
+  videoClose: { padding: 2 },
   footer: { padding: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
   logBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -472,20 +495,30 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
         )}
 
         {/* ── Action buttons ───────────────────────────────────────────────── */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.logBtn]}
-            onPress={() => setLogWorkoutVisible(true)}
-          >
-            <Ionicons name="barbell-outline" size={16} color="#fff" />
-            <Text style={styles.logBtnText}>Log Workout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.lifeBtn]}
-            onPress={() => setLifeHappenedVisible(true)}
-          >
-            <Ionicons name="heart-outline" size={16} color="#d97706" />
-            <Text style={styles.lifeBtnText}>Life Happened</Text>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.logBtn]}
+          onPress={() => setLogWorkoutVisible(true)}
+        >
+          <Ionicons name="barbell-outline" size={16} color="#fff" />
+          <Text style={styles.logBtnText}>Log Workout</Text>
+        </TouchableOpacity>
+
+        {/* ── Life Happened card ───────────────────────────────────────────── */}
+        <View style={styles.lifeCard}>
+          <View style={styles.lifeCardTop}>
+            <View style={styles.lifeCardIcon}>
+              <Ionicons name="heart-outline" size={20} color="#d97706" />
+            </View>
+            <View style={styles.lifeCardBody}>
+              <Text style={styles.lifeCardTitle}>Life Happened?</Text>
+              <Text style={styles.lifeCardDesc}>
+                Missed a session, had a rough night out, feeling sick, or just overwhelmed? Tell Anakin — get a personalized recovery plan with adjusted training and nutrition advice.
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.lifeCardBtn} onPress={() => setLifeHappenedVisible(true)}>
+            <Text style={styles.lifeCardBtnText}>Tell Anakin</Text>
+            <Ionicons name="chevron-forward" size={14} color="#d97706" />
           </TouchableOpacity>
         </View>
 
@@ -664,10 +697,6 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           visible={pastLogVisible}
           onClose={() => setPastLogVisible(false)}
           onLogged={() => { setPastLogVisible(false); setWorkoutSaved(true); setTimeout(() => setWorkoutSaved(false), 3000); }}
-          loadingVideo={loadingVideoEx}
-          onVideoPress={(name) => {
-            openExerciseVideo(name, setLoadingVideoEx, (videoId, title) => setVideoModal({ videoId, title }));
-          }}
         />
       )}
 
@@ -675,7 +704,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
       <Modal
         visible={!!videoModal}
         transparent
-        animationType="none"
+        animationType="slide"
         onRequestClose={() => setVideoModal(null)}
       >
         <View style={videoStyles.backdrop}>
@@ -691,10 +720,12 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             {videoModal && (
               <WebView
                 style={videoStyles.webview}
-                source={{ uri: `https://www.youtube.com/embed/${videoModal.videoId}?autoplay=1&playsinline=1` }}
+                source={{ uri: buildVideoUri(videoModal.videoId) }}
                 allowsFullscreenVideo
+                allowsInlineMediaPlayback
                 mediaPlaybackRequiresUserAction={false}
                 javaScriptEnabled
+                domStorageEnabled
               />
             )}
           </View>
@@ -706,6 +737,15 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function buildVideoUri(videoId: string): string {
+  if (videoId.startsWith('search:')) {
+    const query = encodeURIComponent(videoId.slice(7));
+    return `https://www.youtube.com/results?search_query=${query}`;
+  }
+  // Use nocookie embed URL — avoids login/consent walls in WebView
+  return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`;
+}
+
 async function openExerciseVideo(
   exerciseName: string,
   setLoadingEx: (n: string | null) => void,
@@ -716,9 +756,12 @@ async function openExerciseVideo(
     const res = await coachApi.getExerciseVideo(exerciseName);
     if (res?.videoId) {
       onResult(res.videoId, exerciseName);
+    } else {
+      // Fallback: prefix with 'search:' so the player uses YouTube search page
+      onResult(`search:${exerciseName} exercise tutorial`, exerciseName);
     }
   } catch {
-    // silently ignore
+    onResult(`search:${exerciseName} exercise tutorial`, exerciseName);
   } finally {
     setLoadingEx(null);
   }
@@ -848,6 +891,7 @@ const videoStyles = StyleSheet.create({
     borderTopRightRadius: 20,
     paddingBottom: 34,
     overflow: 'hidden',
+    minHeight: VIDEO_HEIGHT + 80,
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
@@ -1073,35 +1117,73 @@ const styles = StyleSheet.create({
   },
 
   // Action buttons
-  actionRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
   actionBtn: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
     borderRadius: radius.lg,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   logBtn: {
     backgroundColor: colors.primary,
   },
   logBtnText: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     color: '#fff',
   },
-  lifeBtn: {
-    backgroundColor: 'rgba(245,158,11,0.08)',
+
+  // Life Happened card
+  lifeCard: {
+    backgroundColor: 'rgba(245,158,11,0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.3)',
+    borderColor: 'rgba(245,158,11,0.35)',
+    borderRadius: radius.xl,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
-  lifeBtnText: {
+  lifeCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  lifeCardIcon: {
+    width: 40, height: 40,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(245,158,11,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  lifeCardBody: {
+    flex: 1,
+    gap: 4,
+  },
+  lifeCardTitle: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+  },
+  lifeCardDesc: {
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
+    color: colors.mutedForeground,
+    lineHeight: 20,
+  },
+  lifeCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.5)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+  },
+  lifeCardBtnText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
     color: '#d97706',
   },
   savedBanner: {

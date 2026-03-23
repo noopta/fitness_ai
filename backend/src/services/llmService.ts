@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getLiftById } from '../data/lifts.js';
 import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
@@ -9,6 +10,8 @@ import { buildRAGContext } from './ragService.js';
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export interface DiagnosticContext {
   selectedLift: string;
@@ -1677,6 +1680,51 @@ OUTPUT FORMAT (JSON only, no explanation):
   return JSON.parse(raw) as ParsedMealMacros;
 }
 
+
+// ─── Meal Photo Analysis (Gemini Vision) ──────────────────────────────────────
+
+export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealMacros> {
+  const model = gemini.getGenerativeModel({ model: 'gemini-3.1-pro-preview' });
+
+  const prompt = `You are a nutrition expert analyzing a photo of a meal. Identify all food items visible, estimate portion sizes based on visual cues (plate size, utensils, hand if visible), and calculate macros.
+
+INSTRUCTIONS:
+- Identify every food item visible in the image
+- Estimate portion sizes using visual context (standard plate ~10 inches, typical servings)
+- Use standard nutritional data for each identified item
+- If multiple items are present, sum the totals
+- Round to nearest gram/calorie
+- Set confidence to "low" if the image is unclear, heavily obscured, or contains unusual items
+- mealType should be your best guess based on the foods shown: breakfast, lunch, dinner, snack, or meal
+- For beverages: only count calories if it's clearly not water/black coffee/diet soda
+
+OUTPUT FORMAT (JSON only, no explanation):
+{
+  "name": "Short descriptive meal name (e.g. 'Grilled chicken with rice and broccoli')",
+  "proteinG": 42,
+  "carbsG": 55,
+  "fatG": 12,
+  "calories": 496,
+  "mealType": "lunch",
+  "confidence": "high",
+  "notes": "Estimated based on standard dinner plate portion. Chicken appears to be ~6oz grilled breast."
+}`;
+
+  const result = await model.generateContent([
+    prompt,
+    {
+      inlineData: {
+        mimeType,
+        data: imageBase64,
+      },
+    },
+  ]);
+
+  const text = result.response.text().trim();
+  // Strip markdown code fences if present
+  const json = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  return JSON.parse(json) as ParsedMealMacros;
+}
 
 // ─── Strength Profile Insights ────────────────────────────────────────────────
 

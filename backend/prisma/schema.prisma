@@ -26,6 +26,8 @@ model User {
   stripeSubStatus     String?
   dailyAnalysisCount  Int               @default(0)
   dailyAnalysisDate   DateTime?
+  dailyPhotoScanCount Int               @default(0)
+  dailyPhotoScanDate  String?
   coachThreadId       String?
   savedProgram        String?
   coachGoal           String?
@@ -175,7 +177,7 @@ model KnowledgeChunk {
 model ExerciseNormalization {
   rawName       String   @id
   canonicalName String
-  category      String   // push | pull | legs | hinge | core
+  category      String
   primaryMuscle String
   isCompound    Boolean  @default(false)
   createdAt     DateTime @default(now())
