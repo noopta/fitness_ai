@@ -1,0 +1,71 @@
+name: Mobile CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'mobileAlt/**'
+
+jobs:
+  # ── Dev branch: instant OTA update ────────────────────────────────────────
+  ota-update:
+    name: OTA Update (dev)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobileAlt/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mobileAlt
+        run: npm ci
+
+      - name: Push OTA update to dev channel
+        working-directory: mobileAlt
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli update --branch dev --message "${{ github.event.head_commit.message }}" --non-interactive
+
+  # ── Main branch: full build + TestFlight submit ───────────────────────────
+  build-and-submit:
+    name: Build & Submit (production)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobileAlt/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mobileAlt
+        run: npm ci
+
+      - name: Build iOS for production
+        working-directory: mobileAlt
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli build --platform ios --profile production --non-interactive --wait
+
+      - name: Submit to TestFlight
+        working-directory: mobileAlt
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli submit --platform ios --latest --non-interactive
