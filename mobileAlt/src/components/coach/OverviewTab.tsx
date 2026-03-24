@@ -84,13 +84,14 @@ function DayWorkoutSheet({
   visible,
   onClose,
   onLogged,
+  onLogWorkout,
 }: {
   day: WeekDay;
   visible: boolean;
   onClose: () => void;
   onLogged: () => void;
+  onLogWorkout: (exercises: Exercise[], date: string, title?: string) => void;
 }) {
-  const [logVisible, setLogVisible] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
@@ -202,7 +203,12 @@ function DayWorkoutSheet({
             <View style={sheet.footer}>
               <TouchableOpacity
                 style={sheet.logBtn}
-                onPress={() => setLogVisible(true)}
+                onPress={() => {
+                  onClose();
+                  setTimeout(() => {
+                    onLogWorkout(exercises, day.date, day.session?.focus ?? day.session?.day);
+                  }, 350);
+                }}
               >
                 <Ionicons name="barbell-outline" size={16} color="#fff" />
                 <Text style={sheet.logBtnText}>Log This Workout</Text>
@@ -212,15 +218,6 @@ function DayWorkoutSheet({
           </Animated.View>
         </Animated.View>
       </Modal>
-
-      <WorkoutLogModal
-        visible={logVisible}
-        onClose={() => setLogVisible(false)}
-        onSaved={() => { setLogVisible(false); onLogged(); }}
-        todayExercises={exercises}
-        date={day.date}
-        workoutTitle={day.session?.focus ?? day.session?.day ?? undefined}
-      />
     </>
   );
 }
@@ -296,6 +293,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   const [workoutSaved, setWorkoutSaved] = useState(false);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [pastLogVisible, setPastLogVisible] = useState(false);
+  const [dayLogData, setDayLogData] = useState<{ exercises: Exercise[]; date: string; title?: string } | null>(null);
   const [loadingVideoEx, setLoadingVideoEx] = useState<string | null>(null);
   const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
 
@@ -695,10 +693,29 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
         <DayWorkoutSheet
           day={selectedDay}
           visible={pastLogVisible}
-          onClose={() => setPastLogVisible(false)}
-          onLogged={() => { setPastLogVisible(false); setWorkoutSaved(true); setTimeout(() => setWorkoutSaved(false), 3000); }}
+          onClose={() => {
+            setPastLogVisible(false);
+            setTimeout(() => setSelectedDay(null), 400);
+          }}
+          onLogged={() => {
+            setPastLogVisible(false);
+            setTimeout(() => setSelectedDay(null), 400);
+            setWorkoutSaved(true);
+            setTimeout(() => setWorkoutSaved(false), 3000);
+          }}
+          onLogWorkout={(exercises, date, title) => setDayLogData({ exercises, date, title })}
         />
       )}
+
+      {/* Day-specific log modal — rendered outside DayWorkoutSheet to avoid nested modals */}
+      <WorkoutLogModal
+        visible={!!dayLogData}
+        onClose={() => setDayLogData(null)}
+        onSaved={() => { setDayLogData(null); handleWorkoutSaved(); }}
+        todayExercises={dayLogData?.exercises}
+        date={dayLogData?.date}
+        workoutTitle={dayLogData?.title}
+      />
 
       {/* ── Video modal ────────────────────────────────────────────────────── */}
       <Modal

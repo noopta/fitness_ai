@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
+import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -16,6 +17,7 @@ export default function SettingsScreen() {
   const { user } = auth;
   const [portalLoading, setPortalLoading] = useState(false);
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
+  const { unit, toggleUnit } = useUnits();
 
   async function handleManageSubscription() {
     setPortalLoading(true);
@@ -113,6 +115,27 @@ export default function SettingsScreen() {
                 {portalLoading ? 'Loading…' : isPro ? 'Manage Subscription' : 'Upgrade to Pro'}
               </Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Preferences section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Preferences</Text>
+          <View style={styles.card}>
+            <View style={styles.cardRow}>
+              <View style={styles.cardIconBox}>
+                <Ionicons name="barbell-outline" size={18} color={colors.foreground} />
+              </View>
+              <View style={styles.cardRowText}>
+                <Text style={styles.cardRowTitle}>Weight Unit</Text>
+                <Text style={styles.cardRowSub}>Used across workouts, logs, and strength profile</Text>
+              </View>
+              <TouchableOpacity onPress={toggleUnit} style={styles.unitToggle} activeOpacity={0.8}>
+                <Text style={[styles.unitOption, unit === 'lbs' && styles.unitOptionActive]}>lbs</Text>
+                <Text style={styles.unitSep}>·</Text>
+                <Text style={[styles.unitOption, unit === 'kg' && styles.unitOptionActive]}>kg</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -241,4 +264,17 @@ const styles = StyleSheet.create({
   signOutText: { flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.destructive },
 
   versionText: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center', marginTop: spacing.sm },
+
+  unitToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.muted,
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 4,
+  },
+  unitOption: { fontSize: fontSize.sm, color: colors.mutedForeground, fontWeight: fontWeight.medium },
+  unitOptionActive: { color: colors.foreground, fontWeight: fontWeight.bold },
+  unitSep: { fontSize: fontSize.xs, color: colors.mutedForeground },
 });
