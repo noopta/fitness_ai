@@ -501,25 +501,6 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           <Text style={styles.logBtnText}>Log Workout</Text>
         </TouchableOpacity>
 
-        {/* ── Life Happened card ───────────────────────────────────────────── */}
-        <View style={styles.lifeCard}>
-          <View style={styles.lifeCardTop}>
-            <View style={styles.lifeCardIcon}>
-              <Ionicons name="heart-outline" size={20} color="#d97706" />
-            </View>
-            <View style={styles.lifeCardBody}>
-              <Text style={styles.lifeCardTitle}>Life Happened?</Text>
-              <Text style={styles.lifeCardDesc}>
-                Missed a session, had a rough night out, feeling sick, or just overwhelmed? Tell Anakin — get a personalized recovery plan with adjusted training and nutrition advice.
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.lifeCardBtn} onPress={() => setLifeHappenedVisible(true)}>
-            <Text style={styles.lifeCardBtnText}>Tell Anakin</Text>
-            <Ionicons name="chevron-forward" size={14} color="#d97706" />
-          </TouchableOpacity>
-        </View>
-
         {workoutSaved && (
           <View style={styles.savedBanner}>
             <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
@@ -592,6 +573,25 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             </CardContent>
           </Card>
         )}
+
+        {/* ── Life Happened card ───────────────────────────────────────────── */}
+        <View style={styles.lifeCard}>
+          <View style={styles.lifeCardTop}>
+            <View style={styles.lifeCardIcon}>
+              <Ionicons name="heart-outline" size={20} color="#d97706" />
+            </View>
+            <View style={styles.lifeCardBody}>
+              <Text style={styles.lifeCardTitle}>Life Happened?</Text>
+              <Text style={styles.lifeCardDesc}>
+                Missed a session, had a rough night out, feeling sick, or just overwhelmed? Tell Anakin — get a personalized recovery plan with adjusted training and nutrition advice.
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.lifeCardBtn} onPress={() => setLifeHappenedVisible(true)}>
+            <Text style={styles.lifeCardBtnText}>Tell Anakin</Text>
+            <Ionicons name="chevron-forward" size={14} color="#d97706" />
+          </TouchableOpacity>
+        </View>
 
         {/* ── Program Progress ─────────────────────────────────────────────── */}
         {savedProgram && (

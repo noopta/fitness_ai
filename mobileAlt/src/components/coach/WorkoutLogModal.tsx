@@ -10,10 +10,7 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Dimensions,
-  FlatList,
 } from 'react-native';
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
@@ -21,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { workoutsApi } from '../../lib/api';
 import { useUnits } from '../../context/UnitsContext';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // ─── Exercise suggestions ──────────────────────────────────────────────────────
 
@@ -171,10 +170,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={styles.kavWrapper}
-        behavior={Platform.OS === 'ios' ? 'height' : undefined}
-      >
+      <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.handle} />
@@ -200,6 +196,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             contentContainerStyle={styles.bodyContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
           >
             {/* Duration */}
             <View style={styles.row}>
@@ -345,7 +342,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             </TouchableOpacity>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -353,7 +350,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  kavWrapper: {
+  backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -362,7 +359,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: SHEET_HEIGHT,
+    height: SHEET_HEIGHT,
     paddingBottom: 34,
   },
   handle: {
