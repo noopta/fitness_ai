@@ -182,3 +182,33 @@ model ExerciseNormalization {
   isCompound    Boolean  @default(false)
   createdAt     DateTime @default(now())
 }
+
+model Affiliate {
+  id                String                  @id @default(uuid())
+  name              String
+  email             String                  @unique
+  promoCodeId       String?                 @unique  // Stripe promo_xxx
+  stripeAccountId   String?                 @unique  // Stripe acct_xxx
+  onboarded         Boolean                 @default(false)
+  createdAt         DateTime                @default(now())
+  subscriptions     AffiliateSubscription[]
+  payouts           AffiliatePayout[]
+}
+
+model AffiliateSubscription {
+  subscriptionId String    @id                       // Stripe sub_xxx
+  affiliateId    String
+  createdAt      DateTime  @default(now())
+  affiliate      Affiliate @relation(fields: [affiliateId], references: [id])
+}
+
+model AffiliatePayout {
+  id               String    @id @default(uuid())
+  affiliateId      String
+  stripeTransferId String?
+  amountCents      Int
+  currency         String    @default("cad")
+  sourceEventId    String    @unique               // idempotency
+  createdAt        DateTime  @default(now())
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id])
+}

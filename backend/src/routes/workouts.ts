@@ -59,7 +59,7 @@ const exerciseSchema = z.object({
   sets: z.number().int().min(1).max(100),
   reps: z.string().min(1),         // e.g. "8" or "6-8"
   weightKg: z.number().nonnegative().optional().nullable(),
-  rpe: z.number().min(1).max(10).optional().nullable(),
+  rpe: z.number().min(0).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
 });
 
@@ -108,6 +108,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
   try {
     const parsed = workoutLogSchema.safeParse(req.body);
     if (!parsed.success) {
+      console.error('[workouts] POST validation failed:', JSON.stringify(parsed.error.issues));
       return res.status(400).json({ error: 'Invalid workout data', details: parsed.error.issues });
     }
 

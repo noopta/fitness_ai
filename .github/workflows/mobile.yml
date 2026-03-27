@@ -29,12 +29,12 @@ jobs:
         working-directory: mobileAlt
         run: npm ci
 
-      - name: Push OTA update to dev channel
+      - name: Push OTA update to production channel
         working-directory: mobileAlt
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          npx eas-cli update --branch dev --message "${{ github.event.head_commit.message }}" --non-interactive
+          npx eas-cli update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
 
   # ── Main branch: full build + TestFlight submit ───────────────────────────
   build-and-submit:

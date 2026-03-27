@@ -145,19 +145,29 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     }
     setSaving(true);
     try {
+      const weightVal = (w: string) => {
+        const n = parseFloat(w);
+        return isNaN(n) || n < 0 ? null : toKg(n);
+      };
+      const rpeVal = (r: string) => {
+        const n = parseFloat(r);
+        return isNaN(n) ? null : Math.min(Math.max(n, 0), 10);
+      };
+      const durationVal = duration ? (parseInt(duration, 10) || undefined) : undefined;
+
       await workoutsApi.logWorkout({
-        date: date ?? todayDateStr(),
+        date: (date ?? todayDateStr()).slice(0, 10),
         title: workoutTitle || undefined,
         exercises: validExercises.map(ex => ({
           name: ex.name.trim(),
-          sets: parseInt(ex.sets, 10) || 1,
-          reps: ex.reps.trim(),
-          weightKg: ex.weight ? toKg(parseFloat(ex.weight)) : null,
-          rpe: ex.rpe ? parseFloat(ex.rpe) : null,
+          sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
+          reps: ex.reps.trim() || '1',
+          weightKg: ex.weight.trim() ? weightVal(ex.weight) : null,
+          rpe: ex.rpe.trim() ? rpeVal(ex.rpe) : null,
           notes: ex.notes.trim() || null,
         })),
         notes: workoutNotes.trim() || undefined,
-        duration: duration ? parseInt(duration, 10) : undefined,
+        duration: durationVal && durationVal >= 1 ? durationVal : undefined,
       });
       onClose();
       onSaved();
@@ -169,7 +179,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         <View style={styles.sheet}>

@@ -1035,7 +1035,7 @@ function buildScheduleData(user: { savedProgram: string | null; programStartDate
     const dateEST = date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
     weekDays.push({
-      date: date.toISOString(),
+      date: dateEST,
       dayLabel: DAY_LABELS[i],
       dateNumber: parseInt(dateEST.split('-')[2]),
       monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),

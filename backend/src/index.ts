@@ -13,6 +13,7 @@ import nutritionRoutes from './routes/nutrition.js';
 import wellnessRoutes from './routes/wellness.js';
 import workoutsRoutes from './routes/workouts.js';
 import strengthRoutes from './routes/strength.js';
+import affiliatesRoutes from './routes/affiliates.js';
 import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
 import OpenAI from 'openai';
 
@@ -20,9 +21,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// Raw body parser for Stripe webhook BEFORE express.json()
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
 // Middleware
 app.use(cookieParser());
@@ -49,7 +47,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  verify: (req: any, _res, buf) => {
+    if (req.url === '/api/payments/webhook') {
+      req.rawBody = buf;
+    }
+  },
+}));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -67,6 +72,7 @@ app.use('/api', strengthRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);
+app.use('/api', affiliatesRoutes);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

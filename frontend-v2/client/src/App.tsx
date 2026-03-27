@@ -25,6 +25,7 @@ import CoachPage from "./pages/coach";
 import SettingsPage from "./pages/settings";
 import WorkoutsPage from "./pages/workouts";
 import StrengthProfilePage from "./pages/strength-profile";
+import AdminAffiliatesPage from "./pages/admin-affiliates";
 
 // Error boundary — catches render crashes and shows a recovery UI instead of
 // a blank screen. Particularly important for catching hook-order errors and
@@ -77,6 +78,7 @@ const ProtectedCoach      = () => <ProtectedRoute component={CoachPage} />;
 const ProtectedSettings   = () => <ProtectedRoute component={SettingsPage} />;
 const ProtectedWorkouts        = () => <ProtectedRoute component={WorkoutsPage} />;
 const ProtectedStrengthProfile = () => <ProtectedRoute component={StrengthProfilePage} />;
+const ProtectedAdminAffiliates = () => <ProtectedRoute component={AdminAffiliatesPage} />;
 
 function Router() {
   return (
@@ -99,6 +101,7 @@ function Router() {
       <Route path="/workouts" component={ProtectedWorkouts} />
       <Route path="/strength-profile" component={ProtectedStrengthProfile} />
       <Route path="/settings" component={ProtectedSettings} />
+      <Route path="/admin/affiliates" component={ProtectedAdminAffiliates} />
       <Route component={NotFound} />
     </Switch>
   );
