@@ -40,3 +40,4 @@ prisma/*.db-journal
 *.tsbuildinfo
 .next/
 out/
+backend/prisma/dev.db
