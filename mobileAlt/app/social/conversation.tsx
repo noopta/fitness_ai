@@ -6,9 +6,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { socialApi } from '../../../src/lib/api';
-import { useAuth } from '../../../src/context/AuthContext';
-import { colors, fontSize, fontWeight, radius, spacing } from '../../../src/constants/theme';
+import { socialApi } from '../../src/lib/api';
+import { useAuth } from '../../src/context/AuthContext';
+import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 interface Message {
   id: string;
