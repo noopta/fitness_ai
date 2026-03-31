@@ -152,8 +152,13 @@ export default function MessagesPage() {
       if (!res.ok) return;
       const data: Message[] = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        setMessages(prev => [...prev, ...data]);
-        lastMsgIdRef.current = data[data.length - 1].id;
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id));
+          const newMsgs = data.filter(m => !existingIds.has(m.id));
+          if (newMsgs.length === 0) return prev;
+          lastMsgIdRef.current = newMsgs[newMsgs.length - 1].id;
+          return [...prev, ...newMsgs];
+        });
         // Update unread count in conversation list
         setConversations(prev =>
           prev.map(c => c.id === convId ? { ...c, unreadCount: 0, lastMessage: data[data.length - 1].body, lastMessageAt: data[data.length - 1].createdAt } : c)
@@ -175,8 +180,11 @@ export default function MessagesPage() {
       });
       if (!res.ok) throw new Error();
       const msg: Message = await res.json();
-      setMessages(prev => [...prev, msg]);
       lastMsgIdRef.current = msg.id;
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
       setConversations(prev =>
         prev.map(c => c.id === selectedId ? { ...c, lastMessage: body, lastMessageAt: msg.createdAt } : c)
       );
