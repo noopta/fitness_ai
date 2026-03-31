@@ -346,11 +346,17 @@ export default function FriendsPage() {
                           <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs" onClick={() => navigate(`/profile/${friend.id}`)}>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button size="sm" variant="outline" className="h-8 w-8 rounded-lg sm:hidden" onClick={() => navigate(`/profile/${friend.id}`)}>
+                          <Users className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs hidden sm:inline-flex" onClick={() => navigate(`/profile/${friend.id}`)}>
                           Profile
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs" onClick={() => messageFriend(friend)}>
+                        <Button size="sm" variant="outline" className="h-8 w-8 rounded-lg sm:hidden" onClick={() => messageFriend(friend)}>
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs hidden sm:inline-flex" onClick={() => messageFriend(friend)}>
                           <MessageCircle className="h-3 w-3 mr-1" />Message
                         </Button>
                         <Button size="sm" variant="ghost" className="h-8 w-8 rounded-lg text-muted-foreground" onClick={() => setExpandedFriend(expanded ? null : friend.id)}>

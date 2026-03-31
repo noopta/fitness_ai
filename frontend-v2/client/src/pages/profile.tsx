@@ -125,7 +125,7 @@ export default function ProfilePage() {
 
         {/* Profile card */}
         <Card className="p-6">
-          <div className="flex items-start gap-5">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
             {/* Avatar */}
             <Avatar className="h-20 w-20 shrink-0 text-2xl">
               <AvatarFallback className="text-xl font-semibold">
@@ -166,7 +166,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Action buttons */}
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             {isSelf ? (
               <Button
                 variant="outline"

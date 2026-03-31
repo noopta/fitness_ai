@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  Send, Plus, Loader2, MessageSquare, Search, X,
+  Send, Plus, Loader2, MessageSquare, Search, X, ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
@@ -64,6 +64,9 @@ export default function MessagesPage() {
   const [inputBody, setInputBody] = useState('');
   const [sending, setSending] = useState(false);
 
+  // Mobile: 'list' shows conversation list full-width, 'chat' shows the chat panel
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
+
   const [showNewModal, setShowNewModal] = useState(false);
   const [newSearchQuery, setNewSearchQuery] = useState('');
   const [newSearchResults, setNewSearchResults] = useState<ConversationParticipant[]>([]);
@@ -75,6 +78,11 @@ export default function MessagesPage() {
   const lastMsgIdRef = useRef<string | null>(null);
   const newSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  function selectConversation(id: string) {
+    setSelectedId(id);
+    setMobileView('chat');
+  }
+
   // Load conversations on mount; also check sessionStorage for a pre-selected friend
   useEffect(() => {
     loadConversations().then(() => {
@@ -83,13 +91,11 @@ export default function MessagesPage() {
         sessionStorage.removeItem('message_friend');
         try {
           const friend = JSON.parse(stored) as { id: string; name: string | null; email: string | null };
-          // Check if conversation already exists; if so, select it; otherwise create one
           setConversations(prev => {
             const existing = prev.find(c => c.otherUser.id === friend.id);
             if (existing) {
-              setSelectedId(existing.id);
+              selectConversation(existing.id);
             } else {
-              // Start a new conversation with that friend
               createConversationWith(friend.id);
             }
             return prev;
@@ -127,17 +133,14 @@ export default function MessagesPage() {
       .catch(() => {})
       .finally(() => setMsgsLoading(false));
 
-    // Mark as read
     authFetch(`${API_BASE}/social/conversations/${selectedId}/read`, { method: 'POST' }).catch(() => {});
 
-    // Start poll
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(() => pollMessages(selectedId), 3000);
 
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [selectedId]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -159,7 +162,6 @@ export default function MessagesPage() {
           lastMsgIdRef.current = newMsgs[newMsgs.length - 1].id;
           return [...prev, ...newMsgs];
         });
-        // Update unread count in conversation list
         setConversations(prev =>
           prev.map(c => c.id === convId ? { ...c, unreadCount: 0, lastMessage: data[data.length - 1].body, lastMessageAt: data[data.length - 1].createdAt } : c)
         );
@@ -209,7 +211,7 @@ export default function MessagesPage() {
         const exists = prev.find(c => c.id === conv.id);
         return exists ? prev : [conv, ...prev];
       });
-      setSelectedId(conv.id);
+      selectConversation(conv.id);
       setShowNewModal(false);
       setNewSearchQuery('');
       setNewSearchResults([]);
@@ -244,139 +246,152 @@ export default function MessagesPage() {
   const selectedConv = conversations.find(c => c.id === selectedId);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="bg-background flex flex-col" style={{ height: '100dvh' }}>
       <Navbar variant="full" />
-      <main className="flex-1 flex mx-auto w-full max-w-5xl px-4 py-6 gap-4" style={{ minHeight: 0 }}>
 
-        {/* Left panel: conversation list */}
-        <div className="w-72 shrink-0 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold">Messages</h1>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 rounded-lg text-xs"
-              onClick={() => setShowNewModal(true)}
-            >
-              <Plus className="h-3.5 w-3.5 mr-1" />New
-            </Button>
+      {/* Two-panel layout: stacked on mobile, side-by-side on md+ */}
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex w-full h-full mx-auto max-w-5xl">
+
+          {/* Left panel — always visible on md+, hidden on mobile when chat is open */}
+          <div className={`
+            flex flex-col gap-3 p-4
+            w-full md:w-72 md:shrink-0
+            ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}
+          `}>
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-bold">Messages</h1>
+              <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs" onClick={() => setShowNewModal(true)}>
+                <Plus className="h-3.5 w-3.5 mr-1" />New
+              </Button>
+            </div>
+
+            <Card className="flex-1 overflow-y-auto divide-y">
+              {convsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : conversations.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground px-4 text-center">
+                  <MessageSquare className="h-7 w-7 opacity-40" />
+                  <p className="text-sm">No conversations yet.</p>
+                  <p className="text-xs opacity-70">Click "New" to start one.</p>
+                </div>
+              ) : (
+                conversations.map(conv => (
+                  <button
+                    key={conv.id}
+                    onClick={() => selectConversation(conv.id)}
+                    className={`w-full flex items-start gap-3 px-3 py-3 text-left hover:bg-muted/30 transition-colors ${selectedId === conv.id ? 'bg-muted/50' : ''}`}
+                  >
+                    <Avatar className="h-9 w-9 shrink-0 mt-0.5">
+                      <AvatarFallback className="text-xs">{initials(conv.otherUser.name, conv.otherUser.email)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="text-sm font-medium truncate">{conv.otherUser.name || conv.otherUser.email || 'User'}</p>
+                        {conv.lastMessageAt && (
+                          <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(conv.lastMessageAt)}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between gap-1 mt-0.5">
+                        <p className="text-xs text-muted-foreground truncate">{conv.lastMessage || 'No messages yet'}</p>
+                        {conv.unreadCount > 0 && (
+                          <Badge className="h-4 px-1.5 text-[10px] shrink-0">{conv.unreadCount}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </Card>
           </div>
 
-          <Card className="flex-1 overflow-y-auto divide-y" style={{ maxHeight: 'calc(100vh - 180px)' }}>
-            {convsLoading ? (
-              <div className="flex items-center justify-center py-10">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : conversations.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground px-4 text-center">
-                <MessageSquare className="h-7 w-7 opacity-40" />
-                <p className="text-sm">No conversations yet.</p>
-                <p className="text-xs opacity-70">Click "New" to start one.</p>
+          {/* Right panel — always visible on md+, hidden on mobile when list is shown */}
+          <Card className={`
+            flex flex-col overflow-hidden flex-1
+            rounded-none md:rounded-lg md:my-4 md:mr-4
+            ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}
+          `}>
+            {!selectedId ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground p-8">
+                <MessageSquare className="h-10 w-10 opacity-30" />
+                <p className="text-sm">Select a conversation to start chatting.</p>
               </div>
             ) : (
-              conversations.map(conv => (
-                <button
-                  key={conv.id}
-                  onClick={() => setSelectedId(conv.id)}
-                  className={`w-full flex items-start gap-3 px-3 py-3 text-left hover:bg-muted/30 transition-colors ${selectedId === conv.id ? 'bg-muted/50' : ''}`}
-                >
-                  <Avatar className="h-9 w-9 shrink-0 mt-0.5">
+              <>
+                {/* Header */}
+                <div className="px-4 py-3 border-b flex items-center gap-3 shrink-0">
+                  {/* Back arrow — mobile only */}
+                  <button
+                    className="md:hidden p-1 -ml-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileView('list')}
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </button>
+                  <Avatar className="h-8 w-8">
                     <AvatarFallback className="text-xs">
-                      {initials(conv.otherUser.name, conv.otherUser.email)}
+                      {selectedConv ? initials(selectedConv.otherUser.name, selectedConv.otherUser.email) : '?'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <p className="text-sm font-medium truncate">{conv.otherUser.name || conv.otherUser.email || 'User'}</p>
-                      {conv.lastMessageAt && (
-                        <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(conv.lastMessageAt)}</span>
-                      )}
+                  <p className="text-sm font-semibold truncate">
+                    {selectedConv?.otherUser.name || selectedConv?.otherUser.email || 'Conversation'}
+                  </p>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                  {msgsLoading ? (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     </div>
-                    <div className="flex items-center justify-between gap-1 mt-0.5">
-                      <p className="text-xs text-muted-foreground truncate">{conv.lastMessage || 'No messages yet'}</p>
-                      {conv.unreadCount > 0 && (
-                        <Badge className="h-4 px-1.5 text-[10px] shrink-0">{conv.unreadCount}</Badge>
-                      )}
+                  ) : messages.length === 0 ? (
+                    <div className="flex items-center justify-center py-10 text-muted-foreground">
+                      <p className="text-sm">No messages yet. Say hello!</p>
                     </div>
-                  </div>
-                </button>
-              ))
+                  ) : (
+                    messages.map(msg => {
+                      const isMine = msg.senderId === user?.id;
+                      return (
+                        <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${isMine ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm'}`}>
+                            <p className="break-words">{msg.body}</p>
+                            <p className={`text-[10px] mt-1 ${isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                              {relativeTime(msg.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={bottomRef} />
+                </div>
+
+                {/* Input */}
+                <div className="px-4 py-3 border-t flex items-center gap-2 shrink-0">
+                  <Input
+                    className="flex-1 rounded-xl"
+                    placeholder="Type a message..."
+                    value={inputBody}
+                    onChange={e => setInputBody(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={sending}
+                  />
+                  <Button
+                    size="sm"
+                    className="rounded-xl h-9 px-3 shrink-0"
+                    disabled={sending || !inputBody.trim()}
+                    onClick={sendMessage}
+                  >
+                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </>
             )}
           </Card>
+
         </div>
-
-        {/* Right panel: messages */}
-        <Card className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
-          {!selectedId ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground p-8">
-              <MessageSquare className="h-10 w-10 opacity-30" />
-              <p className="text-sm">Select a conversation to start chatting.</p>
-            </div>
-          ) : (
-            <>
-              {/* Header */}
-              <div className="px-4 py-3 border-b flex items-center gap-3 shrink-0">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-xs">
-                    {selectedConv ? initials(selectedConv.otherUser.name, selectedConv.otherUser.email) : '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-semibold">{selectedConv?.otherUser.name || selectedConv?.otherUser.email || 'Conversation'}</p>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-                {msgsLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="flex items-center justify-center py-10 text-muted-foreground">
-                    <p className="text-sm">No messages yet. Say hello!</p>
-                  </div>
-                ) : (
-                  messages.map(msg => {
-                    const isMine = msg.senderId === user?.id;
-                    return (
-                      <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 text-sm ${isMine ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm'}`}>
-                          <p className="break-words">{msg.body}</p>
-                          <p className={`text-[10px] mt-1 ${isMine ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                            {relativeTime(msg.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={bottomRef} />
-              </div>
-
-              {/* Input */}
-              <div className="px-4 py-3 border-t flex items-center gap-2 shrink-0">
-                <Input
-                  className="flex-1 rounded-xl"
-                  placeholder="Type a message..."
-                  value={inputBody}
-                  onChange={e => setInputBody(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={sending}
-                />
-                <Button
-                  size="sm"
-                  className="rounded-xl h-9 px-3"
-                  disabled={sending || !inputBody.trim()}
-                  onClick={sendMessage}
-                >
-                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
-              </div>
-            </>
-          )}
-        </Card>
-      </main>
+      </div>
 
       {/* New Conversation Modal */}
       {showNewModal && (
