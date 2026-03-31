@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  Send, Plus, Loader2, MessageSquare, Search, X,
+  Send, Plus, Loader2, MessageSquare, Search, X, ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
@@ -64,6 +64,7 @@ export default function MessagesPage() {
   const [inputBody, setInputBody] = useState('');
   const [sending, setSending] = useState(false);
 
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
   const [showNewModal, setShowNewModal] = useState(false);
   const [newSearchQuery, setNewSearchQuery] = useState('');
   const [newSearchResults, setNewSearchResults] = useState<ConversationParticipant[]>([]);
@@ -88,6 +89,7 @@ export default function MessagesPage() {
             const existing = prev.find(c => c.otherUser.id === friend.id);
             if (existing) {
               setSelectedId(existing.id);
+              setMobileView('chat');
             } else {
               // Start a new conversation with that friend
               createConversationWith(friend.id);
@@ -210,6 +212,7 @@ export default function MessagesPage() {
         return exists ? prev : [conv, ...prev];
       });
       setSelectedId(conv.id);
+      setMobileView('chat');
       setShowNewModal(false);
       setNewSearchQuery('');
       setNewSearchResults([]);
@@ -246,10 +249,10 @@ export default function MessagesPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar variant="full" />
-      <main className="flex-1 flex mx-auto w-full max-w-5xl px-4 py-6 gap-4" style={{ minHeight: 0 }}>
+      <main className="flex-1 flex mx-auto w-full max-w-5xl px-0 md:px-4 py-0 md:py-6 gap-4 overflow-hidden" style={{ height: 'calc(100vh - 57px)', minHeight: 0 }}>
 
-        {/* Left panel: conversation list */}
-        <div className="w-72 shrink-0 flex flex-col gap-3">
+        {/* Left panel: conversation list — full width on mobile when mobileView==='list', hidden otherwise */}
+        <div className={`${mobileView === 'chat' ? 'hidden md:flex' : 'flex'} md:flex w-full md:w-72 shrink-0 flex-col gap-3 p-4 md:p-0`}>
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold">Messages</h1>
             <Button
@@ -262,7 +265,7 @@ export default function MessagesPage() {
             </Button>
           </div>
 
-          <Card className="flex-1 overflow-y-auto divide-y" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+          <Card className="flex-1 overflow-y-auto divide-y" style={{ maxHeight: 'calc(100vh - 140px)' }}>
             {convsLoading ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -277,7 +280,7 @@ export default function MessagesPage() {
               conversations.map(conv => (
                 <button
                   key={conv.id}
-                  onClick={() => setSelectedId(conv.id)}
+                  onClick={() => { setSelectedId(conv.id); setMobileView('chat'); }}
                   className={`w-full flex items-start gap-3 px-3 py-3 text-left hover:bg-muted/30 transition-colors ${selectedId === conv.id ? 'bg-muted/50' : ''}`}
                 >
                   <Avatar className="h-9 w-9 shrink-0 mt-0.5">
@@ -305,8 +308,8 @@ export default function MessagesPage() {
           </Card>
         </div>
 
-        {/* Right panel: messages */}
-        <Card className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
+        {/* Right panel: messages — full width on mobile when mobileView==='chat', hidden otherwise */}
+        <Card className={`${mobileView === 'list' ? 'hidden md:flex' : 'flex'} md:flex flex-1 flex-col overflow-hidden rounded-none md:rounded-lg`} style={{ minHeight: 0 }}>
           {!selectedId ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground p-8">
               <MessageSquare className="h-10 w-10 opacity-30" />
@@ -316,6 +319,13 @@ export default function MessagesPage() {
             <>
               {/* Header */}
               <div className="px-4 py-3 border-b flex items-center gap-3 shrink-0">
+                {/* Back button — mobile only */}
+                <button
+                  className="md:hidden p-1 -ml-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => setMobileView('list')}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">
                     {selectedConv ? initials(selectedConv.otherUser.name, selectedConv.otherUser.email) : '?'}

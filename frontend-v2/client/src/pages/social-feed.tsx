@@ -320,7 +320,7 @@ export default function SocialFeedPage() {
           {shareOpen && (
             <div className="px-5 pb-5 border-t pt-4 space-y-4">
               {/* Post type tabs */}
-              <div className="flex gap-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 {tabs.map(t => {
                   const locked = t.key !== 'text' && !isPro;
                   return (
