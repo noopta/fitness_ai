@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
+import { logActivity } from '../services/activityService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -34,6 +35,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
         data,
       });
       cacheDelete(`userctx:${userId}`);
+      logActivity(userId, 'nutrition').catch(() => {});
       return res.json(updated);
     }
 
@@ -41,6 +43,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
       data: { userId, ...data },
     });
     cacheDelete(`userctx:${userId}`);
+    logActivity(userId, 'nutrition').catch(() => {});
     res.status(201).json(created);
   } catch (err: any) {
     console.error('Nutrition log error:', err);
@@ -83,6 +86,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     const data = mealEntrySchema.parse(req.body);
     const userId = req.user!.id;
     const entry = await prisma.mealEntry.create({ data: { userId, ...data } });
+    logActivity(userId, 'nutrition').catch(() => {});
     res.status(201).json(entry);
   } catch (err: any) {
     console.error('Meal entry error:', err);

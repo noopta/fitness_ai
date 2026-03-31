@@ -98,7 +98,7 @@ export default function FriendsPage() {
     try {
       const res = await authFetch(`${API_BASE}/social/friends/request`, {
         method: 'POST',
-        body: JSON.stringify({ recipientId: userId }),
+        body: JSON.stringify({ targetUserId: userId }),
       });
       if (!res.ok) throw new Error();
       setSentRequests(prev => new Set(prev).add(userId));

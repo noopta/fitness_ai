@@ -46,6 +46,7 @@ model User {
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
   workoutLogs              WorkoutLog[]
+  activityLogs             ActivityLog[]
   // Social
   sentFriendRequests       Friendship[]          @relation("SentRequests")
   receivedFriendRequests   Friendship[]          @relation("ReceivedRequests")
@@ -286,6 +287,19 @@ model UserInvite {
   usedAt       DateTime?
   inviter      User     @relation("InvitesSent", fields: [inviterId],     references: [id])
   usedBy       User?    @relation("InviteUsed",  fields: [usedByUserId],  references: [id])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  type      String   // "workout" | "nutrition" | "wellness" | "analysis"
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, type])
+  @@index([userId, date])
 }
 
 // ─── Institution ──────────────────────────────────────────────────────────────

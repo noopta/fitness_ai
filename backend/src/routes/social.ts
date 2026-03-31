@@ -317,22 +317,56 @@ router.get('/social/conversations/:conversationId/poll', async (req, res) => {
 // POST /api/social/share
 router.post('/social/share', async (req, res) => {
   const { recipientId, itemType, itemId, payload } = req.body;
-  if (!recipientId || !itemType || !payload) return res.status(400).json({ error: 'recipientId, itemType, payload required' });
+  if (!itemType || !payload) return res.status(400).json({ error: 'itemType and payload required' });
 
-  const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
-  if (!canShare) return res.status(403).json({ error: 'Can only share with friends' });
+  // Validate text posts have content
+  if (itemType === 'text' && !payload.text?.trim()) {
+    return res.status(400).json({ error: 'Text content is required for text posts' });
+  }
+
+  // Gate media uploads to pro tier
+  const isMediaPost = itemType === 'media' || payload.imageBase64 || payload.videoUrl;
+  if (isMediaPost) {
+    if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
+      return res.status(403).json({ error: 'Media uploads require a Pro subscription.' });
+    }
+  }
+
+  // Enforce imageBase64 size limit (~2MB decoded)
+  if (payload.imageBase64 && payload.imageBase64.length > 2_800_000) {
+    return res.status(400).json({ error: 'Image exceeds the 2MB size limit.' });
+  }
+
+  // For directed shares, verify relationship; for feed broadcasts (no recipientId) skip check
+  if (recipientId) {
+    const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
+    if (!canShare) return res.status(403).json({ error: 'Can only share with friends' });
+  }
 
   const item = await prisma.sharedItem.create({
-    data: { sharerId: req.user!.id, recipientId, itemType, itemId: itemId ?? null, payload: JSON.stringify(payload) },
+    data: {
+      sharerId: req.user!.id,
+      recipientId: recipientId ?? req.user!.id, // fall back to self so column stays non-null
+      itemType,
+      itemId: itemId ?? null,
+      payload: JSON.stringify(payload),
+    },
+    include: { sharer: { select: { id: true, name: true, email: true } } },
   });
-  res.status(201).json(item);
+  res.status(201).json({ ...item, payload: JSON.parse(item.payload) });
 });
 
 // GET /api/social/shared-feed
 router.get('/social/shared-feed', async (req, res) => {
+  const userId = req.user!.id;
   const items = await prisma.sharedItem.findMany({
-    where: { recipientId: req.user!.id },
-    include: { sharer: { select: { id: true, name: true } } },
+    where: {
+      OR: [
+        { recipientId: userId },
+        { sharerId: userId }, // include own posts
+      ],
+    },
+    include: { sharer: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: 'desc' },
     take: 50,
   });

@@ -9,6 +9,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
+import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 export default function SettingsScreen() {
@@ -88,6 +89,12 @@ export default function SettingsScreen() {
             {user?.email ? <Text style={styles.profileEmail} numberOfLines={1}>{user.email}</Text> : null}
           </View>
           <Badge variant={isPro ? 'pro' : 'secondary'}>{isPro ? 'Pro' : 'Free'}</Badge>
+        </View>
+
+        {/* Activity graph */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Activity</Text>
+          <ContributionGraph userId={user?.id} />
         </View>
 
         {/* Subscription section */}

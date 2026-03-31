@@ -16,6 +16,7 @@ import strengthRoutes from './routes/strength.js';
 import affiliatesRoutes from './routes/affiliates.js';
 import socialRoutes from './routes/social.js';
 import institutionsRoutes from './routes/institutions.js';
+import activityRoutes from './routes/activity.js';
 import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
 import OpenAI from 'openai';
 
@@ -77,6 +78,7 @@ app.use('/api', waitlistRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', institutionsRoutes);
+app.use('/api', activityRoutes);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

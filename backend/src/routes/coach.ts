@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import twilio from 'twilio';
 import OpenAI from 'openai';
+import { logActivity } from '../services/activityService.js';
 import { cacheGet, cacheSet, cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
@@ -423,6 +424,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     }
     res.write('data: [DONE]\n\n');
     res.end();
+    logActivity(req.user!.id, 'analysis').catch(() => {});
   } catch (err: any) {
     console.error('Coach stream error:', err);
     if (!res.headersSent) {

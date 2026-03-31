@@ -6,6 +6,7 @@ import { cacheDelete } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
 import { recomputeStrengthProfileInBackground } from './strength.js';
 import { notifyStreakMilestone } from '../services/notificationService.js';
+import { logActivity } from '../services/activityService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -136,6 +137,9 @@ router.post('/workouts', requireAuth, async (req, res) => {
 
     // ── Streak tracking ───────────────────────────────────────────────────────
     updateStreakInBackground(req.user!.id, parsed.data.date);
+
+    // ── Activity tracking ─────────────────────────────────────────────────────
+    logActivity(req.user!.id, 'workout').catch(() => {});
 
     res.status(201).json({ ...log, exercises });
   } catch (err) {
