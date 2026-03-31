@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
+import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { liftCoachApi, coachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -65,9 +66,9 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Phase label + tier badge ── */}
+        {/* ── Top bar: logo left, tier badge right ── */}
         <View style={styles.topBar}>
-          <Text style={styles.phaseLabel}>{phaseLabel.toUpperCase()}</Text>
+          <AxiomLogo size={32} />
           {isPro && <Badge variant="pro">PRO</Badge>}
         </View>
 
@@ -332,3 +333,4 @@ const styles = StyleSheet.create({
   rowActionSubtitle: { fontSize: fontSize.xs, color: colors.mutedForeground },
 
 });
+// OTA test

@@ -247,6 +247,12 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         coachProfile: true,
         savedProgram: true,
         programStartDate: true,
+        institutionMemberships: {
+          where: { active: true },
+          include: {
+            institution: { select: { id: true, name: true, slug: true, logoUrl: true } },
+          },
+        },
       }
     });
     if (!user) {
@@ -255,7 +261,16 @@ router.get('/auth/me', requireAuth, async (req, res) => {
     // Re-issue JWT so tier changes (e.g. Stripe upgrades) take effect immediately
     const freshToken = issueToken({ id: user.id, email: user.email, tier: user.tier });
     res.cookie('liftoff_jwt', freshToken, COOKIE_OPTS);
-    res.json({ user });
+
+    // Shape institution memberships for frontend consumption
+    const institutions = (user as any).institutionMemberships.map((m: any) => ({
+      role: m.role,
+      joinedAt: m.joinedAt,
+      institution: m.institution,
+    }));
+
+    const { institutionMemberships: _, ...userFields } = user as any;
+    res.json({ user: { ...userFields, institutions } });
   } catch (err) {
     console.error('Me error:', err);
     res.status(500).json({ error: 'Failed to fetch user' });

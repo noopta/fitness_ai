@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { transferToAffiliate } from '../services/affiliateService.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
@@ -97,9 +98,11 @@ router.post('/payments/webhook', async (req, res) => {
     return res.status(500).json({ error: 'Webhook secret not configured' });
   }
 
+  const rawBody = (req as any).rawBody ?? req.body;
+
   let event: any;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).json({ error: 'Invalid webhook signature' });
@@ -107,9 +110,13 @@ router.post('/payments/webhook', async (req, res) => {
 
   try {
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
+      // Re-fetch with expansion so we can read the promo code
+      const session = await stripe.checkout.sessions.retrieve(
+        (event.data.object as any).id,
+        { expand: ['total_details.breakdown'] }
+      );
       const userId = session.client_reference_id;
-      const customerId = session.customer;
+      const customerId = session.customer as string | null;
 
       if (userId) {
         await prisma.user.update({
@@ -121,6 +128,49 @@ router.post('/payments/webhook', async (req, res) => {
           }
         });
         console.log(`✓ User ${userId} upgraded to pro`);
+      }
+
+      // ── Affiliate payout on initial purchase ──────────────────────────────
+      const discounts = (session as any).total_details?.breakdown?.discounts ?? [];
+      const promoCodeId: string | undefined = discounts[0]?.discount?.promotion_code;
+
+      if (promoCodeId) {
+        const affiliate = await prisma.affiliate.findUnique({ where: { promoCodeId } });
+        if (affiliate) {
+          // Store subscription → affiliate mapping for recurring renewals
+          if (session.subscription) {
+            await prisma.affiliateSubscription.upsert({
+              where: { subscriptionId: session.subscription as string },
+              create: { subscriptionId: session.subscription as string, affiliateId: affiliate.id },
+              update: {},
+            });
+          }
+          if (affiliate.stripeAccountId) {
+            await transferToAffiliate({
+              affiliateId: affiliate.id,
+              stripeAccountId: affiliate.stripeAccountId,
+              sourceEventId: event.id,
+            });
+          } else {
+            console.warn(`[affiliates] Affiliate ${affiliate.id} has no Stripe account yet`);
+          }
+        }
+      }
+    } else if (event.type === 'invoice.payment_succeeded') {
+      const invoice = event.data.object as any;
+      // Only fire on renewals, not the initial subscription invoice
+      if (invoice.billing_reason === 'subscription_cycle' && invoice.subscription) {
+        const sub = await prisma.affiliateSubscription.findUnique({
+          where: { subscriptionId: invoice.subscription },
+          include: { affiliate: true },
+        });
+        if (sub?.affiliate?.stripeAccountId) {
+          await transferToAffiliate({
+            affiliateId: sub.affiliate.id,
+            stripeAccountId: sub.affiliate.stripeAccountId,
+            sourceEventId: event.id,
+          });
+        }
       }
     } else if (event.type === 'customer.subscription.updated') {
       const subscription = event.data.object;

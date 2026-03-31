@@ -12,8 +12,18 @@
       "backgroundColor": "#FFFFFF"
     },
     "scheme": "axiom",
+    "updates": {
+      "url": "https://u.expo.dev/f9c4fa25-f804-4a57-abfe-5db4a8bfcf72",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "plugins": [
       "expo-router",
+      "expo-updates",
       "expo-secure-store",
       "expo-asset",
       "expo-font",
@@ -27,10 +37,12 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.axiom.mobile",
+      "bundleIdentifier": "io.axiomtraining.app",
+      "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
-        "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories."
+        "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -53,10 +65,20 @@
             "DEFAULT"
           ]
         }
+      ],
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f9c4fa25-f804-4a57-abfe-5db4a8bfcf72"
+      }
+    },
+    "owner": "axiomtraining"
   }
 }

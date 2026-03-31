@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { generateWellnessInsight } from '../services/llmService.js';
 import { cacheDelete } from '../services/cacheService.js';
+import { logActivity } from '../services/activityService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -48,6 +49,7 @@ router.post('/wellness/checkin', requireAuth, async (req, res) => {
     const insight = await generateWellnessInsight({ recentCheckins: recent });
 
     cacheDelete(`userctx:${userId}`);
+    logActivity(userId, 'wellness').catch(() => {});
     res.status(existing ? 200 : 201).json({ checkin, insight });
   } catch (err: any) {
     console.error('Wellness checkin error:', err);

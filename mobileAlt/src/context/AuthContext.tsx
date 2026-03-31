@@ -6,6 +6,17 @@ import { authApi, getToken, setToken, clearToken } from '../lib/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
+export interface InstitutionMembership {
+  role: 'coach' | 'athlete';
+  joinedAt: string;
+  institution: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl: string | null;
+  };
+}
+
 export interface AuthUser {
   id: string;
   name: string | null;
@@ -21,6 +32,7 @@ export interface AuthUser {
   coachOnboardingDone?: boolean;
   coachProfile?: string | null;
   savedProgram?: string | null;
+  institutions?: InstitutionMembership[];
 }
 
 interface AuthContextType {

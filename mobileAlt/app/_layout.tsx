@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
+import { UnitsProvider } from '../src/context/UnitsContext';
 import { LoadingSpinner } from '../src/components/ui/LoadingSpinner';
 import { colors } from '../src/constants/theme';
 import { usePushNotifications } from '../src/lib/usePushNotifications';
@@ -47,8 +48,10 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
+            <UnitsProvider>
+              <StatusBar style="dark" />
+              <RootNavigator />
+            </UnitsProvider>
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

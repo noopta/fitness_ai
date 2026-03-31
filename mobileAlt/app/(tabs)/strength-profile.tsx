@@ -381,58 +381,54 @@ export default function StrengthProfileScreen() {
         ) : (
           <>
             {/* ── Hero Stats ── */}
-            <Card style={styles.card}>
-              <CardContent style={styles.heroContent}>
-                {/* Strength Index + Tier */}
-                <View style={styles.heroTop}>
-                  <View style={styles.heroLeft}>
-                    {data!.overallStrengthIndex !== null ? (
-                      <View style={styles.heroIndexRow}>
-                        <Text style={styles.heroIndex}>{data!.overallStrengthIndex}</Text>
-                        <View style={styles.heroIndexMeta}>
-                          <Text style={styles.heroIndexLabel}>Strength{'\n'}Index</Text>
-                        </View>
-                      </View>
-                    ) : (
-                      <Text style={[styles.heroIndexLabel, { marginTop: 8 }]}>Index building…</Text>
-                    )}
-                    <View style={[styles.tierBadge, { borderColor: tierColor }]}>
-                      <Text style={[styles.tierText, { color: tierColor }]}>{data!.strengthTier}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.heroSep} />
-                  <View style={styles.heroRight}>
-                    {/* Maturity progress */}
-                    <View style={styles.maturityRow}>
-                      <View style={[styles.matBadge, { backgroundColor: matColor + '22' }]}>
-                        <Text style={[styles.matText, { color: matColor }]}>{data!.maturityLabel}</Text>
-                      </View>
-                      <Text style={styles.matPct}>{data!.maturityPct}%</Text>
-                    </View>
-                    <View style={styles.matBar}>
-                      <View style={[styles.matBarFill, { width: `${data!.maturityPct}%` as any, backgroundColor: matColor }]} />
-                    </View>
-                    <Text style={styles.matSubtitle}>{data!.totalLogs} workouts logged</Text>
-                  </View>
+            <View style={styles.heroCard}>
+              {/* Tier + maturity badges */}
+              <View style={styles.heroBadgeRow}>
+                <View style={[styles.heroBadge, { backgroundColor: tierColor + '20', borderColor: tierColor + '40' }]}>
+                  <Text style={[styles.heroBadgeText, { color: tierColor }]}>{data!.strengthTier}</Text>
                 </View>
+                {data!.maturityLabel && (
+                  <View style={[styles.heroBadge, { backgroundColor: matColor + '20', borderColor: matColor + '40' }]}>
+                    <Text style={[styles.heroBadgeText, { color: matColor }]}>{data!.maturityLabel} Profile</Text>
+                  </View>
+                )}
+              </View>
 
-                {/* Stats row */}
-                <View style={styles.statsRow}>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statVal}>{data!.totalLogs}</Text>
-                    <Text style={styles.statLbl}>Total Logs</Text>
-                  </View>
-                  <View style={[styles.statItem, styles.statBorder]}>
-                    <Text style={styles.statVal}>{data!.monthTonnageKg >= 1000 ? `${(data!.monthTonnageKg / 1000).toFixed(1)}t` : `${data!.monthTonnageKg}kg`}</Text>
-                    <Text style={styles.statLbl}>Month Tonnage</Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statVal}>{(data!.lifts ?? []).filter(l => l.isCompound).length}</Text>
-                    <Text style={styles.statLbl}>Compounds</Text>
-                  </View>
+              {/* Large tier headline */}
+              <Text style={[styles.heroTierHeadline, { color: tierColor }]}>
+                {data!.strengthTier === 'Not enough data' ? 'Building…' : data!.strengthTier}
+              </Text>
+              {data!.overallStrengthIndex !== null && (
+                <Text style={styles.heroIndexSub}>Strength Index: {data!.overallStrengthIndex}</Text>
+              )}
+
+              {/* Profile confidence bar */}
+              <View style={styles.heroConfidenceSection}>
+                <View style={styles.heroConfidenceRow}>
+                  <Text style={styles.heroConfidenceLabel}>Profile confidence</Text>
+                  <Text style={styles.heroConfidencePct}>{data!.maturityPct}%</Text>
                 </View>
-              </CardContent>
-            </Card>
+                <View style={styles.matBar}>
+                  <View style={[styles.matBarFill, { width: `${data!.maturityPct}%` as any, backgroundColor: matColor }]} />
+                </View>
+              </View>
+
+              {/* Stats row */}
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statVal}>{data!.totalLogs}</Text>
+                  <Text style={styles.statLbl}>Workouts Logged</Text>
+                </View>
+                <View style={[styles.statItem, styles.statBorder]}>
+                  <Text style={styles.statVal}>{data!.monthTonnageKg >= 1000 ? `${(data!.monthTonnageKg / 1000).toFixed(1)}t` : `${data!.monthTonnageKg}kg`}</Text>
+                  <Text style={styles.statLbl}>Month Tonnage</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statVal}>{(data!.lifts ?? []).length}</Text>
+                  <Text style={styles.statLbl}>Lifts Tracked</Text>
+                </View>
+              </View>
+            </View>
 
             {/* ── Movement Balance Radar ── */}
             {data!.radarScores && Object.keys(data!.radarScores).length > 0 && (
@@ -517,30 +513,39 @@ const styles = StyleSheet.create({
   scrollContent: { padding: spacing.md, gap: spacing.md, paddingBottom: 80 },
   card: {},
 
-  // Hero
-  heroContent: { gap: spacing.md },
-  heroTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  heroLeft: { alignItems: 'flex-start', gap: spacing.sm },
-  heroIndexRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
-  heroIndexMeta: { paddingBottom: 4 },
-  heroIndex: { fontSize: 52, fontWeight: fontWeight.bold, color: colors.foreground, lineHeight: 56 },
-  heroIndexLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 16 },
-  tierBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 3, alignSelf: 'flex-start' },
-  tierText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
-  heroRight: { flex: 1, gap: spacing.sm, justifyContent: 'center' },
-  maturityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  matBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
-  matText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
-  matPct: { fontSize: fontSize.xs, color: colors.mutedForeground },
-  heroSep: { width: 1, height: 64, backgroundColor: colors.border },
+  // Hero card
+  heroCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  heroBadgeRow: { flexDirection: 'row', gap: spacing.xs },
+  heroBadge: {
+    paddingHorizontal: spacing.sm, paddingVertical: 4,
+    borderRadius: radius.full, borderWidth: 1,
+  },
+  heroBadgeText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
+  heroTierHeadline: {
+    fontSize: 42,
+    fontWeight: fontWeight.bold,
+    letterSpacing: -1,
+    lineHeight: 46,
+  },
+  heroIndexSub: { fontSize: fontSize.sm, color: colors.mutedForeground, marginTop: -spacing.xs },
+  heroConfidenceSection: { gap: 6 },
+  heroConfidenceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  heroConfidenceLabel: { fontSize: fontSize.xs, color: colors.mutedForeground, fontWeight: fontWeight.medium },
+  heroConfidencePct: { fontSize: fontSize.xs, color: colors.mutedForeground },
   matBar: { height: 6, backgroundColor: colors.muted, borderRadius: radius.full, overflow: 'hidden' },
   matBarFill: { height: '100%', borderRadius: radius.full },
-  matSubtitle: { fontSize: 10, color: colors.mutedForeground },
-  statsRow: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
+  statsRow: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
   statItem: { flex: 1, alignItems: 'center', gap: 2 },
   statBorder: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: colors.border },
   statVal: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
-  statLbl: { fontSize: 10, color: colors.mutedForeground },
+  statLbl: { fontSize: 10, color: colors.mutedForeground, textAlign: 'center' },
 
   // Radar
   radarContent: { alignItems: 'center', gap: spacing.sm },

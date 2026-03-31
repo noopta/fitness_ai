@@ -40,12 +40,26 @@ model User {
   currentStreak       Int               @default(0)
   longestStreak       Int               @default(0)
   lastWorkoutDate     String?
-  bodyWeightLogs      BodyWeightLog[]
-  mealEntries         MealEntry[]
-  nutritionLogs       NutritionLog[]
-  sessions            Session[]
-  wellnessCheckins    WellnessCheckin[]
-  workoutLogs         WorkoutLog[]
+  bodyWeightLogs           BodyWeightLog[]
+  mealEntries              MealEntry[]
+  nutritionLogs            NutritionLog[]
+  sessions                 Session[]
+  wellnessCheckins         WellnessCheckin[]
+  workoutLogs              WorkoutLog[]
+  activityLogs             ActivityLog[]
+  // Social
+  sentFriendRequests       Friendship[]          @relation("SentRequests")
+  receivedFriendRequests   Friendship[]          @relation("ReceivedRequests")
+  conversationsAsA         DirectConversation[]  @relation("ConversationsAsA")
+  conversationsAsB         DirectConversation[]  @relation("ConversationsAsB")
+  sentMessages             Message[]             @relation("SentMessages")
+  sharedByMe               SharedItem[]          @relation("SharedByMe")
+  sharedWithMe             SharedItem[]          @relation("SharedWithMe")
+  invitesSent              UserInvite[]          @relation("InvitesSent")
+  inviteUsed               UserInvite?           @relation("InviteUsed")
+  referredByCode           String?
+  // Institution
+  institutionMemberships   InstitutionMember[]
 }
 
 model NutritionLog {
@@ -181,4 +195,150 @@ model ExerciseNormalization {
   primaryMuscle String
   isCompound    Boolean  @default(false)
   createdAt     DateTime @default(now())
+}
+
+model Affiliate {
+  id                String                  @id @default(uuid())
+  name              String
+  email             String                  @unique
+  promoCodeId       String?                 @unique  // Stripe promo_xxx
+  stripeAccountId   String?                 @unique  // Stripe acct_xxx
+  onboarded         Boolean                 @default(false)
+  createdAt         DateTime                @default(now())
+  subscriptions     AffiliateSubscription[]
+  payouts           AffiliatePayout[]
+}
+
+model AffiliateSubscription {
+  subscriptionId String    @id                       // Stripe sub_xxx
+  affiliateId    String
+  createdAt      DateTime  @default(now())
+  affiliate      Affiliate @relation(fields: [affiliateId], references: [id])
+}
+
+model AffiliatePayout {
+  id               String    @id @default(uuid())
+  affiliateId      String
+  stripeTransferId String?
+  amountCents      Int
+  currency         String    @default("cad")
+  sourceEventId    String    @unique               // idempotency
+  createdAt        DateTime  @default(now())
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id])
+}
+
+// ─── Social ───────────────────────────────────────────────────────────────────
+
+model Friendship {
+  id          String   @id @default(uuid())
+  requesterId String
+  addresseeId String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  requester   User     @relation("SentRequests",     fields: [requesterId], references: [id])
+  addressee   User     @relation("ReceivedRequests", fields: [addresseeId], references: [id])
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId])
+}
+
+model DirectConversation {
+  id             String    @id @default(uuid())
+  participantAId String
+  participantBId String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+  participantA   User      @relation("ConversationsAsA", fields: [participantAId], references: [id])
+  participantB   User      @relation("ConversationsAsB", fields: [participantBId], references: [id])
+  messages       Message[]
+  @@unique([participantAId, participantBId])
+}
+
+model Message {
+  id             String             @id @default(uuid())
+  conversationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime           @default(now())
+  conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User               @relation("SentMessages", fields: [senderId], references: [id])
+  @@index([conversationId, createdAt])
+}
+
+model SharedItem {
+  id          String   @id @default(uuid())
+  sharerId    String
+  recipientId String
+  itemType    String
+  itemId      String?
+  payload     String
+  createdAt   DateTime @default(now())
+  sharer      User     @relation("SharedByMe",   fields: [sharerId],    references: [id])
+  recipient   User     @relation("SharedWithMe", fields: [recipientId], references: [id])
+  @@index([recipientId, createdAt])
+}
+
+model UserInvite {
+  code         String   @id @default(uuid())
+  inviterId    String
+  usedByUserId String?  @unique
+  createdAt    DateTime @default(now())
+  usedAt       DateTime?
+  inviter      User     @relation("InvitesSent", fields: [inviterId],     references: [id])
+  usedBy       User?    @relation("InviteUsed",  fields: [usedByUserId],  references: [id])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  type      String   // "workout" | "nutrition" | "wellness" | "analysis"
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, type])
+  @@index([userId, date])
+}
+
+// ─── Institution ──────────────────────────────────────────────────────────────
+
+model Institution {
+  id        String              @id @default(uuid())
+  name      String
+  slug      String              @unique
+  logoUrl   String?
+  active    Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @default(now()) @updatedAt
+  members   InstitutionMember[]
+  invites   InstitutionInvite[]
+}
+
+model InstitutionMember {
+  id            String      @id @default(uuid())
+  institutionId String
+  userId        String
+  role          String      @default("athlete")
+  active        Boolean     @default(true)
+  joinedAt      DateTime    @default(now())
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  user          User        @relation(fields: [userId],        references: [id])
+  @@unique([institutionId, userId])
+  @@index([userId])
+}
+
+model InstitutionInvite {
+  id              String      @id @default(uuid())
+  institutionId   String
+  invitedByUserId String
+  email           String?
+  role            String      @default("athlete")
+  token           String      @unique @default(uuid())
+  expiresAt       DateTime
+  usedAt          DateTime?
+  usedByUserId    String?
+  createdAt       DateTime    @default(now())
+  institution     Institution @relation(fields: [institutionId], references: [id])
 }

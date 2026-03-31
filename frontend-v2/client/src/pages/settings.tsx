@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { ContributionGraph } from '@/components/ContributionGraph';
 import {
   User, CreditCard, Shield, Loader2, ExternalLink,
   Check, Crown, Zap, Calendar, ChevronRight,
@@ -54,6 +55,13 @@ export default function SettingsPage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-semibold tracking-tight">Account Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your account, subscription, and preferences.</p>
+        </motion.div>
+
+        {/* Activity Graph */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.02 }}>
+          <Card className="p-6">
+            <ContributionGraph />
+          </Card>
         </motion.div>
 
         {/* Profile */}

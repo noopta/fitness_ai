@@ -17,6 +17,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [oauthPending, setOauthPending] = useState(false);
+  const [orgMode, setOrgMode] = useState(false);
+  const [orgSlug, setOrgSlug] = useState('');
   const redirected = useRef(false); // prevent double-redirect from handleLogin + useEffect
 
   // Handle ?auth=success from Google OAuth redirect (including after Gmail verification)
@@ -99,9 +101,11 @@ export default function Login() {
       await login(email, password);
       redirected.current = true; // prevent the useEffect from also firing
       const saved = sessionStorage.getItem('liftoff_redirect');
-      const redirect = (saved && saved !== '/login' && saved !== '/register')
-        ? saved
-        : '/';
+      // If org mode, redirect to institution page after login
+      let redirect = (saved && saved !== '/login' && saved !== '/register') ? saved : '/';
+      if (orgMode && orgSlug.trim()) {
+        redirect = `/institution/${orgSlug.trim()}`;
+      }
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     } catch (err: any) {
@@ -171,6 +175,18 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            {orgMode && (
+              <div className="space-y-2">
+                <Label>Organization slug</Label>
+                <Input
+                  placeholder="e.g. state-university"
+                  value={orgSlug}
+                  onChange={e => setOrgSlug(e.target.value)}
+                  required={orgMode}
+                />
+                <p className="text-xs text-muted-foreground">Enter your organization's slug, then sign in with your credentials.</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
@@ -192,9 +208,27 @@ export default function Login() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? 'Signing in...' : 'Sign in'}
+              {submitting ? 'Signing in...' : orgMode ? 'Sign in to organization' : 'Sign in'}
             </Button>
           </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Organization</span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
+            onClick={() => { setOrgMode(v => !v); setOrgSlug(''); }}
+          >
+            {orgMode ? 'Cancel organization sign-in' : 'Sign in with organization'}
+          </Button>
         </Card>
       </motion.div>
       </div>

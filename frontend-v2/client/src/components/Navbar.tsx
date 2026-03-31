@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ChevronRight, Menu } from 'lucide-react';
+import { ChevronRight, ChevronDown, Menu, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -75,6 +78,15 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
         <Link href="/coach" onClick={closeMobile}>AI Coach</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/friends" onClick={closeMobile}>Friends</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/messages" onClick={closeMobile}>Messages</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/social" onClick={closeMobile}>Social Feed</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/settings" onClick={closeMobile}>Settings</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start text-muted-foreground" onClick={() => { handleLogout(); closeMobile(); }}>
@@ -122,27 +134,35 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
             <div className="h-8 w-24 animate-pulse rounded-xl bg-muted" />
           ) : user ? (
             <>
-              <span className="text-sm font-medium text-foreground truncate max-w-[120px]">
-                {user.name ? user.name.split(' ')[0] : user.email}
-              </span>
-              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link href="/pricing">Pricing</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link href="/history">My Analyses</Link>
-              </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/workouts">Workouts</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link href="/strength-profile">Strength Profile</Link>
+                <Link href="/strength-profile">Strength</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/coach">AI Coach</Link>
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="rounded-xl gap-1">
+                    <Users className="h-3.5 w-3.5" />
+                    Social
+                    <ChevronDown className="h-3 w-3 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40">
+                  <DropdownMenuItem asChild><Link href="/friends" className="cursor-pointer w-full">Friends</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/messages" className="cursor-pointer w-full">Messages</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/social" className="cursor-pointer w-full">Social Feed</Link></DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/settings">Settings</Link>
               </Button>
+              <span className="text-sm font-medium text-foreground truncate max-w-[100px] ml-1">
+                {user.name ? user.name.split(' ')[0] : user.email}
+              </span>
               <Button variant="ghost" size="sm" className="rounded-xl text-muted-foreground" onClick={handleLogout}>
                 Sign out
               </Button>

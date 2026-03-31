@@ -234,8 +234,11 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
               style={styles.webview}
               source={{ uri: `https://www.youtube.com/embed/${videoModal.videoId}?autoplay=1&playsinline=1` }}
               allowsFullscreenVideo
+              allowsInlineMediaPlayback
               mediaPlaybackRequiresUserAction={false}
               javaScriptEnabled
+              originWhitelist={['*']}
+              domStorageEnabled
             />
           )}
         </View>

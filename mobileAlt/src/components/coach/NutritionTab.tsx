@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Alert,
   TextInput,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
@@ -193,9 +194,25 @@ function todayStr() {
 
 function ProgressBar({ value, color, height = 4 }: { value: number; color: string; height?: number }) {
   const pct = Math.min(Math.max(value, 0), 100);
+  const animWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(animWidth, {
+      toValue: pct,
+      damping: 18,
+      stiffness: 120,
+      useNativeDriver: false,
+    }).start();
+  }, [pct]);
+
+  const widthInterpolated = animWidth.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
   return (
     <View style={[styles.progressTrack, { height }]}>
-      <View style={[styles.progressBar, { width: `${pct}%`, backgroundColor: color }]} />
+      <Animated.View style={[styles.progressBar, { width: widthInterpolated, backgroundColor: color }]} />
     </View>
   );
 }
