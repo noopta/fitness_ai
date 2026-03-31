@@ -3,6 +3,17 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 const AUTH_BASE = API_BASE.replace(/\/api$/, '');
 
+export interface InstitutionMembership {
+  role: 'coach' | 'athlete';
+  joinedAt: string;
+  institution: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl: string | null;
+  };
+}
+
 export interface AuthUser {
   id: string;
   name: string | null;
@@ -19,6 +30,7 @@ export interface AuthUser {
   coachProfile?: string | null; // JSON blob of full onboarding answers
   savedProgram?: string | null; // Saved AI-generated training program JSON
   programStartDate?: string | null;
+  institutions?: InstitutionMembership[];
 }
 
 interface AuthContextType {

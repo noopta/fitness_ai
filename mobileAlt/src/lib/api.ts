@@ -315,3 +315,62 @@ export const workoutsApi = {
   deleteWorkout: (id: string) => apiFetch(`/workouts/${id}`, { method: 'DELETE' }),
 };
 
+// ─── Social API ───────────────────────────────────────────────────────────────
+
+export const socialApi = {
+  // Friends
+  getFriends: () => apiFetch('/social/friends'),
+  getFriendRequests: () => apiFetch('/social/friends/requests'),
+  sendFriendRequest: (targetUserId: string) =>
+    apiFetch('/social/friends/request', { method: 'POST', body: JSON.stringify({ targetUserId }) }),
+  acceptFriendRequest: (requesterId: string) =>
+    apiFetch('/social/friends/accept', { method: 'POST', body: JSON.stringify({ requesterId }) }),
+  declineFriendRequest: (requesterId: string) =>
+    apiFetch('/social/friends/decline', { method: 'POST', body: JSON.stringify({ requesterId }) }),
+  removeFriend: (userId: string) => apiFetch(`/social/friends/${userId}`, { method: 'DELETE' }),
+  blockUser: (targetUserId: string) =>
+    apiFetch('/social/friends/block', { method: 'POST', body: JSON.stringify({ targetUserId }) }),
+
+  // User search
+  searchUsers: (q: string) => apiFetch(`/social/users/search?q=${encodeURIComponent(q)}`),
+
+  // Conversations
+  getConversations: () => apiFetch('/social/conversations'),
+  createConversation: (participantId: string) =>
+    apiFetch('/social/conversations', { method: 'POST', body: JSON.stringify({ participantId }) }),
+  getMessages: (conversationId: string, limit?: number, before?: string) =>
+    apiFetch(`/social/conversations/${conversationId}/messages?limit=${limit ?? 50}${before ? `&before=${before}` : ''}`),
+  sendMessage: (conversationId: string, body: string) =>
+    apiFetch(`/social/conversations/${conversationId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }),
+  markRead: (conversationId: string) =>
+    apiFetch(`/social/conversations/${conversationId}/read`, { method: 'POST' }),
+  pollMessages: (conversationId: string, after?: string) =>
+    apiFetch(`/social/conversations/${conversationId}/poll${after ? `?after=${after}` : ''}`),
+
+  // Sharing
+  shareItem: (data: { recipientId: string; itemType: string; itemId?: string; payload: object }) =>
+    apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
+  getSharedFeed: () => apiFetch('/social/shared-feed'),
+
+  // Invite
+  getInviteLink: () => apiFetch('/social/invite'),
+};
+
+// ─── Institution API ──────────────────────────────────────────────────────────
+
+export const institutionApi = {
+  getInstitution: (slug: string) => apiFetch(`/institutions/${slug}`),
+  getMembers: (slug: string) => apiFetch(`/institutions/${slug}/members`),
+  getAthletes: (slug: string) => apiFetch(`/institutions/${slug}/athletes`),
+  getAthleteDetail: (slug: string, userId: string) =>
+    apiFetch(`/institutions/${slug}/athletes/${userId}`),
+  getCoachInfo: (slug: string) => apiFetch(`/institutions/${slug}/coach-info`),
+  invite: (slug: string, data: { email?: string; role?: string; expiresIn?: number }) =>
+    apiFetch(`/institutions/${slug}/invite`, { method: 'POST', body: JSON.stringify(data) }),
+  validateInvite: (token: string) => apiFetch(`/institutions/invite/${token}`),
+  claimInvite: (token: string) =>
+    apiFetch(`/institutions/invite/${token}/claim`, { method: 'POST' }),
+  messageAthlete: (slug: string, userId: string, body: string) =>
+    apiFetch(`/institutions/${slug}/athletes/${userId}/message`, { method: 'POST', body: JSON.stringify({ body }) }),
+};
+

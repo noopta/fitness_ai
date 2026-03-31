@@ -26,6 +26,13 @@ import SettingsPage from "./pages/settings";
 import WorkoutsPage from "./pages/workouts";
 import StrengthProfilePage from "./pages/strength-profile";
 import AdminAffiliatesPage from "./pages/admin-affiliates";
+import FriendsPage from "./pages/friends";
+import MessagesPage from "./pages/messages";
+import SocialFeedPage from "./pages/social-feed";
+import InstitutionJoinPage from "./pages/institution-join";
+import InstitutionAthletePage from "./pages/institution-athlete";
+import InstitutionCoachPage from "./pages/institution-coach";
+import InstitutionAthleteDetailPage from "./pages/institution-athlete-detail";
 
 // Error boundary — catches render crashes and shows a recovery UI instead of
 // a blank screen. Particularly important for catching hook-order errors and
@@ -78,7 +85,14 @@ const ProtectedCoach      = () => <ProtectedRoute component={CoachPage} />;
 const ProtectedSettings   = () => <ProtectedRoute component={SettingsPage} />;
 const ProtectedWorkouts        = () => <ProtectedRoute component={WorkoutsPage} />;
 const ProtectedStrengthProfile = () => <ProtectedRoute component={StrengthProfilePage} />;
-const ProtectedAdminAffiliates = () => <ProtectedRoute component={AdminAffiliatesPage} />;
+const ProtectedAdminAffiliates        = () => <ProtectedRoute component={AdminAffiliatesPage} />;
+const ProtectedFriends                = () => <ProtectedRoute component={FriendsPage} />;
+const ProtectedMessages               = () => <ProtectedRoute component={MessagesPage} />;
+const ProtectedSocialFeed             = () => <ProtectedRoute component={SocialFeedPage} />;
+const ProtectedInstitutionJoin        = () => <ProtectedRoute component={InstitutionJoinPage} />;
+const ProtectedInstitutionAthlete     = () => <ProtectedRoute component={InstitutionAthletePage} />;
+const ProtectedInstitutionCoach       = () => <ProtectedRoute component={InstitutionCoachPage} />;
+const ProtectedInstitutionAthleteDetail = () => <ProtectedRoute component={InstitutionAthleteDetailPage} />;
 
 function Router() {
   return (
@@ -102,6 +116,13 @@ function Router() {
       <Route path="/strength-profile" component={ProtectedStrengthProfile} />
       <Route path="/settings" component={ProtectedSettings} />
       <Route path="/admin/affiliates" component={ProtectedAdminAffiliates} />
+      <Route path="/friends" component={ProtectedFriends} />
+      <Route path="/messages" component={ProtectedMessages} />
+      <Route path="/social" component={ProtectedSocialFeed} />
+      <Route path="/institution/join/:token" component={ProtectedInstitutionJoin} />
+      <Route path="/institution/:slug/coach" component={ProtectedInstitutionCoach} />
+      <Route path="/institution/:slug/athlete/:userId" component={ProtectedInstitutionAthleteDetail} />
+      <Route path="/institution/:slug" component={ProtectedInstitutionAthlete} />
       <Route component={NotFound} />
     </Switch>
   );
