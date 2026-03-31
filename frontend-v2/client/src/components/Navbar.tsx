@@ -75,6 +75,15 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
         <Link href="/coach" onClick={closeMobile}>AI Coach</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/friends" onClick={closeMobile}>Friends</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/messages" onClick={closeMobile}>Messages</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/social" onClick={closeMobile}>Social Feed</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/settings" onClick={closeMobile}>Settings</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start text-muted-foreground" onClick={() => { handleLogout(); closeMobile(); }}>
@@ -139,6 +148,12 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/coach">AI Coach</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                <Link href="/friends">Friends</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                <Link href="/messages">Messages</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/settings">Settings</Link>
