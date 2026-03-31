@@ -7,62 +7,83 @@ on:
       - main
     paths:
       - 'mobileAlt/**'
+  workflow_dispatch:
+    inputs:
+      build_production:
+        description: 'Trigger full production build + TestFlight submit'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   # ── Dev branch: instant OTA update ────────────────────────────────────────
-  ota-update:
-    name: OTA Update (dev)
+  ota-dev:
+    name: OTA Update → dev channel
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: mobileAlt/package-lock.json
-
       - name: Install dependencies
         working-directory: mobileAlt
         run: npm ci
-
-      - name: Push OTA update to dev channel
+      - name: Push OTA → dev
         working-directory: mobileAlt
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           npx eas-cli update --branch dev --message "${{ github.event.head_commit.message }}" --non-interactive
 
-  # ── Main branch: full build + TestFlight submit ───────────────────────────
-  build-and-submit:
-    name: Build & Submit (production)
+  # ── Main branch: OTA to production channel (instant, no build needed) ─────
+  ota-production:
+    name: OTA Update → production channel
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event.inputs.build_production != 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: mobileAlt/package-lock.json
-
       - name: Install dependencies
         working-directory: mobileAlt
         run: npm ci
+      - name: Push OTA → production
+        working-directory: mobileAlt
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
 
-      - name: Build iOS for production
+  # ── Manual trigger only: full build + TestFlight submit ───────────────────
+  build-and-submit:
+    name: Build & Submit → TestFlight
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_production == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobileAlt/package-lock.json
+      - name: Install dependencies
+        working-directory: mobileAlt
+        run: npm ci
+      - name: Build iOS production
         working-directory: mobileAlt
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           npx eas-cli build --platform ios --profile production --non-interactive --wait
-
       - name: Submit to TestFlight
         working-directory: mobileAlt
         env:

@@ -13,8 +13,9 @@
       }
     },
     "preview": {
-      "distribution": "internal",
-      "channel": "dev"
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": true
     },
     "production": {
       "autoIncrement": true,
