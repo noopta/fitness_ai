@@ -269,11 +269,18 @@ router.get('/social/conversations', async (req, res) => {
   });
 
   const result = await Promise.all(convos.map(async c => {
-    const other = c.participantAId === userId ? c.participantB : c.participantA;
+    const otherUser = c.participantAId === userId ? c.participantB : c.participantA;
     const unread = await prisma.message.count({
       where: { conversationId: c.id, senderId: { not: userId }, readAt: null },
     });
-    return { id: c.id, other, lastMessage: c.messages[0] ?? null, unreadCount: unread, updatedAt: c.updatedAt };
+    const lastMsg = c.messages[0] ?? null;
+    return {
+      id: c.id,
+      otherUser,
+      lastMessage: lastMsg?.body ?? null,
+      lastMessageAt: lastMsg?.createdAt ?? c.updatedAt,
+      unreadCount: unread,
+    };
   }));
   res.json(result);
 });
@@ -293,7 +300,19 @@ router.post('/social/conversations', async (req, res) => {
     create: ids,
     update: {},
   });
-  res.json(convo);
+
+  const participant = await prisma.user.findUnique({
+    where: { id: participantId },
+    select: { id: true, name: true, email: true },
+  });
+
+  res.json({
+    id: convo.id,
+    otherUser: participant ?? { id: participantId, name: null, email: null },
+    lastMessage: null,
+    lastMessageAt: convo.updatedAt,
+    unreadCount: 0,
+  });
 });
 
 // GET /api/social/conversations/:conversationId/messages

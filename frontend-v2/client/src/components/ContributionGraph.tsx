@@ -47,18 +47,28 @@ export function ContributionGraph({ userId }: ContributionGraphProps) {
     );
   }
 
-  if (!data.length) return null;
+  // Build an empty 365-day grid if there's no data yet
+  const displayData: DayData[] = data.length > 0 ? data : (() => {
+    const days: DayData[] = [];
+    const today = new Date();
+    for (let i = 364; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      days.push({ date: d.toLocaleDateString('en-CA'), count: 0 });
+    }
+    return days;
+  })();
 
   // Build 52 full weeks (364 days) + up to 1 partial week = 53 columns max
   // data is oldest-first, 365 items. We need to arrange into columns of 7 (Sun→Sat).
   // Find the day-of-week of the first date so we can pad the first column.
-  const firstDate = new Date(data[0].date + 'T12:00:00');
+  const firstDate = new Date(displayData[0].date + 'T12:00:00');
   const startDow = firstDate.getDay(); // 0=Sun
 
   // Pad the front so index 0 aligns to Sunday
   const padded: (DayData | null)[] = [
     ...Array(startDow).fill(null),
-    ...data,
+    ...displayData,
   ];
 
   // Split into columns of 7
@@ -82,7 +92,7 @@ export function ContributionGraph({ userId }: ContributionGraphProps) {
     }
   });
 
-  const totalCount = data.reduce((s, d) => s + d.count, 0);
+  const totalCount = displayData.reduce((s, d) => s + d.count, 0);
 
   const CELL = 11; // px per cell
   const GAP = 2;
