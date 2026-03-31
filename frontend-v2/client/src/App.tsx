@@ -34,6 +34,7 @@ import InstitutionAthletePage from "./pages/institution-athlete";
 import InstitutionCoachPage from "./pages/institution-coach";
 import InstitutionAthleteDetailPage from "./pages/institution-athlete-detail";
 import NavDemoPage from "./pages/nav-demo";
+import ProfilePage from "./pages/profile";
 
 // Error boundary — catches render crashes and shows a recovery UI instead of
 // a blank screen. Particularly important for catching hook-order errors and
@@ -94,6 +95,7 @@ const ProtectedInstitutionJoin        = () => <ProtectedRoute component={Institu
 const ProtectedInstitutionAthlete     = () => <ProtectedRoute component={InstitutionAthletePage} />;
 const ProtectedInstitutionCoach       = () => <ProtectedRoute component={InstitutionCoachPage} />;
 const ProtectedInstitutionAthleteDetail = () => <ProtectedRoute component={InstitutionAthleteDetailPage} />;
+const ProtectedProfile                  = () => <ProtectedRoute component={ProfilePage} />;
 
 function Router() {
   return (
@@ -124,6 +126,7 @@ function Router() {
       <Route path="/institution/:slug/coach" component={ProtectedInstitutionCoach} />
       <Route path="/institution/:slug/athlete/:userId" component={ProtectedInstitutionAthleteDetail} />
       <Route path="/institution/:slug" component={ProtectedInstitutionAthlete} />
+      <Route path="/profile/:userId" component={ProtectedProfile} />
       <Route path="/nav-demo" component={NavDemoPage} />
       <Route component={NotFound} />
     </Switch>

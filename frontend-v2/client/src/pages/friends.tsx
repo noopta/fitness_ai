@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Search, UserPlus, Check, X, Trash2, MessageCircle,
-  Users, Loader2, UserCheck,
+  Users, Loader2, UserCheck, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
+import { ContributionGraph } from '@/components/ContributionGraph';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -174,6 +175,8 @@ export default function FriendsPage() {
     navigate('/messages');
   }
 
+  const [expandedFriend, setExpandedFriend] = useState<string | null>(null);
+
   const friendIds = new Set(friends.map(f => f.id));
   const requesterIds = new Set(requests.map(r => r.requesterId));
 
@@ -330,36 +333,40 @@ export default function FriendsPage() {
             <Card className="divide-y">
               {friends.map(friend => {
                 const busy = processingIds.has(friend.id);
+                const expanded = expandedFriend === friend.id;
                 return (
-                  <div key={friend.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar className="h-9 w-9 shrink-0">
-                        <AvatarFallback className="text-xs">{initials(friend.name, friend.email)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{friend.name || '(no name)'}</p>
-                        <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
+                  <div key={friend.id}>
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar className="h-9 w-9 shrink-0">
+                          <AvatarFallback className="text-xs">{initials(friend.name, friend.email)}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{friend.name || '(no name)'}</p>
+                          <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs" onClick={() => navigate(`/profile/${friend.id}`)}>
+                          Profile
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs" onClick={() => messageFriend(friend)}>
+                          <MessageCircle className="h-3 w-3 mr-1" />Message
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 rounded-lg text-muted-foreground" onClick={() => setExpandedFriend(expanded ? null : friend.id)}>
+                          {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive" disabled={busy} onClick={() => removeFriend(friend.id)}>
+                          {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 rounded-lg text-xs"
-                        onClick={() => messageFriend(friend)}
-                      >
-                        <MessageCircle className="h-3 w-3 mr-1" />Message
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
-                        disabled={busy}
-                        onClick={() => removeFriend(friend.id)}
-                      >
-                        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                      </Button>
-                    </div>
+                    {expanded && (
+                      <div className="px-4 pb-4 pt-1 border-t bg-muted/30">
+                        <p className="text-xs font-semibold text-muted-foreground mb-3">Activity</p>
+                        <ContributionGraph userId={friend.id} />
+                      </div>
+                    )}
                   </div>
                 );
               })}

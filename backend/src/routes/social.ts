@@ -189,6 +189,70 @@ router.get('/social/users/search', async (req, res) => {
   res.json(users.filter(u => !blockedIds.has(u.id)));
 });
 
+// GET /api/social/profile/:userId
+router.get('/social/profile/:userId', async (req, res) => {
+  const viewerId = req.user!.id;
+  const { userId } = req.params;
+
+  const targetUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, email: true, tier: true, createdAt: true },
+  });
+  if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+  // Friendship status between viewer and target
+  const friendship = await prisma.friendship.findFirst({
+    where: {
+      OR: [
+        { requesterId: viewerId, addresseeId: userId },
+        { requesterId: userId, addresseeId: viewerId },
+      ],
+    },
+  });
+
+  let friendshipStatus: 'none' | 'pending_sent' | 'pending_received' | 'accepted' | 'blocked' = 'none';
+  if (friendship) {
+    if (friendship.status === 'accepted') {
+      friendshipStatus = 'accepted';
+    } else if (friendship.status === 'blocked') {
+      friendshipStatus = 'blocked';
+    } else if (friendship.status === 'pending') {
+      friendshipStatus = friendship.requesterId === viewerId ? 'pending_sent' : 'pending_received';
+    }
+  }
+
+  const isFriend = friendshipStatus === 'accepted';
+
+  // Mutual friends count: intersection of viewer's friends and target's friends
+  const [viewerFriendships, targetFriendships] = await Promise.all([
+    prisma.friendship.findMany({
+      where: {
+        status: 'accepted',
+        OR: [{ requesterId: viewerId }, { addresseeId: viewerId }],
+      },
+      select: { requesterId: true, addresseeId: true },
+    }),
+    prisma.friendship.findMany({
+      where: {
+        status: 'accepted',
+        OR: [{ requesterId: userId }, { addresseeId: userId }],
+      },
+      select: { requesterId: true, addresseeId: true },
+    }),
+  ]);
+
+  const viewerFriendIds = new Set(
+    viewerFriendships.map(f => f.requesterId === viewerId ? f.addresseeId : f.requesterId)
+  );
+  const targetFriendIds = new Set(
+    targetFriendships.map(f => f.requesterId === userId ? f.addresseeId : f.requesterId)
+  );
+  let mutualFriendsCount = 0;
+  viewerFriendIds.forEach(id => { if (targetFriendIds.has(id)) mutualFriendsCount++; });
+
+  res.json({ user: targetUser, isFriend, friendshipStatus, mutualFriendsCount });
+});
+
 // ─── Conversations & Messages ─────────────────────────────────────────────────
 
 // GET /api/social/conversations
