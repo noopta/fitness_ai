@@ -9,9 +9,33 @@ export interface VideoData {
   thumbnail: string;
 }
 
+// Checks the Videos API (part=status) to find the first actually-embeddable video.
+// The search endpoint's videoEmbeddable=true filter is unreliable — this is the authoritative check.
+async function pickEmbeddable(
+  items: Array<{ id: { videoId: string }; snippet: any }>,
+  apiKey: string,
+): Promise<{ id: string; snippet: any } | null> {
+  if (items.length === 0) return null;
+  const ids = items.map((i) => i.id.videoId).join(',');
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=status&id=${ids}&key=${apiKey}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json() as any;
+    const embeddableIds = new Set<string>(
+      (data.items ?? []).filter((v: any) => v.status?.embeddable === true).map((v: any) => v.id),
+    );
+    const match = items.find((i) => embeddableIds.has(i.id.videoId));
+    return match ? { id: match.id.videoId, snippet: match.snippet } : null;
+  } catch {
+    // If status check fails, fall back to first result
+    return { id: items[0].id.videoId, snippet: items[0].snippet };
+  }
+}
+
 async function searchYouTube(exerciseName: string, suffix: string, apiKey: string): Promise<VideoData | null> {
   const query = encodeURIComponent(`${exerciseName} ${suffix}`);
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&videoEmbeddable=true&maxResults=3&key=${apiKey}`;
+  // Fetch 5 candidates so pickEmbeddable has options to choose from
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&videoEmbeddable=true&maxResults=5&key=${apiKey}`;
   const res = await fetch(url);
   const data = await res.json() as any;
 
@@ -27,9 +51,11 @@ async function searchYouTube(exerciseName: string, suffix: string, apiKey: strin
 
   if (!data.items || data.items.length === 0) return null;
 
-  const item = data.items[0];
+  const item = await pickEmbeddable(data.items, apiKey);
+  if (!item) return null;
+
   return {
-    videoId: item.id.videoId,
+    videoId: item.id,
     title: item.snippet.title,
     thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
   };
@@ -55,7 +81,7 @@ export async function getExerciseVideo(exerciseId: string, exerciseName: string)
     // Primary search — specific query
     let video = await searchYouTube(exerciseName, 'exercise tutorial form', apiKey);
 
-    // Fallback — simpler query if primary returns nothing
+    // Fallback — simpler query if primary returns nothing embeddable
     if (!video) {
       video = await searchYouTube(exerciseName, 'exercise how to', apiKey);
     }
