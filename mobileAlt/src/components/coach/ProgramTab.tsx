@@ -232,13 +232,14 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
           {videoModal && (
             <WebView
               style={styles.webview}
-              source={{ uri: `https://www.youtube.com/embed/${videoModal.videoId}?autoplay=1&playsinline=1` }}
+              source={{ uri: `https://www.youtube-nocookie.com/embed/${videoModal.videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1` }}
               allowsFullscreenVideo
               allowsInlineMediaPlayback
               mediaPlaybackRequiresUserAction={false}
               javaScriptEnabled
               originWhitelist={['*']}
               domStorageEnabled
+              userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
             />
           )}
         </View>

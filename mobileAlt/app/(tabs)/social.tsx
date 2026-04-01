@@ -16,7 +16,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constan
 interface FeedItem {
   id: string;
   sharerId: string;
-  sharerName: string;
+  sharer: { id: string; name: string | null; email: string | null } | null;
   itemType: string;
   payload: any;
   createdAt: string;
@@ -76,10 +76,10 @@ function FeedCard({ item }: { item: FeedItem }) {
     <View style={styles.card}>
       <View style={styles.cardRow}>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{(item.sharerName ?? '?')[0].toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{(item.sharer?.name ?? item.sharer?.email ?? '?')[0].toUpperCase()}</Text>
         </View>
         <View style={styles.cardContent}>
-          <Text style={styles.cardName}>{item.sharerName ?? 'Unknown'}</Text>
+          <Text style={styles.cardName}>{item.sharer?.name ?? item.sharer?.email ?? 'Unknown'}</Text>
           {description ? (
             <Text style={styles.cardSub}>{description}</Text>
           ) : null}
@@ -205,7 +205,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       setSubmitting(true);
       try {
         await socialApi.shareItem({
-          recipientId: '',
           itemType: 'text',
           payload: { text: textContent.trim() },
         });
@@ -225,7 +224,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       setSubmitting(true);
       try {
         await socialApi.shareItem({
-          recipientId: '',
           itemType: 'media',
           payload: { imageBase64 },
         });
@@ -245,7 +243,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       setSubmitting(true);
       try {
         await socialApi.shareItem({
-          recipientId: '',
           itemType: 'media',
           payload: { videoUrl: videoUrl.trim() },
         });

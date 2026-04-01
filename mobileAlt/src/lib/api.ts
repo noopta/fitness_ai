@@ -348,7 +348,7 @@ export const socialApi = {
     apiFetch(`/social/conversations/${conversationId}/poll${after ? `?after=${after}` : ''}`),
 
   // Sharing
-  shareItem: (data: { recipientId: string; itemType: string; itemId?: string; payload: object }) =>
+  shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
 

@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { coachApi } from '../../lib/api';
+import { useUnits } from '../../context/UnitsContext';
 
 interface AnalyticsTabProps {
   coachData: any;
@@ -248,6 +249,7 @@ const projStyles = StyleSheet.create({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
+  const { unit, unitLabel } = useUnits();
   const [bodyWeightEntries, setBodyWeightEntries] = useState<BodyWeightEntry[]>([]);
   const [bwLoading, setBwLoading] = useState(true);
   const [logWeight, setLogWeight] = useState('');
@@ -287,8 +289,10 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
     }
     setLogError('');
     setLogging(true);
+    // Backend always stores lbs; convert if user is in kg mode
+    const weightLbs = unit === 'kg' ? weight * 2.2046 : weight;
     try {
-      await coachApi.logBodyWeight(weight);
+      await coachApi.logBodyWeight(weightLbs);
       setLogWeight('');
       await loadBodyWeight();
     } catch (err: any) {
@@ -312,8 +316,13 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
     }
   }
 
+  function getWeightLbs(entry: BodyWeightEntry): number {
+    return entry.weightLbs ?? (entry.weightKg != null ? entry.weightKg * 2.2046 : 0);
+  }
+
   function getWeight(entry: BodyWeightEntry): number {
-    return entry.weightLbs ?? entry.weightKg ?? 0;
+    const lbs = getWeightLbs(entry);
+    return unit === 'kg' ? Math.round((lbs / 2.2046) * 10) / 10 : lbs;
   }
 
   function getDelta(entries: BodyWeightEntry[], idx: number): string {

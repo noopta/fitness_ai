@@ -58,7 +58,7 @@ function SessionCard({ session }: { session: Session }) {
       <View style={styles.statusRow}>
         <View style={styles.badgeRow}>
           {session.confidence != null && (
-            <Badge variant="secondary">{Math.round(session.confidence)}%</Badge>
+            <Badge variant="secondary">{Math.round((session.confidence ?? 0) * 100)}%</Badge>
           )}
           <Badge variant={isCompleted ? 'success' : 'warning'}>
             {isCompleted ? 'Completed' : 'In Progress'}

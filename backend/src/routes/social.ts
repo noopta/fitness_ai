@@ -442,18 +442,47 @@ router.post('/social/share', async (req, res) => {
 // GET /api/social/shared-feed
 router.get('/social/shared-feed', async (req, res) => {
   const userId = req.user!.id;
+
+  // Get accepted friend IDs
+  const friendships = await prisma.friendship.findMany({
+    where: {
+      OR: [{ requesterId: userId }, { addresseeId: userId }],
+      status: 'accepted',
+    },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIds = friendships.map(f => f.requesterId === userId ? f.addresseeId : f.requesterId);
+
+  // Fetch: posts to/from me + friends' broadcast posts (recipientId = sharerId)
   const items = await prisma.sharedItem.findMany({
     where: {
       OR: [
         { recipientId: userId },
-        { sharerId: userId }, // include own posts
+        { sharerId: userId },
+        ...(friendIds.length > 0 ? [{
+          sharerId: { in: friendIds },
+          recipientId: { in: friendIds }, // broadcast = recipientId equals own sharerId; filter further below
+        }] : []),
       ],
     },
     include: { sharer: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: 'desc' },
-    take: 50,
+    take: 100,
   });
-  res.json(items.map(i => ({ ...i, payload: JSON.parse(i.payload) })));
+
+  // Keep friends' items only when they are broadcasts (recipientId === sharerId)
+  const friendIdSet = new Set(friendIds);
+  const filtered = items.filter(i =>
+    i.recipientId === userId ||
+    i.sharerId === userId ||
+    (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId),
+  );
+
+  // Deduplicate by id and limit to 50
+  const seen = new Set<string>();
+  const deduped = filtered.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
+
+  res.json(deduped.map(i => ({ ...i, payload: JSON.parse(i.payload) })));
 });
 
 // ─── Invite Links ─────────────────────────────────────────────────────────────

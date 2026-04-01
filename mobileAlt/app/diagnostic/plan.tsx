@@ -312,6 +312,7 @@ export default function PlanScreen() {
   const renderHeader = () => (
     <Stack.Screen
       options={{
+        headerShown: true,
         title: 'Your Plan',
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.foreground,

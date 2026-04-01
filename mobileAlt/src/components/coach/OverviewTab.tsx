@@ -189,9 +189,12 @@ function DayWorkoutSheet({
                       style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#000' }}
                       source={{ uri: buildVideoUri(sheetVideo.videoId) }}
                       allowsFullscreenVideo
+                      allowsInlineMediaPlayback
                       mediaPlaybackRequiresUserAction={false}
                       javaScriptEnabled
                       domStorageEnabled
+                      originWhitelist={['*']}
+                      userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
                     />
                   </View>
                 )}
@@ -370,6 +373,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   function handleWorkoutSaved() {
     setWorkoutSaved(true);
     setTimeout(() => setWorkoutSaved(false), 3000);
+    loadData();
+    onRefresh?.();
   }
 
   if (loading) {
@@ -743,6 +748,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                 mediaPlaybackRequiresUserAction={false}
                 javaScriptEnabled
                 domStorageEnabled
+                originWhitelist={['*']}
+                userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
               />
             )}
           </View>

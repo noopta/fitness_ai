@@ -132,10 +132,12 @@ export function ContributionGraph({ userId }: Props) {
           throw new Error(`Server returned ${res.status}`);
         }
 
-        const json: HeatmapResponse = await res.json();
+        const json: HeatmapResponse | HeatmapDay[] = await res.json();
 
-        // Normalise whatever shape the server sends
-        const raw: HeatmapDay[] = json.days ?? json.data ?? json.heatmap ?? [];
+        // Normalise whatever shape the server sends (array or object)
+        const raw: HeatmapDay[] = Array.isArray(json)
+          ? json
+          : (json as HeatmapResponse).days ?? (json as HeatmapResponse).data ?? (json as HeatmapResponse).heatmap ?? [];
 
         if (!cancelled) {
           const g = buildGrid(raw);

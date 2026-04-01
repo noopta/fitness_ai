@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
@@ -21,6 +21,7 @@ export default function ConversationScreen() {
   const router = useRouter();
   const { id: conversationId, name: otherName } = useLocalSearchParams<{ id: string; name: string }>();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,7 +167,7 @@ export default function ConversationScreen() {
         )}
 
         {/* Input bar */}
-        <View style={styles.inputBar}>
+        <View style={[styles.inputBar, { paddingBottom: Math.max(spacing.sm, insets.bottom) }]}>
           <TextInput
             style={styles.input}
             placeholder="Type a message…"
