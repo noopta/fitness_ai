@@ -20,6 +20,29 @@ interface ProgramTabProps {
   coachData: any;
 }
 
+function buildVideoHtml(videoId: string): string {
+  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; width: 100%; height: 100vh; overflow: hidden; }
+    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+  </style>
+</head>
+<body>
+  <iframe
+    src="${src}"
+    frameborder="0"
+    allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope"
+    allowfullscreen
+  ></iframe>
+</body>
+</html>`;
+}
+
 export function ProgramTab({ coachData }: ProgramTabProps) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(0);
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
@@ -232,14 +255,14 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
           {videoModal && (
             <WebView
               style={styles.webview}
-              source={{ uri: `https://www.youtube-nocookie.com/embed/${videoModal.videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1` }}
+              source={{ html: buildVideoHtml(videoModal.videoId) }}
               allowsFullscreenVideo
               allowsInlineMediaPlayback
               mediaPlaybackRequiresUserAction={false}
               javaScriptEnabled
               originWhitelist={['*']}
               domStorageEnabled
-              userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+              mixedContentMode="always"
             />
           )}
         </View>

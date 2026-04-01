@@ -187,14 +187,14 @@ function DayWorkoutSheet({
                     </View>
                     <WebView
                       style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#000' }}
-                      source={{ uri: buildVideoUri(sheetVideo.videoId) }}
+                      source={{ html: buildVideoHtml(sheetVideo.videoId) }}
                       allowsFullscreenVideo
                       allowsInlineMediaPlayback
                       mediaPlaybackRequiresUserAction={false}
                       javaScriptEnabled
                       domStorageEnabled
                       originWhitelist={['*']}
-                      userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+                      mixedContentMode="always"
                     />
                   </View>
                 )}
@@ -742,14 +742,14 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             {videoModal && (
               <WebView
                 style={videoStyles.webview}
-                source={{ uri: buildVideoUri(videoModal.videoId) }}
+                source={{ html: buildVideoHtml(videoModal.videoId) }}
                 allowsFullscreenVideo
                 allowsInlineMediaPlayback
                 mediaPlaybackRequiresUserAction={false}
                 javaScriptEnabled
                 domStorageEnabled
                 originWhitelist={['*']}
-                userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+                mixedContentMode="always"
               />
             )}
           </View>
@@ -761,13 +761,32 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function buildVideoUri(videoId: string): string {
-  if (videoId.startsWith('search:')) {
-    const query = encodeURIComponent(videoId.slice(7));
-    return `https://www.youtube.com/results?search_query=${query}`;
-  }
-  // Use nocookie embed URL — avoids login/consent walls in WebView
-  return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`;
+function buildVideoHtml(videoId: string): string {
+  const embedId = videoId.startsWith('search:')
+    ? encodeURIComponent(videoId.slice(7))
+    : videoId;
+  const src = videoId.startsWith('search:')
+    ? `https://www.youtube.com/results?search_query=${embedId}`
+    : `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; width: 100%; height: 100vh; overflow: hidden; }
+    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+  </style>
+</head>
+<body>
+  <iframe
+    src="${src}"
+    frameborder="0"
+    allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope"
+    allowfullscreen
+  ></iframe>
+</body>
+</html>`;
 }
 
 async function openExerciseVideo(
