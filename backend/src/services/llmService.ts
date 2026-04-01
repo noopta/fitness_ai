@@ -1812,6 +1812,9 @@ export async function generateWelcomeMessage(params: {
   primaryLimiter: string | null;
   selectedLift: string | null;
   phaseName: string | null;
+  currentStreak?: number | null;
+  recentWorkoutCount?: number | null;
+  currentWeek?: number | null;
 }): Promise<string> {
   const prompt = `You are Anakin, an elite AI strength and fitness coach. Write a short, personal welcome message for a new athlete who just set up their profile and program.
 
@@ -1822,6 +1825,9 @@ ATHLETE:
 - Primary lift analyzed: ${params.selectedLift || 'not yet analyzed'}
 - Main limiter identified: ${params.primaryLimiter || 'not yet diagnosed'}
 - Current program phase: ${params.phaseName || 'not started'}
+${params.currentWeek ? `- Program week: Week ${params.currentWeek}` : ''}
+${params.currentStreak ? `- Current training streak: ${params.currentStreak} day${params.currentStreak !== 1 ? 's' : ''}` : ''}
+${params.recentWorkoutCount != null ? `- Workouts logged this week: ${params.recentWorkoutCount}` : ''}
 
 RULES:
 - 2-3 sentences maximum. No more.
@@ -1831,6 +1837,7 @@ RULES:
 - Do NOT use emojis
 - Write in first person as Anakin speaking directly to them
 - If no limiter is known yet, reference their goal and what the program will focus on
+- If streak or recent workouts are known, weave them in naturally — e.g. 'You're 4 days in — don't break the chain' or 'Three sessions this week already — that's the consistency I need from you'
 
 Example tone: "Your deadlift off-the-floor weakness is the first thing we're fixing — that's why I've loaded your first phase with trap bar pulls and Romanian deadlifts. With your strength goals and three years in the gym, we should see a measurable shift in 6 weeks."`;
 

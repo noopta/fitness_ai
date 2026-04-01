@@ -33,6 +33,8 @@ export interface AuthUser {
   coachProfile?: string | null;
   savedProgram?: string | null;
   institutions?: InstitutionMembership[];
+  username?: string | null;
+  avatarBase64?: string | null;
 }
 
 interface AuthContextType {

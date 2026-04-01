@@ -102,6 +102,15 @@ export const authApi = {
 
   registerPushToken: (token: string) =>
     apiFetch('/auth/push-token', { method: 'PUT', body: JSON.stringify({ token }) }),
+
+  checkUsername: (username: string) =>
+    apiFetch(`/auth/check-username?username=${encodeURIComponent(username)}`),
+
+  setUsername: (username: string) =>
+    apiFetch('/auth/username', { method: 'PUT', body: JSON.stringify({ username }) }),
+
+  setAvatar: (avatarBase64: string) =>
+    apiFetch('/auth/avatar', { method: 'PUT', body: JSON.stringify({ avatarBase64 }) }),
 };
 
 // ─── Lift Coach API ───────────────────────────────────────────────────────────

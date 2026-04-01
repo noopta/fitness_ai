@@ -247,6 +247,8 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         coachProfile: true,
         savedProgram: true,
         programStartDate: true,
+        username: true,
+        avatarBase64: true,
         institutionMemberships: {
           where: { active: true },
           include: {
@@ -330,6 +332,55 @@ router.put('/auth/push-token', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Push token update error:', err);
     res.status(500).json({ error: 'Failed to save push token' });
+  }
+});
+
+// GET /api/auth/check-username?username=X
+router.get('/auth/check-username', requireAuth, async (req, res) => {
+  try {
+    const username = (req.query.username as string)?.trim();
+    if (!username || username.length < 3) return res.status(400).json({ error: 'Username too short' });
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) return res.status(400).json({ error: 'Username can only contain letters, numbers, underscores' });
+    const existing = await prisma.user.findUnique({ where: { username } });
+    res.json({ available: !existing || existing.id === req.user!.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to check username' });
+  }
+});
+
+// PUT /api/auth/username
+router.put('/auth/username', requireAuth, async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username || typeof username !== 'string') return res.status(400).json({ error: 'username required' });
+    const cleaned = username.trim();
+    if (cleaned.length < 3 || cleaned.length > 30) return res.status(400).json({ error: 'Username must be 3-30 characters' });
+    if (!/^[a-zA-Z0-9_]+$/.test(cleaned)) return res.status(400).json({ error: 'Username can only contain letters, numbers, underscores' });
+    try {
+      const user = await prisma.user.update({ where: { id: req.user!.id }, data: { username: cleaned } });
+      res.json({ username: user.username });
+    } catch (e: any) {
+      if (e.code === 'P2002') return res.status(409).json({ error: 'Username already taken' });
+      throw e;
+    }
+  } catch (err: any) {
+    if (err.status) throw err;
+    res.status(500).json({ error: 'Failed to update username' });
+  }
+});
+
+// PUT /api/auth/avatar
+router.put('/auth/avatar', requireAuth, async (req, res) => {
+  try {
+    const { avatarBase64 } = req.body;
+    if (typeof avatarBase64 !== 'string') return res.status(400).json({ error: 'avatarBase64 required' });
+    // Limit to ~2MB base64
+    if (avatarBase64.length > 2_800_000) return res.status(413).json({ error: 'Image too large (max ~2MB)' });
+    await prisma.user.update({ where: { id: req.user!.id }, data: { avatarBase64 } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Avatar update error:', err);
+    res.status(500).json({ error: 'Failed to update avatar' });
   }
 });
 

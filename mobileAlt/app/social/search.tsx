@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
-  View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Alert,
+  View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Alert, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,8 @@ interface UserResult {
   id: string;
   name: string | null;
   email: string | null;
+  username: string | null;
+  avatarBase64: string | null;
 }
 
 interface PendingRequest {
@@ -113,7 +115,7 @@ export default function SocialSearchScreen() {
           <Ionicons name="search-outline" size={18} color={colors.mutedForeground} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by name or email…"
+            placeholder="Search by name, username, or email…"
             placeholderTextColor={colors.mutedForeground}
             value={query}
             onChangeText={onChangeQuery}
@@ -174,14 +176,22 @@ export default function SocialSearchScreen() {
             {results.map((user) => (
               <View key={user.id} style={styles.card}>
                 <View style={styles.cardRow}>
-                  <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarText}>
-                      {((user.name ?? user.email ?? '?')[0]).toUpperCase()}
-                    </Text>
-                  </View>
+                  {user.avatarBase64 ? (
+                    <Image source={{ uri: user.avatarBase64 }} style={styles.avatarImage} />
+                  ) : (
+                    <View style={styles.avatarCircle}>
+                      <Text style={styles.avatarText}>
+                        {((user.name ?? user.email ?? '?')[0]).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.cardContent}>
                     <Text style={styles.cardName}>{user.name ?? 'User'}</Text>
-                    {user.email ? <Text style={styles.cardSub}>{user.email}</Text> : null}
+                    {user.username ? (
+                      <Text style={styles.cardSub}>@{user.username}</Text>
+                    ) : user.email ? (
+                      <Text style={styles.cardSub}>{user.email}</Text>
+                    ) : null}
                   </View>
                   {sentIds.has(user.id) ? (
                     <View style={styles.sentBadge}>
@@ -207,7 +217,7 @@ export default function SocialSearchScreen() {
           <View style={styles.center}>
             <Ionicons name="search-outline" size={40} color={colors.mutedForeground} />
             <Text style={styles.emptyTitle}>Search for people</Text>
-            <Text style={styles.emptySubtitle}>Find friends by name or email address.</Text>
+            <Text style={styles.emptySubtitle}>Find friends by name, username, or email.</Text>
           </View>
         )}
       </ScrollView>
@@ -272,6 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
+  avatarImage: { width: 40, height: 40, borderRadius: radius.full },
   cardContent: { flex: 1 },
   cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
   cardSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },

@@ -172,9 +172,10 @@ router.get('/social/users/search', async (req, res) => {
       OR: [
         { name: { contains: q } },
         { email: { contains: q } },
+        { username: { contains: q } },
       ],
     },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, username: true, avatarBase64: true },
     take: 10,
   });
 

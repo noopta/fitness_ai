@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
-  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform,
+  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -613,6 +613,9 @@ export default function SocialScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 380;
+
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
 
@@ -620,7 +623,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -668,7 +671,7 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: fontSize.xs, color: '#fff', fontWeight: fontWeight.bold },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+  scrollContent: { padding: isSmallScreen ? spacing.md : spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
 
   // New Post button
   newPostButton: {
@@ -691,10 +694,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
-    padding: spacing.md,
+    padding: isSmallScreen ? spacing.sm : spacing.md,
     backgroundColor: colors.card,
   },
-  cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: isSmallScreen ? spacing.xs : spacing.sm },
   avatarCircle: {
     width: 40,
     height: 40,
@@ -705,7 +708,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   cardContent: { flex: 1 },
-  cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },
   cardSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
   timeText: { fontSize: fontSize.xs, color: colors.mutedForeground },
 
