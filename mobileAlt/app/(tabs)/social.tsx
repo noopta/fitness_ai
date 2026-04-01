@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
-  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator,
+  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -147,6 +148,7 @@ interface NewPostModalProps {
 
 function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(400)).current;
 
   const [postTab, setPostTab] = useState<PostTab>('text');
@@ -265,8 +267,12 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       onRequestClose={onClose}
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+          keyboardVerticalOffset={0}
+        >
         <Animated.View
-          style={[styles.modalSheet, { transform: [{ translateY: slideAnim }] }]}
+          style={[styles.modalSheet, { transform: [{ translateY: slideAnim }], paddingBottom: Math.max(spacing.lg, insets.bottom) }]}
         >
           {/* Tap blocker — prevents overlay dismiss inside the sheet */}
           <Pressable onPress={() => {}}>
@@ -411,6 +417,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
             </View>
           </Pressable>
         </Animated.View>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   );
@@ -791,7 +798,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    paddingBottom: spacing.xxl,
     // Prevent dismiss tap propagation
   },
   modalHeader: {

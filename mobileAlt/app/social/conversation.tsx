@@ -32,9 +32,9 @@ export default function ConversationScreen() {
   const lastIdRef = useRef<string | undefined>(undefined);
 
   const scrollToBottom = useCallback((animated = true) => {
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated });
-    }, 100);
+    // First attempt fast, second attempt after layout settles
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated }), 50);
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated }), 200);
   }, []);
 
   const loadMessages = useCallback(async () => {
@@ -158,6 +158,7 @@ export default function ConversationScreen() {
             contentContainerStyle={styles.messageList}
             showsVerticalScrollIndicator={false}
             onLayout={() => scrollToBottom(false)}
+            onContentSizeChange={() => scrollToBottom(true)}
             ListEmptyComponent={
               <View style={styles.emptyChat}>
                 <Text style={styles.mutedText}>No messages yet. Say hello!</Text>
