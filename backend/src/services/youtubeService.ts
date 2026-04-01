@@ -11,7 +11,7 @@ export interface VideoData {
 
 async function searchYouTube(exerciseName: string, suffix: string, apiKey: string): Promise<VideoData | null> {
   const query = encodeURIComponent(`${exerciseName} ${suffix}`);
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${apiKey}`;
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&videoEmbeddable=true&maxResults=3&key=${apiKey}`;
   const res = await fetch(url);
   const data = await res.json() as any;
 
