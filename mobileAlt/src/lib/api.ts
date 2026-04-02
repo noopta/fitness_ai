@@ -206,7 +206,7 @@ export const coachApi = {
   generateProgram: (data: any) =>
     apiFetch('/coach/program', { method: 'POST', body: JSON.stringify(data) }),
   updateProgram: (data: any) =>
-    apiFetch('/coach/program', { method: 'PUT', body: JSON.stringify(data) }),
+    apiFetch('/coach/program', { method: 'PUT', body: JSON.stringify({ program: data }) }),
   adjustProgram: (data: any) =>
     apiFetch('/coach/adjust', { method: 'POST', body: JSON.stringify(data) }),
   applyAdjustment: (data: any) =>

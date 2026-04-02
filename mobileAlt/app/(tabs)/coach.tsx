@@ -99,13 +99,10 @@ export default function CoachScreen() {
 
       setCoachData({ ...data, savedProgram: resolvedProgram });
 
-      const hasOnboarding = user.coachOnboardingDone;
       const hasProgram = !!(resolvedProgram);
 
-      if (!hasOnboarding) {
+      if (!hasProgram) {
         setStage('onboarding');
-      } else if (!hasProgram) {
-        setStage('setup');
       } else {
         setStage('dashboard');
       }

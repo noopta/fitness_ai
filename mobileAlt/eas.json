@@ -25,9 +25,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "YOUR_APPLE_ID_EMAIL",
+        "appleId": "thepicpanda@gmail.com",
         "ascAppId": "6761032954",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleTeamId": "M8XR52BJHQ"
       }
     }
   }
