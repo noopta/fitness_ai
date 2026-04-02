@@ -1828,30 +1828,35 @@ export async function generateWelcomeMessage(params: {
   recentWorkoutCount?: number | null;
   currentWeek?: number | null;
 }): Promise<string> {
-  const prompt = `You are Anakin, an elite AI strength and fitness coach. Write a short, personal welcome message for a new athlete who just set up their profile and program.
+  const isReturning = !!(params.primaryLimiter || params.selectedLift || (params.currentWeek && params.currentWeek > 1) || (params.recentWorkoutCount && params.recentWorkoutCount > 0) || (params.currentStreak && params.currentStreak > 1));
+
+  const prompt = `You are Anakin, an elite AI strength and fitness coach. Write a short, personal coaching insight for an athlete who just opened their app.
 
 ATHLETE:
 - Name: ${params.name || 'Athlete'}
 - Goal: ${params.coachGoal || 'general strength'}
-- Training age: ${params.trainingAge || 'intermediate'}
+- Training age: ${params.trainingAge || 'not specified'}
 - Primary lift analyzed: ${params.selectedLift || 'not yet analyzed'}
 - Main limiter identified: ${params.primaryLimiter || 'not yet diagnosed'}
 - Current program phase: ${params.phaseName || 'not started'}
 ${params.currentWeek ? `- Program week: Week ${params.currentWeek}` : ''}
 ${params.currentStreak ? `- Current training streak: ${params.currentStreak} day${params.currentStreak !== 1 ? 's' : ''}` : ''}
 ${params.recentWorkoutCount != null ? `- Workouts logged this week: ${params.recentWorkoutCount}` : ''}
+- Context: ${isReturning ? 'returning athlete with training history' : 'new athlete just starting out'}
 
 RULES:
 - 2-3 sentences maximum. No more.
-- Reference their SPECIFIC goal and limiter if available — make it feel like you already know them
-- Be direct, warm, and confident — like a coach who's studied their file before the first session
-- Do NOT use generic phrases like "Welcome to Axiom" or "I'm here to help"
-- Do NOT use emojis
-- Write in first person as Anakin speaking directly to them
-- If no limiter is known yet, reference their goal and what the program will focus on
-- If streak or recent workouts are known, weave them in naturally — e.g. 'You're 4 days in — don't break the chain' or 'Three sessions this week already — that's the consistency I need from you'
+- If they have real data (limiter, lift, streak, recent workouts, program week) — reference it specifically. The more specific, the better.
+- If they are new with no data yet — be forward-looking: reference their goal and what the first phase will build toward.
+- Be direct, confident, and coach-like — not generic motivational filler.
+- Do NOT use phrases like "Welcome to Axiom", "I'm here to help", "Let's crush it", or "Great job".
+- Do NOT use emojis.
+- Write in first person as Anakin speaking directly to the athlete.
+- If streak or recent workouts are known, weave them in naturally: e.g. "Four sessions this week — keep that momentum going into the weekend."
+- Vary your opening — don't always start with the athlete's name.
 
-Example tone: "Your deadlift off-the-floor weakness is the first thing we're fixing — that's why I've loaded your first phase with trap bar pulls and Romanian deadlifts. With your strength goals and three years in the gym, we should see a measurable shift in 6 weeks."`;
+Example tone (returning): "Your quad dominance is still the bottleneck — Week 4 is where we should start seeing the posterior chain work pay off. Three sessions logged this week already is exactly the frequency you need right now."
+Example tone (new): "Your first phase is built around fixing the most common weak point for your goal — stay patient with the process, the work compounds fast."`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',

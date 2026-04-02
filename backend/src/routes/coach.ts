@@ -410,7 +410,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     res.flushHeaders();
 
     const stream = await openai.chat.completions.create({
-      model: 'gpt-5.4-nano',
+      model: 'gpt-4.1-mini',
       messages,
       stream: true,
       max_completion_tokens: 800,
@@ -1443,7 +1443,7 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
     const cachedDate = profile.welcomeMessageDate ? new Date(profile.welcomeMessageDate) : null;
     const cacheAgeHours = cachedDate ? (now.getTime() - cachedDate.getTime()) / 3600000 : Infinity;
 
-    if (profile.welcomeMessage && cacheAgeHours < 24) {
+    if (profile.welcomeMessage && cacheAgeHours < 6) {
       return res.json({ message: profile.welcomeMessage });
     }
 

@@ -136,8 +136,14 @@ export function ChatTab({ coachData }: ChatTabProps) {
                     m.id === streamId ? { ...m, content: accumulated } : m
                   )
                 );
+              } else if (parsed.error) {
+                throw new Error(parsed.error);
               }
-            } catch {}
+            } catch (parseErr: any) {
+              if (parseErr?.message && !parseErr.message.startsWith('JSON')) {
+                throw parseErr;
+              }
+            }
           }
         }
       }

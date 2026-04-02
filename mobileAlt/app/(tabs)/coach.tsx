@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../src/context/AuthContext';
-import { coachApi } from '../../src/lib/api';
+import { coachApi, authApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { UpgradePrompt } from '../../src/components/UpgradePrompt';
@@ -32,10 +33,19 @@ export default function CoachScreen() {
   const [stage, setStage] = useState<Stage>('loading');
   const [activeTab, setActiveTab] = useState<TabId>('Overview');
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
+  const [refreshingTier, setRefreshingTier] = useState(false);
 
   useEffect(() => {
     initCoach();
   }, [user]);
+
+  // When the tab comes back into focus (e.g. user returns from Stripe), refresh
+  // the user object so a new pro subscription is detected immediately.
+  useFocusEffect(useCallback(() => {
+    if (user && (user.tier !== 'pro' && user.tier !== 'enterprise')) {
+      refreshUser().catch(() => {});
+    }
+  }, [user?.tier]));
 
   async function initCoach() {
     if (!user) {
@@ -110,11 +120,22 @@ export default function CoachScreen() {
 
   async function handleOnboardingComplete(profile: any) {
     try {
-      // Update user profile (mark onboarding done on backend)
-      // The backend should set coachOnboardingDone = true
+      // Save onboarding data and mark done — must happen before refreshUser()
+      // so that initCoach() sees coachOnboardingDone: true on re-trigger.
+      await authApi.updateProfile({
+        coachOnboardingDone: true,
+        coachGoal: profile.goal,
+        trainingAge: profile.experience,
+        constraintsText: profile.injuries && profile.injuries !== 'None' ? profile.injuries : undefined,
+        coachProfile: JSON.stringify({
+          trainingPreference: profile.goal,
+          frequency: profile.frequency,
+          experience: profile.experience,
+        }),
+      });
       await refreshUser();
     } catch {
-      // Continue even if refresh fails
+      // Continue even if save fails — set flag locally so initCoach doesn't loop
     }
     setStage('setup');
   }
@@ -171,6 +192,21 @@ export default function CoachScreen() {
             userId={user?.id}
             reason="AI Coach requires a Pro subscription. Get personalized programming, nutrition, and 1-on-1 coaching from Anakin."
           />
+          <TouchableOpacity
+            style={styles.alreadyUpgradedBtn}
+            activeOpacity={0.7}
+            disabled={refreshingTier}
+            onPress={async () => {
+              setRefreshingTier(true);
+              try { await refreshUser(); } catch {}
+              setRefreshingTier(false);
+            }}
+          >
+            {refreshingTier
+              ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+              : <Text style={styles.alreadyUpgradedText}>Already upgraded? Tap to refresh</Text>
+            }
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     );
@@ -324,6 +360,16 @@ const styles = StyleSheet.create({
   upgradeSub: {
     fontSize: fontSize.sm,
     color: colors.mutedForeground,
+  },
+  alreadyUpgradedBtn: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+  },
+  alreadyUpgradedText: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textDecorationLine: 'underline',
   },
 
   // Stage header (onboarding / setup / walkthrough)

@@ -98,6 +98,9 @@ export const authApi = {
     heightCm?: number;
     weightKg?: number;
     constraintsText?: string;
+    coachGoal?: string;
+    coachOnboardingDone?: boolean;
+    coachProfile?: string;
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),
 
   registerPushToken: (token: string) =>
