@@ -321,6 +321,15 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <View style={styles.legalRow}>
+          <TouchableOpacity onPress={() => Linking.openURL('https://axiomtraining.io/terms')} activeOpacity={0.7}>
+            <Text style={styles.legalLink}>Terms of Use</Text>
+          </TouchableOpacity>
+          <Text style={styles.legalSep}>·</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://axiomtraining.io/privacy')} activeOpacity={0.7}>
+            <Text style={styles.legalLink}>Privacy Policy</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.versionText}>Axiom v1.0.0 · AI-powered strength training</Text>
       </ScrollView>
     </SafeAreaView>
@@ -484,7 +493,10 @@ const styles = StyleSheet.create({
   },
   signOutText: { flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.destructive },
 
-  versionText: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center', marginTop: spacing.sm },
+  legalRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  legalLink: { fontSize: fontSize.xs, color: colors.mutedForeground, textDecorationLine: 'underline' },
+  legalSep: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  versionText: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center', marginTop: 4 },
 
   unitToggle: {
     flexDirection: 'row',

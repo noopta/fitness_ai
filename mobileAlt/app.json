@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#000000"
     },
     "scheme": "axiom",
     "updates": {
@@ -48,7 +48,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#000000"
       },
       "package": "com.axiom.mobile",
       "intentFilters": [
