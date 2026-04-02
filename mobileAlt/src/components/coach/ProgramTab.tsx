@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Linking,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -21,10 +21,6 @@ interface ProgramTabProps {
   coachData: any;
 }
 
-function buildVideoHtml(videoId: string): string {
-  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&origin=https%3A%2F%2Fwww.youtube.com&enablejsapi=1`;
-  return `<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">\n  <style>\n    html, body { margin: 0; padding: 0; background: #000; width: 100%; height: 100%; overflow: hidden; }\n    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }\n  </style>\n</head>\n<body>\n  <iframe\n    id="ytplayer"\n    src="${src}"\n    frameborder="0"\n    allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"\n    allowfullscreen\n  ></iframe>\n  <script>\n    window.addEventListener('message', function(e) {\n      try {\n        var d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;\n        if (d && d.event === 'onError' && window.ReactNativeWebView) {\n          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ytError', code: d.info }));\n        }\n      } catch(_) {}\n    });\n  </script>\n</body>\n</html>`;
-}
 
 export function ProgramTab({ coachData }: ProgramTabProps) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(0);
@@ -249,20 +245,12 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
                 <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
               </TouchableOpacity>
             ) : (
-              <WebView
-                style={styles.webview}
-                source={{ html: buildVideoHtml(videoModal.videoId), baseUrl: 'https://www.youtube.com' }}
-                allowsFullscreenVideo
-                allowsInlineMediaPlayback
-                mediaPlaybackRequiresUserAction={false}
-                javaScriptEnabled
-                originWhitelist={['*']}
-                domStorageEnabled
-                mixedContentMode="always"
+              <YoutubeIframe
+                height={220}
+                videoId={videoModal.videoId}
+                play
                 onError={() => setVideoError(true)}
-                onMessage={(e) => {
-                  try { const m = JSON.parse(e.nativeEvent.data); if (m.type === 'ytError') setVideoError(true); } catch (_) {}
-                }}
+                webViewProps={{ allowsFullscreenVideo: true }}
               />
             )
           )}

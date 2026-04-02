@@ -12,7 +12,7 @@ import {
   Animated,
   Linking,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -198,20 +198,12 @@ function DayWorkoutSheet({
                         <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
                       </TouchableOpacity>
                     ) : (
-                      <WebView
-                        style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#000' }}
-                        source={{ html: buildVideoHtml(sheetVideo!.videoId), baseUrl: 'https://www.youtube.com' }}
-                        allowsFullscreenVideo
-                        allowsInlineMediaPlayback
-                        mediaPlaybackRequiresUserAction={false}
-                        javaScriptEnabled
-                        domStorageEnabled
-                        originWhitelist={['*']}
-                        mixedContentMode="always"
+                      <YoutubeIframe
+                        height={SHEET_VIDEO_HEIGHT}
+                        videoId={sheetVideo!.videoId.startsWith('search:') ? '' : sheetVideo!.videoId}
+                        play
                         onError={() => setSheetVideoError(true)}
-                        onMessage={(e) => {
-                          try { const m = JSON.parse(e.nativeEvent.data); if (m.type === 'ytError') setSheetVideoError(true); } catch (_) {}
-                        }}
+                        webViewProps={{ allowsFullscreenVideo: true }}
                       />
                     )}
                   </View>
@@ -770,20 +762,12 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
                   <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
                 </TouchableOpacity>
               ) : (
-                <WebView
-                  style={videoStyles.webview}
-                  source={{ html: buildVideoHtml(videoModal.videoId), baseUrl: 'https://www.youtube.com' }}
-                  allowsFullscreenVideo
-                  allowsInlineMediaPlayback
-                  mediaPlaybackRequiresUserAction={false}
-                  javaScriptEnabled
-                  domStorageEnabled
-                  originWhitelist={['*']}
-                  mixedContentMode="always"
+                <YoutubeIframe
+                  height={VIDEO_HEIGHT}
+                  videoId={videoModal.videoId.startsWith('search:') ? '' : videoModal.videoId}
+                  play
                   onError={() => setModalVideoError(true)}
-                  onMessage={(e) => {
-                    try { const m = JSON.parse(e.nativeEvent.data); if (m.type === 'ytError') setModalVideoError(true); } catch (_) {}
-                  }}
+                  webViewProps={{ allowsFullscreenVideo: true }}
                 />
               )
             )}
@@ -796,14 +780,6 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function buildVideoHtml(videoId: string): string {
-  if (videoId.startsWith('search:')) {
-    const q = encodeURIComponent(videoId.slice(7));
-    return `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;width:100%;height:100vh;overflow:hidden}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}</style></head><body><iframe src="https://www.youtube.com/results?search_query=${q}" frameborder="0" allowfullscreen></iframe></body></html>`;
-  }
-  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&origin=https%3A%2F%2Fwww.youtube.com&enablejsapi=1`;
-  return `<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">\n  <style>\n    html, body { margin: 0; padding: 0; background: #000; width: 100%; height: 100%; overflow: hidden; }\n    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }\n  </style>\n</head>\n<body>\n  <iframe\n    id="ytplayer"\n    src="${src}"\n    frameborder="0"\n    allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"\n    allowfullscreen\n  ></iframe>\n  <script>\n    window.addEventListener('message', function(e) {\n      try {\n        var d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;\n        if (d && d.event === 'onError' && window.ReactNativeWebView) {\n          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ytError', code: d.info }));\n        }\n      } catch(_) {}\n    });\n  </script>\n</body>\n</html>`;
-}
 
 async function openExerciseVideo(
   exerciseName: string,
