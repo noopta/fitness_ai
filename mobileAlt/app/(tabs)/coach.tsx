@@ -34,6 +34,7 @@ export default function CoachScreen() {
   const [activeTab, setActiveTab] = useState<TabId>('Overview');
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
+  const [onboardingKey, setOnboardingKey] = useState(0);
   const [refreshingTier, setRefreshingTier] = useState(false);
 
   useEffect(() => {
@@ -103,9 +104,7 @@ export default function CoachScreen() {
       const hasProgram = !!(resolvedProgram);
 
       if (!hasProgram) {
-        // Always start from onboarding if no saved program — whether the user
-        // is brand new, completed onboarding but never saved a program, or
-        // generated a program but pressed Back instead of Save.
+        setOnboardingKey(k => k + 1);
         setStage('onboarding');
       } else {
         setStage('dashboard');
@@ -227,7 +226,7 @@ export default function CoachScreen() {
           <Text style={styles.stageHeaderTitle}>Welcome to Anakin</Text>
           <Text style={styles.stageHeaderSub}>Let's set up your profile</Text>
         </View>
-        <CoachOnboarding onComplete={handleOnboardingComplete} />
+        <CoachOnboarding key={onboardingKey} onComplete={handleOnboardingComplete} />
       </SafeAreaView>
     );
   }
@@ -244,7 +243,10 @@ export default function CoachScreen() {
             setGeneratedProgram(prog);
             setStage('walkthrough');
           }}
-          onBack={() => setStage(setupReturnStage)}
+          onBack={() => {
+            if (setupReturnStage === 'onboarding') setOnboardingKey(k => k + 1);
+            setStage(setupReturnStage);
+          }}
         />
       </SafeAreaView>
     );
