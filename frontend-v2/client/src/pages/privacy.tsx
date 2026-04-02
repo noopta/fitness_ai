@@ -112,7 +112,7 @@ export default function Privacy() {
             <ul className="list-disc pl-6 mt-2 space-y-1">
               <li><strong>Access:</strong> Request a copy of the personal data we hold about you.</li>
               <li><strong>Correction:</strong> Request correction of inaccurate or incomplete data.</li>
-              <li><strong>Deletion:</strong> Request deletion of your account and all associated personal data. To submit a deletion request, email <a href="mailto:privacy@axiomtraining.io" className="text-primary hover:underline">privacy@axiomtraining.io</a> with the subject "Data Deletion Request." We will process your request within 30 days. Note that we may retain certain data as required by law (e.g., billing records).</li>
+              <li><strong>Deletion:</strong> Request deletion of your account and all associated personal data. To submit a deletion request, email <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> with the subject "Data Deletion Request." We will process your request within 30 days. Note that we may retain certain data as required by law (e.g., billing records).</li>
               <li><strong>Portability:</strong> Request an export of your data in a machine-readable format.</li>
               <li><strong>Opt-out of marketing:</strong> Unsubscribe from non-transactional emails via the link in any email, or by contacting us.</li>
               <li><strong>Push notifications:</strong> Disable push notifications at any time in your device settings.</li>
@@ -133,7 +133,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">9. Children's Privacy</h2>
             <p>
-              The Service is not directed to or intended for use by individuals under the age of 18. We do not knowingly collect personal information from children under 18. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at <a href="mailto:privacy@axiomtraining.io" className="text-primary hover:underline">privacy@axiomtraining.io</a> and we will delete such information promptly.
+              The Service is not directed to or intended for use by individuals under the age of 18. We do not knowingly collect personal information from children under 18. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> and we will delete such information promptly.
             </p>
           </section>
 
@@ -168,7 +168,7 @@ export default function Privacy() {
             </p>
             <p className="mt-2">
               <strong>Email:</strong>{" "}
-              <a href="mailto:privacy@axiomtraining.io" className="text-primary hover:underline">privacy@axiomtraining.io</a>
+              <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>
             </p>
             <p className="mt-1">
               We aim to respond to all legitimate privacy inquiries within 30 days.

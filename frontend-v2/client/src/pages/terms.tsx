@@ -112,7 +112,7 @@ export default function Terms() {
               You must be at least 18 years of age and legally capable of entering into a binding contract to use the Service. By using the Service, you represent and warrant that you meet these requirements. If you are using the Service on behalf of an organization, you represent that you have authority to bind that organization.
             </p>
             <p className="mt-2">
-              You are responsible for: (a) providing accurate, current, and complete registration information; (b) maintaining the confidentiality of your account credentials; (c) all activity that occurs under your account; and (d) notifying us immediately of any unauthorized use of your account at <a href="mailto:support@axiomtraining.io" className="text-primary hover:underline">support@axiomtraining.io</a>.
+              You are responsible for: (a) providing accurate, current, and complete registration information; (b) maintaining the confidentiality of your account credentials; (c) all activity that occurs under your account; and (d) notifying us immediately of any unauthorized use of your account at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>.
             </p>
             <p className="mt-2">
               <strong>Usernames:</strong> You may set a unique username for your account. Usernames must be 3–30 characters, contain only letters, numbers, or underscores, and must not impersonate another person, be offensive, or violate third-party rights. We reserve the right to reclaim or modify usernames that violate these rules.
@@ -180,7 +180,7 @@ export default function Terms() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">12. Account Deletion</h2>
             <p>
-              You may delete your account at any time by contacting us at <a href="mailto:support@axiomtraining.io" className="text-primary hover:underline">support@axiomtraining.io</a> with the subject "Account Deletion Request." Upon deletion, your personal data will be removed from our active systems within 30 days, subject to our data retention obligations (see Privacy Policy). Cancellation of your account does not automatically cancel your active subscription — you must cancel your subscription separately through the billing portal to stop future charges.
+              You may delete your account at any time by contacting us at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> with the subject "Account Deletion Request." Upon deletion, your personal data will be removed from our active systems within 30 days, subject to our data retention obligations (see Privacy Policy). Cancellation of your account does not automatically cancel your active subscription — you must cancel your subscription separately through the billing portal to stop future charges.
             </p>
           </section>
 
@@ -211,7 +211,7 @@ export default function Terms() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">16. DMCA and Copyright Infringement</h2>
             <p>
-              We respect intellectual property rights. If you believe any content on the Service infringes your copyright, please send a notice to <a href="mailto:legal@axiomtraining.io" className="text-primary hover:underline">legal@axiomtraining.io</a> containing: (a) a description of the copyrighted work; (b) identification of the infringing content and its location on the Service; (c) your contact information; (d) a statement of good faith belief; and (e) a statement under penalty of perjury that you are the copyright owner or authorized to act on their behalf.
+              We respect intellectual property rights. If you believe any content on the Service infringes your copyright, please send a notice to <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> containing: (a) a description of the copyrighted work; (b) identification of the infringing content and its location on the Service; (c) your contact information; (d) a statement of good faith belief; and (e) a statement under penalty of perjury that you are the copyright owner or authorized to act on their behalf.
             </p>
           </section>
 
@@ -234,7 +234,7 @@ export default function Terms() {
               <strong>Exception:</strong> Either party may seek injunctive or other equitable relief in a court of competent jurisdiction for claims involving intellectual property, unauthorized access, or where immediate relief is necessary to prevent irreparable harm.
             </p>
             <p className="mt-2">
-              <strong>Opt-out:</strong> You may opt out of this arbitration agreement by sending written notice to <a href="mailto:legal@axiomtraining.io" className="text-primary hover:underline">legal@axiomtraining.io</a> within 30 days of first accepting these Terms. Your notice must include your name, email, and a clear statement that you are opting out of arbitration.
+              <strong>Opt-out:</strong> You may opt out of this arbitration agreement by sending written notice to <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> within 30 days of first accepting these Terms. Your notice must include your name, email, and a clear statement that you are opting out of arbitration.
             </p>
             <p className="mt-2">
               The arbitration shall be conducted in English. The arbitrator's decision will be final and binding and may be entered as a judgment in any court of competent jurisdiction.
@@ -287,7 +287,7 @@ export default function Terms() {
             <p>For questions about these Terms, contact us at:</p>
             <p className="mt-2">
               <strong>Email:</strong>{" "}
-              <a href="mailto:legal@axiomtraining.io" className="text-primary hover:underline">legal@axiomtraining.io</a>
+              <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>
             </p>
           </section>
         </div>
