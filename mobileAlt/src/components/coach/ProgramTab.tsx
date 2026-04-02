@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
   Modal,
   ActivityIndicator,
   StyleSheet,
+  Linking,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -20,10 +21,13 @@ interface ProgramTabProps {
   coachData: any;
 }
 
+
 export function ProgramTab({ coachData }: ProgramTabProps) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(0);
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
+  const [videoError, setVideoError] = useState(false);
+  useEffect(() => { setVideoError(false); }, [videoModal]);
 
   async function openVideo(exerciseName: string) {
     setLoadingVideo(exerciseName);
@@ -230,16 +234,25 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
             </TouchableOpacity>
           </View>
           {videoModal && (
-            <WebView
-              style={styles.webview}
-              source={{ uri: `https://www.youtube.com/embed/${videoModal.videoId}?autoplay=1&playsinline=1` }}
-              allowsFullscreenVideo
-              allowsInlineMediaPlayback
-              mediaPlaybackRequiresUserAction={false}
-              javaScriptEnabled
-              originWhitelist={['*']}
-              domStorageEnabled
-            />
+            videoError ? (
+              <TouchableOpacity
+                style={[styles.webview, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }]}
+                activeOpacity={0.8}
+                onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoModal.videoId}`)}
+              >
+                <Ionicons name="logo-youtube" size={40} color="#FF0000" />
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>
+                <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
+              </TouchableOpacity>
+            ) : (
+              <YoutubeIframe
+                height={220}
+                videoId={videoModal.videoId}
+                play
+                onError={() => setVideoError(true)}
+                webViewProps={{ allowsFullscreenVideo: true }}
+              />
+            )
           )}
         </View>
       </View>

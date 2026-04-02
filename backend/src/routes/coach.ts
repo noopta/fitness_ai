@@ -410,7 +410,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     res.flushHeaders();
 
     const stream = await openai.chat.completions.create({
-      model: 'gpt-5.4-nano',
+      model: 'gpt-4.1-mini',
       messages,
       stream: true,
       max_completion_tokens: 800,
@@ -1419,35 +1419,48 @@ router.get('/strength-profile', requireAuth, async (req, res) => {
 
 router.get('/coach/welcome', requireAuth, async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      include: {
-        sessions: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    const userId = req.user!.id;
+    const now = new Date();
+    const sevenDaysAgoStr = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const [user, recentWorkouts] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          sessions: { orderBy: { createdAt: 'desc' }, take: 1,
+            include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } } },
         },
-      },
-    });
+      }),
+      prisma.workoutLog.findMany({
+        where: { userId, date: { gte: sevenDaysAgoStr } },
+        select: { id: true },
+      }),
+    ]);
+
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
+    const cachedDate = profile.welcomeMessageDate ? new Date(profile.welcomeMessageDate) : null;
+    const cacheAgeHours = cachedDate ? (now.getTime() - cachedDate.getTime()) / 3600000 : Infinity;
 
-    // Return cached message if already generated
-    if (profile.welcomeMessage) return res.json({ message: profile.welcomeMessage });
+    if (profile.welcomeMessage && cacheAgeHours < 6) {
+      return res.json({ message: profile.welcomeMessage });
+    }
 
-    // Generate fresh message
     const latestPlan = user.sessions[0]?.plans[0]
-      ? JSON.parse(user.sessions[0].plans[0].planJson)
-      : null;
+      ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
     const primaryLimiter = latestPlan?.diagnosis?.[0]?.limiterName ?? null;
     const selectedLift = user.sessions[0]?.selectedLift ?? null;
 
     let phaseName: string | null = null;
+    let currentWeek: number | null = null;
     if (user.savedProgram) {
       try {
         const prog = JSON.parse(user.savedProgram);
         phaseName = prog.phases?.[0]?.phaseName ?? null;
+        if (user.programStartDate) {
+          currentWeek = Math.floor((now.getTime() - new Date(user.programStartDate).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        }
       } catch { /* ignore */ }
     }
 
@@ -1458,12 +1471,14 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
       primaryLimiter,
       selectedLift,
       phaseName,
+      currentStreak: user.currentStreak,
+      recentWorkoutCount: recentWorkouts.length,
+      currentWeek,
     });
 
-    // Persist so future calls are instant
     await prisma.user.update({
-      where: { id: req.user!.id },
-      data: { coachProfile: JSON.stringify({ ...profile, welcomeMessage: message }) },
+      where: { id: userId },
+      data: { coachProfile: JSON.stringify({ ...profile, welcomeMessage: message, welcomeMessageDate: now.toISOString() }) },
     });
 
     res.json({ message });

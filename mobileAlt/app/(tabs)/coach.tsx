@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../src/context/AuthContext';
-import { coachApi } from '../../src/lib/api';
+import { coachApi, authApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { UpgradePrompt } from '../../src/components/UpgradePrompt';
-import { CoachOnboarding } from '../../src/components/coach/CoachOnboarding';
+import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
 import { ProgramSetup } from '../../src/components/coach/ProgramSetup';
 import { ProgramWalkthrough } from '../../src/components/coach/ProgramWalkthrough';
 import { OverviewTab } from '../../src/components/coach/OverviewTab';
@@ -32,10 +33,20 @@ export default function CoachScreen() {
   const [stage, setStage] = useState<Stage>('loading');
   const [activeTab, setActiveTab] = useState<TabId>('Overview');
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
+  const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
+  const [refreshingTier, setRefreshingTier] = useState(false);
 
   useEffect(() => {
     initCoach();
-  }, [user]);
+  }, [user?.id]);
+
+  // When the tab comes back into focus (e.g. user returns from Stripe), refresh
+  // the user object so a new pro subscription is detected immediately.
+  useFocusEffect(useCallback(() => {
+    if (user && (user.tier !== 'pro' && user.tier !== 'enterprise')) {
+      refreshUser().catch(() => {});
+    }
+  }, [user?.tier]));
 
   async function initCoach() {
     if (!user) {
@@ -59,35 +70,32 @@ export default function CoachScreen() {
 
       let resolvedProgram: any = null;
 
-      if (programResult) {
-        let prog = programResult?.program ?? programResult?.savedProgram ?? programResult;
+      // A program is only valid if it has a phases array with at least one entry.
+      function extractProgram(raw: any): any | null {
+        if (!raw) return null;
+        // Unwrap response envelopes like { program: ... } or { savedProgram: ... }
+        let prog: any;
+        if (typeof raw === 'object' && 'program' in raw) {
+          prog = raw.program;
+        } else if (typeof raw === 'object' && 'savedProgram' in raw) {
+          prog = raw.savedProgram;
+        } else {
+          prog = raw;
+        }
         if (typeof prog === 'string') {
-          try { prog = JSON.parse(prog); } catch { prog = null; }
+          try { prog = JSON.parse(prog); } catch { return null; }
         }
-        if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
-          resolvedProgram = prog;
+        // Require a real program structure
+        if (prog && typeof prog === 'object' && Array.isArray(prog.phases) && prog.phases.length > 0) {
+          return prog;
         }
+        return null;
       }
 
-      if (!resolvedProgram && user.savedProgram) {
-        let parsed = user.savedProgram;
-        if (typeof parsed === 'string') {
-          try { parsed = JSON.parse(parsed); } catch { parsed = null; }
-        }
-        if (parsed && typeof parsed === 'object') {
-          resolvedProgram = parsed;
-        }
-      }
-
-      if (!resolvedProgram && data?.savedProgram) {
-        let parsed = data.savedProgram;
-        if (typeof parsed === 'string') {
-          try { parsed = JSON.parse(parsed); } catch { parsed = null; }
-        }
-        if (parsed && typeof parsed === 'object') {
-          resolvedProgram = parsed;
-        }
-      }
+      resolvedProgram = extractProgram(programResult)
+        ?? extractProgram(user.savedProgram)
+        ?? extractProgram(data?.savedProgram)
+        ?? null;
 
       setCoachData({ ...data, savedProgram: resolvedProgram });
 
@@ -108,14 +116,34 @@ export default function CoachScreen() {
     }
   }
 
-  async function handleOnboardingComplete(profile: any) {
+  async function handleOnboardingComplete(profile: OnboardingProfile) {
     try {
-      // Update user profile (mark onboarding done on backend)
-      // The backend should set coachOnboardingDone = true
+      const heightFt = parseFloat(profile.heightFt) || 0;
+      const heightIn = parseFloat(profile.heightIn) || 0;
+      const heightCm = heightFt > 0 ? (heightFt * 12 + heightIn) * 2.54 : undefined;
+      const weightKg = profile.weightLbs ? parseFloat(profile.weightLbs) * 0.453592 : undefined;
+
+      await authApi.updateProfile({
+        coachOnboardingDone: true,
+        coachGoal: profile.primaryGoal || undefined,
+        trainingAge: profile.trainingAge || undefined,
+        equipment: profile.equipment || undefined,
+        heightCm: heightCm || undefined,
+        weightKg: weightKg || undefined,
+        constraintsText: profile.injuries || undefined,
+        coachBudget: profile.weeklyBudget || undefined,
+        coachProfile: JSON.stringify({
+          ...profile,
+          trainingPreference: profile.trainingStyle,
+          frequency: profile.daysPerWeek,
+          experience: profile.trainingAge,
+        }),
+      });
       await refreshUser();
     } catch {
-      // Continue even if refresh fails
+      // Continue even if save fails
     }
+    setSetupReturnStage('onboarding');
     setStage('setup');
   }
 
@@ -126,16 +154,16 @@ export default function CoachScreen() {
         coachApi.getProgram(),
       ]);
 
-      let resolvedProgram: any = null;
-      if (programResult) {
-        let prog = programResult?.program ?? programResult?.savedProgram ?? programResult;
-        if (typeof prog === 'string') {
-          try { prog = JSON.parse(prog); } catch { prog = null; }
-        }
-        if (prog && typeof prog === 'object' && Object.keys(prog).length > 0) {
-          resolvedProgram = prog;
-        }
+      function extractProgram(raw: any): any | null {
+        if (!raw) return null;
+        let prog: any;
+        if (typeof raw === 'object' && 'program' in raw) prog = raw.program;
+        else if (typeof raw === 'object' && 'savedProgram' in raw) prog = raw.savedProgram;
+        else prog = raw;
+        if (typeof prog === 'string') { try { prog = JSON.parse(prog); } catch { return null; } }
+        return (prog && typeof prog === 'object' && Array.isArray(prog.phases) && prog.phases.length > 0) ? prog : null;
       }
+      const resolvedProgram = extractProgram(programResult) ?? null;
 
       setCoachData({ ...data, savedProgram: resolvedProgram });
       await refreshUser();
@@ -171,6 +199,21 @@ export default function CoachScreen() {
             userId={user?.id}
             reason="AI Coach requires a Pro subscription. Get personalized programming, nutrition, and 1-on-1 coaching from Anakin."
           />
+          <TouchableOpacity
+            style={styles.alreadyUpgradedBtn}
+            activeOpacity={0.7}
+            disabled={refreshingTier}
+            onPress={async () => {
+              setRefreshingTier(true);
+              try { await refreshUser(); } catch {}
+              setRefreshingTier(false);
+            }}
+          >
+            {refreshingTier
+              ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+              : <Text style={styles.alreadyUpgradedText}>Already upgraded? Tap to refresh</Text>
+            }
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     );
@@ -200,7 +243,7 @@ export default function CoachScreen() {
             setGeneratedProgram(prog);
             setStage('walkthrough');
           }}
-          onBack={() => setStage('onboarding')}
+          onBack={() => setStage(setupReturnStage)}
         />
       </SafeAreaView>
     );
@@ -235,6 +278,13 @@ export default function CoachScreen() {
           <Text style={styles.headerTitle}>Anakin</Text>
           <Text style={styles.headerSubtitle}>AI Strength Coach</Text>
         </View>
+        <TouchableOpacity
+          onPress={() => { setSetupReturnStage('dashboard'); setStage('setup'); }}
+          style={styles.newProgramBtn}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.newProgramBtnText}>New Program</Text>
+        </TouchableOpacity>
         <View style={styles.onlineDot} />
       </View>
 
@@ -325,6 +375,16 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.mutedForeground,
   },
+  alreadyUpgradedBtn: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+  },
+  alreadyUpgradedText: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textDecorationLine: 'underline',
+  },
 
   // Stage header (onboarding / setup / walkthrough)
   stageHeader: {
@@ -386,6 +446,19 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: radius.full,
     backgroundColor: colors.success,
+  },
+  newProgramBtn: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.muted,
+  },
+  newProgramBtnText: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    fontWeight: fontWeight.medium,
   },
 
   // Tab bar

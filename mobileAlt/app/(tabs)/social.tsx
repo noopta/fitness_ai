@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
-  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator,
+  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constan
 interface FeedItem {
   id: string;
   sharerId: string;
-  sharerName: string;
+  sharer: { id: string; name: string | null; email: string | null } | null;
   itemType: string;
   payload: any;
   createdAt: string;
@@ -76,10 +77,10 @@ function FeedCard({ item }: { item: FeedItem }) {
     <View style={styles.card}>
       <View style={styles.cardRow}>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{(item.sharerName ?? '?')[0].toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{(item.sharer?.name ?? item.sharer?.email ?? '?')[0].toUpperCase()}</Text>
         </View>
         <View style={styles.cardContent}>
-          <Text style={styles.cardName}>{item.sharerName ?? 'Unknown'}</Text>
+          <Text style={styles.cardName}>{item.sharer?.name ?? item.sharer?.email ?? 'Unknown'}</Text>
           {description ? (
             <Text style={styles.cardSub}>{description}</Text>
           ) : null}
@@ -147,6 +148,7 @@ interface NewPostModalProps {
 
 function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(400)).current;
 
   const [postTab, setPostTab] = useState<PostTab>('text');
@@ -205,7 +207,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       setSubmitting(true);
       try {
         await socialApi.shareItem({
-          recipientId: '',
           itemType: 'text',
           payload: { text: textContent.trim() },
         });
@@ -225,7 +226,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       setSubmitting(true);
       try {
         await socialApi.shareItem({
-          recipientId: '',
           itemType: 'media',
           payload: { imageBase64 },
         });
@@ -245,7 +245,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       setSubmitting(true);
       try {
         await socialApi.shareItem({
-          recipientId: '',
           itemType: 'media',
           payload: { videoUrl: videoUrl.trim() },
         });
@@ -268,8 +267,12 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       onRequestClose={onClose}
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+          keyboardVerticalOffset={0}
+        >
         <Animated.View
-          style={[styles.modalSheet, { transform: [{ translateY: slideAnim }] }]}
+          style={[styles.modalSheet, { transform: [{ translateY: slideAnim }], paddingBottom: Math.max(spacing.lg, insets.bottom) }]}
         >
           {/* Tap blocker — prevents overlay dismiss inside the sheet */}
           <Pressable onPress={() => {}}>
@@ -414,6 +417,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
             </View>
           </Pressable>
         </Animated.View>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   );
@@ -609,6 +613,9 @@ export default function SocialScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 380;
+
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
 
@@ -616,7 +623,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -664,7 +671,7 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: fontSize.xs, color: '#fff', fontWeight: fontWeight.bold },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+  scrollContent: { padding: isSmallScreen ? spacing.md : spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
 
   // New Post button
   newPostButton: {
@@ -687,10 +694,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
-    padding: spacing.md,
+    padding: isSmallScreen ? spacing.sm : spacing.md,
     backgroundColor: colors.card,
   },
-  cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: isSmallScreen ? spacing.xs : spacing.sm },
   avatarCircle: {
     width: 40,
     height: 40,
@@ -701,7 +708,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   cardContent: { flex: 1 },
-  cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },
   cardSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
   timeText: { fontSize: fontSize.xs, color: colors.mutedForeground },
 
@@ -794,7 +801,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    paddingBottom: spacing.xxl,
     // Prevent dismiss tap propagation
   },
   modalHeader: {

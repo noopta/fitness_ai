@@ -10,8 +10,9 @@ import {
   Dimensions,
   ActivityIndicator,
   Animated,
+  Linking,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -94,6 +95,7 @@ function DayWorkoutSheet({
 }) {
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
+  const [sheetVideoError, setSheetVideoError] = useState(false);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -181,18 +183,29 @@ function DayWorkoutSheet({
                   <View style={sheet.videoWrap}>
                     <View style={sheet.videoHeader}>
                       <Text style={sheet.videoTitle} numberOfLines={1}>{sheetVideo.title}</Text>
-                      <TouchableOpacity onPress={() => setSheetVideo(null)} style={sheet.videoClose}>
+                      <TouchableOpacity onPress={() => { setSheetVideoError(false); setSheetVideo(null); }} style={sheet.videoClose}>
                         <Ionicons name="close-circle" size={20} color={colors.mutedForeground} />
                       </TouchableOpacity>
                     </View>
-                    <WebView
-                      style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#000' }}
-                      source={{ uri: buildVideoUri(sheetVideo.videoId) }}
-                      allowsFullscreenVideo
-                      mediaPlaybackRequiresUserAction={false}
-                      javaScriptEnabled
-                      domStorageEnabled
-                    />
+                    {sheetVideoError ? (
+                      <TouchableOpacity
+                        style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                        activeOpacity={0.8}
+                        onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${sheetVideo!.videoId}`)}
+                      >
+                        <Ionicons name="logo-youtube" size={40} color="#FF0000" />
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>
+                        <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <YoutubeIframe
+                        height={SHEET_VIDEO_HEIGHT}
+                        videoId={sheetVideo!.videoId.startsWith('search:') ? '' : sheetVideo!.videoId}
+                        play
+                        onError={() => setSheetVideoError(true)}
+                        webViewProps={{ allowsFullscreenVideo: true }}
+                      />
+                    )}
                   </View>
                 )}
               </>
@@ -296,6 +309,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   const [dayLogData, setDayLogData] = useState<{ exercises: Exercise[]; date: string; title?: string } | null>(null);
   const [loadingVideoEx, setLoadingVideoEx] = useState<string | null>(null);
   const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
+  const [modalVideoError, setModalVideoError] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -370,6 +384,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   function handleWorkoutSaved() {
     setWorkoutSaved(true);
     setTimeout(() => setWorkoutSaved(false), 3000);
+    loadData();
+    onRefresh?.();
   }
 
   if (loading) {
@@ -722,28 +738,38 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
         visible={!!videoModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setVideoModal(null)}
+        onRequestClose={() => { setModalVideoError(false); setVideoModal(null); }}
       >
         <View style={videoStyles.backdrop}>
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setVideoModal(null)} />
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => { setModalVideoError(false); setVideoModal(null); }} />
           <View style={videoStyles.sheet}>
             <View style={videoStyles.handle} />
             <View style={videoStyles.header}>
               <Text style={videoStyles.title} numberOfLines={1}>{videoModal?.title ?? ''}</Text>
-              <TouchableOpacity onPress={() => setVideoModal(null)} style={videoStyles.closeBtn}>
+              <TouchableOpacity onPress={() => { setModalVideoError(false); setVideoModal(null); }} style={videoStyles.closeBtn}>
                 <Ionicons name="close" size={20} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
             {videoModal && (
-              <WebView
-                style={videoStyles.webview}
-                source={{ uri: buildVideoUri(videoModal.videoId) }}
-                allowsFullscreenVideo
-                allowsInlineMediaPlayback
-                mediaPlaybackRequiresUserAction={false}
-                javaScriptEnabled
-                domStorageEnabled
-              />
+              modalVideoError ? (
+                <TouchableOpacity
+                  style={[videoStyles.webview, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }]}
+                  activeOpacity={0.8}
+                  onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoModal.videoId}`)}
+                >
+                  <Ionicons name="logo-youtube" size={40} color="#FF0000" />
+                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>
+                  <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
+                </TouchableOpacity>
+              ) : (
+                <YoutubeIframe
+                  height={VIDEO_HEIGHT}
+                  videoId={videoModal.videoId.startsWith('search:') ? '' : videoModal.videoId}
+                  play
+                  onError={() => setModalVideoError(true)}
+                  webViewProps={{ allowsFullscreenVideo: true }}
+                />
+              )
             )}
           </View>
         </View>
@@ -754,14 +780,6 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function buildVideoUri(videoId: string): string {
-  if (videoId.startsWith('search:')) {
-    const query = encodeURIComponent(videoId.slice(7));
-    return `https://www.youtube.com/results?search_query=${query}`;
-  }
-  // Use nocookie embed URL — avoids login/consent walls in WebView
-  return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`;
-}
 
 async function openExerciseVideo(
   exerciseName: string,

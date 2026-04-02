@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
@@ -21,6 +21,7 @@ export default function ConversationScreen() {
   const router = useRouter();
   const { id: conversationId, name: otherName } = useLocalSearchParams<{ id: string; name: string }>();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,9 +32,9 @@ export default function ConversationScreen() {
   const lastIdRef = useRef<string | undefined>(undefined);
 
   const scrollToBottom = useCallback((animated = true) => {
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated });
-    }, 100);
+    // First attempt fast, second attempt after layout settles
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated }), 50);
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated }), 200);
   }, []);
 
   const loadMessages = useCallback(async () => {
@@ -157,6 +158,7 @@ export default function ConversationScreen() {
             contentContainerStyle={styles.messageList}
             showsVerticalScrollIndicator={false}
             onLayout={() => scrollToBottom(false)}
+            onContentSizeChange={() => scrollToBottom(true)}
             ListEmptyComponent={
               <View style={styles.emptyChat}>
                 <Text style={styles.mutedText}>No messages yet. Say hello!</Text>
@@ -166,7 +168,7 @@ export default function ConversationScreen() {
         )}
 
         {/* Input bar */}
-        <View style={styles.inputBar}>
+        <View style={[styles.inputBar, { paddingBottom: Math.max(spacing.sm, insets.bottom) }]}>
           <TextInput
             style={styles.input}
             placeholder="Type a message…"

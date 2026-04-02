@@ -98,10 +98,23 @@ export const authApi = {
     heightCm?: number;
     weightKg?: number;
     constraintsText?: string;
+    coachGoal?: string;
+    coachBudget?: string;
+    coachOnboardingDone?: boolean;
+    coachProfile?: string;
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),
 
   registerPushToken: (token: string) =>
     apiFetch('/auth/push-token', { method: 'PUT', body: JSON.stringify({ token }) }),
+
+  checkUsername: (username: string) =>
+    apiFetch(`/auth/check-username?username=${encodeURIComponent(username)}`),
+
+  setUsername: (username: string) =>
+    apiFetch('/auth/username', { method: 'PUT', body: JSON.stringify({ username }) }),
+
+  setAvatar: (avatarBase64: string) =>
+    apiFetch('/auth/avatar', { method: 'PUT', body: JSON.stringify({ avatarBase64 }) }),
 };
 
 // ─── Lift Coach API ───────────────────────────────────────────────────────────
@@ -348,7 +361,7 @@ export const socialApi = {
     apiFetch(`/social/conversations/${conversationId}/poll${after ? `?after=${after}` : ''}`),
 
   // Sharing
-  shareItem: (data: { recipientId: string; itemType: string; itemId?: string; payload: object }) =>
+  shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
 
