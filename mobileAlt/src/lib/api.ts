@@ -99,6 +99,7 @@ export const authApi = {
     weightKg?: number;
     constraintsText?: string;
     coachGoal?: string;
+    coachBudget?: string;
     coachOnboardingDone?: boolean;
     coachProfile?: string;
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),

@@ -7,7 +7,7 @@ import { coachApi, authApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { UpgradePrompt } from '../../src/components/UpgradePrompt';
-import { CoachOnboarding } from '../../src/components/coach/CoachOnboarding';
+import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
 import { ProgramSetup } from '../../src/components/coach/ProgramSetup';
 import { ProgramWalkthrough } from '../../src/components/coach/ProgramWalkthrough';
 import { OverviewTab } from '../../src/components/coach/OverviewTab';
@@ -118,24 +118,32 @@ export default function CoachScreen() {
     }
   }
 
-  async function handleOnboardingComplete(profile: any) {
+  async function handleOnboardingComplete(profile: OnboardingProfile) {
     try {
-      // Save onboarding data and mark done — must happen before refreshUser()
-      // so that initCoach() sees coachOnboardingDone: true on re-trigger.
+      const heightFt = parseFloat(profile.heightFt) || 0;
+      const heightIn = parseFloat(profile.heightIn) || 0;
+      const heightCm = heightFt > 0 ? (heightFt * 12 + heightIn) * 2.54 : undefined;
+      const weightKg = profile.weightLbs ? parseFloat(profile.weightLbs) * 0.453592 : undefined;
+
       await authApi.updateProfile({
         coachOnboardingDone: true,
-        coachGoal: profile.goal,
-        trainingAge: profile.experience,
-        constraintsText: profile.injuries && profile.injuries !== 'None' ? profile.injuries : undefined,
+        coachGoal: profile.primaryGoal || undefined,
+        trainingAge: profile.trainingAge || undefined,
+        equipment: profile.equipment || undefined,
+        heightCm: heightCm || undefined,
+        weightKg: weightKg || undefined,
+        constraintsText: profile.injuries || undefined,
+        coachBudget: profile.weeklyBudget || undefined,
         coachProfile: JSON.stringify({
-          trainingPreference: profile.goal,
-          frequency: profile.frequency,
-          experience: profile.experience,
+          ...profile,
+          trainingPreference: profile.trainingStyle,
+          frequency: profile.daysPerWeek,
+          experience: profile.trainingAge,
         }),
       });
       await refreshUser();
     } catch {
-      // Continue even if save fails — set flag locally so initCoach doesn't loop
+      // Continue even if save fails
     }
     setStage('setup');
   }
