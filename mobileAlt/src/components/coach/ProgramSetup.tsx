@@ -5,6 +5,8 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -89,10 +91,15 @@ export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.heading}>Configure Your Program</Text>
       <Text style={styles.subheading}>
@@ -178,10 +185,14 @@ export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
         </Button>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,

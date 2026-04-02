@@ -6,6 +6,8 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -107,6 +109,10 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -217,10 +223,14 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
         </Button>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
