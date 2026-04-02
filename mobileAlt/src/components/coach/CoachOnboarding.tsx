@@ -417,7 +417,11 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
   const progress = step / TOTAL_STEPS;
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={s.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
       {/* Progress bar */}
       <View style={s.progressWrap}>
         <View style={s.progressBg}>
@@ -430,6 +434,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
         style={s.container}
         contentContainerStyle={s.content}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
         {/* ── Step 1: Goals & Motivation ──────────────────────────────────── */}
@@ -855,7 +860,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
 const s = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, paddingBottom: 40 },
+  content: { padding: spacing.md, paddingBottom: 120 },
   stepWrap: { gap: spacing.md },
 
   // Progress
