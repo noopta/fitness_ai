@@ -37,7 +37,7 @@ export default function CoachScreen() {
 
   useEffect(() => {
     initCoach();
-  }, [user]);
+  }, [user?.id]);
 
   // When the tab comes back into focus (e.g. user returns from Stripe), refresh
   // the user object so a new pro subscription is detected immediately.
