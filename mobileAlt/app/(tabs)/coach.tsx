@@ -102,10 +102,11 @@ export default function CoachScreen() {
       const hasOnboarding = user.coachOnboardingDone;
       const hasProgram = !!(resolvedProgram);
 
-      if (!hasOnboarding) {
+      if (!hasProgram) {
+        // Always start from onboarding if no saved program — whether the user
+        // is brand new, completed onboarding but never saved a program, or
+        // generated a program but pressed Back instead of Save.
         setStage('onboarding');
-      } else if (!hasProgram) {
-        setStage('setup');
       } else {
         setStage('dashboard');
       }
