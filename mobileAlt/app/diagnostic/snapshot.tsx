@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { liftCoachApi } from '../../src/lib/api';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
@@ -248,7 +249,8 @@ export default function SnapshotScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ title: 'Log Exercises', headerShown: true }} />
+      <Stack.Screen options={{ title: 'Log Exercises' }} />
+      <KeyboardDoneBar />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -316,6 +318,8 @@ export default function SnapshotScreen() {
                     value={row.weight}
                     onChangeText={(v) => updateRow(row.id, 'weight', v)}
                     keyboardType="numeric"
+                    returnKeyType="done"
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
                     containerStyle={styles.smallInput}
                     style={styles.smallInputField}
                   />
@@ -325,6 +329,8 @@ export default function SnapshotScreen() {
                     value={row.sets}
                     onChangeText={(v) => updateRow(row.id, 'sets', v)}
                     keyboardType="numeric"
+                    returnKeyType="done"
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
                     containerStyle={styles.smallInput}
                     style={styles.smallInputField}
                   />
@@ -334,6 +340,8 @@ export default function SnapshotScreen() {
                     value={row.reps}
                     onChangeText={(v) => updateRow(row.id, 'reps', v)}
                     keyboardType="numeric"
+                    returnKeyType="done"
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
                     containerStyle={styles.smallInput}
                     style={styles.smallInputField}
                   />
@@ -343,6 +351,8 @@ export default function SnapshotScreen() {
                     value={row.rpe}
                     onChangeText={(v) => updateRow(row.id, 'rpe', v)}
                     keyboardType="numeric"
+                    returnKeyType="done"
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
                     containerStyle={styles.smallInput}
                     style={styles.smallInputField}
                   />

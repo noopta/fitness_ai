@@ -12,6 +12,7 @@ import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi, authApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 export default function SettingsScreen() {
@@ -19,6 +20,7 @@ export default function SettingsScreen() {
   const auth = useAuth();
   const { user } = auth;
   const [portalLoading, setPortalLoading] = useState(false);
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
   const { unit, toggleUnit } = useUnits();
 
@@ -111,9 +113,13 @@ export default function SettingsScreen() {
   }
 
   function handleUpgrade() {
-    Linking.openURL(`https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00?client_reference_id=${user?.id ?? ''}`).catch(() => {
-      Alert.alert('Error', 'Could not open upgrade page.');
-    });
+    setUpgradeVisible(true);
+  }
+
+  async function handleUpgradeSuccess() {
+    setUpgradeVisible(false);
+    await auth.refreshUser();
+    Alert.alert('Welcome to Pro!', 'Your account has been upgraded. Enjoy unlimited access.');
   }
 
   function handleSignOut() {
@@ -332,6 +338,12 @@ export default function SettingsScreen() {
         </View>
         <Text style={styles.versionText}>Axiom v1.0.0 · AI-powered strength training</Text>
       </ScrollView>
+
+      <UpgradeSheet
+        visible={upgradeVisible}
+        onClose={() => setUpgradeVisible(false)}
+        onSuccess={handleUpgradeSuccess}
+      />
     </SafeAreaView>
   );
 }

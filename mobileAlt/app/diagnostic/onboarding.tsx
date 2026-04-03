@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { liftCoachApi, authApi } from '../../src/lib/api';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { Card } from '../../src/components/ui/Card';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 import { useAuth } from '../../src/context/AuthContext';
@@ -161,7 +162,8 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ title: 'New Analysis', headerBackVisible: true, headerShown: true }} />
+      <Stack.Screen options={{ title: 'New Analysis' }} />
+      <KeyboardDoneBar />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -214,6 +216,8 @@ export default function OnboardingScreen() {
               value={currentWeight}
               onChangeText={setCurrentWeight}
               keyboardType="numeric"
+              returnKeyType="done"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
               containerStyle={styles.perfInput}
             />
             <Input
@@ -222,6 +226,8 @@ export default function OnboardingScreen() {
               value={currentSets}
               onChangeText={setCurrentSets}
               keyboardType="numeric"
+              returnKeyType="done"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
               containerStyle={styles.perfInput}
             />
             <Input
@@ -230,6 +236,8 @@ export default function OnboardingScreen() {
               value={currentReps}
               onChangeText={setCurrentReps}
               keyboardType="numeric"
+              returnKeyType="done"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
               containerStyle={styles.perfInput}
             />
           </View>
@@ -304,6 +312,8 @@ export default function OnboardingScreen() {
               value={heightFt}
               onChangeText={setHeightFt}
               keyboardType="numeric"
+              returnKeyType="done"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
               containerStyle={styles.heightInput}
               label="ft"
             />
@@ -312,6 +322,8 @@ export default function OnboardingScreen() {
               value={heightIn}
               onChangeText={setHeightIn}
               keyboardType="numeric"
+              returnKeyType="done"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
               containerStyle={styles.heightInput}
               label="in"
             />
@@ -324,6 +336,8 @@ export default function OnboardingScreen() {
             value={weightLbs}
             onChangeText={setWeightLbs}
             keyboardType="numeric"
+            returnKeyType="done"
+            inputAccessoryViewID={KEYBOARD_DONE_ID}
             containerStyle={{ marginTop: spacing.md }}
           />
 
@@ -335,6 +349,8 @@ export default function OnboardingScreen() {
             onChangeText={setConstraints}
             multiline
             numberOfLines={3}
+            returnKeyType="done"
+            inputAccessoryViewID={KEYBOARD_DONE_ID}
             style={styles.textArea}
             containerStyle={{ marginTop: spacing.md }}
           />

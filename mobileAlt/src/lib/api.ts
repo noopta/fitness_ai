@@ -387,3 +387,15 @@ export const institutionApi = {
     apiFetch(`/institutions/${slug}/athletes/${userId}/message`, { method: 'POST', body: JSON.stringify({ body }) }),
 };
 
+
+
+// ─── Payments API ─────────────────────────────────────────────────────────────
+
+export const paymentsApi = {
+  // Returns Stripe publishable key — safe to expose to clients
+  getConfig: () => apiFetch('/payments/config', {}, false),
+
+  // Creates a subscription and returns a PaymentIntent client_secret
+  createSubscriptionIntent: () =>
+    apiFetch('/payments/create-subscription-intent', { method: 'POST' }),
+};

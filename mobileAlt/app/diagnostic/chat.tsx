@@ -157,7 +157,6 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
         options={{
-          headerShown: true,
           headerTitle: () => (
             <View style={styles.headerTitle}>
               <Text style={styles.headerTitleText}>AI Diagnostic</Text>
