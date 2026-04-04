@@ -219,4 +219,74 @@ router.post('/payments/webhook', async (req, res) => {
   res.json({ received: true });
 });
 
+// GET /api/payments/config — returns publishable key (safe for clients)
+router.get('/payments/config', (_req, res) => {
+  const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
+  if (!publishableKey) {
+    return res.status(500).json({ error: 'Stripe not configured' });
+  }
+  res.json({ publishableKey });
+});
+
+// POST /api/payments/create-subscription-intent
+// Creates (or retrieves) a Stripe Customer, creates a Subscription with
+// payment_behavior: 'default_incomplete', and returns the client_secret of
+// the first invoice's PaymentIntent. The mobile SDK uses this to confirm.
+router.post('/payments/create-subscription-intent', requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { stripeCustomerId: true, email: true, name: true, tier: true },
+    });
+
+    if (user?.tier === 'pro' || user?.tier === 'enterprise') {
+      return res.status(400).json({ error: 'Already subscribed to Pro' });
+    }
+
+    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    if (!priceId) {
+      return res.status(500).json({ error: 'Pro plan price not configured on server' });
+    }
+
+    // Get or create Stripe customer
+    let customerId = user?.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user?.email ?? undefined,
+        name: user?.name ?? undefined,
+        metadata: { userId: req.user!.id },
+      });
+      customerId = customer.id;
+      await prisma.user.update({
+        where: { id: req.user!.id },
+        data: { stripeCustomerId: customerId },
+      });
+    }
+
+    // Create incomplete subscription so we get a PaymentIntent client_secret
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+    });
+
+    const invoice = subscription.latest_invoice as any;
+    const paymentIntent = invoice?.payment_intent as any;
+
+    if (!paymentIntent?.client_secret) {
+      return res.status(500).json({ error: 'Failed to get payment intent from subscription' });
+    }
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      subscriptionId: subscription.id,
+    });
+  } catch (err: any) {
+    console.error('Create subscription intent error:', err);
+    res.status(500).json({ error: err?.message ?? 'Failed to create subscription' });
+  }
+});
+
 export default router;
