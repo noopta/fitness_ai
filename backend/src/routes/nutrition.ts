@@ -5,6 +5,14 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
+import { runNutritionEngine } from '../engine/nutritionEngine.js';
+import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
+import { runNutritionRules } from '../engine/nutritionRulesEngine.js';
+import { buildRAGContext } from '../services/ragService.js';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const LLM_MODEL = 'gpt-5.4-mini-2026-03-17';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -237,26 +245,35 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
 });
 
 // GET /api/nutrition/profile
-// Deep nutrition analysis: aggregates 90 days of meals, workout logs, and
-// wellness check-ins to produce a 6-dimension science-backed profile covering
-// daily life, gym performance, specific lift impact, mental clarity, energy
-// patterns, and recovery.
+// ─────────────────────────────────────────────────────────────────────────────
+// Orchestrator: 4-layer pipeline before any LLM token is generated
+//   1. Load user state (Prisma: demographics, sessions, meals, wellness, workouts)
+//   2. Run deterministic NutritionEngine (TDEE, macros, trends, timing, correlations)
+//   3. Run NutritionRulesEngine (expert flags grounded in sports science citations)
+//   4. RAG retrieval (evidence chunks matched to this user's goal + lift)
+//   5. GPT-5.4-mini-2026-03-17 receives ONLY the pre-computed context and reasons/explains
 router.get('/nutrition/profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const since90 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
+    // ── STEP 1: Load user state in parallel ────────────────────────────────
     const [user, entries, wellnessLogs, workoutLogs, recentSessions] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
-          weightKg: true, heightCm: true, coachGoal: true,
-          trainingAge: true, coachProfile: true,
+          weightKg: true, heightCm: true, dateOfBirth: true,
+          trainingAge: true, bodyCompTag: true, coachGoal: true,
         },
       }),
       prisma.mealEntry.findMany({
         where: { userId, date: { gte: since90 } },
         orderBy: { createdAt: 'asc' },
+        select: {
+          date: true, name: true, mealType: true,
+          calories: true, proteinG: true, carbsG: true, fatG: true,
+          createdAt: true,
+        },
       }),
       prisma.wellnessCheckin.findMany({
         where: { userId, date: { gte: since90 } },
@@ -270,7 +287,10 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
       }),
       prisma.session.findMany({
         where: { userId },
-        select: { selectedLift: true },
+        select: {
+          selectedLift: true, goal: true,
+          plans: { select: { planJson: true }, orderBy: { createdAt: 'desc' }, take: 1 },
+        },
         orderBy: { createdAt: 'desc' },
         take: 10,
       }),
@@ -283,194 +303,204 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
       });
     }
 
-    const avg = (arr: number[]) => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
-
-    // ── Aggregate meals by day ───────────────────────────────────────────────
-    const byDate: Record<string, {
-      calories: number; proteinG: number; carbsG: number; fatG: number;
-      mealCount: number; morningCals: number; eveningCals: number;
-      morningProtein: number; meals: Array<{ type: string; cals: number }>;
-    }> = {};
-
-    for (const e of entries) {
-      if (!byDate[e.date]) {
-        byDate[e.date] = {
-          calories: 0, proteinG: 0, carbsG: 0, fatG: 0, mealCount: 0,
-          morningCals: 0, eveningCals: 0, morningProtein: 0, meals: [],
-        };
+    // ── Derive age from dateOfBirth ──────────────────────────────────────
+    let ageYears: number | null = null;
+    if (user?.dateOfBirth) {
+      const today = new Date();
+      const dob = new Date(user.dateOfBirth);
+      ageYears = today.getFullYear() - dob.getFullYear();
+      if (today.getMonth() < dob.getMonth() ||
+          (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+        ageYears--;
       }
-      const d = byDate[e.date];
-      d.calories   += e.calories;
-      d.proteinG   += e.proteinG;
-      d.carbsG     += e.carbsG;
-      d.fatG       += e.fatG;
-      d.mealCount  += 1;
-      d.meals.push({ type: e.mealType, cals: e.calories });
-
-      // Infer time-of-day from createdAt hour
-      const hour = e.createdAt.getHours();
-      if (hour < 11) { d.morningCals += e.calories; d.morningProtein += e.proteinG; }
-      if (hour >= 18) d.eveningCals += e.calories;
     }
 
-    const days = Object.values(byDate);
-    const loggedDays = days.length;
-
-    const avgCalories = Math.round(avg(days.map(d => d.calories)));
-    const avgProtein  = Math.round(avg(days.map(d => d.proteinG)));
-    const avgCarbs    = Math.round(avg(days.map(d => d.carbsG)));
-    const avgFat      = Math.round(avg(days.map(d => d.fatG)));
-    const avgMealsPerDay = +avg(days.map(d => d.mealCount)).toFixed(1);
-
-    const totalCals = avgProtein * 4 + avgCarbs * 4 + avgFat * 9;
-    const macroSplit = totalCals > 0 ? {
-      proteinPct: Math.round((avgProtein * 4 / totalCals) * 100),
-      carbsPct:   Math.round((avgCarbs * 4   / totalCals) * 100),
-      fatPct:     Math.round((avgFat * 9     / totalCals) * 100),
-    } : { proteinPct: 0, carbsPct: 0, fatPct: 0 };
-
-    const weightKg     = user?.weightKg ?? null;
-    const proteinPerKg = weightKg && weightKg > 0 ? +(avgProtein / weightKg).toFixed(2) : null;
-
-    // Calorie trend
-    const sortedDates = Object.keys(byDate).sort();
-    const mid         = Math.floor(sortedDates.length / 2);
-    const trendDelta  = Math.round(
-      avg(sortedDates.slice(mid).map(d => byDate[d].calories)) -
-      avg(sortedDates.slice(0, mid).map(d => byDate[d].calories))
-    );
-    const calorieTrend: 'increasing' | 'decreasing' | 'stable' =
-      trendDelta > 100 ? 'increasing' : trendDelta < -100 ? 'decreasing' : 'stable';
-
-    const consistencyPct = Math.round((loggedDays / 90) * 100);
-
-    // ── Meal timing analysis ─────────────────────────────────────────────────
-    const avgMorningCals    = Math.round(avg(days.map(d => d.morningCals)));
-    const avgEveningCals    = Math.round(avg(days.map(d => d.eveningCals)));
-    const eveningCaloriePct = totalCals > 0 ? Math.round((avgEveningCals / (avgCalories || 1)) * 100) : null;
-    const morningMealPct    = Math.round(
-      (days.filter(d => d.morningCals > 0).length / (loggedDays || 1)) * 100
-    );
-    const avgMorningProtein = Math.round(avg(days.map(d => d.morningProtein)));
-
-    // ── Workout analysis ─────────────────────────────────────────────────────
+    // ── Extract workout training days set ────────────────────────────────
     const workoutDates = new Set(workoutLogs.map(w => w.date));
     const trainingDaysPerWeek = workoutLogs.length > 0
-      ? +((workoutLogs.length / 90) * 7).toFixed(1)
+      ? Math.round((workoutLogs.length / 90) * 7 * 10) / 10
       : 0;
 
-    // Nutrition on training vs rest days
-    const trainingDayMacros = sortedDates
-      .filter(d => workoutDates.has(d))
-      .map(d => byDate[d])
-      .filter(Boolean);
-    const restDayMacros = sortedDates
-      .filter(d => !workoutDates.has(d))
-      .map(d => byDate[d])
-      .filter(Boolean);
-
-    const trainingDayCalories = trainingDayMacros.length
-      ? Math.round(avg(trainingDayMacros.map(d => d.calories))) : null;
-    const restDayCalories = restDayMacros.length
-      ? Math.round(avg(restDayMacros.map(d => d.calories))) : null;
-    const trainingDayProtein = trainingDayMacros.length
-      ? Math.round(avg(trainingDayMacros.map(d => d.proteinG))) : null;
-    const trainingDayCarbs = trainingDayMacros.length
-      ? Math.round(avg(trainingDayMacros.map(d => d.carbsG))) : null;
-
-    // Extract unique exercise/lift names from workout logs
-    const allLiftNames = new Set<string>();
+    // ── Extract lift context from sessions + workout logs ────────────────
+    const sessionLifts = [...new Set(recentSessions.map(s =>
+      s.selectedLift.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+    ))];
+    const workoutLiftNames = new Set<string>();
     for (const w of workoutLogs) {
       try {
         const exs: Array<{ name: string }> = JSON.parse(w.exercises);
-        exs.forEach(e => e.name && allLiftNames.add(e.name));
+        exs.forEach(e => e.name && workoutLiftNames.add(e.name));
       } catch { /* skip malformed */ }
     }
-    // Also add diagnostic session lifts (formatted nicely)
-    const sessionLifts = [...new Set(recentSessions.map(s =>
-      s.selectedLift.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    ))];
-    const allLifts = [...new Set([...allLiftNames, ...sessionLifts])].slice(0, 8);
+    const allLifts = [...new Set([...workoutLiftNames, ...sessionLifts])].slice(0, 8);
 
-    // ── Wellness aggregation ─────────────────────────────────────────────────
-    let wellnessSummary = '';
-    let highProteinEnergyAvg: number | null = null;
-    let lowProteinEnergyAvg: number | null = null;
+    // Primary goal: prefer most recent session goal, fall back to coachGoal
+    const primaryGoal = recentSessions.find(s => s.goal)?.goal ?? user?.coachGoal ?? null;
+    const primaryLift = sessionLifts[0] ?? null;
 
-    if (wellnessLogs.length >= 5) {
-      const avgEnergy    = avg(wellnessLogs.map(w => w.energy));
-      const avgMood      = avg(wellnessLogs.map(w => w.mood));
-      const avgSleep     = avg(wellnessLogs.map(w => w.sleepHours));
-      const avgStress    = avg(wellnessLogs.map(w => w.stress));
+    // ── Build engine inputs ──────────────────────────────────────────────
+    const engineUser: NutritionEngineUser = {
+      weightKg: user?.weightKg ?? null,
+      heightCm: user?.heightCm ?? null,
+      ageYears,
+      sex: 'unknown', // schema doesn't store sex yet — engine handles gracefully
+      trainingAge: user?.trainingAge ?? null,
+      bodyCompTag: user?.bodyCompTag ?? null,
+      goal: primaryGoal,
+      primaryLift,
+      trainingDaysPerWeek,
+    };
 
-      wellnessSummary = `${wellnessLogs.length} check-ins: avg energy ${avgEnergy.toFixed(1)}/10, mood ${avgMood.toFixed(1)}/10, sleep ${avgSleep.toFixed(1)}h, stress ${avgStress.toFixed(1)}/10.`;
-
-      // Correlate high/low protein days with next-day energy
-      const highProteinDates = sortedDates.filter(d => byDate[d]?.proteinG >= avgProtein * 1.2);
-      const lowProteinDates  = sortedDates.filter(d => byDate[d]?.proteinG <= avgProtein * 0.8);
-
-      const getEnergyAfter = (dates: string[]) => {
-        const energies = dates
-          .map(d => {
-            const next = new Date(new Date(d).getTime() + 86400000).toISOString().slice(0, 10);
-            return wellnessLogs.find(w => w.date === next)?.energy;
-          })
-          .filter((v): v is number => v !== undefined);
-        return energies.length >= 3 ? +avg(energies).toFixed(1) : null;
-      };
-
-      highProteinEnergyAvg = getEnergyAfter(highProteinDates);
-      lowProteinEnergyAvg  = getEnergyAfter(lowProteinDates);
+    // Build daily macro array (aggregate meals by date)
+    const byDate: Record<string, {
+      calories: number; proteinG: number; carbsG: number; fatG: number;
+      isTrainingDay: boolean;
+    }> = {};
+    for (const e of entries) {
+      if (!byDate[e.date]) {
+        byDate[e.date] = {
+          calories: 0, proteinG: 0, carbsG: 0, fatG: 0,
+          isTrainingDay: workoutDates.has(e.date),
+        };
+      }
+      byDate[e.date].calories  += e.calories;
+      byDate[e.date].proteinG  += e.proteinG;
+      byDate[e.date].carbsG    += e.carbsG;
+      byDate[e.date].fatG      += e.fatG;
     }
+    const dailyMacros: DailyMacro[] = Object.entries(byDate)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, d]) => ({ date, ...d }));
 
-    // ── Food variety (meal names for LLM context) ───────────────────────────
-    const recentFoods = [...new Set(
-      entries.slice(-90).map(e => e.name).filter(Boolean)
-    )].slice(0, 40).join(', ');
+    const mealTimings: MealTiming[] = entries.map(e => ({
+      hour: e.createdAt.getHours(),
+      proteinG: e.proteinG,
+      calories: e.calories,
+    }));
 
-    // ── Build comprehensive LLM prompt ───────────────────────────────────────
-    const { default: OpenAI } = await import('openai');
-    const openai = new (OpenAI as any)({ apiKey: process.env.OPENAI_API_KEY });
+    const wellnessPoints: WellnessPoint[] = wellnessLogs.map(w => ({
+      date: w.date,
+      energy: w.energy,
+      sleepHours: w.sleepHours,
+      stress: w.stress,
+      mood: w.mood,
+    }));
 
-    const prompt = `You are an elite sports nutritionist and performance dietitian with expertise in exercise physiology. Analyze this athlete's complete nutrition and training data to produce a deep, scientifically rigorous performance nutrition profile.
+    // ── STEP 2: Run Deterministic Nutrition Engine ───────────────────────
+    const engineOutput = runNutritionEngine({
+      user: engineUser,
+      dailyMacros,
+      mealTimings,
+      wellnessPoints,
+    });
+
+    // ── STEP 3: Run Rules Engine ─────────────────────────────────────────
+    const avgEnergy = wellnessLogs.length > 0
+      ? wellnessLogs.reduce((s, w) => s + w.energy, 0) / wellnessLogs.length
+      : null;
+    const avgSleep = wellnessLogs.length > 0
+      ? wellnessLogs.reduce((s, w) => s + w.sleepHours, 0) / wellnessLogs.length
+      : null;
+
+    const rulesOutput = runNutritionRules(
+      engineOutput,
+      primaryGoal,
+      avgEnergy,
+      avgSleep,
+    );
+
+    // ── STEP 4: RAG Retrieval ────────────────────────────────────────────
+    const ragQuery = [
+      primaryGoal ? `nutrition for ${primaryGoal}` : '',
+      primaryLift ? `${primaryLift} performance nutrition` : '',
+      'protein requirements strength athletes leucine threshold',
+      rulesOutput.topPriority ? rulesOutput.topPriority.title : '',
+    ].filter(Boolean).join(' ');
+
+    const ragContext = await buildRAGContext(ragQuery, 6);
+
+    // ── STEP 5: Assemble LLM context ────────────────────────────────────
+    // The LLM receives ONLY pre-verified, deterministically-computed data.
+    // It must NEVER re-derive calculations — only explain and reason.
+
+    const flagsSummary = rulesOutput.flags.map(f =>
+      `[${f.severity.toUpperCase()}] ${f.title}: ${f.detail}`
+    ).join('\n');
+
+    const recentFoods = [...new Set(entries.slice(-60).map(e => e.name).filter(Boolean))]
+      .slice(0, 30).join(', ');
+
+    const diagnosticContext = recentSessions
+      .filter(s => s.goal)
+      .slice(0, 3)
+      .map(s => `${s.selectedLift.replace(/_/g, ' ')} — goal: ${s.goal}`)
+      .join('; ');
+
+    const prompt = `You are an elite sports dietitian functioning as a reasoning and communication layer over a deterministic nutrition analysis system. You have been given pre-computed, verified data from our nutrition engine and rules engine. DO NOT re-derive or recalculate any numbers — only reason over and explain the provided data.
+
+${ragContext ? `${ragContext}\n\n` : ''}═══ DETERMINISTIC ENGINE OUTPUT ═══
+TDEE estimate: ${engineOutput.tdee ? `${engineOutput.tdee} kcal/day` : 'unavailable (no height/weight/age)'}
+BMR: ${engineOutput.bmr ? `${engineOutput.bmr} kcal/day` : 'unavailable'}
+Activity multiplier: ${engineOutput.activityMultiplier}x
+
+Current avg intake (last 30 days):
+- Calories: ${engineOutput.avgCalories} kcal | Protein: ${engineOutput.avgProteinG}g | Carbs: ${engineOutput.avgCarbsG}g | Fat: ${engineOutput.avgFatG}g
+- Protein/kg: ${engineOutput.proteinPerKg ?? 'N/A'}g/kg
+- Macro split: ${engineOutput.macroSplit.proteinPct}% P / ${engineOutput.macroSplit.carbsPct}% C / ${engineOutput.macroSplit.fatPct}% F
+- Consistency: ${engineOutput.consistencyPct}% (${engineOutput.loggedDays} days logged)
+
+Calorie trend: ${engineOutput.trend.direction} (${engineOutput.trend.deltaKcalPerWeek > 0 ? '+' : ''}${engineOutput.trend.deltaKcalPerWeek} kcal/week slope)
+14-day plateau: ${engineOutput.trend.plateau14Day ? 'YES' : 'No'}
+
+Training vs rest days:
+- Training day avg: ${engineOutput.trainingDayAvgCalories ?? 'N/A'} kcal | P: ${engineOutput.trainingDayAvgProteinG ?? 'N/A'}g | C: ${engineOutput.trainingDayAvgCarbsG ?? 'N/A'}g
+- Rest day avg: ${engineOutput.restDayAvgCalories ?? 'N/A'} kcal | C: ${engineOutput.restDayAvgCarbsG ?? 'N/A'}g
+- Carb periodization delta: ${engineOutput.carbPeriodizationDelta !== null ? `${engineOutput.carbPeriodizationDelta}g` : 'N/A'} (positive = more carbs on training days)
+
+Recommended targets (engine-computed):
+- Daily: ${engineOutput.targets.calories} kcal | P: ${engineOutput.targets.proteinG}g | C: ${engineOutput.targets.carbsG}g | F: ${engineOutput.targets.fatG}g
+- Training day target: ${engineOutput.periodization.trainingDay.calories} kcal | C: ${engineOutput.periodization.trainingDay.carbsG}g
+- Rest day target: ${engineOutput.periodization.restDay.calories} kcal | C: ${engineOutput.periodization.restDay.carbsG}g
+- Protein gap: ${engineOutput.proteinGap}g/day | Calorie gap: ${engineOutput.calorieGap} kcal/day
+
+Meal timing analysis:
+- Meals/day: ${engineOutput.timing.mealsPerDay}
+- Morning meal frequency: ${engineOutput.timing.morningMealPct}% of days
+- Avg morning protein: ${engineOutput.timing.avgMorningProteinG}g
+- Evening calorie %: ${engineOutput.timing.eveningCaloriePct}% of daily intake after 6pm
+- Leucine threshold met: ${engineOutput.timing.leucineAdequacyPct}% of meals (≥25g protein)
+- Pre-workout fueled: ${engineOutput.timing.preWorkoutFueled ? 'Yes' : 'No'} | Post-workout fueled: ${engineOutput.timing.postWorkoutFueled ? 'Yes' : 'No'}
+
+Wellness correlations:
+- High protein days → next-day energy: ${engineOutput.wellness.highProteinEnergyAvg ?? 'N/A'}/10
+- Low protein days → next-day energy: ${engineOutput.wellness.lowProteinEnergyAvg ?? 'N/A'}/10
+- Energy delta: ${engineOutput.wellness.energyDelta !== null ? `${engineOutput.wellness.energyDelta} points` : 'N/A'}
+- High protein → sleep: ${engineOutput.wellness.highProteinSleepAvg ?? 'N/A'}h | Low protein → sleep: ${engineOutput.wellness.lowProteinSleepAvg ?? 'N/A'}h
+
+═══ RULES ENGINE FLAGS ═══
+Critical flags: ${rulesOutput.criticalCount} | Warnings: ${rulesOutput.warningCount} | Positives: ${rulesOutput.positiveCount}
+${flagsSummary || 'No flags triggered.'}
 
 ═══ USER PROFILE ═══
-- Body weight: ${weightKg ? `${weightKg.toFixed(1)} kg (${(weightKg * 2.205).toFixed(0)} lbs)` : 'unknown'}
-- Height: ${user?.heightCm ? `${user.heightCm} cm` : 'unknown'}
-- Training goal: ${user?.coachGoal || 'general strength / fitness'}
-- Training experience: ${user?.trainingAge || 'unknown'}
+Goal: ${primaryGoal ?? 'not specified'}
+Primary lift: ${primaryLift ?? 'not specified'}
+All tracked lifts: ${allLifts.length > 0 ? allLifts.join(', ') : 'none'}
+Diagnostic context: ${diagnosticContext || 'no diagnostic sessions'}
+Training: ${trainingDaysPerWeek} days/week
+Weight: ${user?.weightKg ? `${user.weightKg} kg` : 'unknown'} | Height: ${user?.heightCm ? `${user.heightCm} cm` : 'unknown'}
+Training age: ${user?.trainingAge ?? 'unknown'}
+Recent foods: ${recentFoods || 'not logged'}
+Avg wellness: energy ${avgEnergy?.toFixed(1) ?? 'N/A'}/10 | sleep ${avgSleep?.toFixed(1) ?? 'N/A'}h
 
-═══ NUTRITION DATA (last 90 days) ═══
-- Logged: ${loggedDays}/90 days (${consistencyPct}% consistency)
-- Avg daily intake: ${avgCalories} kcal | P: ${avgProtein}g | C: ${avgCarbs}g | F: ${avgFat}g
-- Macro split: ${macroSplit.proteinPct}% protein / ${macroSplit.carbsPct}% carbs / ${macroSplit.fatPct}% fat
-${proteinPerKg !== null ? `- Protein per kg bodyweight: ${proteinPerKg}g/kg (research optimal for strength: 1.6–2.2g/kg)` : ''}
-- Calorie trend: ${calorieTrend} (${trendDelta > 0 ? '+' : ''}${trendDelta} kcal drift first→second 45 days)
-- Avg meals per day: ${avgMealsPerDay}
-- Recent foods consumed: ${recentFoods || 'no food names logged'}
-
-═══ MEAL TIMING ═══
-- Morning meal frequency: ${morningMealPct}% of days have a morning meal (before 11am)
-- Avg morning calories: ${avgMorningCals} kcal | Avg morning protein: ${avgMorningProtein}g
-- Avg evening calories: ${avgEveningCals} kcal${eveningCaloriePct !== null ? ` (${eveningCaloriePct}% of daily intake after 6pm)` : ''}
-
-═══ TRAINING DATA ═══
-- Training frequency: ${trainingDaysPerWeek} days/week (${workoutLogs.length} workouts in 90 days)
-${trainingDayCalories !== null ? `- Training day avg: ${trainingDayCalories} kcal | P: ${trainingDayProtein}g | C: ${trainingDayCarbs}g` : ''}
-${restDayCalories !== null ? `- Rest day avg: ${restDayCalories} kcal` : ''}
-${trainingDayCalories && restDayCalories ? `- Calorie periodization: ${trainingDayCalories > restDayCalories ? `+${trainingDayCalories - restDayCalories} kcal on training days (good)` : trainingDayCalories < restDayCalories ? `${trainingDayCalories - restDayCalories} kcal on training days (suboptimal — should be higher)` : 'same on training and rest days (no carb periodization)'}` : ''}
-- Tracked lifts: ${allLifts.length > 0 ? allLifts.join(', ') : 'no lifts logged yet'}
-
-═══ WELLNESS DATA ═══
-${wellnessSummary || 'No wellness check-ins logged.'}
-${highProteinEnergyAvg !== null && lowProteinEnergyAvg !== null ? `- High protein days → next-day energy: ${highProteinEnergyAvg}/10 vs low protein days: ${lowProteinEnergyAvg}/10` : ''}
-
-Produce a JSON object with EXACTLY this structure. Be highly specific to their actual numbers — cite their exact values. Reference specific sports science research where relevant (e.g., leucine threshold, glycogen resynthesis rates, tryptophan-serotonin pathway, cortisol blunting, mTOR activation):
+═══ INSTRUCTIONS ═══
+Using ONLY the above verified data, produce a JSON object with EXACTLY this structure.
+Every number you reference must come from the ENGINE OUTPUT above — never invent new calculations.
+Cite specific values from the engine and flags in your analysis. Reference the scientific mechanisms from the RAG context where relevant.
 
 {
-  "overallScore": <0-100>,
-  "overallGrade": <"A+" | "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "C-" | "D" | "F">,
-  "summary": <3-4 sentence plain-English summary citing their exact numbers>,
+  "overallScore": <0-100 based on engine gaps, rules flags severity, and consistency>,
+  "overallGrade": <"A+"|"A"|"A-"|"B+"|"B"|"B-"|"C+"|"C"|"C-"|"D"|"F">,
+  "summary": <3-4 sentences citing their exact numbers from the engine output>,
 
   "dimensionScores": {
     "dailyLife": <0-100>,
@@ -482,35 +512,33 @@ Produce a JSON object with EXACTLY this structure. Be highly specific to their a
   },
 
   "dailyLifeImpact": {
-    "score": <0-100>,
-    "grade": <letter grade>,
-    "summary": <2-3 sentences about daily life energy and mood based on their data>,
+    "score": <0-100>, "grade": <letter>,
+    "summary": <2-3 sentences referencing their specific timing and energy data>,
     "morningEnergy": <"very_low"|"low"|"moderate"|"high"|"very_high">,
     "afternoonEnergy": <"very_low"|"low"|"moderate"|"high"|"very_high">,
     "eveningEnergy": <"very_low"|"low"|"moderate"|"high"|"very_high">,
-    "morningEnergyDetail": <1-2 sentences explaining morning energy based on breakfast habits and their specific data>,
-    "afternoonEnergyDetail": <1-2 sentences>,
-    "eveningEnergyDetail": <1-2 sentences>,
+    "morningEnergyDetail": <cite their morning protein and meal frequency numbers>,
+    "afternoonEnergyDetail": <cite their meal timing and macro balance>,
+    "eveningEnergyDetail": <cite their evening calorie % and implications>,
     "moodStabilityRating": <1-10>,
-    "moodStabilityDetail": <1-2 sentences on how their macros affect mood/neurotransmitters>,
-    "keyFactors": [<3-4 specific factors from their data driving daily performance — cite numbers>],
-    "recommendations": [<3 specific, actionable recommendations tailored to their exact data>]
+    "moodStabilityDetail": <reference specific neurotransmitter precursors and their protein intake>,
+    "keyFactors": [<3-4 factors citing exact numbers from engine>],
+    "recommendations": [<3 specific, actionable recommendations with exact numbers>]
   },
 
   "gymPerformance": {
-    "score": <0-100>,
-    "grade": <letter grade>,
-    "summary": <2-3 sentences>,
+    "score": <0-100>, "grade": <letter>,
+    "summary": <2-3 sentences referencing protein/kg, carb timing, and rules flags>,
     "strengthCapacity": <"severely_limited"|"limited"|"adequate"|"good"|"optimal">,
-    "strengthCapacityDetail": <2 sentences citing protein/kg, carb timing, specific mechanisms>,
+    "strengthCapacityDetail": <cite protein/kg vs target, leucine adequacy %>,
     "enduranceCapacity": <"severely_limited"|"limited"|"adequate"|"good"|"optimal">,
-    "enduranceCapacityDetail": <1-2 sentences>,
+    "enduranceCapacityDetail": <cite carb intake and periodization delta>,
     "recoveryBetweenSets": <"poor"|"below_average"|"average"|"good"|"excellent">,
-    "recoveryBetweenSetsDetail": <1-2 sentences on creatine phosphate resynthesis, ATP availability>,
-    "keyLimiter": <the single biggest nutrition factor limiting their gym performance>,
+    "recoveryBetweenSetsDetail": <cite total calories vs TDEE and carb adequacy>,
+    "keyLimiter": <the single biggest nutrition limiter for this user based on rules flags>,
     "preWorkoutReadiness": <"poor"|"below_average"|"average"|"good"|"excellent">,
     "postWorkoutRecovery": <"poor"|"below_average"|"average"|"good"|"excellent">,
-    "recommendations": [<3-4 specific workout nutrition recommendations>]
+    "recommendations": [<3-4 recommendations with specific gram targets from engine>]
   },
 
   "liftImpact": [
@@ -518,123 +546,118 @@ Produce a JSON object with EXACTLY this structure. Be highly specific to their a
       ? allLifts.slice(0, 6).map(lift => `{
       "lift": "${lift}",
       "impactLevel": <"optimal"|"good"|"moderate"|"limited"|"poor">,
-      "currentImpact": <1-2 sentences: how does their CURRENT nutrition specifically impact this lift's performance — be precise about mechanisms>,
-      "scienceBacking": <1 sentence citing the specific physiological mechanism, e.g. "Phosphocreatine resynthesis requires...">,
-      "recommendation": <1 specific actionable recommendation for this lift>
+      "currentImpact": <how their SPECIFIC engine numbers impact THIS lift — cite protein/kg, carb timing, calorie gap>,
+      "scienceBacking": <one sentence citing the physiological mechanism from RAG context>,
+      "recommendation": <one specific actionable recommendation with a gram target from engine>
     }`).join(',\n      ')
-      : `{
-      "lift": "General Strength Training",
-      "impactLevel": "moderate",
-      "currentImpact": "Based on current macros, provide specific impact.",
-      "scienceBacking": "Relevant mechanism.",
-      "recommendation": "Actionable recommendation."
-    }`
+      : `{ "lift": "General Strength Training", "impactLevel": "moderate", "currentImpact": "Based on engine data.", "scienceBacking": "Relevant mechanism.", "recommendation": "Actionable recommendation." }`
     }
   ],
 
   "mentalClarity": {
-    "score": <0-100>,
-    "grade": <letter grade>,
-    "summary": <2-3 sentences on cognitive performance>,
+    "score": <0-100>, "grade": <letter>,
+    "summary": <2-3 sentences on cognitive performance based on macro data>,
     "focusRating": <1-10>,
-    "glucoseStabilityRating": <1-10>,
-    "glucoseStabilityDetail": <1-2 sentences on meal spacing, glycemic load, energy dips>,
+    "glucoseStabilityRating": <1-10 based on meal frequency and carb quality signals>,
+    "glucoseStabilityDetail": <cite meals/day and evening calorie % for glucose stability>,
     "brainFuelAdequacy": <"insufficient"|"marginal"|"adequate"|"optimal">,
-    "brainFuelDetail": <1-2 sentences on fat intake for myelin, omega-3s, B-vitamins from food>,
+    "brainFuelDetail": <cite fat intake and its adequacy vs target>,
     "neurotransmitterSupport": <"poor"|"moderate"|"good"|"excellent">,
-    "neurotransmitterDetail": <1-2 sentences on tryptophan→serotonin, tyrosine→dopamine from their protein sources>,
-    "keyFactors": [<3 specific factors from their data>],
+    "neurotransmitterDetail": <cite protein intake and its role in neurotransmitter synthesis>,
+    "keyFactors": [<3 factors citing exact engine numbers>],
     "recommendations": [<3 specific recommendations>]
   },
 
   "energyPattern": {
     "pattern": <"front_loaded"|"back_loaded"|"balanced"|"irregular">,
-    "summary": <2-3 sentences describing their energy pattern and consequences>,
-    "morningWindow": { "level": <"very_low"|"low"|"moderate"|"high">, "detail": <1-2 sentences> },
-    "midDayWindow": { "level": <level>, "detail": <1-2 sentences> },
-    "afternoonWindow": { "level": <level>, "detail": <1-2 sentences> },
-    "eveningWindow": { "level": <level>, "detail": <1-2 sentences> },
+    "summary": <2-3 sentences based on morning meal % and evening calorie %>,
+    "morningWindow": { "level": <"very_low"|"low"|"moderate"|"high">, "detail": <cite morning protein and cals> },
+    "midDayWindow": { "level": <level>, "detail": <cite meal timing data> },
+    "afternoonWindow": { "level": <level>, "detail": <explain afternoon based on their data> },
+    "eveningWindow": { "level": <level>, "detail": <cite evening calorie % and its implications> },
     "crashRisk": <"low"|"moderate"|"high"|"very_high">,
-    "crashRiskDetail": <1-2 sentences explaining when and why crashes occur>,
-    "optimalMealTiming": <a specific meal timing recommendation tailored to their training schedule>,
-    "recommendations": [<3 specific timing recommendations with reasoning>]
+    "crashRiskDetail": <explain crash risk based on their meal spacing and back-loading>,
+    "optimalMealTiming": <a specific timing recommendation based on their training days/week>,
+    "recommendations": [<3 timing recommendations with specific meal windows and gram targets>]
   },
 
   "recoveryAndSleep": {
-    "score": <0-100>,
-    "grade": <letter grade>,
-    "summary": <2-3 sentences>,
+    "score": <0-100>, "grade": <letter>,
+    "summary": <2-3 sentences citing protein gap, sleep data, and leucine adequacy>,
     "muscleRepairCapacity": <"poor"|"below_average"|"average"|"good"|"excellent">,
-    "muscleRepairDetail": <1-2 sentences on post-workout protein synthesis window, leucine threshold (2.5-3g), their specific intake>,
+    "muscleRepairDetail": <cite leucine adequacy % and protein per meal average vs 25-30g threshold>,
     "sleepQualityImpact": <"negative"|"neutral"|"positive">,
-    "sleepQualityDetail": <1-2 sentences on evening eating, carb-tryptophan, magnesium, alcohol if relevant>,
+    "sleepQualityDetail": <cite average sleep hours from wellness data and evening eating pattern>,
     "inflammationRisk": <"low"|"moderate"|"high">,
-    "inflammationDetail": <1-2 sentences on fat quality, omega-3/6 ratio from their food patterns>,
+    "inflammationDetail": <cite fat intake and its omega-3 implications>,
     "hormoneSupport": <"poor"|"moderate"|"good"|"excellent">,
-    "hormonalDetail": <1-2 sentences on fat adequacy for testosterone/estrogen, zinc from proteins>,
-    "recommendations": [<3-4 specific recovery recommendations>]
+    "hormonalDetail": <cite fat intake vs target and testosterone/hormone implications>,
+    "recommendations": [<3-4 recovery recommendations with specific numbers>]
   },
 
-  "strengths": [<3-4 specific data-backed strengths>],
-  "improvements": [<3-4 specific priority improvements>],
-  "suggestions": [<5 prioritized actionable suggestions, most impactful first>],
+  "strengths": [<3-4 specific data-backed strengths citing engine numbers>],
+  "improvements": [<3-4 priority improvements citing the exact gaps from engine output>],
+  "suggestions": [<5 prioritized actionable suggestions with specific gram/kcal targets from engine>],
 
   "macroRecommendation": {
-    "proteinG": <number>,
-    "carbsG": <number>,
-    "fatG": <number>,
-    "calories": <number>,
-    "trainingDayProteinG": <number>,
-    "trainingDayCarbsG": <number>,
-    "restDayProteinG": <number>,
-    "restDayCarbsG": <number>,
-    "rationale": <2-3 sentences explaining the recommendation based on their goal, body weight, and training frequency>
+    "proteinG": ${engineOutput.targets.proteinG},
+    "carbsG": ${engineOutput.targets.carbsG},
+    "fatG": ${engineOutput.targets.fatG},
+    "calories": ${engineOutput.targets.calories},
+    "trainingDayProteinG": ${engineOutput.periodization.trainingDay.proteinG},
+    "trainingDayCarbsG": ${engineOutput.periodization.trainingDay.carbsG},
+    "restDayProteinG": ${engineOutput.periodization.restDay.proteinG},
+    "restDayCarbsG": ${engineOutput.periodization.restDay.carbsG},
+    "rationale": <2-3 sentences explaining the targets based on goal, weight, TDEE, and training frequency — citing exact numbers>
   }
 }`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: LLM_MODEL,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
-      temperature: 0.3,
-      max_tokens: 4000,
+      temperature: 0.2,
+      max_tokens: 4500,
     });
 
     let aiAnalysis: any = {};
     try {
       aiAnalysis = JSON.parse(completion.choices[0].message.content || '{}');
     } catch {
-      aiAnalysis = { summary: 'Analysis unavailable at this time.', insights: [], suggestions: [] };
+      aiAnalysis = { summary: 'Analysis unavailable at this time.', strengths: [], improvements: [], suggestions: [] };
     }
 
+    // ── Return: metrics from engine (deterministic), analysis from LLM (reasoning) ──
     res.json({
       hasData: true,
       metrics: {
-        loggedDays,
-        consistencyPct,
-        avgCalories,
-        avgProtein,
-        avgCarbs,
-        avgFat,
-        macroSplit,
-        proteinPerKg,
-        calorieTrend,
-        trendDelta,
-        avgMealsPerDay,
+        loggedDays: engineOutput.loggedDays,
+        consistencyPct: engineOutput.consistencyPct,
+        avgCalories: engineOutput.avgCalories,
+        avgProtein: engineOutput.avgProteinG,
+        avgCarbs: engineOutput.avgCarbsG,
+        avgFat: engineOutput.avgFatG,
+        macroSplit: engineOutput.macroSplit,
+        proteinPerKg: engineOutput.proteinPerKg,
+        calorieTrend: engineOutput.trend.direction,
+        avgMealsPerDay: engineOutput.timing.mealsPerDay,
         trainingDaysPerWeek,
-        trainingDayCalories,
-        restDayCalories,
-        trainingDayProtein,
-        trainingDayCarbs,
-        morningMealPct,
-        avgMorningProtein,
-        avgMorningCals,
-        avgEveningCals,
-        eveningCaloriePct,
+        trainingDayCalories: engineOutput.trainingDayAvgCalories,
+        restDayCalories: engineOutput.restDayAvgCalories,
+        trainingDayProtein: engineOutput.trainingDayAvgProteinG,
+        trainingDayCarbs: engineOutput.trainingDayAvgCarbsG,
+        morningMealPct: engineOutput.timing.morningMealPct,
+        eveningCaloriePct: engineOutput.timing.eveningCaloriePct,
+        leucineAdequacyPct: engineOutput.timing.leucineAdequacyPct,
+        tdee: engineOutput.tdee,
+        bmr: engineOutput.bmr,
         trackedLifts: allLifts,
-        wellnessDataPoints: wellnessLogs.length,
-        highProteinEnergyAvg,
-        lowProteinEnergyAvg,
+        highProteinEnergyAvg: engineOutput.wellness.highProteinEnergyAvg,
+        lowProteinEnergyAvg: engineOutput.wellness.lowProteinEnergyAvg,
+        // Rule flags exposed for UI use
+        ruleFlags: rulesOutput.flags.map(f => ({
+          id: f.id, severity: f.severity, category: f.category, title: f.title,
+        })),
       },
       analysis: aiAnalysis,
     });
