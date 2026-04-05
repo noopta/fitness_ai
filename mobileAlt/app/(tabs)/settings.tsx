@@ -14,6 +14,7 @@ import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 export default function SettingsScreen() {
@@ -148,6 +149,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardDoneBar />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -228,6 +230,7 @@ export default function SettingsScreen() {
                     autoCorrect={false}
                     maxLength={30}
                     autoFocus
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
                   />
                   {checkingUsername && <ActivityIndicator size="small" color={colors.mutedForeground} />}
                   {!checkingUsername && usernameAvailable === true && (

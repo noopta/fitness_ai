@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
 interface Message {
   id: string;
@@ -140,6 +141,7 @@ export default function ConversationScreen() {
         <Text style={styles.screenTitle} numberOfLines={1}>{otherName ?? 'Conversation'}</Text>
       </View>
 
+      <KeyboardDoneBar />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -178,6 +180,7 @@ export default function ConversationScreen() {
             multiline
             maxLength={2000}
             returnKeyType="default"
+            inputAccessoryViewID={KEYBOARD_DONE_ID}
           />
           <TouchableOpacity
             style={[styles.sendButton, (!inputText.trim() || sending) && styles.sendButtonDisabled]}

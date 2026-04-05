@@ -11,6 +11,7 @@ import {
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Input } from '../ui/Input';
+import { KeyboardDoneBar } from '../ui/KeyboardDoneBar';
 import { Button } from '../ui/Button';
 import { coachApi } from '../../lib/api';
 
@@ -124,6 +125,8 @@ export function WellnessTab({ coachData }: WellnessTabProps) {
   }
 
   return (
+    <>
+    <KeyboardDoneBar />
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -298,6 +301,7 @@ export function WellnessTab({ coachData }: WellnessTabProps) {
         </CardContent>
       </Card>
     </ScrollView>
+    </>
   );
 }
 

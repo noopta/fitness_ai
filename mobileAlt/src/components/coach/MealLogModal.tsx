@@ -20,6 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { nutritionApi } from '../../lib/api';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.82;
 
@@ -207,6 +208,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
         </Pressable>
 
         <View style={styles.sheet}>
+          <KeyboardDoneBar />
           <View style={styles.handle} />
 
           {/* Header */}
@@ -268,6 +270,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                   textAlignVertical="top"
                   value={mealDesc}
                   onChangeText={setMealDesc}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
                 <TouchableOpacity
                   style={[styles.saveBtn, (parsing || mealDesc.trim().length < 3) && styles.saveBtnDisabled]}
@@ -331,6 +334,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
               placeholderTextColor={colors.mutedForeground}
               value={name}
               onChangeText={setName}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
 
             {/* Meal type selector */}
@@ -366,6 +370,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                   keyboardType="numeric"
                   value={calories}
                   onChangeText={setCalories}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
             </View>
@@ -381,6 +386,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                   keyboardType="decimal-pad"
                   value={protein}
                   onChangeText={setProtein}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
               <View style={styles.macroField}>
@@ -392,6 +398,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                   keyboardType="decimal-pad"
                   value={carbs}
                   onChangeText={setCarbs}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
               <View style={styles.macroField}>
@@ -403,6 +410,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
                   keyboardType="decimal-pad"
                   value={fat}
                   onChangeText={setFat}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
             </View>
@@ -418,6 +426,7 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
               textAlignVertical="top"
               value={notes}
               onChangeText={setNotes}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
 
             {/* Save button */}

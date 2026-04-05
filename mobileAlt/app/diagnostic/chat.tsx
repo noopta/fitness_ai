@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { liftCoachApi } from '../../src/lib/api';
 import { Button } from '../../src/components/ui/Button';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
 interface Message {
@@ -69,19 +70,43 @@ export default function ChatScreen() {
       );
 
       if (existingMessages.length === 0) {
+        // New session — show welcome message then auto-trigger the AI's first questions
         setMessages([WELCOME_MESSAGE]);
+        setInitialLoading(false);
+        triggerInitialQuestions(sid);
       } else {
         setMessages(existingMessages);
-        // Check if already complete
         if (data.session?.status === 'complete' || data.status === 'complete') {
           setIsComplete(true);
         }
+        setInitialLoading(false);
       }
     } catch (err: any) {
-      // If session fetch fails, show welcome message anyway
       setMessages([WELCOME_MESSAGE]);
-    } finally {
       setInitialLoading(false);
+    }
+  }
+
+  // Auto-trigger the AI's first diagnostic questions for a new session
+  async function triggerInitialQuestions(sid: string) {
+    setLoading(true);
+    try {
+      const response = await liftCoachApi.sendMessage(sid, '__init__');
+      const assistantContent =
+        (typeof response.message === 'string' ? response.message : response.message?.content) ||
+        response.content ||
+        response.reply ||
+        "I've reviewed your training data. Let me ask you a few targeted questions.";
+
+      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }]);
+
+      if (response.complete === true || response.message?.complete === true) {
+        setIsComplete(true);
+      }
+    } catch {
+      // Silently fail — user can type to continue the session
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -155,6 +180,7 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <KeyboardDoneBar />
       <Stack.Screen
         options={{
           headerTitle: () => (
@@ -258,12 +284,13 @@ export default function ChatScreen() {
               style={styles.textInput}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Type your response..."
+              placeholder={loading ? 'Analyzing…' : 'Type your response...'}
               placeholderTextColor={colors.mutedForeground}
               multiline
               maxLength={1000}
               returnKeyType="default"
               editable={!loading}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
             <Pressable
               onPress={handleSend}

@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { GoogleLogo } from '../../src/components/ui/GoogleLogo';
 import { Input } from '../../src/components/ui/Input';
+import { KeyboardDoneBar } from '../../src/components/ui/KeyboardDoneBar';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 
@@ -69,6 +70,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <KeyboardDoneBar />
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

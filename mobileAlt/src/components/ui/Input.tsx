@@ -1,8 +1,11 @@
 import React from 'react';
 import {
-  TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle,
+  TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle, Platform,
 } from 'react-native';
 import { colors, radius, spacing, fontSize } from '../../constants/theme';
+
+// Shared ID — matches the nativeID on KeyboardDoneBar
+const DONE_ID = 'axiom-keyboard-done';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -15,6 +18,7 @@ export function Input({ label, error, containerStyle, style, ...props }: InputPr
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
+        inputAccessoryViewID={Platform.OS === 'ios' ? DONE_ID : undefined}
         style={[styles.input, error && styles.inputError, style]}
         placeholderTextColor={colors.mutedForeground}
         {...props}

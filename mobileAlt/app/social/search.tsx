@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
 interface UserResult {
   id: string;
@@ -96,6 +97,7 @@ export default function SocialSearchScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardDoneBar />
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={() => router.back()}>
@@ -122,6 +124,7 @@ export default function SocialSearchScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
+            inputAccessoryViewID={KEYBOARD_DONE_ID}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => { setQuery(''); setResults([]); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>

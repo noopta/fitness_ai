@@ -6,6 +6,8 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -164,6 +166,11 @@ export default function OnboardingScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ title: 'New Analysis' }} />
       <KeyboardDoneBar />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -368,6 +375,7 @@ export default function OnboardingScreen() {
           Continue
         </Button>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

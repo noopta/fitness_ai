@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Button } from '../ui/Button';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,6 +199,7 @@ function TA({
       placeholderTextColor={colors.mutedForeground}
       multiline
       textAlignVertical="top"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
     />
   );
 }
@@ -214,6 +216,7 @@ function NumInput({ value, onChange, placeholder, unit }: {
         placeholder={placeholder ?? '0'}
         placeholderTextColor={colors.mutedForeground}
         keyboardType="numeric"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
       {unit ? <Text style={s.unit}>{unit}</Text> : null}
     </View>
@@ -422,6 +425,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
+      <KeyboardDoneBar />
       {/* Progress bar */}
       <View style={s.progressWrap}>
         <View style={s.progressBg}>

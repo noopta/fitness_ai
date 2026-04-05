@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { getToken } from '../../lib/api';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
 
@@ -173,6 +174,7 @@ export function ChatTab({ coachData }: ChatTabProps) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 160 : 30}
     >
+      <KeyboardDoneBar />
       {/* Messages */}
       <ScrollView
         ref={scrollRef}
@@ -213,6 +215,7 @@ export function ChatTab({ coachData }: ChatTabProps) {
           returnKeyType="send"
           blurOnSubmit={false}
           onSubmitEditing={handleSend}
+          inputAccessoryViewID={KEYBOARD_DONE_ID}
         />
         <Pressable
           onPress={handleSend}

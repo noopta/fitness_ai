@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { institutionApi, socialApi } from '../../src/lib/api';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 interface LiftEntry {
@@ -158,6 +159,7 @@ export default function AthleteDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardDoneBar />
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color={colors.foreground} />
@@ -278,6 +280,7 @@ export default function AthleteDetailScreen() {
               multiline
               maxLength={1000}
               autoFocus
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
             <TouchableOpacity
               style={[styles.sendButton, (!messageText.trim() || sending) && styles.sendButtonDisabled]}

@@ -7,6 +7,7 @@ import { coachApi, authApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { UpgradePrompt } from '../../src/components/UpgradePrompt';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
 import { ProgramSetup } from '../../src/components/coach/ProgramSetup';
 import { ProgramWalkthrough } from '../../src/components/coach/ProgramWalkthrough';
@@ -36,6 +37,7 @@ export default function CoachScreen() {
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
   const [onboardingKey, setOnboardingKey] = useState(0);
   const [refreshingTier, setRefreshingTier] = useState(false);
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   useEffect(() => {
     initCoach();
@@ -197,6 +199,7 @@ export default function CoachScreen() {
           <UpgradePrompt
             userId={user?.id}
             reason="AI Coach requires a Pro subscription. Get personalized programming, nutrition, and 1-on-1 coaching from Anakin."
+            onUpgrade={() => setUpgradeVisible(true)}
           />
           <TouchableOpacity
             style={styles.alreadyUpgradedBtn}
@@ -214,6 +217,14 @@ export default function CoachScreen() {
             }
           </TouchableOpacity>
         </ScrollView>
+        <UpgradeSheet
+          visible={upgradeVisible}
+          onClose={() => setUpgradeVisible(false)}
+          onSuccess={async () => {
+            setUpgradeVisible(false);
+            await refreshUser();
+          }}
+        />
       </SafeAreaView>
     );
   }

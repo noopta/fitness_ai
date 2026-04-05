@@ -16,6 +16,7 @@ import {
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { workoutsApi } from '../../lib/api';
 import { useUnits } from '../../context/UnitsContext';
 
@@ -183,6 +184,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         <View style={styles.sheet}>
+          <KeyboardDoneBar />
           <View style={styles.handle} />
 
           {/* Header */}
@@ -218,6 +220,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                 keyboardType="numeric"
                 value={duration}
                 onChangeText={setDuration}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
               />
             </View>
 
@@ -334,6 +337,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
               textAlignVertical="top"
               value={workoutNotes}
               onChangeText={setWorkoutNotes}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
 
             <TouchableOpacity

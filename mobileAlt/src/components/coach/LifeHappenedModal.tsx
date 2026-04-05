@@ -14,7 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { coachApi } from '../../lib/api';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AdjustmentResult {
   disruptionType: string;
@@ -109,6 +110,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <Pressable style={styles.overlay} onPress={handleClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
+          <KeyboardDoneBar />
           <View style={styles.handle} />
 
           {/* Header */}
@@ -150,6 +152,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
                   value={input}
                   onChangeText={setInput}
                   textAlignVertical="top"
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
 
                 <Text style={styles.chipsLabel}>COMMON SITUATIONS</Text>

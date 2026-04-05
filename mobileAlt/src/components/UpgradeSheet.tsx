@@ -68,6 +68,8 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
     }
   }, []);
 
+  // Always pass valid config — the SDK needs consistent hook calls.
+  // No charge occurs until confirm() is called by the user.
   const intentConfig: IntentConfiguration = {
     mode: { amount: PRICE_CENTS, currencyCode: 'CAD' },
     confirmHandler: handleConfirm,
@@ -79,10 +81,7 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
   };
 
   const { embeddedPaymentElementView, paymentOption, confirm, isLoaded } =
-    useEmbeddedPaymentElement(
-      visible ? intentConfig : null!,
-      visible ? elementConfig : null!
-    );
+    useEmbeddedPaymentElement(intentConfig, elementConfig);
 
   // ── Confirm payment ─────────────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
