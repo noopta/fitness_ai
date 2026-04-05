@@ -2,7 +2,10 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { cacheDelete } from '../services/cacheService.js';
+import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
+
+const NUTRITION_PROFILE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
@@ -43,6 +46,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
         data,
       });
       cacheDelete(`userctx:${userId}`);
+      cacheDelete(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
       return res.json(updated);
     }
@@ -94,6 +98,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     const data = mealEntrySchema.parse(req.body);
     const userId = req.user!.id;
     const entry = await prisma.mealEntry.create({ data: { userId, ...data } });
+    cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
     res.status(201).json(entry);
   } catch (err: any) {
@@ -255,6 +260,14 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
 router.get('/nutrition/profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
+    const forceRefresh = req.query.refresh === '1';
+
+    // ── Cache check: return immediately if fresh data exists ───────────────
+    if (!forceRefresh) {
+      const cached = cacheGet<object>(nutritionProfileCacheKey(userId));
+      if (cached) return res.json(cached);
+    }
+
     const since90 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
     // ── STEP 1: Load user state in parallel ────────────────────────────────
@@ -628,7 +641,7 @@ Cite specific values from the engine and flags in your analysis. Reference the s
     }
 
     // ── Return: metrics from engine (deterministic), analysis from LLM (reasoning) ──
-    res.json({
+    const responsePayload = {
       hasData: true,
       metrics: {
         loggedDays: engineOutput.loggedDays,
@@ -654,13 +667,16 @@ Cite specific values from the engine and flags in your analysis. Reference the s
         trackedLifts: allLifts,
         highProteinEnergyAvg: engineOutput.wellness.highProteinEnergyAvg,
         lowProteinEnergyAvg: engineOutput.wellness.lowProteinEnergyAvg,
-        // Rule flags exposed for UI use
         ruleFlags: rulesOutput.flags.map(f => ({
           id: f.id, severity: f.severity, category: f.category, title: f.title,
         })),
       },
       analysis: aiAnalysis,
-    });
+    };
+
+    // Cache for 24h — invalidated automatically when a meal is logged
+    cacheSet(nutritionProfileCacheKey(userId), responsePayload, NUTRITION_PROFILE_TTL);
+    res.json(responsePayload);
   } catch (err: any) {
     console.error('Nutrition profile error:', err);
     res.status(500).json({ error: err?.message ?? 'Failed to generate nutrition profile' });

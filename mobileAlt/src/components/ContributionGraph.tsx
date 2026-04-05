@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  InteractionManager,
 } from 'react-native';
 import { getToken } from '../lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
@@ -35,15 +36,15 @@ const ROWS = 7; // Sun–Sat
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// Dark card background so GitHub-palette greens are clearly visible
-const EMPTY_CELL = '#161b22';
+const EMPTY_CELL = '#1e2328';
 
+// Use clearly visible greens — the darkest shade must pop against #0d1117
 function getColor(count: number): string {
   if (count === 0) return EMPTY_CELL;
-  if (count === 1) return '#0e4429';
-  if (count <= 3) return '#006d32';
-  if (count <= 5) return '#26a641';
-  return '#39d353';
+  if (count === 1) return '#1a7f37';   // visible medium green
+  if (count <= 3) return '#26a641';   // bright green
+  if (count <= 5) return '#39d353';   // very bright green
+  return '#56e368';                   // max brightness
 }
 
 // Build a 52-week grid anchored so the last column ends on "today".
@@ -108,14 +109,24 @@ function buildMonthLabels(grid: Array<Array<{ date: string; count: number }>>): 
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ContributionGraph({ userId }: Props) {
-  const [grid, setGrid] = useState<Array<Array<{ date: string; count: number }>> | null>(null);
-  const [monthLabels, setMonthLabels] = useState<Array<string | null>>([]);
-  const [totalCount, setTotalCount] = useState(0);
+export const ContributionGraph = React.memo(function ContributionGraph({ userId }: Props) {
+  const [rawDays, setRawDays] = useState<HeatmapDay[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Track whether we should render yet (defer until after navigation animation)
+  const [ready, setReady] = useState(false);
+  const fetchedRef = useRef(false);
 
+  // Defer rendering until navigation transition is complete to avoid lag
   useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => setReady(true));
+    return () => task.cancel();
+  }, []);
+
+  // Only fetch once per mount — no re-fetch on re-renders
+  useEffect(() => {
+    if (!ready || fetchedRef.current) return;
+    fetchedRef.current = true;
     let cancelled = false;
 
     async function load() {
@@ -131,31 +142,18 @@ export function ContributionGraph({ userId }: Props) {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
-        if (!res.ok) {
-          throw new Error(`Server returned ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
         const json: HeatmapResponse | HeatmapDay[] = await res.json();
-
-        // Normalise whatever shape the server sends (array or object)
         const raw: HeatmapDay[] = Array.isArray(json)
           ? json
           : (json as HeatmapResponse).days ?? (json as HeatmapResponse).data ?? (json as HeatmapResponse).heatmap ?? [];
 
-        if (!cancelled) {
-          const g = buildGrid(raw);
-          setGrid(g);
-          setMonthLabels(buildMonthLabels(g));
-          setTotalCount(raw.reduce((sum, d) => sum + (d.count ?? 0), 0));
-        }
+        if (!cancelled) setRawDays(raw);
       } catch (err: any) {
         if (!cancelled) {
           setError(err?.message ?? 'Failed to load activity');
-          // Still render an empty grid so the UI doesn't look broken
-          const g = buildGrid([]);
-          setGrid(g);
-          setMonthLabels(buildMonthLabels(g));
-          setTotalCount(0);
+          setRawDays([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -164,10 +162,18 @@ export function ContributionGraph({ userId }: Props) {
 
     load();
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [ready, userId]);
 
-  // ── Loading state ──────────────────────────────────────────────────────────
-  if (loading) {
+  // Memoize expensive grid computation — only recomputes when rawDays changes
+  const grid = useMemo(() => rawDays ? buildGrid(rawDays) : null, [rawDays]);
+  const monthLabels = useMemo(() => grid ? buildMonthLabels(grid) : [], [grid]);
+  const totalCount = useMemo(() =>
+    rawDays ? rawDays.reduce((sum, d) => sum + (d.count ?? 0), 0) : 0,
+    [rawDays],
+  );
+
+  // ── Loading / not-ready state ─────────────────────────────────────────────
+  if (!ready || loading || !grid) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color={colors.mutedForeground} />
@@ -183,6 +189,7 @@ export function ContributionGraph({ userId }: Props) {
     <View style={styles.wrapper}>
       <ScrollView
         horizontal
+        nestedScrollEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -237,7 +244,7 @@ export function ContributionGraph({ userId }: Props) {
         {/* Legend */}
         <View style={styles.legend}>
           <Text style={styles.legendLabel}>Less</Text>
-          {['#1a1a1a', '#0e4429', '#006d32', '#26a641', '#39d353'].map((c) => (
+          {[EMPTY_CELL, '#1a7f37', '#26a641', '#39d353', '#56e368'].map((c) => (
             <View key={c} style={[styles.legendCell, { backgroundColor: c }]} />
           ))}
           <Text style={styles.legendLabel}>More</Text>
@@ -245,7 +252,7 @@ export function ContributionGraph({ userId }: Props) {
       </View>
     </View>
   );
-}
+});
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
