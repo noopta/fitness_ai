@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Clipboard from 'expo-clipboard';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -470,10 +471,19 @@ export default function SocialScreen() {
   const handleInvite = async () => {
     try {
       const data = await socialApi.getInviteLink();
-      const link = data.link ?? data.url ?? data.inviteUrl ?? JSON.stringify(data);
-      Alert.alert('Invite Link', link, [{ text: 'OK' }]);
+      const code = data.code ?? '';
+      const link = data.link ?? data.url ?? data.inviteUrl ?? '';
+      const textToCopy = code || link;
+      if (textToCopy) {
+        await Clipboard.setStringAsync(textToCopy);
+      }
+      Alert.alert(
+        'Invite Code Copied!',
+        `Your invite code${code ? ` (${code})` : ''} has been copied to your clipboard. Share it with a friend to invite them to Axiom.`,
+        [{ text: 'Done' }]
+      );
     } catch {
-      Alert.alert('Error', 'Could not generate invite link.');
+      Alert.alert('Error', 'Could not generate invite code.');
     }
   };
 

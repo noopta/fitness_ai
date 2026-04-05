@@ -236,4 +236,177 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/nutrition/profile
+// Aggregates 90 days of nutrition history and runs an LLM analysis to produce
+// a Nutrition Profile: key metrics, macro breakdown, habit scoring, and
+// actionable AI insights tailored to the user's training goal.
+router.get('/nutrition/profile', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+
+    const [user, entries, wellnessLogs] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, coachGoal: true } }),
+      prisma.mealEntry.findMany({
+        where: {
+          userId,
+          date: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) },
+        },
+        orderBy: { date: 'asc' },
+      }),
+      prisma.wellnessCheckin.findMany({
+        where: {
+          userId,
+          date: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) },
+        },
+        select: { date: true, mood: true, energy: true, sleepHours: true, stress: true },
+      }),
+    ]);
+
+    if (entries.length === 0) {
+      return res.json({
+        hasData: false,
+        message: 'Log at least a few meals to generate your Nutrition Profile.',
+      });
+    }
+
+    // ── Aggregate by day ────────────────────────────────────────────────────
+    const byDate: Record<string, { calories: number; proteinG: number; carbsG: number; fatG: number; mealCount: number }> = {};
+    for (const e of entries) {
+      if (!byDate[e.date]) byDate[e.date] = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0, mealCount: 0 };
+      byDate[e.date].calories += e.calories;
+      byDate[e.date].proteinG += e.proteinG;
+      byDate[e.date].carbsG += e.carbsG;
+      byDate[e.date].fatG += e.fatG;
+      byDate[e.date].mealCount += 1;
+    }
+    const days = Object.values(byDate);
+    const loggedDays = days.length;
+
+    const avg = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / (arr.length || 1);
+
+    const avgCalories = Math.round(avg(days.map(d => d.calories)));
+    const avgProtein  = Math.round(avg(days.map(d => d.proteinG)));
+    const avgCarbs    = Math.round(avg(days.map(d => d.carbsG)));
+    const avgFat      = Math.round(avg(days.map(d => d.fatG)));
+
+    const totalCals = avgProtein * 4 + avgCarbs * 4 + avgFat * 9;
+    const macroSplit = totalCals > 0 ? {
+      proteinPct: Math.round((avgProtein * 4 / totalCals) * 100),
+      carbsPct:   Math.round((avgCarbs * 4   / totalCals) * 100),
+      fatPct:     Math.round((avgFat * 9     / totalCals) * 100),
+    } : { proteinPct: 0, carbsPct: 0, fatPct: 0 };
+
+    // Protein per kg bodyweight
+    const weightKg = user?.weightKg ?? null;
+    const proteinPerKg = weightKg && weightKg > 0 ? +(avgProtein / weightKg).toFixed(2) : null;
+
+    // Calorie trend: compare first half vs second half
+    const sortedDates = Object.keys(byDate).sort();
+    const mid = Math.floor(sortedDates.length / 2);
+    const firstHalf  = sortedDates.slice(0, mid).map(d => byDate[d].calories);
+    const secondHalf = sortedDates.slice(mid).map(d => byDate[d].calories);
+    const trendDelta = Math.round(avg(secondHalf) - avg(firstHalf));
+    const calorieTrend: 'increasing' | 'decreasing' | 'stable' =
+      trendDelta > 100 ? 'increasing' : trendDelta < -100 ? 'decreasing' : 'stable';
+
+    // Consistency: logged days / 90
+    const consistencyPct = Math.round((loggedDays / 90) * 100);
+
+    // Meal frequency
+    const avgMealsPerDay = +(avg(days.map(d => d.mealCount))).toFixed(1);
+
+    // ── Wellness correlation (if data exists) ───────────────────────────────
+    let wellnessCorrelation: string | null = null;
+    if (wellnessLogs.length > 5) {
+      const avgEnergy = avg(wellnessLogs.map(w => w.energy)).toFixed(1);
+      const avgMood   = avg(wellnessLogs.map(w => w.mood)).toFixed(1);
+      wellnessCorrelation = `Average energy: ${avgEnergy}/10, mood: ${avgMood}/10 over ${wellnessLogs.length} check-ins.`;
+    }
+
+    // ── Sample of recent meals for LLM context ──────────────────────────────
+    const recentMealNames = [...new Set(
+      entries.slice(-60).map(e => e.name).filter(Boolean)
+    )].slice(0, 30).join(', ');
+
+    // ── LLM analysis ────────────────────────────────────────────────────────
+    const { default: OpenAI } = await import('openai');
+    const openai = new (OpenAI as any)({ apiKey: process.env.OPENAI_API_KEY });
+
+    const prompt = `You are an expert sports nutritionist and performance dietitian. Analyze this user's nutrition data and provide a detailed, actionable nutrition profile.
+
+USER DATA (last 90 days):
+- Logged days: ${loggedDays} out of 90 (${consistencyPct}% consistency)
+- Avg daily calories: ${avgCalories} kcal
+- Avg protein: ${avgProtein}g | Avg carbs: ${avgCarbs}g | Avg fat: ${avgFat}g
+- Macro split: ${macroSplit.proteinPct}% protein / ${macroSplit.carbsPct}% carbs / ${macroSplit.fatPct}% fat
+${proteinPerKg !== null ? `- Protein per kg bodyweight: ${proteinPerKg}g/kg (body weight: ${weightKg?.toFixed(0)}kg)` : ''}
+- Calorie trend: ${calorieTrend} (delta: ${trendDelta > 0 ? '+' : ''}${trendDelta} kcal first vs second half of period)
+- Avg meals per day: ${avgMealsPerDay}
+${wellnessCorrelation ? `- Wellness: ${wellnessCorrelation}` : ''}
+${recentMealNames ? `- Recent foods logged: ${recentMealNames}` : ''}
+- Training goal: ${user?.coachGoal || 'general fitness / strength'}
+
+Respond with a JSON object with exactly these fields:
+{
+  "overallScore": <number 0-100 representing overall nutrition quality>,
+  "overallGrade": <"A" | "B" | "C" | "D" — letter grade>,
+  "summary": <2-3 sentence plain-English summary of their nutrition habits>,
+  "strengths": [<up to 3 specific strengths, strings>],
+  "improvements": [<up to 3 specific areas to improve, strings>],
+  "insights": [
+    {
+      "category": <"performance" | "mood" | "recovery" | "body_composition" | "habits">,
+      "title": <short title>,
+      "body": <2-3 sentence insight specific to their data>
+    }
+  ],
+  "suggestions": [<up to 5 specific, actionable suggestions strings tailored to their goal and data>],
+  "macroRecommendation": {
+    "proteinG": <recommended daily protein grams>,
+    "carbsG": <recommended daily carbs grams>,
+    "fatG": <recommended daily fat grams>,
+    "calories": <recommended daily calories>,
+    "rationale": <one sentence explaining the recommendation>
+  }
+}
+
+Be specific to their actual numbers. Do not give generic advice.`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' },
+      temperature: 0.4,
+    });
+
+    let aiAnalysis: any = {};
+    try {
+      aiAnalysis = JSON.parse(completion.choices[0].message.content || '{}');
+    } catch {
+      aiAnalysis = { summary: 'Analysis unavailable at this time.', insights: [], suggestions: [] };
+    }
+
+    res.json({
+      hasData: true,
+      metrics: {
+        loggedDays,
+        consistencyPct,
+        avgCalories,
+        avgProtein,
+        avgCarbs,
+        avgFat,
+        macroSplit,
+        proteinPerKg,
+        calorieTrend,
+        trendDelta,
+        avgMealsPerDay,
+      },
+      analysis: aiAnalysis,
+    });
+  } catch (err: any) {
+    console.error('Nutrition profile error:', err);
+    res.status(500).json({ error: err?.message ?? 'Failed to generate nutrition profile' });
+  }
+});
+
 export default router;

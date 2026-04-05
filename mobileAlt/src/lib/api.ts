@@ -304,6 +304,9 @@ export const nutritionApi = {
   // Gemini vision — analyze a photo of a meal, get macros back
   analyzePhoto: (imageBase64: string, mimeType: string) =>
     apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
+
+  // AI-generated nutrition profile (aggregates 90 days + LLM insights)
+  getProfile: () => apiFetch('/nutrition/profile'),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ import { coachApi } from '../../src/lib/api';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
+import { NutritionProfile } from '../../src/components/NutritionProfile';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CARD_W = SCREEN_W - spacing.md * 2;
@@ -313,7 +314,10 @@ const trendStyles = StyleSheet.create({
 
 // ─── Page Component ───────────────────────────────────────────────────────────
 
+type ProfileTab = 'strength' | 'nutrition';
+
 export default function StrengthProfileScreen() {
+  const [activeTab, setActiveTab] = useState<ProfileTab>('strength');
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -354,15 +358,42 @@ export default function StrengthProfileScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Strength Profile</Text>
+          <Text style={styles.headerTitle}>My Profile</Text>
           <Text style={styles.headerSub}>Adapts as you train</Text>
         </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
-          <Ionicons name="refresh-outline" size={18} color={colors.mutedForeground} />
-        </TouchableOpacity>
+        {activeTab === 'strength' && (
+          <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+            <Ionicons name="refresh-outline" size={18} color={colors.mutedForeground} />
+          </TouchableOpacity>
+        )}
       </View>
 
-      <ScrollView
+      {/* ── Tab switcher ─────────────────────────────────────────────────── */}
+      <View style={styles.tabBar}>
+        {(['strength', 'nutrition'] as ProfileTab[]).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
+            onPress={() => setActiveTab(tab)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={tab === 'strength' ? 'barbell-outline' : 'nutrition-outline'}
+              size={15}
+              color={activeTab === tab ? colors.foreground : colors.mutedForeground}
+            />
+            <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>
+              {tab === 'strength' ? 'Strength' : 'Nutrition'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* ── Nutrition tab ────────────────────────────────────────────────── */}
+      {activeTab === 'nutrition' && <NutritionProfile />}
+
+      {/* ── Strength tab ─────────────────────────────────────────────────── */}
+      {activeTab === 'strength' && <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -491,7 +522,7 @@ export default function StrengthProfileScreen() {
             )}
           </>
         )}
-      </ScrollView>
+      </ScrollView>}
     </SafeAreaView>
   );
 }
@@ -511,6 +542,33 @@ const styles = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.md, gap: spacing.md, paddingBottom: 80 },
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.sm,
+    backgroundColor: colors.muted,
+    borderRadius: radius.md,
+    padding: 3,
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 8,
+    borderRadius: radius.sm,
+  },
+  tabItemActive: {
+    backgroundColor: colors.background,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabLabel: { fontSize: fontSize.sm, color: colors.mutedForeground, fontWeight: fontWeight.medium },
+  tabLabelActive: { color: colors.foreground, fontWeight: fontWeight.semibold },
   card: {},
 
   // Hero card

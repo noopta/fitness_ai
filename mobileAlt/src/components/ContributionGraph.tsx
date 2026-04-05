@@ -35,8 +35,11 @@ const ROWS = 7; // Sun–Sat
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// Dark card background so GitHub-palette greens are clearly visible
+const EMPTY_CELL = '#161b22';
+
 function getColor(count: number): string {
-  if (count === 0) return '#1a1a1a';
+  if (count === 0) return EMPTY_CELL;
   if (count === 1) return '#0e4429';
   if (count <= 3) return '#006d32';
   if (count <= 5) return '#26a641';
@@ -248,10 +251,10 @@ export function ContributionGraph({ userId }: Props) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: colors.card,
+    backgroundColor: '#0d1117',
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#30363d',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
   },
@@ -287,7 +290,7 @@ const styles = StyleSheet.create({
   },
   monthText: {
     fontSize: 9,
-    color: colors.mutedForeground,
+    color: '#8b949e',
     fontWeight: fontWeight.medium,
   },
 
@@ -316,7 +319,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: fontSize.xs,
-    color: colors.mutedForeground,
+    color: '#8b949e',
     fontWeight: fontWeight.medium,
   },
   errorText: {
@@ -337,7 +340,7 @@ const styles = StyleSheet.create({
   },
   legendLabel: {
     fontSize: 9,
-    color: colors.mutedForeground,
+    color: '#8b949e',
     fontWeight: fontWeight.medium,
     marginHorizontal: 2,
   },

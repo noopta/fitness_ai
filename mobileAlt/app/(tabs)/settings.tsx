@@ -13,6 +13,7 @@ import { coachApi, authApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
+import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 export default function SettingsScreen() {
@@ -21,7 +22,16 @@ export default function SettingsScreen() {
   const { user } = auth;
   const [portalLoading, setPortalLoading] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+  const [browserUrl, setBrowserUrl] = useState('');
+  const [browserTitle, setBrowserTitle] = useState('');
+  const [browserVisible, setBrowserVisible] = useState(false);
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
+
+  function openInApp(url: string, title: string) {
+    setBrowserUrl(url);
+    setBrowserTitle(title);
+    setBrowserVisible(true);
+  }
   const { unit, toggleUnit } = useUnits();
 
   // Username editing
@@ -328,11 +338,11 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.legalRow}>
-          <TouchableOpacity onPress={() => Linking.openURL('https://axiomtraining.io/terms')} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => openInApp('https://axiomtraining.io/terms', 'Terms of Use')} activeOpacity={0.7}>
             <Text style={styles.legalLink}>Terms of Use</Text>
           </TouchableOpacity>
           <Text style={styles.legalSep}>·</Text>
-          <TouchableOpacity onPress={() => Linking.openURL('https://axiomtraining.io/privacy')} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => openInApp('https://axiomtraining.io/privacy', 'Privacy Policy')} activeOpacity={0.7}>
             <Text style={styles.legalLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>
@@ -343,6 +353,12 @@ export default function SettingsScreen() {
         visible={upgradeVisible}
         onClose={() => setUpgradeVisible(false)}
         onSuccess={handleUpgradeSuccess}
+      />
+      <InAppBrowser
+        url={browserUrl}
+        title={browserTitle}
+        visible={browserVisible}
+        onClose={() => setBrowserVisible(false)}
       />
     </SafeAreaView>
   );

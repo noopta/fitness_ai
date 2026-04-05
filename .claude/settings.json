@@ -9,7 +9,9 @@
       "Read(//lib/systemd/system/**)",
       "Bash(node --input-type=module:*)",
       "Bash(head -50 echo \"\" curl -s https://api.airthreads.ai:4009/api/coach/chat/stream -H \"Authorization: Bearer badtoken\" -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"test\"\"\"\"}')",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)"
     ]
   }
 }

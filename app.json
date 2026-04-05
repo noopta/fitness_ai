@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "f6a64755-9156-4631-8a98-e8827ee4a373"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.axiomtraining.liftcoachmvp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
