@@ -592,7 +592,7 @@ export default function Signup() {
               </Link>
             </Button>
             <Button asChild variant="secondary" className="rounded-xl" data-testid="button-sign-in">
-              <Link href="/login">Sign In</Link>
+              <Link href="/features">See Features</Link>
             </Button>
           </div>
         </>
