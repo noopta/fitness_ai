@@ -109,6 +109,7 @@ export default function SocialSearchScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         {/* Search input */}
         <View style={styles.searchContainer}>

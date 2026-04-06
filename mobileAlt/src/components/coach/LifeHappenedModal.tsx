@@ -9,6 +9,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
@@ -109,6 +111,10 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <Pressable style={styles.overlay} onPress={handleClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.kavContainer}
+        >
         <Pressable style={styles.sheet} onPress={() => {}}>
           <KeyboardDoneBar />
           <View style={styles.handle} />
@@ -135,6 +141,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
             showsVerticalScrollIndicator={false}
             bounces={false}
             keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
           >
             {/* ── Input ── */}
             {stage === 'input' && (
@@ -308,6 +315,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
             )}
           </ScrollView>
         </Pressable>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   );
@@ -320,6 +328,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
+  },
+  kavContainer: {
+    width: '100%',
   },
   sheet: {
     backgroundColor: colors.card,

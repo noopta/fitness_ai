@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
-  ScrollView, Animated, Dimensions, TextInput, Alert,
+  ScrollView, Animated, Dimensions, TextInput, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStripe } from '@stripe/stripe-react-native';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 import { paymentsApi } from '../lib/api';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from './ui/KeyboardDoneBar';
 
 interface Props {
   visible: boolean;
@@ -55,7 +56,15 @@ function PaymentSheetContent({
       const code = promoApplied?.code ?? (promoCode.trim() || undefined);
       const data = await paymentsApi.createSubscriptionIntent(code);
 
-      // 2. Initialise the PaymentSheet with the client secret
+      // 2. If 100% discount made it free — already activated server-side
+      if (data.alreadyActivated) {
+        onClose();
+        await new Promise<void>(resolve => setTimeout(resolve, 300));
+        onSuccessRef.current();
+        return;
+      }
+
+      // 3. Initialise the PaymentSheet with the client secret
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: 'Axiom Training',
@@ -69,10 +78,10 @@ function PaymentSheetContent({
         return;
       }
 
-      // 3. Dismiss our sheet first so Stripe's sheet appears alone
+      // 4. Dismiss our sheet first so Stripe's sheet appears alone
       onClose();
 
-      // 4. Give the dismiss animation time to complete (~220ms), then present
+      // 5. Give the dismiss animation time to complete (~220ms), then present
       await new Promise<void>(resolve => setTimeout(resolve, 300));
 
       const { error: presentError } = await presentPaymentSheet();
@@ -159,6 +168,7 @@ function PaymentSheetContent({
               autoCorrect={false}
               returnKeyType="done"
               onSubmitEditing={handleApplyPromo}
+              inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
             <TouchableOpacity
               style={[styles.promoApplyBtn, !promoCode.trim() && styles.promoApplyBtnDisabled]}
@@ -239,39 +249,47 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
 
   return (
     <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+      <View style={styles.modalRoot}>
+        <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={onClose} />
 
-      <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        <View style={styles.handle} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.kavContainer}
+        >
+          <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
+            <KeyboardDoneBar />
+            <View style={styles.handle} />
 
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Upgrade to Pro</Text>
-            <Text style={styles.subtitle}>
-              ${PRICE_CAD.toFixed(2)} CAD / month · Cancel anytime
-            </Text>
-          </View>
-          <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="close" size={22} color={colors.mutedForeground} />
-          </TouchableOpacity>
-        </View>
+            <View style={styles.header}>
+              <View>
+                <Text style={styles.title}>Upgrade to Pro</Text>
+                <Text style={styles.subtitle}>
+                  ${PRICE_CAD.toFixed(2)} CAD / month · Cancel anytime
+                </Text>
+              </View>
+              <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={22} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
 
-        {visible && <PaymentSheetContent onClose={onClose} onSuccess={onSuccess} />}
-      </Animated.View>
+            {visible && <PaymentSheetContent onClose={onClose} onSuccess={onSuccess} />}
+          </Animated.View>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
+  modalRoot: {
+    flex: 1,
+    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
+  kavContainer: {
+    width: '100%',
+  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

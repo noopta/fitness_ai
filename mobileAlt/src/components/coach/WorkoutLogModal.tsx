@@ -248,6 +248,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                     onFocus={() => setFocusedExIndex(i)}
                     onBlur={() => setTimeout(() => setSuggestions([]), 150)}
                     returnKeyType="done"
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
                   />
                   {focusedExIndex === i && suggestions.length > 0 && (
                     <View style={styles.suggestionList}>
@@ -275,6 +276,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                       keyboardType="numeric"
                       value={ex.sets}
                       onChangeText={v => updateExercise(i, 'sets', v)}
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                     />
                   </View>
                   <View style={styles.inlineField}>
@@ -285,6 +287,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                       placeholderTextColor={colors.mutedForeground}
                       value={ex.reps}
                       onChangeText={v => updateExercise(i, 'reps', v)}
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                     />
                   </View>
                   <View style={styles.inlineField}>
@@ -296,6 +299,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                       keyboardType="decimal-pad"
                       value={ex.weight}
                       onChangeText={v => updateExercise(i, 'weight', v)}
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                     />
                   </View>
                   <View style={styles.inlineField}>
@@ -307,6 +311,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                       keyboardType="decimal-pad"
                       value={ex.rpe}
                       onChangeText={v => updateExercise(i, 'rpe', v)}
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                     />
                   </View>
                 </View>
@@ -317,6 +322,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                   placeholderTextColor={colors.mutedForeground}
                   value={ex.notes}
                   onChangeText={v => updateExercise(i, 'notes', v)}
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
             ))}

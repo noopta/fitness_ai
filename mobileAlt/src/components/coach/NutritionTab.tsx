@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import Svg, { Polyline, Circle, Line, Text as SvgText, Path } from 'react-native-svg';
 import { coachApi, nutritionApi } from '../../lib/api';
 import { MealLogModal } from './MealLogModal';
@@ -575,10 +576,13 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
 
   return (
     <>
+      <KeyboardDoneBar />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         refreshControl={<RefreshControl refreshing={loadingMeals} onRefresh={loadMealData} />}
       >
         {/* ── Today's Progress ── */}
@@ -639,6 +643,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
                 onChangeText={setMealDesc}
                 onSubmitEditing={handleParseMealDesc}
                 returnKeyType="done"
+                inputAccessoryViewID={KEYBOARD_DONE_ID}
               />
               <TouchableOpacity
                 style={[styles.descBtn, (mealParsing || mealDesc.trim().length < 3) && styles.descBtnDisabled]}
@@ -888,6 +893,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
                 keyboardType="decimal-pad"
                 value={bwInput}
                 onChangeText={setBwInput}
+                inputAccessoryViewID={KEYBOARD_DONE_ID}
               />
               <TouchableOpacity
                 style={[styles.bwLogBtn, savingBw && { opacity: 0.6 }]}

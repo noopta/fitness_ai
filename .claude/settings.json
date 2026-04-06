@@ -11,7 +11,16 @@
       "Bash(head -50 echo \"\" curl -s https://api.airthreads.ai:4009/api/coach/chat/stream -H \"Authorization: Bearer badtoken\" -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"test\"\"\"\"}')",
       "Bash(git add:*)",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(command -v nvm)",
+      "Bash(nvm ls:*)",
+      "Bash(npm list:*)",
+      "Bash(eas build:*)",
+      "Bash(eas build:list --platform ios --limit 1)",
+      "Bash(eas submit:*)",
+      "Bash(npx tsx:*)",
+      "Bash(eas update:*)",
+      "Bash(npx eas:*)"
     ]
   }
 }

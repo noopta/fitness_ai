@@ -292,7 +292,20 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
     const invoice = subscription.latest_invoice as any;
     const paymentIntent = invoice?.payment_intent as any;
 
+    // When a 100% discount is applied the subscription activates immediately
+    // (amount_due = 0) and no PaymentIntent is created. Upgrade the user now.
     if (!paymentIntent?.client_secret) {
+      if (invoice?.amount_due === 0 || subscription.status === 'active') {
+        await prisma.user.update({
+          where: { id: req.user!.id },
+          data: { tier: 'pro', stripeSubStatus: 'active', stripeCustomerId: customerId },
+        });
+        return res.json({
+          alreadyActivated: true,
+          subscriptionId: subscription.id,
+          discountPercent: discountPercent ?? null,
+        });
+      }
       return res.status(500).json({ error: 'Failed to get payment intent from subscription' });
     }
 

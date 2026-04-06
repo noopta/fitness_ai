@@ -519,24 +519,36 @@ Wellness correlations:
 Critical flags: ${rulesOutput.criticalCount} | Warnings: ${rulesOutput.warningCount} | Positives: ${rulesOutput.positiveCount}
 ${flagsSummary || 'No flags triggered.'}
 
-═══ USER PROFILE ═══
-Primary goal (coach plan): ${primaryGoal ?? 'not specified'}
-Lift diagnostic goal: ${sessionGoalContext ?? 'not specified'} — NOTE: this is a lift-specific diagnostic goal, NOT the user's overall nutrition/fitness goal. Do NOT use it to drive calorie or macro recommendations.
+═══ USER PROFILE & GOALS ═══
+Primary goal (from coach program — this is the user's ACTUAL overall fitness objective):
+"${primaryGoal ?? 'not specified'}"
+
+Lift diagnostic context (NOT the user's overall goal — do not use to drive calorie recommendations):
+${sessionGoalContext ? `"${sessionGoalContext}" for ${primaryLift ?? 'a lift'}` : 'none'}
+
 Primary lift: ${primaryLift ?? 'not specified'}
 All tracked lifts: ${allLifts.length > 0 ? allLifts.join(', ') : 'none'}
-Diagnostic context: ${diagnosticContext || 'no diagnostic sessions'}
 Training: ${trainingDaysPerWeek} days/week
 Weight: ${user?.weightKg ? `${user.weightKg} kg` : 'unknown'} | Height: ${user?.heightCm ? `${user.heightCm} cm` : 'unknown'}
 Training age: ${user?.trainingAge ?? 'unknown'}
 Recent foods: ${recentFoods || 'not logged'}
 Avg wellness: energy ${avgEnergy?.toFixed(1) ?? 'N/A'}/10 | sleep ${avgSleep?.toFixed(1) ?? 'N/A'}h
-${userCalorieTarget ? `\n⚠️ USER-DECLARED CALORIE TARGET: ${userCalorieTarget} kcal/day — This is the user's stated daily calorie goal and MUST be treated as the ground-truth target. All recommendations must align with this target, not the TDEE-computed value. The TDEE is context only.` : ''}
-${primaryGoal?.toLowerCase().includes('los') || primaryGoal?.toLowerCase().includes('fat') || primaryGoal?.toLowerCase().includes('cut') || primaryGoal?.toLowerCase().includes('weight') ? `\n⚠️ WEIGHT LOSS GOAL DETECTED: The user's primary goal is fat loss/weight reduction. Calorie recommendations must reflect a deficit below TDEE, not maintenance or surplus. The engine's computed target already applies goal-based adjustment — use it as a ceiling, and defer to the user's declared target if set.` : ''}
+${userCalorieTarget ? `\nUser-declared daily calorie target: ${userCalorieTarget} kcal — treat this as the hard target. All recommendations must align with it.` : ''}
+
+⚠️ GOAL ALIGNMENT REQUIREMENT:
+All calorie and macro recommendations MUST be derived from the user's primary goal above, not from TDEE alone.
+- If their goal implies a caloric deficit (fat loss, cutting, weight loss) → recommend below TDEE
+- If their goal implies a caloric surplus (muscle gain, bulking, mass building) → recommend above TDEE
+- If their goal is strength/performance with no body comp change → recommend at or near TDEE with high protein
+- If their goal is body recomposition → recommend near TDEE with high protein and carb periodization
+- If a user-declared calorie target is provided above, it overrides the TDEE-computed target completely
+Read the primary goal text carefully and let it drive all caloric reasoning. Do not default to TDEE maintenance if the goal clearly implies a different energy balance.
 
 ═══ INSTRUCTIONS ═══
 Using ONLY the above verified data, produce a JSON object with EXACTLY this structure.
 Every number you reference must come from the ENGINE OUTPUT above — never invent new calculations.
 Cite specific values from the engine and flags in your analysis. Reference the scientific mechanisms from the RAG context where relevant.
+Ensure every recommendation is consistent with the user's primary goal stated above.
 
 {
   "overallScore": <0-100 based on engine gaps, rules flags severity, and consistency>,
