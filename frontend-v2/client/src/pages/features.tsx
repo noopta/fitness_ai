@@ -64,7 +64,7 @@ function FadeIn({
 
 // ─── Stat counter ─────────────────────────────────────────────────────────────
 
-function StatPill({ value, label }: { value: string; label: string }) {
+function StatPill({ value, label, className = "" }: { value: string; label: string; className?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
   return (
@@ -73,7 +73,7 @@ function StatPill({ value, label }: { value: string; label: string }) {
       initial={{ opacity: 0, scale: 0.92 }}
       animate={inView ? { opacity: 1, scale: 1 } : {}}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex flex-col items-center gap-0.5 px-6 py-4"
+      className={`flex flex-col items-center gap-0.5 px-6 py-4 ${className}`}
     >
       <span className="text-3xl font-bold tracking-tight text-foreground">{value}</span>
       <span className="text-xs text-muted-foreground text-center leading-tight max-w-[100px]">{label}</span>
@@ -445,7 +445,7 @@ function AnakinSection() {
   const MockComponent = ANAKIN_TABS[activeTab].mock;
 
   return (
-    <section className="py-24 bg-foreground text-background">
+    <section className="py-16 sm:py-24 bg-foreground text-background">
       <div className="container-tight">
         <FadeUp>
           <div className="inline-flex items-center gap-2 rounded-full border border-background/20 bg-background/10 px-4 py-1.5 text-xs font-medium text-background/80 mb-6">
@@ -459,7 +459,7 @@ function AnakinSection() {
           </h2>
         </FadeUp>
         <FadeUp delay={0.1}>
-          <p className="text-background/65 max-w-xl text-lg mb-12">
+          <p className="text-background/65 max-w-xl text-lg mb-8 sm:mb-12">
             Anakin synthesizes your diagnostics, workouts, nutrition, and wellness into a single coaching intelligence — and acts on it without being asked.
           </p>
         </FadeUp>
@@ -574,9 +574,9 @@ function IndexCard({ label, value, color }: { label: string; value: number; colo
 
 function DiagnosticSection() {
   return (
-    <section className="py-24 border-t">
+    <section className="py-16 sm:py-24 border-t">
       <div className="container-tight">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           <div>
             <FadeUp>
               <div className="inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-6">
@@ -590,7 +590,7 @@ function DiagnosticSection() {
               </h2>
             </FadeUp>
             <FadeUp delay={0.1}>
-              <p className="text-muted-foreground mb-10 leading-relaxed">
+              <p className="text-muted-foreground mb-8 sm:mb-10 leading-relaxed">
                 Before any AI runs, a pure deterministic engine computes your strength ratios from actual training data — no guessing, no hallucination. The AI then cross-checks these signals against your subjective report to confirm the diagnosis.
               </p>
             </FadeUp>
@@ -730,7 +730,7 @@ const FEATURE_GRID = [
 
 function FeatureGrid() {
   return (
-    <section className="py-24 bg-muted/30 border-t">
+    <section className="py-16 sm:py-24 bg-muted/30 border-t">
       <div className="container-tight">
         <FadeUp className="mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
@@ -808,9 +808,9 @@ function CompCell({ value, isAxiom }: { value: boolean | string; isAxiom: boolea
 
 function ComparisonSection() {
   return (
-    <section className="py-24 border-t overflow-x-auto">
-      <div className="container-tight min-w-[600px]">
-        <FadeUp className="mb-12">
+    <section className="py-16 sm:py-24 border-t">
+      <div className="container-tight">
+        <FadeUp className="mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
             <ShieldCheck className="h-3.5 w-3.5" />
             How we compare
@@ -824,6 +824,8 @@ function ComparisonSection() {
         </FadeUp>
 
         <FadeIn>
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="min-w-[600px] px-4 sm:px-0">
           <div className="rounded-2xl border overflow-hidden">
             {/* Header */}
             <div className="grid bg-muted/50 border-b" style={{ gridTemplateColumns: "1fr repeat(5, 100px)" }}>
@@ -860,6 +862,8 @@ function ComparisonSection() {
               </motion.div>
             ))}
           </div>
+          </div>
+          </div>
         </FadeIn>
       </div>
     </section>
@@ -871,17 +875,17 @@ function ComparisonSection() {
 function CTASection() {
   const { user } = useAuth();
   return (
-    <section className="py-24 bg-foreground text-background">
+    <section className="py-16 sm:py-24 bg-foreground text-background">
       <div className="container-tight text-center">
         <FadeUp>
           <div className="inline-flex items-center gap-2 rounded-full border border-background/20 bg-background/10 px-4 py-1.5 text-xs font-medium text-background/80 mb-6">
             <Flame className="h-3.5 w-3.5" />
             Free to start
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-5">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 sm:mb-5">
             Train with a purpose.<br />Know exactly why.
           </h2>
-          <p className="text-background/65 max-w-xl mx-auto text-lg mb-10">
+          <p className="text-background/65 max-w-xl mx-auto text-base sm:text-lg mb-8 sm:mb-10">
             Run your first diagnostic free — no credit card, no commitment. See your weakness identified in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -906,7 +910,7 @@ function CTASection() {
 function HeroSection() {
   const { user } = useAuth();
   return (
-    <section className="pt-20 pb-24 overflow-hidden">
+    <section className="pt-14 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
       <div className="container-tight">
         <div className="max-w-2xl mx-auto text-center">
           <motion.div
@@ -923,7 +927,7 @@ function HeroSection() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.05 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-tight"
+            className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-tight"
           >
             Stop guessing.<br />Start training with precision.
           </motion.h1>
@@ -931,7 +935,7 @@ function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-muted-foreground text-lg mb-10 leading-relaxed"
+            className="text-muted-foreground text-lg mb-8 sm:mb-10 leading-relaxed"
           >
             Axiom is the only fitness platform that identifies exactly why your lifts are stalling — then builds your program, nutrition, and coaching around that answer.
           </motion.p>
@@ -953,18 +957,18 @@ function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Stats bar */}
+        {/* Stats bar — 2-col grid on mobile, 5-col on sm+ */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-16 rounded-2xl border bg-card flex flex-wrap justify-around divide-x"
+          className="mt-12 sm:mt-16 rounded-2xl border bg-card overflow-hidden grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x"
         >
           <StatPill value="9" label="Supported lifts including Olympic" />
           <StatPill value="5" label="Muscle-group indices per session" />
           <StatPill value="7,000+" label="Pages of peer-reviewed research" />
           <StatPill value="4-layer" label="AI nutrition pipeline" />
-          <StatPill value="24/7" label="Coaching with full memory" />
+          <StatPill value="24/7" label="Coaching with full memory" className="col-span-2 sm:col-span-1 border-t sm:border-t-0" />
         </motion.div>
       </div>
     </section>
