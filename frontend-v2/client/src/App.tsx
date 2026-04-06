@@ -36,6 +36,7 @@ import InstitutionAthleteDetailPage from "./pages/institution-athlete-detail";
 import NavDemoPage from "./pages/nav-demo";
 import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
+import FeaturesV2Page from "./pages/features-v2";
 
 // Error boundary — catches render crashes and shows a recovery UI instead of
 // a blank screen. Particularly important for catching hook-order errors and
@@ -107,6 +108,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features" component={FeaturesPage} />
+      <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
