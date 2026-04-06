@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { sendPushToUser } from '../services/notificationService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -43,8 +44,8 @@ router.get('/social/friends', async (req, res) => {
       OR: [{ requesterId: userId }, { addresseeId: userId }],
     },
     include: {
-      requester: { select: { id: true, name: true, email: true } },
-      addressee: { select: { id: true, name: true, email: true } },
+      requester: { select: { id: true, name: true, username: true } },
+      addressee: { select: { id: true, name: true, username: true } },
     },
   });
   const friends = friendships.map(f =>
@@ -53,11 +54,34 @@ router.get('/social/friends', async (req, res) => {
   res.json(friends);
 });
 
+// GET /api/social/notifications/counts
+// Returns total unread DMs + pending friend requests — used for the tab badge
+router.get('/social/notifications/counts', async (req, res) => {
+  const userId = req.user!.id;
+  const [pendingRequests, convos] = await Promise.all([
+    prisma.friendship.count({ where: { addresseeId: userId, status: 'pending' } }),
+    prisma.directConversation.findMany({
+      where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
+      select: { id: true },
+    }),
+  ]);
+  const unreadMessages = convos.length > 0
+    ? await prisma.message.count({
+        where: {
+          conversationId: { in: convos.map(c => c.id) },
+          senderId: { not: userId },
+          readAt: null,
+        },
+      })
+    : 0;
+  res.json({ pendingRequests, unreadMessages, total: pendingRequests + unreadMessages });
+});
+
 // GET /api/social/friends/requests
 router.get('/social/friends/requests', async (req, res) => {
   const requests = await prisma.friendship.findMany({
     where: { addresseeId: req.user!.id, status: 'pending' },
-    include: { requester: { select: { id: true, name: true, email: true } } },
+    include: { requester: { select: { id: true, name: true, username: true } } },
     orderBy: { createdAt: 'desc' },
   });
   res.json(requests);
@@ -88,6 +112,10 @@ router.post('/social/friends/request', async (req, res) => {
     const friendship = await prisma.friendship.create({
       data: { requesterId: userId, addresseeId: targetUserId, status: 'pending' },
     });
+    // Notify the recipient
+    const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } });
+    const senderDisplay = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
+    sendPushToUser(targetUserId, 'New Friend Request', `${senderDisplay} sent you a friend request`, { type: 'friend_request', requesterId: userId }).catch(() => {});
     res.status(201).json(friendship);
   } catch (err: any) {
     if (err?.code === 'P2002') return res.status(409).json({ error: 'Request already exists' });
@@ -175,7 +203,7 @@ router.get('/social/users/search', async (req, res) => {
         { username: { contains: q } },
       ],
     },
-    select: { id: true, name: true, email: true, username: true, avatarBase64: true },
+    select: { id: true, name: true, username: true, avatarBase64: true },
     take: 10,
   });
 
@@ -355,10 +383,19 @@ router.post('/social/conversations/:conversationId/messages', async (req, res) =
   const [message] = await prisma.$transaction([
     prisma.message.create({
       data: { conversationId, senderId: userId, body: body.trim() },
-      include: { sender: { select: { id: true, name: true } } },
+      include: { sender: { select: { id: true, name: true, username: true } } },
     }),
     prisma.directConversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
   ]);
+
+  // Push notification to the other participant
+  const recipientId = convo.participantAId === userId ? convo.participantBId : convo.participantAId;
+  const senderDisplay = (message.sender as any)?.username
+    ? `@${(message.sender as any).username}`
+    : ((message.sender as any)?.name ?? 'Someone');
+  const preview = body.trim().length > 60 ? body.trim().slice(0, 57) + '…' : body.trim();
+  sendPushToUser(recipientId, `Message from ${senderDisplay}`, preview, { type: 'message', conversationId }).catch(() => {});
+
   res.status(201).json(message);
 });
 
@@ -435,7 +472,7 @@ router.post('/social/share', async (req, res) => {
       itemId: itemId ?? null,
       payload: JSON.stringify(payload),
     },
-    include: { sharer: { select: { id: true, name: true, email: true } } },
+    include: { sharer: { select: { id: true, name: true, username: true } } },
   });
   res.status(201).json({ ...item, payload: JSON.parse(item.payload) });
 });
@@ -466,7 +503,7 @@ router.get('/social/shared-feed', async (req, res) => {
         }] : []),
       ],
     },
-    include: { sharer: { select: { id: true, name: true, email: true } } },
+    include: { sharer: { select: { id: true, name: true, username: true } } },
     orderBy: { createdAt: 'desc' },
     take: 100,
   });
@@ -484,6 +521,100 @@ router.get('/social/shared-feed', async (req, res) => {
   const deduped = filtered.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
 
   res.json(deduped.map(i => ({ ...i, payload: JSON.parse(i.payload) })));
+});
+
+// ─── Leaderboard ──────────────────────────────────────────────────────────────
+
+const LEADERBOARD_LIFTS = [
+  'flat_bench_press', 'deadlift', 'barbell_back_squat', 'barbell_front_squat',
+  'incline_bench_press', 'power_clean', 'hang_clean', 'clean_and_jerk', 'snatch',
+];
+
+// Epley e1RM: weight * (1 + reps/30), clamped to 1-10 reps
+function epley(weight: number, reps: number): number {
+  const r = Math.min(Math.max(Math.round(reps), 1), 10);
+  return Math.round(weight * (1 + r / 30));
+}
+
+// GET /api/social/leaderboard?lift=flat_bench_press
+// Returns viewer + accepted friends ranked by estimated 1RM for the specified lift
+router.get('/social/leaderboard', async (req, res) => {
+  const userId = req.user!.id;
+  const lift = (req.query.lift as string) || 'flat_bench_press';
+
+  // Get accepted friend IDs (include self for the full board)
+  const friendships = await prisma.friendship.findMany({
+    where: { OR: [{ requesterId: userId }, { addresseeId: userId }], status: 'accepted' },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIds = friendships.map(f => f.requesterId === userId ? f.addresseeId : f.requesterId);
+  const participantIds = [userId, ...friendIds];
+
+  // Fetch all sessions for the lift by all participants, with snapshots
+  const sessions = await prisma.session.findMany({
+    where: { userId: { in: participantIds }, selectedLift: lift },
+    select: {
+      userId: true,
+      snapshots: { select: { weight: true, repsSchema: true } },
+    },
+  });
+
+  // Compute best e1RM per user
+  const bestE1RM: Record<string, number> = {};
+  for (const s of sessions) {
+    if (!s.userId) continue;
+    for (const snap of s.snapshots) {
+      const reps = parseInt(snap.repsSchema, 10);
+      if (isNaN(reps) || snap.weight <= 0) continue;
+      const e1rm = epley(snap.weight, reps);
+      if (!bestE1RM[s.userId] || e1rm > bestE1RM[s.userId]) {
+        bestE1RM[s.userId] = e1rm;
+      }
+    }
+  }
+
+  // Fetch user display info for all participants who have data
+  const usersWithData = Object.keys(bestE1RM);
+  if (usersWithData.length === 0) return res.json({ lift, entries: [] });
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: usersWithData } },
+    select: { id: true, name: true, username: true, avatarBase64: true },
+  });
+
+  const entries = users
+    .map(u => ({
+      userId: u.id,
+      name: u.name,
+      username: u.username,
+      avatarBase64: u.avatarBase64,
+      e1RM: bestE1RM[u.id] ?? 0,
+      isYou: u.id === userId,
+    }))
+    .sort((a, b) => b.e1RM - a.e1RM)
+    .map((entry, i) => ({ ...entry, rank: i + 1 }));
+
+  res.json({ lift, entries });
+});
+
+// GET /api/social/leaderboard/lifts
+// Returns which lifts the user and their friends have data for
+router.get('/social/leaderboard/lifts', async (req, res) => {
+  const userId = req.user!.id;
+  const friendships = await prisma.friendship.findMany({
+    where: { OR: [{ requesterId: userId }, { addresseeId: userId }], status: 'accepted' },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIds = friendships.map(f => f.requesterId === userId ? f.addresseeId : f.requesterId);
+  const participantIds = [userId, ...friendIds];
+
+  const sessions = await prisma.session.findMany({
+    where: { userId: { in: participantIds }, selectedLift: { in: LEADERBOARD_LIFTS } },
+    select: { selectedLift: true },
+    distinct: ['selectedLift'],
+  });
+  const lifts = sessions.map(s => s.selectedLift);
+  res.json({ lifts });
 });
 
 // ─── Invite Links ─────────────────────────────────────────────────────────────

@@ -334,6 +334,13 @@ export const workoutsApi = {
 // ─── Social API ───────────────────────────────────────────────────────────────
 
 export const socialApi = {
+  // Notification badge counts (unread DMs + pending friend requests)
+  getNotificationCounts: () => apiFetch('/social/notifications/counts'),
+
+  // Leaderboard
+  getLeaderboard: (lift: string) => apiFetch(`/social/leaderboard?lift=${encodeURIComponent(lift)}`),
+  getLeaderboardLifts: () => apiFetch('/social/leaderboard/lifts'),
+
   // Friends
   getFriends: () => apiFetch('/social/friends'),
   getFriendRequests: () => apiFetch('/social/friends/requests'),
@@ -398,7 +405,11 @@ export const paymentsApi = {
   // Returns Stripe publishable key — safe to expose to clients
   getConfig: () => apiFetch('/payments/config', {}, false),
 
-  // Creates a subscription and returns a PaymentIntent client_secret
-  createSubscriptionIntent: () =>
-    apiFetch('/payments/create-subscription-intent', { method: 'POST' }),
+  // Creates a subscription and returns a PaymentIntent client_secret.
+  // Pass promoCode to apply a Stripe Promotion Code discount (validated server-side).
+  createSubscriptionIntent: (promoCode?: string) =>
+    apiFetch('/payments/create-subscription-intent', {
+      method: 'POST',
+      body: JSON.stringify({ promoCode: promoCode ?? null }),
+    }),
 };

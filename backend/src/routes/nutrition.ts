@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 
-const NUTRITION_PROFILE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
 const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
@@ -120,6 +120,24 @@ router.get('/nutrition/meals', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Meal entries fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch meal entries' });
+  }
+});
+
+// PUT /api/nutrition/targets - Set user's daily calorie/macro targets
+router.put('/nutrition/targets', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { dailyCalorieTarget } = req.body as { dailyCalorieTarget?: number | null };
+    await prisma.user.update({
+      where: { id: userId },
+      data: { dailyCalorieTarget: dailyCalorieTarget ?? null },
+    });
+    // Bust the nutrition profile cache so next fetch uses the new target
+    cacheDelete(nutritionProfileCacheKey(userId));
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('Set nutrition targets error:', err);
+    res.status(500).json({ error: 'Failed to update targets' });
   }
 });
 
@@ -277,6 +295,7 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
         select: {
           weightKg: true, heightCm: true, dateOfBirth: true,
           trainingAge: true, bodyCompTag: true, coachGoal: true,
+          dailyCalorieTarget: true,
         },
       }),
       prisma.mealEntry.findMany({
@@ -347,9 +366,14 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
     }
     const allLifts = [...new Set([...workoutLiftNames, ...sessionLifts])].slice(0, 8);
 
-    // Primary goal: prefer most recent session goal, fall back to coachGoal
-    const primaryGoal = recentSessions.find(s => s.goal)?.goal ?? user?.coachGoal ?? null;
+    // Goal priority: coachGoal is the holistic fitness plan (what the user actually wants to achieve).
+    // Session goal is lift-specific (diagnostic context only) — used as secondary context, not the primary driver.
+    const primaryGoal = user?.coachGoal ?? recentSessions.find(s => s.goal)?.goal ?? null;
+    const sessionGoalContext = recentSessions.find(s => s.goal)?.goal ?? null;
     const primaryLift = sessionLifts[0] ?? null;
+
+    // User-declared calorie target takes precedence over TDEE-computed recommendation
+    const userCalorieTarget = user?.dailyCalorieTarget ?? null;
 
     // ── Build engine inputs ──────────────────────────────────────────────
     const engineUser: NutritionEngineUser = {
@@ -470,8 +494,9 @@ Training vs rest days:
 - Rest day avg: ${engineOutput.restDayAvgCalories ?? 'N/A'} kcal | C: ${engineOutput.restDayAvgCarbsG ?? 'N/A'}g
 - Carb periodization delta: ${engineOutput.carbPeriodizationDelta !== null ? `${engineOutput.carbPeriodizationDelta}g` : 'N/A'} (positive = more carbs on training days)
 
-Recommended targets (engine-computed):
-- Daily: ${engineOutput.targets.calories} kcal | P: ${engineOutput.targets.proteinG}g | C: ${engineOutput.targets.carbsG}g | F: ${engineOutput.targets.fatG}g
+Recommended targets:
+- TDEE-computed daily: ${engineOutput.targets.calories} kcal | P: ${engineOutput.targets.proteinG}g | C: ${engineOutput.targets.carbsG}g | F: ${engineOutput.targets.fatG}g
+${userCalorieTarget ? `- ⚠️ USER-DECLARED TARGET (USE THIS): ${userCalorieTarget} kcal/day — override the TDEE target above for all calorie recommendations` : '- (No user-declared target — use TDEE-computed target above)'}
 - Training day target: ${engineOutput.periodization.trainingDay.calories} kcal | C: ${engineOutput.periodization.trainingDay.carbsG}g
 - Rest day target: ${engineOutput.periodization.restDay.calories} kcal | C: ${engineOutput.periodization.restDay.carbsG}g
 - Protein gap: ${engineOutput.proteinGap}g/day | Calorie gap: ${engineOutput.calorieGap} kcal/day
@@ -495,7 +520,8 @@ Critical flags: ${rulesOutput.criticalCount} | Warnings: ${rulesOutput.warningCo
 ${flagsSummary || 'No flags triggered.'}
 
 ═══ USER PROFILE ═══
-Goal: ${primaryGoal ?? 'not specified'}
+Primary goal (coach plan): ${primaryGoal ?? 'not specified'}
+Lift diagnostic goal: ${sessionGoalContext ?? 'not specified'} — NOTE: this is a lift-specific diagnostic goal, NOT the user's overall nutrition/fitness goal. Do NOT use it to drive calorie or macro recommendations.
 Primary lift: ${primaryLift ?? 'not specified'}
 All tracked lifts: ${allLifts.length > 0 ? allLifts.join(', ') : 'none'}
 Diagnostic context: ${diagnosticContext || 'no diagnostic sessions'}
@@ -504,6 +530,8 @@ Weight: ${user?.weightKg ? `${user.weightKg} kg` : 'unknown'} | Height: ${user?.
 Training age: ${user?.trainingAge ?? 'unknown'}
 Recent foods: ${recentFoods || 'not logged'}
 Avg wellness: energy ${avgEnergy?.toFixed(1) ?? 'N/A'}/10 | sleep ${avgSleep?.toFixed(1) ?? 'N/A'}h
+${userCalorieTarget ? `\n⚠️ USER-DECLARED CALORIE TARGET: ${userCalorieTarget} kcal/day — This is the user's stated daily calorie goal and MUST be treated as the ground-truth target. All recommendations must align with this target, not the TDEE-computed value. The TDEE is context only.` : ''}
+${primaryGoal?.toLowerCase().includes('los') || primaryGoal?.toLowerCase().includes('fat') || primaryGoal?.toLowerCase().includes('cut') || primaryGoal?.toLowerCase().includes('weight') ? `\n⚠️ WEIGHT LOSS GOAL DETECTED: The user's primary goal is fat loss/weight reduction. Calorie recommendations must reflect a deficit below TDEE, not maintenance or surplus. The engine's computed target already applies goal-based adjustment — use it as a ceiling, and defer to the user's declared target if set.` : ''}
 
 ═══ INSTRUCTIONS ═══
 Using ONLY the above verified data, produce a JSON object with EXACTLY this structure.
@@ -616,12 +644,12 @@ Cite specific values from the engine and flags in your analysis. Reference the s
     "proteinG": ${engineOutput.targets.proteinG},
     "carbsG": ${engineOutput.targets.carbsG},
     "fatG": ${engineOutput.targets.fatG},
-    "calories": ${engineOutput.targets.calories},
+    "calories": ${userCalorieTarget ?? engineOutput.targets.calories},
     "trainingDayProteinG": ${engineOutput.periodization.trainingDay.proteinG},
     "trainingDayCarbsG": ${engineOutput.periodization.trainingDay.carbsG},
     "restDayProteinG": ${engineOutput.periodization.restDay.proteinG},
     "restDayCarbsG": ${engineOutput.periodization.restDay.carbsG},
-    "rationale": <2-3 sentences explaining the targets based on goal, weight, TDEE, and training frequency — citing exact numbers>
+    "rationale": <2-3 sentences explaining the calorie target — if a user-declared target exists, EXPLAIN that their ${userCalorieTarget ?? engineOutput.targets.calories} kcal target aligns with their stated goal (${primaryGoal ?? 'their fitness goal'}), then cite their current avg intake vs target gap>
   }
 }`;
 

@@ -25,6 +25,7 @@ import { PhaseBreakdown } from '../../src/components/PhaseBreakdown';
 import { HypothesisRankings } from '../../src/components/HypothesisRankings';
 import { EfficiencyGauge } from '../../src/components/EfficiencyGauge';
 import { UpgradePrompt } from '../../src/components/UpgradePrompt';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
@@ -192,7 +193,7 @@ function hasIndexValues(signals: DiagnosticSignals): boolean {
 export default function PlanScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ sessionId?: string }>();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -201,6 +202,7 @@ export default function PlanScreen() {
   const [rateLimited, setRateLimited] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   // ── Load plan on mount ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -356,8 +358,14 @@ export default function PlanScreen() {
           <UpgradePrompt
             userId={user?.id}
             reason="You've reached your free analysis limit. Upgrade to Pro for unlimited diagnoses."
+            onUpgrade={() => setUpgradeVisible(true)}
           />
         </ScrollView>
+        <UpgradeSheet
+          visible={upgradeVisible}
+          onClose={() => setUpgradeVisible(false)}
+          onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
+        />
       </SafeAreaView>
     );
   }

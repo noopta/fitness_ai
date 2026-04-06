@@ -12,7 +12,6 @@ import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/Keybo
 interface UserResult {
   id: string;
   name: string | null;
-  email: string | null;
   username: string | null;
   avatarBase64: string | null;
 }
@@ -20,8 +19,7 @@ interface UserResult {
 interface PendingRequest {
   id: string;
   requesterId: string;
-  requesterName: string | null;
-  requesterEmail: string | null;
+  requester: { id: string; name: string | null; username: string | null };
 }
 
 export default function SocialSearchScreen() {
@@ -117,7 +115,7 @@ export default function SocialSearchScreen() {
           <Ionicons name="search-outline" size={18} color={colors.mutedForeground} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by name, username, or email…"
+            placeholder="Search by name or username…"
             placeholderTextColor={colors.mutedForeground}
             value={query}
             onChangeText={onChangeQuery}
@@ -142,13 +140,15 @@ export default function SocialSearchScreen() {
                 <View style={styles.cardRow}>
                   <View style={styles.avatarCircle}>
                     <Text style={styles.avatarText}>
-                      {((req.requesterName ?? req.requesterEmail ?? '?')[0]).toUpperCase()}
+                      {((req.requester.username ?? req.requester.name ?? '?')[0]).toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.cardContent}>
-                    <Text style={styles.cardName}>{req.requesterName ?? 'User'}</Text>
-                    {req.requesterEmail ? (
-                      <Text style={styles.cardSub}>{req.requesterEmail}</Text>
+                    <Text style={styles.cardName}>
+                      {req.requester.username ? `@${req.requester.username}` : (req.requester.name ?? 'User')}
+                    </Text>
+                    {req.requester.name && req.requester.username ? (
+                      <Text style={styles.cardSub}>{req.requester.name}</Text>
                     ) : null}
                   </View>
                   <View style={styles.requestActions}>
@@ -184,16 +184,16 @@ export default function SocialSearchScreen() {
                   ) : (
                     <View style={styles.avatarCircle}>
                       <Text style={styles.avatarText}>
-                        {((user.name ?? user.email ?? '?')[0]).toUpperCase()}
+                        {((user.username ?? user.name ?? '?')[0]).toUpperCase()}
                       </Text>
                     </View>
                   )}
                   <View style={styles.cardContent}>
-                    <Text style={styles.cardName}>{user.name ?? 'User'}</Text>
-                    {user.username ? (
-                      <Text style={styles.cardSub}>@{user.username}</Text>
-                    ) : user.email ? (
-                      <Text style={styles.cardSub}>{user.email}</Text>
+                    <Text style={styles.cardName}>
+                      {user.username ? `@${user.username}` : (user.name ?? 'User')}
+                    </Text>
+                    {user.name && user.username ? (
+                      <Text style={styles.cardSub}>{user.name}</Text>
                     ) : null}
                   </View>
                   {sentIds.has(user.id) ? (
@@ -220,7 +220,7 @@ export default function SocialSearchScreen() {
           <View style={styles.center}>
             <Ionicons name="search-outline" size={40} color={colors.mutedForeground} />
             <Text style={styles.emptyTitle}>Search for people</Text>
-            <Text style={styles.emptySubtitle}>Find friends by name, username, or email.</Text>
+            <Text style={styles.emptySubtitle}>Find friends by name or username.</Text>
           </View>
         )}
       </ScrollView>

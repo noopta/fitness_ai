@@ -232,8 +232,11 @@ router.get('/payments/config', (_req, res) => {
 // Creates (or retrieves) a Stripe Customer, creates a Subscription with
 // payment_behavior: 'default_incomplete', and returns the client_secret of
 // the first invoice's PaymentIntent. The mobile SDK uses this to confirm.
+// Accepts optional `promoCode` (Stripe Promotion Code string) for discounts.
 router.post('/payments/create-subscription-intent', requireAuth, async (req, res) => {
   try {
+    const { promoCode } = req.body as { promoCode?: string };
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
       select: { stripeCustomerId: true, email: true, name: true, tier: true },
@@ -263,6 +266,19 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
       });
     }
 
+    // Resolve promo code → promotion_code ID (server-side validated)
+    let promotionCodeId: string | undefined;
+    let discountPercent: number | undefined;
+    if (promoCode?.trim()) {
+      const codes = await stripe.promotionCodes.list({ code: promoCode.trim(), active: true, limit: 1 });
+      if (codes.data.length === 0) {
+        return res.status(400).json({ error: 'Invalid or expired promo code.' });
+      }
+      promotionCodeId = codes.data[0].id;
+      const coupon = (codes.data[0] as any).coupon;
+      if (coupon?.percent_off) discountPercent = coupon.percent_off;
+    }
+
     // Create incomplete subscription so we get a PaymentIntent client_secret
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
@@ -270,6 +286,7 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
+      ...(promotionCodeId ? { promotion_code: promotionCodeId } : {}),
     });
 
     const invoice = subscription.latest_invoice as any;
@@ -282,6 +299,7 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
     res.json({
       clientSecret: paymentIntent.client_secret,
       subscriptionId: subscription.id,
+      discountPercent: discountPercent ?? null,
     });
   } catch (err: any) {
     console.error('Create subscription intent error:', err);

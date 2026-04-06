@@ -12,13 +12,14 @@ import * as Clipboard from 'expo-clipboard';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface FeedItem {
   id: string;
   sharerId: string;
-  sharer: { id: string; name: string | null; email: string | null } | null;
+  sharer: { id: string; name: string | null; username: string | null } | null;
   itemType: string;
   payload: any;
   createdAt: string;
@@ -27,14 +28,13 @@ interface FeedItem {
 interface Friend {
   id: string;
   name: string | null;
-  email: string | null;
+  username: string | null;
 }
 
 interface FriendRequest {
   id: string;
   requesterId: string;
-  requesterName: string | null;
-  requesterEmail: string | null;
+  requester: { id: string; name: string | null; username: string | null };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -78,10 +78,10 @@ function FeedCard({ item }: { item: FeedItem }) {
     <View style={styles.card}>
       <View style={styles.cardRow}>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{(item.sharer?.name ?? item.sharer?.email ?? '?')[0].toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{(item.sharer?.username ?? item.sharer?.name ?? '?')[0].toUpperCase()}</Text>
         </View>
         <View style={styles.cardContent}>
-          <Text style={styles.cardName}>{item.sharer?.name ?? item.sharer?.email ?? 'Unknown'}</Text>
+          <Text style={styles.cardName}>{item.sharer?.username ? `@${item.sharer.username}` : (item.sharer?.name ?? 'Unknown')}</Text>
           {description ? (
             <Text style={styles.cardSub}>{description}</Text>
           ) : null}
@@ -122,11 +122,11 @@ function FriendRow({ friend, onMessage }: { friend: Friend; onMessage: () => voi
     <View style={styles.card}>
       <View style={styles.cardRow}>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{((friend.name ?? friend.email ?? '?')[0]).toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{((friend.username ?? friend.name ?? '?')[0]).toUpperCase()}</Text>
         </View>
         <View style={styles.cardContent}>
-          <Text style={styles.cardName}>{friend.name ?? 'Unnamed'}</Text>
-          {friend.email ? <Text style={styles.cardSub}>{friend.email}</Text> : null}
+          <Text style={styles.cardName}>{friend.username ? `@${friend.username}` : (friend.name ?? 'User')}</Text>
+          {friend.name && friend.username ? <Text style={styles.cardSub}>{friend.name}</Text> : null}
         </View>
         <TouchableOpacity style={styles.smallButton} activeOpacity={0.8} onPress={onMessage}>
           <Ionicons name="chatbubble-outline" size={14} color={colors.primaryForeground} />
@@ -145,9 +145,10 @@ interface NewPostModalProps {
   visible: boolean;
   onClose: () => void;
   onPosted: () => void;
+  onUpgrade: () => void;
 }
 
-function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
+function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalProps) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(400)).current;
@@ -366,7 +367,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                     <TouchableOpacity
                       style={styles.upgradeButton}
                       activeOpacity={0.82}
-                      onPress={onClose}
+                      onPress={() => { onClose(); onUpgrade(); }}
                     >
                       <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
                     </TouchableOpacity>
@@ -408,7 +409,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                     <TouchableOpacity
                       style={styles.upgradeButton}
                       activeOpacity={0.82}
-                      onPress={onClose}
+                      onPress={() => { onClose(); onUpgrade(); }}
                     >
                       <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
                     </TouchableOpacity>
@@ -428,6 +429,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
 
 export default function SocialScreen() {
   const router = useRouter();
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'friends'>('feed');
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -436,6 +438,7 @@ export default function SocialScreen() {
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   const loadFeed = useCallback(() => {
     setLoadingFeed(true);
@@ -488,7 +491,7 @@ export default function SocialScreen() {
   };
 
   const handleMessage = (friend: Friend) => {
-    router.push(`/social/messages?friendId=${friend.id}&friendName=${encodeURIComponent(friend.name ?? friend.email ?? 'Friend')}`);
+    router.push(`/social/messages?friendId=${friend.id}&friendName=${encodeURIComponent(friend.username ? `@${friend.username}` : (friend.name ?? 'Friend'))}`);
   };
 
   return (
@@ -581,6 +584,16 @@ export default function SocialScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Leaderboard CTA */}
+            <TouchableOpacity style={styles.leaderboardBanner} activeOpacity={0.8} onPress={() => router.push('/social/leaderboard')}>
+              <Text style={styles.leaderboardBannerEmoji}>🏆</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.leaderboardBannerTitle}>Friends Leaderboard</Text>
+                <Text style={styles.leaderboardBannerSub}>See who lifts the most — ranked by estimated 1RM</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+
             {/* Pending requests prompt */}
             {pendingCount > 0 && (
               <TouchableOpacity style={styles.requestsBanner} activeOpacity={0.8} onPress={() => router.push('/social/search')}>
@@ -616,6 +629,14 @@ export default function SocialScreen() {
         visible={postModalVisible}
         onClose={() => setPostModalVisible(false)}
         onPosted={loadFeed}
+        onUpgrade={() => setUpgradeVisible(true)}
+      />
+
+      {/* Upgrade Sheet */}
+      <UpgradeSheet
+        visible={upgradeVisible}
+        onClose={() => setUpgradeVisible(false)}
+        onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
       />
     </SafeAreaView>
   );
@@ -795,6 +816,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   requestsBannerText: { flex: 1, fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.medium },
+
+  leaderboardBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+  },
+  leaderboardBannerEmoji: { fontSize: 22 },
+  leaderboardBannerTitle: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  leaderboardBannerSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
 
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl, gap: spacing.md },
   emptyTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.foreground },

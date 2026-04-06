@@ -1,19 +1,19 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  InteractionManager,
 } from 'react-native';
+import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import { getToken } from '../lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HeatmapDay {
-  date: string;  // ISO date string, e.g. "2025-03-14"
+  date: string;
   count: number;
 }
 
@@ -31,72 +31,59 @@ interface Props {
 
 const CELL_SIZE = 10;
 const CELL_GAP = 2;
+const CELL_STEP = CELL_SIZE + CELL_GAP;
 const COLS = 52;
-const ROWS = 7; // Sun–Sat
+const ROWS = 7;
+
+const MONTH_ROW_H = 16; // height reserved for month label row
+const MONTH_GAP = 3;    // gap between month row and cells
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const EMPTY_CELL = '#1e2328';
+const LEGEND_COLORS = [EMPTY_CELL, '#1a7f37', '#26a641', '#39d353', '#56e368'];
 
-// Use clearly visible greens — the darkest shade must pop against #0d1117
 function getColor(count: number): string {
   if (count === 0) return EMPTY_CELL;
-  if (count === 1) return '#1a7f37';   // visible medium green
-  if (count <= 3) return '#26a641';   // bright green
-  if (count <= 5) return '#39d353';   // very bright green
-  return '#56e368';                   // max brightness
+  if (count === 1) return '#1a7f37';
+  if (count <= 3) return '#26a641';
+  if (count <= 5) return '#39d353';
+  return '#56e368';
 }
 
-// Build a 52-week grid anchored so the last column ends on "today".
-// Returns an array of 52 columns, each column is 7 cells (Sun=0 … Sat=6).
 function buildGrid(days: HeatmapDay[]): Array<Array<{ date: string; count: number }>> {
   const countMap = new Map<string, number>();
-  for (const d of days) {
-    countMap.set(d.date, d.count);
-  }
+  for (const d of days) countMap.set(d.date, d.count);
 
-  // End of the grid = today; start = 52 weeks ago (364 days)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Column index 51 = the week containing today, column 0 = oldest week.
-  // Within each column index 0 = Sunday … 6 = Saturday.
-  // Find the Sunday that starts the last partial week containing today.
-  const dayOfWeek = today.getDay(); // 0=Sun … 6=Sat
   const lastSunday = new Date(today);
-  lastSunday.setDate(today.getDate() - dayOfWeek);
+  lastSunday.setDate(today.getDate() - today.getDay());
 
-  // The first Sunday of our grid is 51 weeks before lastSunday.
   const firstSunday = new Date(lastSunday);
   firstSunday.setDate(lastSunday.getDate() - 51 * 7);
 
   const grid: Array<Array<{ date: string; count: number }>> = [];
-
   for (let col = 0; col < COLS; col++) {
     const column: Array<{ date: string; count: number }> = [];
     for (let row = 0; row < ROWS; row++) {
       const d = new Date(firstSunday);
       d.setDate(firstSunday.getDate() + col * 7 + row);
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const isFuture = d > today;
-      column.push({ date: iso, count: isFuture ? -1 : (countMap.get(iso) ?? 0) });
+      column.push({ date: iso, count: d > today ? -1 : (countMap.get(iso) ?? 0) });
     }
     grid.push(column);
   }
-
   return grid;
 }
 
-// For each column (week), determine whether to show a month label.
-// We show the label on the first column where a new month appears in that week.
 function buildMonthLabels(grid: Array<Array<{ date: string; count: number }>>): Array<string | null> {
   const labels: Array<string | null> = [];
   let lastMonth = -1;
   for (const col of grid) {
-    // Use the first valid cell's month
     const firstCell = col.find(c => c.count !== -1) ?? col[0];
-    const d = new Date(firstCell.date + 'T00:00:00');
-    const month = d.getMonth();
+    const month = new Date(firstCell.date + 'T00:00:00').getMonth();
     if (month !== lastMonth) {
       labels.push(MONTH_LABELS[month]);
       lastMonth = month;
@@ -113,20 +100,8 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
   const [rawDays, setRawDays] = useState<HeatmapDay[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Track whether we should render yet (defer until after navigation animation)
-  const [ready, setReady] = useState(false);
-  const fetchedRef = useRef(false);
 
-  // Defer rendering until navigation transition is complete to avoid lag
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => setReady(true));
-    return () => task.cancel();
-  }, []);
-
-  // Only fetch once per mount — no re-fetch on re-renders
-  useEffect(() => {
-    if (!ready || fetchedRef.current) return;
-    fetchedRef.current = true;
     let cancelled = false;
 
     async function load() {
@@ -141,7 +116,6 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
         const res = await fetch(url, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
         const json: HeatmapResponse | HeatmapDay[] = await res.json();
@@ -162,18 +136,16 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
 
     load();
     return () => { cancelled = true; };
-  }, [ready, userId]);
+  }, [userId]);
 
-  // Memoize expensive grid computation — only recomputes when rawDays changes
   const grid = useMemo(() => rawDays ? buildGrid(rawDays) : null, [rawDays]);
   const monthLabels = useMemo(() => grid ? buildMonthLabels(grid) : [], [grid]);
-  const totalCount = useMemo(() =>
-    rawDays ? rawDays.reduce((sum, d) => sum + (d.count ?? 0), 0) : 0,
+  const totalCount = useMemo(
+    () => rawDays ? rawDays.reduce((sum, d) => sum + (d.count ?? 0), 0) : 0,
     [rawDays],
   );
 
-  // ── Loading / not-ready state ─────────────────────────────────────────────
-  if (!ready || loading || !grid) {
+  if (loading || !grid) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color={colors.mutedForeground} />
@@ -182,57 +154,59 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
     );
   }
 
-  // ── Grid width for horizontal scroll ──────────────────────────────────────
-  const gridWidth = COLS * (CELL_SIZE + CELL_GAP) - CELL_GAP;
+  // Single SVG canvas replaces 364 native Views — eliminates layout overhead
+  // and nested ScrollView gesture conflicts.
+  const svgWidth = COLS * CELL_STEP - CELL_GAP;
+  const cellsY = MONTH_ROW_H + MONTH_GAP;
+  const svgHeight = cellsY + ROWS * CELL_STEP - CELL_GAP;
+
+  // Legend SVG dimensions
+  const legendItemW = CELL_SIZE + 3; // cell + gap
+  const legendW = LEGEND_COLORS.length * legendItemW - 3;
 
   return (
     <View style={styles.wrapper}>
       <ScrollView
         horizontal
-        nestedScrollEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={{ width: gridWidth }}>
-          {/* Month labels row */}
-          <View style={styles.monthRow}>
-            {monthLabels.map((label, colIndex) => (
-              <View
-                key={colIndex}
-                style={[styles.monthCell, { width: CELL_SIZE + CELL_GAP }]}
+        <Svg width={svgWidth} height={svgHeight}>
+          {/* Month labels */}
+          {monthLabels.map((label, colIndex) =>
+            label ? (
+              <SvgText
+                key={`m-${colIndex}`}
+                x={colIndex * CELL_STEP}
+                y={MONTH_ROW_H - 4}
+                fontSize={9}
+                fill="#8b949e"
+                fontWeight="500"
               >
-                {label ? (
-                  <Text style={styles.monthText}>{label}</Text>
-                ) : null}
-              </View>
-            ))}
-          </View>
+                {label}
+              </SvgText>
+            ) : null
+          )}
 
-          {/* Cells grid: render row-by-row for natural left-to-right layout */}
-          <View style={styles.cellGrid}>
-            {Array.from({ length: ROWS }, (_, rowIndex) => (
-              <View key={rowIndex} style={styles.gridRow}>
-                {grid!.map((col, colIndex) => {
-                  const cell = col[rowIndex];
-                  const bg =
-                    cell.count < 0
-                      ? 'transparent'
-                      : getColor(cell.count);
-                  return (
-                    <View
-                      key={colIndex}
-                      style={[
-                        styles.cell,
-                        { backgroundColor: bg },
-                        cell.count < 0 && styles.cellFuture,
-                      ]}
-                    />
-                  );
-                })}
-              </View>
-            ))}
-          </View>
-        </View>
+          {/* Cell grid */}
+          {grid.map((col, colIndex) =>
+            col.map((cell, rowIndex) => {
+              if (cell.count < 0) return null;
+              return (
+                <Rect
+                  key={`${colIndex}-${rowIndex}`}
+                  x={colIndex * CELL_STEP}
+                  y={cellsY + rowIndex * CELL_STEP}
+                  width={CELL_SIZE}
+                  height={CELL_SIZE}
+                  rx={2}
+                  ry={2}
+                  fill={getColor(cell.count)}
+                />
+              );
+            })
+          )}
+        </Svg>
       </ScrollView>
 
       {/* Footer */}
@@ -241,12 +215,15 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
           {totalCount.toLocaleString()} {totalCount === 1 ? 'activity' : 'activities'} this year
         </Text>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
         {/* Legend */}
         <View style={styles.legend}>
           <Text style={styles.legendLabel}>Less</Text>
-          {[EMPTY_CELL, '#1a7f37', '#26a641', '#39d353', '#56e368'].map((c) => (
-            <View key={c} style={[styles.legendCell, { backgroundColor: c }]} />
-          ))}
+          <Svg width={legendW} height={CELL_SIZE}>
+            {LEGEND_COLORS.map((c, i) => (
+              <Rect key={c} x={i * legendItemW} y={0} width={CELL_SIZE} height={CELL_SIZE} rx={2} ry={2} fill={c} />
+            ))}
+          </Svg>
           <Text style={styles.legendLabel}>More</Text>
         </View>
       </View>
@@ -265,7 +242,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
   },
-
   loadingContainer: {
     backgroundColor: colors.muted,
     borderRadius: radius.lg,
@@ -280,45 +256,9 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     fontWeight: fontWeight.medium,
   },
-
   scrollContent: {
     paddingHorizontal: 2,
   },
-
-  // Month labels
-  monthRow: {
-    flexDirection: 'row',
-    marginBottom: 4,
-    height: 14,
-  },
-  monthCell: {
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  monthText: {
-    fontSize: 9,
-    color: '#8b949e',
-    fontWeight: fontWeight.medium,
-  },
-
-  // Cells
-  cellGrid: {
-    gap: CELL_GAP,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    gap: CELL_GAP,
-  },
-  cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: 2,
-  },
-  cellFuture: {
-    borderWidth: 0,
-  },
-
-  // Footer
   footer: {
     marginTop: spacing.sm,
     paddingHorizontal: 2,
@@ -333,17 +273,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.destructive,
   },
-
-  // Legend
   legend: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-  },
-  legendCell: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
+    gap: 4,
   },
   legendLabel: {
     fontSize: 9,

@@ -1,15 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
-  ScrollView, Animated, Dimensions,
+  ScrollView, Animated, Dimensions, TextInput, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  useEmbeddedPaymentElement,
-  IntentConfiguration,
-  EmbeddedPaymentElementConfiguration,
-  IntentCreationCallbackParams,
-} from '@stripe/stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 import { paymentsApi } from '../lib/api';
 
@@ -20,22 +15,211 @@ interface Props {
 }
 
 const PRICE_CAD = 11.99;
-const PRICE_CENTS = 1199;
 
-// ── Perks shown in the upgrade sheet ──────────────────────────────────────
 const PERKS = [
   { icon: 'infinite-outline', text: 'Unlimited daily analyses' },
   { icon: 'barbell-outline', text: 'Full diagnostic interview + AI plan' },
   { icon: 'chatbubble-ellipses-outline', text: 'Unlimited AI coach chat' },
   { icon: 'stats-chart-outline', text: 'Strength profile & history' },
+  { icon: 'nutrition-outline', text: 'Nutrition intelligence & tracking' },
 ];
 
-export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
+// ── Inner content — only mounts when sheet is open ────────────────────────────
+// Stripe hook (useStripe) lives here so it's never called when sheet is closed,
+// preventing background SDK initialisation from affecting other tabs.
+function PaymentSheetContent({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState<{ code: string; discountPercent: number | null } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hold refs so they're callable even after this component unmounts
+  // (our modal is dismissed before presentPaymentSheet resolves)
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
+
+  const handleSubscribe = useCallback(async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      // 1. Create subscription on server (with optional promo code)
+      const code = promoApplied?.code ?? (promoCode.trim() || undefined);
+      const data = await paymentsApi.createSubscriptionIntent(code);
+
+      // 2. Initialise the PaymentSheet with the client secret
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: data.clientSecret,
+        merchantDisplayName: 'Axiom Training',
+        returnURL: 'axiom://stripe-redirect',
+        allowsDelayedPaymentMethods: false,
+      });
+
+      if (initError) {
+        setError(initError.message);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 3. Dismiss our sheet first so Stripe's sheet appears alone
+      onClose();
+
+      // 4. Give the dismiss animation time to complete (~220ms), then present
+      await new Promise<void>(resolve => setTimeout(resolve, 300));
+
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (!presentError) {
+        // Success — onSuccess updates auth/tier in the parent
+        onSuccessRef.current();
+      } else if (presentError.code !== 'Canceled') {
+        Alert.alert('Payment failed', presentError.message);
+      }
+      // Canceled = user swiped away Stripe sheet — do nothing
+    } catch (err: any) {
+      // If we haven't dismissed yet (error before onClose), show inline
+      setError(err?.message ?? 'Something went wrong. Please try again.');
+      setIsProcessing(false);
+    }
+  }, [isProcessing, promoCode, promoApplied, initPaymentSheet, presentPaymentSheet, onClose]);
+
+  const handleApplyPromo = useCallback(async () => {
+    const trimmed = promoCode.trim();
+    if (!trimmed) return;
+    setIsProcessing(true);
+    setError(null);
+    try {
+      // Validate promo code by attempting to create the intent with it
+      const data = await paymentsApi.createSubscriptionIntent(trimmed);
+      // If we get here the code is valid (backend would 400 on invalid)
+      setPromoApplied({ code: trimmed, discountPercent: data.discountPercent ?? null });
+      setPromoCode('');
+      // Immediately cancel this intent — we'll create a fresh one on Subscribe tap.
+      // (The incomplete subscription will expire automatically.)
+    } catch (err: any) {
+      setError(err?.message ?? 'Invalid promo code.');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [promoCode]);
+
+  const discountedPrice = promoApplied?.discountPercent
+    ? (PRICE_CAD * (1 - promoApplied.discountPercent / 100)).toFixed(2)
+    : null;
+
+  return (
+    <ScrollView
+      contentContainerStyle={styles.body}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* Perks */}
+      <View style={styles.perksCard}>
+        {PERKS.map((perk) => (
+          <View key={perk.text} style={styles.perkRow}>
+            <View style={styles.perkIcon}>
+              <Ionicons name={perk.icon as any} size={16} color={colors.foreground} />
+            </View>
+            <Text style={styles.perkText}>{perk.text}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Promo code */}
+      <View style={styles.promoSection}>
+        <Text style={styles.promoLabel}>Promo code</Text>
+        {promoApplied ? (
+          <View style={styles.promoApplied}>
+            <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
+            <Text style={styles.promoAppliedText}>
+              {promoApplied.code}
+              {promoApplied.discountPercent ? ` — ${promoApplied.discountPercent}% off` : ' applied'}
+            </Text>
+            <TouchableOpacity onPress={() => setPromoApplied(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close-circle-outline" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.promoRow}>
+            <TextInput
+              style={styles.promoInput}
+              placeholder="Enter code"
+              placeholderTextColor={colors.mutedForeground}
+              value={promoCode}
+              onChangeText={setPromoCode}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={handleApplyPromo}
+            />
+            <TouchableOpacity
+              style={[styles.promoApplyBtn, !promoCode.trim() && styles.promoApplyBtnDisabled]}
+              onPress={handleApplyPromo}
+              disabled={!promoCode.trim() || isProcessing}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.promoApplyBtnText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {/* Error */}
+      {error && (
+        <View style={styles.errorBanner}>
+          <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
+      {/* Subscribe button */}
+      <TouchableOpacity
+        style={[styles.subscribeBtn, isProcessing && styles.subscribeBtnDisabled]}
+        onPress={handleSubscribe}
+        disabled={isProcessing}
+        activeOpacity={0.85}
+      >
+        {isProcessing ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <View style={styles.subscribeBtnInner}>
+            <Text style={styles.subscribeBtnText}>
+              Subscribe ·{' '}
+              {discountedPrice ? (
+                <>
+                  <Text style={styles.strikethrough}>${PRICE_CAD.toFixed(2)}</Text>
+                  {` $${discountedPrice}`}
+                </>
+              ) : (
+                `$${PRICE_CAD.toFixed(2)}`
+              )}
+              /mo
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <Text style={styles.legal}>
+        Billed monthly in CAD. Cancel anytime in Settings.
+      </Text>
+    </ScrollView>
+  );
+}
+
+// ── Outer shell — Modal + slide animation only ────────────────────────────────
+// No Stripe hooks here. PaymentSheetContent mounts only when visible=true,
+// so the Stripe SDK never runs in the background while other tabs are open.
+export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
-  // ── Animate in/out ──────────────────────────────────────────────────────
   useEffect(() => {
     if (visible) {
       Animated.spring(slideAnim, {
@@ -53,68 +237,13 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
     }
   }, [visible]);
 
-  // ── confirmHandler: called by the SDK when user taps "Subscribe" ────────
-  // Sends confirmation token to our server → server creates subscription →
-  // returns client_secret → SDK finalises the PaymentIntent.
-  const handleConfirm = useCallback(async (
-    _confirmationToken: any,
-    intentCreationCallback: (params: IntentCreationCallbackParams) => void
-  ) => {
-    try {
-      const data = await paymentsApi.createSubscriptionIntent();
-      intentCreationCallback({ clientSecret: data.clientSecret });
-    } catch (err: any) {
-      intentCreationCallback({ error: { message: err?.message ?? 'Failed to start subscription' } } as any);
-    }
-  }, []);
-
-  // Always pass valid config — the SDK needs consistent hook calls.
-  // No charge occurs until confirm() is called by the user.
-  const intentConfig: IntentConfiguration = {
-    mode: { amount: PRICE_CENTS, currencyCode: 'CAD' },
-    confirmHandler: handleConfirm,
-  };
-
-  const elementConfig: EmbeddedPaymentElementConfiguration = {
-    merchantDisplayName: 'Axiom Training',
-    returnURL: 'axiom://stripe-redirect',
-  };
-
-  const { embeddedPaymentElementView, paymentOption, confirm, isLoaded } =
-    useEmbeddedPaymentElement(intentConfig, elementConfig);
-
-  // ── Confirm payment ─────────────────────────────────────────────────────
-  const handleSubmit = useCallback(async () => {
-    if (!paymentOption) return;
-    setIsProcessing(true);
-    try {
-      const result = await confirm();
-      if (result.status === 'completed') {
-        onSuccess();
-      } else if (result.status === 'failed') {
-        setLoadingError(result.error?.message ?? 'Payment failed');
-      }
-      // canceled: user dismissed 3DS etc. — do nothing
-    } catch {
-      setLoadingError('An unexpected error occurred');
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [confirm, paymentOption, onSuccess]);
-
-  if (!visible) return null;
-
   return (
     <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
-      {/* Dim backdrop */}
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
 
-      {/* Bottom sheet */}
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        {/* Handle */}
         <View style={styles.handle} />
 
-        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Upgrade to Pro</Text>
@@ -127,70 +256,7 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.body}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Perks */}
-          <View style={styles.perksCard}>
-            {PERKS.map((perk) => (
-              <View key={perk.text} style={styles.perkRow}>
-                <View style={styles.perkIcon}>
-                  <Ionicons name={perk.icon as any} size={16} color={colors.foreground} />
-                </View>
-                <Text style={styles.perkText}>{perk.text}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Error banner */}
-          {loadingError && (
-            <View style={styles.errorBanner}>
-              <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
-              <Text style={styles.errorText}>{loadingError}</Text>
-            </View>
-          )}
-
-          {/* Payment Element */}
-          <View style={styles.paymentSection}>
-            <Text style={styles.paymentLabel}>Payment method</Text>
-
-            {/* Keep in render tree for Android init — control visibility with opacity */}
-            <View style={{ opacity: isLoaded ? 1 : 0 }}>
-              {embeddedPaymentElementView}
-            </View>
-            {!isLoaded && (
-              <View style={styles.paymentLoading}>
-                <ActivityIndicator color={colors.mutedForeground} />
-              </View>
-            )}
-          </View>
-
-          {/* Subscribe button */}
-          <TouchableOpacity
-            style={[
-              styles.subscribeBtn,
-              (!paymentOption || isProcessing) && styles.subscribeBtnDisabled,
-            ]}
-            onPress={handleSubmit}
-            disabled={!paymentOption || isProcessing}
-            activeOpacity={0.85}
-          >
-            {isProcessing ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.subscribeBtnText}>
-                Subscribe · ${PRICE_CAD.toFixed(2)}/mo
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <Text style={styles.legal}>
-            By subscribing you agree to our Terms of Use. Subscriptions auto-renew monthly.
-            Manage or cancel anytime in Settings.
-          </Text>
-        </ScrollView>
+        {visible && <PaymentSheetContent onClose={onClose} onSuccess={onSuccess} />}
       </Animated.View>
     </Modal>
   );
@@ -269,6 +335,67 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     flex: 1,
   },
+
+  // Promo code
+  promoSection: {
+    gap: 8,
+  },
+  promoLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  promoRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  promoInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    backgroundColor: colors.muted,
+  },
+  promoApplyBtn: {
+    backgroundColor: colors.foreground,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    justifyContent: 'center',
+  },
+  promoApplyBtnDisabled: {
+    opacity: 0.4,
+  },
+  promoApplyBtnText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
+  },
+  promoApplied: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+  },
+  promoAppliedText: {
+    fontSize: fontSize.sm,
+    color: '#15803d',
+    fontWeight: fontWeight.medium,
+    flex: 1,
+  },
+
+  // Error
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -282,21 +409,8 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     flex: 1,
   },
-  paymentSection: {
-    gap: 8,
-  },
-  paymentLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.semibold,
-    color: colors.mutedForeground,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  paymentLoading: {
-    height: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
+  // Subscribe button
   subscribeBtn: {
     backgroundColor: colors.foreground,
     borderRadius: radius.md,
@@ -304,12 +418,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subscribeBtnDisabled: {
-    opacity: 0.45,
+    opacity: 0.6,
+  },
+  subscribeBtnInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   subscribeBtnText: {
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     color: colors.primaryForeground,
+  },
+  strikethrough: {
+    textDecorationLine: 'line-through',
+    opacity: 0.6,
   },
   legal: {
     fontSize: 11,

@@ -42,6 +42,7 @@ model User {
   lastWorkoutDate     String?
   username            String?           @unique
   avatarBase64        String?
+  dailyCalorieTarget  Float?            // user-declared calorie target (overrides TDEE-computed)
   bodyWeightLogs           BodyWeightLog[]
   mealEntries              MealEntry[]
   nutritionLogs            NutritionLog[]
