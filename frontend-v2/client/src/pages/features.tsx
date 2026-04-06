@@ -427,7 +427,7 @@ const ANAKIN_TABS = [
     label: "24/7 Chat",
     icon: MessageCircle,
     headline: "A coach with full memory who never clocks out",
-    body: "Anakin knows your complete training history, current program phase, diagnostic results, wellness check-ins, and nutrition logs. Every answer is specific to you — your numbers, your weaknesses, your schedule — not generic fitness advice.",
+    body: "Anakin is trained on NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science — and he knows your complete training history, current program phase, diagnostic results, wellness check-ins, and nutrition logs. Every answer is specific to you, not generic advice from a textbook.",
     mock: ChatMock,
   },
   {
@@ -937,7 +937,7 @@ function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-muted-foreground text-lg mb-8 sm:mb-10 leading-relaxed"
           >
-            Axiom is the only fitness platform that identifies exactly why your lifts are stalling — then builds your program, nutrition, and coaching around that answer.
+            Axiom is the only fitness platform that identifies exactly why your lifts are stalling — then builds your program, nutrition, and coaching around that answer. Backed by NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -966,7 +966,7 @@ function HeroSection() {
         >
           <StatPill value="9" label="Supported lifts including Olympic" />
           <StatPill value="5" label="Muscle-group indices per session" />
-          <StatPill value="7,000+" label="Pages of peer-reviewed research" />
+          <StatPill value="7,000+" label="Pages of research — NASM, ISSA, ACE + more" />
           <StatPill value="4-layer" label="AI nutrition pipeline" />
           <StatPill value="24/7" label="Coaching with full memory" className="col-span-2 sm:col-span-1 border-t sm:border-t-0" />
         </motion.div>
