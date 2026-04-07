@@ -531,6 +531,397 @@ function DiagnosticSection() {
   );
 }
 
+// ─── Strength Profile Section ─────────────────────────────────────────────────
+
+const SVG_CX = 110, SVG_CY = 110, SVG_R = 85;
+const PENTA_ANGLES = [-90, -18, 54, 126, 198];
+const RADAR_LABELS = ["Quad", "Shoulder", "Posterior", "Triceps", "Back Tension"];
+
+function radarPolyPoints(vals: number[]): string {
+  return vals
+    .map((v, i) => {
+      const rad = (PENTA_ANGLES[i] * Math.PI) / 180;
+      const r = (v / 100) * SVG_R;
+      return `${(SVG_CX + r * Math.cos(rad)).toFixed(2)},${(SVG_CY + r * Math.sin(rad)).toFixed(2)}`;
+    })
+    .join(" ");
+}
+
+const PROFILE_STAGES = [
+  {
+    label: "Session 1",
+    subtitle: "Baseline from first snapshot",
+    score: 58,
+    vals: [62, 41, 70, 35, 55],
+    e1rm: "~102 kg",
+    insights: [
+      { label: "Triceps", val: 35, note: "Primary limiter identified", color: "#3b82f6" },
+      { label: "Shoulder", val: 41, note: "Secondary weakness flagged", color: "#8b5cf6" },
+      { label: "Posterior Chain", val: 70, note: "Above average — a strength", color: "#10b981" },
+    ],
+  },
+  {
+    label: "Week 4",
+    subtitle: "3 targeted sessions completed",
+    score: 67,
+    vals: [69, 55, 76, 53, 65],
+    e1rm: "~109 kg",
+    insights: [
+      { label: "Triceps", val: 53, note: "+18 pts — close-grip work responding", color: "#3b82f6" },
+      { label: "Shoulder", val: 55, note: "+14 pts — overhead volume helping", color: "#8b5cf6" },
+      { label: "Posterior Chain", val: 76, note: "Continuing to build", color: "#10b981" },
+    ],
+  },
+  {
+    label: "Week 12",
+    subtitle: "Profile fully resolved",
+    score: 81,
+    vals: [82, 73, 88, 77, 83],
+    e1rm: "~121 kg",
+    insights: [
+      { label: "Triceps", val: 77, note: "+42 pts — limiter fully resolved", color: "#3b82f6" },
+      { label: "Shoulder", val: 73, note: "+32 pts — now a genuine strength", color: "#8b5cf6" },
+      { label: "Posterior Chain", val: 88, note: "Elite range", color: "#10b981" },
+    ],
+  },
+];
+
+function StrengthProfileSection() {
+  const [stage, setStage] = useState(0);
+  const s = PROFILE_STAGES[stage];
+  const rings = [25, 50, 75, 100];
+
+  return (
+    <section className="py-16 sm:py-24 border-t">
+      <div className="container-tight">
+        <FadeUp className="mb-8 sm:mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
+            <BarChart3 className="h-3.5 w-3.5" />
+            Strength Profile
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            Your profile sharpens with every session
+          </h2>
+          <p className="text-muted-foreground mt-3 max-w-xl text-[15px]">
+            Every workout you log refines Axiom's model of your strength. Muscle-group indices evolve, limiters get resolved, and your efficiency score tracks real progress — not effort.
+          </p>
+        </FadeUp>
+
+        <FadeUp delay={0.05} className="mb-8">
+          <div className="inline-flex rounded-xl border bg-muted/40 p-1 gap-1">
+            {PROFILE_STAGES.map((ps, i) => (
+              <button
+                key={ps.label}
+                onClick={() => setStage(i)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                  i === stage
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {ps.label}
+              </button>
+            ))}
+          </div>
+        </FadeUp>
+
+        <FadeIn delay={0.1}>
+          <div className="grid lg:grid-cols-2 gap-6 items-start">
+            <div className="rounded-2xl border bg-card p-6 flex flex-col items-center gap-5">
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <div className="font-semibold">Flat Bench Press</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{s.subtitle}</div>
+                </div>
+                <div className="text-right">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={s.score}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.25 }}
+                      className="text-3xl font-bold tabular-nums"
+                    >
+                      {s.score}
+                    </motion.div>
+                  </AnimatePresence>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Efficiency</div>
+                </div>
+              </div>
+
+              <svg viewBox="0 0 220 220" className="w-full max-w-[260px]">
+                {rings.map((pct) => (
+                  <polygon
+                    key={pct}
+                    points={radarPolyPoints([pct, pct, pct, pct, pct])}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeOpacity={pct === 100 ? 0.18 : 0.07}
+                    strokeWidth={pct === 100 ? 1 : 0.5}
+                  />
+                ))}
+                {PENTA_ANGLES.map((angle, i) => {
+                  const rad = (angle * Math.PI) / 180;
+                  return (
+                    <line key={i} x1={SVG_CX} y1={SVG_CY}
+                      x2={SVG_CX + SVG_R * Math.cos(rad)} y2={SVG_CY + SVG_R * Math.sin(rad)}
+                      stroke="currentColor" strokeOpacity={0.1} strokeWidth={0.5}
+                    />
+                  );
+                })}
+                <motion.polygon
+                  points={radarPolyPoints(s.vals)}
+                  fill="currentColor" fillOpacity={0.12}
+                  stroke="currentColor" strokeWidth={2} strokeOpacity={0.85}
+                  animate={{ points: radarPolyPoints(s.vals) }}
+                  transition={{ duration: 0.7, ease: "easeInOut" }}
+                />
+                {s.vals.map((v, i) => {
+                  const rad = (PENTA_ANGLES[i] * Math.PI) / 180;
+                  const r = (v / 100) * SVG_R;
+                  return (
+                    <motion.circle key={i} r={3.5} fill="currentColor"
+                      animate={{ cx: SVG_CX + r * Math.cos(rad), cy: SVG_CY + r * Math.sin(rad) }}
+                      transition={{ duration: 0.7, ease: "easeInOut" }}
+                    />
+                  );
+                })}
+                {RADAR_LABELS.map((label, i) => {
+                  const rad = (PENTA_ANGLES[i] * Math.PI) / 180;
+                  return (
+                    <text key={i}
+                      x={SVG_CX + (SVG_R + 17) * Math.cos(rad)}
+                      y={SVG_CY + (SVG_R + 17) * Math.sin(rad)}
+                      textAnchor="middle" dominantBaseline="middle"
+                      fontSize={8} fill="currentColor" fillOpacity={0.45}
+                    >
+                      {label}
+                    </text>
+                  );
+                })}
+              </svg>
+
+              <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-4 py-2.5 w-full">
+                <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground">Epley e1RM estimate</span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={s.e1rm}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-sm font-semibold ml-auto"
+                  >
+                    {s.e1rm}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-2xl border bg-card p-5 space-y-3">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  Muscle Group Indices
+                </div>
+                {RADAR_LABELS.map((label, i) => (
+                  <div key={label} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{label}</span>
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={`${stage}-${i}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-xs font-bold tabular-nums"
+                        >
+                          {s.vals[i]}
+                        </motion.span>
+                      </AnimatePresence>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full bg-foreground"
+                        animate={{ width: `${s.vals[i]}%` }}
+                        transition={{ duration: 0.7, ease: "easeInOut" }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border bg-card p-5">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                  Anakin's reading
+                </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={stage}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-2.5"
+                  >
+                    {s.insights.map((ins) => (
+                      <div key={ins.label} className="flex items-start gap-3">
+                        <div className="h-2 w-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: ins.color }} />
+                        <div>
+                          <span className="text-sm font-medium">{ins.label}</span>
+                          <span className="text-xs text-muted-foreground ml-2">{ins.val} · {ins.note}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+// ─── Program Generation Flow ───────────────────────────────────────────────────
+
+const FLOW_MESSAGES = [
+  { role: "ai", text: "Diagnosis complete. Your primary limiter is Triceps Lockout Strength — confidence: High. What's your main training goal for the next block?", delay: 0 },
+  { role: "user", text: "Get stronger on bench. Want to put on some muscle too.", delay: 0.2 },
+  { role: "ai", text: "Strength-hypertrophy hybrid — got it. How many days per week can you train?", delay: 0.4 },
+  { role: "user", text: "4 days, sometimes 5 if work is quiet.", delay: 0.6 },
+  { role: "ai", text: "4-day base with optional 5th. Any equipment you don't have access to?", delay: 0.8 },
+  { role: "user", text: "Full commercial gym — barbells, cables, dumbbells, machines, all of it.", delay: 1.0 },
+  { role: "ai", text: "Building your 12-week program now — targeting your Triceps limiter across the full block…", delay: 1.2, isBuilding: true },
+];
+
+const PROGRAM_EXERCISES = [
+  { name: "Flat Bench Press", detail: "4 × 3–5 · 87% 1RM", highlight: false },
+  { name: "Close-Grip Bench Press", detail: "3 × 4–6 · RPE 8", highlight: true },
+  { name: "Overhead Tricep Extension", detail: "3 × 10–12 · RPE 7", highlight: true },
+  { name: "Face Pulls", detail: "3 × 15–20 · RPE 6", highlight: false },
+];
+
+function ProgramFlowSection() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <section className="py-16 sm:py-24 border-t bg-muted/30">
+      <div className="container-tight">
+        <FadeUp className="mb-10 sm:mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
+            <Calendar className="h-3.5 w-3.5" />
+            Program Generation
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            Diagnosis to day-one workout in under a minute
+          </h2>
+          <p className="text-muted-foreground mt-3 max-w-xl text-[15px]">
+            Once Anakin has your diagnostic signals, three quick answers are all it takes. Goal, schedule, equipment — then your program is built, targeted at your exact weakness.
+          </p>
+        </FadeUp>
+
+        <div ref={ref} className="grid lg:grid-cols-2 gap-8 items-start">
+          <div className="space-y-3">
+            {FLOW_MESSAGES.map((msg, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 14 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.4, delay: msg.delay, ease: "easeOut" }}
+                className={`flex items-end gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {msg.role === "ai" && (
+                  <div className="h-7 w-7 rounded-full bg-foreground text-background grid place-items-center shrink-0 mb-0.5">
+                    <Brain className="h-3.5 w-3.5" />
+                  </div>
+                )}
+                <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-foreground text-background rounded-br-sm"
+                    : msg.isBuilding
+                    ? "bg-card border rounded-bl-sm text-muted-foreground italic"
+                    : "bg-card border rounded-bl-sm"
+                }`}>
+                  {msg.text}
+                  {msg.isBuilding && (
+                    <span className="inline-flex gap-0.5 ml-2 align-middle">
+                      {[0, 1, 2].map((j) => (
+                        <motion.span key={j}
+                          className="inline-block h-1 w-1 rounded-full bg-muted-foreground"
+                          animate={{ opacity: [0.3, 1, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 1.2, delay: j * 0.2 }}
+                        />
+                      ))}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.55, delay: 1.65, ease: "easeOut" }}
+            className="rounded-2xl border bg-card p-5 space-y-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-semibold">12-Week Strength-Hypertrophy Block</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Strength Phase · Weeks 1–4</div>
+              </div>
+              <span className="shrink-0 text-xs bg-foreground text-background px-2.5 py-1 rounded-full font-medium">Generated</span>
+            </div>
+
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { day: "Mon", name: "Upper Power", active: true },
+                { day: "Tue", name: "Lower Strength", active: false },
+                { day: "Thu", name: "Upper Hypertrophy", active: false },
+                { day: "Fri", name: "Lower Accessory", active: false },
+              ].map((d) => (
+                <div key={d.day} className={`rounded-lg p-2 text-center ${d.active ? "bg-foreground text-background" : "bg-muted"}`}>
+                  <div className="text-[10px] font-bold">{d.day}</div>
+                  <div className="text-[9px] mt-0.5 opacity-75 leading-tight">{d.name}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 p-3">
+              <div className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1">Limiter-targeted adjustment</div>
+              <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+                Close-grip bench and overhead tricep work added across all upper days to directly address Triceps Lockout weakness.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Monday — Upper Power</div>
+              {PROGRAM_EXERCISES.map((ex) => (
+                <div key={ex.name} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs ${
+                  ex.highlight
+                    ? "bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800"
+                    : "bg-muted/50"
+                }`}>
+                  <span className="flex-1 font-medium">{ex.name}</span>
+                  <span className="text-muted-foreground shrink-0">{ex.detail}</span>
+                  {ex.highlight && (
+                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold shrink-0">Targeted</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Real screenshot preview (from signup page) ───────────────────────────────
 
 const previewSteps = [
@@ -1076,6 +1467,8 @@ export default function FeaturesV2Page() {
       <HeroSection />
       <AnakinSection />
       <DiagnosticSection />
+      <ProgramFlowSection />
+      <StrengthProfileSection />
       <PreviewSection />
       <FeatureGrid />
       <ComparisonSection />
