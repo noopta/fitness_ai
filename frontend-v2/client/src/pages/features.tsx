@@ -509,7 +509,7 @@ function AnakinSection() {
             </div>
 
             {/* Right: mock UI */}
-            <div className="rounded-2xl border border-foreground/10 bg-background p-5">
+            <div className="rounded-2xl border border-foreground/10 bg-background text-foreground p-5">
               <MockComponent />
             </div>
           </motion.div>

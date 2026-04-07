@@ -102,7 +102,8 @@ const ProtectedProfile                  = () => <ProtectedRoute component={Profi
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Signup} />
+      <Route path="/" component={FeaturesPage} />
+      <Route path="/prevlanding" component={Signup} />
       <Route path="/signup" component={Signup} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
