@@ -944,14 +944,59 @@ function StrengthProfileSection() {
 
 // ─── Program Generation Flow ───────────────────────────────────────────────────
 
-const FLOW_MESSAGES = [
-  { role: "ai", text: "Diagnosis complete. Your primary limiter is Triceps Lockout Strength — confidence: High. What's your main training goal for the next block?", delay: 0 },
-  { role: "user", text: "Get stronger on bench. Want to put on some muscle too.", delay: 0.2 },
-  { role: "ai", text: "Strength-hypertrophy hybrid — got it. How many days per week can you train?", delay: 0.4 },
-  { role: "user", text: "4 days, sometimes 5 if work is quiet.", delay: 0.6 },
-  { role: "ai", text: "4-day base with optional 5th. Any equipment you don't have access to?", delay: 0.8 },
-  { role: "user", text: "Full commercial gym — barbells, cables, dumbbells, machines, all of it.", delay: 1.0 },
-  { role: "ai", text: "Building your 12-week program now — targeting your Triceps limiter across the full block…", delay: 1.2, isBuilding: true },
+const INTAKE_STEPS = [
+  {
+    num: "1",
+    label: "Deep profile intake",
+    detail: "Training age, injury history, equipment, goal type (strength / hypertrophy / recomp), dietary restrictions, weekly food budget, activity level",
+  },
+  {
+    num: "2",
+    label: "Strength snapshot",
+    detail: "Log working weights + reps for your primary lift and its proxy exercises. The engine computes e1RMs and 5 muscle-group indices.",
+  },
+  {
+    num: "3",
+    label: "Diagnostic interview",
+    detail: "Anakin asks targeted questions — not about your goals, about your lift. Sticking points, bar path, form breakdown, which muscle gives out first.",
+  },
+  {
+    num: "4",
+    label: "Program generated",
+    detail: "Primary lift prescription + accessories selected specifically for your identified weakness. Evidence cited. Progression rules defined.",
+  },
+];
+
+const DIAG_MESSAGES = [
+  {
+    role: "ai",
+    text: "Your Triceps Index sits at 35 — significantly below your Shoulder (74) and Back Tension (81). The engine flags lockout as your primary phase bottleneck. Let me confirm with a few questions.",
+    delay: 0,
+  },
+  {
+    role: "ai",
+    text: "Under a true max attempt, where does the bar stall — off the chest, mid-range, or at the very top?",
+    delay: 0.25,
+  },
+  { role: "user", text: "Always at the top. The last few inches just stop.", delay: 0.55 },
+  {
+    role: "ai",
+    text: "Do your elbows flare outward as you approach that sticking point, or do they stay tucked?",
+    delay: 0.85,
+  },
+  { role: "user", text: "They drift out pretty badly when it gets really heavy.", delay: 1.15 },
+  {
+    role: "ai",
+    text: "When you've done close-grip bench — does it feel dramatically harder on the triceps compared to standard grip?",
+    delay: 1.45,
+  },
+  { role: "user", text: "Yeah, brutal. Way harder than regular bench.", delay: 1.75 },
+  {
+    role: "ai",
+    text: "Confirmed: Triceps Lockout Insufficiency — lateral head deficit. Confidence: High. Generating your program now…",
+    delay: 2.05,
+    isBuilding: true,
+  },
 ];
 
 const PROGRAM_EXERCISES = [
@@ -971,20 +1016,42 @@ function ProgramFlowSection() {
         <FadeUp className="mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
             <Calendar className="h-3.5 w-3.5" />
-            Program Generation
+            The intake process
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Diagnosis to day-one workout in under a minute
+            The intake interview an elite trainer would run
           </h2>
           <p className="text-muted-foreground mt-3 max-w-xl text-[15px]">
-            Once Anakin has your diagnostic signals, three quick answers are all it takes. Goal, schedule, equipment — then your program is built, targeted at your exact weakness.
+            Anakin doesn't ask what your goal is and hand you a template. He profiles you completely, computes your strength ratios, then asks the exact questions a CSCS-certified coach would ask — about your sticking points, bar path, and which muscle gives out first.
           </p>
         </FadeUp>
 
+        {/* 4-step pipeline */}
+        <FadeUp delay={0.05} className="mb-10 sm:mb-14">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {INTAKE_STEPS.map((step, i) => (
+              <div key={step.num} className="relative rounded-2xl border bg-card p-4 space-y-2">
+                {i < INTAKE_STEPS.length - 1 && (
+                  <div className="hidden lg:block absolute top-7 -right-1.5 w-3 h-px bg-border" />
+                )}
+                <div className="h-8 w-8 rounded-full bg-foreground text-background text-sm font-bold flex items-center justify-center">
+                  {step.num}
+                </div>
+                <div className="font-semibold text-sm">{step.label}</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{step.detail}</p>
+              </div>
+            ))}
+          </div>
+        </FadeUp>
+
+        {/* Diagnostic interview + program output */}
         <div ref={ref} className="grid lg:grid-cols-2 gap-8 items-start">
-          {/* Left: conversation */}
+          {/* Left: real diagnostic chat */}
           <div className="space-y-3">
-            {FLOW_MESSAGES.map((msg, i) => (
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+              Step 3 — Diagnostic interview
+            </div>
+            {DIAG_MESSAGES.map((msg, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 14 }}
@@ -997,21 +1064,18 @@ function ProgramFlowSection() {
                     <Brain className="h-3.5 w-3.5" />
                   </div>
                 )}
-                <div
-                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-foreground text-background rounded-br-sm"
-                      : msg.isBuilding
-                      ? "bg-card border rounded-bl-sm text-muted-foreground italic"
-                      : "bg-card border rounded-bl-sm"
-                  }`}
-                >
+                <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-foreground text-background rounded-br-sm"
+                    : msg.isBuilding
+                    ? "bg-card border rounded-bl-sm text-muted-foreground italic"
+                    : "bg-card border rounded-bl-sm"
+                }`}>
                   {msg.text}
                   {msg.isBuilding && (
                     <span className="inline-flex gap-0.5 ml-2 align-middle">
                       {[0, 1, 2].map((j) => (
-                        <motion.span
-                          key={j}
+                        <motion.span key={j}
                           className="inline-block h-1 w-1 rounded-full bg-muted-foreground"
                           animate={{ opacity: [0.3, 1, 0.3] }}
                           transition={{ repeat: Infinity, duration: 1.2, delay: j * 0.2 }}
@@ -1028,58 +1092,56 @@ function ProgramFlowSection() {
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.55, delay: 1.65, ease: "easeOut" }}
-            className="rounded-2xl border bg-card p-5 space-y-4"
+            transition={{ duration: 0.55, delay: 2.6, ease: "easeOut" }}
+            className="space-y-3"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="font-semibold">12-Week Strength-Hypertrophy Block</div>
-                <div className="text-xs text-muted-foreground mt-0.5">Strength Phase · Weeks 1–4</div>
-              </div>
-              <span className="shrink-0 text-xs bg-foreground text-background px-2.5 py-1 rounded-full font-medium">
-                Generated
-              </span>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+              Step 4 — Program generated
             </div>
-
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { day: "Mon", name: "Upper Power", active: true },
-                { day: "Tue", name: "Lower Strength", active: false },
-                { day: "Thu", name: "Upper Hypertrophy", active: false },
-                { day: "Fri", name: "Lower Accessory", active: false },
-              ].map((d) => (
-                <div key={d.day} className={`rounded-lg p-2 text-center ${d.active ? "bg-foreground text-background" : "bg-muted"}`}>
-                  <div className="text-[10px] font-bold">{d.day}</div>
-                  <div className="text-[9px] mt-0.5 opacity-75 leading-tight">{d.name}</div>
+            <div className="rounded-2xl border bg-card p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold">12-Week Strength-Hypertrophy Block</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Strength Phase · Weeks 1–4 · 4 days/week</div>
                 </div>
-              ))}
-            </div>
+                <span className="shrink-0 text-xs bg-foreground text-background px-2.5 py-1 rounded-full font-medium">Generated</span>
+              </div>
 
-            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 p-3">
-              <div className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1">Limiter-targeted adjustment</div>
-              <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-                Close-grip bench and overhead tricep work added across all upper days to directly address Triceps Lockout weakness.
-              </p>
-            </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { day: "Mon", name: "Upper Power", active: true },
+                  { day: "Tue", name: "Lower Strength", active: false },
+                  { day: "Thu", name: "Upper Hypertrophy", active: false },
+                  { day: "Fri", name: "Lower Accessory", active: false },
+                ].map((d) => (
+                  <div key={d.day} className={`rounded-lg p-2 text-center ${d.active ? "bg-foreground text-background" : "bg-muted"}`}>
+                    <div className="text-[10px] font-bold">{d.day}</div>
+                    <div className="text-[9px] mt-0.5 opacity-75 leading-tight">{d.name}</div>
+                  </div>
+                ))}
+              </div>
 
-            <div className="space-y-1.5">
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Monday — Upper Power</div>
-              {PROGRAM_EXERCISES.map((ex) => (
-                <div
-                  key={ex.name}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs ${
+              <div className="rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 p-3">
+                <div className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1">Evidence — why these accessories</div>
+                <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+                  Triceps Index 35 (lowest of 5). Stall confirmed at lockout. Elbow flare under load = lateral head compensation. Close-grip bench directly loads the deficit pattern.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Monday — Upper Power</div>
+                {PROGRAM_EXERCISES.map((ex) => (
+                  <div key={ex.name} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs ${
                     ex.highlight
                       ? "bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800"
                       : "bg-muted/50"
-                  }`}
-                >
-                  <span className="flex-1 font-medium">{ex.name}</span>
-                  <span className="text-muted-foreground shrink-0">{ex.detail}</span>
-                  {ex.highlight && (
-                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold shrink-0">Targeted</span>
-                  )}
-                </div>
-              ))}
+                  }`}>
+                    <span className="flex-1 font-medium">{ex.name}</span>
+                    <span className="text-muted-foreground shrink-0">{ex.detail}</span>
+                    {ex.highlight && <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold shrink-0">Targeted</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         </div>
