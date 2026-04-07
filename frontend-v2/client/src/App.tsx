@@ -108,7 +108,6 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
-      <Route path="/features" component={FeaturesPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/privacy" component={Privacy} />

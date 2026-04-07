@@ -63,9 +63,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
   const navLinks = user ? (
     <>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
-        <Link href="/features" onClick={closeMobile}>Features</Link>
-      </Button>
-      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/pricing" onClick={closeMobile}>Pricing</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
@@ -98,9 +95,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
     </>
   ) : (
     <>
-      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
-        <Link href="/features" onClick={closeMobile}>Features</Link>
-      </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/pricing" onClick={closeMobile}>Pricing</Link>
       </Button>
@@ -141,9 +135,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
           ) : user ? (
             <>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link href="/features">Features</Link>
-              </Button>
-              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/workouts">Workouts</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
@@ -178,9 +169,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link href="/features">Features</Link>
-              </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/pricing">Pricing</Link>
               </Button>
