@@ -45,6 +45,7 @@ model User {
   dailyCalorieTarget  Float?            // user-declared calorie target (overrides TDEE-computed)
   bodyWeightLogs           BodyWeightLog[]
   mealEntries              MealEntry[]
+  savedFoods               SavedFood[]
   nutritionLogs            NutritionLog[]
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
@@ -88,9 +89,38 @@ model MealEntry {
   proteinG  Float    @default(0)
   carbsG    Float    @default(0)
   fatG      Float    @default(0)
+  ingredientsJson String?
+  tagsJson        String?
+  nutrientsJson   String?
+  source          String   @default("manual")
+  parseConfidence String?
   notes     String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+model SavedFood {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  normalizedName  String
+  calories        Float    @default(0)
+  proteinG        Float    @default(0)
+  carbsG          Float    @default(0)
+  fatG            Float    @default(0)
+  ingredientsJson String?
+  tagsJson        String?
+  nutrientsJson   String?
+  source          String   @default("manual")
+  useCount        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, normalizedName])
+  @@index([userId, useCount])
 }
 
 model BodyWeightLog {

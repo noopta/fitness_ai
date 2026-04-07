@@ -7,12 +7,14 @@ import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
 const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
+import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
 import { runNutritionRules } from '../engine/nutritionRulesEngine.js';
 import { buildRAGContext } from '../services/ragService.js';
 import OpenAI from 'openai';
+import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const LLM_MODEL = 'gpt-5.4-mini-2026-03-17';
@@ -89,18 +91,133 @@ const mealEntrySchema = z.object({
   proteinG: z.number().min(0).max(500).optional().default(0),
   carbsG: z.number().min(0).max(1000).optional().default(0),
   fatG: z.number().min(0).max(500).optional().default(0),
+  ingredients: z.array(z.string().min(1).max(120)).max(30).optional().default([]),
+  tags: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
+  nutrients: z.object({
+    fiberG: z.number().min(0).max(500).optional(),
+    sugarG: z.number().min(0).max(500).optional(),
+    sodiumMg: z.number().min(0).max(20000).optional(),
+    saturatedFatG: z.number().min(0).max(500).optional(),
+    cholesterolMg: z.number().min(0).max(5000).optional(),
+    vitaminAIU: z.number().min(0).max(200000).optional(),
+    vitaminCMg: z.number().min(0).max(5000).optional(),
+    vitaminDIU: z.number().min(0).max(10000).optional(),
+    vitaminEMg: z.number().min(0).max(2000).optional(),
+    vitaminB12Mcg: z.number().min(0).max(5000).optional(),
+    folateMcg: z.number().min(0).max(10000).optional(),
+    ironMg: z.number().min(0).max(200).optional(),
+    calciumMg: z.number().min(0).max(5000).optional(),
+    magnesiumMg: z.number().min(0).max(3000).optional(),
+    zincMg: z.number().min(0).max(300).optional(),
+    potassiumMg: z.number().min(0).max(10000).optional(),
+    omega3G: z.number().min(0).max(200).optional(),
+    omega6G: z.number().min(0).max(300).optional(),
+    glycemicIndex: z.number().min(0).max(150).nullable().optional(),
+  }).optional(),
+  source: z.enum(['manual', 'text', 'photo', 'saved_food']).optional().default('manual'),
+  parseConfidence: z.enum(['high', 'medium', 'low']).optional(),
   notes: z.string().max(500).optional(),
 });
+
+function parseJsonArray(value: string | null): string[] {
+  if (!value) return [];
+  try {
+    const arr = JSON.parse(value);
+    if (!Array.isArray(arr)) return [];
+    return arr.map(v => String(v)).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function parseJsonObject<T>(value: string | null): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeFoodName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
 
 // POST /api/nutrition/meals - Log a meal entry
 router.post('/nutrition/meals', requireAuth, async (req, res) => {
   try {
     const data = mealEntrySchema.parse(req.body);
     const userId = req.user!.id;
-    const entry = await prisma.mealEntry.create({ data: { userId, ...data } });
+    const nutrients = normalizeMicronutrients(data.nutrients);
+    const ingredients = data.ingredients.map(v => v.trim()).filter(Boolean);
+    const tags = data.tags.map(v => v.trim().toLowerCase()).filter(Boolean);
+
+    const entry = await prisma.mealEntry.create({
+      data: {
+        userId,
+        date: data.date,
+        name: data.name,
+        mealType: data.mealType,
+        calories: data.calories,
+        proteinG: data.proteinG,
+        carbsG: data.carbsG,
+        fatG: data.fatG,
+        ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
+        tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
+        nutrientsJson: JSON.stringify(nutrients),
+        source: data.source,
+        parseConfidence: data.parseConfidence ?? null,
+        notes: data.notes,
+      },
+    });
+
+    // Auto-upsert into saved foods library for quick re-use and richer future analysis.
+    const normalizedName = normalizeFoodName(data.name);
+    const existingFood = await prisma.savedFood.findUnique({
+      where: { userId_normalizedName: { userId, normalizedName } },
+    });
+    if (existingFood) {
+      await prisma.savedFood.update({
+        where: { id: existingFood.id },
+        data: {
+          calories: data.calories,
+          proteinG: data.proteinG,
+          carbsG: data.carbsG,
+          fatG: data.fatG,
+          ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
+          tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
+          nutrientsJson: JSON.stringify(nutrients),
+          source: data.source,
+          useCount: { increment: 1 },
+        },
+      });
+    } else {
+      await prisma.savedFood.create({
+        data: {
+          userId,
+          name: data.name.trim(),
+          normalizedName,
+          calories: data.calories,
+          proteinG: data.proteinG,
+          carbsG: data.carbsG,
+          fatG: data.fatG,
+          ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
+          tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
+          nutrientsJson: JSON.stringify(nutrients),
+          source: data.source,
+          useCount: 1,
+        },
+      });
+    }
+
     cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
-    res.status(201).json(entry);
+    res.status(201).json({
+      ...entry,
+      ingredients,
+      tags,
+      nutrients,
+    });
   } catch (err: any) {
     console.error('Meal entry error:', err);
     res.status(400).json({ error: err.message || 'Failed to save meal' });
@@ -116,10 +233,69 @@ router.get('/nutrition/meals', requireAuth, async (req, res) => {
       where: { userId, date },
       orderBy: { createdAt: 'asc' },
     });
-    res.json({ entries });
+    res.json({
+      entries: entries.map((e) => ({
+        ...e,
+        ingredients: parseJsonArray(e.ingredientsJson),
+        tags: parseJsonArray(e.tagsJson),
+        nutrients: normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(e.nutrientsJson)),
+      })),
+    });
   } catch (err) {
     console.error('Meal entries fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch meal entries' });
+  }
+});
+
+// GET /api/nutrition/foods - Saved food library
+router.get('/nutrition/foods', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit ?? '50'), 10) || 50, 1), 200);
+
+    const foods = await prisma.savedFood.findMany({
+      where: {
+        userId,
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q } },
+                { normalizedName: { contains: normalizeFoodName(q) } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ useCount: 'desc' }, { updatedAt: 'desc' }],
+      take: limit,
+    });
+
+    res.json({
+      foods: foods.map((f) => ({
+        ...f,
+        ingredients: parseJsonArray(f.ingredientsJson),
+        tags: parseJsonArray(f.tagsJson),
+        nutrients: normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(f.nutrientsJson)),
+      })),
+    });
+  } catch (err: any) {
+    console.error('Saved foods fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch saved foods' });
+  }
+});
+
+// DELETE /api/nutrition/foods/:id - Remove a food from saved library
+router.delete('/nutrition/foods/:id', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const id = req.params.id;
+    const food = await prisma.savedFood.findFirst({ where: { id, userId } });
+    if (!food) return res.status(404).json({ error: 'Saved food not found' });
+    await prisma.savedFood.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('Saved food delete error:', err);
+    res.status(500).json({ error: 'Failed to delete saved food' });
   }
 });
 
@@ -150,6 +326,7 @@ router.delete('/nutrition/meals/:id', requireAuth, async (req, res) => {
     });
     if (!entry) return res.status(404).json({ error: 'Entry not found' });
     await prisma.mealEntry.delete({ where: { id } });
+    cacheDelete(nutritionProfileCacheKey(req.user!.id));
     res.json({ success: true });
   } catch (err: any) {
     console.error('Meal delete error:', err);
@@ -164,8 +341,13 @@ router.post('/nutrition/parse-meal', requireAuth, async (req, res) => {
     if (!description || typeof description !== 'string' || description.trim().length < 3) {
       return res.status(400).json({ error: 'Please provide a meal description' });
     }
-    const result = await parseMealMacros(description.trim());
-    res.json(result);
+    const parsed = await parseMealMacros(description.trim());
+    const { detail, meta } = await enrichMealDetailHybrid(parsed);
+    res.json({
+      ...detail,
+      source: 'text',
+      enrichment: meta,
+    });
   } catch (err: any) {
     console.error('Parse meal error:', err);
     res.status(500).json({ error: 'Failed to analyze meal' });
@@ -193,20 +375,71 @@ router.get('/nutrition/history', requireAuth, async (req, res) => {
     ]);
 
     // Group meal entries by date and aggregate
-    const byDate: Record<string, { calories: number; proteinG: number; carbsG: number; fatG: number; meals: any[] }> = {};
+    const byDate: Record<string, {
+      calories: number;
+      proteinG: number;
+      carbsG: number;
+      fatG: number;
+      meals: any[];
+      micronutrients: Micronutrients;
+    }> = {};
     for (const e of entries) {
-      if (!byDate[e.date]) byDate[e.date] = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0, meals: [] };
+      if (!byDate[e.date]) {
+        byDate[e.date] = {
+          calories: 0,
+          proteinG: 0,
+          carbsG: 0,
+          fatG: 0,
+          meals: [],
+          micronutrients: normalizeMicronutrients(null),
+        };
+      }
       byDate[e.date].calories += e.calories;
       byDate[e.date].proteinG += e.proteinG;
       byDate[e.date].carbsG += e.carbsG;
       byDate[e.date].fatG += e.fatG;
-      byDate[e.date].meals.push(e);
+      const micros = normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(e.nutrientsJson));
+      byDate[e.date].micronutrients = {
+        ...byDate[e.date].micronutrients,
+        fiberG: byDate[e.date].micronutrients.fiberG + micros.fiberG,
+        sugarG: byDate[e.date].micronutrients.sugarG + micros.sugarG,
+        sodiumMg: byDate[e.date].micronutrients.sodiumMg + micros.sodiumMg,
+        saturatedFatG: byDate[e.date].micronutrients.saturatedFatG + micros.saturatedFatG,
+        cholesterolMg: byDate[e.date].micronutrients.cholesterolMg + micros.cholesterolMg,
+        vitaminAIU: byDate[e.date].micronutrients.vitaminAIU + micros.vitaminAIU,
+        vitaminCMg: byDate[e.date].micronutrients.vitaminCMg + micros.vitaminCMg,
+        vitaminDIU: byDate[e.date].micronutrients.vitaminDIU + micros.vitaminDIU,
+        vitaminEMg: byDate[e.date].micronutrients.vitaminEMg + micros.vitaminEMg,
+        vitaminB12Mcg: byDate[e.date].micronutrients.vitaminB12Mcg + micros.vitaminB12Mcg,
+        folateMcg: byDate[e.date].micronutrients.folateMcg + micros.folateMcg,
+        ironMg: byDate[e.date].micronutrients.ironMg + micros.ironMg,
+        calciumMg: byDate[e.date].micronutrients.calciumMg + micros.calciumMg,
+        magnesiumMg: byDate[e.date].micronutrients.magnesiumMg + micros.magnesiumMg,
+        zincMg: byDate[e.date].micronutrients.zincMg + micros.zincMg,
+        potassiumMg: byDate[e.date].micronutrients.potassiumMg + micros.potassiumMg,
+        omega3G: byDate[e.date].micronutrients.omega3G + micros.omega3G,
+        omega6G: byDate[e.date].micronutrients.omega6G + micros.omega6G,
+        glycemicIndex: null,
+      };
+      byDate[e.date].meals.push({
+        ...e,
+        ingredients: parseJsonArray(e.ingredientsJson),
+        tags: parseJsonArray(e.tagsJson),
+        nutrients: micros,
+      });
     }
 
     // Merge with manual daily logs
     for (const log of dailyLogs) {
       if (!byDate[log.date]) {
-        byDate[log.date] = { calories: log.calories || 0, proteinG: log.proteinG, carbsG: log.carbsG, fatG: log.fatG, meals: [] };
+        byDate[log.date] = {
+          calories: log.calories || 0,
+          proteinG: log.proteinG,
+          carbsG: log.carbsG,
+          fatG: log.fatG,
+          meals: [],
+          micronutrients: normalizeMicronutrients(null),
+        };
       }
     }
 
@@ -258,8 +491,13 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
       });
     }
 
-    const result = await analyzeMealPhoto(imageBase64, mimeType);
-    res.json(result);
+    const parsed = await analyzeMealPhoto(imageBase64, mimeType);
+    const { detail, meta } = await enrichMealDetailHybrid(parsed);
+    res.json({
+      ...detail,
+      source: 'photo',
+      enrichment: meta,
+    });
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request' });
     console.error('Meal photo analysis error:', err);
@@ -304,6 +542,7 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
         select: {
           date: true, name: true, mealType: true,
           calories: true, proteinG: true, carbsG: true, fatG: true,
+          ingredientsJson: true, tagsJson: true, nutrientsJson: true,
           createdAt: true,
         },
       }),
@@ -423,6 +662,104 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
       mood: w.mood,
     }));
 
+    // ── Micronutrient + ingredient/tag aggregation (hybrid meal payloads) ──
+    const micronutrientTotals = normalizeMicronutrients(null);
+    const ingredientFreq = new Map<string, number>();
+    const tagFreq = new Map<string, number>();
+    let mealsWithNutrientData = 0;
+
+    for (const e of entries) {
+      const micros = normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(e.nutrientsJson));
+      const hasData =
+        micros.fiberG > 0 ||
+        micros.sodiumMg > 0 ||
+        micros.potassiumMg > 0 ||
+        micros.vitaminCMg > 0 ||
+        micros.ironMg > 0;
+      if (hasData) mealsWithNutrientData += 1;
+
+      micronutrientTotals.fiberG += micros.fiberG;
+      micronutrientTotals.sugarG += micros.sugarG;
+      micronutrientTotals.sodiumMg += micros.sodiumMg;
+      micronutrientTotals.saturatedFatG += micros.saturatedFatG;
+      micronutrientTotals.cholesterolMg += micros.cholesterolMg;
+      micronutrientTotals.vitaminAIU += micros.vitaminAIU;
+      micronutrientTotals.vitaminCMg += micros.vitaminCMg;
+      micronutrientTotals.vitaminDIU += micros.vitaminDIU;
+      micronutrientTotals.vitaminEMg += micros.vitaminEMg;
+      micronutrientTotals.vitaminB12Mcg += micros.vitaminB12Mcg;
+      micronutrientTotals.folateMcg += micros.folateMcg;
+      micronutrientTotals.ironMg += micros.ironMg;
+      micronutrientTotals.calciumMg += micros.calciumMg;
+      micronutrientTotals.magnesiumMg += micros.magnesiumMg;
+      micronutrientTotals.zincMg += micros.zincMg;
+      micronutrientTotals.potassiumMg += micros.potassiumMg;
+      micronutrientTotals.omega3G += micros.omega3G;
+      micronutrientTotals.omega6G += micros.omega6G;
+
+      for (const i of parseJsonArray(e.ingredientsJson).map(v => v.toLowerCase())) {
+        ingredientFreq.set(i, (ingredientFreq.get(i) ?? 0) + 1);
+      }
+      for (const t of parseJsonArray(e.tagsJson).map(v => v.toLowerCase())) {
+        tagFreq.set(t, (tagFreq.get(t) ?? 0) + 1);
+      }
+    }
+
+    const daysForAverage = Math.max(1, dailyMacros.length);
+    const micronutrientDailyAverages = {
+      fiberG: micronutrientTotals.fiberG / daysForAverage,
+      sugarG: micronutrientTotals.sugarG / daysForAverage,
+      sodiumMg: micronutrientTotals.sodiumMg / daysForAverage,
+      saturatedFatG: micronutrientTotals.saturatedFatG / daysForAverage,
+      cholesterolMg: micronutrientTotals.cholesterolMg / daysForAverage,
+      vitaminCMg: micronutrientTotals.vitaminCMg / daysForAverage,
+      vitaminDIU: micronutrientTotals.vitaminDIU / daysForAverage,
+      ironMg: micronutrientTotals.ironMg / daysForAverage,
+      calciumMg: micronutrientTotals.calciumMg / daysForAverage,
+      magnesiumMg: micronutrientTotals.magnesiumMg / daysForAverage,
+      zincMg: micronutrientTotals.zincMg / daysForAverage,
+      potassiumMg: micronutrientTotals.potassiumMg / daysForAverage,
+      omega3G: micronutrientTotals.omega3G / daysForAverage,
+    };
+
+    const micronutrientTargets = {
+      fiberG: 30,
+      sodiumMg: 2300,
+      vitaminCMg: 90,
+      vitaminDIU: 600,
+      ironMg: 12,
+      calciumMg: 1000,
+      magnesiumMg: 400,
+      zincMg: 11,
+      potassiumMg: 3400,
+      omega3G: 1.6,
+    };
+
+    const micronutrientGapText = [
+      `Fiber: ${micronutrientDailyAverages.fiberG.toFixed(1)} g/day (target ~${micronutrientTargets.fiberG}g)`,
+      `Sodium: ${micronutrientDailyAverages.sodiumMg.toFixed(0)} mg/day (upper target ~${micronutrientTargets.sodiumMg}mg)`,
+      `Vitamin C: ${micronutrientDailyAverages.vitaminCMg.toFixed(1)} mg/day (target ~${micronutrientTargets.vitaminCMg}mg)`,
+      `Vitamin D: ${micronutrientDailyAverages.vitaminDIU.toFixed(0)} IU/day (target ~${micronutrientTargets.vitaminDIU} IU)`,
+      `Iron: ${micronutrientDailyAverages.ironMg.toFixed(1)} mg/day (target ~${micronutrientTargets.ironMg}mg)`,
+      `Calcium: ${micronutrientDailyAverages.calciumMg.toFixed(0)} mg/day (target ~${micronutrientTargets.calciumMg}mg)`,
+      `Magnesium: ${micronutrientDailyAverages.magnesiumMg.toFixed(0)} mg/day (target ~${micronutrientTargets.magnesiumMg}mg)`,
+      `Zinc: ${micronutrientDailyAverages.zincMg.toFixed(1)} mg/day (target ~${micronutrientTargets.zincMg}mg)`,
+      `Potassium: ${micronutrientDailyAverages.potassiumMg.toFixed(0)} mg/day (target ~${micronutrientTargets.potassiumMg}mg)`,
+      `Omega-3: ${micronutrientDailyAverages.omega3G.toFixed(2)} g/day (target ~${micronutrientTargets.omega3G}g)`,
+    ].join('\n');
+
+    const topIngredients = [...ingredientFreq.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([name, count]) => `${name} (${count})`)
+      .join(', ');
+
+    const topTags = [...tagFreq.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([name, count]) => `${name} (${count})`)
+      .join(', ');
+
     // ── STEP 2: Run Deterministic Nutrition Engine ───────────────────────
     const engineOutput = runNutritionEngine({
       user: engineUser,
@@ -466,6 +803,9 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
 
     const recentFoods = [...new Set(entries.slice(-60).map(e => e.name).filter(Boolean))]
       .slice(0, 30).join(', ');
+    const nutritionDataCoveragePct = entries.length > 0
+      ? Math.round((mealsWithNutrientData / entries.length) * 100)
+      : 0;
 
     const diagnosticContext = recentSessions
       .filter(s => s.goal)
@@ -534,6 +874,17 @@ Training age: ${user?.trainingAge ?? 'unknown'}
 Recent foods: ${recentFoods || 'not logged'}
 Avg wellness: energy ${avgEnergy?.toFixed(1) ?? 'N/A'}/10 | sleep ${avgSleep?.toFixed(1) ?? 'N/A'}h
 ${userCalorieTarget ? `\nUser-declared daily calorie target: ${userCalorieTarget} kcal — treat this as the hard target. All recommendations must align with it.` : ''}
+
+═══ FOOD COMPOSITION CONTEXT (HYBRID LLM + USDA ENRICHMENT) ═══
+Meals with nutrient composition data: ${mealsWithNutrientData}/${entries.length} (${nutritionDataCoveragePct}% coverage)
+Recent food ingredients: ${topIngredients || 'not enough ingredient data'}
+Recent meal tags: ${topTags || 'not enough tag data'}
+
+Estimated micronutrient averages (last ${daysForAverage} logged days):
+${micronutrientGapText}
+
+When discussing dietary effects, explicitly reference concrete foods/ingredients above where possible.
+Use nutrient data as directional evidence, not medical diagnosis.
 
 ⚠️ GOAL ALIGNMENT REQUIREMENT:
 All calorie and macro recommendations MUST be derived from the user's primary goal above, not from TDEE alone.
@@ -707,6 +1058,16 @@ Ensure every recommendation is consistent with the user's primary goal stated ab
         trackedLifts: allLifts,
         highProteinEnergyAvg: engineOutput.wellness.highProteinEnergyAvg,
         lowProteinEnergyAvg: engineOutput.wellness.lowProteinEnergyAvg,
+        nutritionDataCoveragePct,
+        micronutrients: micronutrientDailyAverages,
+        topIngredients: [...ingredientFreq.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8)
+          .map(([name, count]) => ({ name, count })),
+        topTags: [...tagFreq.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8)
+          .map(([name, count]) => ({ name, count })),
         ruleFlags: rulesOutput.flags.map(f => ({
           id: f.id, severity: f.severity, category: f.category, title: f.title,
         })),

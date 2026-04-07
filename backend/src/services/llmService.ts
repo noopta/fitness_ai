@@ -1655,7 +1655,95 @@ export interface ParsedMealMacros {
   notes: string;
 }
 
-export async function parseMealMacros(description: string): Promise<ParsedMealMacros> {
+export interface Micronutrients {
+  fiberG: number;
+  sugarG: number;
+  sodiumMg: number;
+  saturatedFatG: number;
+  cholesterolMg: number;
+  vitaminAIU: number;
+  vitaminCMg: number;
+  vitaminDIU: number;
+  vitaminEMg: number;
+  vitaminB12Mcg: number;
+  folateMcg: number;
+  ironMg: number;
+  calciumMg: number;
+  magnesiumMg: number;
+  zincMg: number;
+  potassiumMg: number;
+  omega3G: number;
+  omega6G: number;
+  glycemicIndex: number | null;
+}
+
+export interface ParsedMealDetail extends ParsedMealMacros {
+  ingredients: string[];
+  tags: string[];
+  nutrients: Micronutrients;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function coerceParsedMealDetail(raw: any): ParsedMealDetail {
+  const mealType =
+    raw?.mealType === 'breakfast' ||
+    raw?.mealType === 'lunch' ||
+    raw?.mealType === 'dinner' ||
+    raw?.mealType === 'snack'
+      ? raw.mealType
+      : 'meal';
+
+  const confidence =
+    raw?.confidence === 'high' || raw?.confidence === 'medium' || raw?.confidence === 'low'
+      ? raw.confidence
+      : 'medium';
+
+  const nutrientsRaw = raw?.nutrients ?? {};
+  const nutrients: Micronutrients = {
+    fiberG: toNumber(nutrientsRaw.fiberG),
+    sugarG: toNumber(nutrientsRaw.sugarG),
+    sodiumMg: toNumber(nutrientsRaw.sodiumMg),
+    saturatedFatG: toNumber(nutrientsRaw.saturatedFatG),
+    cholesterolMg: toNumber(nutrientsRaw.cholesterolMg),
+    vitaminAIU: toNumber(nutrientsRaw.vitaminAIU),
+    vitaminCMg: toNumber(nutrientsRaw.vitaminCMg),
+    vitaminDIU: toNumber(nutrientsRaw.vitaminDIU),
+    vitaminEMg: toNumber(nutrientsRaw.vitaminEMg),
+    vitaminB12Mcg: toNumber(nutrientsRaw.vitaminB12Mcg),
+    folateMcg: toNumber(nutrientsRaw.folateMcg),
+    ironMg: toNumber(nutrientsRaw.ironMg),
+    calciumMg: toNumber(nutrientsRaw.calciumMg),
+    magnesiumMg: toNumber(nutrientsRaw.magnesiumMg),
+    zincMg: toNumber(nutrientsRaw.zincMg),
+    potassiumMg: toNumber(nutrientsRaw.potassiumMg),
+    omega3G: toNumber(nutrientsRaw.omega3G),
+    omega6G: toNumber(nutrientsRaw.omega6G),
+    glycemicIndex: Number.isFinite(nutrientsRaw.glycemicIndex) ? Number(nutrientsRaw.glycemicIndex) : null,
+  };
+
+  return {
+    name: typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim() : 'Meal',
+    proteinG: toNumber(raw?.proteinG),
+    carbsG: toNumber(raw?.carbsG),
+    fatG: toNumber(raw?.fatG),
+    calories: toNumber(raw?.calories),
+    mealType,
+    confidence,
+    notes: typeof raw?.notes === 'string' ? raw.notes : '',
+    ingredients: Array.isArray(raw?.ingredients)
+      ? raw.ingredients.map((v: unknown) => String(v).trim()).filter(Boolean).slice(0, 20)
+      : [],
+    tags: Array.isArray(raw?.tags)
+      ? raw.tags.map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean).slice(0, 20)
+      : [],
+    nutrients,
+  };
+}
+
+export async function parseMealMacros(description: string): Promise<ParsedMealDetail> {
   const prompt = `You are a nutrition expert with deep knowledge of restaurant menus, packaged foods, and home cooking. A user described a meal — extract the macros as accurately as possible.
 
 MEAL DESCRIPTION: "${description}"
@@ -1668,6 +1756,8 @@ INSTRUCTIONS:
 - Round to nearest gram/calorie
 - For zero-calorie beverages (diet coke, water, black coffee): set their macros to 0 but include them in the name
 - mealType should be your best guess: breakfast, lunch, dinner, snack, or meal
+- Include a concise ingredient list and useful tags (e.g., high-protein, high-sodium, high-fiber, ultra-processed)
+- Estimate micronutrients and fiber/sugar/sodium as best as possible for the full meal
 
 OUTPUT FORMAT (JSON only, no explanation):
 {
@@ -1678,7 +1768,30 @@ OUTPUT FORMAT (JSON only, no explanation):
   "calories": 496,
   "mealType": "lunch",
   "confidence": "high",
-  "notes": "Based on Osmow's standard oz box portion sizes"
+  "notes": "Based on Osmow's standard oz box portion sizes",
+  "ingredients": ["chicken shawarma", "rice", "garlic sauce", "vegetables"],
+  "tags": ["high-protein", "moderate-carb", "high-sodium"],
+  "nutrients": {
+    "fiberG": 7,
+    "sugarG": 5,
+    "sodiumMg": 980,
+    "saturatedFatG": 4,
+    "cholesterolMg": 105,
+    "vitaminAIU": 620,
+    "vitaminCMg": 18,
+    "vitaminDIU": 20,
+    "vitaminEMg": 2.1,
+    "vitaminB12Mcg": 1.2,
+    "folateMcg": 130,
+    "ironMg": 3.8,
+    "calciumMg": 92,
+    "magnesiumMg": 88,
+    "zincMg": 2.9,
+    "potassiumMg": 760,
+    "omega3G": 0.2,
+    "omega6G": 2.0,
+    "glycemicIndex": 63
+  }
 }`;
 
   const response = await openai.chat.completions.create({
@@ -1689,13 +1802,13 @@ OUTPUT FORMAT (JSON only, no explanation):
   });
 
   const raw = response.choices[0].message.content || '{}';
-  return JSON.parse(raw) as ParsedMealMacros;
+  return coerceParsedMealDetail(JSON.parse(raw));
 }
 
 
 // ─── Meal Photo Analysis (Gemini Vision) ──────────────────────────────────────
 
-export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealMacros> {
+export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealDetail> {
   const model = gemini.getGenerativeModel({ model: 'gemini-3.1-pro-preview' });
 
   const prompt = `You are a nutrition expert analyzing a photo of a meal. Identify all food items visible, estimate portion sizes based on visual cues (plate size, utensils, hand if visible), and calculate macros.
@@ -1709,6 +1822,7 @@ INSTRUCTIONS:
 - Set confidence to "low" if the image is unclear, heavily obscured, or contains unusual items
 - mealType should be your best guess based on the foods shown: breakfast, lunch, dinner, snack, or meal
 - For beverages: only count calories if it's clearly not water/black coffee/diet soda
+- Include ingredient list, tags, and estimated micronutrients for the full meal
 
 OUTPUT FORMAT (JSON only, no explanation):
 {
@@ -1719,7 +1833,30 @@ OUTPUT FORMAT (JSON only, no explanation):
   "calories": 496,
   "mealType": "lunch",
   "confidence": "high",
-  "notes": "Estimated based on standard dinner plate portion. Chicken appears to be ~6oz grilled breast."
+  "notes": "Estimated based on standard dinner plate portion. Chicken appears to be ~6oz grilled breast.",
+  "ingredients": ["grilled chicken breast", "white rice", "broccoli", "olive oil"],
+  "tags": ["high-protein", "balanced-meal"],
+  "nutrients": {
+    "fiberG": 5,
+    "sugarG": 3,
+    "sodiumMg": 520,
+    "saturatedFatG": 2,
+    "cholesterolMg": 90,
+    "vitaminAIU": 910,
+    "vitaminCMg": 54,
+    "vitaminDIU": 15,
+    "vitaminEMg": 3.3,
+    "vitaminB12Mcg": 0.9,
+    "folateMcg": 95,
+    "ironMg": 2.5,
+    "calciumMg": 72,
+    "magnesiumMg": 92,
+    "zincMg": 2.1,
+    "potassiumMg": 840,
+    "omega3G": 0.12,
+    "omega6G": 1.8,
+    "glycemicIndex": 56
+  }
 }`;
 
   const result = await model.generateContent([
@@ -1735,7 +1872,7 @@ OUTPUT FORMAT (JSON only, no explanation):
   const text = result.response.text().trim();
   // Strip markdown code fences if present
   const json = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-  return JSON.parse(json) as ParsedMealMacros;
+  return coerceParsedMealDetail(JSON.parse(json));
 }
 
 // ─── Strength Profile Insights ────────────────────────────────────────────────
