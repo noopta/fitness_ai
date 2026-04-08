@@ -19,7 +19,7 @@ import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 interface FeedItem {
   id: string;
   sharerId: string;
-  sharer: { id: string; name: string | null; username: string | null } | null;
+  sharer: { id: string; name: string | null; username: string | null; avatarBase64: string | null } | null;
   itemType: string;
   payload: any;
   createdAt: string;
@@ -77,9 +77,13 @@ function FeedCard({ item }: { item: FeedItem }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardRow}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{(item.sharer?.username ?? item.sharer?.name ?? '?')[0].toUpperCase()}</Text>
-        </View>
+        {item.sharer?.avatarBase64 ? (
+          <Image source={{ uri: item.sharer.avatarBase64 }} style={styles.avatarImage} />
+        ) : (
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>{(item.sharer?.username ?? item.sharer?.name ?? '?')[0].toUpperCase()}</Text>
+          </View>
+        )}
         <View style={styles.cardContent}>
           <Text style={styles.cardName}>{item.sharer?.username ? `@${item.sharer.username}` : (item.sharer?.name ?? 'Unknown')}</Text>
           {description ? (
@@ -737,6 +741,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarImage: { width: 40, height: 40, borderRadius: 20 },
   avatarText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   cardContent: { flex: 1 },
   cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },

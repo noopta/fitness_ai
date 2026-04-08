@@ -344,6 +344,7 @@ export default function CoachScreen() {
             coachGoal={user?.coachGoal ?? null}
             coachBudget={user?.coachBudget ?? null}
             onRefresh={initCoach}
+            userId={user?.id}
           />
         )}
         {activeTab === 'Wellness' && (

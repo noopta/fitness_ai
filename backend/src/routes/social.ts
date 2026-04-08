@@ -472,7 +472,7 @@ router.post('/social/share', async (req, res) => {
       itemId: itemId ?? null,
       payload: JSON.stringify(payload),
     },
-    include: { sharer: { select: { id: true, name: true, username: true } } },
+    include: { sharer: { select: { id: true, name: true, username: true, avatarBase64: true } } },
   });
   res.status(201).json({ ...item, payload: JSON.parse(item.payload) });
 });
@@ -503,7 +503,7 @@ router.get('/social/shared-feed', async (req, res) => {
         }] : []),
       ],
     },
-    include: { sharer: { select: { id: true, name: true, username: true } } },
+    include: { sharer: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'desc' },
     take: 100,
   });

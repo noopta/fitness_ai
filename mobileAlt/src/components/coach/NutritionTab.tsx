@@ -14,6 +14,7 @@ import {
   TextInput,
   Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -27,6 +28,32 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Image } from 'react-native';
 
 const MEAL_SHEET_HEIGHT = Dimensions.get('window').height * 0.75;
+
+// ─── Nutrition Cache ──────────────────────────────────────────────────────────
+// Body weight logs are cached for 30 days; today's meals are cached per-day
+// and invalidated automatically when the date changes or new food is logged.
+
+const BW_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+async function getCached<T>(key: string, ttlMs: number): Promise<T | null> {
+  try {
+    const raw = await AsyncStorage.getItem(key);
+    if (!raw) return null;
+    const { data, timestamp } = JSON.parse(raw);
+    if (Date.now() - timestamp > ttlMs) return null;
+    return data as T;
+  } catch { return null; }
+}
+
+async function setCache(key: string, data: unknown): Promise<void> {
+  try {
+    await AsyncStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch { /* best-effort */ }
+}
+
+async function clearCache(key: string): Promise<void> {
+  try { await AsyncStorage.removeItem(key); } catch { /* best-effort */ }
+}
 const CHART_WIDTH = Dimensions.get('window').width - spacing.md * 4;
 
 // ─── Body Weight Charts ───────────────────────────────────────────────────────
@@ -183,6 +210,7 @@ interface NutritionTabProps {
   coachGoal?: string | null;
   coachBudget?: string | null;
   onRefresh?: () => Promise<void> | void;
+  userId?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -246,7 +274,7 @@ function MacroCard({ label, grams, logged, color, target }: MacroCardProps) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: NutritionTabProps) {
+export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, userId }: NutritionTabProps) {
   const [mealModalVisible, setMealModalVisible] = useState(false);
   const [mealSuggestions, setMealSuggestions] = useState<any[]>([]);
   const [mealLoading, setMealLoading] = useState(false);
@@ -342,16 +370,28 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
 
   const caloriePct = targetCalories ? (loggedCalories / targetCalories) * 100 : 0;
 
-  const loadMealData = useCallback(async () => {
+  const bwCacheKey = `nutrition_bw_${userId ?? 'anon'}`;
+  const mealCacheKey = `nutrition_meals_${userId ?? 'anon'}_${todayStr()}`;
+
+  const loadMealData = useCallback(async (forceRefresh = false) => {
     setLoadingMeals(true);
     try {
-      const [mealsRes, bwRes] = await Promise.all([
-        nutritionApi.getMeals(todayStr()),
-        coachApi.getBodyWeight().catch(() => null),
-      ]);
-      setTodayMeals(mealsRes?.entries ?? []);
-      if (bwRes) {
-        const logs = Array.isArray(bwRes) ? bwRes : bwRes?.logs ?? bwRes?.entries ?? bwRes?.weights ?? [];
+      // Today's meals: cache per user per day (invalidated by date change or forced refresh)
+      let mealsData: any = forceRefresh ? null : await getCached<any>(mealCacheKey, 24 * 60 * 60 * 1000);
+      if (!mealsData) {
+        mealsData = await nutritionApi.getMeals(todayStr());
+        if (mealsData) await setCache(mealCacheKey, mealsData);
+      }
+      setTodayMeals(mealsData?.entries ?? []);
+
+      // Body weight logs: cache for 30 days
+      let bwData: any = forceRefresh ? null : await getCached<any>(bwCacheKey, BW_CACHE_TTL_MS);
+      if (!bwData) {
+        bwData = await coachApi.getBodyWeight().catch(() => null);
+        if (bwData) await setCache(bwCacheKey, bwData);
+      }
+      if (bwData) {
+        const logs = Array.isArray(bwData) ? bwData : bwData?.logs ?? bwData?.entries ?? bwData?.weights ?? [];
         setBwLogs([...logs].sort((a: any, b: any) => new Date(b.date || b.createdAt || 0).getTime() - new Date(a.date || a.createdAt || 0).getTime()));
       }
       setBwLoading(false);
@@ -360,7 +400,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
     } finally {
       setLoadingMeals(false);
     }
-  }, []);
+  }, [bwCacheKey, mealCacheKey]);
 
   useEffect(() => {
     loadMealData();
@@ -374,6 +414,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
           try {
             await nutritionApi.deleteMeal(id);
             setTodayMeals(prev => prev.filter(m => m.id !== id));
+            await clearCache(mealCacheKey);
           } catch (err: any) {
             Alert.alert('Error', err?.message || 'Failed to delete meal');
           }
@@ -411,7 +452,8 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
       });
       setMealDesc('');
       setParsedMeal(null);
-      loadMealData();
+      await clearCache(mealCacheKey);
+      loadMealData(true);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
     }
@@ -473,7 +515,8 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
       });
       setScannedMeal(null);
       setPhotoUri(null);
-      loadMealData();
+      await clearCache(mealCacheKey);
+      loadMealData(true);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
     }
@@ -583,7 +626,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        refreshControl={<RefreshControl refreshing={loadingMeals} onRefresh={loadMealData} />}
+        refreshControl={<RefreshControl refreshing={loadingMeals} onRefresh={() => loadMealData(true)} />}
       >
         {/* ── Today's Progress ── */}
         <Card style={styles.card}>
@@ -971,7 +1014,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh }: N
       <MealLogModal
         visible={logModalVisible}
         onClose={() => setLogModalVisible(false)}
-        onSaved={() => { setLogModalVisible(false); loadMealData(); }}
+        onSaved={async () => { setLogModalVisible(false); await clearCache(mealCacheKey); loadMealData(true); }}
         prefill={prefillMeal}
         date={todayStr()}
       />

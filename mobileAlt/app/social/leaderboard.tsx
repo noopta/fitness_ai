@@ -220,10 +220,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.background,
+    alignSelf: 'flex-start',
   },
   liftChipActive: {
     backgroundColor: colors.foreground,
     borderColor: colors.foreground,
+    alignSelf: 'flex-start',
   },
   liftChipText: {
     fontSize: fontSize.sm,
