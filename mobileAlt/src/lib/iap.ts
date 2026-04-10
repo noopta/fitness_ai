@@ -80,22 +80,20 @@ export async function purchaseProMonthly(): Promise<void> {
 
 // ─── Verify with backend ──────────────────────────────────────────────────────
 /**
- * Sends the Apple transaction receipt to our backend for server-side
- * verification and tier upgrade.
+ * Sends the StoreKit 2 transactionId to our backend for App Store Server API
+ * verification and tier upgrade. No receipt blob needed.
  */
 export async function verifyAppleReceipt(purchase: Purchase | SubscriptionPurchase): Promise<void> {
-  const receiptData =
-    (purchase as any).transactionReceipt ??
-    (purchase as any).originalTransactionIdentifierIOS;
+  // StoreKit 2: transactionId is a string directly on the purchase object
+  const transactionId = (purchase as any).transactionId ?? (purchase as any).id;
 
-  if (!receiptData) throw new Error('No receipt data on purchase');
+  if (!transactionId) throw new Error('No transactionId on purchase');
 
   await apiFetch('/payments/apple-iap/verify', {
     method: 'POST',
     body: JSON.stringify({
-      receiptData,
+      transactionId,
       productId: purchase.productId,
-      transactionId: (purchase as any).transactionId,
     }),
   });
 

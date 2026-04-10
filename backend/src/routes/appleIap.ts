@@ -1,129 +1,155 @@
 /**
- * Apple In-App Purchase receipt verification + App Store Server Notifications.
+ * Apple In-App Purchase — StoreKit 2 / App Store Server API
+ *
+ * No shared secret needed. Uses a private key (.p8) from App Store Connect.
+ *
+ * Setup (one-time):
+ *   App Store Connect → Users and Access → Integrations → In-App Purchase
+ *   → Generate a key → download .p8 → copy contents to APPLE_IAP_PRIVATE_KEY env var
+ *   Also set APPLE_IAP_KEY_ID, APPLE_IAP_ISSUER_ID, APPLE_IAP_BUNDLE_ID
  *
  * Purchase flow:
- * 1. POST /payments/apple-iap/verify — called from mobile after StoreKit purchase.
- *    Verifies receipt with Apple, upgrades user to 'pro', stores originalTransactionId.
+ *   Mobile sends transactionId (string) from StoreKit 2 purchase object.
+ *   Backend signs a JWT, calls App Store Server API to verify the transaction,
+ *   confirms it's an active Pro subscription, upgrades user tier.
  *
- * Subscription lifecycle:
- * 2. POST /payments/apple-iap/notifications — App Store Server Notifications (V2).
- *    Configure in App Store Connect → Subscriptions → App Store Server Notifications.
- *    Handles EXPIRED, REFUND, DID_RENEW, etc. to keep tier in sync automatically.
+ * Lifecycle:
+ *   POST /api/payments/apple-iap/notifications handles App Store Server Notifications V2.
+ *   Configure URL in App Store Connect → Apps → Axiom → Subscriptions →
+ *   App Store Server Notifications → Production URL:
+ *   https://api.airthreads.ai:4009/api/payments/apple-iap/notifications
  */
 import { Router } from 'express';
+import { createSign } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-const APPLE_VERIFY_PRODUCTION = 'https://buy.itunes.apple.com/verifyReceipt';
-const APPLE_VERIFY_SANDBOX    = 'https://sandbox.itunes.apple.com/verifyReceipt';
-const PRO_PRODUCT_IDS         = ['io.axiomtraining.app.pro.monthly'];
+const PRO_PRODUCT_IDS = ['io.axiomtraining.app.pro.monthly'];
 
-interface AppleVerifyResponse {
-  status: number;
-  latest_receipt_info?: Array<{
-    product_id: string;
-    expires_date_ms: string;
-    cancellation_date?: string;
-    [key: string]: unknown;
-  }>;
-  receipt?: {
-    in_app?: Array<{
-      product_id: string;
-      expires_date_ms?: string;
-      cancellation_date?: string;
-      [key: string]: unknown;
-    }>;
-  };
+// ─── JWT for App Store Server API ────────────────────────────────────────────
+
+function makeAppStoreJWT(): string {
+  const keyId     = process.env.APPLE_IAP_KEY_ID     ?? '';
+  const issuerId  = process.env.APPLE_IAP_ISSUER_ID  ?? '';
+  const privateKey = process.env.APPLE_IAP_PRIVATE_KEY ?? '';
+
+  if (!keyId || !issuerId || !privateKey) {
+    throw new Error('Missing Apple IAP env vars (APPLE_IAP_KEY_ID, APPLE_IAP_ISSUER_ID, APPLE_IAP_PRIVATE_KEY)');
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: 'ES256', kid: keyId, typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({
+    iss: issuerId,
+    iat: now,
+    exp: now + 3600,
+    aud: 'appstoreconnect-v1',
+    bid: process.env.APPLE_IAP_BUNDLE_ID ?? 'io.axiomtraining.app',
+  })).toString('base64url');
+
+  const sign = createSign('SHA256');
+  sign.update(`${header}.${payload}`);
+  const signature = sign.sign(privateKey, 'base64url');
+
+  return `${header}.${payload}.${signature}`;
 }
 
-async function verifyWithApple(
-  receiptData: string,
-  url: string,
-): Promise<AppleVerifyResponse> {
-  const sharedSecret = process.env.APPLE_IAP_SHARED_SECRET ?? '';
-  const body: Record<string, string> = { 'receipt-data': receiptData };
-  if (sharedSecret) body.password = sharedSecret;
+// ─── App Store Server API lookup ──────────────────────────────────────────────
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) throw new Error(`Apple verification HTTP ${res.status}`);
-  return res.json() as Promise<AppleVerifyResponse>;
+interface ASAPITransaction {
+  transactionId: string;
+  originalTransactionId: string;
+  productId: string;
+  expiresDate?: number;       // ms epoch
+  revocationDate?: number;
+  type: string;               // 'Auto-Renewable Subscription' | 'Non-Consumable' etc.
+  environment: string;        // 'Production' | 'Sandbox'
 }
 
-function hasActiveProSubscription(data: AppleVerifyResponse): boolean {
-  const now = Date.now();
-  const items = data.latest_receipt_info ?? data.receipt?.in_app ?? [];
-  return items.some((item) => {
-    if (!PRO_PRODUCT_IDS.includes(item.product_id)) return false;
-    if (item.cancellation_date) return false;
-    const expiresMs = parseInt(item.expires_date_ms ?? '0', 10);
-    return expiresMs > now;
-  });
+/**
+ * Fetch transaction info from App Store Server API.
+ * Automatically handles Sandbox vs Production by trying production first,
+ * then falling back to sandbox on 4040 (transaction not found in production).
+ */
+async function fetchTransaction(transactionId: string): Promise<ASAPITransaction> {
+  const jwt = makeAppStoreJWT();
+
+  async function tryEnv(baseUrl: string): Promise<ASAPITransaction | null> {
+    const res = await fetch(`${baseUrl}/inApps/v1/transactions/${transactionId}`, {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
+    if (res.status === 404) return null; // not found in this environment
+    if (!res.ok) throw new Error(`App Store API ${res.status}: ${await res.text()}`);
+    const json = await res.json() as { signedTransactionInfo?: string };
+    if (!json.signedTransactionInfo) throw new Error('No signedTransactionInfo in response');
+
+    // Decode the JWS payload (no sig verification needed — Apple signed it)
+    const parts = json.signedTransactionInfo.split('.');
+    if (parts.length !== 3) throw new Error('Invalid JWS from Apple');
+    return JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as ASAPITransaction;
+  }
+
+  // Production first
+  const prod = await tryEnv('https://api.storekit.itunes.apple.com');
+  if (prod) return prod;
+
+  // Sandbox fallback (TestFlight, sandbox testers)
+  const sandbox = await tryEnv('https://api.storekit-sandbox.itunes.apple.com');
+  if (sandbox) return sandbox;
+
+  throw new Error(`Transaction ${transactionId} not found in production or sandbox`);
 }
 
-// POST /api/payments/apple-iap/verify
+function isActiveProTransaction(tx: ASAPITransaction): boolean {
+  if (!PRO_PRODUCT_IDS.includes(tx.productId)) return false;
+  if (tx.revocationDate) return false;
+  if (tx.expiresDate && tx.expiresDate < Date.now()) return false;
+  return true;
+}
+
+// ─── POST /api/payments/apple-iap/verify ─────────────────────────────────────
+
 router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
-  const { receiptData, productId, transactionId } = req.body as {
-    receiptData?: string;
-    productId?: string;
+  const { transactionId, productId } = req.body as {
     transactionId?: string;
+    productId?: string;
   };
 
-  if (!receiptData) {
-    return res.status(400).json({ error: 'receiptData is required' });
+  if (!transactionId) {
+    return res.status(400).json({ error: 'transactionId is required' });
   }
 
   try {
-    // 1. Try production endpoint first
-    let appleResponse = await verifyWithApple(receiptData, APPLE_VERIFY_PRODUCTION);
+    const tx = await fetchTransaction(transactionId);
 
-    // 2. status 21007 → sandbox receipt, retry sandbox
-    if (appleResponse.status === 21007) {
-      appleResponse = await verifyWithApple(receiptData, APPLE_VERIFY_SANDBOX);
-    }
-
-    // 3. Non-zero status = invalid receipt
-    if (appleResponse.status !== 0) {
-      console.warn(`Apple IAP verification failed, status=${appleResponse.status}`, {
-        userId: req.user!.id,
-        productId,
+    if (!isActiveProTransaction(tx)) {
+      console.warn(`Apple IAP: invalid/inactive transaction for user ${req.user!.id}`, {
         transactionId,
+        productId: tx.productId,
+        expiresDate: tx.expiresDate,
+        revocationDate: tx.revocationDate,
       });
-      return res.status(402).json({
-        error: `Apple verification failed (status ${appleResponse.status})`,
-      });
+      return res.status(402).json({ error: 'No active Pro subscription found for this transaction' });
     }
 
-    // 4. Check for an active Pro subscription
-    if (!hasActiveProSubscription(appleResponse)) {
-      return res.status(402).json({ error: 'No active Pro subscription found in receipt' });
-    }
-
-    // 5. Extract originalTransactionId to link future notifications to this user
-    const latestReceipt = appleResponse.latest_receipt_info?.[0];
-    const originalTransactionId = (latestReceipt as any)?.original_transaction_id ?? transactionId ?? null;
-
-    // 6. Upgrade user to Pro, store Apple transaction ID for lifecycle tracking
+    // Upgrade user — store originalTransactionId to link future lifecycle notifications
     await prisma.user.update({
       where: { id: req.user!.id },
       data: {
         tier: 'pro',
-        appleOriginalTransactionId: originalTransactionId,
-        stripeSubStatus: null, // clear any stale Stripe status
+        appleOriginalTransactionId: tx.originalTransactionId,
+        stripeSubStatus: null,
       },
     });
 
     console.log(`Apple IAP: upgraded user ${req.user!.id} to Pro`, {
-      productId,
       transactionId,
-      originalTransactionId,
+      originalTransactionId: tx.originalTransactionId,
+      productId: tx.productId,
+      environment: tx.environment,
     });
 
     return res.json({ success: true, tier: 'pro' });
@@ -133,30 +159,27 @@ router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
   }
 });
 
-// ─── App Store Server Notifications (V2) ─────────────────────────────────────
-// Configure in App Store Connect → Subscriptions → App Store Server Notifications
-// URL: https://api.airthreads.ai:4009/api/payments/apple-iap/notifications
-// Apple sends signed JWTs (JWS) — we decode the payload without full signature
-// verification here (acceptable for non-financial decisions like downgrade).
-// For production hardening, verify the x5c cert chain from Apple's root CA.
+// ─── POST /api/payments/apple-iap/notifications ──────────────────────────────
+// App Store Server Notifications V2 — keeps tier in sync on renewal/cancellation.
+// Apple sends a signed JWS payload. We decode (not verify sig) and act on the event.
 
 router.post('/payments/apple-iap/notifications', async (req, res) => {
   try {
     const { signedPayload } = req.body as { signedPayload?: string };
     if (!signedPayload) return res.status(400).json({ error: 'Missing signedPayload' });
 
-    // Decode JWT payload (middle segment) — no signature verification needed for downgrades
     const parts = signedPayload.split('.');
-    if (parts.length !== 3) return res.status(400).json({ error: 'Invalid JWS format' });
+    if (parts.length !== 3) return res.json({ ok: true });
 
-    const payloadJson = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-    const { notificationType, subtype, data } = payloadJson as {
+    const payloadJson = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as {
       notificationType: string;
       subtype?: string;
       data?: { signedTransactionInfo?: string; originalTransactionId?: string };
     };
 
-    // Decode the inner transaction info JWT
+    const { notificationType, subtype, data } = payloadJson;
+
+    // Decode inner transaction JWS
     let originalTransactionId: string | null = null;
     if (data?.signedTransactionInfo) {
       const txParts = data.signedTransactionInfo.split('.');
@@ -171,20 +194,16 @@ router.post('/payments/apple-iap/notifications', async (req, res) => {
 
     if (!originalTransactionId) return res.json({ ok: true });
 
-    // Events that mean the subscription is no longer active
-    const shouldDowngrade = (
+    const shouldDowngrade =
       notificationType === 'EXPIRED' ||
       notificationType === 'REFUND' ||
-      (notificationType === 'DID_CHANGE_RENEWAL_STATUS' && subtype === 'AUTO_RENEW_DISABLED') ||
-      notificationType === 'REVOKE'
-    );
+      notificationType === 'REVOKE' ||
+      (notificationType === 'DID_CHANGE_RENEWAL_STATUS' && subtype === 'AUTO_RENEW_DISABLED');
 
-    // Events that mean the subscription renewed successfully
-    const shouldEnsurePro = (
+    const shouldEnsurePro =
       notificationType === 'DID_RENEW' ||
       notificationType === 'SUBSCRIBED' ||
-      (notificationType === 'DID_CHANGE_RENEWAL_STATUS' && subtype === 'AUTO_RENEW_ENABLED')
-    );
+      (notificationType === 'DID_CHANGE_RENEWAL_STATUS' && subtype === 'AUTO_RENEW_ENABLED');
 
     if (shouldDowngrade) {
       await prisma.user.updateMany({
@@ -203,8 +222,7 @@ router.post('/payments/apple-iap/notifications', async (req, res) => {
     return res.json({ ok: true });
   } catch (err: any) {
     console.error('Apple notification error:', err);
-    // Always return 200 to Apple — non-200 causes retries
-    return res.json({ ok: true });
+    return res.json({ ok: true }); // always 200 to Apple to prevent retries
   }
 });
 
