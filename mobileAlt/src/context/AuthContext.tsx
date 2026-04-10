@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { Alert } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { Alert, Platform } from 'react-native';
 import { authApi, getToken, setToken, clearToken } from '../lib/api';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -44,6 +45,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string, dateOfBirth?: string) => Promise<void>;
   logout: () => Promise<void>;
   googleLogin: () => Promise<void>;
+  appleLogin: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -159,8 +161,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function appleLogin() {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const res = await fetch('https://api.airthreads.ai:4009/api/auth/apple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identityToken: credential.identityToken,
+          fullName: credential.fullName,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        Alert.alert('Sign In Failed', data.error ?? 'Apple sign-in failed. Please try again.');
+        return;
+      }
+
+      if (data.token) await setToken(data.token);
+      setUser(data.user);
+    } catch (err: any) {
+      if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed sheet
+      console.log('[Auth] Apple sign-in error:', err?.message);
+      Alert.alert('Sign In Failed', err?.message || 'Could not complete Apple sign-in.');
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, appleLogin, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { GoogleLogo } from '../../src/components/ui/GoogleLogo';
 import { Input } from '../../src/components/ui/Input';
@@ -14,7 +15,7 @@ import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constan
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { register, googleLogin } = useAuth();
+  const { register, googleLogin, appleLogin } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function RegisterScreen() {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   async function handleRegister() {
     if (!name.trim()) { Alert.alert('Missing Name', 'Please enter your name.'); return; }
@@ -42,6 +44,11 @@ export default function RegisterScreen() {
   async function handleGoogleLogin() {
     setGoogleLoading(true);
     try { await googleLogin(); } finally { setGoogleLoading(false); }
+  }
+
+  async function handleAppleLogin() {
+    setAppleLoading(true);
+    try { await appleLogin(); } finally { setAppleLoading(false); }
   }
 
   return (
@@ -65,6 +72,17 @@ export default function RegisterScreen() {
           {/* Heading */}
           <Text style={styles.title}>Create account.</Text>
           <Text style={styles.subtitle}>Start your AI coaching journey</Text>
+
+          {/* Apple Sign In — iOS only */}
+          {Platform.OS === 'ios' && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={radius.md}
+              style={[styles.appleButton, appleLoading && { opacity: 0.5 }]}
+              onPress={handleAppleLogin}
+            />
+          )}
 
           {/* Google OAuth */}
           <TouchableOpacity
@@ -172,6 +190,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
 
+  appleButton: {
+    width: '100%',
+    height: 54,
+    marginBottom: spacing.sm,
+  },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',

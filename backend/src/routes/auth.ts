@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import twilio from 'twilio';
+import appleSignin from 'apple-signin-auth';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -216,6 +217,62 @@ router.get('/auth/google/callback', async (req, res) => {
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     res.redirect(errorRedirect);
+  }
+});
+
+// POST /api/auth/apple — Sign in with Apple (mobile)
+router.post('/auth/apple', async (req, res) => {
+  const { identityToken, fullName } = req.body;
+  if (!identityToken || typeof identityToken !== 'string') {
+    return res.status(400).json({ error: 'identityToken required' });
+  }
+
+  try {
+    // Verify the Apple identity token against Apple's public keys
+    const applePayload = await appleSignin.verifyIdToken(identityToken, {
+      audience: 'io.axiomtraining.app',
+      ignoreExpiration: false,
+    }) as any;
+
+    const appleId: string = applePayload.sub;
+    // Apple only sends email on first sign-in; may be null on subsequent logins
+    const email: string | null = applePayload.email ?? null;
+    // fullName is sent by the device only on first auth — use it if provided
+    const name: string | null =
+      fullName?.givenName || fullName?.familyName
+        ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ')
+        : null;
+
+    // Upsert: find by appleId first, then by email
+    let existingUser = await prisma.user.findUnique({ where: { appleId } });
+    if (!existingUser && email) {
+      existingUser = await prisma.user.findUnique({ where: { email } });
+    }
+    const isNewUser = !existingUser;
+
+    let user;
+    if (existingUser) {
+      user = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          appleId,
+          ...(name && !existingUser.name ? { name } : {}),
+          ...(email && !existingUser.email ? { email } : {}),
+        },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: { appleId, email, name, tier: 'free' },
+      });
+    }
+
+    const token = issueToken(user);
+    res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    sendAuthSMS(`${isNewUser ? '🆕 New Apple signup' : '🔑 Apple login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
+  } catch (err: any) {
+    console.error('Apple auth error:', err);
+    res.status(401).json({ error: 'Apple identity token verification failed' });
   }
 });
 

@@ -20,6 +20,7 @@ model User {
   email               String?           @unique
   hashedPassword      String?
   googleId            String?           @unique
+  appleId             String?           @unique
   dateOfBirth         DateTime?
   tier                        String            @default("free")
   stripeCustomerId            String?
