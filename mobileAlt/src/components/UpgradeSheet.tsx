@@ -99,7 +99,7 @@ function PaymentSheetContent({
 
   // Derive display price from StoreKit product (localised, correct currency)
   // v14: displayPrice on iOS, localizedPrice as fallback for older builds
-  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? '$11.99';
+  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? '$12.99';
 
   return (
     <ScrollView
