@@ -19,12 +19,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { liftCoachApi } from '../../src/lib/api';
 import { Button } from '../../src/components/ui/Button';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
+import { MarkdownText } from '../../src/components/ui/MarkdownText';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
+
 
 const WELCOME_MESSAGE: Message = {
   role: 'assistant',
@@ -66,7 +68,7 @@ export default function ChatScreen() {
 
       const data = await liftCoachApi.getSession(sid);
       const existingMessages: Message[] = (data.messages || data.session?.messages || []).map(
-        (m: any) => ({ role: m.role, content: m.content })
+        (m: any) => ({ role: m.role, content: m.content ?? m.message ?? '' })
       );
 
       if (existingMessages.length === 0) {
@@ -193,6 +195,16 @@ export default function ChatScreen() {
               <Text style={styles.stepText}>Step 3</Text>
             </View>
           ),
+          // Override back to go home — prevents user from stepping back through the wizard
+          headerLeft: () => (
+            <Pressable
+              onPress={() => router.replace('/(tabs)')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{ paddingHorizontal: 4 }}
+            >
+              <Ionicons name="close" size={22} color={colors.foreground} />
+            </Pressable>
+          ),
         }}
       />
 
@@ -228,14 +240,16 @@ export default function ChatScreen() {
                   msg.role === 'user' ? styles.bubbleUser : styles.bubbleAssistant,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.bubbleText,
-                    msg.role === 'user' ? styles.bubbleTextUser : styles.bubbleTextAssistant,
-                  ]}
-                >
-                  {msg.content}
-                </Text>
+                {msg.role === 'assistant' ? (
+                  <MarkdownText
+                    text={msg.content}
+                    style={[styles.bubbleText, styles.bubbleTextAssistant]}
+                  />
+                ) : (
+                  <Text style={[styles.bubbleText, styles.bubbleTextUser]}>
+                    {msg.content}
+                  </Text>
+                )}
               </View>
             </View>
           ))}

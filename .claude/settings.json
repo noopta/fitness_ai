@@ -20,7 +20,23 @@
       "Bash(eas submit:*)",
       "Bash(npx tsx:*)",
       "Bash(eas update:*)",
-      "Bash(npx eas:*)"
+      "Bash(npx eas:*)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(head -10 du -sh /home/ubuntu/mcp/*)",
+      "Bash(rm -rf /home/ubuntu/fitness_ap/fitness_ai/mobileAlt/node_modules)",
+      "Bash(rm -rf /home/ubuntu/fitness_ap/fitness_ai/frontend-v2/node_modules)",
+      "Bash(npm cache:*)",
+      "Bash(rm -rf /home/ubuntu/mcp/Gmail-MCP-Server/node_modules)",
+      "Bash(rm -rf /home/ubuntu/mcp/google-calendar-mcp/node_modules)",
+      "Bash(venv/bin/pip install:*)",
+      "Bash(/home/ubuntu/mcp/python-server/venv/bin/gunicorn --version)",
+      "Bash(/home/ubuntu/mcp/python-server/venv/bin/python -c \"import flask, langchain_anthropic; print\\('OK'\\)\")",
+      "Read(//home/ubuntu/fitness_ap/fitness_ai/**)",
+      "Bash(xargs -I{} ss -tlnp)",
+      "Bash(sudo grep:*)"
+    ],
+    "additionalDirectories": [
+      "/home/ubuntu/balto_bites_invoicing"
     ]
   }
 }

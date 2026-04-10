@@ -13,6 +13,7 @@ import {
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { getToken } from '../../lib/api';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
+import { MarkdownText } from '../ui/MarkdownText';
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
 
@@ -38,9 +39,11 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
         </View>
       )}
       <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
-        <Text style={[styles.bubbleText, isUser ? styles.bubbleTextUser : styles.bubbleTextAssistant]}>
-          {msg.content}
-        </Text>
+        {isUser ? (
+          <Text style={[styles.bubbleText, styles.bubbleTextUser]}>{msg.content}</Text>
+        ) : (
+          <MarkdownText text={msg.content} style={[styles.bubbleText, styles.bubbleTextAssistant]} />
+        )}
       </View>
     </View>
   );

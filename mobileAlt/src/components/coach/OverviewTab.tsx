@@ -718,6 +718,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             setTimeout(() => setSelectedDay(null), 400);
             setWorkoutSaved(true);
             setTimeout(() => setWorkoutSaved(false), 3000);
+            loadData();
+            onRefresh?.();
           }}
           onLogWorkout={(exercises, date, title) => setDayLogData({ exercises, date, title })}
         />

@@ -179,6 +179,9 @@ export const liftCoachApi = {
 
   getSessionHistory: () => apiFetch('/sessions/history'),
 
+  deleteSession: (sessionId: string) =>
+    apiFetch(`/sessions/${sessionId}`, { method: 'DELETE' }),
+
   sharePlan: (sessionId: string) =>
     apiFetch(`/sessions/${sessionId}/share`, { method: 'POST' }),
 

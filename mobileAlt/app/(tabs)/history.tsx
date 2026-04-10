@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity,
+  View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, Alert, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Swipeable } from 'react-native-gesture-handler';
 import { liftCoachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
@@ -39,34 +40,61 @@ interface Session {
   createdAt?: string;
 }
 
-function SessionCard({ session }: { session: Session }) {
+function SessionCard({ session, onDelete }: { session: Session; onDelete: (id: string) => void }) {
   const router = useRouter();
+  const swipeRef = useRef<Swipeable>(null);
   const isCompleted = session.status === 'completed' || Boolean(session.primaryLimiter);
 
+  function handleDelete() {
+    swipeRef.current?.close();
+    Alert.alert(
+      'Delete Analysis',
+      'Are you sure you want to delete this analysis? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => onDelete(session.id) },
+      ]
+    );
+  }
+
+  function renderRightActions(_progress: any, dragX: Animated.AnimatedInterpolation<number>) {
+    const opacity = dragX.interpolate({ inputRange: [-80, 0], outputRange: [1, 0], extrapolate: 'clamp' });
+    return (
+      <Animated.View style={[styles.deleteAction, { opacity }]}>
+        <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} activeOpacity={0.8}>
+          <Ionicons name="trash-outline" size={20} color="#fff" />
+          <Text style={styles.deleteBtnText}>Delete</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }
+
   return (
-    <Pressable
-      onPress={() => router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`)}
-      style={({ pressed }) => [styles.sessionCard, { opacity: pressed ? 0.72 : 1 }]}
-    >
-      <View style={styles.row}>
-        <Text style={styles.liftName} numberOfLines={1}>{toLiftName(session.selectedLift)}</Text>
-        {session.createdAt && <Text style={styles.dateText}>{formatDate(session.createdAt)}</Text>}
-      </View>
-      {session.primaryLimiter && (
-        <Text style={styles.limiterText} numberOfLines={2}>{session.primaryLimiter}</Text>
-      )}
-      <View style={styles.statusRow}>
-        <View style={styles.badgeRow}>
-          {session.confidence != null && (
-            <Badge variant="secondary">{Math.round((session.confidence ?? 0) * 100)}%</Badge>
-          )}
-          <Badge variant={isCompleted ? 'success' : 'warning'}>
-            {isCompleted ? 'Completed' : 'In Progress'}
-          </Badge>
+    <Swipeable ref={swipeRef} renderRightActions={renderRightActions} rightThreshold={40} overshootRight={false}>
+      <Pressable
+        onPress={() => router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`)}
+        style={({ pressed }) => [styles.sessionCard, { opacity: pressed ? 0.72 : 1 }]}
+      >
+        <View style={styles.row}>
+          <Text style={styles.liftName} numberOfLines={1}>{toLiftName(session.selectedLift)}</Text>
+          {session.createdAt && <Text style={styles.dateText}>{formatDate(session.createdAt)}</Text>}
         </View>
-        <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-      </View>
-    </Pressable>
+        {session.primaryLimiter && (
+          <Text style={styles.limiterText} numberOfLines={2}>{session.primaryLimiter}</Text>
+        )}
+        <View style={styles.statusRow}>
+          <View style={styles.badgeRow}>
+            {session.confidence != null && (
+              <Badge variant="secondary">{Math.round((session.confidence ?? 0) * 100)}%</Badge>
+            )}
+            <Badge variant={isCompleted ? 'success' : 'warning'}>
+              {isCompleted ? 'Completed' : 'In Progress'}
+            </Badge>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+        </View>
+      </Pressable>
+    </Swipeable>
   );
 }
 
@@ -90,6 +118,15 @@ export default function HistoryScreen() {
       .catch(() => setSessions([]))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleDelete(id: string) {
+    try {
+      await liftCoachApi.deleteSession(id);
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+    } catch {
+      Alert.alert('Error', 'Failed to delete analysis. Please try again.');
+    }
+  }
 
   const completed = sessions.filter((s) => s.status === 'completed' || Boolean(s.primaryLimiter));
   const inProgress = sessions.filter((s) => s.status !== 'completed' && !s.primaryLimiter);
@@ -135,13 +172,13 @@ export default function HistoryScreen() {
           {completed.length > 0 && (
             <View style={styles.section}>
               <SectionLabel title="Completed" count={completed.length} />
-              {completed.map((s) => <SessionCard key={s.id} session={s} />)}
+              {completed.map((s) => <SessionCard key={s.id} session={s} onDelete={handleDelete} />)}
             </View>
           )}
           {inProgress.length > 0 && (
             <View style={styles.section}>
               <SectionLabel title="In Progress" count={inProgress.length} />
-              {inProgress.map((s) => <SessionCard key={s.id} session={s} />)}
+              {inProgress.map((s) => <SessionCard key={s.id} session={s} onDelete={handleDelete} />)}
             </View>
           )}
         </ScrollView>
@@ -189,6 +226,27 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: 8,
     backgroundColor: colors.background,
+  },
+  deleteAction: {
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginLeft: spacing.sm,
+  },
+  deleteBtn: {
+    backgroundColor: '#ef4444',
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    minWidth: 72,
+    height: '100%',
+  },
+  deleteBtnText: {
+    color: '#fff',
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
   },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

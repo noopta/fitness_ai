@@ -139,6 +139,21 @@ router.get('/sessions/history', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/sessions/:id - Delete a session (only if owned by the user)
+router.delete('/sessions/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = await prisma.session.findUnique({ where: { id } });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    if (session.userId !== req.user!.id) return res.status(403).json({ error: 'Forbidden' });
+    await prisma.session.delete({ where: { id } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Delete session error:', err);
+    res.status(500).json({ error: 'Failed to delete session' });
+  }
+});
+
 // POST /api/sessions/:id/snapshots - Add exercise snapshots
 router.post('/sessions/:id/snapshots', async (req, res) => {
   try {

@@ -189,13 +189,20 @@ function calcMacroTargets(
 ): MacroTargets {
   const g = goal?.toLowerCase() ?? '';
 
-  // Calorie target
+  // Calorie target — broad keyword matching for common goal phrasings
   let targetCalories = tdee;
-  if (g.includes('loss') || g.includes('cut') || g.includes('lean')) {
+  const isFatLoss = g.includes('loss') || g.includes('cut') || g.includes('lean') ||
+    g.includes('lose') || g.includes('deficit') || g.includes('shred') ||
+    g.includes('slim') || g.includes('drop') || g.includes('fat') ||
+    g.includes('weight') || g.includes('caloric');
+  const isMassGain = g.includes('gain') || g.includes('bulk') || g.includes('mass') || g.includes('surplus');
+  const isHypertrophy = g.includes('hypertrophy') || g.includes('muscle');
+
+  if (isFatLoss && !isMassGain) {
     targetCalories = tdee - 400; // moderate deficit
-  } else if (g.includes('gain') || g.includes('bulk') || g.includes('mass')) {
+  } else if (isMassGain) {
     targetCalories = tdee + 350; // lean surplus
-  } else if (g.includes('hypertrophy') || g.includes('muscle')) {
+  } else if (isHypertrophy) {
     targetCalories = tdee + 200;
   }
   targetCalories = Math.round(targetCalories);
@@ -205,8 +212,8 @@ function calcMacroTargets(
   if (g.includes('strength')) proteinPerKg = 2.0;
   if (g.includes('hypertrophy') || g.includes('muscle')) proteinPerKg = 2.1;
   if (g.includes('endurance')) proteinPerKg = 1.6;
-  if (g.includes('loss') || g.includes('cut')) proteinPerKg = 2.2; // spare muscle
-  if (g.includes('gain') || g.includes('bulk')) proteinPerKg = 2.0;
+  if (isFatLoss && !isMassGain) proteinPerKg = 2.2; // spare muscle during deficit
+  if (isMassGain) proteinPerKg = 2.0;
 
   // Olympic lifts → higher carb demand
   const isOlympic = lift && ['clean', 'snatch', 'jerk'].some(k => lift.toLowerCase().includes(k));
