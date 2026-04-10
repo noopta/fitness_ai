@@ -21,9 +21,10 @@ model User {
   hashedPassword      String?
   googleId            String?           @unique
   dateOfBirth         DateTime?
-  tier                String            @default("free")
-  stripeCustomerId    String?
-  stripeSubStatus     String?
+  tier                        String            @default("free")
+  stripeCustomerId            String?
+  stripeSubStatus             String?
+  appleOriginalTransactionId  String?           @unique
   dailyAnalysisCount  Int               @default(0)
   dailyAnalysisDate   DateTime?
   dailyPhotoScanCount Int               @default(0)

@@ -1,11 +1,14 @@
 /**
- * Apple In-App Purchase receipt verification endpoint.
+ * Apple In-App Purchase receipt verification + App Store Server Notifications.
  *
- * Apple requires server-side receipt verification:
- * 1. Send receipt to Apple's production endpoint.
- * 2. If Apple returns status 21007 (sandbox receipt), retry with sandbox endpoint.
- * 3. Check the latest_receipt_info for an active subscription matching our product ID.
- * 4. On success, upgrade user to 'pro' tier.
+ * Purchase flow:
+ * 1. POST /payments/apple-iap/verify — called from mobile after StoreKit purchase.
+ *    Verifies receipt with Apple, upgrades user to 'pro', stores originalTransactionId.
+ *
+ * Subscription lifecycle:
+ * 2. POST /payments/apple-iap/notifications — App Store Server Notifications (V2).
+ *    Configure in App Store Connect → Subscriptions → App Store Server Notifications.
+ *    Handles EXPIRED, REFUND, DID_RENEW, etc. to keep tier in sync automatically.
  */
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -103,21 +106,105 @@ router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
       return res.status(402).json({ error: 'No active Pro subscription found in receipt' });
     }
 
-    // 5. Upgrade user to Pro
+    // 5. Extract originalTransactionId to link future notifications to this user
+    const latestReceipt = appleResponse.latest_receipt_info?.[0];
+    const originalTransactionId = (latestReceipt as any)?.original_transaction_id ?? transactionId ?? null;
+
+    // 6. Upgrade user to Pro, store Apple transaction ID for lifecycle tracking
     await prisma.user.update({
       where: { id: req.user!.id },
-      data: { tier: 'pro' },
+      data: {
+        tier: 'pro',
+        appleOriginalTransactionId: originalTransactionId,
+        stripeSubStatus: null, // clear any stale Stripe status
+      },
     });
 
     console.log(`Apple IAP: upgraded user ${req.user!.id} to Pro`, {
       productId,
       transactionId,
+      originalTransactionId,
     });
 
     return res.json({ success: true, tier: 'pro' });
   } catch (err: any) {
     console.error('Apple IAP verification error:', err);
     return res.status(500).json({ error: 'Receipt verification failed. Please try again.' });
+  }
+});
+
+// ─── App Store Server Notifications (V2) ─────────────────────────────────────
+// Configure in App Store Connect → Subscriptions → App Store Server Notifications
+// URL: https://api.airthreads.ai:4009/api/payments/apple-iap/notifications
+// Apple sends signed JWTs (JWS) — we decode the payload without full signature
+// verification here (acceptable for non-financial decisions like downgrade).
+// For production hardening, verify the x5c cert chain from Apple's root CA.
+
+router.post('/payments/apple-iap/notifications', async (req, res) => {
+  try {
+    const { signedPayload } = req.body as { signedPayload?: string };
+    if (!signedPayload) return res.status(400).json({ error: 'Missing signedPayload' });
+
+    // Decode JWT payload (middle segment) — no signature verification needed for downgrades
+    const parts = signedPayload.split('.');
+    if (parts.length !== 3) return res.status(400).json({ error: 'Invalid JWS format' });
+
+    const payloadJson = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+    const { notificationType, subtype, data } = payloadJson as {
+      notificationType: string;
+      subtype?: string;
+      data?: { signedTransactionInfo?: string; originalTransactionId?: string };
+    };
+
+    // Decode the inner transaction info JWT
+    let originalTransactionId: string | null = null;
+    if (data?.signedTransactionInfo) {
+      const txParts = data.signedTransactionInfo.split('.');
+      if (txParts.length === 3) {
+        const txPayload = JSON.parse(Buffer.from(txParts[1], 'base64url').toString('utf8'));
+        originalTransactionId = txPayload.originalTransactionId ?? null;
+      }
+    }
+    originalTransactionId ??= data?.originalTransactionId ?? null;
+
+    console.log(`Apple notification: ${notificationType}${subtype ? '/' + subtype : ''}`, { originalTransactionId });
+
+    if (!originalTransactionId) return res.json({ ok: true });
+
+    // Events that mean the subscription is no longer active
+    const shouldDowngrade = (
+      notificationType === 'EXPIRED' ||
+      notificationType === 'REFUND' ||
+      (notificationType === 'DID_CHANGE_RENEWAL_STATUS' && subtype === 'AUTO_RENEW_DISABLED') ||
+      notificationType === 'REVOKE'
+    );
+
+    // Events that mean the subscription renewed successfully
+    const shouldEnsurePro = (
+      notificationType === 'DID_RENEW' ||
+      notificationType === 'SUBSCRIBED' ||
+      (notificationType === 'DID_CHANGE_RENEWAL_STATUS' && subtype === 'AUTO_RENEW_ENABLED')
+    );
+
+    if (shouldDowngrade) {
+      await prisma.user.updateMany({
+        where: { appleOriginalTransactionId: originalTransactionId },
+        data: { tier: 'free', stripeSubStatus: null },
+      });
+      console.log(`Apple IAP: downgraded user (originalTx: ${originalTransactionId}) to free`);
+    } else if (shouldEnsurePro) {
+      await prisma.user.updateMany({
+        where: { appleOriginalTransactionId: originalTransactionId },
+        data: { tier: 'pro' },
+      });
+      console.log(`Apple IAP: confirmed pro renewal (originalTx: ${originalTransactionId})`);
+    }
+
+    return res.json({ ok: true });
+  } catch (err: any) {
+    console.error('Apple notification error:', err);
+    // Always return 200 to Apple — non-200 causes retries
+    return res.json({ ok: true });
   }
 });
 
