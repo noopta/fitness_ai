@@ -8,6 +8,7 @@ import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
 import authRoutes from './routes/auth.js';
 import paymentsRoutes from './routes/payments.js';
+import appleIapRoutes from './routes/appleIap.js';
 import coachRoutes from './routes/coach.js';
 import nutritionRoutes from './routes/nutrition.js';
 import wellnessRoutes from './routes/wellness.js';
@@ -67,6 +68,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api', authRoutes);
 app.use('/api', paymentsRoutes);
+app.use('/api', appleIapRoutes);
 app.use('/api', coachRoutes);
 app.use('/api', nutritionRoutes);
 app.use('/api', wellnessRoutes);

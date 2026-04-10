@@ -112,11 +112,11 @@ export default function RegisterScreen() {
           <View style={styles.termsContainer}>
             <Text style={styles.termsText}>
               By signing up, you agree to our{' '}
-              <Text style={styles.termsLink} onPress={() => Linking.openURL('https://axiom.app/terms').catch(() => {})}>
+              <Text style={styles.termsLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>
                 Terms of Service
               </Text>
               {' '}and{' '}
-              <Text style={styles.termsLink} onPress={() => Linking.openURL('https://axiom.app/privacy').catch(() => {})}>
+              <Text style={styles.termsLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>
                 Privacy Policy
               </Text>
             </Text>

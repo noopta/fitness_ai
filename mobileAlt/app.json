@@ -33,7 +33,8 @@
           "photosPermission": "Axiom uses your photo library to analyze meals and estimate calories.",
           "cameraPermission": "Axiom uses your camera to take photos of meals for calorie estimation."
         }
-      ]
+      ],
+      "react-native-iap"
     ],
     "ios": {
       "supportsTablet": false,
