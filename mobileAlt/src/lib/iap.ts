@@ -1,29 +1,30 @@
 /**
- * Apple In-App Purchase service (react-native-iap / StoreKit)
+ * Apple In-App Purchase service (react-native-iap v14 / StoreKit 2)
  *
- * Product IDs must match exactly what is configured in App Store Connect.
- * APPLE_PRODUCT_IDS is the single source of truth used by both the purchase
- * flow and the restore-purchases flow.
+ * v14 breaking changes:
+ *  - getSubscriptions()   → fetchProducts({ skus, type: 'subs' })
+ *  - requestSubscription()→ requestPurchase({ type: 'subs', request: { apple: { sku } } })
+ *  - Subscription type    → ProductSubscription
+ *  - product.localizedPrice → product.displayPrice (iOS)
+ *  - purchase.transactionId → purchase.id
  */
 import {
   initConnection,
   endConnection,
-  getSubscriptions,
-  requestSubscription,
+  fetchProducts,
+  requestPurchase,
   getAvailablePurchases,
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
-  type SubscriptionPurchase,
+  type ProductSubscription,
   type Purchase,
   type PurchaseError,
-  type Subscription,
 } from 'react-native-iap';
 import { Platform } from 'react-native';
 import { apiFetch } from './api';
 
 // ─── Product IDs ──────────────────────────────────────────────────────────────
-// Create these in App Store Connect → Subscriptions → Axiom Pro
 export const APPLE_PRODUCT_IDS = ['io.axiomtraining.app.pro.monthly'];
 export const PRO_MONTHLY_ID = 'io.axiomtraining.app.pro.monthly';
 
@@ -57,10 +58,11 @@ export function teardownIAP() {
 }
 
 // ─── Fetch Products ───────────────────────────────────────────────────────────
-export async function fetchProProduct(): Promise<Subscription | null> {
+export async function fetchProProduct(): Promise<ProductSubscription | null> {
   try {
-    const products = await getSubscriptions({ skus: APPLE_PRODUCT_IDS });
-    return products.find(p => p.productId === PRO_MONTHLY_ID) ?? products[0] ?? null;
+    const products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' });
+    const subs = products as ProductSubscription[];
+    return subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
   } catch {
     return null;
   }
@@ -68,24 +70,26 @@ export async function fetchProProduct(): Promise<Subscription | null> {
 
 // ─── Purchase ─────────────────────────────────────────────────────────────────
 /**
- * Initiates a StoreKit purchase and verifies the receipt server-side.
- * Returns true on successful activation, throws on failure.
+ * Initiates a StoreKit 2 subscription purchase.
+ * Receipt delivery is handled by the purchaseUpdatedListener in UpgradeSheet.
  */
 export async function purchaseProMonthly(): Promise<void> {
-  await requestSubscription({ sku: PRO_MONTHLY_ID });
-  // Receipt delivery is handled by the purchaseUpdatedListener set up
-  // in UpgradeSheet — we rely on that rather than awaiting here, because
-  // requestSubscription resolves before the transaction is finalised on iOS.
+  await requestPurchase({
+    type: 'subs',
+    request: {
+      apple: { sku: PRO_MONTHLY_ID },
+    },
+  });
 }
 
 // ─── Verify with backend ──────────────────────────────────────────────────────
 /**
- * Sends the StoreKit 2 transactionId to our backend for App Store Server API
+ * Sends the StoreKit 2 transaction ID to our backend for App Store Server API
  * verification and tier upgrade. No receipt blob needed.
  */
-export async function verifyAppleReceipt(purchase: Purchase | SubscriptionPurchase): Promise<void> {
-  // StoreKit 2: transactionId is a string directly on the purchase object
-  const transactionId = (purchase as any).transactionId ?? (purchase as any).id;
+export async function verifyAppleReceipt(purchase: Purchase): Promise<void> {
+  // v14: transaction ID is purchase.id (unified) or transactionId (legacy fallback)
+  const transactionId = purchase.id ?? (purchase as any).transactionId;
 
   if (!transactionId) throw new Error('No transactionId on purchase');
 
@@ -103,7 +107,7 @@ export async function verifyAppleReceipt(purchase: Purchase | SubscriptionPurcha
 
 // ─── Restore ──────────────────────────────────────────────────────────────────
 /**
- * Restores previously completed purchases and re-verifies them with the backend.
+ * Restores previously completed purchases and re-verifies with the backend.
  * Apple requires this to be available in the UI.
  */
 export async function restorePurchases(): Promise<boolean> {
@@ -112,20 +116,16 @@ export async function restorePurchases(): Promise<boolean> {
 
   if (proPurchases.length === 0) return false;
 
-  // Verify the most recent one
-  const latest = proPurchases[0];
-  await verifyAppleReceipt(latest);
+  await verifyAppleReceipt(proPurchases[0]);
   return true;
 }
 
 // ─── Listener helpers ─────────────────────────────────────────────────────────
 export function addPurchaseListener(
-  onSuccess: (purchase: SubscriptionPurchase) => void,
+  onSuccess: (purchase: Purchase) => void,
   onError: (error: PurchaseError) => void,
 ) {
-  const successSub = purchaseUpdatedListener((purchase) => {
-    onSuccess(purchase as SubscriptionPurchase);
-  });
+  const successSub = purchaseUpdatedListener(onSuccess);
   const errorSub = purchaseErrorListener(onError);
   return () => {
     successSub.remove();

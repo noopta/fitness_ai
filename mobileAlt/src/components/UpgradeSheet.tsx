@@ -7,9 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 import {
   initIAP, fetchProProduct, purchaseProMonthly, verifyAppleReceipt,
-  addPurchaseListener, type IAPProduct,
+  addPurchaseListener,
 } from '../lib/iap';
-import type { Subscription } from 'react-native-iap';
+import type { ProductSubscription, Purchase } from 'react-native-iap';
 
 interface Props {
   visible: boolean;
@@ -33,7 +33,7 @@ function PaymentSheetContent({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [product, setProduct] = useState<Subscription | null>(null);
+  const [product, setProduct] = useState<ProductSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +58,7 @@ function PaymentSheetContent({
   // Listen for purchase updates from StoreKit
   useEffect(() => {
     const remove = addPurchaseListener(
-      async (purchase) => {
+      async (purchase: Purchase) => {
         // Purchase succeeded — verify with our backend
         setPurchasing(true);
         try {
@@ -98,7 +98,8 @@ function PaymentSheetContent({
   }, [purchasing]);
 
   // Derive display price from StoreKit product (localised, correct currency)
-  const displayPrice = product?.localizedPrice ?? '$11.99';
+  // v14: displayPrice on iOS, localizedPrice as fallback for older builds
+  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? '$11.99';
 
   return (
     <ScrollView
