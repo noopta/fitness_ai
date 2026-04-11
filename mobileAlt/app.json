@@ -35,7 +35,16 @@
         }
       ],
       "react-native-iap",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#000000",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": false,
