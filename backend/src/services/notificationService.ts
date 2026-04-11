@@ -141,32 +141,35 @@ export async function runNightlyNotifications(): Promise<void> {
       };
     }
 
-    // Program session reminder: look 2 days ahead
+    // Program session reminder: notify only when today is a scheduled training day
     if (user.savedProgram && user.programStartDate) {
       try {
         const program = JSON.parse(user.savedProgram);
         const start = new Date(user.programStartDate);
-        const twoDaysFromNow = new Date();
-        twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2);
-        const dayOffset = Math.floor((twoDaysFromNow.getTime() - start.getTime()) / 86400000);
-        const phases = program.phases || [];
-        let totalDays = 0;
-        for (const phase of phases) {
-          const trainingDays: Array<{ day: string; focus: string }> = phase.trainingDays || [];
-          const phaseDays = (phase.durationWeeks || 1) * 7;
-          if (dayOffset < totalDays + phaseDays) {
-            const dayInWeek = dayOffset % 7;
-            const session = dayInWeek < trainingDays.length ? trainingDays[dayInWeek] : null;
-            if (session) {
-              return {
-                title: `${session.day} in 2 days`,
-                body: `Anakin has your ${session.focus} session queued up. Check your program for this week's focus.`,
-                data: { screen: 'coach', tab: 'program' },
-              };
+        start.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dayOffset = Math.floor((today.getTime() - start.getTime()) / 86400000);
+        if (dayOffset >= 0) {
+          const phases = program.phases || [];
+          let totalDays = 0;
+          for (const phase of phases) {
+            const trainingDays: Array<{ day: string; focus: string }> = phase.trainingDays || [];
+            const phaseDays = (phase.durationWeeks || 1) * 7;
+            if (dayOffset < totalDays + phaseDays) {
+              const dayInWeek = dayOffset % 7;
+              const session = dayInWeek < trainingDays.length ? trainingDays[dayInWeek] : null;
+              if (session) {
+                return {
+                  title: `Today: ${session.focus}`,
+                  body: `Your ${session.day} session is on the schedule today. Anakin has your program ready.`,
+                  data: { screen: 'coach', tab: 'program' },
+                };
+              }
+              break;
             }
-            break;
+            totalDays += phaseDays;
           }
-          totalDays += phaseDays;
         }
       } catch {
         // Malformed program JSON — skip

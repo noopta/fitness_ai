@@ -117,40 +117,33 @@ export function ChatTab({ coachData }: ChatTabProps) {
         throw new Error(msg);
       }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      // React Native (Hermes) does not support ReadableStream / getReader().
+      // Read the full SSE body as text then parse all data lines at once.
+      const rawText = await response.text();
       let accumulated = '';
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const raw = decoder.decode(value, { stream: true });
-          // Parse SSE lines
-          for (const line of raw.split('\n')) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6).trim();
-            if (data === '[DONE]') break;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.chunk) {
-                accumulated += parsed.chunk;
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === streamId ? { ...m, content: accumulated } : m
-                  )
-                );
-              } else if (parsed.error) {
-                throw new Error(parsed.error);
-              }
-            } catch (parseErr: any) {
-              if (parseErr?.message && !parseErr.message.startsWith('JSON')) {
-                throw parseErr;
-              }
-            }
+      for (const line of rawText.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.chunk) {
+            accumulated += parsed.chunk;
+          } else if (parsed.error) {
+            throw new Error(parsed.error);
+          }
+        } catch (parseErr: any) {
+          if (parseErr?.message && !parseErr.message.startsWith('JSON')) {
+            throw parseErr;
           }
         }
       }
+
+      // Render the full accumulated reply at once
+      setMessages((prev) =>
+        prev.map((m) => (m.id === streamId ? { ...m, content: accumulated } : m))
+      );
 
       // Mark the streaming message as final
       setMessages((prev) =>
