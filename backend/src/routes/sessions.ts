@@ -228,15 +228,21 @@ router.post('/sessions/:id/messages', async (req, res) => {
     const { id } = req.params;
     const data = addMessageSchema.parse(req.body);
     
-    // Save user message
-    await prisma.diagnosticMessage.create({
-      data: {
-        sessionId: id,
-        role: 'user',
-        message: data.message
-      }
-    });
-    
+    // '__init__' is a client-side trigger to prime the AI's opening questions.
+    // Don't persist it as a real user message — it would show as a confusing
+    // bubble when the user resumes the session.
+    const isInitTrigger = data.message.trim() === '__init__';
+
+    if (!isInitTrigger) {
+      await prisma.diagnosticMessage.create({
+        data: {
+          sessionId: id,
+          role: 'user',
+          message: data.message
+        }
+      });
+    }
+
     // Get session context
     const session = await prisma.session.findUnique({
       where: { id },

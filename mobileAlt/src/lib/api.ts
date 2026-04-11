@@ -115,6 +115,9 @@ export const authApi = {
 
   setAvatar: (avatarBase64: string) =>
     apiFetch('/auth/avatar', { method: 'PUT', body: JSON.stringify({ avatarBase64 }) }),
+
+  deleteAccount: () =>
+    apiFetch('/auth/account', { method: 'DELETE' }),
 };
 
 // ─── Lift Coach API ───────────────────────────────────────────────────────────
@@ -380,6 +383,10 @@ export const socialApi = {
 
   // Invite
   getInviteLink: () => apiFetch('/social/invite'),
+
+  // Content moderation (required by Apple App Store for UGC)
+  reportPost: (itemId: string, reason: string) =>
+    apiFetch('/social/report', { method: 'POST', body: JSON.stringify({ itemId, reason }) }),
 };
 
 // ─── Institution API ──────────────────────────────────────────────────────────

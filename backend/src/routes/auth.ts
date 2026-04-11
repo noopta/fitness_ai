@@ -441,4 +441,53 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/auth/account — permanently delete the authenticated user's account
+// Required by Apple App Store guidelines (June 2022).
+// Manually cascade child records in dependency order since not all relations
+// have onDelete: Cascade defined in the schema.
+router.delete('/auth/account', requireAuth, async (req, res) => {
+  const userId = req.user!.id;
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Leaf records with no further children
+      await tx.diagnosticMessage.deleteMany({ where: { session: { userId } } });
+      await tx.exerciseSnapshot.deleteMany({ where: { session: { userId } } });
+      await tx.generatedPlan.deleteMany({ where: { session: { userId } } });
+      await tx.mealEntry.deleteMany({ where: { userId } });
+      await tx.nutritionLog.deleteMany({ where: { userId } });
+      await tx.bodyWeightLog.deleteMany({ where: { userId } });
+      await tx.wellnessCheckin.deleteMany({ where: { userId } });
+      await tx.activityLog.deleteMany({ where: { userId } });
+      await tx.savedFood.deleteMany({ where: { userId } });
+
+      // 2. Sessions (after their children are gone)
+      await tx.session.deleteMany({ where: { userId } });
+
+      // 3. Social / messaging
+      await tx.message.deleteMany({
+        where: { OR: [{ senderId: userId }, { conversation: { OR: [{ participantAId: userId }, { participantBId: userId }] } }] },
+      });
+      await tx.directConversation.deleteMany({
+        where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
+      });
+      await tx.sharedItem.deleteMany({
+        where: { OR: [{ sharerId: userId }, { recipientId: userId }] },
+      });
+      await tx.friendship.deleteMany({
+        where: { OR: [{ requesterId: userId }, { addresseeId: userId }] },
+      });
+
+      // 4. Finally remove the user row itself
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    // Clear the auth cookie
+    res.clearCookie('liftoff_jwt', { httpOnly: true, sameSite: 'none', secure: true });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Account deletion error:', err);
+    res.status(500).json({ error: 'Failed to delete account. Please try again.' });
+  }
+});
+
 export default router;

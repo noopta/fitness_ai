@@ -68,9 +68,7 @@
           ]
         }
       ],
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": []
     },
     "experiments": {
       "typedRoutes": true

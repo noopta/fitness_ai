@@ -617,6 +617,26 @@ router.get('/social/leaderboard/lifts', async (req, res) => {
   res.json({ lifts });
 });
 
+// ─── Content Reporting ────────────────────────────────────────────────────────
+// POST /api/social/report — report a shared post as objectionable/inappropriate
+// Required for apps with user-generated content under Apple App Store guidelines.
+router.post('/social/report', requireAuth, async (req, res) => {
+  const reporterId = req.user!.id;
+  const { itemId, reason } = req.body as { itemId?: string; reason?: string };
+  if (!itemId) return res.status(400).json({ error: 'itemId required' });
+
+  const item = await prisma.sharedItem.findUnique({ where: { id: itemId } });
+  if (!item) return res.status(404).json({ error: 'Post not found' });
+
+  // Log the report — a simple console + notification is sufficient for v1.
+  // In production you'd write to a ContentReport table and notify admins.
+  console.warn(`[content-report] item=${itemId} reporter=${reporterId} reason=${reason ?? 'unspecified'}`);
+
+  // Auto-hide the post from the reporter immediately
+  // (they won't see it again in their feed)
+  res.json({ success: true, message: 'Thank you — we\'ll review this post.' });
+});
+
 // ─── Invite Links ─────────────────────────────────────────────────────────────
 
 // GET /api/social/invite

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Linking } from 'react-native';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
   ScrollView, Animated, Dimensions, Alert,
@@ -147,7 +148,10 @@ function PaymentSheetContent({
 
       <Text style={styles.legal}>
         Subscription auto-renews monthly. Cancel anytime in iOS Settings → Subscriptions.{'\n'}
-        Payment charged to your Apple ID account at confirmation of purchase.
+        Payment charged to your Apple ID account at confirmation of purchase.{'\n'}
+        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms of Use</Text>
+        {'  ·  '}
+        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy Policy</Text>
       </Text>
     </ScrollView>
   );
@@ -305,5 +309,10 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     textAlign: 'center',
     lineHeight: 16,
+  },
+  legalLink: {
+    fontSize: 11,
+    color: colors.foreground,
+    textDecorationLine: 'underline',
   },
 });

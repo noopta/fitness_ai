@@ -67,14 +67,31 @@ function payloadDescription(itemType: string, payload: any): string {
 
 // ─── Feed Card ────────────────────────────────────────────────────────────────
 
-function FeedCard({ item }: { item: FeedItem }) {
+function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: string }) {
   const isText = item.itemType === 'text';
   const isMedia = item.itemType === 'media';
   const hasImage = isMedia && item.payload?.imageBase64;
   const hasVideo = isMedia && item.payload?.videoUrl;
   const description = payloadDescription(item.itemType, item.payload);
+  const isOwnPost = item.sharerId === currentUserId;
+
+  function handleLongPress() {
+    if (isOwnPost) return; // no need to report your own posts
+    Alert.alert('Report Post', 'Is this content inappropriate or offensive?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Report',
+        style: 'destructive',
+        onPress: () => {
+          socialApi.reportPost(item.id, 'inappropriate').catch(() => {});
+          Alert.alert('Reported', 'Thank you — we\'ll review this post.');
+        },
+      },
+    ]);
+  }
 
   return (
+    <Pressable onLongPress={handleLongPress} delayLongPress={400}>
     <View style={styles.card}>
       <View style={styles.cardRow}>
         {item.sharer?.avatarBase64 ? (
@@ -116,6 +133,7 @@ function FeedCard({ item }: { item: FeedItem }) {
         </View>
       ) : null}
     </View>
+    </Pressable>
   );
 }
 
@@ -571,7 +589,7 @@ export default function SocialScreen() {
                 <Text style={styles.emptySubtitle}>Add friends to see their shared workouts and plans here.</Text>
               </View>
             ) : (
-              feed.map((item) => <FeedCard key={item.id} item={item} />)
+              feed.map((item) => <FeedCard key={item.id} item={item} currentUserId={user?.id} />)
             )}
           </>
         ) : (

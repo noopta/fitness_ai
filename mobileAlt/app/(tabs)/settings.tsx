@@ -138,6 +138,42 @@ export default function SettingsScreen() {
     Alert.alert('Welcome to Pro!', 'Your account has been upgraded. Enjoy unlimited access.');
   }
 
+  function handleDeleteAccount() {
+    Alert.alert(
+      'Delete Account',
+      'This permanently deletes your account and all data — sessions, plans, nutrition logs, and social activity. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete My Account',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you absolutely sure?',
+              'All your data will be permanently removed from our servers.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Yes, Delete Everything',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await authApi.deleteAccount();
+                      await auth.logout();
+                      router.replace('/(auth)/welcome');
+                    } catch (err: any) {
+                      Alert.alert('Error', err?.message ?? 'Could not delete account. Please try again.');
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  }
+
   function handleSignOut() {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -357,6 +393,16 @@ export default function SettingsScreen() {
               <Text style={styles.signOutText}>Sign Out</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
+            <View style={styles.rowDivider} />
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              activeOpacity={0.7}
+              style={styles.accountRow}
+            >
+              <Ionicons name="trash-outline" size={20} color={colors.destructive} />
+              <Text style={styles.signOutText}>Delete Account</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -552,6 +598,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   signOutText: { flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.destructive },
+  rowDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.md },
 
   legalRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
   legalLink: { fontSize: fontSize.xs, color: colors.mutedForeground, textDecorationLine: 'underline' },

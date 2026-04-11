@@ -67,17 +67,20 @@ export default function ChatScreen() {
       setSessionId(sid);
 
       const data = await liftCoachApi.getSession(sid);
-      const existingMessages: Message[] = (data.messages || data.session?.messages || []).map(
-        (m: any) => ({ role: m.role, content: m.content ?? m.message ?? '' })
-      );
+      const rawMessages: Message[] = (data.messages || data.session?.messages || [])
+        .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content ?? m.message ?? '' }))
+        // Strip the internal __init__ trigger — it's not a real user message
+        .filter((m: Message) => m.content.trim() !== '__init__');
 
-      if (existingMessages.length === 0) {
-        // New session — show welcome message then auto-trigger the AI's first questions
-        setMessages([WELCOME_MESSAGE]);
+      const hasAssistantMessages = rawMessages.some((m: Message) => m.role === 'assistant');
+
+      if (rawMessages.length === 0 || !hasAssistantMessages) {
+        // New session OR resumed session where the AI's first response never saved
+        setMessages(rawMessages.length > 0 ? rawMessages : [WELCOME_MESSAGE]);
         setInitialLoading(false);
         triggerInitialQuestions(sid);
       } else {
-        setMessages(existingMessages);
+        setMessages(rawMessages);
         if (data.session?.status === 'complete' || data.status === 'complete') {
           setIsComplete(true);
         }
