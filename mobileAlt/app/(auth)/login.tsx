@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable,
   Alert, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator,
@@ -22,6 +22,15 @@ export default function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      AppleAuthentication.isAvailableAsync()
+        .then(setAppleAvailable)
+        .catch(() => setAppleAvailable(false));
+    }
+  }, []);
 
   // Org mode state
   const [orgMode, setOrgMode] = useState(false);
@@ -106,8 +115,8 @@ export default function LoginScreen() {
           {/* OAuth buttons — only shown outside org mode */}
           {!orgMode && (
             <>
-              {/* Apple Sign In — iOS only, shown when available */}
-              {Platform.OS === 'ios' && (
+              {/* Apple Sign In — only shown when native module is available */}
+              {appleAvailable && (
                 <AppleAuthentication.AppleAuthenticationButton
                   buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
                   buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}

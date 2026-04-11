@@ -84,19 +84,20 @@ function PaymentSheetContent({
   }, [onClose]);
 
   const handleSubscribe = useCallback(async () => {
-    if (purchasing) return;
+    if (purchasing || !product) return;
     setError(null);
     setPurchasing(true);
     try {
       await purchaseProMonthly();
       // purchaseUpdatedListener handles the rest
     } catch (err: any) {
-      if (err?.code !== 'E_USER_CANCELLED') {
+      const code = err?.code ?? err?.responseCode;
+      if (code !== 'E_USER_CANCELLED' && code !== 2) {
         setError(err?.message ?? 'Could not start purchase. Please try again.');
       }
       setPurchasing(false);
     }
-  }, [purchasing]);
+  }, [purchasing, product]);
 
   // Derive display price from StoreKit product (localised, correct currency)
   // v14: displayPrice on iOS, localizedPrice as fallback for older builds
@@ -127,11 +128,21 @@ function PaymentSheetContent({
         </View>
       ) : null}
 
+      {/* Product unavailable notice */}
+      {!loading && !product && (
+        <View style={styles.errorBanner}>
+          <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
+          <Text style={styles.errorText}>
+            Subscription unavailable. Make sure you're signed into the App Store and try again.
+          </Text>
+        </View>
+      )}
+
       {/* Subscribe button */}
       <TouchableOpacity
-        style={[styles.subscribeBtn, (purchasing || loading) && styles.subscribeBtnDisabled]}
+        style={[styles.subscribeBtn, (purchasing || loading || !product) && styles.subscribeBtnDisabled]}
         onPress={handleSubscribe}
-        disabled={purchasing || loading}
+        disabled={purchasing || loading || !product}
         activeOpacity={0.85}
       >
         {purchasing || loading ? (
