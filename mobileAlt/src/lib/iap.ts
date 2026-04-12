@@ -44,6 +44,9 @@ export async function initIAP(): Promise<boolean> {
   try {
     await initConnection();
     connectionInitialised = true;
+    // Brief pause — Nitro/StoreKit bridge needs a tick to fully settle
+    // before product fetches will succeed on first launch.
+    await new Promise<void>(r => setTimeout(r, 300));
     return true;
   } catch {
     return false;
@@ -58,14 +61,32 @@ export function teardownIAP() {
 }
 
 // ─── Fetch Products ───────────────────────────────────────────────────────────
+/**
+ * Fetches the Pro subscription product from StoreKit.
+ *
+ * Strategy:
+ *  1. Try type:'subs' (correct v14 API for subscriptions).
+ *  2. If that returns empty, fall back to type:'all' — a known workaround for
+ *     the Nitro bridge warm-up race condition in react-native-iap v14.
+ *  3. Match by product ID; accept the first result if exact match not found.
+ */
 export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
   try {
-    const products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' });
-    console.log('[IAP] fetchProducts result:', JSON.stringify(products));
+    let products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' });
+    console.log('[IAP] fetchProducts(subs) result count:', products.length, JSON.stringify(products));
+
+    // Fallback: if subs type returns empty, try fetching all types
+    if (products.length === 0) {
+      console.warn('[IAP] subs fetch returned empty — retrying with type:all');
+      await new Promise<void>(r => setTimeout(r, 500));
+      products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'all' });
+      console.log('[IAP] fetchProducts(all) result count:', products.length, JSON.stringify(products));
+    }
+
     const subs = products as ProductSubscription[];
     const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
     if (!match) {
-      console.warn('[IAP] Product not found. Returned SKUs:', subs.map(p => p.id));
+      console.warn('[IAP] Product not found after both attempts. SKU requested:', PRO_MONTHLY_ID, 'Returned IDs:', subs.map(p => p.id));
     }
     return { product: match, error: null };
   } catch (err: any) {

@@ -42,10 +42,14 @@ function PaymentSheetContent({
   const onSuccessRef = useRef(onSuccess);
   useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
 
+  const [retryCount, setRetryCount] = useState(0);
+
   // Initialise StoreKit and load the product
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
+      setError(null);
       const connected = await initIAP();
       console.log('[IAP] initIAP connected:', connected);
       const { product: p, error: fetchErr } = await fetchProProduct();
@@ -56,7 +60,7 @@ function PaymentSheetContent({
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [retryCount]);
 
   // Listen for purchase updates from StoreKit
   useEffect(() => {
@@ -134,9 +138,14 @@ function PaymentSheetContent({
       {!loading && !product && !error && (
         <View style={styles.errorBanner}>
           <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
-          <Text style={styles.errorText}>
-            Subscription unavailable. Make sure you're signed into the App Store and try again.
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.errorText}>
+              Subscription unavailable. Make sure you're signed into the App Store, then tap Retry.
+            </Text>
+            <TouchableOpacity onPress={() => setRetryCount(c => c + 1)} style={styles.retryLink}>
+              <Text style={styles.retryLinkText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -299,6 +308,8 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     flex: 1,
   },
+  retryLink: { marginTop: 6 },
+  retryLinkText: { fontSize: fontSize.sm, color: '#ef4444', fontWeight: fontWeight.semibold, textDecorationLine: 'underline' },
   subscribeBtn: {
     backgroundColor: colors.foreground,
     borderRadius: radius.md,
