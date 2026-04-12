@@ -58,13 +58,20 @@ export function teardownIAP() {
 }
 
 // ─── Fetch Products ───────────────────────────────────────────────────────────
-export async function fetchProProduct(): Promise<ProductSubscription | null> {
+export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
   try {
     const products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' });
+    console.log('[IAP] fetchProducts result:', JSON.stringify(products));
     const subs = products as ProductSubscription[];
-    return subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
-  } catch {
-    return null;
+    const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
+    if (!match) {
+      console.warn('[IAP] Product not found. Returned SKUs:', subs.map(p => p.id));
+    }
+    return { product: match, error: null };
+  } catch (err: any) {
+    const msg = err?.message ?? err?.code ?? String(err);
+    console.error('[IAP] fetchProducts error:', msg, err);
+    return { product: null, error: msg };
   }
 }
 

@@ -46,10 +46,12 @@ function PaymentSheetContent({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await initIAP();
-      const p = await fetchProProduct();
+      const connected = await initIAP();
+      console.log('[IAP] initIAP connected:', connected);
+      const { product: p, error: fetchErr } = await fetchProProduct();
       if (!cancelled) {
         setProduct(p);
+        if (fetchErr) setError(`StoreKit: ${fetchErr}`);
         setLoading(false);
       }
     })();
@@ -129,7 +131,7 @@ function PaymentSheetContent({
       ) : null}
 
       {/* Product unavailable notice */}
-      {!loading && !product && (
+      {!loading && !product && !error && (
         <View style={styles.errorBanner}>
           <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
           <Text style={styles.errorText}>
