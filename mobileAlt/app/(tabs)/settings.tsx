@@ -14,6 +14,7 @@ import { initIAP, restorePurchases } from '../../src/lib/iap';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
+import { DebugLogPanel } from '../../src/components/DebugLogPanel';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+  const [debugVisible, setDebugVisible] = useState(false);
   const [browserUrl, setBrowserUrl] = useState('');
   const [browserTitle, setBrowserTitle] = useState('');
   const [browserVisible, setBrowserVisible] = useState(false);
@@ -406,6 +408,22 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Debug section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Developer</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              onPress={() => setDebugVisible(true)}
+              activeOpacity={0.7}
+              style={styles.accountRow}
+            >
+              <Ionicons name="terminal-outline" size={20} color={colors.mutedForeground} />
+              <Text style={{ flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.foreground }}>IAP Debug Logs</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.legalRow}>
           <TouchableOpacity onPress={() => openInApp('https://axiomtraining.io/terms', 'Terms of Use')} activeOpacity={0.7}>
             <Text style={styles.legalLink}>Terms of Use</Text>
@@ -428,6 +446,10 @@ export default function SettingsScreen() {
         title={browserTitle}
         visible={browserVisible}
         onClose={() => setBrowserVisible(false)}
+      />
+      <DebugLogPanel
+        visible={debugVisible}
+        onClose={() => setDebugVisible(false)}
       />
     </SafeAreaView>
   );

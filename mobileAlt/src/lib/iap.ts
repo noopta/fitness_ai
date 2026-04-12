@@ -23,6 +23,7 @@ import {
 } from 'react-native-iap';
 import { Platform } from 'react-native';
 import { apiFetch } from './api';
+import { iapLog, iapWarn, iapError } from './debugLog';
 
 // ─── Product IDs ──────────────────────────────────────────────────────────────
 export const APPLE_PRODUCT_IDS = ['io.axiomtraining.app.pro.monthly'];
@@ -42,13 +43,16 @@ let connectionInitialised = false;
 export async function initIAP(): Promise<boolean> {
   if (Platform.OS !== 'ios') return false;
   try {
+    iapLog('initConnection — start');
     await initConnection();
     connectionInitialised = true;
     // Brief pause — Nitro/StoreKit bridge needs a tick to fully settle
     // before product fetches will succeed on first launch.
     await new Promise<void>(r => setTimeout(r, 300));
+    iapLog('initConnection — ready');
     return true;
-  } catch {
+  } catch (err: any) {
+    iapError('initConnection failed:', err?.message ?? String(err));
     return false;
   }
 }
@@ -72,26 +76,29 @@ export function teardownIAP() {
  */
 export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
   try {
+    iapLog('fetchProducts(subs) — skus:', APPLE_PRODUCT_IDS);
     let products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' });
-    console.log('[IAP] fetchProducts(subs) result count:', products.length, JSON.stringify(products));
+    iapLog(`fetchProducts(subs) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
 
     // Fallback: if subs type returns empty, try fetching all types
     if (products.length === 0) {
-      console.warn('[IAP] subs fetch returned empty — retrying with type:all');
+      iapWarn('subs fetch empty — retrying with type:all after 500ms');
       await new Promise<void>(r => setTimeout(r, 500));
       products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'all' });
-      console.log('[IAP] fetchProducts(all) result count:', products.length, JSON.stringify(products));
+      iapLog(`fetchProducts(all) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
     }
 
     const subs = products as ProductSubscription[];
     const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
-    if (!match) {
-      console.warn('[IAP] Product not found after both attempts. SKU requested:', PRO_MONTHLY_ID, 'Returned IDs:', subs.map(p => p.id));
+    if (match) {
+      iapLog('product found:', match.id, 'price:', (match as any).displayPrice ?? (match as any).localizedPrice);
+    } else {
+      iapWarn('product NOT found after both attempts. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
     }
     return { product: match, error: null };
   } catch (err: any) {
     const msg = err?.message ?? err?.code ?? String(err);
-    console.error('[IAP] fetchProducts error:', msg, err);
+    iapError('fetchProducts threw:', msg, 'code:', err?.code, 'full:', JSON.stringify(err));
     return { product: null, error: msg };
   }
 }
@@ -102,6 +109,7 @@ export async function fetchProProduct(): Promise<{ product: ProductSubscription 
  * Receipt delivery is handled by the purchaseUpdatedListener in UpgradeSheet.
  */
 export async function purchaseProMonthly(): Promise<void> {
+  iapLog('requestPurchase — sku:', PRO_MONTHLY_ID);
   await requestPurchase({
     type: 'subs',
     request: {
@@ -116,21 +124,27 @@ export async function purchaseProMonthly(): Promise<void> {
  * verification and tier upgrade. No receipt blob needed.
  */
 export async function verifyAppleReceipt(purchase: Purchase): Promise<void> {
-  // v14: transaction ID is purchase.id (unified) or transactionId (legacy fallback)
   const transactionId = purchase.id ?? (purchase as any).transactionId;
+  iapLog('verifyAppleReceipt — transactionId:', transactionId, 'productId:', purchase.productId);
 
-  if (!transactionId) throw new Error('No transactionId on purchase');
+  if (!transactionId) {
+    iapError('verifyAppleReceipt — no transactionId on purchase object:', JSON.stringify(purchase));
+    throw new Error('No transactionId on purchase');
+  }
 
-  await apiFetch('/payments/apple-iap/verify', {
-    method: 'POST',
-    body: JSON.stringify({
-      transactionId,
-      productId: purchase.productId,
-    }),
-  });
+  try {
+    await apiFetch('/payments/apple-iap/verify', {
+      method: 'POST',
+      body: JSON.stringify({ transactionId, productId: purchase.productId }),
+    });
+    iapLog('verifyAppleReceipt — backend verified OK');
+  } catch (err: any) {
+    iapError('verifyAppleReceipt — backend error:', err?.message ?? String(err));
+    throw err;
+  }
 
-  // Acknowledge the transaction so Apple doesn't refund it
   await finishTransaction({ purchase, isConsumable: false });
+  iapLog('finishTransaction — done');
 }
 
 // ─── Restore ──────────────────────────────────────────────────────────────────
