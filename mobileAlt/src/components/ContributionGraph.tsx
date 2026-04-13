@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -100,6 +100,7 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
   const [rawDays, setRawDays] = useState<HeatmapDay[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,9 +168,11 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
   return (
     <View style={styles.wrapper}>
       <ScrollView
+        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
       >
         <Svg width={svgWidth} height={svgHeight}>
           {/* Month labels */}

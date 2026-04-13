@@ -372,6 +372,8 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
 
   const bwCacheKey = `nutrition_bw_${userId ?? 'anon'}`;
   const mealCacheKey = `nutrition_meals_${userId ?? 'anon'}_${todayStr()}`;
+  // Shared key with NutritionProfile component — clear it so profile re-fetches after any meal change
+  const nutritionProfileCacheKey = `nutrition_profile_${userId ?? 'anon'}`;
 
   const loadMealData = useCallback(async (forceRefresh = false) => {
     setLoadingMeals(true);
@@ -414,7 +416,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
           try {
             await nutritionApi.deleteMeal(id);
             setTodayMeals(prev => prev.filter(m => m.id !== id));
-            await clearCache(mealCacheKey);
+            await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
           } catch (err: any) {
             Alert.alert('Error', err?.message || 'Failed to delete meal');
           }
@@ -452,7 +454,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
       });
       setMealDesc('');
       setParsedMeal(null);
-      await clearCache(mealCacheKey);
+      await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
       loadMealData(true);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
@@ -515,7 +517,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
       });
       setScannedMeal(null);
       setPhotoUri(null);
-      await clearCache(mealCacheKey);
+      await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
       loadMealData(true);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
@@ -1014,7 +1016,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
       <MealLogModal
         visible={logModalVisible}
         onClose={() => setLogModalVisible(false)}
-        onSaved={async () => { setLogModalVisible(false); await clearCache(mealCacheKey); loadMealData(true); }}
+        onSaved={async () => { setLogModalVisible(false); await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey); loadMealData(true); }}
         prefill={prefillMeal}
         date={todayStr()}
       />

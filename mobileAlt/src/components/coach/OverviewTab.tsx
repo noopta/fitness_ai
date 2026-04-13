@@ -422,7 +422,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
               </View>
               {(todayData.phaseName ?? scheduleData?.phaseName) && (
                 <View style={dark.phasePill}>
-                  <Text style={dark.phasePillText}>
+                  <Text style={dark.phasePillText} numberOfLines={1} ellipsizeMode="tail">
                     {(todayData.phaseName ?? scheduleData?.phaseName)!.toUpperCase()}
                     {todayData.weekNumber ? ` · W${todayData.weekNumber}` : ''}
                   </Text>
@@ -460,7 +460,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
               </View>
               {(todayData?.phaseName ?? scheduleData?.phaseName) && (
                 <View style={dark.phasePill}>
-                  <Text style={dark.phasePillText}>
+                  <Text style={dark.phasePillText} numberOfLines={1} ellipsizeMode="tail">
                     {(todayData?.phaseName ?? scheduleData?.phaseName)!.toUpperCase()}
                     {todayData?.weekNumber ? ` · W${todayData.weekNumber}` : ''}
                   </Text>
@@ -469,7 +469,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             </View>
 
             {/* title + focus */}
-            <Text style={dark.title}>
+            <Text style={dark.title} numberOfLines={2} ellipsizeMode="tail">
               {todayData?.todaySession?.day || todayData?.todaySession?.focus || 'Training Day'}
             </Text>
             {todayData?.todaySession?.focus && todayData.todaySession.day && (
@@ -847,6 +847,8 @@ const dark = StyleSheet.create({
     backgroundColor: '#27272a',
     borderRadius: 100,
     paddingHorizontal: 10, paddingVertical: 4,
+    maxWidth: '60%',
+    flexShrink: 1,
   },
   phasePillText: {
     fontSize: 10, fontWeight: '700', color: '#a1a1aa', letterSpacing: 0.5,

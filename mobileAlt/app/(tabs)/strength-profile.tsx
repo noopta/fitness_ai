@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -335,6 +336,14 @@ export default function StrengthProfileScreen() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Re-fetch each time the tab comes into focus so a freshly-logged workout
+  // or a background strength-profile recalculation is reflected immediately.
+  const isFirstFocus = useRef(true);
+  useFocusEffect(useCallback(() => {
+    if (isFirstFocus.current) { isFirstFocus.current = false; return; }
+    loadData();
+  }, [loadData]));
 
   function onRefresh() { setRefreshing(true); loadData(); }
 

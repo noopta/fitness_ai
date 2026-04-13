@@ -48,7 +48,7 @@ export async function initIAP(): Promise<boolean> {
     connectionInitialised = true;
     // Brief pause — Nitro/StoreKit bridge needs a tick to fully settle
     // before product fetches will succeed on first launch.
-    await new Promise<void>(r => setTimeout(r, 300));
+    await new Promise<void>(r => setTimeout(r, 800));
     iapLog('initConnection — ready');
     return true;
   } catch (err: any) {
