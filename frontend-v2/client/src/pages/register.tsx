@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { WebAnalytics } from '@/lib/analytics';
 
 export default function Register() {
   const { register, googleLogin, user, loading } = useAuth();
@@ -33,6 +34,7 @@ export default function Register() {
     setSubmitting(true);
     try {
       await register(name, email, password, dateOfBirth || undefined);
+      WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
       setLocation('/onboarding');
     } catch (err: any) {

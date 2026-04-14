@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { coachApi } from '../../lib/api';
+import { Analytics } from '../../lib/analytics';
 
 
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';// ─── Types ────────────────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
     if (input.trim().length < 5) return;
     setStage('loading');
     setError('');
+    Analytics.lifeHappenedSubmitted();
     try {
       const data = await coachApi.adjustProgram({ userInput: input.trim() });
       setResult(data);

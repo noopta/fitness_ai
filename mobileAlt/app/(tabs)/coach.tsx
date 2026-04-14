@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../src/context/AuthContext';
 import { coachApi, authApi } from '../../src/lib/api';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { UpgradePrompt } from '../../src/components/UpgradePrompt';
@@ -38,6 +39,22 @@ export default function CoachScreen() {
   const [onboardingKey, setOnboardingKey] = useState(0);
   const [refreshingTier, setRefreshingTier] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+
+  useEffect(() => {
+    trackScreen('Coach');
+    return trackScreenTime('Coach');
+  }, []);
+
+  // Track time spent on each coach sub-tab
+  useEffect(() => {
+    const start = Date.now();
+    return () => {
+      const seconds = Math.round((Date.now() - start) / 1000);
+      if (seconds >= 1) {
+        Analytics.coachDashboardOpened('tab');
+      }
+    };
+  }, [activeTab]);
 
   useEffect(() => {
     initCoach();

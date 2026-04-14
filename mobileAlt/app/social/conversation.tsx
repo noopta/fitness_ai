@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { Analytics } from '../../src/lib/analytics';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
 interface Message {
@@ -96,6 +97,7 @@ export default function ConversationScreen() {
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text || !conversationId) return;
+    Analytics.messageSentToFriend();
     setInputText('');
     setSending(true);
     try {

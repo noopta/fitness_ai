@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authFetch } from '@/lib/api';
+import { WebAnalytics } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -58,6 +59,7 @@ export function LifeHappenedModal({ onClose, onApplied }: Props) {
 
   async function handleSubmit() {
     if (input.trim().length < 5) return;
+    WebAnalytics.lifeHappenedSubmitted();
     setStage('loading');
     try {
       const res = await authFetch(`${API_BASE}/coach/adjust`, {

@@ -15,6 +15,7 @@ import {
   Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Analytics } from '../../lib/analytics';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -452,6 +453,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
         fatG: parsedMeal.fatG,
         notes: mealDesc.trim(),
       });
+      Analytics.foodTypedLogged({ calories: parsedMeal.calories, confidence: parsedMeal.confidence });
       setMealDesc('');
       setParsedMeal(null);
       await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
@@ -515,6 +517,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
         carbsG: scannedMeal.carbsG,
         fatG: scannedMeal.fatG,
       });
+      Analytics.foodScannedLogged({ calories: scannedMeal.calories, confidence: scannedMeal.confidence });
       setScannedMeal(null);
       setPhotoUri(null);
       await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
@@ -533,6 +536,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
     setSavingBw(true);
     try {
       await coachApi.logBodyWeight(val);
+      Analytics.bodyWeightLogged();
       setBwInput('');
       const bwRes = await coachApi.getBodyWeight().catch(() => null);
       if (bwRes) {

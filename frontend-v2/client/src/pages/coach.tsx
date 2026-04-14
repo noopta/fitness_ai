@@ -17,6 +17,7 @@ import { ChatTab } from '@/components/coach/ChatTab';
 import { ProgramSetup, type TrainingProgram } from '@/components/coach/ProgramSetup';
 import { ProgramWalkthrough } from '@/components/coach/ProgramWalkthrough';
 import { authFetch } from '@/lib/api';
+import { WebAnalytics, trackPageTime } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -68,6 +69,8 @@ export default function CoachPage() {
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
   const stage: CoachStage = stageOverride ?? deriveStage(user);
+
+  useEffect(() => { return trackPageTime('coach'); }, []);
 
   useEffect(() => {
     // Wait for auth to finish before deciding whether to fetch
@@ -186,7 +189,7 @@ export default function CoachPage() {
                 </div>
               ))}
             </div>
-            <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold" asChild>
+            <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold" asChild onClick={() => WebAnalytics.upgradeTapped('coach_wall')}>
               <Link href="/pricing">
                 Upgrade to Pro
                 <ChevronRight className="ml-1 h-4 w-4" />
@@ -220,7 +223,7 @@ export default function CoachPage() {
       ) : (
         /* Main tabbed dashboard */
         <div className="flex-1 flex flex-col min-h-0">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <Tabs value={activeTab} onValueChange={(tab) => { setActiveTab(tab); WebAnalytics.coachTabSwitched(tab); }} className="flex-1 flex flex-col min-h-0">
             {/* Tab bar */}
             <div className="border-b bg-background/80 backdrop-blur sticky top-[57px] z-30">
               <div className="container max-w-7xl mx-auto px-2 sm:px-4">

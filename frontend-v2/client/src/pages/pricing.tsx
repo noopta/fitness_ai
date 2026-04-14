@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Zap, FlaskConical, ShieldCheck, BookOpen } from "lucide-react";
@@ -6,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { BrandLogo } from "@/components/BrandLogo";
+import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 
 const FREE_LIMIT = 2;
 const STRIPE_PRO_URL = "https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00";
@@ -65,7 +67,13 @@ export default function Pricing() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
+  useEffect(() => {
+    WebAnalytics.pricingViewed();
+    return trackPageTime('pricing');
+  }, []);
+
   function handleProClick() {
+    WebAnalytics.upgradeTapped('pricing_page');
     if (!user) {
       navigate('/login?redirect=/pricing');
       return;

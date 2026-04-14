@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { workoutsApi } from '../../lib/api';
+import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -169,6 +170,11 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
         })),
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
+      });
+      Analytics.workoutLogged({
+        exerciseCount: validExercises.length,
+        totalSets: validExercises.reduce((s, ex) => s + (parseInt(ex.sets, 10) || 1), 0),
+        workoutTitle: workoutTitle || undefined,
       });
       onClose();
       onSaved();

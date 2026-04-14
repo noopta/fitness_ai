@@ -10,6 +10,7 @@ import { liftCoachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { trackScreen, trackScreenTime } from '../../src/lib/analytics';
 
 const LIFT_NAMES: Record<string, string> = {
   flat_bench_press: 'Flat Bench Press',
@@ -111,6 +112,11 @@ export default function HistoryScreen() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    trackScreen('History');
+    return trackScreenTime('History');
+  }, []);
 
   useEffect(() => {
     liftCoachApi.getSessionHistory()

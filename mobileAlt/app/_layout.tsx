@@ -5,11 +5,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { PostHogProvider } from 'posthog-react-native';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { UnitsProvider } from '../src/context/UnitsContext';
 import { LoadingSpinner } from '../src/components/ui/LoadingSpinner';
 import { colors } from '../src/constants/theme';
 import { usePushNotifications } from '../src/lib/usePushNotifications';
+import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,21 @@ function RootNavigator() {
   const router = useRouter();
 
   usePushNotifications(!!user);
+
+  // Sync PostHog identity whenever auth state changes
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      identifyUser(user.id, {
+        name: user.name,
+        email: user.email,
+        username: (user as any).username ?? null,
+        tier: user.tier ?? 'free',
+      });
+    } else {
+      resetUser();
+    }
+  }, [user?.id, loading]);
 
   useEffect(() => {
     if (loading) return;
@@ -43,17 +60,19 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <UnitsProvider>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </UnitsProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <PostHogProvider client={posthog} autocapture>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <UnitsProvider>
+                <StatusBar style="dark" />
+                <RootNavigator />
+              </UnitsProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </PostHogProvider>
   );
 }

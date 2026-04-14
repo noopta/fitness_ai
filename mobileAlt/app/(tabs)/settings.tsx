@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking,
   TextInput, Image, ActivityIndicator,
@@ -18,6 +18,7 @@ import { DebugLogPanel } from '../../src/components/DebugLogPanel';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -31,6 +32,11 @@ export default function SettingsScreen() {
   const [browserTitle, setBrowserTitle] = useState('');
   const [browserVisible, setBrowserVisible] = useState(false);
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
+
+  useEffect(() => {
+    trackScreen('Settings');
+    return trackScreenTime('Settings');
+  }, []);
 
   function openInApp(url: string, title: string) {
     setBrowserUrl(url);
@@ -98,6 +104,7 @@ export default function SettingsScreen() {
     try {
       await authApi.setAvatar(base64);
       await auth.refreshUser();
+      Analytics.profileAvatarUpdated();
     } catch (err: any) {
       Alert.alert('Error', err?.message ?? 'Failed to upload avatar.');
     } finally {

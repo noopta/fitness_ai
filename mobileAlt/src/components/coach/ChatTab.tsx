@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { getToken } from '../../lib/api';
+import { Analytics } from '../../lib/analytics';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { MarkdownText } from '../ui/MarkdownText';
 
@@ -84,6 +85,8 @@ export function ChatTab({ coachData }: ChatTabProps) {
   async function handleSend() {
     const text = inputText.trim();
     if (!text || sending) return;
+
+    Analytics.coachMessageSent(text.length);
 
     const userMsg: ChatMessage = { role: 'user', content: text };
     const historyForRequest = messages.filter((m) => !m._isTemp).slice(-12);

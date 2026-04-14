@@ -12,6 +12,7 @@ import * as Clipboard from 'expo-clipboard';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -234,6 +235,7 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
           itemType: 'text',
           payload: { text: textContent.trim() },
         });
+        Analytics.textPostMade();
         Alert.alert('Posted!', 'Your post has been shared.');
         onPosted();
         onClose();
@@ -253,6 +255,7 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
           itemType: 'media',
           payload: { imageBase64 },
         });
+        Analytics.imagePostMade();
         Alert.alert('Posted!', 'Your image has been shared.');
         onPosted();
         onClose();
@@ -480,6 +483,11 @@ export default function SocialScreen() {
       const received = Array.isArray(reqData) ? reqData : reqData.received ?? [];
       setPendingCount(received.length);
     }).finally(() => setLoadingFriends(false));
+  }, []);
+
+  useEffect(() => {
+    trackScreen('Social');
+    return trackScreenTime('Social');
   }, []);
 
   useEffect(() => {

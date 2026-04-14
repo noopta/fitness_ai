@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
+import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -1352,13 +1353,13 @@ function CTASection() {
             Run your first diagnostic free — no credit card, no commitment. See your weakness identified in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" variant="secondary" className="rounded-xl text-base font-semibold px-8" asChild>
+            <Button size="lg" variant="secondary" className="rounded-xl text-base font-semibold px-8" asChild onClick={() => WebAnalytics.ctaClicked(user ? 'Start a Diagnostic' : 'Get Started Free', 'cta_section')}>
               <Link href={user ? "/snapshot" : "/register"}>
                 {user ? "Start a Diagnostic" : "Get Started Free"}
                 <ArrowRight className="ml-2 h-4.5 w-4.5" />
               </Link>
             </Button>
-            <Button size="lg" variant="ghost" className="rounded-xl text-base text-background/80 hover:text-background hover:bg-background/10 px-8" asChild>
+            <Button size="lg" variant="ghost" className="rounded-xl text-base text-background/80 hover:text-background hover:bg-background/10 px-8" asChild onClick={() => WebAnalytics.pricingViewed()}>
               <Link href="/pricing">View Pricing</Link>
             </Button>
           </div>
@@ -1408,13 +1409,13 @@ function HeroSection() {
             transition={{ duration: 0.45, delay: 0.15 }}
             className="flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button size="lg" className="rounded-xl text-base font-semibold px-8" asChild>
+            <Button size="lg" className="rounded-xl text-base font-semibold px-8" asChild onClick={() => WebAnalytics.ctaClicked(user ? 'Start a Diagnostic' : 'Try It Free', 'hero')}>
               <Link href={user ? "/snapshot" : "/register"}>
                 {user ? "Start a Diagnostic" : "Try It Free"}
                 <ChevronRight className="ml-1 h-4.5 w-4.5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="rounded-xl text-base px-8" asChild>
+            <Button size="lg" variant="outline" className="rounded-xl text-base px-8" asChild onClick={() => WebAnalytics.pricingViewed()}>
               <Link href="/pricing">See Pricing</Link>
             </Button>
           </motion.div>
@@ -1441,6 +1442,7 @@ function HeroSection() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FeaturesPage() {
+  useEffect(() => { return trackPageTime('features'); }, []);
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

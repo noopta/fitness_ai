@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
+import { WebAnalytics, trackPageTime } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -215,6 +216,7 @@ function WorkoutForm({ onSaved }: { onSaved: (log: WorkoutLog) => void }) {
 
       if (!res.ok) throw new Error('Save failed');
       const log: WorkoutLog = await res.json();
+      WebAnalytics.workoutLogged(validExercises.length);
       toast.success('Workout logged!');
       onSaved(log);
       // Reset form
@@ -441,6 +443,8 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
 export default function WorkoutsPage() {
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => { return trackPageTime('workouts'); }, []);
 
   useEffect(() => {
     authFetch(`${API_BASE}/workouts`)

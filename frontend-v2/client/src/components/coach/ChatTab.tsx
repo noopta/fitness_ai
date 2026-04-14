@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Send, Loader2, RotateCcw } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
+import { WebAnalytics } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -58,6 +59,7 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
+    WebAnalytics.coachMessageSent(trimmed.length);
 
     const history = messages.map(m => ({ role: m.role, content: m.content }));
     setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '' }]);

@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 
 const LIFT_LABELS: Record<string, string> = {
   flat_bench_press: 'Bench Press',
@@ -65,8 +66,16 @@ export default function LeaderboardScreen() {
     }
   }, []);
 
+  useEffect(() => {
+    trackScreen('Leaderboard');
+    return trackScreenTime('Leaderboard');
+  }, []);
+
   useEffect(() => { loadLifts(); }, []);
-  useEffect(() => { loadLeaderboard(selectedLift); }, [selectedLift]);
+  useEffect(() => {
+    Analytics.leaderboardViewed(selectedLift);
+    loadLeaderboard(selectedLift);
+  }, [selectedLift]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

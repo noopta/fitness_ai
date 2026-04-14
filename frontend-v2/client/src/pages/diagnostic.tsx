@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { liftCoachApi } from "@/lib/api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
+import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 
 type ChatRole = "assistant" | "user";
 
@@ -161,6 +162,8 @@ export default function Diagnostic() {
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => { return trackPageTime('diagnostic'); }, []);
+
   // Load session ID and existing messages
   useEffect(() => {
     const storedSessionId = localStorage.getItem("liftoff_session_id");
@@ -170,6 +173,8 @@ export default function Diagnostic() {
       return;
     }
     setSessionId(storedSessionId);
+    const lift = localStorage.getItem("liftoff_selected_lift") ?? 'unknown';
+    WebAnalytics.diagnosticStarted(lift);
 
     // Load existing messages from backend
     loadMessages(storedSessionId);
@@ -242,6 +247,7 @@ export default function Diagnostic() {
       
       if (response.complete) {
         setDone(true);
+        WebAnalytics.diagnosticCompleted(localStorage.getItem("liftoff_selected_lift") ?? 'unknown');
         setMessages(prev => [
           ...prev,
           { 

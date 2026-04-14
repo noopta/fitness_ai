@@ -9,6 +9,7 @@ import { BrandLogo } from '@/components/BrandLogo';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { WebAnalytics } from '@/lib/analytics';
 
 export default function Login() {
   const { login, googleLogin, refreshUser, user, loading } = useAuth();
@@ -34,6 +35,7 @@ export default function Login() {
     }
 
     if (authParam === 'success') {
+      WebAnalytics.login('google');
       setOauthPending(true);
       // Store Bearer token from URL (cookie may be blocked by browser privacy features)
       const urlToken = params.get('token');
@@ -99,6 +101,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(email, password);
+      WebAnalytics.login('email');
       redirected.current = true; // prevent the useEffect from also firing
       const saved = sessionStorage.getItem('liftoff_redirect');
       // If org mode, redirect to institution page after login

@@ -10,6 +10,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
 import { authFetch } from '@/lib/api';
+import { WebAnalytics } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -770,6 +771,11 @@ export function NutritionTab({
         });
       }
 
+      if (photoPreview) {
+        WebAnalytics.foodScannedLogged(parsedMeal.calories);
+      } else {
+        WebAnalytics.foodTypedLogged(parsedMeal.calories);
+      }
       toast.success(`${parsedMeal.name} added to daily log`);
       setParsedMeal(null);
       setMealDesc('');

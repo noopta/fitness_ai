@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import {
   View,
   Text,
@@ -333,6 +334,12 @@ export default function StrengthProfileScreen() {
       setLoading(false);
       setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    trackScreen('Strength Profile');
+    Analytics.strengthProfileViewed();
+    return trackScreenTime('Strength Profile');
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);

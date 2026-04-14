@@ -10,6 +10,7 @@ import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { liftCoachApi, coachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -42,6 +43,11 @@ export default function HomeScreen() {
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
 
   const greeting = useMemo(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)], []);
+
+  useEffect(() => {
+    trackScreen('Home');
+    return trackScreenTime('Home');
+  }, []);
 
   useEffect(() => {
     liftCoachApi.getSessionHistory()
@@ -83,7 +89,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.heroCard}
             activeOpacity={0.85}
-            onPress={() => router.push('/(tabs)/coach')}
+            onPress={() => { Analytics.coachDashboardOpened('home_cta'); router.push('/(tabs)/coach'); }}
           >
             <View style={styles.heroIconBox}>
               <Ionicons name="sparkles" size={22} color={colors.primaryForeground} />

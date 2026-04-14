@@ -1,5 +1,7 @@
-import { Component, ReactNode } from "react";
-import { Switch, Route } from "wouter";
+import { Component, ReactNode, useEffect } from "react";
+import { Switch, Route, useLocation } from "wouter";
+import { posthog, identifyUser, resetUser, trackPageView } from "./lib/analytics";
+import { useAuth } from "@/context/AuthContext";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -99,8 +101,30 @@ const ProtectedInstitutionCoach       = () => <ProtectedRoute component={Institu
 const ProtectedInstitutionAthleteDetail = () => <ProtectedRoute component={InstitutionAthleteDetailPage} />;
 const ProtectedProfile                  = () => <ProtectedRoute component={ProfilePage} />;
 
+// Tracks page views on every Wouter route change and syncs PostHog identity
+function AnalyticsProvider() {
+  const [location] = useLocation();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    trackPageView(location);
+  }, [location]);
+
+  useEffect(() => {
+    if (user) {
+      identifyUser(user.id, { name: user.name, email: user.email, tier: user.tier });
+    } else {
+      resetUser();
+    }
+  }, [user?.id]);
+
+  return null;
+}
+
 function Router() {
   return (
+    <>
+    <AnalyticsProvider />
     <Switch>
       <Route path="/" component={FeaturesPage} />
       <Route path="/prevlanding" component={Signup} />
@@ -134,6 +158,7 @@ function Router() {
       <Route path="/nav-demo" component={NavDemoPage} />
       <Route component={NotFound} />
     </Switch>
+    </>
   );
 }
 
