@@ -703,11 +703,20 @@ router.put('/coach/program', requireAuth, async (req, res) => {
     });
     const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
 
+    // Extract nutrition targets from the program's nutritionPlan so the
+    // Nutrition Tab uses the program's calorie goal instead of TDEE formula.
+    const nutritionMacros = program?.nutritionPlan?.macros ?? program?.nutritionPlan ?? null;
+    const programCalories = nutritionMacros?.calories ?? null;
+    const nutritionUpdate = programCalories != null
+      ? { dailyCalorieTarget: Math.round(programCalories) }
+      : {};
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
         savedProgram: JSON.stringify(program),
         ...(isNewProgram ? { programStartDate: new Date() } : {}),
+        ...nutritionUpdate,
       },
       select: { name: true, email: true, tier: true },
     });
@@ -1222,9 +1231,13 @@ router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
       }
     }
 
+    const adjustedCalories = program.nutritionPlan?.macros?.calories ?? null;
     await prisma.user.update({
       where: { id: req.user!.id },
-      data: { savedProgram: JSON.stringify(program) },
+      data: {
+        savedProgram: JSON.stringify(program),
+        ...(adjustedCalories != null ? { dailyCalorieTarget: Math.round(adjustedCalories) } : {}),
+      },
     });
     cacheDelete(`program:${req.user!.id}`);
 

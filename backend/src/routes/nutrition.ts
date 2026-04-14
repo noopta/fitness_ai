@@ -760,6 +760,35 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
       .map(([name, count]) => `${name} (${count})`)
       .join(', ');
 
+    // ── Build 14-day meal ledger for per-meal biochemical context ────────
+    const since14 = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const ledgerEntries = entries.filter(e => e.date >= since14);
+    const mealLedger = ledgerEntries.map(e => {
+      const micros = parseJsonObject<Partial<Micronutrients>>(e.nutrientsJson);
+      return {
+        date: e.date,
+        name: e.name,
+        type: e.mealType ?? 'meal',
+        cal: e.calories,
+        p: e.proteinG,
+        c: e.carbsG,
+        f: e.fatG,
+        gi: (micros as any)?.glycemicIndex ?? null,
+        gl: (micros as any)?.glycemicLoad ?? null,
+        speed: (micros as any)?.digestiveSpeed ?? null,
+        effects: (micros as any)?.biochemicalEffects ?? null,
+      };
+    });
+    const mealLedgerText = mealLedger.length > 0
+      ? mealLedger.map(m => {
+          const parts = [`${m.date} [${m.type}] "${m.name}" — ${m.cal}kcal P:${m.p}g C:${m.c}g F:${m.f}g`];
+          if (m.speed) parts.push(`digest:${m.speed}`);
+          if (m.gl != null) parts.push(`GL:${m.gl}`);
+          if (m.effects?.length) parts.push(`effects:[${m.effects.join(',')}]`);
+          return parts.join(' | ');
+        }).join('\n')
+      : 'No meals logged in the past 14 days.';
+
     // ── STEP 2: Run Deterministic Nutrition Engine ───────────────────────
     const engineOutput = runNutritionEngine({
       user: engineUser,
@@ -877,13 +906,17 @@ ${userCalorieTarget ? `\nUser-declared daily calorie target: ${userCalorieTarget
 
 ═══ FOOD COMPOSITION CONTEXT (HYBRID LLM + USDA ENRICHMENT) ═══
 Meals with nutrient composition data: ${mealsWithNutrientData}/${entries.length} (${nutritionDataCoveragePct}% coverage)
-Recent food ingredients: ${topIngredients || 'not enough ingredient data'}
-Recent meal tags: ${topTags || 'not enough tag data'}
+Frequent food ingredients: ${topIngredients || 'not enough ingredient data'}
+Frequent meal tags: ${topTags || 'not enough tag data'}
 
 Estimated micronutrient averages (last ${daysForAverage} logged days):
 ${micronutrientGapText}
 
-When discussing dietary effects, explicitly reference concrete foods/ingredients above where possible.
+═══ 14-DAY MEAL LEDGER (per-meal biochemical context) ═══
+Each entry: date [type] "name" — macros | digestive speed | glycemic load | biochemical effects
+${mealLedgerText}
+
+IMPORTANT: When writing the 4 domain analyses below, you MUST reference specific meal names from the ledger above. Do not write generic advice — tie observations directly to what this user actually ate (e.g. "Your repeated consumption of X is contributing to Y because...").
 Use nutrient data as directional evidence, not medical diagnosis.
 
 ⚠️ GOAL ALIGNMENT REQUIREMENT:
@@ -1002,6 +1035,25 @@ Ensure every recommendation is consistent with the user's primary goal stated ab
   "strengths": [<3-4 specific data-backed strengths citing engine numbers>],
   "improvements": [<3-4 priority improvements citing the exact gaps from engine output>],
   "suggestions": [<5 prioritized actionable suggestions with specific gram/kcal targets from engine>],
+
+  "biochemicalDomains": {
+    "energyGlucose": {
+      "headline": <one sentence summarizing this user's glucose/energy pattern based on their meals>,
+      "detail": <3-4 sentences referencing specific meals from the ledger — cite meal names, their glycemic load/speed, and how they create or disrupt energy patterns. E.g. "Your frequent consumption of [meal name] (GL:[x], fast-digesting) is causing mid-afternoon blood sugar drops...">
+    },
+    "recoveryInflammation": {
+      "headline": <one sentence on recovery/inflammation status>,
+      "detail": <3-4 sentences referencing specific meals — cite anti-inflammatory or pro-inflammatory effects from the ledger. E.g. "Meals like [name] tagged with pro-inflammatory effects appear [X] times this week — this can blunt muscle repair...">
+    },
+    "cognitiveMood": {
+      "headline": <one sentence on cognitive fuel and mood support>,
+      "detail": <3-4 sentences referencing specific meals — cite dopamine-precursor, serotonin-precursor, cognitive-boost effects from ledger. Explain how meal timing and food choices affect focus and mood.>
+    },
+    "bodyCompositionHormones": {
+      "headline": <one sentence on body composition and hormonal support>,
+      "detail": <3-4 sentences referencing specific meals — cite testosterone-support, muscle-protein-synthesis, fat intake, and how the pattern across the 14-day ledger is impacting body composition goals.>
+    }
+  },
 
   "macroRecommendation": {
     "proteinG": ${engineOutput.targets.proteinG},

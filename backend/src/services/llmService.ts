@@ -1675,6 +1675,9 @@ export interface Micronutrients {
   omega3G: number;
   omega6G: number;
   glycemicIndex: number | null;
+  glycemicLoad: number | null;
+  digestiveSpeed: 'fast' | 'medium' | 'slow' | null;
+  biochemicalEffects: string[] | null;
 }
 
 export interface ParsedMealDetail extends ParsedMealMacros {
@@ -1722,6 +1725,16 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
     omega3G: toNumber(nutrientsRaw.omega3G),
     omega6G: toNumber(nutrientsRaw.omega6G),
     glycemicIndex: Number.isFinite(nutrientsRaw.glycemicIndex) ? Number(nutrientsRaw.glycemicIndex) : null,
+    glycemicLoad: Number.isFinite(nutrientsRaw.glycemicLoad) ? Number(nutrientsRaw.glycemicLoad) : null,
+    digestiveSpeed:
+      nutrientsRaw.digestiveSpeed === 'fast' ||
+      nutrientsRaw.digestiveSpeed === 'medium' ||
+      nutrientsRaw.digestiveSpeed === 'slow'
+        ? nutrientsRaw.digestiveSpeed
+        : null,
+    biochemicalEffects: Array.isArray(nutrientsRaw.biochemicalEffects)
+      ? nutrientsRaw.biochemicalEffects.map((v: unknown) => String(v).trim()).filter(Boolean).slice(0, 10)
+      : null,
   };
 
   return {
@@ -1790,9 +1803,15 @@ OUTPUT FORMAT (JSON only, no explanation):
     "potassiumMg": 760,
     "omega3G": 0.2,
     "omega6G": 2.0,
-    "glycemicIndex": 63
+    "glycemicIndex": 63,
+    "glycemicLoad": 18,
+    "digestiveSpeed": "medium",
+    "biochemicalEffects": ["anti-inflammatory", "sustained energy", "high-cortisol-buffer"]
   }
-}`;
+}
+
+digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
+biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
@@ -1855,9 +1874,15 @@ OUTPUT FORMAT (JSON only, no explanation):
     "potassiumMg": 840,
     "omega3G": 0.12,
     "omega6G": 1.8,
-    "glycemicIndex": 56
+    "glycemicIndex": 56,
+    "glycemicLoad": 14,
+    "digestiveSpeed": "medium",
+    "biochemicalEffects": ["muscle-protein-synthesis", "anti-inflammatory", "sustained-energy"]
   }
-}`;
+}
+
+digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
+biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
 
   const result = await model.generateContent([
     prompt,

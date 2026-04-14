@@ -119,6 +119,12 @@ interface Analysis {
   strengths?: string[];
   improvements?: string[];
   suggestions?: string[];
+  biochemicalDomains?: {
+    energyGlucose: { headline: string; detail: string };
+    recoveryInflammation: { headline: string; detail: string };
+    cognitiveMood: { headline: string; detail: string };
+    bodyCompositionHormones: { headline: string; detail: string };
+  };
   macroRecommendation?: {
     proteinG: number; carbsG: number; fatG: number; calories: number;
     trainingDayProteinG?: number; trainingDayCarbsG?: number;
@@ -810,6 +816,33 @@ export function NutritionProfile() {
         </SectionCard>
       )}
 
+      {/* ── Biochemical Domains ──────────────────────────────────────────── */}
+      {a.biochemicalDomains && (() => {
+        const bd = a.biochemicalDomains!;
+        const domains = [
+          { key: 'energyGlucose',           label: 'Energy & Glucose',         icon: 'flash',           color: '#f59e0b', data: bd.energyGlucose },
+          { key: 'recoveryInflammation',     label: 'Recovery & Inflammation',  icon: 'fitness',         color: '#ef4444', data: bd.recoveryInflammation },
+          { key: 'cognitiveMood',            label: 'Cognitive & Mood',         icon: 'bulb',            color: '#8b5cf6', data: bd.cognitiveMood },
+          { key: 'bodyCompositionHormones',  label: 'Body Comp & Hormones',     icon: 'body',            color: '#06b6d4', data: bd.bodyCompositionHormones },
+        ] as const;
+        return (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Food Effects Analysis</Text>
+            <Text style={styles.sectionSubtitle}>How your recent meals are impacting key physiological systems</Text>
+            {domains.map((d) => (
+              <View key={d.key} style={styles.domainBlock}>
+                <View style={styles.domainHeader}>
+                  <Ionicons name={d.icon as any} size={16} color={d.color} />
+                  <Text style={[styles.domainLabel, { color: d.color }]}>{d.label}</Text>
+                </View>
+                <Text style={styles.domainHeadline}>{d.data.headline}</Text>
+                <Text style={styles.domainDetail}>{d.data.detail}</Text>
+              </View>
+            ))}
+          </View>
+        );
+      })()}
+
       {/* ── Strengths & Improvements ─────────────────────────────────────── */}
       {(a.strengths?.length || a.improvements?.length) ? (
         <View style={styles.siRow}>
@@ -1115,4 +1148,11 @@ const styles = StyleSheet.create({
   },
   suggestionNumText: { fontSize: 11, fontWeight: fontWeight.bold, color: colors.primaryForeground },
   suggestionText: { fontSize: fontSize.sm, color: colors.mutedForeground, flex: 1, lineHeight: 18 },
+
+  sectionSubtitle: { fontSize: fontSize.xs, color: colors.mutedForeground, marginBottom: spacing.sm },
+  domainBlock: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm, marginTop: spacing.sm },
+  domainHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: 4 },
+  domainLabel: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, textTransform: 'uppercase', letterSpacing: 0.5 },
+  domainHeadline: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, marginBottom: 4 },
+  domainDetail: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 17 },
 });

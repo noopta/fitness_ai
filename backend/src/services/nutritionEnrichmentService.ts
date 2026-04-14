@@ -58,6 +58,9 @@ const zeroMicros = (): Micronutrients => ({
   omega3G: 0,
   omega6G: 0,
   glycemicIndex: null,
+  glycemicLoad: null,
+  digestiveSpeed: null,
+  biochemicalEffects: null,
 });
 
 function cleanNumber(v: unknown): number | null {
@@ -79,7 +82,20 @@ function toMicros(partial: Partial<Micronutrients> | null | undefined): Micronut
       base.glycemicIndex = n === null ? null : safeRound(n, 0);
       continue;
     }
-    const n = cleanNumber(partial[key]);
+    if (key === 'glycemicLoad') {
+      const n = cleanNumber(partial.glycemicLoad);
+      base.glycemicLoad = n === null ? null : safeRound(n, 1);
+      continue;
+    }
+    if (key === 'digestiveSpeed') {
+      base.digestiveSpeed = partial.digestiveSpeed ?? null;
+      continue;
+    }
+    if (key === 'biochemicalEffects') {
+      base.biochemicalEffects = partial.biochemicalEffects ?? null;
+      continue;
+    }
+    const n = cleanNumber(partial[key] as number | null | undefined);
     base[key] = n === null ? 0 : safeRound(n, 2);
   }
   return base;
@@ -88,8 +104,15 @@ function toMicros(partial: Partial<Micronutrients> | null | undefined): Micronut
 function addMicros(a: Micronutrients, b: Micronutrients): Micronutrients {
   const out = zeroMicros();
   for (const key of Object.keys(out) as Array<keyof Micronutrients>) {
-    if (key === 'glycemicIndex') {
-      out.glycemicIndex = null;
+    if (key === 'glycemicIndex' || key === 'glycemicLoad') {
+      out[key] = null;
+      continue;
+    }
+    if (key === 'digestiveSpeed') { out.digestiveSpeed = null; continue; }
+    if (key === 'biochemicalEffects') {
+      // merge and deduplicate effects lists
+      const combined = [...(a.biochemicalEffects ?? []), ...(b.biochemicalEffects ?? [])];
+      out.biochemicalEffects = combined.length ? [...new Set(combined)] : null;
       continue;
     }
     out[key] = safeRound((a[key] as number) + (b[key] as number), 2);
@@ -100,10 +123,13 @@ function addMicros(a: Micronutrients, b: Micronutrients): Micronutrients {
 function scaleMicros(m: Micronutrients, factor: number): Micronutrients {
   const out = zeroMicros();
   for (const key of Object.keys(out) as Array<keyof Micronutrients>) {
-    if (key === 'glycemicIndex') {
-      out.glycemicIndex = m.glycemicIndex;
+    if (key === 'glycemicIndex') { out.glycemicIndex = m.glycemicIndex; continue; }
+    if (key === 'glycemicLoad') {
+      out.glycemicLoad = m.glycemicLoad != null ? safeRound(m.glycemicLoad * factor, 1) : null;
       continue;
     }
+    if (key === 'digestiveSpeed') { out.digestiveSpeed = m.digestiveSpeed; continue; }
+    if (key === 'biochemicalEffects') { out.biochemicalEffects = m.biochemicalEffects; continue; }
     out[key] = safeRound((m[key] as number) * factor, 2);
   }
   return out;
@@ -112,11 +138,10 @@ function scaleMicros(m: Micronutrients, factor: number): Micronutrients {
 function blendMicros(llm: Micronutrients, usda: Micronutrients, usdaWeight: number): Micronutrients {
   const out = zeroMicros();
   for (const key of Object.keys(out) as Array<keyof Micronutrients>) {
-    if (key === 'glycemicIndex') {
-      const llmGi = llm.glycemicIndex;
-      out.glycemicIndex = llmGi;
-      continue;
-    }
+    if (key === 'glycemicIndex') { out.glycemicIndex = llm.glycemicIndex; continue; }
+    if (key === 'glycemicLoad') { out.glycemicLoad = llm.glycemicLoad; continue; }
+    if (key === 'digestiveSpeed') { out.digestiveSpeed = llm.digestiveSpeed; continue; }
+    if (key === 'biochemicalEffects') { out.biochemicalEffects = llm.biochemicalEffects; continue; }
     const llmVal = llm[key] as number;
     const usdaVal = usda[key] as number;
     out[key] = safeRound((usdaVal * usdaWeight) + (llmVal * (1 - usdaWeight)), 2);
