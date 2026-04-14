@@ -1093,13 +1093,20 @@ Ensure every recommendation is consistent with the user's primary goal stated ab
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: 0.2,
-      max_completion_tokens: 4500,
+      max_completion_tokens: 12000,
     });
+
+    const finishReason = completion.choices[0].finish_reason;
+    const rawContent = completion.choices[0].message.content || '{}';
 
     let aiAnalysis: any = {};
     try {
-      aiAnalysis = JSON.parse(completion.choices[0].message.content || '{}');
-    } catch {
+      aiAnalysis = JSON.parse(rawContent);
+      if (finishReason === 'length') {
+        console.warn(`[nutrition/profile] LLM response truncated for user ${userId} — response length: ${rawContent.length} chars. Consider reducing prompt size.`);
+      }
+    } catch (parseErr) {
+      console.error(`[nutrition/profile] JSON parse failed for user ${userId}. finish_reason=${finishReason}, content_length=${rawContent.length}, preview=${rawContent.slice(0, 200)}`);
       aiAnalysis = { summary: 'Analysis unavailable at this time.', strengths: [], improvements: [], suggestions: [] };
     }
 
