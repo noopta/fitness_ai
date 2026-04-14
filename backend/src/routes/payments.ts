@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { transferToAffiliate } from '../services/affiliateService.js';
+import posthog from '../services/posthogClient.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
@@ -128,6 +129,15 @@ router.post('/payments/webhook', async (req, res) => {
           }
         });
         console.log(`✓ User ${userId} upgraded to pro`);
+        posthog.capture({
+          distinctId: userId,
+          event: 'subscription_checkout_completed',
+          properties: {
+            provider: 'stripe',
+            subscription_id: session.subscription ?? null,
+            customer_id: customerId ?? null,
+          },
+        });
       }
 
       // ── Affiliate payout on initial purchase ──────────────────────────────
@@ -197,6 +207,11 @@ router.post('/payments/webhook', async (req, res) => {
           data: { tier: 'free', stripeSubStatus: 'canceled' }
         });
         console.log(`✓ User ${user.id} downgraded to free`);
+        posthog.capture({
+          distinctId: user.id,
+          event: 'subscription_canceled',
+          properties: { provider: 'stripe' },
+        });
       }
     } else if (event.type === 'invoice.payment_failed') {
       const invoice = event.data.object;
@@ -209,9 +224,15 @@ router.post('/payments/webhook', async (req, res) => {
           data: { stripeSubStatus: 'past_due' }
         });
         console.log(`⚠ User ${user.id} payment failed — marked past_due`);
+        posthog.capture({
+          distinctId: user.id,
+          event: 'subscription_payment_failed',
+          properties: { provider: 'stripe' },
+        });
       }
     }
   } catch (err) {
+    posthog.captureException(err);
     console.error('Webhook handler error:', err);
     return res.status(500).json({ error: 'Webhook processing failed' });
   }

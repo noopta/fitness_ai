@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
+import posthog from '../services/posthogClient.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -80,11 +81,27 @@ router.post('/auth/register', async (req, res) => {
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     // Fire-and-forget notification
     sendAuthSMS(`🆕 New Axiom signup: ${data.name} (${data.email})`);
+    posthog.identify({
+      distinctId: user.id,
+      properties: {
+        $set: { name: user.name, email: user.email, tier: user.tier },
+        $set_once: { created_at: new Date().toISOString() },
+      },
+    });
+    posthog.capture({
+      distinctId: user.id,
+      event: 'user_signed_up',
+      properties: {
+        login_method: 'email',
+        tier: user.tier,
+      },
+    });
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request', details: err.errors });
     }
+    posthog.captureException(err);
     console.error('Register error:', err);
     res.status(500).json({ error: 'Registration failed' });
   }
@@ -113,11 +130,21 @@ router.post('/auth/login', async (req, res) => {
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     sendAuthSMS(`🔑 Axiom login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
+    posthog.identify({
+      distinctId: user.id,
+      properties: { $set: { name: user.name, email: user.email, tier: user.tier } },
+    });
+    posthog.capture({
+      distinctId: user.id,
+      event: 'user_logged_in',
+      properties: { login_method: 'email', tier: user.tier },
+    });
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request' });
     }
+    posthog.captureException(err);
     console.error('Login error:', err);
     res.status(500).json({ error: 'Login failed' });
   }
@@ -206,6 +233,18 @@ router.get('/auth/google/callback', async (req, res) => {
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     sendAuthSMS(`${isNewUser ? '🆕 New Google signup' : '🔑 Google login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
+    posthog.identify({
+      distinctId: user.id,
+      properties: {
+        $set: { name: user.name, email: user.email, tier: user.tier },
+        ...(isNewUser ? { $set_once: { created_at: new Date().toISOString() } } : {}),
+      },
+    });
+    posthog.capture({
+      distinctId: user.id,
+      event: 'user_google_oauth_completed',
+      properties: { is_new_user: isNewUser, tier: user.tier },
+    });
 
     if (mobileRedirect) {
       res.redirect(`${mobileRedirect}?token=${token}`);
@@ -269,8 +308,21 @@ router.post('/auth/apple', async (req, res) => {
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     sendAuthSMS(`${isNewUser ? '🆕 New Apple signup' : '🔑 Apple login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
+    posthog.identify({
+      distinctId: user.id,
+      properties: {
+        $set: { name: user.name, email: user.email, tier: user.tier },
+        ...(isNewUser ? { $set_once: { created_at: new Date().toISOString() } } : {}),
+      },
+    });
+    posthog.capture({
+      distinctId: user.id,
+      event: 'user_apple_signin_completed',
+      properties: { is_new_user: isNewUser, tier: user.tier },
+    });
     res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
   } catch (err: any) {
+    posthog.captureException(err);
     console.error('Apple auth error:', err);
     res.status(401).json({ error: 'Apple identity token verification failed' });
   }
@@ -481,10 +533,15 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
       await tx.user.delete({ where: { id: userId } });
     });
 
+    posthog.capture({
+      distinctId: userId,
+      event: 'user_account_deleted',
+    });
     // Clear the auth cookie
     res.clearCookie('liftoff_jwt', { httpOnly: true, sameSite: 'none', secure: true });
     res.json({ success: true });
   } catch (err) {
+    posthog.captureException(err, userId);
     console.error('Account deletion error:', err);
     res.status(500).json({ error: 'Failed to delete account. Please try again.' });
   }

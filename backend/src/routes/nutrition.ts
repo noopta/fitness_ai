@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
+import posthog from '../services/posthogClient.js';
 
 const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
 const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
@@ -50,6 +51,15 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
       cacheDelete(`userctx:${userId}`);
       cacheDelete(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
+      posthog.capture({
+        distinctId: userId,
+        event: 'nutrition_log_saved',
+        properties: {
+          log_date: data.date,
+          calories: data.calories ?? null,
+          is_update: true,
+        },
+      });
       return res.json(updated);
     }
 
@@ -58,8 +68,18 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
     });
     cacheDelete(`userctx:${userId}`);
     logActivity(userId, 'nutrition').catch(() => {});
+    posthog.capture({
+      distinctId: userId,
+      event: 'nutrition_log_saved',
+      properties: {
+        log_date: data.date,
+        calories: data.calories ?? null,
+        is_update: false,
+      },
+    });
     res.status(201).json(created);
   } catch (err: any) {
+    posthog.captureException(err, req.user?.id);
     console.error('Nutrition log error:', err);
     res.status(400).json({ error: err.message || 'Failed to save log' });
   }

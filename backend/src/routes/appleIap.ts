@@ -23,6 +23,7 @@ import { Router } from 'express';
 import { createSign } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import posthog from '../services/posthogClient.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -152,8 +153,19 @@ router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
       environment: tx.environment,
     });
 
+    posthog.capture({
+      distinctId: req.user!.id,
+      event: 'apple_iap_verified',
+      properties: {
+        product_id: tx.productId,
+        original_transaction_id: tx.originalTransactionId,
+        environment: tx.environment,
+      },
+    });
+
     return res.json({ success: true, tier: 'pro' });
   } catch (err: any) {
+    posthog.captureException(err, req.user!.id);
     console.error('Apple IAP verification error:', err);
     return res.status(500).json({ error: 'Receipt verification failed. Please try again.' });
   }

@@ -8,6 +8,7 @@ import { optionalAuth } from '../middleware/optionalAuth.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAnalysisRateLimit } from '../middleware/rateLimit.js';
 import { getExerciseVideo } from '../services/youtubeService.js';
+import posthog from '../services/posthogClient.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -99,9 +100,22 @@ router.post('/sessions', optionalAuth, async (req, res) => {
         userId
       }
     });
-    
+
+    if (userId) {
+      posthog.capture({
+        distinctId: userId,
+        event: 'diagnostic_session_created',
+        properties: {
+          selected_lift: data.selectedLift,
+          goal: data.goal ?? null,
+          session_id: session.id,
+        },
+      });
+    }
+
     res.json({ session });
   } catch (error) {
+    posthog.captureException(error);
     console.error('Error creating session:', error);
     res.status(400).json({ error: 'Invalid request data' });
   }
@@ -205,11 +219,24 @@ router.post('/sessions/:id/snapshots', async (req, res) => {
 
     console.log(`✓ Successfully added ${createdSnapshots.length} snapshots`);
 
+    const sessionOwner = await prisma.session.findUnique({ where: { id }, select: { userId: true } });
+    if (sessionOwner?.userId) {
+      posthog.capture({
+        distinctId: sessionOwner.userId,
+        event: 'exercise_snapshots_added',
+        properties: {
+          session_id: id,
+          snapshot_count: createdSnapshots.length,
+        },
+      });
+    }
+
     res.json({
       snapshots: createdSnapshots,
       count: createdSnapshots.length
     });
   } catch (error) {
+    posthog.captureException(error);
     console.error('Error adding snapshots:', error);
     if (error instanceof z.ZodError) {
       console.error('Validation errors:', error.errors);
@@ -449,9 +476,22 @@ router.post('/sessions/:id/generate', optionalAuth, checkAnalysisRateLimit, asyn
       }
     }
     
+    const planUserId = session.userId;
+    if (planUserId) {
+      posthog.capture({
+        distinctId: planUserId,
+        event: 'workout_plan_generated',
+        properties: {
+          session_id: id,
+          selected_lift: session.selectedLift,
+        },
+      });
+    }
+
     res.json({ plan });
-    
+
   } catch (error) {
+    posthog.captureException(error);
     console.error('Error generating plan:', error);
     res.status(500).json({ error: 'Failed to generate plan' });
   }
@@ -716,9 +756,16 @@ router.post('/sessions/:id/share', requireAuth, async (req, res) => {
 
     await prisma.session.update({ where: { id }, data: { isPublic: true } });
 
+    posthog.capture({
+      distinctId: req.user!.id,
+      event: 'session_shared',
+      properties: { session_id: id },
+    });
+
     const shareUrl = `${process.env.FRONTEND_URL}/analysis/${id}`;
     res.json({ shareUrl });
   } catch (err) {
+    posthog.captureException(err, req.user?.id);
     console.error('Share error:', err);
     res.status(500).json({ error: 'Failed to share' });
   }

@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
+import posthog from './services/posthogClient.js';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
@@ -84,6 +85,8 @@ app.use('/api', activityRoutes);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const userId = (req as any).user?.id;
+  posthog.captureException(err, userId);
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -91,6 +94,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 app.listen(PORT, () => {
   console.log(`🚀 Axiom API running on http://localhost:${PORT}`);
   console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
+});
+
+process.on('SIGINT', async () => {
+  await posthog.shutdown();
+  process.exit(0);
+});
+process.on('SIGTERM', async () => {
+  await posthog.shutdown();
+  process.exit(0);
 });
 
 // ── Daily coach thread cleanup ─────────────────────────────────────────────

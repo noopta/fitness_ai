@@ -7,6 +7,7 @@ import { normalizeExerciseBatch } from '../services/exerciseNormalizationService
 import { recomputeStrengthProfileInBackground } from './strength.js';
 import { notifyStreakMilestone } from '../services/notificationService.js';
 import { logActivity } from '../services/activityService.js';
+import posthog from '../services/posthogClient.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -141,8 +142,19 @@ router.post('/workouts', requireAuth, async (req, res) => {
     // ── Activity tracking ─────────────────────────────────────────────────────
     logActivity(req.user!.id, 'workout').catch(() => {});
 
+    posthog.capture({
+      distinctId: req.user!.id,
+      event: 'workout_logged',
+      properties: {
+        exercise_count: exercises.length,
+        duration_minutes: duration ?? null,
+        workout_date: date,
+      },
+    });
+
     res.status(201).json({ ...log, exercises });
   } catch (err) {
+    posthog.captureException(err, req.user?.id);
     console.error('Create workout error:', err);
     res.status(500).json({ error: 'Failed to save workout log' });
   }
