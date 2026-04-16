@@ -103,6 +103,14 @@ const NUTRITION_EARLY: MessageTemplate[] = [
     title: 'Bold. Very chaotic.',
     body: "{{days}} days no nutrition logs. Bold strategy. Very chaotic. Anakin disapproves.",
   },
+  {
+    title: 'Don\'t be a chud, {{name}}',
+    body: "{{days}} days without logging a single meal. Log your food, stop being a chud.",
+  },
+  {
+    title: 'Big Chungus energy 🐰',
+    body: "{{days}} days of untracked eating is big chungus monkey energy. Get it together and log your meals.",
+  },
 ];
 
 const NUTRITION_MID: MessageTemplate[] = [
@@ -118,6 +126,10 @@ const NUTRITION_MID: MessageTemplate[] = [
     title: '{{days}} days, {{name}}',
     body: "A week of mystery nutrition. Whatever you're eating, your future self wants receipts.",
   },
+  {
+    title: 'Fat chud behaviour',
+    body: "{{days}} days zero nutrition logs. This is fat chud behaviour, {{name}}. Snap out of it.",
+  },
 ];
 
 const NUTRITION_LATE: MessageTemplate[] = [
@@ -128,6 +140,10 @@ const NUTRITION_LATE: MessageTemplate[] = [
   {
     title: "It's between you and your stomach",
     body: "{{days}} days without a food log. Whatever you've been eating, it's a secret between you two. Log it.",
+  },
+  {
+    title: 'Full chungus monkey mode',
+    body: "{{days}} days, {{name}}. You've entered full chungus monkey mode. Time to log a meal and come back to reality.",
   },
 ];
 
