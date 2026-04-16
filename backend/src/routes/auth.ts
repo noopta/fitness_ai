@@ -266,10 +266,17 @@ router.post('/auth/apple', async (req, res) => {
     return res.status(400).json({ error: 'identityToken required' });
   }
 
+  // Decode token without verifying to log the actual aud claim
+  try {
+    const [, payloadB64] = identityToken.split('.');
+    const decoded = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
+    console.log('[Apple] token aud:', decoded.aud, '| exp:', new Date(decoded.exp * 1000).toISOString());
+  } catch { /* ignore decode errors, real verification below will catch them */ }
+
   try {
     // Verify the Apple identity token against Apple's public keys
     const applePayload = await appleSignin.verifyIdToken(identityToken, {
-      audience: 'io.axiomtraining.app',
+      audience: ['io.axiomtraining.app', 'com.clubscentra.app', 'host.exp.Exponent'],
       ignoreExpiration: false,
     }) as any;
 
@@ -320,7 +327,7 @@ router.post('/auth/apple', async (req, res) => {
       event: 'user_apple_signin_completed',
       properties: { is_new_user: isNewUser, tier: user.tier },
     });
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, accessToken: token });
   } catch (err: any) {
     posthog.captureException(err);
     console.error('Apple auth error:', err);
@@ -441,6 +448,24 @@ router.put('/auth/push-token', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Push token update error:', err);
     res.status(500).json({ error: 'Failed to save push token' });
+  }
+});
+
+// PUT /api/auth/reengagement-opt-out — toggle shame/re-engagement notifications
+router.put('/auth/reengagement-opt-out', requireAuth, async (req, res) => {
+  try {
+    const { optOut } = req.body;
+    if (typeof optOut !== 'boolean') {
+      return res.status(400).json({ error: 'optOut (boolean) required' });
+    }
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { reengagementOptOut: optOut },
+    });
+    res.json({ success: true, reengagementOptOut: optOut });
+  } catch (err) {
+    console.error('Reengagement opt-out error:', err);
+    res.status(500).json({ error: 'Failed to update preference' });
   }
 });
 

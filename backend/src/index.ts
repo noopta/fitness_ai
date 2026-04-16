@@ -20,6 +20,7 @@ import socialRoutes from './routes/social.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
 import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
+import { runReengagementCheck } from './services/reengagementService.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -163,4 +164,5 @@ function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
 
 scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
 scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
-console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary)');
+scheduleAt(18, null, () => runReengagementCheck().catch(err => console.error('[scheduler] reengagement error:', err)));
+console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement)');

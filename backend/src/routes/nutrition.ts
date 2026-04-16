@@ -10,6 +10,7 @@ const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
+import { sendJunkFoodShame, isJunkFood } from '../services/reengagementService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
 import { runNutritionRules } from '../engine/nutritionRulesEngine.js';
@@ -368,6 +369,10 @@ router.post('/nutrition/parse-meal', requireAuth, async (req, res) => {
       source: 'text',
       enrichment: meta,
     });
+    // Fire junk food shame push if applicable (non-blocking, after response sent)
+    if (isJunkFood(detail.name, detail.tags ?? [], detail.calories)) {
+      sendJunkFoodShame(req.user!.id, detail.name, detail.calories).catch(() => {});
+    }
   } catch (err: any) {
     console.error('Parse meal error:', err);
     res.status(500).json({ error: 'Failed to analyze meal' });
@@ -518,6 +523,10 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
       source: 'photo',
       enrichment: meta,
     });
+    // Fire junk food shame push if applicable (non-blocking, after response sent)
+    if (isJunkFood(detail.name, detail.tags ?? [], detail.calories)) {
+      sendJunkFoodShame(userId, detail.name, detail.calories).catch(() => {});
+    }
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request' });
     console.error('Meal photo analysis error:', err);

@@ -39,6 +39,11 @@ model User {
   coachProfile        String?
   programStartDate    DateTime?
   expoPushToken       String?
+  reengagementOptOut  Boolean           @default(false)
+  lastActiveAt        DateTime?
+  lastWorkoutNudgeAt  DateTime?
+  lastNutritionNudgeAt DateTime?
+  lastInactivityNudgeAt DateTime?
   currentStreak       Int               @default(0)
   longestStreak       Int               @default(0)
   lastWorkoutDate     String?
