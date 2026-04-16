@@ -1816,7 +1816,7 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1',
     messages: [{ role: 'user', content: prompt }],
-    max_completion_tokens: 400,
+    max_completion_tokens: 1200,
     response_format: { type: 'json_object' },
   });
 
