@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../constants/theme';
+import { PRO_PRICE_FALLBACK } from './UpgradeSheet';
 
 interface UpgradePromptProps {
   userId?: string;
@@ -81,7 +82,7 @@ export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePro
         <Text style={styles.heroSubtitle}>
           {reason ?? 'Science-backed AI coaching, personalized to you.'}
         </Text>
-        <Text style={styles.heroPricing}>$11.99 CAD / month · Cancel anytime</Text>
+        <Text style={styles.heroPricing}>{PRO_PRICE_FALLBACK} / month · Cancel anytime</Text>
       </View>
 
       {/* Feature sections */}
@@ -109,11 +110,11 @@ export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePro
         onPress={onUpgrade}
       >
         <Ionicons name="star" size={16} color="#fff" />
-        <Text style={styles.upgradeButtonText}>Upgrade to Pro — $11.99/mo</Text>
+        <Text style={styles.upgradeButtonText}>Upgrade to Pro — {PRO_PRICE_FALLBACK}/mo</Text>
       </TouchableOpacity>
 
       <Text style={styles.legal}>
-        $11.99/mo · Cancel anytime · Pay with card or Apple ID
+        {PRO_PRICE_FALLBACK}/mo · Cancel anytime · Pay with card or Apple ID
       </Text>
     </View>
   );

@@ -17,6 +17,9 @@ import type { ProductSubscription, Purchase } from 'react-native-iap';
 
 const STRIPE_CHECKOUT_BASE = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
 
+// Fallback shown before StoreKit loads — must match the price set in App Store Connect
+export const PRO_PRICE_FALLBACK = '$12.99';
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -141,7 +144,7 @@ function PaymentSheetContent({
     }
   }, [refreshUser, onClose]);
 
-  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? '$11.99';
+  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? PRO_PRICE_FALLBACK;
 
   return (
     <ScrollView
@@ -172,7 +175,7 @@ function PaymentSheetContent({
             activeOpacity={0.85}
           >
             <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.stripeBtnText}>Subscribe · $11.99/mo</Text>
+            <Text style={styles.stripeBtnText}>Subscribe · {displayPrice}/mo</Text>
           </TouchableOpacity>
         ) : (
           /* After checkout opened — confirm return */
