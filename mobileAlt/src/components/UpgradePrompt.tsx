@@ -113,7 +113,7 @@ export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePro
       </TouchableOpacity>
 
       <Text style={styles.legal}>
-        Billed monthly in CAD. Cancel anytime in Settings.
+        $11.99/mo · Cancel anytime · Pay with card or Apple ID
       </Text>
     </View>
   );

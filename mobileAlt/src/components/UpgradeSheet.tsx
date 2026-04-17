@@ -6,11 +6,16 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
 import {
   initIAP, fetchProProduct, purchaseProMonthly, verifyAppleReceipt,
   addPurchaseListener,
 } from '../lib/iap';
 import type { ProductSubscription, Purchase } from 'react-native-iap';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const STRIPE_CHECKOUT_BASE = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
 
 interface Props {
   visible: boolean;
@@ -34,80 +39,109 @@ function PaymentSheetContent({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { user, refreshUser } = useAuth();
+
+  // ── Apple IAP state ──
   const [product, setProduct] = useState<ProductSubscription | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [purchasing, setPurchasing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [iapLoading, setIapLoading] = useState(true);
+  const [iapPurchasing, setIapPurchasing] = useState(false);
+  const [iapError, setIapError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // ── Stripe state ──
+  const [stripeOpened, setStripeOpened] = useState(false);
+  const [stripeConfirming, setStripeConfirming] = useState(false);
 
   const onSuccessRef = useRef(onSuccess);
   useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
 
-  const [retryCount, setRetryCount] = useState(0);
-
-  // Initialise StoreKit and load the product
+  // Initialise StoreKit and load the product (runs in background — doesn't block Stripe)
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setLoading(true);
-      setError(null);
+      setIapLoading(true);
+      setIapError(null);
       const connected = await initIAP();
-      console.log('[IAP] initIAP connected:', connected);
       const { product: p, error: fetchErr } = await fetchProProduct();
       if (!cancelled) {
         setProduct(p);
-        if (fetchErr) setError(`StoreKit: ${fetchErr}`);
-        setLoading(false);
+        if (fetchErr) setIapError(`StoreKit: ${fetchErr}`);
+        setIapLoading(false);
       }
     })();
     return () => { cancelled = true; };
   }, [retryCount]);
 
-  // Listen for purchase updates from StoreKit
+  // Listen for Apple purchase updates
   useEffect(() => {
     const remove = addPurchaseListener(
       async (purchase: Purchase) => {
-        // Purchase succeeded — verify with our backend
-        setPurchasing(true);
+        setIapPurchasing(true);
         try {
           await verifyAppleReceipt(purchase);
           onClose();
           await new Promise<void>(resolve => setTimeout(resolve, 300));
           onSuccessRef.current();
         } catch (err: any) {
-          setError(err?.message ?? 'Verification failed. Please contact support.');
+          setIapError(err?.message ?? 'Verification failed. Please contact support.');
         } finally {
-          setPurchasing(false);
+          setIapPurchasing(false);
         }
       },
       (err) => {
         if ((err as any).code !== 'E_USER_CANCELLED') {
-          setError(err.message ?? 'Purchase failed. Please try again.');
+          setIapError(err.message ?? 'Purchase failed. Please try again.');
         }
-        setPurchasing(false);
+        setIapPurchasing(false);
       },
     );
     return remove;
   }, [onClose]);
 
-  const handleSubscribe = useCallback(async () => {
-    if (purchasing || !product) return;
-    setError(null);
-    setPurchasing(true);
+  const handleAppleSubscribe = useCallback(async () => {
+    if (iapPurchasing || !product) return;
+    setIapError(null);
+    setIapPurchasing(true);
     try {
       await purchaseProMonthly();
-      // purchaseUpdatedListener handles the rest
     } catch (err: any) {
       const code = err?.code ?? err?.responseCode;
       if (code !== 'E_USER_CANCELLED' && code !== 2) {
-        setError(err?.message ?? 'Could not start purchase. Please try again.');
+        setIapError(err?.message ?? 'Could not start purchase. Please try again.');
       }
-      setPurchasing(false);
+      setIapPurchasing(false);
     }
-  }, [purchasing, product]);
+  }, [iapPurchasing, product]);
 
-  // Derive display price from StoreKit product (localised, correct currency)
-  // v14: displayPrice on iOS, localizedPrice as fallback for older builds
-  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? '$12.99';
+  // ── Stripe handlers ──────────────────────────────────────────────────────────
+
+  const handleStripeCheckout = useCallback(async () => {
+    const url = user?.id
+      ? `${STRIPE_CHECKOUT_BASE}?client_reference_id=${user.id}`
+      : STRIPE_CHECKOUT_BASE;
+    try {
+      await Linking.openURL(url);
+      setStripeOpened(true);
+    } catch {
+      Alert.alert('Could not open browser', 'Please visit axiomtraining.io to upgrade.');
+    }
+  }, [user?.id]);
+
+  const handleStripeConfirm = useCallback(async () => {
+    setStripeConfirming(true);
+    try {
+      await refreshUser();
+      onClose();
+      await new Promise<void>(resolve => setTimeout(resolve, 300));
+      onSuccessRef.current();
+    } catch {
+      Alert.alert('Could not verify', 'If your payment completed, please close and reopen the app.');
+    } finally {
+      setStripeConfirming(false);
+    }
+  }, [refreshUser, onClose]);
+
+  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? '$11.99';
 
   return (
     <ScrollView
@@ -126,54 +160,105 @@ function PaymentSheetContent({
         ))}
       </View>
 
-      {/* Error */}
-      {error ? (
-        <View style={styles.errorBanner}>
-          <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      ) : null}
+      {/* ── Stripe payment (primary) ─────────────────────────────────────────── */}
+      <View style={styles.paymentSection}>
+        <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
 
-      {/* Product unavailable notice */}
-      {!loading && !product && !error && (
-        <View style={styles.errorBanner}>
-          <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.errorText}>
-              Subscription unavailable. Make sure you're signed into the App Store, then tap Retry.
+        {!stripeOpened ? (
+          /* Initial Stripe button */
+          <TouchableOpacity
+            style={styles.stripeBtn}
+            onPress={handleStripeCheckout}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.stripeBtnText}>Subscribe · $11.99/mo</Text>
+          </TouchableOpacity>
+        ) : (
+          /* After checkout opened — confirm return */
+          <View style={styles.stripeConfirmBox}>
+            <Text style={styles.stripeConfirmMsg}>
+              Complete payment in the browser, then tap below to activate your account.
             </Text>
-            <TouchableOpacity onPress={() => setRetryCount(c => c + 1)} style={styles.retryLink}>
-              <Text style={styles.retryLinkText}>Retry</Text>
+            <TouchableOpacity
+              style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
+              onPress={handleStripeConfirm}
+              disabled={stripeConfirming}
+              activeOpacity={0.85}
+            >
+              {stripeConfirming ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={styles.stripeBtnText}>I've completed payment</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleStripeCheckout} style={styles.reopenLink}>
+              <Text style={styles.reopenLinkText}>Reopen checkout</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      )}
-
-      {/* Subscribe button */}
-      <TouchableOpacity
-        style={[styles.subscribeBtn, (purchasing || loading || !product) && styles.subscribeBtnDisabled]}
-        onPress={handleSubscribe}
-        disabled={purchasing || loading || !product}
-        activeOpacity={0.85}
-      >
-        {purchasing || loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <View style={styles.subscribeBtnInner}>
-            <Ionicons name="logo-apple" size={17} color="#fff" style={{ marginRight: 6 }} />
-            <Text style={styles.subscribeBtnText}>
-              Subscribe · {displayPrice}/mo
-            </Text>
-          </View>
         )}
-      </TouchableOpacity>
+      </View>
+
+      {/* ── Apple IAP (secondary — available when ready) ─────────────────────── */}
+      <View style={styles.paymentSection}>
+        <View style={styles.appleSectionHeader}>
+          <Text style={styles.paymentSectionLabel}>PAY WITH APPLE ID</Text>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Pending registration</Text>
+          </View>
+        </View>
+
+        {/* Apple IAP error */}
+        {iapError ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle-outline" size={15} color="#ef4444" />
+            <Text style={styles.errorText}>{iapError}</Text>
+          </View>
+        ) : null}
+
+        {/* Product unavailable notice */}
+        {!iapLoading && !product && !iapError ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle-outline" size={15} color="#ef4444" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.errorText}>
+                Not available. Make sure you're signed into the App Store, then tap Retry.
+              </Text>
+              <TouchableOpacity onPress={() => setRetryCount(c => c + 1)} style={styles.retryLink}>
+                <Text style={styles.retryLinkText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+
+        <TouchableOpacity
+          style={[styles.appleBtn, (iapPurchasing || iapLoading || !product) && styles.btnDisabled]}
+          onPress={handleAppleSubscribe}
+          disabled={iapPurchasing || iapLoading || !product}
+          activeOpacity={0.85}
+        >
+          {iapPurchasing || iapLoading ? (
+            <ActivityIndicator color={colors.mutedForeground} />
+          ) : (
+            <View style={styles.appleBtnInner}>
+              <Ionicons name="logo-apple" size={17} color={colors.foreground} style={{ marginRight: 6 }} />
+              <Text style={styles.appleBtnText}>
+                Subscribe · {displayPrice}/mo
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.legal}>
-        Subscription auto-renews monthly. Cancel anytime in iOS Settings → Subscriptions.{'\n'}
-        Payment charged to your Apple ID account at confirmation of purchase.{'\n'}
-        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms of Use</Text>
+        Subscription renews monthly. Cancel anytime.{'\n'}
+        Card payments processed securely by Stripe.{'\n'}
+        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms</Text>
         {'  ·  '}
-        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy Policy</Text>
+        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy</Text>
       </Text>
     </ScrollView>
   );
@@ -235,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '85%',
+    maxHeight: '90%',
     paddingBottom: 34,
   },
   handle: {
@@ -270,6 +355,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.lg,
   },
+
+  // Perks
   perksCard: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -295,6 +382,90 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     flex: 1,
   },
+
+  // Payment sections
+  paymentSection: {
+    gap: spacing.sm,
+  },
+  paymentSectionLabel: {
+    fontSize: 11,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+    letterSpacing: 0.8,
+  },
+  appleSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  comingSoonBadge: {
+    backgroundColor: colors.muted,
+    borderRadius: radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  comingSoonText: {
+    fontSize: 10,
+    color: colors.mutedForeground,
+    fontWeight: fontWeight.medium,
+  },
+
+  // Stripe button
+  stripeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#635bff',
+    borderRadius: radius.md,
+    paddingVertical: 15,
+  },
+  stripeBtnText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: '#fff',
+  },
+  stripeConfirmBox: {
+    gap: spacing.sm,
+  },
+  stripeConfirmMsg: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  reopenLink: {
+    alignSelf: 'center',
+    paddingVertical: 4,
+  },
+  reopenLinkText: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textDecorationLine: 'underline',
+  },
+
+  // Apple button (secondary, muted when unavailable)
+  appleBtn: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+  },
+  appleBtnInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  appleBtnText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.medium,
+    color: colors.foreground,
+  },
+
+  // Shared
+  btnDisabled: { opacity: 0.5 },
+
+  // Errors
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -309,25 +480,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   retryLink: { marginTop: 6 },
-  retryLinkText: { fontSize: fontSize.sm, color: '#ef4444', fontWeight: fontWeight.semibold, textDecorationLine: 'underline' },
-  subscribeBtn: {
-    backgroundColor: colors.foreground,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  subscribeBtnDisabled: {
-    opacity: 0.6,
-  },
-  subscribeBtnInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  subscribeBtnText: {
-    fontSize: fontSize.base,
+  retryLinkText: {
+    fontSize: fontSize.sm,
+    color: '#ef4444',
     fontWeight: fontWeight.semibold,
-    color: colors.primaryForeground,
+    textDecorationLine: 'underline',
   },
+
+  // Legal
   legal: {
     fontSize: 11,
     color: colors.mutedForeground,
