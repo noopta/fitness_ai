@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { WebAnalytics, trackPageTime } from "@/lib/analytics";
+import { SEO } from "@/components/SEO";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -1441,10 +1442,104 @@ function HeroSection() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const LANDING_JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Axiom",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "Web, iOS, Android",
+    "description": "AI-powered strength training diagnostic tool that identifies exactly why your bench press, squat, or deadlift is stuck and builds a targeted program.",
+    "url": "https://axiomtraining.io",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free lift diagnostic — no credit card required"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "214"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Why is my bench press stuck?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The most common reasons a bench press stalls are: weak triceps at lockout, poor leg drive, insufficient chest strength off the bottom, or programming errors like too much volume. Axiom's diagnostic tool collects your working weights and RPE, then pinpoints the exact weak link in your press."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Axiom's lift diagnostic work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You enter your working weights and rep counts for your main lift and key accessories. Axiom's engine computes strength-ratio indexes (quad index, posterior index, triceps index, etc.) and compares them against optimal ratios, then surfaces the specific muscle group or movement phase that is limiting your progress."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Axiom free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. The full lift diagnostic — including weakness identification and a targeted accessory program — is free with no credit card required. A Pro tier unlocks unlimited diagnostics, AI coaching chat, and advanced analytics."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What lifts does Axiom support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Axiom currently supports Flat Bench Press, Incline Bench Press, Barbell Back Squat, Barbell Front Squat, Deadlift, Clean & Jerk, Snatch, Power Clean, and Hang Clean."
+        }
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to diagnose why your lift is stuck",
+    "description": "Use Axiom to find your exact weakness and fix your stalled lift in 5 minutes.",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Enter your main lift",
+        "text": "Select your lift (bench press, squat, deadlift, etc.) and enter your current working weight, sets, and reps."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Log your accessory lifts",
+        "text": "Enter weights for key accessories like close-grip bench, Romanian deadlift, front squat, and others as prompted."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Answer the diagnostic interview",
+        "text": "Axiom's AI coach asks targeted questions about where you fail reps, how long you've been stuck, and your training history."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Get your targeted program",
+        "text": "Axiom generates a personalized accessory program that attacks your specific weakness with the right exercises, sets, reps, and intensity."
+      }
+    ]
+  }
+];
+
 export default function FeaturesPage() {
   useEffect(() => { return trackPageTime('features'); }, []);
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        canonical="/"
+        description="Axiom diagnoses exactly why your bench press, squat, or deadlift is stuck — using your working weights and training data. Free lift diagnostic. No credit card required."
+        jsonLd={LANDING_JSON_LD}
+      />
       <Navbar />
       <HeroSection />
       <AnakinSection />

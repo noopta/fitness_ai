@@ -40,6 +40,35 @@ import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
 import FeaturesV2Page from "./pages/features-v2";
 
+// Tool pages
+import E1RMCalculatorPage from "./pages/tools/e1rm-calculator";
+import StrengthStandardsPage from "./pages/tools/strength-standards";
+import WilksCalculatorPage from "./pages/tools/wilks-calculator";
+import MacroCalculatorPage from "./pages/tools/macro-calculator";
+
+// Fix pages
+import FixBenchPressStuck from "./pages/fix/bench-press-stuck";
+import FixBenchPressPlateau from "./pages/fix/bench-press-plateau";
+import FixBenchPressLockout from "./pages/fix/bench-press-lockout";
+import FixBenchPressOffChest from "./pages/fix/bench-press-off-chest";
+import FixSquatStuck from "./pages/fix/squat-stuck";
+import FixSquatPlateau from "./pages/fix/squat-plateau";
+import FixSquatDepth from "./pages/fix/squat-depth";
+import FixSquatKneeCave from "./pages/fix/squat-knee-cave";
+import FixDeadliftStuck from "./pages/fix/deadlift-stuck";
+import FixDeadliftPlateau from "./pages/fix/deadlift-plateau";
+import FixDeadliftLowerBack from "./pages/fix/deadlift-lower-back";
+import FixDeadliftOffFloor from "./pages/fix/deadlift-off-floor";
+import FixWeakTricepsBench from "./pages/fix/weak-triceps-bench";
+import FixWeakHamstringsDeadlift from "./pages/fix/weak-hamstrings-deadlift";
+import FixWeakQuadsSquat from "./pages/fix/weak-quads-squat";
+
+// Vs pages
+import VsPersonalTrainer from "./pages/vs/personal-trainer";
+import VsStrongLifts from "./pages/vs/stronglifts-5x5";
+import VsFitbod from "./pages/vs/fitbod";
+import VsDrMuscle from "./pages/vs/dr-muscle";
+
 // Error boundary — catches render crashes and shows a recovery UI instead of
 // a blank screen. Particularly important for catching hook-order errors and
 // unexpected exceptions during auth state transitions.
@@ -156,6 +185,36 @@ function Router() {
       <Route path="/institution/:slug" component={ProtectedInstitutionAthlete} />
       <Route path="/profile/:userId" component={ProtectedProfile} />
       <Route path="/nav-demo" component={NavDemoPage} />
+
+      {/* Tool pages */}
+      <Route path="/tools/e1rm-calculator" component={E1RMCalculatorPage} />
+      <Route path="/tools/strength-standards" component={StrengthStandardsPage} />
+      <Route path="/tools/wilks-calculator" component={WilksCalculatorPage} />
+      <Route path="/tools/macro-calculator" component={MacroCalculatorPage} />
+
+      {/* Fix pages */}
+      <Route path="/fix/bench-press-stuck" component={FixBenchPressStuck} />
+      <Route path="/fix/bench-press-plateau" component={FixBenchPressPlateau} />
+      <Route path="/fix/bench-press-lockout" component={FixBenchPressLockout} />
+      <Route path="/fix/bench-press-off-chest" component={FixBenchPressOffChest} />
+      <Route path="/fix/squat-stuck" component={FixSquatStuck} />
+      <Route path="/fix/squat-plateau" component={FixSquatPlateau} />
+      <Route path="/fix/squat-depth" component={FixSquatDepth} />
+      <Route path="/fix/squat-knee-cave" component={FixSquatKneeCave} />
+      <Route path="/fix/deadlift-stuck" component={FixDeadliftStuck} />
+      <Route path="/fix/deadlift-plateau" component={FixDeadliftPlateau} />
+      <Route path="/fix/deadlift-lower-back" component={FixDeadliftLowerBack} />
+      <Route path="/fix/deadlift-off-floor" component={FixDeadliftOffFloor} />
+      <Route path="/fix/weak-triceps-bench" component={FixWeakTricepsBench} />
+      <Route path="/fix/weak-hamstrings-deadlift" component={FixWeakHamstringsDeadlift} />
+      <Route path="/fix/weak-quads-squat" component={FixWeakQuadsSquat} />
+
+      {/* Vs pages */}
+      <Route path="/vs/personal-trainer" component={VsPersonalTrainer} />
+      <Route path="/vs/stronglifts-5x5" component={VsStrongLifts} />
+      <Route path="/vs/fitbod" component={VsFitbod} />
+      <Route path="/vs/dr-muscle" component={VsDrMuscle} />
+
       <Route component={NotFound} />
     </Switch>
     </>
