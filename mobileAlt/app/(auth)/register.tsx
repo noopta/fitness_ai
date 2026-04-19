@@ -11,6 +11,7 @@ import { GoogleLogo } from '../../src/components/ui/GoogleLogo';
 import { Input } from '../../src/components/ui/Input';
 import { KeyboardDoneBar } from '../../src/components/ui/KeyboardDoneBar';
 import { useAuth } from '../../src/context/AuthContext';
+import { Analytics } from '../../src/lib/analytics';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 
 export default function RegisterScreen() {
@@ -33,6 +34,7 @@ export default function RegisterScreen() {
     setSubmitting(true);
     try {
       await register(name.trim(), email.trim(), password, dateOfBirth.trim() || undefined);
+      Analytics.register('email');
       router.replace('/(tabs)');
     } catch (err: any) {
       Alert.alert('Registration Failed', err?.message || 'Could not create your account. Please try again.');
@@ -43,12 +45,12 @@ export default function RegisterScreen() {
 
   async function handleGoogleLogin() {
     setGoogleLoading(true);
-    try { await googleLogin(); } finally { setGoogleLoading(false); }
+    try { await googleLogin(); Analytics.register('google'); } finally { setGoogleLoading(false); }
   }
 
   async function handleAppleLogin() {
     setAppleLoading(true);
-    try { await appleLogin(); } finally { setAppleLoading(false); }
+    try { await appleLogin(); Analytics.register('apple'); } finally { setAppleLoading(false); }
   }
 
   return (

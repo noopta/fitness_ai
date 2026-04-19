@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
-import { Analytics } from '../../src/lib/analytics';
+import { Analytics, trackScreen, trackScreenTime } from '../../src/lib/analytics';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
 interface Message {
@@ -32,6 +32,11 @@ export default function ConversationScreen() {
   const flatListRef = useRef<FlatList>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    trackScreen('Conversation');
+    return trackScreenTime('Conversation');
+  }, []);
 
   const scrollToBottom = useCallback((animated = true) => {
     // First attempt fast, second attempt after layout settles

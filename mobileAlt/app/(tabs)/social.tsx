@@ -275,6 +275,7 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
           itemType: 'media',
           payload: { videoUrl: videoUrl.trim() },
         });
+        Analytics.videoPostMade();
         Alert.alert('Posted!', 'Your video link has been shared.');
         onPosted();
         onClose();

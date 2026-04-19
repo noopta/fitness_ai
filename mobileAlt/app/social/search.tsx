@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
+import { Analytics } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
@@ -69,6 +70,7 @@ export default function SocialSearchScreen() {
   const handleAddFriend = async (userId: string) => {
     try {
       await socialApi.sendFriendRequest(userId);
+      Analytics.friendRequestSent();
       setSentIds((prev) => new Set([...prev, userId]));
     } catch (err: any) {
       Alert.alert('Error', err?.message ?? 'Could not send friend request.');

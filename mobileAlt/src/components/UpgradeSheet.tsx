@@ -7,6 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { Analytics } from '../lib/analytics';
 import {
   initIAP, fetchProProduct, purchaseProMonthly, verifyAppleReceipt,
   addPurchaseListener,
@@ -82,6 +83,7 @@ function PaymentSheetContent({
         setIapPurchasing(true);
         try {
           await verifyAppleReceipt(purchase);
+          Analytics.upgradeCompleted();
           onClose();
           await new Promise<void>(resolve => setTimeout(resolve, 300));
           onSuccessRef.current();
@@ -105,6 +107,7 @@ function PaymentSheetContent({
     if (iapPurchasing || !product) return;
     setIapError(null);
     setIapPurchasing(true);
+    Analytics.upgradeTapped('apple_iap');
     try {
       await purchaseProMonthly();
     } catch (err: any) {
@@ -123,6 +126,7 @@ function PaymentSheetContent({
       ? `${STRIPE_CHECKOUT_BASE}?client_reference_id=${user.id}`
       : STRIPE_CHECKOUT_BASE;
     try {
+      Analytics.upgradeTapped('stripe');
       await Linking.openURL(url);
       setStripeOpened(true);
     } catch {
@@ -134,6 +138,7 @@ function PaymentSheetContent({
     setStripeConfirming(true);
     try {
       await refreshUser();
+      Analytics.upgradeCompleted();
       onClose();
       await new Promise<void>(resolve => setTimeout(resolve, 300));
       onSuccessRef.current();

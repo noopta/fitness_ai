@@ -11,6 +11,7 @@ import { GoogleLogo } from '../../src/components/ui/GoogleLogo';
 import { Input } from '../../src/components/ui/Input';
 import { KeyboardDoneBar } from '../../src/components/ui/KeyboardDoneBar';
 import { useAuth } from '../../src/context/AuthContext';
+import { Analytics } from '../../src/lib/analytics';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 
 export default function LoginScreen() {
@@ -48,6 +49,7 @@ export default function LoginScreen() {
     setSubmitting(true);
     try {
       await login(email.trim(), password);
+      Analytics.login('email');
       if (orgMode) {
         router.replace(`/institution/athlete?slug=${encodeURIComponent(orgSlug.trim())}` as any);
       } else {
@@ -64,6 +66,7 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     try {
       await googleLogin();
+      Analytics.login('google');
     } finally {
       setGoogleLoading(false);
     }
@@ -73,6 +76,7 @@ export default function LoginScreen() {
     setAppleLoading(true);
     try {
       await appleLogin();
+      Analytics.login('apple');
     } finally {
       setAppleLoading(false);
     }

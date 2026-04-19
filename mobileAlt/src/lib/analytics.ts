@@ -66,10 +66,10 @@ export function trackScreenTime(screenName: string): () => void {
 // Auth
 export const Analytics = {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  login: (method: 'email' | 'google') =>
+  login: (method: 'email' | 'google' | 'apple') =>
     posthog.capture('login', { method }),
 
-  register: (method: 'email' | 'google') =>
+  register: (method: 'email' | 'google' | 'apple') =>
     posthog.capture('register', { method }),
 
   // ── Navigation ────────────────────────────────────────────────────────────

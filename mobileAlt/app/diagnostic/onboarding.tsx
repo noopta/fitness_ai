@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { liftCoachApi, authApi } from '../../src/lib/api';
+import { Analytics } from '../../src/lib/analytics';
 import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
@@ -152,6 +153,7 @@ export default function OnboardingScreen() {
       });
 
       await AsyncStorage.setItem('axiom_session_id', session.session?.id || session.id || '');
+      Analytics.diagnosticStarted(selectedLift);
       router.push('/diagnostic/snapshot');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to create session. Please try again.');

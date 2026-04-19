@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { liftCoachApi } from '../../src/lib/api';
+import { Analytics } from '../../src/lib/analytics';
 import { Button } from '../../src/components/ui/Button';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { MarkdownText } from '../../src/components/ui/MarkdownText';
@@ -163,7 +164,9 @@ export default function ChatScreen() {
     if (!sessionId) return;
     setGenerating(true);
     try {
-      await liftCoachApi.generatePlan(sessionId);
+      const result = await liftCoachApi.generatePlan(sessionId);
+      const lift = result?.session?.selectedLift ?? result?.selectedLift ?? '';
+      Analytics.diagnosticCompleted(lift);
       router.push('/diagnostic/plan');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to generate plan. Please try again.');
