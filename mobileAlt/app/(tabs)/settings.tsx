@@ -10,10 +10,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/context/AuthContext';
 import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi, authApi } from '../../src/lib/api';
-import { initIAP, restorePurchases } from '../../src/lib/iap';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
-import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { DebugLogPanel } from '../../src/components/DebugLogPanel';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
@@ -25,8 +23,6 @@ export default function SettingsScreen() {
   const auth = useAuth();
   const { user } = auth;
   const [portalLoading, setPortalLoading] = useState(false);
-  const [restoring, setRestoring] = useState(false);
-  const [upgradeVisible, setUpgradeVisible] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
   const [browserUrl, setBrowserUrl] = useState('');
   const [browserTitle, setBrowserTitle] = useState('');
@@ -117,34 +113,6 @@ export default function SettingsScreen() {
     Linking.openURL('https://apps.apple.com/account/subscriptions').catch(() => {
       Linking.openURL('App-prefs:root=APPLE_ACCOUNT&path=SUBSCRIPTIONS');
     });
-  }
-
-  async function handleRestorePurchases() {
-    setRestoring(true);
-    try {
-      await initIAP();
-      const restored = await restorePurchases();
-      if (restored) {
-        await auth.refreshUser();
-        Alert.alert('Restored!', 'Your Pro subscription has been restored.');
-      } else {
-        Alert.alert('Nothing to Restore', 'No previous purchases were found for this Apple ID.');
-      }
-    } catch (err: any) {
-      Alert.alert('Restore Failed', err?.message ?? 'Could not restore purchases. Please try again.');
-    } finally {
-      setRestoring(false);
-    }
-  }
-
-  function handleUpgrade() {
-    setUpgradeVisible(true);
-  }
-
-  async function handleUpgradeSuccess() {
-    setUpgradeVisible(false);
-    await auth.refreshUser();
-    Alert.alert('Welcome to Pro!', 'Your account has been upgraded. Enjoy unlimited access.');
   }
 
   function handleDeleteAccount() {
@@ -338,31 +306,20 @@ export default function SettingsScreen() {
               <View style={styles.cardRowText}>
                 <Text style={styles.cardRowTitle}>{isPro ? 'Pro Plan' : 'Free Plan'}</Text>
                 <Text style={styles.cardRowSub}>
-                  {isPro ? 'Full access to all features.' : '2 analyses per day. Upgrade for unlimited.'}
+                  {isPro ? 'Full access to all features.' : '2 analyses per day.'}
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              style={isPro ? styles.outlineButton : styles.blackButton}
-              activeOpacity={0.82}
-              onPress={isPro ? handleManageSubscription : handleUpgrade}
-            >
-              <Text style={isPro ? styles.outlineButtonText : styles.blackButtonText}>
-                {isPro ? 'Manage Subscription' : 'Upgrade to Pro'}
-              </Text>
-            </TouchableOpacity>
-            {!isPro && (
+            {isPro && (
               <TouchableOpacity
-                style={styles.restoreBtn}
-                activeOpacity={0.7}
-                onPress={handleRestorePurchases}
-                disabled={restoring}
+                style={styles.outlineButton}
+                activeOpacity={0.82}
+                onPress={handleManageSubscription}
               >
-                {restoring ? (
-                  <ActivityIndicator size="small" color={colors.mutedForeground} />
-                ) : (
-                  <Text style={styles.restoreBtnText}>Restore Purchases</Text>
-                )}
+                {portalLoading
+                  ? <ActivityIndicator size="small" color={colors.foreground} />
+                  : <Text style={styles.outlineButtonText}>Manage Subscription</Text>
+                }
               </TouchableOpacity>
             )}
           </View>
@@ -443,11 +400,6 @@ export default function SettingsScreen() {
         <Text style={styles.versionText}>Axiom v1.0.0 · AI-powered strength training</Text>
       </ScrollView>
 
-      <UpgradeSheet
-        visible={upgradeVisible}
-        onClose={() => setUpgradeVisible(false)}
-        onSuccess={handleUpgradeSuccess}
-      />
       <InAppBrowser
         url={browserUrl}
         title={browserTitle}

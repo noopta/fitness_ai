@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../src/context/AuthContext';
 import { coachApi, authApi } from '../../src/lib/api';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
-import { UpgradePrompt } from '../../src/components/UpgradePrompt';
-import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
 import { ProgramSetup } from '../../src/components/coach/ProgramSetup';
 import { ProgramWalkthrough } from '../../src/components/coach/ProgramWalkthrough';
@@ -20,7 +17,7 @@ import { ChatTab } from '../../src/components/coach/ChatTab';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Stage = 'loading' | 'upgrade' | 'onboarding' | 'setup' | 'walkthrough' | 'dashboard';
+type Stage = 'loading' | 'onboarding' | 'setup' | 'walkthrough' | 'dashboard';
 type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
 const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
@@ -37,9 +34,6 @@ export default function CoachScreen() {
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
   const [onboardingKey, setOnboardingKey] = useState(0);
-  const [refreshingTier, setRefreshingTier] = useState(false);
-  const [upgradeVisible, setUpgradeVisible] = useState(false);
-
   useEffect(() => {
     trackScreen('Coach');
     return trackScreenTime('Coach');
@@ -60,28 +54,14 @@ export default function CoachScreen() {
     initCoach();
   }, [user?.id]);
 
-  // When the tab comes back into focus (e.g. user returns from Stripe), refresh
-  // the user object so a new pro subscription is detected immediately.
-  useFocusEffect(useCallback(() => {
-    if (user && (user.tier !== 'pro' && user.tier !== 'enterprise')) {
-      refreshUser().catch(() => {});
-    }
-  }, [user?.tier]));
-
   async function initCoach() {
     if (!user) {
       setStage('loading');
       return;
     }
 
-    // Non-pro users see upgrade prompt
-    if (user.tier !== 'pro' && user.tier !== 'enterprise') {
-      setLoading(false);
-      setStage('upgrade');
-      return;
-    }
+    // Fetch coach data + program in parallel
 
-    // Pro user: fetch coach data + program in parallel
     try {
       const [data, programResult] = await Promise.all([
         coachApi.getMessages().catch(() => ({})),
@@ -197,51 +177,6 @@ export default function CoachScreen() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <LoadingSpinner message="Loading your coach..." />
-      </SafeAreaView>
-    );
-  }
-
-  if (stage === 'upgrade') {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.upgradeContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.upgradeHeader}>
-            <Text style={styles.upgradeTitle}>AI Coach</Text>
-            <Text style={styles.upgradeSub}>Powered by Anakin</Text>
-          </View>
-          <UpgradePrompt
-            userId={user?.id}
-            reason="AI Coach requires a Pro subscription. Get personalized programming, nutrition, and 1-on-1 coaching from Anakin."
-            onUpgrade={() => setUpgradeVisible(true)}
-          />
-          <TouchableOpacity
-            style={styles.alreadyUpgradedBtn}
-            activeOpacity={0.7}
-            disabled={refreshingTier}
-            onPress={async () => {
-              setRefreshingTier(true);
-              try { await refreshUser(); } catch {}
-              setRefreshingTier(false);
-            }}
-          >
-            {refreshingTier
-              ? <ActivityIndicator size="small" color={colors.mutedForeground} />
-              : <Text style={styles.alreadyUpgradedText}>Already upgraded? Tap to refresh</Text>
-            }
-          </TouchableOpacity>
-        </ScrollView>
-        <UpgradeSheet
-          visible={upgradeVisible}
-          onClose={() => setUpgradeVisible(false)}
-          onSuccess={async () => {
-            setUpgradeVisible(false);
-            await refreshUser();
-          }}
-        />
       </SafeAreaView>
     );
   }

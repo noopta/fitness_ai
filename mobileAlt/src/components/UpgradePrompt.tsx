@@ -70,7 +70,13 @@ const FEATURE_SECTIONS = [
   },
 ];
 
-export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePromptProps) {
+// Pro upgrade is managed via the web portal at axiomtraining.io.
+// In-app upgrade UI is hidden until App Store IAP setup is complete.
+export function UpgradePrompt({ userId: _userId, reason: _reason, onUpgrade: _onUpgrade }: UpgradePromptProps) {
+  return null;
+}
+
+function _UpgradePromptContent({ reason }: UpgradePromptProps) {
   return (
     <View style={styles.container}>
       {/* Hero */}

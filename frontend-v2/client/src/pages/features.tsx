@@ -1488,6 +1488,16 @@ function HeroSection() {
 const LANDING_JSON_LD = [
   {
     "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Axiom",
+    "url": "https://axiomtraining.io",
+    "logo": "https://axiomtraining.io/axiom-logo.png",
+    "sameAs": ["https://axiomtraining.io"],
+    "description": "AI-powered strength training platform that diagnoses why your lifts are stuck and builds targeted programs to fix them.",
+    "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "email": "team@airthreads.ai" }
+  },
+  {
+    "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Axiom",
     "applicationCategory": "HealthApplication",

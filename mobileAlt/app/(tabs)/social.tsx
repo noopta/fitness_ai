@@ -13,9 +13,15 @@ import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
-import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PostComment {
+  id: string;
+  text: string;
+  createdAt: string;
+  author: { id: string; name: string | null; username: string | null };
+}
 
 interface FeedItem {
   id: string;
@@ -23,7 +29,12 @@ interface FeedItem {
   sharer: { id: string; name: string | null; username: string | null; avatarBase64: string | null } | null;
   itemType: string;
   payload: any;
+  caption?: string | null;
   createdAt: string;
+  reactionCount: number;
+  likedByMe: boolean;
+  commentCount: number;
+  comments: PostComment[];
 }
 
 interface Friend {
@@ -68,7 +79,22 @@ function payloadDescription(itemType: string, payload: any): string {
 
 // ─── Feed Card ────────────────────────────────────────────────────────────────
 
-function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: string }) {
+function FeedCard({
+  item: initialItem,
+  currentUserId,
+  friends,
+}: {
+  item: FeedItem;
+  currentUserId?: string;
+  friends: { id: string; name: string | null; username: string | null }[];
+}) {
+  const [item, setItem] = useState(initialItem);
+  const [commentsExpanded, setCommentsExpanded] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [showForwardPicker, setShowForwardPicker] = useState(false);
+  const [forwarding, setForwarding] = useState(false);
+
   const isText = item.itemType === 'text';
   const isMedia = item.itemType === 'media';
   const hasImage = isMedia && item.payload?.imageBase64;
@@ -76,8 +102,11 @@ function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: str
   const description = payloadDescription(item.itemType, item.payload);
   const isOwnPost = item.sharerId === currentUserId;
 
+  // Sync when parent feed refreshes
+  useEffect(() => { setItem(initialItem); }, [initialItem.id, initialItem.reactionCount, initialItem.commentCount]);
+
   function handleLongPress() {
-    if (isOwnPost) return; // no need to report your own posts
+    if (isOwnPost) return;
     Alert.alert('Report Post', 'Is this content inappropriate or offensive?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -91,9 +120,65 @@ function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: str
     ]);
   }
 
+  async function handleReact() {
+    const wasLiked = item.likedByMe;
+    setItem(prev => ({
+      ...prev,
+      likedByMe: !wasLiked,
+      reactionCount: prev.reactionCount + (wasLiked ? -1 : 1),
+    }));
+    try {
+      await socialApi.reactToPost(item.id);
+    } catch {
+      setItem(prev => ({
+        ...prev,
+        likedByMe: wasLiked,
+        reactionCount: prev.reactionCount + (wasLiked ? 1 : -1),
+      }));
+    }
+  }
+
+  async function handleAddComment() {
+    if (!commentText.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const newComment = await socialApi.addComment(item.id, commentText.trim());
+      setItem(prev => ({
+        ...prev,
+        comments: [...prev.comments, newComment],
+        commentCount: prev.commentCount + 1,
+      }));
+      setCommentText('');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Could not post comment.');
+    } finally {
+      setSubmittingComment(false);
+    }
+  }
+
+  async function handleForward(friendId: string) {
+    setForwarding(true);
+    try {
+      await socialApi.forwardPost(item.id, friendId);
+      setShowForwardPicker(false);
+      Alert.alert('Sent!', 'Post forwarded to your friend.');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Could not forward post.');
+    } finally {
+      setForwarding(false);
+    }
+  }
+
+  const imageUri = hasImage
+    ? (item.payload.imageBase64.startsWith('data:')
+        ? item.payload.imageBase64
+        : `data:image/jpeg;base64,${item.payload.imageBase64}`)
+    : null;
+
   return (
     <Pressable onLongPress={handleLongPress} delayLongPress={400}>
     <View style={styles.card}>
+      {/* Header */}
       <View style={styles.cardRow}>
         {item.sharer?.avatarBase64 ? (
           <Image source={{ uri: item.sharer.avatarBase64 }} style={styles.avatarImage} />
@@ -104,12 +189,15 @@ function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: str
         )}
         <View style={styles.cardContent}>
           <Text style={styles.cardName}>{item.sharer?.username ? `@${item.sharer.username}` : (item.sharer?.name ?? 'Unknown')}</Text>
-          {description ? (
-            <Text style={styles.cardSub}>{description}</Text>
-          ) : null}
+          {description ? <Text style={styles.cardSub}>{description}</Text> : null}
         </View>
         <Text style={styles.timeText}>{relativeTime(item.createdAt)}</Text>
       </View>
+
+      {/* Caption */}
+      {item.caption ? (
+        <Text style={styles.captionText}>{item.caption}</Text>
+      ) : null}
 
       {/* Text post body */}
       {isText && item.payload?.text ? (
@@ -117,12 +205,8 @@ function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: str
       ) : null}
 
       {/* Image post */}
-      {hasImage ? (
-        <Image
-          source={{ uri: `data:image/jpeg;base64,${item.payload.imageBase64}` }}
-          style={styles.postImage}
-          resizeMode="cover"
-        />
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
       ) : null}
 
       {/* Video post */}
@@ -133,6 +217,85 @@ function FeedCard({ item, currentUserId }: { item: FeedItem; currentUserId?: str
           <Text style={styles.videoNote}>(video)</Text>
         </View>
       ) : null}
+
+      {/* Action bar */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleReact} activeOpacity={0.7}>
+          <Ionicons
+            name={item.likedByMe ? 'heart' : 'heart-outline'}
+            size={18}
+            color={item.likedByMe ? '#ef4444' : colors.mutedForeground}
+          />
+          {item.reactionCount > 0 && (
+            <Text style={[styles.actionCount, item.likedByMe && { color: '#ef4444' }]}>{item.reactionCount}</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionBtn} onPress={() => setCommentsExpanded(v => !v)} activeOpacity={0.7}>
+          <Ionicons name="chatbubble-outline" size={17} color={colors.mutedForeground} />
+          {item.commentCount > 0 && <Text style={styles.actionCount}>{item.commentCount}</Text>}
+        </TouchableOpacity>
+
+        {friends.length > 0 && (
+          <TouchableOpacity style={styles.actionBtn} onPress={() => setShowForwardPicker(true)} activeOpacity={0.7}>
+            <Ionicons name="paper-plane-outline" size={17} color={colors.mutedForeground} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Comments section */}
+      {commentsExpanded && (
+        <View style={styles.commentsSection}>
+          {item.comments.map(c => (
+            <View key={c.id} style={styles.commentRow}>
+              <Text style={styles.commentAuthor}>{c.author.username ? `@${c.author.username}` : (c.author.name ?? 'User')}</Text>
+              <Text style={styles.commentText}>{c.text}</Text>
+            </View>
+          ))}
+          <View style={styles.commentInput}>
+            <TextInput
+              style={styles.commentInputField}
+              placeholder="Add a comment…"
+              placeholderTextColor={colors.mutedForeground}
+              value={commentText}
+              onChangeText={setCommentText}
+              onSubmitEditing={handleAddComment}
+              returnKeyType="send"
+              editable={!submittingComment}
+            />
+            <TouchableOpacity onPress={handleAddComment} disabled={submittingComment || !commentText.trim()} activeOpacity={0.7}>
+              {submittingComment
+                ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+                : <Ionicons name="send" size={16} color={commentText.trim() ? colors.foreground : colors.mutedForeground} />
+              }
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Forward picker modal */}
+      <Modal visible={showForwardPicker} transparent animationType="slide" onRequestClose={() => setShowForwardPicker(false)}>
+        <Pressable style={styles.forwardOverlay} onPress={() => setShowForwardPicker(false)}>
+          <View style={styles.forwardSheet}>
+            <Text style={styles.forwardTitle}>Send to a Friend</Text>
+            {friends.map(f => (
+              <TouchableOpacity
+                key={f.id}
+                style={styles.forwardRow}
+                activeOpacity={0.75}
+                disabled={forwarding}
+                onPress={() => handleForward(f.id)}
+              >
+                <View style={styles.forwardAvatar}>
+                  <Text style={styles.forwardAvatarText}>{((f.username ?? f.name ?? '?')[0]).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.forwardName}>{f.username ? `@${f.username}` : (f.name ?? 'User')}</Text>
+                {forwarding && <ActivityIndicator size="small" color={colors.mutedForeground} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
     </Pressable>
   );
@@ -168,16 +331,16 @@ interface NewPostModalProps {
   visible: boolean;
   onClose: () => void;
   onPosted: () => void;
-  onUpgrade: () => void;
 }
 
-function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalProps) {
+function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(400)).current;
 
   const [postTab, setPostTab] = useState<PostTab>('text');
   const [textContent, setTextContent] = useState('');
+  const [caption, setCaption] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imagePreviewUri, setImagePreviewUri] = useState<string | null>(null);
@@ -196,13 +359,13 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
       // Reset form when dismissed
       setPostTab('text');
       setTextContent('');
+      setCaption('');
       setVideoUrl('');
       setImageBase64(null);
       setImagePreviewUri(null);
     }
   }, [visible]);
 
-  const isPro = user?.tier === 'pro';
 
   async function pickImage() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -234,6 +397,7 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
         await socialApi.shareItem({
           itemType: 'text',
           payload: { text: textContent.trim() },
+          caption: caption.trim() || undefined,
         });
         Analytics.textPostMade();
         Alert.alert('Posted!', 'Your post has been shared.');
@@ -254,6 +418,7 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
         await socialApi.shareItem({
           itemType: 'media',
           payload: { imageBase64 },
+          caption: caption.trim() || undefined,
         });
         Analytics.imagePostMade();
         Alert.alert('Posted!', 'Your image has been shared.');
@@ -274,6 +439,7 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
         await socialApi.shareItem({
           itemType: 'media',
           payload: { videoUrl: videoUrl.trim() },
+          caption: caption.trim() || undefined,
         });
         Analytics.videoPostMade();
         Alert.alert('Posted!', 'Your video link has been shared.');
@@ -343,6 +509,14 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
                     textAlignVertical="top"
                   />
                   <Text style={styles.charCount}>{textContent.length}/1000</Text>
+                  <TextInput
+                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
+                    placeholder="Add a caption (optional)…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={caption}
+                    onChangeText={setCaption}
+                    maxLength={200}
+                  />
                   <TouchableOpacity
                     style={[styles.postButton, submitting && { opacity: 0.5 }]}
                     activeOpacity={0.82}
@@ -357,90 +531,72 @@ function NewPostModal({ visible, onClose, onPosted, onUpgrade }: NewPostModalPro
               )}
 
               {postTab === 'image' && (
-                isPro ? (
-                  <>
-                    {imagePreviewUri ? (
-                      <Image source={{ uri: imagePreviewUri }} style={styles.imagePreview} resizeMode="cover" />
-                    ) : null}
-                    <TouchableOpacity
-                      style={styles.pickImageButton}
-                      activeOpacity={0.82}
-                      onPress={pickImage}
-                    >
-                      <Ionicons name="image-outline" size={18} color={colors.foreground} />
-                      <Text style={styles.pickImageButtonText}>
-                        {imagePreviewUri ? 'Change image' : 'Pick image from library'}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.postButton, (!imageBase64 || submitting) && { opacity: 0.5 }]}
-                      activeOpacity={0.82}
-                      onPress={handlePost}
-                      disabled={!imageBase64 || submitting}
-                    >
-                      {submitting
-                        ? <ActivityIndicator size="small" color={colors.primaryForeground} />
-                        : <Text style={styles.postButtonText}>Post Image</Text>}
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <View style={styles.proGateContainer}>
-                    <Ionicons name="lock-closed-outline" size={32} color={colors.mutedForeground} />
-                    <Text style={styles.proGateTitle}>Pro required</Text>
-                    <Text style={styles.proGateSubtitle}>
-                      Image posts are available on the Pro plan.
+                <>
+                  {imagePreviewUri ? (
+                    <Image source={{ uri: imagePreviewUri }} style={styles.imagePreview} resizeMode="cover" />
+                  ) : null}
+                  <TouchableOpacity
+                    style={styles.pickImageButton}
+                    activeOpacity={0.82}
+                    onPress={pickImage}
+                  >
+                    <Ionicons name="image-outline" size={18} color={colors.foreground} />
+                    <Text style={styles.pickImageButtonText}>
+                      {imagePreviewUri ? 'Change image' : 'Pick image from library'}
                     </Text>
-                    <TouchableOpacity
-                      style={styles.upgradeButton}
-                      activeOpacity={0.82}
-                      onPress={() => { onClose(); onUpgrade(); }}
-                    >
-                      <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
-                    </TouchableOpacity>
-                  </View>
-                )
+                  </TouchableOpacity>
+                  <TextInput
+                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
+                    placeholder="Add a caption (optional)…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={caption}
+                    onChangeText={setCaption}
+                    maxLength={200}
+                  />
+                  <TouchableOpacity
+                    style={[styles.postButton, (!imageBase64 || submitting) && { opacity: 0.5 }]}
+                    activeOpacity={0.82}
+                    onPress={handlePost}
+                    disabled={!imageBase64 || submitting}
+                  >
+                    {submitting
+                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
+                      : <Text style={styles.postButtonText}>Post Image</Text>}
+                  </TouchableOpacity>
+                </>
               )}
 
               {postTab === 'video' && (
-                isPro ? (
-                  <>
-                    <TextInput
-                      style={[styles.textInput, styles.textInputSingleLine]}
-                      placeholder="Paste a video URL…"
-                      placeholderTextColor={colors.mutedForeground}
-                      value={videoUrl}
-                      onChangeText={setVideoUrl}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      keyboardType="url"
-                    />
-                    <TouchableOpacity
-                      style={[styles.postButton, (!videoUrl.trim() || submitting) && { opacity: 0.5 }]}
-                      activeOpacity={0.82}
-                      onPress={handlePost}
-                      disabled={!videoUrl.trim() || submitting}
-                    >
-                      {submitting
-                        ? <ActivityIndicator size="small" color={colors.primaryForeground} />
-                        : <Text style={styles.postButtonText}>Post Video</Text>}
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <View style={styles.proGateContainer}>
-                    <Ionicons name="lock-closed-outline" size={32} color={colors.mutedForeground} />
-                    <Text style={styles.proGateTitle}>Pro required</Text>
-                    <Text style={styles.proGateSubtitle}>
-                      Video posts are available on the Pro plan.
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.upgradeButton}
-                      activeOpacity={0.82}
-                      onPress={() => { onClose(); onUpgrade(); }}
-                    >
-                      <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
-                    </TouchableOpacity>
-                  </View>
-                )
+                <>
+                  <TextInput
+                    style={[styles.textInput, styles.textInputSingleLine]}
+                    placeholder="Paste a video URL…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={videoUrl}
+                    onChangeText={setVideoUrl}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                  />
+                  <TextInput
+                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
+                    placeholder="Add a caption (optional)…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={caption}
+                    onChangeText={setCaption}
+                    maxLength={200}
+                  />
+                  <TouchableOpacity
+                    style={[styles.postButton, (!videoUrl.trim() || submitting) && { opacity: 0.5 }]}
+                    activeOpacity={0.82}
+                    onPress={handlePost}
+                    disabled={!videoUrl.trim() || submitting}
+                  >
+                    {submitting
+                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
+                      : <Text style={styles.postButtonText}>Post Video</Text>}
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </Pressable>
@@ -464,8 +620,6 @@ export default function SocialScreen() {
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [postModalVisible, setPostModalVisible] = useState(false);
-  const [upgradeVisible, setUpgradeVisible] = useState(false);
-
   const loadFeed = useCallback(() => {
     setLoadingFeed(true);
     return socialApi.getSharedFeed()
@@ -598,7 +752,7 @@ export default function SocialScreen() {
                 <Text style={styles.emptySubtitle}>Add friends to see their shared workouts and plans here.</Text>
               </View>
             ) : (
-              feed.map((item) => <FeedCard key={item.id} item={item} currentUserId={user?.id} />)
+              feed.map((item) => <FeedCard key={item.id} item={item} currentUserId={user?.id} friends={friends} />)
             )}
           </>
         ) : (
@@ -660,14 +814,6 @@ export default function SocialScreen() {
         visible={postModalVisible}
         onClose={() => setPostModalVisible(false)}
         onPosted={loadFeed}
-        onUpgrade={() => setUpgradeVisible(true)}
-      />
-
-      {/* Upgrade Sheet */}
-      <UpgradeSheet
-        visible={upgradeVisible}
-        onClose={() => setUpgradeVisible(false)}
-        onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
       />
     </SafeAreaView>
   );
@@ -805,6 +951,114 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   videoNote: { fontSize: fontSize.xs, color: colors.mutedForeground, fontStyle: 'italic' },
+
+  captionText: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    fontStyle: 'italic',
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  captionInput: {
+    marginTop: spacing.xs,
+    marginBottom: 0,
+  },
+
+  actionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionCount: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+  },
+
+  commentsSection: {
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  commentRow: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'flex-start',
+  },
+  commentAuthor: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+    minWidth: 60,
+  },
+  commentText: {
+    fontSize: fontSize.xs,
+    color: colors.foreground,
+    flex: 1,
+    lineHeight: 16,
+  },
+  commentInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: 8,
+  },
+  commentInputField: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+
+  forwardOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  forwardSheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: spacing.lg,
+    paddingBottom: 40,
+    gap: spacing.sm,
+  },
+  forwardTitle: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+    marginBottom: 4,
+  },
+  forwardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  forwardAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  forwardAvatarText: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.foreground },
+  forwardName: { flex: 1, fontSize: fontSize.sm, color: colors.foreground },
 
   smallButton: {
     flexDirection: 'row',

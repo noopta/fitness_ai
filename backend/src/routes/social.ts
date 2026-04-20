@@ -435,22 +435,35 @@ router.get('/social/conversations/:conversationId/poll', async (req, res) => {
 
 // ─── Sharing ──────────────────────────────────────────────────────────────────
 
+const FEED_INCLUDE = {
+  sharer: { select: { id: true, name: true, username: true, avatarBase64: true } },
+  reactions: { select: { userId: true, type: true } },
+  comments: {
+    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true } } },
+    orderBy: { createdAt: 'asc' as const },
+    take: 50,
+  },
+} as const;
+
+function serializeFeedItem(item: any, viewerId: string) {
+  return {
+    ...item,
+    payload: typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload,
+    reactionCount: item.reactions?.length ?? 0,
+    likedByMe: item.reactions?.some((r: any) => r.userId === viewerId) ?? false,
+    commentCount: item.comments?.length ?? 0,
+    comments: item.comments ?? [],
+  };
+}
+
 // POST /api/social/share
 router.post('/social/share', async (req, res) => {
-  const { recipientId, itemType, itemId, payload } = req.body;
+  const { recipientId, itemType, itemId, payload, caption } = req.body;
   if (!itemType || !payload) return res.status(400).json({ error: 'itemType and payload required' });
 
   // Validate text posts have content
   if (itemType === 'text' && !payload.text?.trim()) {
     return res.status(400).json({ error: 'Text content is required for text posts' });
-  }
-
-  // Gate media uploads to pro tier
-  const isMediaPost = itemType === 'media' || payload.imageBase64 || payload.videoUrl;
-  if (isMediaPost) {
-    if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
-      return res.status(403).json({ error: 'Media uploads require a Pro subscription.' });
-    }
   }
 
   // Enforce imageBase64 size limit (~2MB decoded)
@@ -467,14 +480,15 @@ router.post('/social/share', async (req, res) => {
   const item = await prisma.sharedItem.create({
     data: {
       sharerId: req.user!.id,
-      recipientId: recipientId ?? req.user!.id, // fall back to self so column stays non-null
+      recipientId: recipientId ?? req.user!.id,
       itemType,
       itemId: itemId ?? null,
       payload: JSON.stringify(payload),
+      caption: caption?.trim() || null,
     },
-    include: { sharer: { select: { id: true, name: true, username: true, avatarBase64: true } } },
+    include: FEED_INCLUDE,
   });
-  res.status(201).json({ ...item, payload: JSON.parse(item.payload) });
+  res.status(201).json(serializeFeedItem(item, req.user!.id));
 });
 
 // GET /api/social/shared-feed
@@ -503,7 +517,7 @@ router.get('/social/shared-feed', async (req, res) => {
         }] : []),
       ],
     },
-    include: { sharer: { select: { id: true, name: true, username: true, avatarBase64: true } } },
+    include: FEED_INCLUDE,
     orderBy: { createdAt: 'desc' },
     take: 100,
   });
@@ -520,7 +534,73 @@ router.get('/social/shared-feed', async (req, res) => {
   const seen = new Set<string>();
   const deduped = filtered.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
 
-  res.json(deduped.map(i => ({ ...i, payload: JSON.parse(i.payload) })));
+  res.json(deduped.map(i => serializeFeedItem(i, userId)));
+});
+
+// ─── Reactions ────────────────────────────────────────────────────────────────
+
+// POST /api/social/posts/:id/react — toggle heart reaction
+router.post('/social/posts/:id/react', async (req, res) => {
+  const userId = req.user!.id;
+  const postId = req.params.id;
+
+  const existing = await prisma.postReaction.findUnique({ where: { postId_userId: { postId, userId } } });
+  if (existing) {
+    await prisma.postReaction.delete({ where: { postId_userId: { postId, userId } } });
+    res.json({ liked: false });
+  } else {
+    await prisma.postReaction.create({ data: { postId, userId } });
+    res.json({ liked: true });
+  }
+});
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+// GET /api/social/posts/:id/comments
+router.get('/social/posts/:id/comments', async (req, res) => {
+  const comments = await prisma.postComment.findMany({
+    where: { postId: req.params.id },
+    include: { author: { select: { id: true, name: true, username: true } } },
+    orderBy: { createdAt: 'asc' },
+  });
+  res.json(comments);
+});
+
+// POST /api/social/posts/:id/comments
+router.post('/social/posts/:id/comments', async (req, res) => {
+  const { text } = req.body;
+  if (!text?.trim()) return res.status(400).json({ error: 'Comment text required' });
+  const comment = await prisma.postComment.create({
+    data: { postId: req.params.id, authorId: req.user!.id, text: text.trim() },
+    include: { author: { select: { id: true, name: true, username: true } } },
+  });
+  res.status(201).json(comment);
+});
+
+// ─── Forward (send post to DM) ────────────────────────────────────────────────
+
+// POST /api/social/posts/:id/forward — send a copy of a post to a friend
+router.post('/social/posts/:id/forward', async (req, res) => {
+  const { recipientId } = req.body;
+  if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
+
+  const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
+  if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
+
+  const original = await prisma.sharedItem.findUnique({ where: { id: req.params.id } });
+  if (!original) return res.status(404).json({ error: 'Post not found' });
+
+  const forwarded = await prisma.sharedItem.create({
+    data: {
+      sharerId: req.user!.id,
+      recipientId,
+      itemType: original.itemType,
+      payload: original.payload,
+      caption: original.caption,
+    },
+    include: FEED_INCLUDE,
+  });
+  res.status(201).json(serializeFeedItem(forwarded, req.user!.id));
 });
 
 // ─── Leaderboard ──────────────────────────────────────────────────────────────

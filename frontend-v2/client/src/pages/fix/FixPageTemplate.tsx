@@ -25,11 +25,29 @@ export function FixPage({ config }: { config: FixPageConfig }) {
       "headline": config.title,
       "description": config.metaDescription,
       "url": `https://axiomtraining.io/fix/${config.slug}`,
+      "datePublished": "2025-01-01",
+      "dateModified": "2026-04-20",
+      "author": { "@type": "Organization", "name": "Axiom" },
       "publisher": {
         "@type": "Organization",
         "name": "Axiom",
-        "url": "https://axiomtraining.io"
+        "url": "https://axiomtraining.io",
+        "logo": { "@type": "ImageObject", "url": "https://axiomtraining.io/axiom-logo.png" }
       }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": config.title,
+      "description": config.metaDescription,
+      "url": `https://axiomtraining.io/fix/${config.slug}`,
+      "step": config.fixes.map((f, i) => ({
+        "@type": "HowToStep",
+        "position": i + 1,
+        "name": f.heading,
+        "text": f.body,
+        ...(f.exercises?.length ? { "itemListElement": f.exercises.map(ex => ({ "@type": "HowToTip", "text": ex })) } : {})
+      }))
     },
     {
       "@context": "https://schema.org",

@@ -377,9 +377,22 @@ export const socialApi = {
     apiFetch(`/social/conversations/${conversationId}/poll${after ? `?after=${after}` : ''}`),
 
   // Sharing
-  shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object }) =>
+  shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object; caption?: string }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
+
+  // Reactions
+  reactToPost: (postId: string) =>
+    apiFetch(`/social/posts/${postId}/react`, { method: 'POST' }),
+
+  // Comments
+  getComments: (postId: string) => apiFetch(`/social/posts/${postId}/comments`),
+  addComment: (postId: string, text: string) =>
+    apiFetch(`/social/posts/${postId}/comments`, { method: 'POST', body: JSON.stringify({ text }) }),
+
+  // Forward (send to DM)
+  forwardPost: (postId: string, recipientId: string) =>
+    apiFetch(`/social/posts/${postId}/forward`, { method: 'POST', body: JSON.stringify({ recipientId }) }),
 
   // Invite
   getInviteLink: () => apiFetch('/social/invite'),

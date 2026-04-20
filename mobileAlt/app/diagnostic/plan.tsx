@@ -24,8 +24,6 @@ import { StrengthRadar } from '../../src/components/StrengthRadar';
 import { PhaseBreakdown } from '../../src/components/PhaseBreakdown';
 import { HypothesisRankings } from '../../src/components/HypothesisRankings';
 import { EfficiencyGauge } from '../../src/components/EfficiencyGauge';
-import { UpgradePrompt } from '../../src/components/UpgradePrompt';
-import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
@@ -202,7 +200,6 @@ export default function PlanScreen() {
   const [rateLimited, setRateLimited] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [sessionId, setSessionId] = useState('');
-  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   // ── Load plan on mount ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -350,22 +347,15 @@ export default function PlanScreen() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         {renderHeader()}
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <UpgradePrompt
-            userId={user?.id}
-            reason="You've reached your free analysis limit. Upgrade to Pro for unlimited diagnoses."
-            onUpgrade={() => setUpgradeVisible(true)}
-          />
-        </ScrollView>
-        <UpgradeSheet
-          visible={upgradeVisible}
-          onClose={() => setUpgradeVisible(false)}
-          onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
-        />
+        <View style={styles.centeredState}>
+          <Card style={styles.errorCard}>
+            <CardContent style={styles.errorContent}>
+              <Ionicons name="time-outline" size={40} color={colors.mutedForeground} />
+              <Text style={styles.errorTitle}>Daily limit reached</Text>
+              <Text style={styles.errorMessage}>You've used your free analyses for today. Come back tomorrow to run another diagnosis.</Text>
+            </CardContent>
+          </Card>
+        </View>
       </SafeAreaView>
     );
   }

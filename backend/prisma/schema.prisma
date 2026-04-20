@@ -66,6 +66,8 @@ model User {
   sentMessages             Message[]             @relation("SentMessages")
   sharedByMe               SharedItem[]          @relation("SharedByMe")
   sharedWithMe             SharedItem[]          @relation("SharedWithMe")
+  postReactions            PostReaction[]        @relation("UserReactions")
+  postComments             PostComment[]         @relation("UserComments")
   invitesSent              UserInvite[]          @relation("InvitesSent")
   inviteUsed               UserInvite?           @relation("InviteUsed")
   referredByCode           String?
@@ -313,10 +315,34 @@ model SharedItem {
   itemType    String
   itemId      String?
   payload     String
+  caption     String?
   createdAt   DateTime @default(now())
   sharer      User     @relation("SharedByMe",   fields: [sharerId],    references: [id])
   recipient   User     @relation("SharedWithMe", fields: [recipientId], references: [id])
+  reactions   PostReaction[]
+  comments    PostComment[]
   @@index([recipientId, createdAt])
+}
+
+model PostReaction {
+  id        String     @id @default(uuid())
+  postId    String
+  userId    String
+  type      String     @default("heart")
+  createdAt DateTime   @default(now())
+  post      SharedItem @relation(fields: [postId],  references: [id], onDelete: Cascade)
+  user      User       @relation("UserReactions", fields: [userId], references: [id])
+  @@unique([postId, userId])
+}
+
+model PostComment {
+  id        String     @id @default(uuid())
+  postId    String
+  authorId  String
+  text      String
+  createdAt DateTime   @default(now())
+  post      SharedItem @relation(fields: [postId],   references: [id], onDelete: Cascade)
+  author    User       @relation("UserComments", fields: [authorId], references: [id])
 }
 
 model UserInvite {
