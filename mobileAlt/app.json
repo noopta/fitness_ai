@@ -34,7 +34,6 @@
           "cameraPermission": "Axiom uses your camera to take photos of meals for calorie estimation."
         }
       ],
-      "react-native-iap",
       "expo-apple-authentication",
       [
         "expo-notifications",
@@ -53,6 +52,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
+        "NSUserTrackingUsageDescription": "We use anonymous analytics to improve your Axiom experience and show you relevant features.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

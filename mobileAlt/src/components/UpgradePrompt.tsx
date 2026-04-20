@@ -82,7 +82,7 @@ export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePro
         <Text style={styles.heroSubtitle}>
           {reason ?? 'Science-backed AI coaching, personalized to you.'}
         </Text>
-        <Text style={styles.heroPricing}>{PRO_PRICE_FALLBACK} / month · Cancel anytime</Text>
+        {/* Pricing text hidden until IAP is re-enabled */}
       </View>
 
       {/* Feature sections */}
@@ -103,19 +103,8 @@ export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePro
         </View>
       ))}
 
-      {/* CTA */}
-      <TouchableOpacity
-        style={styles.upgradeButton}
-        activeOpacity={0.85}
-        onPress={onUpgrade}
-      >
-        <Ionicons name="star" size={16} color="#fff" />
-        <Text style={styles.upgradeButtonText}>Upgrade to Pro — {PRO_PRICE_FALLBACK}/mo</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.legal}>
-        {PRO_PRICE_FALLBACK}/mo · Cancel anytime · Pay with card or Apple ID
-      </Text>
+      {/* CTA — hidden: in-app purchase disabled pending App Store approval */}
+      {/* Restore when IAP is re-enabled: uncomment TouchableOpacity block above */}
     </View>
   );
 }

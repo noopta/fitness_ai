@@ -96,50 +96,14 @@ function WebUpgradeContent({ onClose }: { onClose: () => void }) {
 //   git show 704057d:mobileAlt/src/components/UpgradeSheet.tsx
 // Then copy back PaymentSheetContent + imports and swap WebUpgradeContent below.
 
-// ── Outer shell — Modal + slide animation ─────────────────────────────────────
-export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
-  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 65,
-        friction: 11,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: Dimensions.get('window').height,
-        duration: 220,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible]);
-
-  return (
-    <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
-      <View style={styles.modalRoot}>
-        <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={onClose} />
-
-        <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.handle} />
-
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.title}>Upgrade to Pro</Text>
-              <Text style={styles.subtitle}>Everything Axiom has to offer</Text>
-            </View>
-            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close" size={22} color={colors.mutedForeground} />
-            </TouchableOpacity>
-          </View>
-
-          {visible && <WebUpgradeContent onClose={onClose} />}
-        </Animated.View>
-      </View>
-    </Modal>
-  );
+// ── TEMPORARILY DISABLED: UpgradeSheet hidden for App Store review ────────────
+// In-app purchase (Apple IAP via react-native-iap) will be re-enabled once
+// CRA business registration + App Store tax forms are complete.
+// To restore: git show 704057d:mobileAlt/src/components/UpgradeSheet.tsx
+// ─────────────────────────────────────────────────────────────────────────────
+export function UpgradeSheet({ visible: _visible, onClose: _onClose, onSuccess: _onSuccess }: Props) {
+  // Upgrade flow is disabled — returns nothing so no payment UI appears in the app.
+  return null;
 }
 
 const styles = StyleSheet.create({
