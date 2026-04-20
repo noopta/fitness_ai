@@ -96,13 +96,9 @@ function WebUpgradeContent({ onClose }: { onClose: () => void }) {
 //   git show 704057d:mobileAlt/src/components/UpgradeSheet.tsx
 // Then copy back PaymentSheetContent + imports and swap WebUpgradeContent below.
 
-// ── TEMPORARILY DISABLED: UpgradeSheet hidden for App Store review ────────────
-// In-app purchase (Apple IAP via react-native-iap) will be re-enabled once
-// CRA business registration + App Store tax forms are complete.
-// To restore: git show 704057d:mobileAlt/src/components/UpgradeSheet.tsx
-// ─────────────────────────────────────────────────────────────────────────────
+// Pro upgrade is managed via the web portal at axiomtraining.io.
+// In-app purchase will be added in a future release.
 export function UpgradeSheet({ visible: _visible, onClose: _onClose, onSuccess: _onSuccess }: Props) {
-  // Upgrade flow is disabled — returns nothing so no payment UI appears in the app.
   return null;
 }
 
