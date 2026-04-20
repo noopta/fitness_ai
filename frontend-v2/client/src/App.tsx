@@ -63,6 +63,18 @@ import FixWeakTricepsBench from "./pages/fix/weak-triceps-bench";
 import FixWeakHamstringsDeadlift from "./pages/fix/weak-hamstrings-deadlift";
 import FixWeakQuadsSquat from "./pages/fix/weak-quads-squat";
 
+// Blog pages
+import BlogIndexPage from "./pages/blog/index";
+import BlogBenchPressPlateau from "./pages/blog/how-to-break-a-bench-press-plateau";
+import BlogProgressiveOverload from "./pages/blog/progressive-overload-guide";
+import BlogBeginners from "./pages/blog/strength-training-for-beginners";
+import BlogProtein from "./pages/blog/how-much-protein-strength-athletes";
+import BlogSquatAccessories from "./pages/blog/best-accessories-squat";
+import BlogDeadliftForm from "./pages/blog/deadlift-form-guide";
+import BlogSquatDepth from "./pages/blog/squat-depth-guide";
+import BlogIncreaseDeadlift from "./pages/blog/how-to-increase-deadlift";
+import BlogPowerliftingVsBodybuilding from "./pages/blog/powerlifting-vs-bodybuilding";
+
 // Vs pages
 import VsPersonalTrainer from "./pages/vs/personal-trainer";
 import VsStrongLifts from "./pages/vs/stronglifts-5x5";
@@ -208,6 +220,18 @@ function Router() {
       <Route path="/fix/weak-triceps-bench" component={FixWeakTricepsBench} />
       <Route path="/fix/weak-hamstrings-deadlift" component={FixWeakHamstringsDeadlift} />
       <Route path="/fix/weak-quads-squat" component={FixWeakQuadsSquat} />
+
+      {/* Blog pages */}
+      <Route path="/blog" component={BlogIndexPage} />
+      <Route path="/blog/how-to-break-a-bench-press-plateau" component={BlogBenchPressPlateau} />
+      <Route path="/blog/progressive-overload-guide" component={BlogProgressiveOverload} />
+      <Route path="/blog/strength-training-for-beginners" component={BlogBeginners} />
+      <Route path="/blog/how-much-protein-strength-athletes" component={BlogProtein} />
+      <Route path="/blog/best-accessories-squat" component={BlogSquatAccessories} />
+      <Route path="/blog/deadlift-form-guide" component={BlogDeadliftForm} />
+      <Route path="/blog/squat-depth-guide" component={BlogSquatDepth} />
+      <Route path="/blog/how-to-increase-deadlift" component={BlogIncreaseDeadlift} />
+      <Route path="/blog/powerlifting-vs-bodybuilding" component={BlogPowerliftingVsBodybuilding} />
 
       {/* Vs pages */}
       <Route path="/vs/personal-trainer" component={VsPersonalTrainer} />

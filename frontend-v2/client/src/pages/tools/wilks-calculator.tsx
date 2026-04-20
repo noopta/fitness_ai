@@ -26,15 +26,43 @@ function dotsCoeff(bw: number, male: boolean): number {
   return 500 / denom;
 }
 
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Wilks Score Calculator",
-  "url": "https://axiomtraining.io/tools/wilks-calculator",
-  "description": "Free Wilks and Dots score calculator for powerlifters. Compare your total across weight classes. Enter bodyweight, squat, bench, and deadlift to see your Wilks and Dots coefficients.",
-  "applicationCategory": "HealthApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-};
+const JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Wilks Score Calculator",
+    "url": "https://axiomtraining.io/tools/wilks-calculator",
+    "description": "Free Wilks and Dots score calculator for powerlifters. Compare your total across weight classes. Enter bodyweight, squat, bench, and deadlift to see your Wilks and Dots coefficients.",
+    "applicationCategory": "HealthApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is a good Wilks score?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A Wilks score under 200 is recreational, 200–300 is novice competitor level, 300–380 is intermediate competitive, 380–450 is advanced or national-level, and 450+ is considered elite or world-class. Most recreational lifters score between 150 and 300." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the difference between Wilks and Dots?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Both Wilks and Dots are bodyweight-adjusted strength scores for powerlifters, but Dots uses a newer dataset and is considered more accurate at very light and very heavy bodyweights. The IPF (International Powerlifting Federation) adopted Dots as its official scoring system in 2020, replacing Wilks." }
+      },
+      {
+        "@type": "Question",
+        "name": "Which formula does the IPF use?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The IPF switched from Wilks to the Dots formula in 2020 for both equipped and classic (raw) powerlifting competitions. Dots is now the standard for IPF-affiliated meets worldwide, though many non-IPF federations still use Wilks." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I compare my powerlifting total across weight classes?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Use the Wilks or Dots score, which normalizes your total (squat + bench + deadlift) for your bodyweight. A higher score means relatively stronger pound-for-pound. This allows fair comparison between a 60kg lifter and a 100kg lifter regardless of absolute weight on the bar." }
+      }
+    ]
+  }
+];
 
 export default function WilksCalculatorPage() {
   const [bw, setBw] = useState('');

@@ -29,15 +29,43 @@ const PROTEIN_TARGETS = {
   muscle_gain: 0.9,
 };
 
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Macro Calculator for Strength Athletes",
-  "url": "https://axiomtraining.io/tools/macro-calculator",
-  "description": "Free macro calculator for strength athletes and powerlifters. Get personalized calorie and macronutrient targets (protein, carbs, fat) based on your bodyweight, height, activity level, and goal.",
-  "applicationCategory": "HealthApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-};
+const JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Macro Calculator for Strength Athletes",
+    "url": "https://axiomtraining.io/tools/macro-calculator",
+    "description": "Free macro calculator for strength athletes and powerlifters. Get personalized calorie and macronutrient targets (protein, carbs, fat) based on your bodyweight, height, activity level, and goal.",
+    "applicationCategory": "HealthApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How much protein do I need to build muscle?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Current evidence suggests 0.7–1.0g of protein per pound of bodyweight (1.6–2.2g/kg) is sufficient for most strength athletes. During a caloric deficit, higher protein intake (up to 1.2g/lb) helps preserve muscle mass. Going above this provides no additional muscle-building benefit." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is TDEE and how is it calculated?",
+        "acceptedAnswer": { "@type": "Answer", "text": "TDEE (Total Daily Energy Expenditure) is the total number of calories you burn per day, including exercise. It is calculated by multiplying your BMR (Basal Metabolic Rate) by an activity multiplier — typically 1.2 for sedentary lifestyles up to 1.9 for very active individuals who train twice per day." }
+      },
+      {
+        "@type": "Question",
+        "name": "How many calories should I eat to bulk?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A lean bulk typically adds 200–300 calories above your TDEE per day, which supports muscle growth while minimizing fat gain. An aggressive bulk adds 400–500+ calories above TDEE. Most strength athletes do best with a lean bulk to keep body composition in check over multi-month training phases." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why are carbohydrates important for powerlifters?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Carbohydrates are the primary fuel source for high-intensity compound lifts like squats, deadlifts, and bench press. Inadequate carbohydrate intake can cause training performance to drop before any other nutrient deficiency becomes apparent. Aim to consume the majority of your daily carbs 2–3 hours before and immediately after your training session." }
+      }
+    ]
+  }
+];
 
 export default function MacroCalculatorPage() {
   const [age, setAge] = useState('');

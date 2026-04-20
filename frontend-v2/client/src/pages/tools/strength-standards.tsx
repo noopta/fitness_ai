@@ -40,15 +40,43 @@ const LEVEL_COLORS: Record<Level, string> = {
   elite: 'bg-yellow-100 text-yellow-700',
 };
 
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Strength Standards Calculator",
-  "url": "https://axiomtraining.io/tools/strength-standards",
-  "description": "Free strength standards calculator. See how your bench press, squat, deadlift, and overhead press compare to beginner, novice, intermediate, advanced, and elite levels based on bodyweight ratios.",
-  "applicationCategory": "HealthApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-};
+const JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Strength Standards Calculator",
+    "url": "https://axiomtraining.io/tools/strength-standards",
+    "description": "Free strength standards calculator. See how your bench press, squat, deadlift, and overhead press compare to beginner, novice, intermediate, advanced, and elite levels based on bodyweight ratios.",
+    "applicationCategory": "HealthApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How strong should an intermediate lifter be?",
+        "acceptedAnswer": { "@type": "Answer", "text": "An intermediate male lifter should be able to bench press 1× bodyweight, squat 1.25× bodyweight, and deadlift 1.5× bodyweight. Female intermediate standards are approximately 0.65×, 0.85×, and 1.1× bodyweight respectively. These ratios represent 1–3 years of consistent structured training." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why are squat and deadlift standards higher than bench press?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The squat and deadlift engage more total muscle mass — legs, glutes, back, and core — while the bench press primarily loads the chest, shoulders, and triceps. More muscles means more total force production potential. Most lifters can squat about 25% more than they bench and deadlift about 50% more." }
+      },
+      {
+        "@type": "Question",
+        "name": "What bodyweight ratio is considered advanced for bench press?",
+        "acceptedAnswer": { "@type": "Answer", "text": "An advanced bench press for men is approximately 1.25× bodyweight (e.g., 230 lbs for a 185 lb lifter). For women, an advanced bench is around 0.85× bodyweight. Reaching this level typically requires 3–5+ years of structured training with periodized programming." }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does it take to reach an intermediate strength level?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most lifters reach intermediate strength standards after 1–2 years of consistent, structured training. The transition from novice to intermediate is marked by the end of linear progression — when weekly or session-to-session progress slows and more complex programming is needed." }
+      }
+    ]
+  }
+];
 
 export default function StrengthStandardsPage() {
   const [bodyweight, setBodyweight] = useState('');

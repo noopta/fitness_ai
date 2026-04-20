@@ -21,15 +21,43 @@ const STRENGTH_LEVELS = {
   "Overhead Press":   { beginner: 0.25, novice: 0.5, intermediate: 0.65, advanced: 0.8, elite: 1.0 },
 };
 
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "One Rep Max (e1RM) Calculator",
-  "url": "https://axiomtraining.io/tools/e1rm-calculator",
-  "description": "Free one rep max calculator. Enter any weight and rep count — get instant e1RM estimates across 5 formulas (Epley, Brzycki, Mayhew, Lombardi, O'Conner) plus strength level benchmarks.",
-  "applicationCategory": "HealthApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-};
+const JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "One Rep Max (e1RM) Calculator",
+    "url": "https://axiomtraining.io/tools/e1rm-calculator",
+    "description": "Free one rep max calculator. Enter any weight and rep count — get instant e1RM estimates across 5 formulas (Epley, Brzycki, Mayhew, Lombardi, O'Conner) plus strength level benchmarks.",
+    "applicationCategory": "HealthApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is a one rep max (1RM)?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Your one rep max (1RM) is the maximum weight you can lift for a single repetition with good form. It is the gold standard for measuring absolute strength and is used to prescribe training loads as percentages of that maximum." }
+      },
+      {
+        "@type": "Question",
+        "name": "Which 1RM formula is most accurate?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The Epley formula (weight × (1 + reps/30)) is the most widely used and performs well across most rep ranges, especially 1–10 reps. The Brzycki formula is slightly more conservative at higher rep counts. Using the average across multiple formulas gives the most reliable estimate." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why are e1RM estimates less accurate above 10 reps?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Above 10 reps, muscular endurance and glycolytic capacity contribute more to performance than pure strength. This makes it harder for any formula to isolate your true 1RM. For the most accurate estimate, use a 3–6 rep set at a challenging but submaximal weight." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I use my 1RM for programming?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most strength programs prescribe loads as percentages of your 1RM. Working at 80–85% (roughly 6–8 reps) targets hypertrophy. Strength-focused work sits at 85–95% (1–5 reps). Technique and volume work is typically 65–75% (10–15 reps)." }
+      }
+    ]
+  }
+];
 
 function epley(w: number, r: number) { return Math.round(w * (1 + r / 30)); }
 
