@@ -18,24 +18,26 @@ const tiers = [
     name: "Free",
     price: "$0",
     period: "forever",
-    description: "Try the diagnostic engine and see what's limiting your lifts.",
+    description: "A limited preview to test Axiom — great for first insights, not full optimization.",
     cta: "Get started free",
     ctaVariant: "outline" as const,
     href: "/register",
     badge: null,
     features: [
-      `${FREE_LIMIT} full diagnostic analyses per day`,
-      "All 9 supported lifts (including Olympic)",
-      "AI diagnostic interview",
-      "Phase breakdown & limiter identification",
-      "Accessory prescription",
-      "Share your analysis",
+      `${FREE_LIMIT} diagnostic analyses per day to test the engine`,
+      "All 9 supported lifts (including Olympic lifts)",
+      "AI diagnostic interview + limiter identification",
+      "Basic accessory prescription",
+      "Share your analysis results",
     ],
     missing: [
-      "Unlimited analyses",
-      "Session history",
-      "Exercise tutorial videos",
-      "Priority support",
+      "Personalized full program creation around your life and goals",
+      "Adaptive nutrition intelligence + proactive recommendations",
+      "Strength profiling that learns over time and predicts weak points",
+      "24/7 AI coach chat for workout and nutrition Q&A",
+      "Photo scan + text-to-calorie logging",
+      "Social feed, friends, and direct messages",
+      "Unlimited analyses and complete history memory",
     ],
   },
   {
@@ -43,21 +45,21 @@ const tiers = [
     name: "Pro",
     price: "$12",
     period: "per month",
-    description: "Science-first coaching built on 10 CPT certifications and 7,000+ pages of peer-reviewed training research — not opinion.",
+    description: "Your full AI performance stack: personalized programming, adaptive nutrition intelligence, strength optimization, and 24/7 coaching.",
     cta: "Upgrade to Pro",
     ctaVariant: "default" as const,
     href: null, // handled by onClick
     badge: "Most popular",
     features: [
-      "Unlimited diagnostic analyses — evidence-based limiter identification every lift",
-      "Multi-phase programs built on periodization science (NSCA, NASM, ACSM)",
-      "Nutrition targets using Mifflin-St Jeor TDEE — not generic estimates",
-      "Life Happened — physiologically accurate recovery & auto-reschedule",
-      "Wellness check-ins backed by HRV and fatigue research",
-      "Strength ratio diagnostics to flag imbalances before injury",
-      "Full session history & analytics for measurable progression",
-      "Gender-calibrated caloric, hormonal, and micronutrient guidance",
-      "Priority support — responses within hours",
+      "Programs engineered around YOU using current strength science — goal, schedule, equipment, and recovery profile included",
+      "Adaptive nutrition engine that learns your foods and maps impact on gym performance, day-to-day energy, and mental sharpness",
+      "Proactive nutrition coaching — not just tracking. Get next-best meal and macro adjustments before you stall",
+      "Strength profiling engine that gets smarter with every log, predicts weak points early, and surfaces optimization plays to keep progress moving",
+      "24/7 fine-tuned AI coaching chat for workout and nutrition Q&A — instant, specific, and context-aware",
+      "Photo scan meal logging to calorie/macro tracking in seconds",
+      "Type what you ate for instant AI calorie and macro extraction when you can’t scan",
+      "Social layer included: share updates to feed, add friends, and direct message training partners",
+      "Unlimited diagnostic analyses + full history so every cycle compounds instead of resetting",
     ],
     missing: [],
   },
@@ -107,8 +109,8 @@ export default function Pricing() {
               Start free. Upgrade when ready.
             </h1>
             <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              Run {FREE_LIMIT} full diagnostics per day for free — no credit card required.
-              Go Pro for unlimited analyses and full history access.
+              Start free with {FREE_LIMIT} diagnostics/day and experience Axiom firsthand.
+              Upgrade to Pro for personalized programming, adaptive nutrition, strength profiling, 24/7 coaching, social features, and unlimited analyses.
             </p>
           </motion.div>
 
@@ -222,7 +224,7 @@ export default function Pricing() {
               You're currently on the{" "}
               <span className="font-semibold text-foreground capitalize">{user.tier}</span> plan.
               {user.tier === "free" && (
-                <span> Upgrade to Pro to unlock unlimited analyses.</span>
+                <span> Upgrade to Pro to unlock personalized programming, adaptive nutrition, strength profiling, 24/7 coaching, social features, and unlimited analyses.</span>
               )}
               {user.tier !== "free" && (
                 <span> Thanks for supporting Axiom!</span>
@@ -239,20 +241,28 @@ export default function Pricing() {
           <div className="space-y-4">
             {[
               {
-                q: "What counts as one analysis?",
-                a: `A full diagnostic session — where you enter your snapshots, complete the interview, and generate a plan. Free users can run ${FREE_LIMIT} per day. Sessions reset at midnight.`,
+                q: "What do I actually unlock with Pro?",
+                a: "Pro unlocks your full AI performance stack: personalized programming, adaptive nutrition intelligence, evolving strength profiling, 24/7 coaching chat, social feed, friends, messaging, and unlimited diagnostics/history.",
               },
               {
-                q: "Can I share my analysis without a Pro account?",
-                a: "Yes. Sharing is available on all tiers — just click the Share button on your plan page to generate a public link.",
+                q: "How is Pro nutrition different from a normal macro tracker?",
+                a: "Axiom's nutrition engine learns your food patterns over time and links them to gym output, recovery, day-to-day energy, and mental sharpness — then proactively recommends adjustments.",
               },
               {
-                q: "What lifts are supported?",
-                a: "Flat Bench Press, Incline Bench Press, Deadlift, Barbell Back Squat, Barbell Front Squat, Clean & Jerk, Snatch, Power Clean, and Hang Clean.",
+                q: "How does strength profiling help me avoid plateaus?",
+                a: "As you log more sessions, Axiom builds a deeper strength profile, detects likely weak points early, and surfaces targeted optimizations so progress keeps compounding.",
+              },
+              {
+                q: "Can I log meals quickly without typing everything manually?",
+                a: "Yes. Pro includes both photo-scan meal logging and text-to-calorie parsing. Snap your plate or describe what you ate, and Axiom converts it into usable nutrition data.",
+              },
+              {
+                q: "Is coaching chat really included in Pro?",
+                a: "Yes — 24/7 workout and nutrition Q&A is included. Responses are context-aware and grounded in your diagnostic history, current program phase, and logged nutrition patterns.",
               },
               {
                 q: "Can I cancel Pro anytime?",
-                a: "Yes. Your subscription is month-to-month and you can cancel from the Stripe customer portal at any time. You'll retain Pro access until the end of the billing period.",
+                a: "Absolutely. Pro is month-to-month. Cancel anytime from the Stripe customer portal and you'll keep access through the end of your paid period.",
               },
             ].map(({ q, a }) => (
               <Card key={q} className="card-min rounded-2xl p-5">

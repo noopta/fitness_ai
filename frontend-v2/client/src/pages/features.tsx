@@ -1271,6 +1271,20 @@ function CompCell({ value, isAxiom }: { value: boolean | string; isAxiom: boolea
   );
 }
 
+function summarizeOtherApps(values: Array<boolean | string>): string {
+  const others = values.slice(1);
+  const supportedCount = others.filter((v) => v === true).length;
+  const partials = others.filter((v) => typeof v === "string").map((v) => String(v));
+  if (supportedCount === 0 && partials.length === 0) return "Not available in competitors";
+  if (supportedCount > 0 && partials.length === 0) {
+    return `Available in ${supportedCount}/${others.length} competitor apps`;
+  }
+  if (supportedCount === 0 && partials.length > 0) {
+    return `Only partial support elsewhere (${partials.join(", ")})`;
+  }
+  return `Mixed support: ${supportedCount}/${others.length} apps + partial options`;
+}
+
 function ComparisonSection() {
   return (
     <section className="py-16 sm:py-24 border-t">
@@ -1289,8 +1303,37 @@ function ComparisonSection() {
         </FadeUp>
 
         <FadeIn>
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <div className="min-w-[600px] px-4 sm:px-0">
+          {/* Mobile: stacked rows for clean readability */}
+          <div className="md:hidden space-y-3">
+            {COMPARISON_ROWS.map((row, ri) => (
+              <motion.div
+                key={row.feature}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20px" }}
+                transition={{ delay: ri * 0.03 }}
+                className="rounded-2xl border bg-background p-4 space-y-3"
+              >
+                <div className="text-sm font-medium">{row.feature}</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-xl bg-foreground/[0.04] px-3 py-2">
+                    <div className="font-semibold text-foreground mb-1">Axiom</div>
+                    <CompCell value={row.values[0]} isAxiom />
+                  </div>
+                  <div className="rounded-xl bg-muted/40 px-3 py-2">
+                    <div className="font-semibold text-muted-foreground mb-1">Other apps</div>
+                    <div className="text-muted-foreground leading-snug">
+                      {summarizeOtherApps(row.values)}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Tablet/Desktop: full comparison matrix */}
+          <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
+          <div className="min-w-[680px] px-4 sm:px-0">
           <div className="rounded-2xl border overflow-hidden">
             {/* Header */}
             <div className="grid bg-muted/50 border-b" style={{ gridTemplateColumns: "1fr repeat(5, 100px)" }}>
