@@ -13,6 +13,7 @@ import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
+import { PostCard } from '../../src/components/social/PostCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,340 +76,6 @@ function payloadDescription(itemType: string, payload: any): string {
     return payload.title ? `Shared workout: ${payload.title}` : 'Shared a workout';
   }
   return `Shared ${itemType}`;
-}
-
-// ─── Feed Card ────────────────────────────────────────────────────────────────
-
-function FeedCard({
-  item: initialItem,
-  currentUserId,
-  friends,
-}: {
-  item: FeedItem;
-  currentUserId?: string;
-  friends: { id: string; name: string | null; username: string | null }[];
-}) {
-  const [item, setItem] = useState(initialItem);
-  const [commentsExpanded, setCommentsExpanded] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
-  const [showForwardPicker, setShowForwardPicker] = useState(false);
-  const [forwarding, setForwarding] = useState(false);
-  const [forwardMessage, setForwardMessage] = useState('');
-  const [reposting, setReposting] = useState(false);
-  const [imageExpanded, setImageExpanded] = useState(false);
-  const [deleted, setDeleted] = useState(false);
-
-  const isRepost = item.itemType === 'repost';
-  const isText = item.itemType === 'text';
-  const isMedia = item.itemType === 'media';
-  const hasImage = (isMedia && item.payload?.imageBase64) || (isRepost && item.payload?.originalPayload?.imageBase64);
-  const hasVideo = isMedia && item.payload?.videoUrl;
-  const description = payloadDescription(item.itemType, item.payload);
-  const isOwnPost = item.sharerId === currentUserId;
-
-  // Sync when parent feed refreshes
-  useEffect(() => { setItem(initialItem); }, [initialItem.id, initialItem.reactionCount, initialItem.commentCount]);
-
-  function handleLongPress() {
-    if (isOwnPost) {
-      Alert.alert('Delete Post', 'Remove this post from your feed?', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await socialApi.deletePost(item.id);
-              setDeleted(true);
-            } catch (err: any) {
-              Alert.alert('Error', err?.message || 'Could not delete post.');
-            }
-          },
-        },
-      ]);
-    } else {
-      Alert.alert('Report Post', 'Is this content inappropriate or offensive?', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Report',
-          style: 'destructive',
-          onPress: () => {
-            socialApi.reportPost(item.id, 'inappropriate').catch(() => {});
-            Alert.alert('Reported', 'Thank you — we\'ll review this post.');
-          },
-        },
-      ]);
-    }
-  }
-
-  async function handleReact() {
-    const wasLiked = item.likedByMe;
-    setItem(prev => ({
-      ...prev,
-      likedByMe: !wasLiked,
-      reactionCount: prev.reactionCount + (wasLiked ? -1 : 1),
-    }));
-    try {
-      await socialApi.reactToPost(item.id);
-    } catch {
-      setItem(prev => ({
-        ...prev,
-        likedByMe: wasLiked,
-        reactionCount: prev.reactionCount + (wasLiked ? 1 : -1),
-      }));
-    }
-  }
-
-  async function handleAddComment() {
-    if (!commentText.trim()) return;
-    setSubmittingComment(true);
-    try {
-      const newComment = await socialApi.addComment(item.id, commentText.trim());
-      setItem(prev => ({
-        ...prev,
-        comments: [...prev.comments, newComment],
-        commentCount: prev.commentCount + 1,
-      }));
-      setCommentText('');
-    } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Could not post comment.');
-    } finally {
-      setSubmittingComment(false);
-    }
-  }
-
-  async function handleForward(friendId: string) {
-    setForwarding(true);
-    try {
-      await socialApi.forwardPost(item.id, friendId, forwardMessage.trim() || undefined);
-      setShowForwardPicker(false);
-      setForwardMessage('');
-      Alert.alert('Sent!', 'Post forwarded to your friend.');
-    } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Could not forward post.');
-    } finally {
-      setForwarding(false);
-    }
-  }
-
-  async function handleRepost() {
-    setReposting(true);
-    try {
-      await socialApi.shareItem({
-        itemType: 'repost',
-        payload: {
-          originalPostId: item.id,
-          originalSharerId: item.sharerId,
-          originalSharerName: item.sharer?.name ?? null,
-          originalSharerUsername: item.sharer?.username ?? null,
-          originalItemType: item.itemType,
-          originalPayload: item.payload,
-          originalCaption: item.caption ?? null,
-        },
-      });
-      Alert.alert('Reposted!', 'Added to your feed.');
-    } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Could not repost.');
-    } finally {
-      setReposting(false);
-    }
-  }
-
-  const rawBase64 = isRepost
-    ? item.payload?.originalPayload?.imageBase64
-    : item.payload?.imageBase64;
-  const imageUri = rawBase64
-    ? (rawBase64.startsWith('data:') ? rawBase64 : `data:image/jpeg;base64,${rawBase64}`)
-    : null;
-
-  if (deleted) return null;
-
-  const repostOriginalText = isRepost ? item.payload?.originalPayload?.text : null;
-  const repostOriginalCaption = isRepost ? item.payload?.originalCaption : null;
-  const repostOriginalType = isRepost ? item.payload?.originalItemType : null;
-  const repostOriginalAuthor = isRepost
-    ? (item.payload?.originalSharerUsername ? `@${item.payload.originalSharerUsername}` : (item.payload?.originalSharerName ?? 'Unknown'))
-    : null;
-
-  return (
-    <Pressable onLongPress={handleLongPress} delayLongPress={400}>
-    <View style={styles.card}>
-      {/* Header */}
-      <View style={styles.cardRow}>
-        {item.sharer?.avatarBase64 ? (
-          <Image source={{ uri: item.sharer.avatarBase64 }} style={styles.avatarImage} />
-        ) : (
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{(item.sharer?.username ?? item.sharer?.name ?? '?')[0].toUpperCase()}</Text>
-          </View>
-        )}
-        <View style={styles.cardContent}>
-          <Text style={styles.cardName}>{item.sharer?.username ? `@${item.sharer.username}` : (item.sharer?.name ?? 'Unknown')}</Text>
-          {description ? <Text style={styles.cardSub}>{description}</Text> : null}
-        </View>
-        <Text style={styles.timeText}>{relativeTime(item.createdAt)}</Text>
-      </View>
-
-      {/* Caption / repost label */}
-      {isRepost ? (
-        <View style={styles.repostLabel}>
-          <Ionicons name="repeat-outline" size={13} color={colors.mutedForeground} />
-          <Text style={styles.repostLabelText}>reposted from {repostOriginalAuthor}</Text>
-        </View>
-      ) : item.caption ? (
-        <Text style={styles.captionText}>{item.caption}</Text>
-      ) : null}
-
-      {/* Repost: quoted original content */}
-      {isRepost ? (
-        <View style={styles.repostQuote}>
-          {repostOriginalCaption ? <Text style={styles.captionText}>{repostOriginalCaption}</Text> : null}
-          {repostOriginalText ? <Text style={styles.postText}>{repostOriginalText}</Text> : null}
-          {imageUri ? (
-            <TouchableOpacity onPress={() => setImageExpanded(true)} activeOpacity={0.9}>
-              <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
-            </TouchableOpacity>
-          ) : null}
-          {repostOriginalType === 'media' && item.payload?.originalPayload?.videoUrl ? (
-            <View style={styles.videoLinkRow}>
-              <Ionicons name="videocam-outline" size={15} color={colors.mutedForeground} />
-              <Text style={styles.videoLinkText} numberOfLines={1}>{item.payload.originalPayload.videoUrl}</Text>
-            </View>
-          ) : null}
-        </View>
-      ) : (
-        <>
-          {/* Text post body */}
-          {isText && item.payload?.text ? (
-            <Text style={styles.postText}>{item.payload.text}</Text>
-          ) : null}
-
-          {/* Image post */}
-          {imageUri ? (
-            <TouchableOpacity onPress={() => setImageExpanded(true)} activeOpacity={0.9}>
-              <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
-            </TouchableOpacity>
-          ) : null}
-
-          {/* Video post */}
-          {hasVideo ? (
-            <View style={styles.videoLinkRow}>
-              <Ionicons name="videocam-outline" size={15} color={colors.mutedForeground} />
-              <Text style={styles.videoLinkText} numberOfLines={1}>{item.payload.videoUrl}</Text>
-              <Text style={styles.videoNote}>(video)</Text>
-            </View>
-          ) : null}
-        </>
-      )}
-
-      {/* Fullscreen image modal */}
-      <Modal visible={imageExpanded} transparent animationType="fade" onRequestClose={() => setImageExpanded(false)}>
-        <Pressable style={styles.imageModalOverlay} onPress={() => setImageExpanded(false)}>
-          <Image source={{ uri: imageUri! }} style={styles.imageModalFull} resizeMode="contain" />
-        </Pressable>
-      </Modal>
-
-      {/* Action bar */}
-      <View style={styles.actionBar}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleReact} activeOpacity={0.7}>
-          <Ionicons
-            name={item.likedByMe ? 'heart' : 'heart-outline'}
-            size={18}
-            color={item.likedByMe ? '#ef4444' : colors.mutedForeground}
-          />
-          {item.reactionCount > 0 && (
-            <Text style={[styles.actionCount, item.likedByMe && { color: '#ef4444' }]}>{item.reactionCount}</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionBtn} onPress={() => setCommentsExpanded(v => !v)} activeOpacity={0.7}>
-          <Ionicons name="chatbubble-outline" size={17} color={colors.mutedForeground} />
-          {item.commentCount > 0 && <Text style={styles.actionCount}>{item.commentCount}</Text>}
-        </TouchableOpacity>
-
-        {friends.length > 0 && (
-          <TouchableOpacity style={styles.actionBtn} onPress={() => setShowForwardPicker(true)} activeOpacity={0.7}>
-            <Ionicons name="paper-plane-outline" size={17} color={colors.mutedForeground} />
-          </TouchableOpacity>
-        )}
-
-        {!isOwnPost && (
-          <TouchableOpacity style={styles.actionBtn} onPress={handleRepost} activeOpacity={0.7} disabled={reposting}>
-            {reposting
-              ? <ActivityIndicator size="small" color={colors.mutedForeground} />
-              : <Ionicons name="repeat-outline" size={17} color={colors.mutedForeground} />
-            }
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Comments section */}
-      {commentsExpanded && (
-        <View style={styles.commentsSection}>
-          {item.comments.map(c => (
-            <View key={c.id} style={styles.commentRow}>
-              <Text style={styles.commentAuthor}>{c.author.username ? `@${c.author.username}` : (c.author.name ?? 'User')}</Text>
-              <Text style={styles.commentText}>{c.text}</Text>
-            </View>
-          ))}
-          <View style={styles.commentInput}>
-            <TextInput
-              style={styles.commentInputField}
-              placeholder="Add a comment…"
-              placeholderTextColor={colors.mutedForeground}
-              value={commentText}
-              onChangeText={setCommentText}
-              onSubmitEditing={handleAddComment}
-              returnKeyType="send"
-              editable={!submittingComment}
-            />
-            <TouchableOpacity onPress={handleAddComment} disabled={submittingComment || !commentText.trim()} activeOpacity={0.7}>
-              {submittingComment
-                ? <ActivityIndicator size="small" color={colors.mutedForeground} />
-                : <Ionicons name="send" size={16} color={commentText.trim() ? colors.foreground : colors.mutedForeground} />
-              }
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Forward picker modal */}
-      <Modal visible={showForwardPicker} transparent animationType="slide" onRequestClose={() => { setShowForwardPicker(false); setForwardMessage(''); }}>
-        <Pressable style={styles.forwardOverlay} onPress={() => { setShowForwardPicker(false); setForwardMessage(''); }}>
-          <View style={styles.forwardSheet}>
-            <Pressable onPress={() => {}}>
-              <Text style={styles.forwardTitle}>Send to a Friend</Text>
-              <TextInput
-                style={styles.forwardMessageInput}
-                placeholder="Add a message (optional)…"
-                placeholderTextColor={colors.mutedForeground}
-                value={forwardMessage}
-                onChangeText={setForwardMessage}
-                maxLength={300}
-              />
-              {friends.map(f => (
-                <TouchableOpacity
-                  key={f.id}
-                  style={styles.forwardRow}
-                  activeOpacity={0.75}
-                  disabled={forwarding}
-                  onPress={() => handleForward(f.id)}
-                >
-                  <View style={styles.forwardAvatar}>
-                    <Text style={styles.forwardAvatarText}>{((f.username ?? f.name ?? '?')[0]).toUpperCase()}</Text>
-                  </View>
-                  <Text style={styles.forwardName}>{f.username ? `@${f.username}` : (f.name ?? 'User')}</Text>
-                  {forwarding && <ActivityIndicator size="small" color={colors.mutedForeground} />}
-                </TouchableOpacity>
-              ))}
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
-    </View>
-    </Pressable>
-  );
 }
 
 // ─── Friend Row ───────────────────────────────────────────────────────────────
@@ -862,7 +529,7 @@ export default function SocialScreen() {
                 <Text style={styles.emptySubtitle}>Add friends to see their shared workouts and plans here.</Text>
               </View>
             ) : (
-              feed.map((item) => <FeedCard key={item.id} item={item} currentUserId={user?.id} friends={friends} />)
+              feed.map((item) => <PostCard key={item.id} item={item} currentUserId={user?.id} friends={friends} />)
             )}
           </>
         ) : (
@@ -935,7 +602,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const isSmallScreen = SCREEN_WIDTH < 380;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.background },
+  safeArea: { flex: 1, backgroundColor: '#F5F5F7' },
 
   topBar: {
     flexDirection: 'row',
@@ -945,6 +612,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    backgroundColor: '#FFFFFF',
   },
   screenTitle: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, color: colors.foreground },
   topBarActions: { flexDirection: 'row', gap: spacing.sm },
@@ -955,7 +623,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
     marginBottom: spacing.sm,
-    backgroundColor: colors.muted,
+    backgroundColor: '#EFEFEF',
     borderRadius: radius.md,
     padding: 4,
   },
@@ -989,7 +657,7 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: fontSize.xs, color: '#fff', fontWeight: fontWeight.bold },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: isSmallScreen ? spacing.md : spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+  scrollContent: { paddingHorizontal: 16, paddingVertical: 32, paddingBottom: spacing.xxl, gap: 24 },
 
   // New Post button
   newPostButton: {
@@ -1008,6 +676,7 @@ const styles = StyleSheet.create({
     color: colors.primaryForeground,
   },
 
+  // FriendRow card (simpler than PostCard — no shadow treatment needed)
   card: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -1024,188 +693,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarImage: { width: 40, height: 40, borderRadius: 20 },
   avatarText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   cardContent: { flex: 1 },
   cardName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },
   cardSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
-  timeText: { fontSize: fontSize.xs, color: colors.mutedForeground },
-
-  // Post body rendering
-  postText: {
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-    marginTop: spacing.sm,
-    lineHeight: 20,
-  },
-  postImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: radius.md,
-    marginTop: spacing.sm,
-    backgroundColor: colors.muted,
-  },
-  videoLinkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: spacing.sm,
-    backgroundColor: colors.muted,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-  },
-  videoLinkText: {
-    flex: 1,
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-    textDecorationLine: 'underline',
-  },
-  videoNote: { fontSize: fontSize.xs, color: colors.mutedForeground, fontStyle: 'italic' },
-
-  captionText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    fontStyle: 'italic',
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  repostLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
-    marginBottom: 6,
-  },
-  repostLabelText: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-  },
-  repostQuote: {
-    borderLeftWidth: 2,
-    borderLeftColor: colors.border,
-    paddingLeft: spacing.sm,
-    marginTop: 4,
-  },
-  imageModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageModalFull: {
-    width: '100%',
-    height: '85%',
-  },
-  captionInput: {
-    marginTop: spacing.xs,
-    marginBottom: 0,
-  },
-
-  actionBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  actionCount: {
-    fontSize: fontSize.xs,
-    color: colors.mutedForeground,
-  },
-
-  commentsSection: {
-    marginTop: spacing.sm,
-    gap: spacing.xs,
-  },
-  commentRow: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'flex-start',
-  },
-  commentAuthor: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-    minWidth: 60,
-  },
-  commentText: {
-    fontSize: fontSize.xs,
-    color: colors.foreground,
-    flex: 1,
-    lineHeight: 16,
-  },
-  commentInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: 8,
-  },
-  commentInputField: {
-    flex: 1,
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-
-  forwardOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  forwardSheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: spacing.lg,
-    paddingBottom: 40,
-    gap: spacing.sm,
-  },
-  forwardTitle: {
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
-    color: colors.foreground,
-    marginBottom: 8,
-  },
-  forwardMessageInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    color: colors.foreground,
-    fontSize: fontSize.sm,
-    marginBottom: 8,
-  },
-  forwardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  forwardAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  forwardAvatarText: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.foreground },
-  forwardName: { flex: 1, fontSize: fontSize.sm, color: colors.foreground },
 
   smallButton: {
     flexDirection: 'row',
@@ -1341,6 +832,11 @@ const styles = StyleSheet.create({
     minHeight: 0,
     height: 50,
   },
+  captionInput: {
+    marginTop: spacing.xs,
+    marginBottom: 0,
+  },
+
   charCount: {
     fontSize: fontSize.xs,
     color: colors.mutedForeground,
