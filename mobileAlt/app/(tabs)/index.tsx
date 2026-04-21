@@ -141,23 +141,8 @@ export default function HomeScreen() {
             </View>
           ) : null
         ) : (
-          /* Free: Unlock AI Coaching upsell */
-          <TouchableOpacity
-            style={styles.upsellCard}
-            activeOpacity={0.82}
-            onPress={() => router.push('/(tabs)/coach')}
-          >
-            <View style={styles.upsellIconBox}>
-              <Ionicons name="sparkles" size={18} color={colors.mutedForeground} />
-            </View>
-            <View style={styles.upsellText}>
-              <Text style={styles.upsellTitle}>Unlock AI Coaching</Text>
-              <Text style={styles.upsellSubtitle}>
-                Get personalized programming and feedback from Anakin.
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
-          </TouchableOpacity>
+          /* Free: New Analysis secondary card (upsell hidden for App Store review) */
+          null
         )}
 
         {/* ── New Analysis row (for paid users, as a secondary action) ── */}

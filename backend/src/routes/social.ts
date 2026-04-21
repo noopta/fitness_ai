@@ -581,7 +581,7 @@ router.post('/social/posts/:id/comments', async (req, res) => {
 
 // POST /api/social/posts/:id/forward — send a copy of a post to a friend
 router.post('/social/posts/:id/forward', async (req, res) => {
-  const { recipientId } = req.body;
+  const { recipientId, message } = req.body;
   if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
 
   const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
@@ -596,7 +596,7 @@ router.post('/social/posts/:id/forward', async (req, res) => {
       recipientId,
       itemType: original.itemType,
       payload: original.payload,
-      caption: original.caption,
+      caption: message ? String(message).slice(0, 300) : original.caption,
     },
     include: FEED_INCLUDE,
   });

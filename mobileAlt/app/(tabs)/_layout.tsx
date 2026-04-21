@@ -106,6 +106,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
+          // Hidden for free users pending IAP setup
+          href: user?.tier === 'pro' || user?.tier === 'enterprise' ? undefined : null,
         }}
       />
       <Tabs.Screen

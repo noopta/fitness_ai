@@ -391,8 +391,8 @@ export const socialApi = {
     apiFetch(`/social/posts/${postId}/comments`, { method: 'POST', body: JSON.stringify({ text }) }),
 
   // Forward (send to DM)
-  forwardPost: (postId: string, recipientId: string) =>
-    apiFetch(`/social/posts/${postId}/forward`, { method: 'POST', body: JSON.stringify({ recipientId }) }),
+  forwardPost: (postId: string, recipientId: string, message?: string) =>
+    apiFetch(`/social/posts/${postId}/forward`, { method: 'POST', body: JSON.stringify({ recipientId, message }) }),
 
   // Invite
   getInviteLink: () => apiFetch('/social/invite'),

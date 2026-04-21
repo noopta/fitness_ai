@@ -94,6 +94,8 @@ function FeedCard({
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showForwardPicker, setShowForwardPicker] = useState(false);
   const [forwarding, setForwarding] = useState(false);
+  const [forwardMessage, setForwardMessage] = useState('');
+  const [reposting, setReposting] = useState(false);
 
   const isText = item.itemType === 'text';
   const isMedia = item.itemType === 'media';
@@ -159,13 +161,30 @@ function FeedCard({
   async function handleForward(friendId: string) {
     setForwarding(true);
     try {
-      await socialApi.forwardPost(item.id, friendId);
+      await socialApi.forwardPost(item.id, friendId, forwardMessage.trim() || undefined);
       setShowForwardPicker(false);
+      setForwardMessage('');
       Alert.alert('Sent!', 'Post forwarded to your friend.');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not forward post.');
     } finally {
       setForwarding(false);
+    }
+  }
+
+  async function handleRepost() {
+    setReposting(true);
+    try {
+      await socialApi.shareItem({
+        itemType: item.itemType,
+        payload: item.payload,
+        caption: item.caption ?? undefined,
+      });
+      Alert.alert('Reposted!', 'Added to your feed.');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Could not repost.');
+    } finally {
+      setReposting(false);
     }
   }
 
@@ -241,6 +260,15 @@ function FeedCard({
             <Ionicons name="paper-plane-outline" size={17} color={colors.mutedForeground} />
           </TouchableOpacity>
         )}
+
+        {!isOwnPost && (
+          <TouchableOpacity style={styles.actionBtn} onPress={handleRepost} activeOpacity={0.7} disabled={reposting}>
+            {reposting
+              ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+              : <Ionicons name="repeat-outline" size={17} color={colors.mutedForeground} />
+            }
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Comments section */}
@@ -274,25 +302,35 @@ function FeedCard({
       )}
 
       {/* Forward picker modal */}
-      <Modal visible={showForwardPicker} transparent animationType="slide" onRequestClose={() => setShowForwardPicker(false)}>
-        <Pressable style={styles.forwardOverlay} onPress={() => setShowForwardPicker(false)}>
+      <Modal visible={showForwardPicker} transparent animationType="slide" onRequestClose={() => { setShowForwardPicker(false); setForwardMessage(''); }}>
+        <Pressable style={styles.forwardOverlay} onPress={() => { setShowForwardPicker(false); setForwardMessage(''); }}>
           <View style={styles.forwardSheet}>
-            <Text style={styles.forwardTitle}>Send to a Friend</Text>
-            {friends.map(f => (
-              <TouchableOpacity
-                key={f.id}
-                style={styles.forwardRow}
-                activeOpacity={0.75}
-                disabled={forwarding}
-                onPress={() => handleForward(f.id)}
-              >
-                <View style={styles.forwardAvatar}>
-                  <Text style={styles.forwardAvatarText}>{((f.username ?? f.name ?? '?')[0]).toUpperCase()}</Text>
-                </View>
-                <Text style={styles.forwardName}>{f.username ? `@${f.username}` : (f.name ?? 'User')}</Text>
-                {forwarding && <ActivityIndicator size="small" color={colors.mutedForeground} />}
-              </TouchableOpacity>
-            ))}
+            <Pressable onPress={() => {}}>
+              <Text style={styles.forwardTitle}>Send to a Friend</Text>
+              <TextInput
+                style={styles.forwardMessageInput}
+                placeholder="Add a message (optional)…"
+                placeholderTextColor={colors.mutedForeground}
+                value={forwardMessage}
+                onChangeText={setForwardMessage}
+                maxLength={300}
+              />
+              {friends.map(f => (
+                <TouchableOpacity
+                  key={f.id}
+                  style={styles.forwardRow}
+                  activeOpacity={0.75}
+                  disabled={forwarding}
+                  onPress={() => handleForward(f.id)}
+                >
+                  <View style={styles.forwardAvatar}>
+                    <Text style={styles.forwardAvatarText}>{((f.username ?? f.name ?? '?')[0]).toUpperCase()}</Text>
+                  </View>
+                  <Text style={styles.forwardName}>{f.username ? `@${f.username}` : (f.name ?? 'User')}</Text>
+                  {forwarding && <ActivityIndicator size="small" color={colors.mutedForeground} />}
+                </TouchableOpacity>
+              ))}
+            </Pressable>
           </View>
         </Pressable>
       </Modal>
@@ -1039,7 +1077,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     color: colors.foreground,
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  forwardMessageInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    color: colors.foreground,
+    fontSize: fontSize.sm,
+    marginBottom: 8,
   },
   forwardRow: {
     flexDirection: 'row',

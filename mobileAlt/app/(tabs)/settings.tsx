@@ -295,22 +295,20 @@ export default function SettingsScreen() {
           <ContributionGraph userId={user?.id} />
         </View>
 
-        {/* Subscription section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Subscription</Text>
-          <View style={styles.card}>
-            <View style={styles.cardRow}>
-              <View style={styles.cardIconBox}>
-                <Ionicons name={isPro ? 'star' : 'star-outline'} size={18} color={colors.foreground} />
+        {/* Subscription section — shown only for Pro (hidden for free pending IAP) */}
+        {isPro && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Subscription</Text>
+            <View style={styles.card}>
+              <View style={styles.cardRow}>
+                <View style={styles.cardIconBox}>
+                  <Ionicons name="star" size={18} color={colors.foreground} />
+                </View>
+                <View style={styles.cardRowText}>
+                  <Text style={styles.cardRowTitle}>Pro Plan</Text>
+                  <Text style={styles.cardRowSub}>Full access to all features.</Text>
+                </View>
               </View>
-              <View style={styles.cardRowText}>
-                <Text style={styles.cardRowTitle}>{isPro ? 'Pro Plan' : 'Free Plan'}</Text>
-                <Text style={styles.cardRowSub}>
-                  {isPro ? 'Full access to all features.' : '2 analyses per day.'}
-                </Text>
-              </View>
-            </View>
-            {isPro && (
               <TouchableOpacity
                 style={styles.outlineButton}
                 activeOpacity={0.82}
@@ -321,9 +319,9 @@ export default function SettingsScreen() {
                   : <Text style={styles.outlineButtonText}>Manage Subscription</Text>
                 }
               </TouchableOpacity>
-            )}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Preferences section */}
         <View style={styles.section}>
