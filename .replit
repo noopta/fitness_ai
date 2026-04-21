@@ -24,13 +24,13 @@ name = "Dev Server"
 mode = "sequential"
 author = "agent"
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd mobileAlt && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 ./node_modules/.bin/expo start --web --port 5000"
 waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[workflows.workflow]]
 name = "EAS Init"
@@ -80,13 +80,14 @@ args = "Web Frontend"
 [[workflows.workflow]]
 name = "Web Frontend"
 author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd frontend-v2 && cross-env NODE_ENV=development PORT=5000 tsx server/index.ts"
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [agent]
 expertMode = true
