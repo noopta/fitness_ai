@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { cacheDelete } from '../services/cacheService.js';
+import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
 import { recomputeStrengthProfileInBackground } from './strength.js';
 import { notifyStreakMilestone } from '../services/notificationService.js';
@@ -134,6 +134,8 @@ router.post('/workouts', requireAuth, async (req, res) => {
     });
 
     cacheDelete(`userctx:${req.user!.id}`);
+    cacheClearByPrefix(`schedule:${req.user!.id}:`);
+    cacheClearByPrefix(`today:${req.user!.id}:`);
     recomputeStrengthProfileInBackground(req.user!.id);
 
     // ── Streak tracking ───────────────────────────────────────────────────────
@@ -193,6 +195,8 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
     });
 
     cacheDelete(`userctx:${req.user!.id}`);
+    cacheClearByPrefix(`schedule:${req.user!.id}:`);
+    cacheClearByPrefix(`today:${req.user!.id}:`);
     recomputeStrengthProfileInBackground(req.user!.id);
     res.json({ ...updated, exercises });
   } catch (err) {

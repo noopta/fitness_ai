@@ -381,9 +381,18 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
     onRefresh?.();
   }
 
-  function handleWorkoutSaved() {
+  function handleWorkoutSaved(loggedDate?: string) {
     setWorkoutSaved(true);
     setTimeout(() => setWorkoutSaved(false), 3000);
+    if (loggedDate) {
+      const dateKey = loggedDate.slice(0, 10);
+      setScheduleData(prev => prev ? {
+        ...prev,
+        weekDays: prev.weekDays.map(d =>
+          d.date.slice(0, 10) === dateKey ? { ...d, isLogged: true } : d
+        ),
+      } : prev);
+    }
     loadData();
     onRefresh?.();
   }
@@ -714,12 +723,10 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             setTimeout(() => setSelectedDay(null), 400);
           }}
           onLogged={() => {
+            const loggedDate = selectedDay?.date;
             setPastLogVisible(false);
             setTimeout(() => setSelectedDay(null), 400);
-            setWorkoutSaved(true);
-            setTimeout(() => setWorkoutSaved(false), 3000);
-            loadData();
-            onRefresh?.();
+            handleWorkoutSaved(loggedDate);
           }}
           onLogWorkout={(exercises, date, title) => setDayLogData({ exercises, date, title })}
         />
@@ -729,7 +736,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
       <WorkoutLogModal
         visible={!!dayLogData}
         onClose={() => setDayLogData(null)}
-        onSaved={() => { setDayLogData(null); handleWorkoutSaved(); }}
+        onSaved={() => { const loggedDate = dayLogData?.date; setDayLogData(null); handleWorkoutSaved(loggedDate); }}
         todayExercises={dayLogData?.exercises}
         date={dayLogData?.date}
         workoutTitle={dayLogData?.title}
