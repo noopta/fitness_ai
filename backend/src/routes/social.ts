@@ -489,6 +489,32 @@ router.post('/social/share', async (req, res) => {
     include: FEED_INCLUDE,
   });
   res.status(201).json(serializeFeedItem(item, req.user!.id));
+
+  // Notify friends about new broadcast post
+  const isBroadcast = !recipientId;
+  if (isBroadcast) {
+    const poster = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { username: true, name: true } });
+    const posterDisplay = poster?.username ? `@${poster.username}` : (poster?.name ?? 'Someone');
+    const friendships = await prisma.friendship.findMany({
+      where: { OR: [{ requesterId: req.user!.id }, { addresseeId: req.user!.id }], status: 'accepted' },
+      select: { requesterId: true, addresseeId: true },
+    });
+    const friendIds = friendships.map((f: any) => f.requesterId === req.user!.id ? f.addresseeId : f.requesterId);
+    const notifBody = caption?.trim() ? caption.trim().slice(0, 80) : (itemType === 'media' ? 'Shared a photo' : 'Posted something new');
+    friendIds.forEach((fid: string) => {
+      sendPushToUser(fid, `${posterDisplay} posted`, notifBody, { type: 'new_post', postId: item.id }).catch(() => {});
+    });
+  }
+
+  // If it's a repost, notify original post owner
+  if (payload?.originalPostId) {
+    const originalPost = await prisma.sharedItem.findUnique({ where: { id: payload.originalPostId }, select: { sharerId: true } });
+    if (originalPost && originalPost.sharerId !== req.user!.id) {
+      const reposter = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { username: true, name: true } });
+      const reposterDisplay = reposter?.username ? `@${reposter.username}` : (reposter?.name ?? 'Someone');
+      sendPushToUser(originalPost.sharerId, 'New repost', `${reposterDisplay} reposted your post`, { type: 'repost', postId: payload.originalPostId }).catch(() => {});
+    }
+  }
 });
 
 // GET /api/social/shared-feed
@@ -551,6 +577,13 @@ router.post('/social/posts/:id/react', async (req, res) => {
   } else {
     await prisma.postReaction.create({ data: { postId, userId } });
     res.json({ liked: true });
+    // Notify post owner
+    const post = await prisma.sharedItem.findUnique({ where: { id: postId }, select: { sharerId: true } });
+    if (post && post.sharerId !== userId) {
+      const liker = await prisma.user.findUnique({ where: { id: userId }, select: { username: true, name: true } });
+      const display = liker?.username ? `@${liker.username}` : (liker?.name ?? 'Someone');
+      sendPushToUser(post.sharerId, 'New like', `${display} liked your post`, { type: 'reaction', postId }).catch(() => {});
+    }
   }
 });
 
@@ -575,32 +608,73 @@ router.post('/social/posts/:id/comments', async (req, res) => {
     include: { author: { select: { id: true, name: true, username: true } } },
   });
   res.status(201).json(comment);
+  // Notify post owner
+  const post = await prisma.sharedItem.findUnique({ where: { id: req.params.id }, select: { sharerId: true } });
+  if (post && post.sharerId !== req.user!.id) {
+    const commenter = comment.author as any;
+    const display = commenter?.username ? `@${commenter.username}` : (commenter?.name ?? 'Someone');
+    sendPushToUser(post.sharerId, 'New comment', `${display}: ${text.trim().slice(0, 60)}`, { type: 'comment', postId: req.params.id }).catch(() => {});
+  }
+});
+
+// DELETE /api/social/posts/:id — delete own post
+router.delete('/social/posts/:id', async (req, res) => {
+  const userId = req.user!.id;
+  const post = await prisma.sharedItem.findUnique({ where: { id: req.params.id } });
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  if (post.sharerId !== userId) return res.status(403).json({ error: 'Not your post' });
+  await prisma.sharedItem.delete({ where: { id: req.params.id } });
+  res.json({ ok: true });
 });
 
 // ─── Forward (send post to DM) ────────────────────────────────────────────────
 
-// POST /api/social/posts/:id/forward — send a copy of a post to a friend
+// POST /api/social/posts/:id/forward — forward a post as a DM message
 router.post('/social/posts/:id/forward', async (req, res) => {
+  const userId = req.user!.id;
   const { recipientId, message } = req.body;
   if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
 
-  const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
+  const canShare = await areFriendsOrColleagues(userId, recipientId);
   if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
 
   const original = await prisma.sharedItem.findUnique({ where: { id: req.params.id } });
   if (!original) return res.status(404).json({ error: 'Post not found' });
 
-  const forwarded = await prisma.sharedItem.create({
-    data: {
-      sharerId: req.user!.id,
-      recipientId,
-      itemType: original.itemType,
-      payload: original.payload,
-      caption: message ? String(message).slice(0, 300) : original.caption,
-    },
-    include: FEED_INCLUDE,
+  // Find or create DM conversation
+  const ids = canonicalParticipants(userId, recipientId);
+  const convo = await prisma.directConversation.upsert({
+    where: { participantAId_participantBId: ids },
+    create: ids,
+    update: {},
   });
-  res.status(201).json(serializeFeedItem(forwarded, req.user!.id));
+
+  // Build a message body that previews the post
+  let postPreview = '';
+  try {
+    const p = typeof original.payload === 'string' ? JSON.parse(original.payload) : original.payload;
+    if (p?.text) postPreview = p.text.slice(0, 120);
+    else if (p?.imageBase64) postPreview = '[image]';
+    else if (p?.videoUrl) postPreview = `[video] ${p.videoUrl.slice(0, 60)}`;
+  } catch {}
+  const caption = (original as any).caption ? ` — "${(original as any).caption}"` : '';
+  const intro = message ? `${message}\n\n` : '';
+  const body = `${intro}[Forwarded post]${caption}${postPreview ? `\n${postPreview}` : ''}`;
+
+  const [dmMessage] = await prisma.$transaction([
+    prisma.message.create({
+      data: { conversationId: convo.id, senderId: userId, body: body.slice(0, 1000) },
+      include: { sender: { select: { id: true, name: true, username: true } } },
+    }),
+    prisma.directConversation.update({ where: { id: convo.id }, data: { updatedAt: new Date() } }),
+  ]);
+
+  // Push to recipient
+  const sender = await prisma.user.findUnique({ where: { id: userId }, select: { username: true, name: true } });
+  const display = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
+  sendPushToUser(recipientId, `Post from ${display}`, message || 'Forwarded you a post', { type: 'message', conversationId: convo.id }).catch(() => {});
+
+  res.status(201).json({ ok: true, conversationId: convo.id });
 });
 
 // ─── Leaderboard ──────────────────────────────────────────────────────────────

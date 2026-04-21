@@ -295,8 +295,8 @@ export default function SettingsScreen() {
           <ContributionGraph userId={user?.id} />
         </View>
 
-        {/* Subscription section — shown only for Pro (hidden for free pending IAP) */}
-        {isPro && (
+        {/* Subscription section — hidden pending IAP setup */}
+        {/* {isPro && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Subscription</Text>
             <View style={styles.card}>
@@ -321,7 +321,7 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        )} */}
 
         {/* Preferences section */}
         <View style={styles.section}>
@@ -370,8 +370,8 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Debug section */}
-        <View style={styles.section}>
+        {/* Debug section — hidden for production */}
+        {/* <View style={styles.section}>
           <Text style={styles.sectionLabel}>Developer</Text>
           <View style={styles.card}>
             <TouchableOpacity
@@ -384,7 +384,7 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.legalRow}>
           <TouchableOpacity onPress={() => openInApp('https://axiomtraining.io/terms', 'Terms of Use')} activeOpacity={0.7}>

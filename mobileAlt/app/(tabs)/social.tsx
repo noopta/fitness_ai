@@ -96,10 +96,13 @@ function FeedCard({
   const [forwarding, setForwarding] = useState(false);
   const [forwardMessage, setForwardMessage] = useState('');
   const [reposting, setReposting] = useState(false);
+  const [imageExpanded, setImageExpanded] = useState(false);
+  const [deleted, setDeleted] = useState(false);
 
+  const isRepost = item.itemType === 'repost';
   const isText = item.itemType === 'text';
   const isMedia = item.itemType === 'media';
-  const hasImage = isMedia && item.payload?.imageBase64;
+  const hasImage = (isMedia && item.payload?.imageBase64) || (isRepost && item.payload?.originalPayload?.imageBase64);
   const hasVideo = isMedia && item.payload?.videoUrl;
   const description = payloadDescription(item.itemType, item.payload);
   const isOwnPost = item.sharerId === currentUserId;
@@ -108,18 +111,35 @@ function FeedCard({
   useEffect(() => { setItem(initialItem); }, [initialItem.id, initialItem.reactionCount, initialItem.commentCount]);
 
   function handleLongPress() {
-    if (isOwnPost) return;
-    Alert.alert('Report Post', 'Is this content inappropriate or offensive?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Report',
-        style: 'destructive',
-        onPress: () => {
-          socialApi.reportPost(item.id, 'inappropriate').catch(() => {});
-          Alert.alert('Reported', 'Thank you — we\'ll review this post.');
+    if (isOwnPost) {
+      Alert.alert('Delete Post', 'Remove this post from your feed?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await socialApi.deletePost(item.id);
+              setDeleted(true);
+            } catch (err: any) {
+              Alert.alert('Error', err?.message || 'Could not delete post.');
+            }
+          },
         },
-      },
-    ]);
+      ]);
+    } else {
+      Alert.alert('Report Post', 'Is this content inappropriate or offensive?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Report',
+          style: 'destructive',
+          onPress: () => {
+            socialApi.reportPost(item.id, 'inappropriate').catch(() => {});
+            Alert.alert('Reported', 'Thank you — we\'ll review this post.');
+          },
+        },
+      ]);
+    }
   }
 
   async function handleReact() {
@@ -176,9 +196,16 @@ function FeedCard({
     setReposting(true);
     try {
       await socialApi.shareItem({
-        itemType: item.itemType,
-        payload: item.payload,
-        caption: item.caption ?? undefined,
+        itemType: 'repost',
+        payload: {
+          originalPostId: item.id,
+          originalSharerId: item.sharerId,
+          originalSharerName: item.sharer?.name ?? null,
+          originalSharerUsername: item.sharer?.username ?? null,
+          originalItemType: item.itemType,
+          originalPayload: item.payload,
+          originalCaption: item.caption ?? null,
+        },
       });
       Alert.alert('Reposted!', 'Added to your feed.');
     } catch (err: any) {
@@ -188,10 +215,20 @@ function FeedCard({
     }
   }
 
-  const imageUri = hasImage
-    ? (item.payload.imageBase64.startsWith('data:')
-        ? item.payload.imageBase64
-        : `data:image/jpeg;base64,${item.payload.imageBase64}`)
+  const rawBase64 = isRepost
+    ? item.payload?.originalPayload?.imageBase64
+    : item.payload?.imageBase64;
+  const imageUri = rawBase64
+    ? (rawBase64.startsWith('data:') ? rawBase64 : `data:image/jpeg;base64,${rawBase64}`)
+    : null;
+
+  if (deleted) return null;
+
+  const repostOriginalText = isRepost ? item.payload?.originalPayload?.text : null;
+  const repostOriginalCaption = isRepost ? item.payload?.originalCaption : null;
+  const repostOriginalType = isRepost ? item.payload?.originalItemType : null;
+  const repostOriginalAuthor = isRepost
+    ? (item.payload?.originalSharerUsername ? `@${item.payload.originalSharerUsername}` : (item.payload?.originalSharerName ?? 'Unknown'))
     : null;
 
   return (
@@ -213,29 +250,64 @@ function FeedCard({
         <Text style={styles.timeText}>{relativeTime(item.createdAt)}</Text>
       </View>
 
-      {/* Caption */}
-      {item.caption ? (
+      {/* Caption / repost label */}
+      {isRepost ? (
+        <View style={styles.repostLabel}>
+          <Ionicons name="repeat-outline" size={13} color={colors.mutedForeground} />
+          <Text style={styles.repostLabelText}>reposted from {repostOriginalAuthor}</Text>
+        </View>
+      ) : item.caption ? (
         <Text style={styles.captionText}>{item.caption}</Text>
       ) : null}
 
-      {/* Text post body */}
-      {isText && item.payload?.text ? (
-        <Text style={styles.postText}>{item.payload.text}</Text>
-      ) : null}
-
-      {/* Image post */}
-      {imageUri ? (
-        <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
-      ) : null}
-
-      {/* Video post */}
-      {hasVideo ? (
-        <View style={styles.videoLinkRow}>
-          <Ionicons name="videocam-outline" size={15} color={colors.mutedForeground} />
-          <Text style={styles.videoLinkText} numberOfLines={1}>{item.payload.videoUrl}</Text>
-          <Text style={styles.videoNote}>(video)</Text>
+      {/* Repost: quoted original content */}
+      {isRepost ? (
+        <View style={styles.repostQuote}>
+          {repostOriginalCaption ? <Text style={styles.captionText}>{repostOriginalCaption}</Text> : null}
+          {repostOriginalText ? <Text style={styles.postText}>{repostOriginalText}</Text> : null}
+          {imageUri ? (
+            <TouchableOpacity onPress={() => setImageExpanded(true)} activeOpacity={0.9}>
+              <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
+            </TouchableOpacity>
+          ) : null}
+          {repostOriginalType === 'media' && item.payload?.originalPayload?.videoUrl ? (
+            <View style={styles.videoLinkRow}>
+              <Ionicons name="videocam-outline" size={15} color={colors.mutedForeground} />
+              <Text style={styles.videoLinkText} numberOfLines={1}>{item.payload.originalPayload.videoUrl}</Text>
+            </View>
+          ) : null}
         </View>
-      ) : null}
+      ) : (
+        <>
+          {/* Text post body */}
+          {isText && item.payload?.text ? (
+            <Text style={styles.postText}>{item.payload.text}</Text>
+          ) : null}
+
+          {/* Image post */}
+          {imageUri ? (
+            <TouchableOpacity onPress={() => setImageExpanded(true)} activeOpacity={0.9}>
+              <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
+            </TouchableOpacity>
+          ) : null}
+
+          {/* Video post */}
+          {hasVideo ? (
+            <View style={styles.videoLinkRow}>
+              <Ionicons name="videocam-outline" size={15} color={colors.mutedForeground} />
+              <Text style={styles.videoLinkText} numberOfLines={1}>{item.payload.videoUrl}</Text>
+              <Text style={styles.videoNote}>(video)</Text>
+            </View>
+          ) : null}
+        </>
+      )}
+
+      {/* Fullscreen image modal */}
+      <Modal visible={imageExpanded} transparent animationType="fade" onRequestClose={() => setImageExpanded(false)}>
+        <Pressable style={styles.imageModalOverlay} onPress={() => setImageExpanded(false)}>
+          <Image source={{ uri: imageUri! }} style={styles.imageModalFull} resizeMode="contain" />
+        </Pressable>
+      </Modal>
 
       {/* Action bar */}
       <View style={styles.actionBar}>
@@ -996,6 +1068,33 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 4,
     lineHeight: 18,
+  },
+  repostLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  repostLabelText: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+  },
+  repostQuote: {
+    borderLeftWidth: 2,
+    borderLeftColor: colors.border,
+    paddingLeft: spacing.sm,
+    marginTop: 4,
+  },
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageModalFull: {
+    width: '100%',
+    height: '85%',
   },
   captionInput: {
     marginTop: spacing.xs,

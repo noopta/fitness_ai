@@ -397,6 +397,10 @@ export const socialApi = {
   // Invite
   getInviteLink: () => apiFetch('/social/invite'),
 
+  // Delete own post
+  deletePost: (postId: string) =>
+    apiFetch(`/social/posts/${postId}`, { method: 'DELETE' }),
+
   // Content moderation (required by Apple App Store for UGC)
   reportPost: (itemId: string, reason: string) =>
     apiFetch('/social/report', { method: 'POST', body: JSON.stringify({ itemId, reason }) }),
