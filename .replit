@@ -24,13 +24,13 @@ name = "Dev Server"
 mode = "sequential"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd mobileAlt && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 ./node_modules/.bin/expo start --web --port 5000"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd mobileAlt && EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 ./node_modules/.bin/expo start --tunnel --go --web --port 5000"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "EAS Init"
