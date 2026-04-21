@@ -36,6 +36,7 @@ import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Navbar } from "@/components/Navbar";
 import { HeroVariant4 } from "@/components/HeroVariants";
+import { SEO } from "@/components/SEO";
 
 function ValuePill({
   icon,
@@ -602,6 +603,7 @@ export default function Signup() {
 
   return (
     <div className="page">
+      <SEO noIndex />
       <Navbar variant="full" />
 
       <main className="container-tight">

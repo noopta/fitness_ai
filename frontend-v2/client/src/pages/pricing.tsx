@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { BrandLogo } from "@/components/BrandLogo";
 import { WebAnalytics, trackPageTime } from "@/lib/analytics";
+import { SEO } from "@/components/SEO";
 
 const FREE_LIMIT = 2;
 const STRIPE_PRO_URL = "https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00";
@@ -91,6 +92,18 @@ export default function Pricing() {
 
   return (
     <div className="page">
+      <SEO
+        title="Pricing — Free & Pro Plans"
+        description="Start free with 2 lift diagnostics per day. Upgrade to Pro for unlimited diagnostics, AI coaching, personalized programs, nutrition planning, and more."
+        canonical="/pricing"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "PriceSpecification",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free lift diagnostic — no credit card required"
+        }}
+      />
       <Navbar variant="full" />
 
       <main className="container-tight">

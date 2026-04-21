@@ -1510,11 +1510,7 @@ const LANDING_JSON_LD = [
       "priceCurrency": "USD",
       "description": "Free lift diagnostic — no credit card required"
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "214"
-    }
+    "featureList": ["Lift diagnostic", "AI coaching", "Nutrition planning", "Strength tracking", "Workout logging"]
   },
   {
     "@context": "https://schema.org",

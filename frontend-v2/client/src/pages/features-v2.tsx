@@ -23,6 +23,7 @@ import snapshotChat from "@assets/snapshot_chat_1771264391949.png";
 import snapshotAiSummary from "@assets/snapshot_ai_summary_1771264391948.png";
 import snapshotAnalysis from "@assets/snapshot_analysis_1771264391949.png";
 import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
+import { SEO } from "@/components/SEO";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -1526,6 +1527,7 @@ function HeroSection() {
 export default function FeaturesV2Page() {
   return (
     <div className="min-h-screen bg-background">
+      <SEO noIndex />
       <Navbar />
       <HeroSection />
       <AnakinSection />

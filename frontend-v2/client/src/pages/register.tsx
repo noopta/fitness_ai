@@ -9,6 +9,7 @@ import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
+import { SEO } from '@/components/SEO';
 
 export default function Register() {
   const { register, googleLogin, user, loading } = useAuth();
@@ -46,6 +47,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary">
+      <SEO title="Create Account" noIndex canonical="/register" />
       <Navbar variant="full" />
       <div className="flex-1 flex items-center justify-center p-4">
       <motion.div
