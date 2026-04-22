@@ -111,7 +111,14 @@ function FriendRow({ friend, onMessage }: { friend: Friend; onMessage: () => voi
 
 // ─── New Post Modal ───────────────────────────────────────────────────────────
 
-type PostTab = 'text' | 'image' | 'video';
+type PostTab = 'text' | 'image' | 'video' | 'workout';
+
+interface WorkoutEntry {
+  name: string;
+  sets: string;
+  reps: string;
+  weight: string;
+}
 
 interface NewPostModalProps {
   visible: boolean;
@@ -132,6 +139,10 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const [videoUrl, setVideoUrl] = useState('');
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imagePreviewUri, setImagePreviewUri] = useState<string | null>(null);
+  const [workoutTitle, setWorkoutTitle] = useState('');
+  const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([
+    { name: '', sets: '3', reps: '8', weight: '' },
+  ]);
   const [submitting, setSubmitting] = useState(false);
 
   const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slideY.value }] }));
@@ -144,6 +155,20 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
     setVideoUrl('');
     setImageBase64(null);
     setImagePreviewUri(null);
+    setWorkoutTitle('');
+    setWorkoutEntries([{ name: '', sets: '3', reps: '8', weight: '' }]);
+  }
+
+  function updateWorkoutEntry(index: number, field: keyof WorkoutEntry, value: string) {
+    setWorkoutEntries(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
+  }
+
+  function addWorkoutEntry() {
+    setWorkoutEntries(prev => [...prev, { name: '', sets: '3', reps: '8', weight: '' }]);
+  }
+
+  function removeWorkoutEntry(index: number) {
+    setWorkoutEntries(prev => prev.filter((_, i) => i !== index));
   }
 
   useEffect(() => {
@@ -244,6 +269,36 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       } finally {
         setSubmitting(false);
       }
+    } else if (postTab === 'workout') {
+      const validExercises = workoutEntries.filter(e => e.name.trim());
+      if (validExercises.length === 0) {
+        Alert.alert('No exercises', 'Add at least one exercise before posting.');
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await socialApi.shareItem({
+          itemType: 'workout',
+          payload: {
+            exercises: validExercises.map(e => ({
+              name: e.name.trim(),
+              sets: Math.max(parseInt(e.sets, 10) || 1, 1),
+              reps: e.reps.trim() || '1',
+              weight: parseFloat(e.weight) || 0,
+              unit: 'lbs',
+            })),
+            title: workoutTitle.trim() || undefined,
+          },
+          caption: caption.trim() || undefined,
+        });
+        Alert.alert('Posted!', 'Your workout has been shared.');
+        onPosted();
+        onClose();
+      } catch (err: any) {
+        Alert.alert('Post failed', err?.message || 'Could not post. Please try again.');
+      } finally {
+        setSubmitting(false);
+      }
     }
   }
 
@@ -281,7 +336,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
 
             {/* Post type tabs */}
             <View style={styles.postTabBar}>
-              {(['text', 'image', 'video'] as PostTab[]).map((tab) => (
+              {(['text', 'image', 'video', 'workout'] as PostTab[]).map((tab) => (
                 <TouchableOpacity
                   key={tab}
                   style={[styles.postTab, postTab === tab && styles.postTabActive]}
@@ -296,6 +351,12 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
             </View>
 
             {/* Tab content */}
+            <ScrollView
+              style={postTab === 'workout' ? styles.workoutScrollArea : undefined}
+              scrollEnabled={postTab === 'workout'}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
             <View style={styles.modalBody}>
               {postTab === 'text' && (
                 <>
@@ -399,7 +460,105 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                   </TouchableOpacity>
                 </>
               )}
+
+              {postTab === 'workout' && (
+                <>
+                  {/* Workout title */}
+                  <TextInput
+                    style={[styles.textInput, styles.textInputSingleLine]}
+                    placeholder="Workout title (e.g. Leg Day)…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={workoutTitle}
+                    onChangeText={setWorkoutTitle}
+                    maxLength={60}
+                  />
+
+                  {/* Exercise rows */}
+                  {workoutEntries.map((entry, i) => (
+                    <View key={i} style={styles.exerciseEntryCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <TextInput
+                          style={[styles.textInput, styles.textInputSingleLine, { flex: 1, minHeight: 0, height: 44 }]}
+                          placeholder="Exercise name"
+                          placeholderTextColor={colors.mutedForeground}
+                          value={entry.name}
+                          onChangeText={v => updateWorkoutEntry(i, 'name', v)}
+                        />
+                        {workoutEntries.length > 1 && (
+                          <TouchableOpacity onPress={() => removeWorkoutEntry(i)} style={{ padding: 4 }} activeOpacity={0.7}>
+                            <Ionicons name="close-circle" size={20} color={colors.mutedForeground} />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.fieldLabel}>Sets</Text>
+                          <TextInput
+                            style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
+                            keyboardType="number-pad"
+                            value={entry.sets}
+                            onChangeText={v => updateWorkoutEntry(i, 'sets', v)}
+                            maxLength={3}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.fieldLabel}>Reps</Text>
+                          <TextInput
+                            style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
+                            keyboardType="default"
+                            placeholder="8"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={entry.reps}
+                            onChangeText={v => updateWorkoutEntry(i, 'reps', v)}
+                            maxLength={6}
+                          />
+                        </View>
+                        <View style={{ flex: 1.4 }}>
+                          <Text style={styles.fieldLabel}>Weight (lbs)</Text>
+                          <TextInput
+                            style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
+                            keyboardType="decimal-pad"
+                            placeholder="0"
+                            placeholderTextColor={colors.mutedForeground}
+                            value={entry.weight}
+                            onChangeText={v => updateWorkoutEntry(i, 'weight', v)}
+                            maxLength={6}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+
+                  {/* Add exercise */}
+                  <TouchableOpacity style={styles.addExerciseButton} activeOpacity={0.8} onPress={addWorkoutEntry}>
+                    <Ionicons name="add" size={16} color={colors.foreground} />
+                    <Text style={styles.addExerciseText}>Add Exercise</Text>
+                  </TouchableOpacity>
+
+                  {/* Caption */}
+                  <TextInput
+                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
+                    placeholder="Add a caption (optional)…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={caption}
+                    onChangeText={setCaption}
+                    maxLength={200}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.postButton, submitting && { opacity: 0.5 }]}
+                    activeOpacity={0.82}
+                    onPress={handlePost}
+                    disabled={submitting}
+                  >
+                    {submitting
+                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
+                      : <Text style={styles.postButtonText}>Post Workout</Text>}
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
+            </ScrollView>
           </Pressable>
         </Animated.View>
       </KeyboardAvoidingView>
@@ -898,6 +1057,48 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: radius.md,
     backgroundColor: colors.muted,
+  },
+
+  // Workout tab
+  workoutScrollArea: {
+    maxHeight: 440,
+  },
+  exerciseEntryCard: {
+    backgroundColor: colors.muted,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  fieldLabel: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    marginBottom: 4,
+    fontWeight: fontWeight.medium,
+  },
+  miniInput: {
+    minHeight: 0,
+    height: 40,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.sm,
+  },
+  addExerciseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    backgroundColor: colors.background,
+    borderStyle: 'dashed',
+  },
+  addExerciseText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    color: colors.foreground,
   },
 
   proGateContainer: {

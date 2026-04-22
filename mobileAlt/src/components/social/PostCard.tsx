@@ -892,8 +892,8 @@ const cs = StyleSheet.create({
     marginBottom: 4,
   },
   exerciseName: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: '#111827',
   },
   prBadge: {
