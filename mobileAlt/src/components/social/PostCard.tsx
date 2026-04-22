@@ -55,8 +55,9 @@ export interface FeedItem {
 interface WorkoutExercise {
   name: string;
   sets: number;
-  reps: number;
+  reps: number | string;
   weight: string | number;
+  unit?: string;
   isPR?: boolean;
 }
 
@@ -223,9 +224,11 @@ function WorkoutSection({ exercises, title }: { exercises: WorkoutExercise[]; ti
               </View>
               <View style={cs.exerciseLine2}>
                 <Text style={cs.exerciseSetsReps}>{ex.sets} sets × {ex.reps} reps</Text>
-                <View style={cs.weightPill}>
-                  <Text style={cs.weightPillText}>{ex.weight} lbs</Text>
-                </View>
+                {Number(ex.weight) > 0 && (
+                  <View style={cs.weightPill}>
+                    <Text style={cs.weightPillText}>{ex.weight} {ex.unit || 'lbs'}</Text>
+                  </View>
+                )}
               </View>
             </View>
           ))}

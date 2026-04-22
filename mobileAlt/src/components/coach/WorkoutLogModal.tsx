@@ -16,7 +16,7 @@ const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
-import { workoutsApi } from '../../lib/api';
+import { workoutsApi, socialApi } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
 
@@ -98,6 +98,8 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   const [exercises, setExercises] = useState<ExerciseEntry[]>(() => buildInitialExercises(todayExercises));
   const [focusedExIndex, setFocusedExIndex] = useState<number | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [shareToFeed, setShareToFeed] = useState(false);
+  const [shareCaption, setShareCaption] = useState('');
 
   // Reset state every time modal opens
   useEffect(() => {
@@ -107,6 +109,8 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       setDuration('');
       setSuggestions([]);
       setFocusedExIndex(null);
+      setShareToFeed(false);
+      setShareCaption('');
     }
   }, [visible]);
 
@@ -156,17 +160,19 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       };
       const durationVal = duration ? (parseInt(duration, 10) || undefined) : undefined;
 
+      const mappedExercises = validExercises.map(ex => ({
+        name: ex.name.trim(),
+        sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
+        reps: ex.reps.trim() || '1',
+        weightKg: ex.weight.trim() ? weightVal(ex.weight) : null,
+        rpe: ex.rpe.trim() ? rpeVal(ex.rpe) : null,
+        notes: ex.notes.trim() || null,
+      }));
+
       await workoutsApi.logWorkout({
         date: (date ?? todayDateStr()).slice(0, 10),
         title: workoutTitle || undefined,
-        exercises: validExercises.map(ex => ({
-          name: ex.name.trim(),
-          sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
-          reps: ex.reps.trim() || '1',
-          weightKg: ex.weight.trim() ? weightVal(ex.weight) : null,
-          rpe: ex.rpe.trim() ? rpeVal(ex.rpe) : null,
-          notes: ex.notes.trim() || null,
-        })),
+        exercises: mappedExercises,
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
       });
@@ -175,6 +181,27 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
         totalSets: validExercises.reduce((s, ex) => s + (parseInt(ex.sets, 10) || 1), 0),
         workoutTitle: workoutTitle || undefined,
       });
+
+      // Share to social feed if toggled
+      if (shareToFeed) {
+        const shareExercises = validExercises.map(ex => ({
+          name: ex.name.trim(),
+          sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
+          reps: ex.reps.trim() || '1',
+          weight: ex.weight.trim() ? parseFloat(ex.weight) : 0,
+          unit,
+        }));
+        socialApi.shareItem({
+          itemType: 'workout',
+          payload: {
+            exercises: shareExercises,
+            title: workoutTitle || undefined,
+            date: (date ?? todayDateStr()).slice(0, 10),
+          },
+          caption: shareCaption.trim() || undefined,
+        }).catch(() => {});
+      }
+
       onClose();
       onSaved();
     } catch (err: any) {
@@ -348,6 +375,37 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
               inputAccessoryViewID={KEYBOARD_DONE_ID}
             />
 
+            {/* Share to Feed */}
+            <View style={styles.shareSectionRow}>
+              <TouchableOpacity
+                style={styles.shareToggle}
+                activeOpacity={0.7}
+                onPress={() => setShareToFeed(v => !v)}
+              >
+                <Ionicons
+                  name={shareToFeed ? 'checkbox' : 'square-outline'}
+                  size={20}
+                  color={shareToFeed ? colors.primary : colors.mutedForeground}
+                />
+                <Text style={[styles.shareToggleLabel, shareToFeed && { color: colors.primary }]}>
+                  Share to social feed
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {shareToFeed && (
+              <TextInput
+                style={[styles.input, { minHeight: 52, textAlignVertical: 'top' }]}
+                placeholder="Add a caption (optional)…"
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+                numberOfLines={2}
+                value={shareCaption}
+                onChangeText={setShareCaption}
+                maxLength={200}
+                inputAccessoryViewID={KEYBOARD_DONE_ID}
+              />
+            )}
+
             <TouchableOpacity
               style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
               onPress={handleSave}
@@ -463,4 +521,20 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
+  shareSectionRow: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  shareToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  shareToggleLabel: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    fontWeight: fontWeight.medium,
+  },
 });
