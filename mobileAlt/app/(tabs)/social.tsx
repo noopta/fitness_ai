@@ -1,8 +1,11 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
-  Modal, TextInput, Animated, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
+  Modal, TextInput, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -42,6 +45,7 @@ interface Friend {
   id: string;
   name: string | null;
   username: string | null;
+  avatarBase64?: string | null;
 }
 
 interface FriendRequest {
@@ -81,11 +85,16 @@ function payloadDescription(itemType: string, payload: any): string {
 // ─── Friend Row ───────────────────────────────────────────────────────────────
 
 function FriendRow({ friend, onMessage }: { friend: Friend; onMessage: () => void }) {
+  const raw = friend.avatarBase64;
+  const avatarUri = raw ? (raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`) : null;
   return (
     <View style={styles.card}>
       <View style={styles.cardRow}>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{((friend.username ?? friend.name ?? '?')[0]).toUpperCase()}</Text>
+          {avatarUri
+            ? <Image source={{ uri: avatarUri }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+            : <Text style={styles.avatarText}>{((friend.username ?? friend.name ?? '?')[0]).toUpperCase()}</Text>
+          }
         </View>
         <View style={styles.cardContent}>
           <Text style={styles.cardName}>{friend.username ? `@${friend.username}` : (friend.name ?? 'User')}</Text>
@@ -113,7 +122,9 @@ interface NewPostModalProps {
 function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(400)).current;
+  const [mounted, setMounted] = useState(visible);
+  const slideY = useSharedValue(400);
+  const backdropAlpha = useSharedValue(0);
 
   const [postTab, setPostTab] = useState<PostTab>('text');
   const [textContent, setTextContent] = useState('');
@@ -123,23 +134,29 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const [imagePreviewUri, setImagePreviewUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Slide up when visible
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slideY.value }] }));
+  const backdropStyle = useAnimatedStyle(() => ({ opacity: backdropAlpha.value }));
+
+  function resetForm() {
+    setPostTab('text');
+    setTextContent('');
+    setCaption('');
+    setVideoUrl('');
+    setImageBase64(null);
+    setImagePreviewUri(null);
+  }
+
   useEffect(() => {
     if (visible) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        bounciness: 4,
-      }).start();
-    } else {
-      slideAnim.setValue(400);
-      // Reset form when dismissed
-      setPostTab('text');
-      setTextContent('');
-      setCaption('');
-      setVideoUrl('');
-      setImageBase64(null);
-      setImagePreviewUri(null);
+      setMounted(true);
+      slideY.value = withTiming(0, { duration: 320, easing: Easing.out(Easing.ease) });
+      backdropAlpha.value = withTiming(1, { duration: 320 });
+    } else if (mounted) {
+      resetForm();
+      slideY.value = withTiming(400, { duration: 260, easing: Easing.in(Easing.ease) }, (done) => {
+        if (done) runOnJS(setMounted)(false);
+      });
+      backdropAlpha.value = withTiming(0, { duration: 260 });
     }
   }, [visible]);
 
@@ -230,20 +247,27 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
     }
   }
 
+  if (!mounted) return null;
+
   return (
     <Modal
-      visible={visible}
+      visible={mounted}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-          keyboardVerticalOffset={0}
-        >
+      <KeyboardAvoidingView
+        style={{ flex: 1, justifyContent: 'flex-end' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <Animated.View
-          style={[styles.modalSheet, { transform: [{ translateY: slideAnim }], paddingBottom: Math.max(spacing.lg, insets.bottom) }]}
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.40)' }, backdropStyle]}
+          pointerEvents="none"
+        />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Animated.View
+          style={[styles.modalSheet, sheetStyle, { paddingBottom: Math.max(spacing.lg, insets.bottom) }]}
         >
           {/* Tap blocker — prevents overlay dismiss inside the sheet */}
           <Pressable onPress={() => {}}>
@@ -378,8 +402,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
             </View>
           </Pressable>
         </Animated.View>
-        </KeyboardAvoidingView>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -122,8 +122,35 @@ export default function ConversationScreen() {
     }
   };
 
+  function parseForwardedPost(body: string): { note?: string; cap?: string; txt?: string; hasImg?: boolean } | null {
+    // New structured format
+    try {
+      const parsed = JSON.parse(body);
+      if (parsed && parsed._fwd === true) return parsed;
+    } catch {}
+    // Old text format: "[Forwarded post]..."
+    if (body.startsWith('[Forwarded post]')) return { txt: body.replace('[Forwarded post]', '').trim() };
+    return null;
+  }
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isMine = item.senderId === user?.id;
+    const fwd = parseForwardedPost(item.body);
+
+    if (fwd) {
+      return (
+        <View style={[styles.bubbleWrapper, isMine ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
+          <View style={[styles.forwardCard, isMine ? styles.forwardCardMine : styles.forwardCardTheirs]}>
+            <Text style={styles.forwardLabel}>↪ Forwarded post</Text>
+            {fwd.note ? <Text style={styles.forwardNote}>{fwd.note}</Text> : null}
+            {fwd.cap ? <Text style={styles.forwardCap}>{fwd.cap}</Text> : null}
+            {fwd.txt ? <Text style={styles.forwardBody}>{fwd.txt}</Text> : null}
+            {fwd.hasImg ? <Text style={styles.forwardImgHint}>📷 Image attached</Text> : null}
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={[styles.bubbleWrapper, isMine ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
         <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
@@ -257,6 +284,30 @@ const styles = StyleSheet.create({
   bubbleText: { fontSize: fontSize.sm, lineHeight: 20 },
   bubbleTextMine: { color: colors.primaryForeground },
   bubbleTextTheirs: { color: colors.foreground },
+
+  forwardCard: {
+    maxWidth: '80%',
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    gap: 4,
+    borderWidth: 1,
+  },
+  forwardCardMine: {
+    backgroundColor: colors.foreground,
+    borderColor: 'transparent',
+    borderBottomRightRadius: 4,
+  },
+  forwardCardTheirs: {
+    backgroundColor: colors.muted,
+    borderColor: colors.border,
+    borderBottomLeftRadius: 4,
+  },
+  forwardLabel: { fontSize: 10, fontWeight: fontWeight.bold, color: colors.mutedForeground, letterSpacing: 0.5, textTransform: 'uppercase' },
+  forwardNote: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.medium },
+  forwardCap: { fontSize: fontSize.sm, color: colors.mutedForeground, fontStyle: 'italic' },
+  forwardBody: { fontSize: fontSize.sm, color: colors.foreground, lineHeight: 18 },
+  forwardImgHint: { fontSize: fontSize.xs, color: colors.mutedForeground },
 
   inputBar: {
     flexDirection: 'row',

@@ -44,8 +44,8 @@ router.get('/social/friends', async (req, res) => {
       OR: [{ requesterId: userId }, { addresseeId: userId }],
     },
     include: {
-      requester: { select: { id: true, name: true, username: true } },
-      addressee: { select: { id: true, name: true, username: true } },
+      requester: { select: { id: true, name: true, username: true, avatarBase64: true } },
+      addressee: { select: { id: true, name: true, username: true, avatarBase64: true } },
     },
   });
   const friends = friendships.map(f =>
@@ -439,7 +439,7 @@ const FEED_INCLUDE = {
   sharer: { select: { id: true, name: true, username: true, avatarBase64: true } },
   reactions: { select: { userId: true, type: true } },
   comments: {
-    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true } } },
+    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'asc' as const },
     take: 50,
   },
@@ -605,7 +605,7 @@ router.post('/social/posts/:id/comments', async (req, res) => {
   if (!text?.trim()) return res.status(400).json({ error: 'Comment text required' });
   const comment = await prisma.postComment.create({
     data: { postId: req.params.id, authorId: req.user!.id, text: text.trim() },
-    include: { author: { select: { id: true, name: true, username: true } } },
+    include: { author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
   });
   res.status(201).json(comment);
   // Notify post owner
@@ -649,17 +649,17 @@ router.post('/social/posts/:id/forward', async (req, res) => {
     update: {},
   });
 
-  // Build a message body that previews the post
-  let postPreview = '';
+  // Build structured JSON body so clients can render a rich forwarded-post card
+  const fwd: Record<string, unknown> = { _fwd: true };
+  if (message) fwd.note = message;
+  if ((original as any).caption) fwd.cap = (original as any).caption;
   try {
     const p = typeof original.payload === 'string' ? JSON.parse(original.payload) : original.payload;
-    if (p?.text) postPreview = p.text.slice(0, 120);
-    else if (p?.imageBase64) postPreview = '[image]';
-    else if (p?.videoUrl) postPreview = `[video] ${p.videoUrl.slice(0, 60)}`;
+    if (p?.text)        fwd.txt    = (p.text as string).slice(0, 120);
+    if (p?.imageBase64) fwd.hasImg = true;
+    if (p?.videoUrl)    fwd.vid    = (p.videoUrl as string).slice(0, 100);
   } catch {}
-  const caption = (original as any).caption ? ` — "${(original as any).caption}"` : '';
-  const intro = message ? `${message}\n\n` : '';
-  const body = `${intro}[Forwarded post]${caption}${postPreview ? `\n${postPreview}` : ''}`;
+  const body = JSON.stringify(fwd).slice(0, 1000);
 
   const [dmMessage] = await prisma.$transaction([
     prisma.message.create({

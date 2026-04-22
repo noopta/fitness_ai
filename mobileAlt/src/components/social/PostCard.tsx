@@ -35,7 +35,7 @@ export interface PostComment {
   id: string;
   text: string;
   createdAt: string;
-  author: { id: string; name: string | null; username: string | null };
+  author: { id: string; name: string | null; username: string | null; avatarBase64?: string | null };
 }
 
 export interface FeedItem {
@@ -273,7 +273,7 @@ function ActionBar({
       withSpring(1.55, { damping: 5, stiffness: 300 }),
       withSpring(0.85, { damping: 8, stiffness: 400 }),
       withSpring(1.2,  { damping: 6, stiffness: 350 }),
-      withSpring(1.0,  { damping: 10, stiffness: 300 }),
+      withTiming(1.0,  { duration: 200 }),
     );
     rippleScale.value   = 1;
     rippleOpacity.value = 0.8;
@@ -345,8 +345,11 @@ function CommentSheet({
 }) {
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
+  const [localComments, setLocalComments] = useState<PostComment[]>(post.comments);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { setLocalComments(post.comments); }, [post.comments]);
 
   const slideY      = useSharedValue(700);
   const backdropAlpha = useSharedValue(0);
@@ -377,6 +380,7 @@ function CommentSheet({
     setSubmitting(true);
     try {
       const newComment = await socialApi.addComment(post.id, commentText.trim());
+      setLocalComments(prev => [...prev, newComment]);
       onCommentAdded(newComment);
       setCommentText('');
     } catch (err: any) {
@@ -410,7 +414,7 @@ function CommentSheet({
             {/* Header */}
             <View style={cs.sheetHeader}>
               <Text style={cs.sheetTitle}>
-                Comments{post.commentCount > 0 ? ` ${post.commentCount}` : ''}
+                Comments{localComments.length > 0 ? ` ${localComments.length}` : ''}
               </Text>
               <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={{ padding: 4 }}>
                 <X size={20} color="#6B7280" />
@@ -420,19 +424,25 @@ function CommentSheet({
 
             {/* Comment list */}
             <FlatList
-              data={post.comments}
+              data={localComments}
               keyExtractor={(c) => c.id}
               style={{ flex: 1 }}
               contentContainerStyle={{ padding: 16, gap: 16 }}
               ListEmptyComponent={
                 <Text style={cs.emptyComments}>No comments yet. Be the first!</Text>
               }
-              renderItem={({ item: c }) => (
+              renderItem={({ item: c }) => {
+                const raw = c.author.avatarBase64;
+                const avatarUri = raw ? (raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`) : null;
+                return (
                 <View style={cs.commentRow}>
                   <View style={cs.commentAvatar}>
-                    <Text style={cs.commentAvatarText}>
-                      {(c.author.username ?? c.author.name ?? '?')[0].toUpperCase()}
-                    </Text>
+                    {avatarUri
+                      ? <Image source={{ uri: avatarUri }} style={{ width: 32, height: 32, borderRadius: 16 }} />
+                      : <Text style={cs.commentAvatarText}>
+                          {(c.author.username ?? c.author.name ?? '?')[0].toUpperCase()}
+                        </Text>
+                    }
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -444,7 +454,8 @@ function CommentSheet({
                     <Text style={cs.commentBody}>{c.text}</Text>
                   </View>
                 </View>
-              )}
+                );
+              }}
             />
 
             {/* Reply input */}

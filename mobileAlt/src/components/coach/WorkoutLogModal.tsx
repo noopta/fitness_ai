@@ -5,13 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Modal,
   StyleSheet,
   ActivityIndicator,
-  Pressable,
   Alert,
   Dimensions,
 } from 'react-native';
+import { BottomSheet } from '../ui/BottomSheet';
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
 import { Ionicons } from '@expo/vector-icons';
@@ -186,12 +185,9 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={styles.sheet}>
-          <KeyboardDoneBar />
-          <View style={styles.handle} />
+    <BottomSheet visible={visible} onClose={onClose} height={SHEET_HEIGHT} style={{ paddingBottom: 34 }}>
+      <KeyboardDoneBar />
+      <View style={styles.handle} />
 
           {/* Header */}
           <View style={styles.header}>
@@ -367,27 +363,13 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
               )}
             </TouchableOpacity>
           </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </BottomSheet>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  sheet: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    height: SHEET_HEIGHT,
-    paddingBottom: 34,
-  },
   handle: {
     width: 40, height: 4,
     borderRadius: radius.full,

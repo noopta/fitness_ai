@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,11 @@ import {
   StyleSheet,
   Pressable,
   TouchableOpacity,
-  Modal,
   Dimensions,
   ActivityIndicator,
-  Animated,
   Linking,
 } from 'react-native';
+import { BottomSheet } from '../ui/BottomSheet';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
@@ -96,32 +95,13 @@ function DayWorkoutSheet({
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
   const [sheetVideoError, setSheetVideoError] = useState(false);
-  const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(backdropOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
-        Animated.spring(translateY, { toValue: 0, damping: 22, stiffness: 180, useNativeDriver: true }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(backdropOpacity, { toValue: 0, duration: 180, useNativeDriver: true }),
-        Animated.timing(translateY, { toValue: SHEET_HEIGHT, duration: 200, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [visible]);
 
   const exercises = day.session?.exercises ?? [];
   const isRestDay = !day.isTrainingDay;
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-        <Animated.View style={[sheet.root, { opacity: backdropOpacity }]}>
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-          <Animated.View style={[sheet.container, { transform: [{ translateY }] }]}>
+      <BottomSheet visible={visible} onClose={onClose} height={SHEET_HEIGHT} style={{ paddingBottom: 34, backgroundColor: '#FFFFFF' }}>
           <View style={sheet.handle} />
           <View style={sheet.header}>
             <View>
@@ -228,26 +208,12 @@ function DayWorkoutSheet({
               </TouchableOpacity>
             </View>
           )}
-          </Animated.View>
-        </Animated.View>
-      </Modal>
+      </BottomSheet>
     </>
   );
 }
 
 const sheet = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  container: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    height: SHEET_HEIGHT,
-    paddingBottom: 34,
-  },
   handle: {
     width: 40, height: 4, borderRadius: radius.full,
     backgroundColor: colors.border,
@@ -743,46 +709,41 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
       />
 
       {/* ── Video modal ────────────────────────────────────────────────────── */}
-      <Modal
+      <BottomSheet
         visible={!!videoModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => { setModalVideoError(false); setVideoModal(null); }}
+        onClose={() => { setModalVideoError(false); setVideoModal(null); }}
+        height={VIDEO_HEIGHT + 140}
+        style={{ backgroundColor: colors.card }}
       >
-        <View style={videoStyles.backdrop}>
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => { setModalVideoError(false); setVideoModal(null); }} />
-          <View style={videoStyles.sheet}>
-            <View style={videoStyles.handle} />
-            <View style={videoStyles.header}>
-              <Text style={videoStyles.title} numberOfLines={1}>{videoModal?.title ?? ''}</Text>
-              <TouchableOpacity onPress={() => { setModalVideoError(false); setVideoModal(null); }} style={videoStyles.closeBtn}>
-                <Ionicons name="close" size={20} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-            {videoModal && (
-              modalVideoError ? (
-                <TouchableOpacity
-                  style={[videoStyles.webview, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }]}
-                  activeOpacity={0.8}
-                  onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoModal.videoId}`)}
-                >
-                  <Ionicons name="logo-youtube" size={40} color="#FF0000" />
-                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>
-                  <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
-                </TouchableOpacity>
-              ) : (
-                <YoutubeIframe
-                  height={VIDEO_HEIGHT}
-                  videoId={videoModal.videoId.startsWith('search:') ? '' : videoModal.videoId}
-                  play
-                  onError={() => setModalVideoError(true)}
-                  webViewProps={{ allowsFullscreenVideo: true }}
-                />
-              )
-            )}
-          </View>
+        <View style={videoStyles.handle} />
+        <View style={videoStyles.header}>
+          <Text style={videoStyles.title} numberOfLines={1}>{videoModal?.title ?? ''}</Text>
+          <TouchableOpacity onPress={() => { setModalVideoError(false); setVideoModal(null); }} style={videoStyles.closeBtn}>
+            <Ionicons name="close" size={20} color={colors.mutedForeground} />
+          </TouchableOpacity>
         </View>
-      </Modal>
+        {videoModal && (
+          modalVideoError ? (
+            <TouchableOpacity
+              style={[videoStyles.webview, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }]}
+              activeOpacity={0.8}
+              onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoModal.videoId}`)}
+            >
+              <Ionicons name="logo-youtube" size={40} color="#FF0000" />
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>
+              <Text style={{ color: '#888', fontSize: 11 }}>Video unavailable in-app</Text>
+            </TouchableOpacity>
+          ) : (
+            <YoutubeIframe
+              height={VIDEO_HEIGHT}
+              videoId={videoModal.videoId.startsWith('search:') ? '' : videoModal.videoId}
+              play
+              onError={() => setModalVideoError(true)}
+              webViewProps={{ allowsFullscreenVideo: true }}
+            />
+          )
+        )}
+      </BottomSheet>
     </>
   );
 }
@@ -926,19 +887,6 @@ const dark = StyleSheet.create({
 const VIDEO_HEIGHT = Dimensions.get('window').width * (9 / 16);
 
 const videoStyles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 34,
-    overflow: 'hidden',
-    minHeight: VIDEO_HEIGHT + 80,
-  },
   handle: {
     width: 40, height: 4, borderRadius: 2,
     backgroundColor: colors.border,
