@@ -33,6 +33,16 @@ async function sendAuthSMS(body: string) {
   }
 }
 
+// Emails that always receive pro tier (complimentary access)
+const PRO_TIER_EMAILS = new Set([
+  'brian62888@gmail.com',
+  'safia.alif.sa@gmail.com',
+]);
+
+function tierForEmail(email: string | null | undefined): string {
+  return email && PRO_TIER_EMAILS.has(email.toLowerCase().trim()) ? 'pro' : 'free';
+}
+
 const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -73,7 +83,7 @@ router.post('/auth/register', async (req, res) => {
         email: data.email,
         hashedPassword,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-        tier: 'free'
+        tier: tierForEmail(data.email),
       }
     });
 
@@ -117,7 +127,7 @@ router.post('/auth/login', async (req, res) => {
   try {
     const data = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
+    let user = await prisma.user.findUnique({ where: { email: data.email } });
     if (!user || !user.hashedPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -125,6 +135,12 @@ router.post('/auth/login', async (req, res) => {
     const valid = await bcrypt.compare(data.password, user.hashedPassword);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Silently upgrade whitelisted emails that registered before the whitelist existed
+    if (user.tier === 'free' && tierForEmail(user.email) === 'pro') {
+      await prisma.user.update({ where: { id: user.id }, data: { tier: 'pro' } });
+      user = { ...user, tier: 'pro' };
     }
 
     const token = issueToken(user);
@@ -220,13 +236,20 @@ router.get('/auth/google/callback', async (req, res) => {
 
     let user;
     if (existingUser) {
-      user = await prisma.user.update({
-        where: { id: existingUser.id },
-        data: { googleId, name: name || existingUser.name, email: email || existingUser.email }
-      });
+      const upgradeData: Record<string, unknown> = {
+        googleId,
+        name: name || existingUser.name,
+        email: email || existingUser.email,
+      };
+      // Silently upgrade whitelisted emails
+      const resolvedEmail = email || existingUser.email;
+      if (existingUser.tier === 'free' && tierForEmail(resolvedEmail) === 'pro') {
+        upgradeData.tier = 'pro';
+      }
+      user = await prisma.user.update({ where: { id: existingUser.id }, data: upgradeData });
     } else {
       user = await prisma.user.create({
-        data: { googleId, email, name, tier: 'free' }
+        data: { googleId, email, name, tier: tierForEmail(email) }
       });
     }
 
@@ -298,17 +321,19 @@ router.post('/auth/apple', async (req, res) => {
 
     let user;
     if (existingUser) {
+      const resolvedEmail = email || existingUser.email;
       user = await prisma.user.update({
         where: { id: existingUser.id },
         data: {
           appleId,
           ...(name && !existingUser.name ? { name } : {}),
           ...(email && !existingUser.email ? { email } : {}),
+          ...(existingUser.tier === 'free' && tierForEmail(resolvedEmail) === 'pro' ? { tier: 'pro' } : {}),
         },
       });
     } else {
       user = await prisma.user.create({
-        data: { appleId, email, name, tier: 'free' },
+        data: { appleId, email, name, tier: tierForEmail(email) },
       });
     }
 
