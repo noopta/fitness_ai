@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
-  Modal, TextInput, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform,
+  Modal, TextInput, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS,
