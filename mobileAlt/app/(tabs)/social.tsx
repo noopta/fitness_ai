@@ -111,7 +111,7 @@ function FriendRow({ friend, onMessage }: { friend: Friend; onMessage: () => voi
 
 // ─── New Post Modal ───────────────────────────────────────────────────────────
 
-type PostTab = 'text' | 'image' | 'video' | 'workout';
+type PostTab = 'text' | 'image' | 'video';
 
 interface WorkoutEntry {
   name: string;
@@ -139,6 +139,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const [videoUrl, setVideoUrl] = useState('');
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imagePreviewUri, setImagePreviewUri] = useState<string | null>(null);
+  const [showWorkout, setShowWorkout] = useState(false);
   const [workoutTitle, setWorkoutTitle] = useState('');
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([
     { name: '', sets: '3', reps: '8', weight: '' },
@@ -155,6 +156,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
     setVideoUrl('');
     setImageBase64(null);
     setImagePreviewUri(null);
+    setShowWorkout(false);
     setWorkoutTitle('');
     setWorkoutEntries([{ name: '', sets: '3', reps: '8', weight: '' }]);
   }
@@ -185,7 +187,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
     }
   }, [visible]);
 
-
   async function pickImage() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -206,6 +207,21 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   }
 
   async function handlePost() {
+    const validExercises = showWorkout
+      ? workoutEntries
+          .filter(e => e.name.trim())
+          .map(e => ({
+            name: e.name.trim(),
+            sets: Math.max(parseInt(e.sets, 10) || 1, 1),
+            reps: e.reps.trim() || '1',
+            weight: parseFloat(e.weight) || 0,
+            unit: 'lbs',
+          }))
+      : [];
+    const workoutPayload = validExercises.length > 0
+      ? { exercises: validExercises, title: workoutTitle.trim() || undefined }
+      : {};
+
     if (postTab === 'text') {
       if (!textContent.trim()) {
         Alert.alert('Empty post', 'Please write something before posting.');
@@ -215,7 +231,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       try {
         await socialApi.shareItem({
           itemType: 'text',
-          payload: { text: textContent.trim() },
+          payload: { text: textContent.trim(), ...workoutPayload },
           caption: caption.trim() || undefined,
         });
         Analytics.textPostMade();
@@ -236,7 +252,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       try {
         await socialApi.shareItem({
           itemType: 'media',
-          payload: { imageBase64 },
+          payload: { imageBase64, ...workoutPayload },
           caption: caption.trim() || undefined,
         });
         Analytics.imagePostMade();
@@ -257,7 +273,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       try {
         await socialApi.shareItem({
           itemType: 'media',
-          payload: { videoUrl: videoUrl.trim() },
+          payload: { videoUrl: videoUrl.trim(), ...workoutPayload },
           caption: caption.trim() || undefined,
         });
         Analytics.videoPostMade();
@@ -269,40 +285,15 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       } finally {
         setSubmitting(false);
       }
-    } else if (postTab === 'workout') {
-      const validExercises = workoutEntries.filter(e => e.name.trim());
-      if (validExercises.length === 0) {
-        Alert.alert('No exercises', 'Add at least one exercise before posting.');
-        return;
-      }
-      setSubmitting(true);
-      try {
-        await socialApi.shareItem({
-          itemType: 'workout',
-          payload: {
-            exercises: validExercises.map(e => ({
-              name: e.name.trim(),
-              sets: Math.max(parseInt(e.sets, 10) || 1, 1),
-              reps: e.reps.trim() || '1',
-              weight: parseFloat(e.weight) || 0,
-              unit: 'lbs',
-            })),
-            title: workoutTitle.trim() || undefined,
-          },
-          caption: caption.trim() || undefined,
-        });
-        Alert.alert('Posted!', 'Your workout has been shared.');
-        onPosted();
-        onClose();
-      } catch (err: any) {
-        Alert.alert('Post failed', err?.message || 'Could not post. Please try again.');
-      } finally {
-        setSubmitting(false);
-      }
     }
   }
 
   if (!mounted) return null;
+
+  const postButtonLabel = postTab === 'image' ? 'Post Image' : postTab === 'video' ? 'Post Video' : 'Post';
+  const postButtonDisabled = submitting
+    || (postTab === 'image' && !imageBase64)
+    || (postTab === 'video' && !videoUrl.trim());
 
   return (
     <Modal
@@ -324,7 +315,6 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
         <Animated.View
           style={[styles.modalSheet, sheetStyle, { paddingBottom: Math.max(spacing.lg, insets.bottom) }]}
         >
-          {/* Tap blocker — prevents overlay dismiss inside the sheet */}
           <Pressable onPress={() => {}}>
             {/* Header */}
             <View style={styles.modalHeader}>
@@ -336,7 +326,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
 
             {/* Post type tabs */}
             <View style={styles.postTabBar}>
-              {(['text', 'image', 'video', 'workout'] as PostTab[]).map((tab) => (
+              {(['text', 'image', 'video'] as PostTab[]).map((tab) => (
                 <TouchableOpacity
                   key={tab}
                   style={[styles.postTab, postTab === tab && styles.postTabActive]}
@@ -350,86 +340,43 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
               ))}
             </View>
 
-            {/* Tab content */}
             <ScrollView
-              style={postTab === 'workout' ? styles.workoutScrollArea : undefined}
-              scrollEnabled={postTab === 'workout'}
+              style={showWorkout ? styles.workoutScrollArea : undefined}
+              scrollEnabled={showWorkout}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-            <View style={styles.modalBody}>
-              {postTab === 'text' && (
-                <>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="What's on your mind?"
-                    placeholderTextColor={colors.mutedForeground}
-                    multiline
-                    value={textContent}
-                    onChangeText={setTextContent}
-                    maxLength={1000}
-                    textAlignVertical="top"
-                  />
-                  <Text style={styles.charCount}>{textContent.length}/1000</Text>
-                  <TextInput
-                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
-                    placeholder="Add a caption (optional)…"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={caption}
-                    onChangeText={setCaption}
-                    maxLength={200}
-                  />
-                  <TouchableOpacity
-                    style={[styles.postButton, submitting && { opacity: 0.5 }]}
-                    activeOpacity={0.82}
-                    onPress={handlePost}
-                    disabled={submitting}
-                  >
-                    {submitting
-                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
-                      : <Text style={styles.postButtonText}>Post</Text>}
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {postTab === 'image' && (
-                <>
-                  {imagePreviewUri ? (
-                    <Image source={{ uri: imagePreviewUri }} style={styles.imagePreview} resizeMode="cover" />
-                  ) : null}
-                  <TouchableOpacity
-                    style={styles.pickImageButton}
-                    activeOpacity={0.82}
-                    onPress={pickImage}
-                  >
-                    <Ionicons name="image-outline" size={18} color={colors.foreground} />
-                    <Text style={styles.pickImageButtonText}>
-                      {imagePreviewUri ? 'Change image' : 'Pick image from library'}
-                    </Text>
-                  </TouchableOpacity>
-                  <TextInput
-                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
-                    placeholder="Add a caption (optional)…"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={caption}
-                    onChangeText={setCaption}
-                    maxLength={200}
-                  />
-                  <TouchableOpacity
-                    style={[styles.postButton, (!imageBase64 || submitting) && { opacity: 0.5 }]}
-                    activeOpacity={0.82}
-                    onPress={handlePost}
-                    disabled={!imageBase64 || submitting}
-                  >
-                    {submitting
-                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
-                      : <Text style={styles.postButtonText}>Post Image</Text>}
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {postTab === 'video' && (
-                <>
+              <View style={styles.modalBody}>
+                {/* Tab-specific input */}
+                {postTab === 'text' && (
+                  <>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="What's on your mind?"
+                      placeholderTextColor={colors.mutedForeground}
+                      multiline
+                      value={textContent}
+                      onChangeText={setTextContent}
+                      maxLength={1000}
+                      textAlignVertical="top"
+                    />
+                    <Text style={styles.charCount}>{textContent.length}/1000</Text>
+                  </>
+                )}
+                {postTab === 'image' && (
+                  <>
+                    {imagePreviewUri
+                      ? <Image source={{ uri: imagePreviewUri }} style={styles.imagePreview} resizeMode="cover" />
+                      : null}
+                    <TouchableOpacity style={styles.pickImageButton} activeOpacity={0.82} onPress={pickImage}>
+                      <Ionicons name="image-outline" size={18} color={colors.foreground} />
+                      <Text style={styles.pickImageButtonText}>
+                        {imagePreviewUri ? 'Change image' : 'Pick image from library'}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                {postTab === 'video' && (
                   <TextInput
                     style={[styles.textInput, styles.textInputSingleLine]}
                     placeholder="Paste a video URL…"
@@ -440,124 +387,119 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                     autoCorrect={false}
                     keyboardType="url"
                   />
-                  <TextInput
-                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
-                    placeholder="Add a caption (optional)…"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={caption}
-                    onChangeText={setCaption}
-                    maxLength={200}
-                  />
-                  <TouchableOpacity
-                    style={[styles.postButton, (!videoUrl.trim() || submitting) && { opacity: 0.5 }]}
-                    activeOpacity={0.82}
-                    onPress={handlePost}
-                    disabled={!videoUrl.trim() || submitting}
-                  >
-                    {submitting
-                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
-                      : <Text style={styles.postButtonText}>Post Video</Text>}
-                  </TouchableOpacity>
-                </>
-              )}
+                )}
 
-              {postTab === 'workout' && (
-                <>
-                  {/* Workout title */}
-                  <TextInput
-                    style={[styles.textInput, styles.textInputSingleLine]}
-                    placeholder="Workout title (e.g. Leg Day)…"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={workoutTitle}
-                    onChangeText={setWorkoutTitle}
-                    maxLength={60}
-                  />
+                {/* Shared caption */}
+                <TextInput
+                  style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
+                  placeholder="Add a caption (optional)…"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={caption}
+                  onChangeText={setCaption}
+                  maxLength={200}
+                />
 
-                  {/* Exercise rows */}
-                  {workoutEntries.map((entry, i) => (
-                    <View key={i} style={styles.exerciseEntryCard}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <TextInput
-                          style={[styles.textInput, styles.textInputSingleLine, { flex: 1, minHeight: 0, height: 44 }]}
-                          placeholder="Exercise name"
-                          placeholderTextColor={colors.mutedForeground}
-                          value={entry.name}
-                          onChangeText={v => updateWorkoutEntry(i, 'name', v)}
-                        />
-                        {workoutEntries.length > 1 && (
-                          <TouchableOpacity onPress={() => removeWorkoutEntry(i)} style={{ padding: 4 }} activeOpacity={0.7}>
-                            <Ionicons name="close-circle" size={20} color={colors.mutedForeground} />
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                      <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.fieldLabel}>Sets</Text>
+                {/* ── Add Workout toggle ── */}
+                <TouchableOpacity
+                  style={[styles.workoutToggleRow, showWorkout && styles.workoutToggleRowActive]}
+                  activeOpacity={0.8}
+                  onPress={() => setShowWorkout(v => !v)}
+                >
+                  <Ionicons name="barbell-outline" size={16} color={showWorkout ? colors.foreground : colors.mutedForeground} />
+                  <Text style={[styles.workoutToggleLabel, showWorkout && { color: colors.foreground, fontWeight: fontWeight.semibold }]}>
+                    Add workout to post
+                  </Text>
+                  <Ionicons
+                    name={showWorkout ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={colors.mutedForeground}
+                    style={{ marginLeft: 'auto' }}
+                  />
+                </TouchableOpacity>
+
+                {showWorkout && (
+                  <>
+                    <TextInput
+                      style={[styles.textInput, styles.textInputSingleLine]}
+                      placeholder="Workout title (e.g. Leg Day)…"
+                      placeholderTextColor={colors.mutedForeground}
+                      value={workoutTitle}
+                      onChangeText={setWorkoutTitle}
+                      maxLength={60}
+                    />
+                    {workoutEntries.map((entry, i) => (
+                      <View key={i} style={styles.exerciseEntryCard}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                           <TextInput
-                            style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
-                            keyboardType="number-pad"
-                            value={entry.sets}
-                            onChangeText={v => updateWorkoutEntry(i, 'sets', v)}
-                            maxLength={3}
-                          />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.fieldLabel}>Reps</Text>
-                          <TextInput
-                            style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
-                            keyboardType="default"
-                            placeholder="8"
+                            style={[styles.textInput, styles.textInputSingleLine, { flex: 1, minHeight: 0, height: 44 }]}
+                            placeholder="Exercise name"
                             placeholderTextColor={colors.mutedForeground}
-                            value={entry.reps}
-                            onChangeText={v => updateWorkoutEntry(i, 'reps', v)}
-                            maxLength={6}
+                            value={entry.name}
+                            onChangeText={v => updateWorkoutEntry(i, 'name', v)}
                           />
+                          {workoutEntries.length > 1 && (
+                            <TouchableOpacity onPress={() => removeWorkoutEntry(i)} style={{ padding: 4 }} activeOpacity={0.7}>
+                              <Ionicons name="close-circle" size={20} color={colors.mutedForeground} />
+                            </TouchableOpacity>
+                          )}
                         </View>
-                        <View style={{ flex: 1.4 }}>
-                          <Text style={styles.fieldLabel}>Weight (lbs)</Text>
-                          <TextInput
-                            style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
-                            keyboardType="decimal-pad"
-                            placeholder="0"
-                            placeholderTextColor={colors.mutedForeground}
-                            value={entry.weight}
-                            onChangeText={v => updateWorkoutEntry(i, 'weight', v)}
-                            maxLength={6}
-                          />
+                        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.fieldLabel}>Sets</Text>
+                            <TextInput
+                              style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
+                              keyboardType="number-pad"
+                              value={entry.sets}
+                              onChangeText={v => updateWorkoutEntry(i, 'sets', v)}
+                              maxLength={3}
+                            />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.fieldLabel}>Reps</Text>
+                            <TextInput
+                              style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
+                              keyboardType="default"
+                              placeholder="8"
+                              placeholderTextColor={colors.mutedForeground}
+                              value={entry.reps}
+                              onChangeText={v => updateWorkoutEntry(i, 'reps', v)}
+                              maxLength={6}
+                            />
+                          </View>
+                          <View style={{ flex: 1.4 }}>
+                            <Text style={styles.fieldLabel}>Weight (lbs)</Text>
+                            <TextInput
+                              style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
+                              keyboardType="decimal-pad"
+                              placeholder="0"
+                              placeholderTextColor={colors.mutedForeground}
+                              value={entry.weight}
+                              onChangeText={v => updateWorkoutEntry(i, 'weight', v)}
+                              maxLength={6}
+                            />
+                          </View>
                         </View>
                       </View>
-                    </View>
-                  ))}
+                    ))}
+                    <TouchableOpacity style={styles.addExerciseButton} activeOpacity={0.8} onPress={addWorkoutEntry}>
+                      <Ionicons name="add" size={16} color={colors.foreground} />
+                      <Text style={styles.addExerciseText}>Add Exercise</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
 
-                  {/* Add exercise */}
-                  <TouchableOpacity style={styles.addExerciseButton} activeOpacity={0.8} onPress={addWorkoutEntry}>
-                    <Ionicons name="add" size={16} color={colors.foreground} />
-                    <Text style={styles.addExerciseText}>Add Exercise</Text>
-                  </TouchableOpacity>
-
-                  {/* Caption */}
-                  <TextInput
-                    style={[styles.textInput, styles.textInputSingleLine, styles.captionInput]}
-                    placeholder="Add a caption (optional)…"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={caption}
-                    onChangeText={setCaption}
-                    maxLength={200}
-                  />
-
-                  <TouchableOpacity
-                    style={[styles.postButton, submitting && { opacity: 0.5 }]}
-                    activeOpacity={0.82}
-                    onPress={handlePost}
-                    disabled={submitting}
-                  >
-                    {submitting
-                      ? <ActivityIndicator size="small" color={colors.primaryForeground} />
-                      : <Text style={styles.postButtonText}>Post Workout</Text>}
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
+                {/* Post button */}
+                <TouchableOpacity
+                  style={[styles.postButton, postButtonDisabled && { opacity: 0.5 }]}
+                  activeOpacity={0.82}
+                  onPress={handlePost}
+                  disabled={postButtonDisabled}
+                >
+                  {submitting
+                    ? <ActivityIndicator size="small" color={colors.primaryForeground} />
+                    : <Text style={styles.postButtonText}>{postButtonLabel}</Text>}
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </Pressable>
         </Animated.View>
@@ -1059,9 +1001,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.muted,
   },
 
-  // Workout tab
+  // Workout section
   workoutScrollArea: {
-    maxHeight: 440,
+    maxHeight: 460,
+  },
+  workoutToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 11,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.background,
+  },
+  workoutToggleRowActive: {
+    borderColor: colors.foreground,
+    backgroundColor: colors.muted,
+  },
+  workoutToggleLabel: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    fontWeight: fontWeight.medium,
   },
   exerciseEntryCard: {
     backgroundColor: colors.muted,
