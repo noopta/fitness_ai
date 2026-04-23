@@ -145,6 +145,11 @@ export async function runReengagementCheck(): Promise<void> {
 }
 
 // ─── Instant: junk food shame push ────────────────────────────────────────────
+// Max one junk food push per user per 6 hours — prevents multiple nudges
+// if they log several junk items in the same session.
+
+const JUNK_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
+const junkSentAt = new Map<string, number>(); // userId → timestamp
 
 export async function sendJunkFoodShame(
   userId: string,
@@ -152,11 +157,16 @@ export async function sendJunkFoodShame(
   calories: number,
 ): Promise<void> {
   try {
+    const lastSent = junkSentAt.get(userId) ?? 0;
+    if (Date.now() - lastSent < JUNK_COOLDOWN_MS) return;
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { expoPushToken: true, name: true, reengagementOptOut: true },
     });
     if (!user?.expoPushToken || user.reengagementOptOut) return;
+
+    junkSentAt.set(userId, Date.now());
 
     const firstName = user.name?.split(' ')[0] || 'there';
     const msg = getJunkFoodMessage(mealName, Math.round(calories), firstName);
@@ -167,7 +177,7 @@ export async function sendJunkFoodShame(
       body: msg.body,
       data: { screen: 'coach', tab: 'Nutrition' },
     });
-    console.log(`[reengagement] Junk food shame sent to user ${userId} for "${mealName}"`);
+    console.log(`[reengagement] Junk food shame sent to user ${userId} for "${mealName}" (${Math.round(calories)} kcal)`);
   } catch (err) {
     console.error('[reengagement] Junk food shame error:', err);
   }

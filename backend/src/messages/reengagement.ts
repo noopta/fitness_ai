@@ -229,27 +229,54 @@ const JUNK_FOOD_MESSAGES: MessageTemplate[] = [
 
 // ─── Junk food keyword detection ──────────────────────────────────────────────
 
-const JUNK_KEYWORDS = [
-  'cake', 'cupcake', 'brownie', 'cookie', 'cookies', 'donut', 'doughnut',
-  'chocolate', 'candy', 'gummy', 'gummies', 'skittles', 'haribo', 'twix',
+// High-confidence junk food keywords — specific brands/items only.
+// Deliberately excludes broad terms like "chocolate", "chips", "popcorn",
+// "soda" that commonly appear in healthy foods (protein bars, veggie chips,
+// flavoured waters, etc). Those only fire when combined with a calorie threshold.
+const JUNK_KEYWORDS_STRONG = [
+  'cupcake', 'brownie', 'donut', 'doughnut',
+  'candy', 'gummy', 'gummies', 'skittles', 'haribo', 'twix',
   'snickers', 'kitkat', 'kit kat', 'reese', 'oreo', 'chips ahoy', 'm&m',
-  'ice cream', 'gelato', 'soft serve', 'milkshake', 'sundae', 'sorbet',
-  'pizza', 'burger', 'cheeseburger', 'big mac', 'whopper', 'double double',
-  'french fries', 'fries', 'onion rings', 'fried chicken', 'chicken nuggets',
-  'hot dog', 'corn dog', 'nachos', 'cheetos', 'doritos', 'lays', 'pringles',
-  'chips', 'popcorn', 'cotton candy', 'funnel cake', 'churros',
-  'mcdonalds', 'mcdonald\'s', 'kfc', 'popeyes', 'wendy\'s', 'taco bell',
+  'ice cream', 'gelato', 'soft serve', 'milkshake', 'sundae',
+  'cheeseburger', 'big mac', 'whopper', 'double double',
+  'french fries', 'onion rings', 'fried chicken', 'chicken nuggets',
+  'hot dog', 'corn dog', 'cheetos', 'doritos', 'lays', 'pringles',
+  'cotton candy', 'funnel cake', 'churros',
+  'mcdonalds', "mcdonald's", 'kfc', 'popeyes', "wendy's", 'taco bell',
   'burger king', 'five guys', 'cinnabon', 'krispy kreme', 'dairy queen',
-  'pop tart', 'poptart', 'toaster strudel', 'soda', 'mountain dew', 'dr pepper',
-  'coca cola', 'pepsi', 'sprite', 'energy drink', 'red bull', 'monster',
+  'pop tart', 'poptart', 'toaster strudel',
+  'mountain dew', 'dr pepper', 'coca cola', 'pepsi', 'sprite',
+  'red bull', 'monster energy',
 ];
 
-const JUNK_TAGS = ['ultra-processed', 'high-sugar', 'deep-fried', 'high-sodium'];
+// These only trigger when calories >= CALORIE_THRESHOLD_SOFT
+const JUNK_KEYWORDS_SOFT = [
+  'cake', 'cookie', 'cookies', 'chocolate', 'nachos', 'chips',
+  'popcorn', 'pizza', 'burger', 'fries', 'soda', 'energy drink',
+];
+
+// AI-assigned tags that confidently indicate junk — only with calorie threshold
+// (removed high-sugar and high-sodium alone — too many healthy foods get these)
+const JUNK_TAGS_STRONG = ['deep-fried'];
+const JUNK_TAGS_WITH_THRESHOLD = ['ultra-processed'];
+
+const CALORIE_THRESHOLD_SOFT = 400; // soft keywords / tags only fire above this
 
 export function isJunkFood(mealName: string, tags: string[], calories: number): boolean {
   const nameLower = mealName.toLowerCase();
-  if (JUNK_KEYWORDS.some(kw => nameLower.includes(kw))) return true;
-  if (tags.some(t => JUNK_TAGS.includes(t.toLowerCase()))) return true;
+
+  // Strong keywords always fire regardless of calories
+  if (JUNK_KEYWORDS_STRONG.some(kw => nameLower.includes(kw))) return true;
+
+  // Deep-fried tag always fires
+  if (tags.some(t => JUNK_TAGS_STRONG.includes(t.toLowerCase()))) return true;
+
+  // Soft keywords and tags only fire if the meal is substantial
+  if (calories >= CALORIE_THRESHOLD_SOFT) {
+    if (JUNK_KEYWORDS_SOFT.some(kw => nameLower.includes(kw))) return true;
+    if (tags.some(t => JUNK_TAGS_WITH_THRESHOLD.includes(t.toLowerCase()))) return true;
+  }
+
   return false;
 }
 
