@@ -112,11 +112,11 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.kavWrapper}
+      >
       <Pressable style={styles.overlay} onPress={handleClose}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.kavContainer}
-        >
         <Pressable style={styles.sheet} onPress={() => {}}>
           <KeyboardDoneBar />
           <View style={styles.handle} />
@@ -317,8 +317,8 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
             )}
           </ScrollView>
         </Pressable>
-        </KeyboardAvoidingView>
       </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -326,13 +326,13 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  kavWrapper: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
-  },
-  kavContainer: {
-    width: '100%',
   },
   sheet: {
     backgroundColor: colors.card,
