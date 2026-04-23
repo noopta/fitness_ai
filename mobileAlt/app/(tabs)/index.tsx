@@ -11,7 +11,6 @@ import { liftCoachApi, coachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
-import { AnakinInsightsCard, type AnakinInsight } from '../../src/components/coach/AnakinInsightsCard';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -42,9 +41,6 @@ export default function HomeScreen() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [strengthProfile, setStrengthProfile] = useState<any>(null);
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
-  const [anakinInsights, setAnakinInsights] = useState<AnakinInsight[]>([]);
-  const [insightsReady, setInsightsReady] = useState(false);
-
   const greeting = useMemo(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)], []);
 
   useEffect(() => {
@@ -62,14 +58,6 @@ export default function HomeScreen() {
     coachApi.getWelcomeMessage()
       .then((data) => setWelcomeMessage(data.message ?? null))
       .catch(() => {});
-    coachApi.getAnakinInsights()
-      .then((data) => {
-        if (data.hasEnoughData && Array.isArray(data.insights)) {
-          setAnakinInsights(data.insights);
-        }
-        setInsightsReady(true);
-      })
-      .catch(() => setInsightsReady(true));
   }, []);
 
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
@@ -154,11 +142,6 @@ export default function HomeScreen() {
         ) : (
           /* Free: New Analysis secondary card (upsell hidden for App Store review) */
           null
-        )}
-
-        {/* ── Anakin's Latest Insights ── */}
-        {insightsReady && anakinInsights.length > 0 && (
-          <AnakinInsightsCard insights={anakinInsights} />
         )}
 
         {/* ── New Analysis row (for paid users, as a secondary action) ── */}
