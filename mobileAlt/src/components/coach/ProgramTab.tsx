@@ -72,9 +72,20 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
   }
 
   const phases: any[] = savedProgram.phases ?? [];
-  const currentPhaseIdx = (coachData?.currentWeek ?? 0) > 0 && phases.length > 0
-    ? Math.min(Math.floor(((coachData.currentWeek - 1) / (savedProgram.durationWeeks ?? 1)) * phases.length), phases.length - 1)
-    : 0;
+
+  // Walk cumulative phase durations to find the current phase — matches backend logic.
+  // The old formula assumed equal-duration phases which is wrong for most programs.
+  function getCurrentPhaseIdx(currentWeek: number): number {
+    let cumulative = 0;
+    for (let i = 0; i < phases.length; i++) {
+      cumulative += phases[i].durationWeeks ?? phases[i].weeks ?? 1;
+      if (currentWeek <= cumulative) return i;
+    }
+    return phases.length - 1;
+  }
+
+  const currentWeek = coachData?.currentWeek ?? 1;
+  const currentPhaseIdx = phases.length > 0 ? getCurrentPhaseIdx(currentWeek) : 0;
 
   return (
     <>
