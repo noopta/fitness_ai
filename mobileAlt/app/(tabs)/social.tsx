@@ -700,7 +700,7 @@ export default function SocialScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isSmallScreen = SCREEN_WIDTH < 380;
 
 const styles = StyleSheet.create({
@@ -885,7 +885,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    maxHeight: '88%',
+    height: SCREEN_HEIGHT * 0.78,
+    maxHeight: SCREEN_HEIGHT * 0.88,
   },
   modalHeader: {
     flexDirection: 'row',
