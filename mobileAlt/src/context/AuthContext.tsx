@@ -41,6 +41,8 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  needsDobCheck: boolean;
+  clearDobCheck: () => void;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, dateOfBirth?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -54,6 +56,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsDobCheck, setNeedsDobCheck] = useState(false);
+
+  function clearDobCheck() { setNeedsDobCheck(false); }
 
   async function refreshUser() {
     try {
@@ -126,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (token) {
           await setToken(token);
+          const dobRequired = /[?&]needsDob=1/.test(url);
           // Verify by calling /auth/me with the token directly (avoids SecureStore async race)
           try {
             const res = await fetch('https://api.airthreads.ai:4009/api/auth/me', {
@@ -138,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               Alert.alert('Sign In Failed', `Verification failed (${res.status}: ${data.error ?? 'unknown'}). Please try again.`);
             } else {
               setUser(data.user);
+              if (dobRequired) setNeedsDobCheck(true);
             }
           } catch (err: any) {
             // Network error — still store token, let user proceed
@@ -187,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.token) await setToken(data.token);
       setUser(data.user);
+      if (data.needsDobCheck) setNeedsDobCheck(true);
     } catch (err: any) {
       if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed sheet
       console.log('[Auth] Apple sign-in error:', err?.message);
@@ -195,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, appleLogin, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, logout, googleLogin, appleLogin, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

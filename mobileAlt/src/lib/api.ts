@@ -116,6 +116,9 @@ export const authApi = {
   setAvatar: (avatarBase64: string) =>
     apiFetch('/auth/avatar', { method: 'PUT', body: JSON.stringify({ avatarBase64 }) }),
 
+  setDob: (dateOfBirth: string) =>
+    apiFetch('/auth/set-dob', { method: 'POST', body: JSON.stringify({ dateOfBirth }) }),
+
   deleteAccount: () =>
     apiFetch('/auth/account', { method: 'DELETE' }),
 };

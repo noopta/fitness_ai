@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable,
-  Alert, KeyboardAvoidingView, Platform, Linking, TouchableOpacity, ActivityIndicator,
+  Alert, Platform, Linking, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -30,10 +30,15 @@ export default function RegisterScreen() {
     if (!name.trim()) { Alert.alert('Missing Name', 'Please enter your name.'); return; }
     if (!email.trim()) { Alert.alert('Missing Email', 'Please enter your email address.'); return; }
     if (!password || password.length < 8) { Alert.alert('Weak Password', 'Password must be at least 8 characters.'); return; }
+    if (!dateOfBirth.trim()) { Alert.alert('Missing Date of Birth', 'Please enter your date of birth.'); return; }
+    const dob = new Date(dateOfBirth.trim());
+    if (isNaN(dob.getTime())) { Alert.alert('Invalid Date', 'Please enter your date of birth in YYYY-MM-DD format.'); return; }
+    const ageDays = (Date.now() - dob.getTime()) / 86400000;
+    if (ageDays < 13 * 365.25) { Alert.alert('Age Restriction', 'You must be at least 13 years old to use this app.'); return; }
 
     setSubmitting(true);
     try {
-      await register(name.trim(), email.trim(), password, dateOfBirth.trim() || undefined);
+      await register(name.trim(), email.trim(), password, dateOfBirth.trim());
       Analytics.register('email');
       router.replace('/(tabs)');
     } catch (err: any) {
@@ -56,14 +61,11 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardDoneBar />
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets
         >
           {/* Branding */}
           <View style={styles.brandRow}>
@@ -114,7 +116,7 @@ export default function RegisterScreen() {
           <Input label="Name" value={name} onChangeText={setName} autoCapitalize="words" autoCorrect={false} placeholder="Your full name" containerStyle={styles.inputContainer} />
           <Input label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} placeholder="you@example.com" containerStyle={styles.inputContainer} />
           <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" containerStyle={styles.inputContainer} />
-          <Input label="Date of Birth (optional)" value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="YYYY-MM-DD" keyboardType="numbers-and-punctuation" autoCorrect={false} containerStyle={styles.inputContainer} />
+          <Input label="Date of Birth" value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="YYYY-MM-DD" keyboardType="numbers-and-punctuation" autoCorrect={false} containerStyle={styles.inputContainer} />
 
           {/* Primary CTA */}
           <TouchableOpacity
@@ -150,14 +152,12 @@ export default function RegisterScreen() {
             </Text>
           </Pressable>
         </ScrollView>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
-  keyboardView: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: spacing.lg,

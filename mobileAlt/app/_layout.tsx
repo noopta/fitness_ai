@@ -16,7 +16,7 @@ import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 const queryClient = new QueryClient();
 
 function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, needsDobCheck } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -40,12 +40,15 @@ function RootNavigator() {
   useEffect(() => {
     if (loading) return;
     const inAuthGroup = segments[0] === '(auth)';
+    const inAgeCheck = (segments[0] as string) === 'age-check';
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/welcome');
-    } else if (user && inAuthGroup) {
+    } else if (user && needsDobCheck && !inAgeCheck) {
+      router.replace('/age-check' as any);
+    } else if (user && !needsDobCheck && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [user, loading, segments]);
+  }, [user, loading, needsDobCheck, segments]);
 
   if (loading) {
     return (

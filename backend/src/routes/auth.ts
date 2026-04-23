@@ -59,17 +59,29 @@ function issueToken(user: { id: string; email: string | null; tier: string }) {
   );
 }
 
+// Helper: validate age >= 13 from a DOB string. Returns error string or null.
+function validateAge(dobStr: string): string | null {
+  const dob = new Date(dobStr);
+  if (isNaN(dob.getTime())) return 'Invalid date of birth.';
+  const ageDays = (Date.now() - dob.getTime()) / 86400000;
+  if (ageDays < 13 * 365.25) return 'You must be at least 13 years old to use this app.';
+  return null;
+}
+
 // POST /api/auth/register
 const registerSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(8),
-  dateOfBirth: z.string().optional()
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
 });
 
 router.post('/auth/register', async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
+
+    const ageError = validateAge(data.dateOfBirth);
+    if (ageError) return res.status(400).json({ error: ageError });
 
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
@@ -82,7 +94,7 @@ router.post('/auth/register', async (req, res) => {
         name: data.name,
         email: data.email,
         hashedPassword,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+        dateOfBirth: new Date(data.dateOfBirth),
         tier: tierForEmail(data.email),
       }
     });
@@ -270,7 +282,8 @@ router.get('/auth/google/callback', async (req, res) => {
     });
 
     if (mobileRedirect) {
-      res.redirect(`${mobileRedirect}?token=${token}`);
+      const needsDob = isNewUser && !user.dateOfBirth ? '&needsDob=1' : '';
+      res.redirect(`${mobileRedirect}?token=${token}${needsDob}`);
     } else {
       // Include token in URL so web frontend can use it as Bearer fallback
       // (cross-domain cookies may be blocked by browser privacy features)
@@ -352,11 +365,31 @@ router.post('/auth/apple', async (req, res) => {
       event: 'user_apple_signin_completed',
       properties: { is_new_user: isNewUser, tier: user.tier },
     });
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, accessToken: token });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, accessToken: token, needsDobCheck: isNewUser && !user.dateOfBirth });
   } catch (err: any) {
     posthog.captureException(err);
     console.error('Apple auth error:', err);
     res.status(401).json({ error: 'Apple identity token verification failed' });
+  }
+});
+
+// POST /api/auth/set-dob — age verification for OAuth new users
+router.post('/auth/set-dob', requireAuth, async (req, res) => {
+  try {
+    const { dateOfBirth } = req.body;
+    if (!dateOfBirth || typeof dateOfBirth !== 'string') {
+      return res.status(400).json({ error: 'dateOfBirth required' });
+    }
+    const ageError = validateAge(dateOfBirth);
+    if (ageError) return res.status(400).json({ error: ageError });
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { dateOfBirth: new Date(dateOfBirth) },
+    });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('set-dob error:', err);
+    res.status(500).json({ error: 'Could not save date of birth' });
   }
 });
 
