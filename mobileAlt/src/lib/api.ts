@@ -278,6 +278,9 @@ export const coachApi = {
   getWelcomeMessage: () => apiFetch('/coach/welcome'),
   dismissWelcomeMessage: () => apiFetch('/coach/welcome/dismiss', { method: 'POST' }),
 
+  // Home page daily insights
+  getAnakinInsights: () => apiFetch('/coach/anakin-insights'),
+
   // Exercise video
   getExerciseVideo: (name: string) =>
     apiFetch(`/coach/exercise-video?name=${encodeURIComponent(name)}`),

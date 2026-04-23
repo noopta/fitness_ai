@@ -10,6 +10,7 @@ import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal, generateWelcomeMessage,
+  generateAnakinDailyInsights, type AnakinInsight,
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
 
@@ -1515,6 +1516,88 @@ router.post('/coach/welcome/dismiss', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Dismiss welcome error:', err);
     res.status(500).json({ error: 'Failed to dismiss' });
+  }
+});
+
+// ─── GET /api/coach/anakin-insights ──────────────────────────────────────────
+// Daily home-page insights. Requires ≥3 workout logs with weight data.
+// Cached once per calendar day in coachProfile JSON.
+
+const MIN_WORKOUT_LOGS = 3;
+
+router.get('/coach/anakin-insights', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const todayKey = new Date().toISOString().split('T')[0];
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Check cached insights for today
+    const profile = user.coachProfile ? (() => { try { return JSON.parse(user.coachProfile!); } catch { return {}; } })() : {};
+    if (profile.anakinInsightsDate === todayKey && Array.isArray(profile.anakinInsights) && profile.anakinInsights.length > 0) {
+      return res.json({ insights: profile.anakinInsights as AnakinInsight[], hasEnoughData: true, generatedAt: todayKey });
+    }
+
+    // Fetch workout logs with weight data
+    const allLogs = await prisma.workoutLog.findMany({ where: { userId }, orderBy: { date: 'desc' } });
+    const weightedLogs = allLogs.filter(log => {
+      try {
+        const exs = JSON.parse(log.exercises);
+        return Array.isArray(exs) && exs.some((e: any) => e.weightKg && e.weightKg > 0);
+      } catch { return false; }
+    });
+
+    if (weightedLogs.length < MIN_WORKOUT_LOGS) {
+      return res.json({ insights: [], hasEnoughData: false, generatedAt: null });
+    }
+
+    // Pull strength profile from cache (built by /strength/profile route)
+    const { cacheGet: strengthCacheGet } = await import('../services/cacheService.js');
+    const cached = strengthCacheGet<any>(`strength:profile:${userId}`);
+    const strengthData = cached ?? { lifts: [], radarScores: {}, overallStrengthIndex: null, strengthTier: 'Beginner' };
+
+    // Recent nutrition summary (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenKey = sevenDaysAgo.toISOString().split('T')[0];
+    const nutritionLogs = await prisma.nutritionLog.findMany({
+      where: { userId, date: { gte: sevenKey } },
+    });
+    const recentNutrition = nutritionLogs.length >= 3 ? {
+      avgCalories: nutritionLogs.reduce((s, l) => s + l.calories, 0) / nutritionLogs.length,
+      avgProteinG: nutritionLogs.reduce((s, l) => s + l.proteinG, 0) / nutritionLogs.length,
+      logDays: nutritionLogs.length,
+    } : null;
+
+    const bodyweightKg = user.weightKg ?? 80;
+
+    const insights = await generateAnakinDailyInsights({
+      bodyweightKg,
+      lifts: (strengthData.lifts ?? []).slice(0, 6).map((l: any) => ({
+        name: l.canonicalName,
+        current1RMkg: l.current1RMkg,
+        monthlyGainPct: l.monthlyGainPct,
+        sessionCount: l.sessionCount,
+        category: l.category,
+      })),
+      radarScores: strengthData.radarScores ?? {},
+      overallStrengthIndex: strengthData.overallStrengthIndex ?? null,
+      strengthTier: strengthData.strengthTier ?? 'Beginner',
+      totalWorkoutLogs: weightedLogs.length,
+      recentNutrition,
+    });
+
+    // Persist to coachProfile for daily caching
+    await prisma.user.update({
+      where: { id: userId },
+      data: { coachProfile: JSON.stringify({ ...profile, anakinInsights: insights, anakinInsightsDate: todayKey }) },
+    });
+
+    res.json({ insights, hasEnoughData: true, generatedAt: todayKey });
+  } catch (err) {
+    console.error('[anakin-insights] error:', err);
+    res.status(500).json({ error: 'Failed to generate insights' });
   }
 });
 

@@ -2028,3 +2028,80 @@ Example tone (new): "Your first phase is built around fixing the most common wea
 
   return (response.choices[0].message.content || '').trim();
 }
+
+// ─── Anakin Daily Home Insights ───────────────────────────────────────────────
+
+export interface AnakinInsight {
+  type: 'strength' | 'imbalance' | 'progress' | 'nutrition' | 'action';
+  text: string;
+}
+
+export async function generateAnakinDailyInsights(params: {
+  bodyweightKg: number;
+  lifts: Array<{ name: string; current1RMkg: number; monthlyGainPct: number | null; sessionCount: number; category: string }>;
+  radarScores: Record<string, number>;
+  overallStrengthIndex: number | null;
+  strengthTier: string;
+  totalWorkoutLogs: number;
+  recentNutrition: { avgCalories: number | null; avgProteinG: number | null; logDays: number } | null;
+}): Promise<AnakinInsight[]> {
+  const liftLines = params.lifts.slice(0, 6).map(l =>
+    `${l.name}: est. 1RM ${l.current1RMkg}kg, ${l.monthlyGainPct != null ? l.monthlyGainPct + '% monthly trend' : 'no monthly trend'}, ${l.sessionCount} sessions`
+  ).join('\n');
+
+  const radarLines = Object.entries(params.radarScores)
+    .map(([cat, score]) => `${cat}: ${score}/10`)
+    .join(', ');
+
+  const nutritionLine = params.recentNutrition && params.recentNutrition.logDays >= 3
+    ? `Avg calories: ${Math.round(params.recentNutrition.avgCalories ?? 0)} kcal, avg protein: ${Math.round(params.recentNutrition.avgProteinG ?? 0)}g/day (${params.recentNutrition.logDays} days logged)`
+    : 'No recent nutrition data';
+
+  const prompt = `You are Anakin, an elite AI strength and fitness coach. Generate exactly 5 daily insights for this athlete's home dashboard.
+
+ATHLETE DATA:
+- Bodyweight: ${params.bodyweightKg}kg
+- Overall Strength Index: ${params.overallStrengthIndex ?? 'N/A'}/100 (${params.strengthTier})
+- Total workout logs: ${params.totalWorkoutLogs}
+- Movement balance (0-10 scale): ${radarLines}
+
+LIFT PERFORMANCE:
+${liftLines || 'No lift data available'}
+
+NUTRITION (last 7 days):
+${nutritionLine}
+
+STRENGTH RATIO BENCHMARKS (elite intermediate):
+- Bench: 1.5x bodyweight, Squat: 2.0x, Deadlift: 2.5x, OHP: 1.0x
+
+Generate exactly 5 insights, one of each type. Each must be data-specific and under 28 words.
+Types: strength (ratio analysis), imbalance (muscle balance gaps), progress (trend/momentum), nutrition (based on logs or general if no data), action (one concrete thing to do this week).
+
+Return as JSON: { "insights": [ { "type": "strength", "text": "..." }, { "type": "imbalance", "text": "..." }, { "type": "progress", "text": "..." }, { "type": "nutrition", "text": "..." }, { "type": "action", "text": "..." } ] }
+
+Rules:
+- Reference actual numbers from the data
+- Never use generic advice — tie every insight to specific athlete data
+- action type must be one concrete, achievable thing (e.g. "Add a set of X this week")
+- nutrition insight: if no logs, give a bodyweight-based protein target (${Math.round(params.bodyweightKg * 2)}g/day)`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 500,
+    response_format: { type: 'json_object' },
+  });
+
+  try {
+    const raw = response.choices[0].message.content || '{}';
+    const parsed = JSON.parse(raw);
+    const arr: AnakinInsight[] = parsed.insights ?? parsed.data ?? Object.values(parsed)[0];
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .filter((x: any) => x?.type && x?.text)
+      .slice(0, 5)
+      .map((x: any) => ({ type: x.type, text: String(x.text) }));
+  } catch {
+    return [];
+  }
+}
