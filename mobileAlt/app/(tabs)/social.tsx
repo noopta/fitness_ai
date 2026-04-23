@@ -49,39 +49,8 @@ interface Friend {
   avatarBase64?: string | null;
 }
 
-interface FriendRequest {
-  id: string;
-  requesterId: string;
-  requester: { id: string; name: string | null; username: string | null };
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function relativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
-
-function payloadDescription(itemType: string, payload: any): string {
-  if (!payload) return itemType;
-  if (itemType === 'text') return '';
-  if (itemType === 'media') return '';
-  if (itemType === 'session' || itemType === 'plan') {
-    return payload.selectedLift
-      ? `Shared a ${itemType}: ${payload.selectedLift.replace(/_/g, ' ')}`
-      : `Shared a ${itemType}`;
-  }
-  if (itemType === 'workout') {
-    return payload.title ? `Shared workout: ${payload.title}` : 'Shared a workout';
-  }
-  return `Shared ${itemType}`;
-}
 
 // ─── Friend Row ───────────────────────────────────────────────────────────────
 
@@ -128,7 +97,7 @@ interface NewPostModalProps {
 }
 
 function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
-  const { user } = useAuth();
+  useAuth();
   const { unit } = useUnits();
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
@@ -336,11 +305,10 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
               ))}
             </View>
 
-            {/* Scrollable body — always scrollable so keyboard never obscures inputs */}
+            {/* Scrollable body — KAV handles sheet position; scroll handles content */}
             <ScrollView
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              automaticallyAdjustKeyboardInsets
               style={styles.modalScrollArea}
             >
               {/* Tap-blocker lives inside scroll content so touches here don't dismiss */}
@@ -430,7 +398,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                       <View key={i} style={styles.exerciseEntryCard}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                           <TextInput
-                            style={[styles.textInput, styles.textInputSingleLine, { flex: 1, minHeight: 0, height: 44 }]}
+                            style={[styles.textInput, styles.textInputSingleLine, { flex: 1 }]}
                             placeholder="Exercise name"
                             placeholderTextColor={colors.mutedForeground}
                             value={entry.name}
@@ -466,7 +434,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                             />
                           </View>
                           <View style={{ flex: 1.4 }}>
-                            <Text style={styles.fieldLabel}>Weight (lbs)</Text>
+                            <Text style={styles.fieldLabel}>Weight ({unit})</Text>
                             <TextInput
                               style={[styles.textInput, styles.textInputSingleLine, styles.miniInput]}
                               keyboardType="decimal-pad"
@@ -511,7 +479,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
 
 export default function SocialScreen() {
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'friends'>('feed');
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -917,7 +885,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    // Prevent dismiss tap propagation
+    maxHeight: '88%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -969,7 +937,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
     fontSize: fontSize.base,
     color: colors.foreground,
     backgroundColor: colors.background,
@@ -978,6 +947,7 @@ const styles = StyleSheet.create({
   textInputSingleLine: {
     minHeight: 0,
     height: 50,
+    paddingVertical: 13,
   },
   captionInput: {
     marginTop: spacing.xs,
@@ -1024,13 +994,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.muted,
   },
 
-  // Modal scroll area — always scrollable so keyboard never buries inputs
   modalScrollArea: {
-    maxHeight: 480,
-  },
-  // Kept for reference (no longer used as conditional style)
-  workoutScrollArea: {
-    maxHeight: 480,
+    flex: 1,
   },
   workoutToggleRow: {
     flexDirection: 'row',
@@ -1067,10 +1032,11 @@ const styles = StyleSheet.create({
   },
   miniInput: {
     minHeight: 0,
-    height: 40,
+    height: 44,
+    paddingVertical: 0,
+    paddingHorizontal: spacing.sm,
     textAlign: 'center',
-    paddingHorizontal: spacing.xs,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.base,
   },
   addExerciseButton: {
     flexDirection: 'row',
