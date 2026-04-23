@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useUnits } from '../../src/context/UnitsContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { PostCard } from '../../src/components/social/PostCard';
@@ -128,6 +129,7 @@ interface NewPostModalProps {
 
 function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const { user } = useAuth();
+  const { unit } = useUnits();
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
   const slideY = useSharedValue(400);
@@ -210,7 +212,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
             sets: Math.max(parseInt(e.sets, 10) || 1, 1),
             reps: e.reps.trim() || '1',
             weight: parseFloat(e.weight) || 0,
-            unit: 'lbs',
+            unit,
           }))
       : [];
     const workoutPayload = validExercises.length > 0
@@ -514,10 +516,12 @@ export default function SocialScreen() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [unreadDMs, setUnreadDMs] = useState(0);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [postModalVisible, setPostModalVisible] = useState(false);
+
   const loadFeed = useCallback(() => {
     setLoadingFeed(true);
     return socialApi.getSharedFeed()
@@ -528,14 +532,17 @@ export default function SocialScreen() {
 
   const loadFriends = useCallback(() => {
     setLoadingFriends(true);
-    return Promise.all([
-      socialApi.getFriends().catch(() => []),
-      socialApi.getFriendRequests().catch(() => ({ received: [] })),
-    ]).then(([friendsData, reqData]) => {
-      setFriends(Array.isArray(friendsData) ? friendsData : friendsData.friends ?? []);
-      const received = Array.isArray(reqData) ? reqData : reqData.received ?? [];
-      setPendingCount(received.length);
-    }).finally(() => setLoadingFriends(false));
+    return socialApi.getFriends().catch(() => [])
+      .then((friendsData) => {
+        setFriends(Array.isArray(friendsData) ? friendsData : friendsData.friends ?? []);
+      }).finally(() => setLoadingFriends(false));
+  }, []);
+
+  const loadNotificationCounts = useCallback(() => {
+    return socialApi.getNotificationCounts().then((data) => {
+      setPendingCount(data.pendingRequests ?? 0);
+      setUnreadDMs(data.unreadMessages ?? 0);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -546,13 +553,14 @@ export default function SocialScreen() {
   useEffect(() => {
     loadFeed();
     loadFriends();
-  }, [loadFeed, loadFriends]);
+    loadNotificationCounts();
+  }, [loadFeed, loadFriends, loadNotificationCounts]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeed(), loadFriends()]);
+    await Promise.all([loadFeed(), loadFriends(), loadNotificationCounts()]);
     setRefreshing(false);
-  }, [loadFeed, loadFriends]);
+  }, [loadFeed, loadFriends, loadNotificationCounts]);
 
   const handleInvite = async () => {
     try {
@@ -583,8 +591,13 @@ export default function SocialScreen() {
       <View style={styles.topBar}>
         <Text style={styles.screenTitle}>Social</Text>
         <View style={styles.topBarActions}>
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/social/messages')}>
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => { router.push('/social/messages'); setUnreadDMs(0); }}>
             <Ionicons name="chatbubbles-outline" size={22} color={colors.foreground} />
+            {unreadDMs > 0 && (
+              <View style={styles.iconBadge}>
+                <Text style={styles.iconBadgeText}>{unreadDMs > 9 ? '9+' : unreadDMs}</Text>
+              </View>
+            )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={handleInvite}>
             <Ionicons name="person-add-outline" size={22} color={colors.foreground} />
@@ -737,7 +750,20 @@ const styles = StyleSheet.create({
   },
   screenTitle: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, color: colors.foreground },
   topBarActions: { flexDirection: 'row', gap: spacing.sm },
-  iconButton: { padding: 6 },
+  iconButton: { padding: 6, position: 'relative' },
+  iconBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: colors.destructive,
+    borderRadius: radius.full,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  iconBadgeText: { fontSize: 10, color: '#fff', fontWeight: fontWeight.bold },
 
   segmentBar: {
     flexDirection: 'row',

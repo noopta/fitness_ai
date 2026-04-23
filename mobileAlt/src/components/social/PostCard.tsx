@@ -195,7 +195,7 @@ function WorkoutSection({ exercises, title }: { exercises: WorkoutExercise[]; ti
     <View style={cs.workoutOuter}>
       <TouchableOpacity style={cs.workoutToggle} onPress={toggle} activeOpacity={0.8}>
         <Dumbbell size={16} color="#6B7280" />
-        <Text style={cs.workoutLabel}>{title?.toUpperCase() ?? "TODAY'S WORKOUT"}</Text>
+        <Text style={cs.workoutLabel} numberOfLines={1}>{title?.toUpperCase() ?? "TODAY'S WORKOUT"}</Text>
         <View style={cs.exerciseCountPill}>
           <Text style={cs.exerciseCountText}>
             {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
@@ -865,6 +865,8 @@ const cs = StyleSheet.create({
     letterSpacing: 0.8,
     color: '#6B7280',
     textTransform: 'uppercase',
+    flex: 1,
+    flexShrink: 1,
   },
   exerciseCountPill: {
     backgroundColor: 'rgba(209,213,219,0.4)',

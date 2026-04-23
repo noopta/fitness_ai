@@ -122,7 +122,7 @@ export default function ConversationScreen() {
     }
   };
 
-  function parseForwardedPost(body: string): { note?: string; cap?: string; txt?: string; hasImg?: boolean } | null {
+  function parseForwardedPost(body: string): { note?: string; cap?: string; txt?: string; hasImg?: boolean; vid?: string } | null {
     // New structured format
     try {
       const parsed = JSON.parse(body);
@@ -146,6 +146,7 @@ export default function ConversationScreen() {
             {fwd.cap ? <Text style={styles.forwardCap}>{fwd.cap}</Text> : null}
             {fwd.txt ? <Text style={styles.forwardBody}>{fwd.txt}</Text> : null}
             {fwd.hasImg ? <Text style={styles.forwardImgHint}>📷 Image attached</Text> : null}
+            {fwd.vid ? <Text style={styles.forwardImgHint}>🎥 Video link shared</Text> : null}
           </View>
         </View>
       );

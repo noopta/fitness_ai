@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -13,7 +13,9 @@ interface Conversation {
   otherUser: {
     id: string;
     name: string | null;
+    username?: string | null;
     email: string | null;
+    avatarBase64?: string | null;
   };
   lastMessage: string | null;
   lastMessageAt: string | null;
@@ -129,7 +131,12 @@ export default function MessagesScreen() {
           showsVerticalScrollIndicator={false}
         >
           {conversations.map((conv) => {
-            const name = conv.otherUser.name ?? conv.otherUser.email ?? 'User';
+            const displayName = conv.otherUser.username
+              ? `@${conv.otherUser.username}`
+              : (conv.otherUser.name ?? conv.otherUser.email ?? 'User');
+            const initials = (conv.otherUser.username ?? conv.otherUser.name ?? conv.otherUser.email ?? '?')[0].toUpperCase();
+            const raw = conv.otherUser.avatarBase64;
+            const avatarUri = raw ? (raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`) : null;
             return (
               <TouchableOpacity
                 key={conv.id}
@@ -138,11 +145,14 @@ export default function MessagesScreen() {
                 onPress={() => openConversation(conv)}
               >
                 <View style={styles.avatarCircle}>
-                  <Text style={styles.avatarText}>{name[0].toUpperCase()}</Text>
+                  {avatarUri
+                    ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+                    : <Text style={styles.avatarText}>{initials}</Text>
+                  }
                 </View>
                 <View style={styles.convContent}>
                   <View style={styles.convTopRow}>
-                    <Text style={styles.convName} numberOfLines={1}>{name}</Text>
+                    <Text style={styles.convName} numberOfLines={1}>{displayName}</Text>
                     <Text style={styles.timeText}>{relativeTime(conv.lastMessageAt)}</Text>
                   </View>
                   {conv.lastMessage ? (
@@ -200,6 +210,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.foreground },
+  avatarImage: { width: 46, height: 46, borderRadius: radius.full },
   convContent: { flex: 1 },
   convTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   convName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },

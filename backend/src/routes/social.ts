@@ -290,8 +290,8 @@ router.get('/social/conversations', async (req, res) => {
   const convos = await prisma.directConversation.findMany({
     where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
     include: {
-      participantA: { select: { id: true, name: true, email: true } },
-      participantB: { select: { id: true, name: true, email: true } },
+      participantA: { select: { id: true, name: true, username: true, email: true, avatarBase64: true } },
+      participantB: { select: { id: true, name: true, username: true, email: true, avatarBase64: true } },
       messages: { orderBy: { createdAt: 'desc' }, take: 1 },
     },
     orderBy: { updatedAt: 'desc' },
@@ -303,10 +303,17 @@ router.get('/social/conversations', async (req, res) => {
       where: { conversationId: c.id, senderId: { not: userId }, readAt: null },
     });
     const lastMsg = c.messages[0] ?? null;
+    let lastMessagePreview: string | null = lastMsg?.body ?? null;
+    if (lastMessagePreview) {
+      try {
+        const p = JSON.parse(lastMessagePreview);
+        if (p?._fwd === true) lastMessagePreview = `↪ Forwarded a post${p.txt ? `: "${(p.txt as string).slice(0, 40)}"` : ''}`;
+      } catch {}
+    }
     return {
       id: c.id,
       otherUser,
-      lastMessage: lastMsg?.body ?? null,
+      lastMessage: lastMessagePreview,
       lastMessageAt: lastMsg?.createdAt ?? c.updatedAt,
       unreadCount: unread,
     };
@@ -332,12 +339,12 @@ router.post('/social/conversations', async (req, res) => {
 
   const participant = await prisma.user.findUnique({
     where: { id: participantId },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, username: true, email: true, avatarBase64: true },
   });
 
   res.json({
     id: convo.id,
-    otherUser: participant ?? { id: participantId, name: null, email: null },
+    otherUser: participant ?? { id: participantId, name: null, username: null, email: null, avatarBase64: null },
     lastMessage: null,
     lastMessageAt: convo.updatedAt,
     unreadCount: 0,
