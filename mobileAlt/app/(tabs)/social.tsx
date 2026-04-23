@@ -188,13 +188,8 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   }, [visible]);
 
   async function pickImage() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please allow photo library access to share images.');
-      return;
-    }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'] as any,
       allowsEditing: true,
       quality: 0.7,
       base64: true,
@@ -315,8 +310,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
         <Animated.View
           style={[styles.modalSheet, sheetStyle, { paddingBottom: Math.max(spacing.lg, insets.bottom) }]}
         >
-          <Pressable onPress={() => {}}>
-            {/* Header */}
+            {/* Header — outside ScrollView so it stays fixed */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>New Post</Text>
               <TouchableOpacity onPress={onClose} style={styles.modalCloseButton} activeOpacity={0.7}>
@@ -324,7 +318,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
               </TouchableOpacity>
             </View>
 
-            {/* Post type tabs */}
+            {/* Post type tabs — fixed */}
             <View style={styles.postTabBar}>
               {(['text', 'image', 'video'] as PostTab[]).map((tab) => (
                 <TouchableOpacity
@@ -340,12 +334,15 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
               ))}
             </View>
 
+            {/* Scrollable body — always scrollable so keyboard never obscures inputs */}
             <ScrollView
-              style={showWorkout ? styles.workoutScrollArea : undefined}
-              scrollEnabled={showWorkout}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              automaticallyAdjustKeyboardInsets
+              style={styles.modalScrollArea}
             >
+              {/* Tap-blocker lives inside scroll content so touches here don't dismiss */}
+              <Pressable onPress={() => {}}>
               <View style={styles.modalBody}>
                 {/* Tab-specific input */}
                 {postTab === 'text' && (
@@ -500,8 +497,8 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                     : <Text style={styles.postButtonText}>{postButtonLabel}</Text>}
                 </TouchableOpacity>
               </View>
+              </Pressable>
             </ScrollView>
-          </Pressable>
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
@@ -726,7 +723,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const isSmallScreen = SCREEN_WIDTH < 380;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F5F5F7' },
+  safeArea: { flex: 1, backgroundColor: colors.background },
 
   topBar: {
     flexDirection: 'row',
@@ -736,7 +733,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   screenTitle: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, color: colors.foreground },
   topBarActions: { flexDirection: 'row', gap: spacing.sm },
@@ -1001,9 +998,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.muted,
   },
 
-  // Workout section
+  // Modal scroll area — always scrollable so keyboard never buries inputs
+  modalScrollArea: {
+    maxHeight: 480,
+  },
+  // Kept for reference (no longer used as conditional style)
   workoutScrollArea: {
-    maxHeight: 460,
+    maxHeight: 480,
   },
   workoutToggleRow: {
     flexDirection: 'row',
