@@ -21,6 +21,7 @@ import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
 import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
+import { runDailyFeedFetch } from './services/feedService.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -165,4 +166,8 @@ function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
 scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
 scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
 scheduleAt(18, null, () => runReengagementCheck().catch(err => console.error('[scheduler] reengagement error:', err)));
-console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement)');
+// Research/article feed — fetch new content daily at 6am
+scheduleAt(6,  null, () => runDailyFeedFetch().catch(err => console.error('[scheduler] feed fetch error:', err)));
+// Run once on startup to seed the feed if empty
+runDailyFeedFetch().catch(err => console.error('[feedService] initial fetch error:', err));
+console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 6am feed fetch)');

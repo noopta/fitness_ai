@@ -408,3 +408,20 @@ model InstitutionInvite {
   createdAt       DateTime    @default(now())
   institution     Institution @relation(fields: [institutionId], references: [id])
 }
+
+// ─── Research / Article Feed Items ───────────────────────────────────────────
+
+model FeedItem {
+  id          String    @id @default(uuid())
+  externalId  String    @unique  // PMID or article URL (dedup key)
+  type        String             // "research" | "article"
+  title       String
+  summary     String             // GPT-generated plain-English summary
+  url         String
+  source      String             // "PubMed", "Harvard Health", etc.
+  tags        String             // JSON array e.g. ["strength","fat_loss"]
+  publishedAt DateTime?
+  fetchedAt   DateTime  @default(now())
+
+  @@index([fetchedAt])
+}

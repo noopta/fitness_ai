@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser } from '../services/notificationService.js';
+import { getUserGoalTags, getFeedItemsForTags } from '../services/feedService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -568,6 +569,81 @@ router.get('/social/shared-feed', async (req, res) => {
   const deduped = filtered.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
 
   res.json(deduped.map(i => serializeFeedItem(i, userId)));
+});
+
+// ─── GET /api/social/feed — interleaved friend posts + research/article items ─
+// Every 2 friend posts, inject 1 goal-matched FeedItem. Hard cap: 10 FeedItems.
+// If no friend posts, returns up to 10 FeedItems directly.
+
+router.get('/social/feed', async (req, res) => {
+  const userId = req.user!.id;
+
+  // Reuse shared-feed logic to get friend posts
+  const friendships = await prisma.friendship.findMany({
+    where: {
+      OR: [{ requesterId: userId }, { addresseeId: userId }],
+      status: 'accepted',
+    },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIds = friendships.map(f =>
+    f.requesterId === userId ? f.addresseeId : f.requesterId
+  );
+
+  const rawItems = await prisma.sharedItem.findMany({
+    where: {
+      OR: [
+        { recipientId: userId },
+        { sharerId: userId },
+        ...(friendIds.length > 0 ? [{
+          sharerId: { in: friendIds },
+          recipientId: { in: friendIds },
+        }] : []),
+      ],
+    },
+    include: FEED_INCLUDE,
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+  });
+
+  const friendIdSet = new Set(friendIds);
+  const seen = new Set<string>();
+  const friendPosts = rawItems
+    .filter(i =>
+      i.recipientId === userId ||
+      i.sharerId === userId ||
+      (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId)
+    )
+    .filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; })
+    .slice(0, 50)
+    .map(i => ({ kind: 'post' as const, data: serializeFeedItem(i, userId) }));
+
+  // Fetch goal-matched feed items
+  const tags = await getUserGoalTags(userId);
+  const feedItems = await getFeedItemsForTags(tags, 10);
+  const researchItems = feedItems.map(fi => ({ kind: 'research' as const, data: fi }));
+
+  // Interleave: 1 research item after every 2 friend posts
+  const result: Array<{ kind: 'post' | 'research'; data: any }> = [];
+  let researchIdx = 0;
+
+  if (friendPosts.length === 0) {
+    // No friends yet — just show research items
+    result.push(...researchItems);
+  } else {
+    for (let i = 0; i < friendPosts.length; i++) {
+      result.push(friendPosts[i]);
+      if ((i + 1) % 2 === 0 && researchIdx < researchItems.length) {
+        result.push(researchItems[researchIdx++]);
+      }
+    }
+    // Append any remaining research items after all friend posts
+    while (researchIdx < researchItems.length) {
+      result.push(researchItems[researchIdx++]);
+    }
+  }
+
+  res.json({ items: result });
 });
 
 // ─── Reactions ────────────────────────────────────────────────────────────────

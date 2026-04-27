@@ -18,6 +18,7 @@ import { useUnits } from '../../src/context/UnitsContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { PostCard } from '../../src/components/social/PostCard';
+import { FeedItemCard, type FeedItem } from '../../src/components/social/FeedItemCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -492,9 +493,12 @@ export default function SocialScreen() {
 
   const loadFeed = useCallback(() => {
     setLoadingFeed(true);
-    return socialApi.getSharedFeed()
+    return socialApi.getFeed()
       .then((data) => setFeed(Array.isArray(data) ? data : data.items ?? []))
-      .catch(() => setFeed([]))
+      .catch(() => socialApi.getSharedFeed()
+        .then((data) => setFeed((Array.isArray(data) ? data : data.items ?? []).map((item: any) => ({ kind: 'post', data: item }))))
+        .catch(() => setFeed([]))
+      )
       .finally(() => setLoadingFeed(false));
   }, []);
 
@@ -631,7 +635,13 @@ export default function SocialScreen() {
                 <Text style={styles.emptySubtitle}>Add friends to see their shared workouts and plans here.</Text>
               </View>
             ) : (
-              feed.map((item) => <PostCard key={item.id} item={item} currentUserId={user?.id} friends={friends} />)
+              feed.map((item: any, index: number) => {
+                if (item.kind === 'research') {
+                  return <FeedItemCard key={item.data.id} item={item.data as FeedItem} />;
+                }
+                const postData = item.kind === 'post' ? item.data : item;
+                return <PostCard key={postData.id ?? index} item={postData} currentUserId={user?.id} friends={friends} />;
+              })
             )}
           </>
         ) : (
