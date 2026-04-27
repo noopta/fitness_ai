@@ -22,6 +22,7 @@ import activityRoutes from './routes/activity.js';
 import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
+import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -88,9 +89,26 @@ app.use('/api', activityRoutes);
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const userId = (req as any).user?.id;
+  const status: number = err?.status ?? err?.statusCode ?? 500;
   posthog.captureException(err, userId);
   console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+
+  if (status >= 500) {
+    alertServerError(err, req.path, req.method, status).catch(() => {});
+  }
+
+  res.status(status).json({ error: err?.message ?? 'Internal server error' });
+});
+
+// Uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  alertUncaughtException('uncaughtException', err).finally(() => process.exit(1));
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+  alertUncaughtException('unhandledRejection', reason).catch(() => {});
 });
 
 app.listen(PORT, () => {
