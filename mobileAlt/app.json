@@ -2,7 +2,7 @@
   "expo": {
     "name": "Axiom",
     "slug": "axiom-mobile",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -48,7 +48,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "io.axiomtraining.app",
-      "buildNumber": "31",
+      "buildNumber": "32",
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
