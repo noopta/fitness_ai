@@ -36,9 +36,132 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,200..900;1,14..32,200..900&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://axiomtraining.io/#organization",
+          "name": "Axiom",
+          "url": "https://axiomtraining.io",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://axiomtraining.io/axiom-logo-light-transparent.png"
+          },
+          "sameAs": [
+            "https://www.instagram.com/axiomtraining"
+          ]
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://axiomtraining.io/#webapp",
+          "name": "Axiom — AI Strength Coach & Lift Diagnostic Tool",
+          "url": "https://axiomtraining.io",
+          "description": "Axiom diagnoses exactly why your bench press, squat, or deadlift is stuck using your working weights and training data. Get a free AI-powered lift diagnostic and personalized training program.",
+          "applicationCategory": "HealthApplication",
+          "operatingSystem": "Web, iOS, Android",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free lift diagnostic — no credit card required"
+          },
+          "publisher": {
+            "@id": "https://axiomtraining.io/#organization"
+          },
+          "featureList": [
+            "AI-powered lift diagnostic",
+            "Personalized strength training programs",
+            "e1RM calculator",
+            "Strength standards comparison",
+            "AI coach chat",
+            "Nutrition tracking"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Why is my bench press not improving?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Bench press plateaus are usually caused by a weak link — typically weak triceps at lockout, poor chest recruitment off the chest, or insufficient volume. Axiom's AI diagnostic identifies your exact weakness from your working weights and builds a targeted accessory program."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Why is my squat stuck?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Squat plateaus often stem from quad weakness, poor hip drive, or mobility limitations. Axiom analyzes your strength ratios to pinpoint whether you need more quad, posterior chain, or technique work."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Why is my deadlift not going up?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Deadlift stalls are commonly caused by a weak lower back, poor hamstring engagement, or a breakdown off the floor. Axiom's diagnostic identifies your sticking point and prescribes the right accessory lifts."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Axiom free to use?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. The core lift diagnostic is completely free — no credit card required. Pro features like unlimited analyses, AI coach chat, and nutrition tracking are available with Axiom Pro."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Crawler fallback content — not shown to JS users, indexed by search engines -->
+    <noscript>
+      <main style="font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem;">
+        <h1>Axiom — AI Strength Coach & Lift Diagnostic Tool</h1>
+        <p>
+          Axiom diagnoses exactly why your bench press, squat, or deadlift is stuck — using your
+          working weights and training data. Get a free AI-powered lift diagnostic and a personalized
+          training program in minutes. No credit card required.
+        </p>
+
+        <h2>Why is my bench press not improving?</h2>
+        <p>Bench press plateaus are usually caused by a weak link — weak triceps at lockout, poor chest
+        recruitment off the chest, or insufficient volume. Axiom pinpoints your exact weakness and
+        builds a targeted accessory program to fix it.</p>
+
+        <h2>Why is my squat stuck?</h2>
+        <p>Squat plateaus often stem from quad weakness, poor hip drive, or mobility limitations. Axiom
+        analyzes your strength ratios to identify whether you need more quad, posterior chain, or
+        technique work.</p>
+
+        <h2>Why is my deadlift not going up?</h2>
+        <p>Deadlift stalls are commonly caused by a weak lower back, poor hamstring engagement, or a
+        breakdown off the floor. Axiom identifies your sticking point and prescribes the right
+        accessory lifts to break through it.</p>
+
+        <h2>Free Tools</h2>
+        <ul>
+          <li><a href="/tools/e1rm-calculator">e1RM Calculator</a> — estimate your one-rep max from any set</li>
+          <li><a href="/tools/strength-standards">Strength Standards</a> — see how your lifts compare by bodyweight</li>
+          <li><a href="/tools/wilks-calculator">Wilks Calculator</a> — compare strength across weight classes</li>
+          <li><a href="/tools/macro-calculator">Macro Calculator</a> — calculate your daily protein, carbs, and fat targets</li>
+        </ul>
+
+        <p><a href="/register">Get your free lift diagnostic</a> — takes 3 minutes.</p>
+      </main>
+    </noscript>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

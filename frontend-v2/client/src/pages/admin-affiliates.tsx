@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { toast } from 'sonner';
 import {
   Users, DollarSign, TrendingUp, Plus, ExternalLink, Trash2,
   Copy, ChevronDown, ChevronUp, Loader2, RefreshCw, Link as LinkIcon,
+  Play,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -17,29 +17,33 @@ interface Affiliate {
   id: string;
   name: string;
   email: string;
-  promoCodeId: string | null;
+  referralCode: string;
   stripeAccountId: string | null;
   onboarded: boolean;
+  active: boolean;
+  commissionRate: number;
+  discountRate: number;
   createdAt: string;
-  activeSubscriptions: number;
-  totalPayoutCents: number;
-  pendingPayouts: number;
+  pendingCents: number;
+  paidCents: number;
+  totalCommissions: number;
   payoutCount: number;
 }
 
 interface Summary {
-  totalAffiliates: number;
-  totalPayoutCents: number;
-  activeSubscriptions: number;
-  affiliateCutCents: number;
+  activeAffiliates: number;
+  pendingCents: number;
+  paidCents: number;
 }
 
 interface Payout {
   id: string;
   stripeTransferId: string | null;
-  amountCents: number;
+  totalCents: number;
+  status: string;
+  periodStart: string;
+  periodEnd: string;
   createdAt: string;
-  sourceEventId: string;
 }
 
 function cad(cents: number) {
@@ -51,7 +55,6 @@ function apiFetch(path: string, opts?: RequestInit) {
 }
 
 export default function AdminAffiliatesPage() {
-  const { user } = useAuth();
   const [, navigate] = useLocation();
 
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -60,32 +63,27 @@ export default function AdminAffiliatesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [payouts, setPayouts] = useState<Record<string, Payout[]>>({});
   const [payoutsLoading, setPayoutsLoading] = useState<string | null>(null);
+  const [runningPayouts, setRunningPayouts] = useState(false);
 
-  // Create form
-  const [showCreate, setShowCreate] = useState(false);
-  const [createName, setCreateName] = useState('');
-  const [createEmail, setCreateEmail] = useState('');
-  const [createPromo, setCreatePromo] = useState('');
-  const [creating, setCreating] = useState(false);
+  // Invite form
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [setupLink, setSetupLink] = useState<string | null>(null);
 
   // Action loading states
   const [onboarding, setOnboarding] = useState<string | null>(null);
-  const [dashboarding, setDashboarding] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Redirect non-admins
-    if (user && user.tier !== 'enterprise' && !(user as any).isAdmin) {
-      // We'll let the API 403 handle it, just load
-    }
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
     try {
       const [sumRes, affRes] = await Promise.all([
-        apiFetch('/affiliates/stats/summary'),
+        apiFetch('/affiliates/summary'),
         apiFetch('/affiliates'),
       ]);
       if (sumRes.status === 403 || affRes.status === 403) {
@@ -102,34 +100,29 @@ export default function AdminAffiliatesPage() {
     }
   }
 
-  async function handleCreate() {
-    if (!createName.trim() || !createEmail.trim()) {
-      toast.error('Name and email are required');
+  async function handleInvite() {
+    if (!inviteName.trim() || !inviteEmail.trim() || !inviteCode.trim()) {
+      toast.error('Name, email, and referral code are required');
       return;
     }
-    setCreating(true);
+    setInviting(true);
+    setSetupLink(null);
     try {
-      const res = await apiFetch('/affiliates', {
+      const res = await apiFetch('/affiliates/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: createName.trim(),
-          email: createEmail.trim(),
-          promoCodeId: createPromo.trim() || undefined,
-        }),
+        body: JSON.stringify({ name: inviteName.trim(), email: inviteEmail.trim(), referralCode: inviteCode.trim() }),
       });
-      if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error || 'Failed to create');
-      }
-      toast.success('Affiliate created');
-      setShowCreate(false);
-      setCreateName(''); setCreateEmail(''); setCreatePromo('');
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Failed to create');
+      toast.success('Affiliate created — setup link generated');
+      setSetupLink(d.setupLink);
+      setInviteName(''); setInviteEmail(''); setInviteCode('');
       load();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
-      setCreating(false);
+      setInviting(false);
     }
   }
 
@@ -144,20 +137,6 @@ export default function AdminAffiliatesPage() {
       toast.error(err.message || 'Failed to generate onboarding link');
     } finally {
       setOnboarding(null);
-    }
-  }
-
-  async function handleDashboard(id: string) {
-    setDashboarding(id);
-    try {
-      const res = await apiFetch(`/affiliates/${id}/dashboard`);
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error);
-      window.open(d.url, '_blank');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to open dashboard');
-    } finally {
-      setDashboarding(null);
     }
   }
 
@@ -184,8 +163,7 @@ export default function AdminAffiliatesPage() {
       setPayoutsLoading(id);
       try {
         const res = await apiFetch(`/affiliates/${id}/payouts`);
-        const data = await res.json();
-        setPayouts(p => ({ ...p, [id]: data }));
+        setPayouts(p => ({ ...p, [id]: await res.json() }));
       } catch {
         toast.error('Failed to load payouts');
       } finally {
@@ -194,10 +172,27 @@ export default function AdminAffiliatesPage() {
     }
   }
 
-  function copyPromoLink(promoCodeId: string) {
-    const url = `https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00?prefilled_promo_code=${promoCodeId}`;
+  async function handleRunPayouts() {
+    if (!confirm('Run monthly payouts now? This will transfer pending commissions to all onboarded affiliates via Stripe.')) return;
+    setRunningPayouts(true);
+    try {
+      const res = await apiFetch('/affiliates/payouts/run', { method: 'POST' });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      toast.success(`Paid ${d.affiliatesPaid} affiliate(s) — ${cad(d.totalCents)} total`);
+      if (d.errors?.length) toast.error(`${d.errors.length} error(s): ${d.errors[0]}`);
+      load();
+    } catch (err: any) {
+      toast.error(err.message || 'Payout run failed');
+    } finally {
+      setRunningPayouts(false);
+    }
+  }
+
+  function copyReferralLink(referralCode: string) {
+    const url = `https://axiomtraining.io?ref=${referralCode}`;
     navigator.clipboard.writeText(url);
-    toast.success('Checkout link copied to clipboard');
+    toast.success('Referral link copied');
   }
 
   if (loading) {
@@ -220,14 +215,18 @@ export default function AdminAffiliatesPage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Affiliate Program</h1>
-            <p className="text-sm text-muted-foreground mt-1">Manage affiliates, track payouts, and generate onboarding links.</p>
+            <p className="text-sm text-muted-foreground mt-1">Manage affiliates, track commissions, and run monthly payouts.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={load}>
               <RefreshCw size={14} className="mr-1.5" /> Refresh
             </Button>
-            <Button size="sm" onClick={() => setShowCreate(s => !s)}>
-              <Plus size={14} className="mr-1.5" /> Add Affiliate
+            <Button variant="outline" size="sm" onClick={handleRunPayouts} disabled={runningPayouts}>
+              {runningPayouts ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Play size={14} className="mr-1.5" />}
+              Run Payouts
+            </Button>
+            <Button size="sm" onClick={() => { setShowInvite(s => !s); setSetupLink(null); }}>
+              <Plus size={14} className="mr-1.5" /> Invite Affiliate
             </Button>
           </div>
         </motion.div>
@@ -235,12 +234,11 @@ export default function AdminAffiliatesPage() {
         {/* Summary Cards */}
         {summary && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Total Affiliates', value: summary.totalAffiliates, icon: Users },
-              { label: 'Active Subscriptions', value: summary.activeSubscriptions, icon: TrendingUp },
-              { label: 'Total Paid Out', value: cad(summary.totalPayoutCents), icon: DollarSign },
-              { label: 'Cut Per Sub/mo', value: cad(summary.affiliateCutCents), icon: DollarSign },
+              { label: 'Active Affiliates', value: summary.activeAffiliates, icon: Users },
+              { label: 'Pending Commissions', value: cad(summary.pendingCents), icon: TrendingUp },
+              { label: 'Total Paid Out', value: cad(summary.paidCents), icon: DollarSign },
             ].map(({ label, value, icon: Icon }) => (
               <Card key={label} className="p-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -253,124 +251,108 @@ export default function AdminAffiliatesPage() {
           </motion.div>
         )}
 
-        {/* Create Form */}
-        {showCreate && (
+        {/* Invite Form */}
+        {showInvite && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="p-5 space-y-4">
-              <h2 className="text-sm font-semibold">New Affiliate</h2>
+              <h2 className="text-sm font-semibold">Invite Affiliate</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Full Name *</label>
-                  <input
-                    className="w-full border rounded-md px-3 py-2 text-sm bg-background"
-                    placeholder="Alice Smith"
-                    value={createName}
-                    onChange={e => setCreateName(e.target.value)}
-                  />
+                  <input className="w-full border rounded-md px-3 py-2 text-sm bg-background" placeholder="Alice Smith"
+                    value={inviteName} onChange={e => setInviteName(e.target.value)} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Email *</label>
-                  <input
-                    className="w-full border rounded-md px-3 py-2 text-sm bg-background"
-                    placeholder="alice@example.com"
-                    value={createEmail}
-                    onChange={e => setCreateEmail(e.target.value)}
-                  />
+                  <input className="w-full border rounded-md px-3 py-2 text-sm bg-background" placeholder="alice@example.com"
+                    value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Stripe Promo Code ID (optional)</label>
-                  <input
-                    className="w-full border rounded-md px-3 py-2 text-sm bg-background font-mono"
-                    placeholder="promo_xxx"
-                    value={createPromo}
-                    onChange={e => setCreatePromo(e.target.value)}
-                  />
+                  <label className="text-xs text-muted-foreground mb-1 block">Referral Code * (e.g. ALICE20)</label>
+                  <input className="w-full border rounded-md px-3 py-2 text-sm bg-background font-mono uppercase"
+                    placeholder="ALICE20" value={inviteCode} onChange={e => setInviteCode(e.target.value.toUpperCase())} />
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Create the Promotion Code in your Stripe Dashboard first, then paste the <code className="font-mono">promo_xxx</code> ID here.
+                The referral code is what users enter at checkout (e.g. <code className="font-mono">?ref=ALICE20</code>). It must be unique.
               </p>
+              {setupLink && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <LinkIcon size={14} className="text-green-600 shrink-0" />
+                  <span className="text-xs text-green-700 font-medium truncate flex-1">{setupLink}</span>
+                  <button className="text-xs underline text-green-600 shrink-0" onClick={() => { navigator.clipboard.writeText(setupLink); toast.success('Copied'); }}>Copy</button>
+                </div>
+              )}
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleCreate} disabled={creating}>
-                  {creating ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Plus size={14} className="mr-1.5" />}
-                  Create
+                <Button size="sm" onClick={handleInvite} disabled={inviting}>
+                  {inviting ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Plus size={14} className="mr-1.5" />}
+                  {inviting ? 'Creating…' : 'Create & Get Setup Link'}
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowInvite(false); setSetupLink(null); }}>Cancel</Button>
               </div>
             </Card>
           </motion.div>
         )}
 
-        {/* Affiliates Table */}
+        {/* Affiliates List */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           {affiliates.length === 0 ? (
             <Card className="p-10 text-center text-muted-foreground text-sm">
-              No affiliates yet. Click "Add Affiliate" to get started.
+              No affiliates yet. Click "Invite Affiliate" to get started.
             </Card>
           ) : (
             <div className="space-y-3">
               {affiliates.map(a => (
                 <Card key={a.id} className="overflow-hidden">
-                  {/* Row */}
                   <div className="p-4 flex items-center gap-4 flex-wrap">
                     {/* Identity */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm">{a.name}</span>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          a.onboarded
-                            ? 'bg-green-500/15 text-green-600'
-                            : a.stripeAccountId
-                            ? 'bg-yellow-500/15 text-yellow-600'
+                          a.onboarded && a.active ? 'bg-green-500/15 text-green-600'
+                            : a.stripeAccountId ? 'bg-yellow-500/15 text-yellow-600'
                             : 'bg-muted text-muted-foreground'
                         }`}>
-                          {a.onboarded ? 'Onboarded' : a.stripeAccountId ? 'Pending onboarding' : 'Not started'}
+                          {a.onboarded && a.active ? 'Active' : a.stripeAccountId ? 'Onboarding…' : 'Invited'}
                         </span>
+                        <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{a.referralCode}</code>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{a.email}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{a.email} · {Math.round(a.commissionRate * 100)}% commission · {Math.round(a.discountRate * 100)}% user discount</div>
                     </div>
 
                     {/* Stats */}
                     <div className="hidden sm:flex items-center gap-6 text-center">
                       <div>
-                        <div className="text-sm font-bold">{a.activeSubscriptions}</div>
-                        <div className="text-xs text-muted-foreground">Subs</div>
+                        <div className="text-sm font-bold">{a.totalCommissions}</div>
+                        <div className="text-xs text-muted-foreground">Commissions</div>
                       </div>
                       <div>
-                        <div className="text-sm font-bold">{cad(a.totalPayoutCents)}</div>
+                        <div className="text-sm font-bold text-yellow-600">{cad(a.pendingCents)}</div>
+                        <div className="text-xs text-muted-foreground">Pending</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold">{cad(a.paidCents)}</div>
                         <div className="text-xs text-muted-foreground">Paid out</div>
                       </div>
-                      {a.pendingPayouts > 0 && (
-                        <div>
-                          <div className="text-sm font-bold text-yellow-600">{a.pendingPayouts}</div>
-                          <div className="text-xs text-muted-foreground">Pending</div>
-                        </div>
-                      )}
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      {a.promoCodeId && (
-                        <Button size="sm" variant="outline" onClick={() => copyPromoLink(a.promoCodeId!)} title="Copy checkout link with promo code">
-                          <LinkIcon size={13} className="mr-1.5" /> Copy link
-                        </Button>
-                      )}
+                      <Button size="sm" variant="outline" onClick={() => copyReferralLink(a.referralCode)} title="Copy referral link">
+                        <LinkIcon size={13} className="mr-1.5" /> Copy link
+                      </Button>
                       {!a.onboarded && (
                         <Button size="sm" variant="outline" onClick={() => handleOnboard(a.id)} disabled={onboarding === a.id}>
                           {onboarding === a.id ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <ExternalLink size={13} className="mr-1.5" />}
-                          {a.stripeAccountId ? 'Re-send link' : 'Onboard'}
-                        </Button>
-                      )}
-                      {a.onboarded && (
-                        <Button size="sm" variant="outline" onClick={() => handleDashboard(a.id)} disabled={dashboarding === a.id}>
-                          {dashboarding === a.id ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <ExternalLink size={13} className="mr-1.5" />}
-                          Dashboard
+                          {a.stripeAccountId ? 'Re-onboard' : 'Onboard'}
                         </Button>
                       )}
                       <Button size="sm" variant="ghost" onClick={() => toggleExpand(a.id)}>
                         {expandedId === a.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       </Button>
-                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(a.id, a.name)} disabled={deleting === a.id}>
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(a.id, a.name)} disabled={deleting === a.id}>
                         {deleting === a.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                       </Button>
                     </div>
@@ -380,15 +362,11 @@ export default function AdminAffiliatesPage() {
                   {expandedId === a.id && (
                     <div className="border-t px-4 py-3 bg-muted/40">
                       <div className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Payout History</div>
-
-                      {/* Promo code info */}
-                      {a.promoCodeId && (
-                        <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
-                          <Copy size={11} />
-                          Promo code ID: <code className="font-mono">{a.promoCodeId}</code>
-                          <button className="underline" onClick={() => { navigator.clipboard.writeText(a.promoCodeId!); toast.success('Copied'); }}>copy</button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
+                        <Copy size={11} />
+                        Referral link: <code className="font-mono">?ref={a.referralCode}</code>
+                        <button className="underline" onClick={() => copyReferralLink(a.referralCode)}>copy</button>
+                      </div>
 
                       {payoutsLoading === a.id ? (
                         <div className="flex justify-center py-4"><Loader2 size={18} className="animate-spin text-muted-foreground" /></div>
@@ -399,14 +377,14 @@ export default function AdminAffiliatesPage() {
                           {payouts[a.id].map(p => (
                             <div key={p.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border/50 last:border-0">
                               <div className="flex items-center gap-3">
-                                <span className={`w-2 h-2 rounded-full ${p.stripeTransferId ? 'bg-green-500' : 'bg-yellow-400'}`} />
+                                <span className={`w-2 h-2 rounded-full ${p.status === 'completed' ? 'bg-green-500' : p.status === 'failed' ? 'bg-red-500' : 'bg-yellow-400'}`} />
                                 <span className="text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
                                 {p.stripeTransferId
                                   ? <code className="font-mono text-muted-foreground">{p.stripeTransferId}</code>
-                                  : <span className="text-yellow-600 font-medium">Pending (not onboarded at time)</span>
+                                  : <span className="text-yellow-600 font-medium capitalize">{p.status}</span>
                                 }
                               </div>
-                              <span className="font-semibold">{cad(p.amountCents)}</span>
+                              <span className="font-semibold">{cad(p.totalCents)}</span>
                             </div>
                           ))}
                         </div>
@@ -417,21 +395,6 @@ export default function AdminAffiliatesPage() {
               ))}
             </div>
           )}
-        </motion.div>
-
-        {/* Setup Guide */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <Card className="p-5">
-            <h2 className="text-sm font-semibold mb-3">Setup Checklist</h2>
-            <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-              <li>Enable Stripe Connect in your Dashboard → Connect → Get Started (Platform model, Express accounts)</li>
-              <li>Create a base coupon (e.g. 20% off), then create one <strong>Promotion Code</strong> per affiliate on top of it</li>
-              <li>Copy the <code className="font-mono text-xs">promo_xxx</code> ID from Stripe and paste it when creating an affiliate here</li>
-              <li>Click <strong>Onboard</strong> to generate a Stripe Express onboarding link — send it to the affiliate</li>
-              <li>Once onboarded, add <code className="font-mono text-xs">invoice.payment_succeeded</code> to your Stripe webhook events if not already added</li>
-              <li>Share the affiliate's checkout link (use "Copy link" button) — payouts fire automatically on each purchase and renewal</li>
-            </ol>
-          </Card>
         </motion.div>
 
       </main>

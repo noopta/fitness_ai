@@ -37,7 +37,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, dateOfBirth?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string) => Promise<void>;
   logout: () => Promise<void>;
   googleLogin: () => void;
   refreshUser: () => Promise<void>;
@@ -92,10 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   }
 
-  async function register(name: string, email: string, password: string, dateOfBirth?: string) {
+  async function register(name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string) {
     const data = await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password, dateOfBirth })
+      body: JSON.stringify({ name, email, password, dateOfBirth, ...(referralCode ? { referralCode } : {}) })
     });
     setUser(data.user);
   }

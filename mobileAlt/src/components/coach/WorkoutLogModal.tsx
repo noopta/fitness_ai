@@ -20,7 +20,6 @@ import { workoutsApi, socialApi } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // ─── Exercise suggestions ──────────────────────────────────────────────────────
 
@@ -134,7 +133,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   }
 
   function addExercise() {
-    setExercises(prev => [...prev, emptyExercise()]);
+    setExercises(prev => {
+      const last = prev[prev.length - 1];
+      return [...prev, { ...emptyExercise(), sets: last?.sets ?? '', reps: last?.reps ?? '' }];
+    });
   }
 
   function removeExercise(index: number) {
@@ -144,9 +146,24 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 
   async function handleSave() {
     const validExercises = exercises.filter(ex => ex.name.trim() && ex.sets && ex.reps);
+    const incompleteNamed = exercises.filter(ex => ex.name.trim() && !(ex.sets && ex.reps));
     if (validExercises.length === 0) {
       Alert.alert('Missing Info', 'Please fill in at least one exercise with name, sets, and reps.');
       return;
+    }
+    if (incompleteNamed.length > 0) {
+      const names = incompleteNamed.map(ex => ex.name.trim()).join(', ');
+      const confirmed = await new Promise<boolean>(resolve =>
+        Alert.alert(
+          'Incomplete Exercises',
+          `${names} ${incompleteNamed.length === 1 ? 'is' : 'are'} missing sets or reps and won't be saved. Continue anyway?`,
+          [
+            { text: 'Go Back', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Save Anyway', style: 'destructive', onPress: () => resolve(true) },
+          ]
+        )
+      );
+      if (!confirmed) return;
     }
     setSaving(true);
     try {

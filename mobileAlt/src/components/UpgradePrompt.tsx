@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../constants/theme';
 import { PRO_PRICE_FALLBACK } from './UpgradeSheet';
@@ -70,13 +70,7 @@ const FEATURE_SECTIONS = [
   },
 ];
 
-// Pro upgrade is managed via the web portal at axiomtraining.io.
-// In-app upgrade UI is hidden until App Store IAP setup is complete.
-export function UpgradePrompt({ userId: _userId, reason: _reason, onUpgrade: _onUpgrade }: UpgradePromptProps) {
-  return null;
-}
-
-function _UpgradePromptContent({ reason }: UpgradePromptProps) {
+export function UpgradePrompt({ userId: _userId, reason, onUpgrade }: UpgradePromptProps) {
   return (
     <View style={styles.container}>
       {/* Hero */}
@@ -88,7 +82,6 @@ function _UpgradePromptContent({ reason }: UpgradePromptProps) {
         <Text style={styles.heroSubtitle}>
           {reason ?? 'Science-backed AI coaching, personalized to you.'}
         </Text>
-        {/* Pricing text hidden until IAP is re-enabled */}
       </View>
 
       {/* Feature sections */}
@@ -109,8 +102,12 @@ function _UpgradePromptContent({ reason }: UpgradePromptProps) {
         </View>
       ))}
 
-      {/* CTA — hidden: in-app purchase disabled pending App Store approval */}
-      {/* Restore when IAP is re-enabled: uncomment TouchableOpacity block above */}
+      {/* CTA */}
+      {onUpgrade && (
+        <TouchableOpacity style={styles.upgradeButton} onPress={onUpgrade} activeOpacity={0.85}>
+          <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

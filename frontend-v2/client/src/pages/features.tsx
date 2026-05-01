@@ -1581,7 +1581,12 @@ const LANDING_JSON_LD = [
 ];
 
 export default function FeaturesPage() {
-  useEffect(() => { return trackPageTime('features'); }, []);
+  useEffect(() => {
+    // Store affiliate referral code from URL for use at registration
+    const ref = new URLSearchParams(window.location.search).get('ref');
+    if (ref) localStorage.setItem('axiom_referral', ref.toUpperCase().trim());
+    return trackPageTime('features');
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       <SEO

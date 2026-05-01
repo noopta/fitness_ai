@@ -12,7 +12,7 @@ import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi, authApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
-import { DebugLogPanel } from '../../src/components/DebugLogPanel';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -23,7 +23,7 @@ export default function SettingsScreen() {
   const auth = useAuth();
   const { user } = auth;
   const [portalLoading, setPortalLoading] = useState(false);
-  const [debugVisible, setDebugVisible] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [browserUrl, setBrowserUrl] = useState('');
   const [browserTitle, setBrowserTitle] = useState('');
   const [browserVisible, setBrowserVisible] = useState(false);
@@ -295,8 +295,7 @@ export default function SettingsScreen() {
           <ContributionGraph userId={user?.id} />
         </View>
 
-        {/* Subscription section — hidden pending IAP setup */}
-        {/* {isPro && (
+        {isPro ? (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Subscription</Text>
             <View style={styles.card}>
@@ -321,7 +320,29 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        )} */}
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Subscription</Text>
+            <View style={styles.card}>
+              <View style={styles.cardRow}>
+                <View style={styles.cardIconBox}>
+                  <Ionicons name="star-outline" size={18} color={colors.foreground} />
+                </View>
+                <View style={styles.cardRowText}>
+                  <Text style={styles.cardRowTitle}>Free Plan</Text>
+                  <Text style={styles.cardRowSub}>Upgrade to unlock AI coaching & more.</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.outlineButton}
+                activeOpacity={0.82}
+                onPress={() => setShowUpgrade(true)}
+              >
+                <Text style={styles.outlineButtonText}>Upgrade to Pro</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Preferences section */}
         <View style={styles.section}>
@@ -370,22 +391,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Debug section — hidden for production */}
-        {/* <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Developer</Text>
-          <View style={styles.card}>
-            <TouchableOpacity
-              onPress={() => setDebugVisible(true)}
-              activeOpacity={0.7}
-              style={styles.accountRow}
-            >
-              <Ionicons name="terminal-outline" size={20} color={colors.mutedForeground} />
-              <Text style={{ flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.foreground }}>IAP Debug Logs</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-            </TouchableOpacity>
-          </View>
-        </View> */}
-
         <View style={styles.legalRow}>
           <TouchableOpacity onPress={() => openInApp('https://axiomtraining.io/terms', 'Terms of Use')} activeOpacity={0.7}>
             <Text style={styles.legalLink}>Terms of Use</Text>
@@ -404,9 +409,10 @@ export default function SettingsScreen() {
         visible={browserVisible}
         onClose={() => setBrowserVisible(false)}
       />
-      <DebugLogPanel
-        visible={debugVisible}
-        onClose={() => setDebugVisible(false)}
+      <UpgradeSheet
+        visible={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        onSuccess={async () => { setShowUpgrade(false); await auth.refreshUser(); }}
       />
     </SafeAreaView>
   );

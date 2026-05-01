@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { transferToAffiliate } from '../services/affiliateService.js';
+import { recordCommission, getOrCreateAffiliateCoupon } from '../services/affiliateService.js';
 import posthog from '../services/posthogClient.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
@@ -140,45 +140,38 @@ router.post('/payments/webhook', async (req, res) => {
         });
       }
 
-      // ── Affiliate payout on initial purchase ──────────────────────────────
-      const discounts = (session as any).total_details?.breakdown?.discounts ?? [];
-      const promoCodeId: string | undefined = discounts[0]?.discount?.promotion_code;
-
-      if (promoCodeId) {
-        const affiliate = await prisma.affiliate.findUnique({ where: { promoCodeId } });
-        if (affiliate) {
-          // Store subscription → affiliate mapping for recurring renewals
-          if (session.subscription) {
-            await prisma.affiliateSubscription.upsert({
-              where: { subscriptionId: session.subscription as string },
-              create: { subscriptionId: session.subscription as string, affiliateId: affiliate.id },
-              update: {},
-            });
-          }
-          if (affiliate.stripeAccountId) {
-            await transferToAffiliate({
-              affiliateId: affiliate.id,
-              stripeAccountId: affiliate.stripeAccountId,
-              sourceEventId: event.id,
-            });
-          } else {
-            console.warn(`[affiliates] Affiliate ${affiliate.id} has no Stripe account yet`);
-          }
-        }
+      // ── Record affiliate commission on initial purchase ───────────────────
+      // affiliateId is set in session.metadata when checkout was created via /create-checkout
+      const affiliateId = (session.metadata as any)?.affiliateId as string | undefined;
+      if (affiliateId && session.subscription && session.amount_total) {
+        // amount_total is after discount — we commission on original (pre-discount) amount
+        // Retrieve subscription to get the plan amount
+        const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+        const originalAmountCents = sub.items.data[0]?.price?.unit_amount ?? session.amount_total;
+        await recordCommission({
+          affiliateId,
+          stripeSubscriptionId: session.subscription as string,
+          stripeInvoiceId: `checkout_${session.id}`,
+          stripeCustomerId: session.customer as string,
+          originalAmountCents,
+        });
       }
     } else if (event.type === 'invoice.payment_succeeded') {
       const invoice = event.data.object as any;
-      // Only fire on renewals, not the initial subscription invoice
+      // Only fire on renewals (subscription_cycle), not the initial invoice
       if (invoice.billing_reason === 'subscription_cycle' && invoice.subscription) {
-        const sub = await prisma.affiliateSubscription.findUnique({
-          where: { subscriptionId: invoice.subscription },
-          include: { affiliate: true },
+        // Look up which affiliate owns this subscription via commission history
+        const existing = await prisma.affiliateCommission.findFirst({
+          where: { stripeSubscriptionId: invoice.subscription },
+          orderBy: { createdAt: 'asc' },
         });
-        if (sub?.affiliate?.stripeAccountId) {
-          await transferToAffiliate({
-            affiliateId: sub.affiliate.id,
-            stripeAccountId: sub.affiliate.stripeAccountId,
-            sourceEventId: event.id,
+        if (existing) {
+          await recordCommission({
+            affiliateId: existing.affiliateId,
+            stripeSubscriptionId: invoice.subscription,
+            stripeInvoiceId: invoice.id,
+            stripeCustomerId: invoice.customer,
+            originalAmountCents: invoice.amount_paid,
           });
         }
       }
@@ -338,6 +331,73 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
   } catch (err: any) {
     console.error('Create subscription intent error:', err);
     res.status(500).json({ error: err?.message ?? 'Failed to create subscription' });
+  }
+});
+
+// POST /api/payments/create-checkout — dynamic Stripe Checkout Session (web + mobile)
+// Supports optional referral code (affiliate discount coupon applied automatically)
+router.post('/payments/create-checkout', requireAuth, async (req, res) => {
+  try {
+    const { referralCode } = req.body as { referralCode?: string };
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { email: true, name: true, tier: true, stripeCustomerId: true },
+    });
+
+    if (user?.tier === 'pro' || user?.tier === 'enterprise') {
+      return res.status(400).json({ error: 'Already subscribed to Pro' });
+    }
+
+    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    if (!priceId) return res.status(500).json({ error: 'Pro plan price not configured' });
+
+    // Get or create Stripe customer
+    let customerId = user?.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user?.email ?? undefined,
+        name: user?.name ?? undefined,
+        metadata: { userId: req.user!.id },
+      });
+      customerId = customer.id;
+      await prisma.user.update({ where: { id: req.user!.id }, data: { stripeCustomerId: customerId } });
+    }
+
+    // Resolve referral code → affiliate → coupon
+    let discounts: { coupon: string }[] | undefined;
+    let affiliateId: string | undefined;
+
+    if (referralCode?.trim()) {
+      const affiliate = await prisma.affiliate.findUnique({
+        where: { referralCode: referralCode.trim().toUpperCase() },
+      });
+      if (affiliate?.active) {
+        const couponId = await getOrCreateAffiliateCoupon();
+        discounts = [{ coupon: couponId }];
+        affiliateId = affiliate.id;
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      client_reference_id: req.user!.id,
+      success_url: `${FRONTEND_URL}?checkout=success`,
+      cancel_url: `${FRONTEND_URL}?checkout=cancelled`,
+      metadata: {
+        userId: req.user!.id,
+        ...(affiliateId ? { affiliateId } : {}),
+        ...(referralCode ? { referralCode: referralCode.trim().toUpperCase() } : {}),
+      },
+      ...(discounts ? { discounts } : { allow_promotion_codes: true }),
+    });
+
+    res.json({ url: session.url });
+  } catch (err: any) {
+    console.error('Create checkout error:', err);
+    res.status(500).json({ error: err?.message ?? 'Failed to create checkout session' });
   }
 });
 

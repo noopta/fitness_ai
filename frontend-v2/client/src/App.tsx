@@ -28,6 +28,8 @@ import SettingsPage from "./pages/settings";
 import WorkoutsPage from "./pages/workouts";
 import StrengthProfilePage from "./pages/strength-profile";
 import AdminAffiliatesPage from "./pages/admin-affiliates";
+import AffiliatePage from "./pages/affiliate";
+import AffiliateSetupPage from "./pages/affiliate-setup";
 import FriendsPage from "./pages/friends";
 import MessagesPage from "./pages/messages";
 import SocialFeedPage from "./pages/social-feed";
@@ -188,6 +190,8 @@ function Router() {
       <Route path="/strength-profile" component={ProtectedStrengthProfile} />
       <Route path="/settings" component={ProtectedSettings} />
       <Route path="/admin/affiliates" component={ProtectedAdminAffiliates} />
+      <Route path="/affiliate/setup" component={AffiliateSetupPage} />
+      <Route path="/affiliate" component={AffiliatePage} />
       <Route path="/friends" component={ProtectedFriends} />
       <Route path="/messages" component={ProtectedMessages} />
       <Route path="/social" component={ProtectedSocialFeed} />

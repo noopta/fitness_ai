@@ -74,6 +74,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  referralCode: z.string().optional(),
 });
 
 router.post('/auth/register', async (req, res) => {
@@ -96,6 +97,7 @@ router.post('/auth/register', async (req, res) => {
         hashedPassword,
         dateOfBirth: new Date(data.dateOfBirth),
         tier: tierForEmail(data.email),
+        ...(data.referralCode ? { referredByCode: data.referralCode.toUpperCase().trim() } : {}),
       }
     });
 

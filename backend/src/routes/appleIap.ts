@@ -53,7 +53,8 @@ function makeAppStoreJWT(): string {
 
   const sign = createSign('SHA256');
   sign.update(`${header}.${payload}`);
-  const signature = sign.sign(privateKey, 'base64url');
+  // JWT ES256 requires IEEE P1363 (raw R||S), not DER — Node v15+ defaults to DER
+  const signature = sign.sign({ key: privateKey, dsaEncoding: 'ieee-p1363' }, 'base64url');
 
   return `${header}.${payload}.${signature}`;
 }

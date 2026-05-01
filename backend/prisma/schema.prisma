@@ -240,33 +240,51 @@ model ExerciseNormalization {
 }
 
 model Affiliate {
-  id                String                  @id @default(uuid())
-  name              String
-  email             String                  @unique
-  promoCodeId       String?                 @unique  // Stripe promo_xxx
-  stripeAccountId   String?                 @unique  // Stripe acct_xxx
-  onboarded         Boolean                 @default(false)
-  createdAt         DateTime                @default(now())
-  subscriptions     AffiliateSubscription[]
-  payouts           AffiliatePayout[]
+  id              String                @id @default(uuid())
+  name            String
+  email           String                @unique
+  referralCode    String                @unique   // e.g. "JAAFAR30" — used in ?ref= links
+  stripeAccountId String?               @unique   // Stripe Connect acct_xxx
+  onboarded       Boolean               @default(false)  // completed Stripe Connect onboarding
+  active          Boolean               @default(false)  // admin activates after onboarding
+  commissionRate  Float                 @default(0.30)   // 30% of original price
+  discountRate    Float                 @default(0.20)   // 20% off for referred users
+  inviteToken     String?               @unique   // one-time setup link token
+  inviteUsedAt    DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @default(now()) @updatedAt
+  commissions     AffiliateCommission[]
+  payouts         AffiliatePayout[]
 }
 
-model AffiliateSubscription {
-  subscriptionId String    @id                       // Stripe sub_xxx
-  affiliateId    String
-  createdAt      DateTime  @default(now())
-  affiliate      Affiliate @relation(fields: [affiliateId], references: [id])
+model AffiliateCommission {
+  id                   String           @id @default(uuid())
+  affiliateId          String
+  stripeSubscriptionId String
+  stripeInvoiceId      String           @unique   // idempotency — one commission per invoice
+  stripeCustomerId     String
+  originalAmountCents  Int              // price before discount
+  commissionCents      Int              // 30% of original
+  currency             String           @default("cad")
+  status               String           @default("pending")  // pending | paid | cancelled
+  payoutId             String?
+  createdAt            DateTime         @default(now())
+  affiliate            Affiliate        @relation(fields: [affiliateId], references: [id])
+  payout               AffiliatePayout? @relation(fields: [payoutId], references: [id])
 }
 
 model AffiliatePayout {
-  id               String    @id @default(uuid())
+  id               String                @id @default(uuid())
   affiliateId      String
-  stripeTransferId String?
-  amountCents      Int
-  currency         String    @default("cad")
-  sourceEventId    String    @unique               // idempotency
-  createdAt        DateTime  @default(now())
-  affiliate        Affiliate @relation(fields: [affiliateId], references: [id])
+  stripeTransferId String?               @unique
+  totalCents       Int
+  currency         String                @default("cad")
+  periodStart      DateTime
+  periodEnd        DateTime
+  status           String                @default("pending")  // pending | completed | failed
+  createdAt        DateTime              @default(now())
+  affiliate        Affiliate             @relation(fields: [affiliateId], references: [id])
+  commissions      AffiliateCommission[]
 }
 
 // ─── Social ───────────────────────────────────────────────────────────────────

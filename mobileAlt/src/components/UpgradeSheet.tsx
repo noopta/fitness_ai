@@ -1,25 +1,24 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Linking } from 'react-native';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Modal,
-  ScrollView, Animated, Dimensions,
+  View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
+  ScrollView, Animated, Dimensions, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
+import {
+  initIAP, fetchProProduct, purchaseProMonthly, verifyAppleReceipt,
+  addPurchaseListener, restorePurchases,
+} from '../lib/iap';
+import type { ProductSubscription, Purchase } from 'react-native-iap';
 import { Analytics } from '../lib/analytics';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const WEB_UPGRADE_URL = 'https://axiomtraining.io/pricing';
+const API_BASE = 'https://api.airthreads.ai:4009/api';
 
-// TODO: Restore in-app payments (Stripe + Apple IAP) once CRA business
-// registration and App Store tax forms are complete (~3-4 weeks).
-// All original payment code is preserved below in the commented PaymentSheetContent_DISABLED block.
-// Steps to restore:
-//   1. Uncomment PaymentSheetContent_DISABLED and rename to PaymentSheetContent
-//   2. Restore original imports (useAuth, iap lib, react-native-iap types)
-//   3. Remove WebUpgradeContent and its usage
-export const PRO_PRICE_FALLBACK = '$12.99';
+export const PRO_PRICE_FALLBACK = '$9.99';
 
 interface Props {
   visible: boolean;
@@ -35,18 +34,148 @@ const PERKS = [
   { icon: 'nutrition-outline',             text: 'Nutrition intelligence & tracking' },
 ];
 
-// ── Temporary web upgrade prompt ──────────────────────────────────────────────
-// Replaces in-app payment while business registration completes.
-// TODO: swap back to PaymentSheetContent_DISABLED when ready.
-function WebUpgradeContent({ onClose }: { onClose: () => void }) {
-  async function handleOpenWeb() {
-    Analytics.upgradeTapped('web_redirect');
+// ── Inner content — mounts only when sheet is open ────────────────────────────
+function PaymentSheetContent({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { user, refreshUser } = useAuth();
+
+  // ── Apple IAP state ──
+  const [product, setProduct] = useState<ProductSubscription | null>(null);
+  const [iapLoading, setIapLoading] = useState(true);
+  const [iapPurchasing, setIapPurchasing] = useState(false);
+  const [iapError, setIapError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // ── Stripe state ──
+  const [stripeOpened, setStripeOpened] = useState(false);
+  const [stripeConfirming, setStripeConfirming] = useState(false);
+
+  // ── Restore state ──
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState<string | null>(null);
+
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
+
+  // Initialise StoreKit and load the product
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setIapLoading(true);
+      setIapError(null);
+      await initIAP();
+      const { product: p, error: fetchErr } = await fetchProProduct();
+      if (!cancelled) {
+        setProduct(p);
+        if (fetchErr) setIapError(`StoreKit: ${fetchErr}`);
+        setIapLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [retryCount]);
+
+  // Listen for Apple purchase updates
+  useEffect(() => {
+    const remove = addPurchaseListener(
+      async (purchase: Purchase) => {
+        setIapPurchasing(true);
+        try {
+          await verifyAppleReceipt(purchase);
+          Analytics.upgradeCompleted();
+          onClose();
+          await new Promise<void>(resolve => setTimeout(resolve, 300));
+          onSuccessRef.current();
+        } catch (err: any) {
+          setIapError(err?.message ?? 'Verification failed. Please contact support.');
+        } finally {
+          setIapPurchasing(false);
+        }
+      },
+      (err) => {
+        if ((err as any).code !== 'E_USER_CANCELLED') {
+          setIapError(err.message ?? 'Purchase failed. Please try again.');
+        }
+        setIapPurchasing(false);
+      },
+    );
+    return remove;
+  }, [onClose]);
+
+  const handleAppleSubscribe = useCallback(async () => {
+    if (iapPurchasing || !product) return;
+    Analytics.upgradeTapped('apple_iap');
+    setIapError(null);
+    setIapPurchasing(true);
     try {
-      await Linking.openURL(WEB_UPGRADE_URL);
-    } catch {
-      // fallback — nothing to do
+      await purchaseProMonthly();
+    } catch (err: any) {
+      const code = err?.code ?? err?.responseCode;
+      if (code !== 'E_USER_CANCELLED' && code !== 2) {
+        setIapError(err?.message ?? 'Could not start purchase. Please try again.');
+      }
+      setIapPurchasing(false);
     }
-  }
+  }, [iapPurchasing, product]);
+
+  const handleStripeCheckout = useCallback(async () => {
+    Analytics.upgradeTapped('stripe');
+    try {
+      const res = await fetch(`${API_BASE}/payments/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({}),
+      });
+      const d = await res.json();
+      if (!res.ok || !d.url) throw new Error(d.error || 'Could not create checkout session');
+      await Linking.openURL(d.url);
+      setStripeOpened(true);
+    } catch {
+      Alert.alert('Could not open browser', 'Please visit axiomtraining.io to upgrade.');
+    }
+  }, []);
+
+  const handleStripeConfirm = useCallback(async () => {
+    setStripeConfirming(true);
+    try {
+      await refreshUser();
+      Analytics.upgradeCompleted();
+      onClose();
+      await new Promise<void>(resolve => setTimeout(resolve, 300));
+      onSuccessRef.current();
+    } catch {
+      Alert.alert('Could not verify', 'If your payment completed, please close and reopen the app.');
+    } finally {
+      setStripeConfirming(false);
+    }
+  }, [refreshUser, onClose]);
+
+  const handleRestore = useCallback(async () => {
+    setRestoring(true);
+    setRestoreMsg(null);
+    try {
+      const restored = await restorePurchases();
+      if (restored) {
+        Analytics.upgradeCompleted();
+        onClose();
+        await new Promise<void>(resolve => setTimeout(resolve, 300));
+        onSuccessRef.current();
+      } else {
+        setRestoreMsg('No previous purchase found for this Apple ID.');
+      }
+    } catch (err: any) {
+      setRestoreMsg(err?.message ?? 'Restore failed. Please try again.');
+    } finally {
+      setRestoring(false);
+    }
+  }, [onClose]);
+
+  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? PRO_PRICE_FALLBACK;
 
   return (
     <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
@@ -62,52 +191,139 @@ function WebUpgradeContent({ onClose }: { onClose: () => void }) {
         ))}
       </View>
 
-      {/* Web redirect notice */}
-      <View style={styles.webNoticeCard}>
-        <View style={styles.webNoticeIcon}>
-          <Ionicons name="globe-outline" size={22} color={colors.foreground} />
+      {/* ── Stripe payment (primary) ─────────────────────────────────────────── */}
+      <View style={styles.paymentSection}>
+        <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
+
+        {!stripeOpened ? (
+          <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
+            <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.stripeConfirmBox}>
+            <Text style={styles.stripeConfirmMsg}>
+              Complete payment in the browser, then tap below to activate your account.
+            </Text>
+            <TouchableOpacity
+              style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
+              onPress={handleStripeConfirm}
+              disabled={stripeConfirming}
+              activeOpacity={0.85}
+            >
+              {stripeConfirming ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                  <Text style={styles.stripeBtnText}>I've completed payment</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleStripeCheckout} style={styles.reopenLink}>
+              <Text style={styles.reopenLinkText}>Reopen checkout</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {/* ── Apple IAP — only shown once StoreKit confirms the product is available ── */}
+      {(iapLoading || product || iapError) && (
+        <View style={styles.paymentSection}>
+          <Text style={styles.paymentSectionLabel}>PAY WITH APPLE ID</Text>
+
+          {iapError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle-outline" size={15} color="#ef4444" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.errorText}>{iapError}</Text>
+                <TouchableOpacity onPress={() => { setIapError(null); setRetryCount(c => c + 1); }} style={styles.retryLink}>
+                  <Text style={styles.retryLinkText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.appleBtn, (iapPurchasing || iapLoading || !product) && styles.btnDisabled]}
+              onPress={handleAppleSubscribe}
+              disabled={iapPurchasing || iapLoading || !product}
+              activeOpacity={0.85}
+            >
+              {iapPurchasing || iapLoading ? (
+                <ActivityIndicator color={colors.mutedForeground} />
+              ) : (
+                <View style={styles.appleBtnInner}>
+                  <Ionicons name="logo-apple" size={17} color={colors.foreground} style={{ marginRight: 6 }} />
+                  <Text style={styles.appleBtnText}>Subscribe · {displayPrice}/mo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
-        <Text style={styles.webNoticeTitle}>Upgrade on the web</Text>
-        <Text style={styles.webNoticeBody}>
-          In-app purchase is coming soon. For now, upgrade at{' '}
-          <Text style={styles.webNoticeLink}>axiomtraining.io</Text> — takes 2 minutes and
-          your Pro access works instantly across all your devices.
-        </Text>
-        <TouchableOpacity style={styles.webBtn} onPress={handleOpenWeb} activeOpacity={0.85}>
-          <Ionicons name="open-outline" size={16} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.webBtnText}>Go to axiomtraining.io</Text>
+      )}
+
+      {/* Restore Purchases — required by App Store guideline 3.1.1 */}
+      <View style={styles.restoreSection}>
+        <TouchableOpacity
+          onPress={handleRestore}
+          disabled={restoring}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          {restoring
+            ? <ActivityIndicator size="small" color={colors.mutedForeground} />
+            : <Text style={styles.restoreText}>Restore previous purchase</Text>
+          }
         </TouchableOpacity>
-        <TouchableOpacity style={styles.webDismiss} onPress={onClose}>
-          <Text style={styles.webDismissText}>Maybe later</Text>
-        </TouchableOpacity>
+        {restoreMsg ? <Text style={styles.restoreMsgText}>{restoreMsg}</Text> : null}
       </View>
 
       <Text style={styles.legal}>
-        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms</Text>
+        Axiom Pro · auto-renews monthly. Cancel anytime.{'\n'}
+        Card payments processed securely by Stripe.{'\n'}
+        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms of Use</Text>
         {'  ·  '}
-        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy</Text>
+        <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy Policy</Text>
       </Text>
     </ScrollView>
   );
 }
 
-// ── TODO: restore PaymentSheetContent when CRA registration + App Store tax forms done ──
-// Original Stripe + Apple IAP code is in git history. To restore:
-//   git show 704057d:mobileAlt/src/components/UpgradeSheet.tsx
-// Then copy back PaymentSheetContent + imports and swap WebUpgradeContent below.
+// ── Outer shell ───────────────────────────────────────────────────────────────
+export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
+  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
-// Pro upgrade is managed via the web portal at axiomtraining.io.
-// In-app purchase will be added in a future release.
-export function UpgradeSheet({ visible: _visible, onClose: _onClose, onSuccess: _onSuccess }: Props) {
-  return null;
+  useEffect(() => {
+    if (visible) {
+      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 65, friction: 11 }).start();
+    } else {
+      Animated.timing(slideAnim, { toValue: Dimensions.get('window').height, duration: 220, useNativeDriver: true }).start();
+    }
+  }, [visible]);
+
+  return (
+    <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
+      <View style={styles.modalRoot}>
+        <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={onClose} />
+        <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.handle} />
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>Upgrade to Pro</Text>
+              <Text style={styles.subtitle}>Everything Axiom has to offer</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close" size={22} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+          {visible && <PaymentSheetContent onClose={onClose} onSuccess={onSuccess} />}
+        </Animated.View>
+      </View>
+    </Modal>
+  );
 }
 
 const styles = StyleSheet.create({
-  modalRoot: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
+  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: {
     backgroundColor: colors.background,
     borderTopLeftRadius: 20,
@@ -115,15 +331,7 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
     paddingBottom: 34,
   },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: colors.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 4,
-  },
+  handle: { width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 4 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -133,217 +341,39 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  title: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    color: colors.foreground,
-  },
-  subtitle: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    marginTop: 2,
-  },
-  body: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
+  title: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, color: colors.foreground },
+  subtitle: { fontSize: fontSize.sm, color: colors.mutedForeground, marginTop: 2 },
+  body: { padding: spacing.lg, gap: spacing.lg },
 
-  // Perks
-  perksCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  perkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  perkIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: radius.sm,
-    backgroundColor: colors.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  perkText: {
-    fontSize: fontSize.sm,
-    color: colors.foreground,
-    flex: 1,
-  },
+  perksCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md, gap: spacing.sm },
+  perkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  perkIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center' },
+  perkText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1 },
 
-  // Payment sections
-  paymentSection: {
-    gap: spacing.sm,
-  },
-  paymentSectionLabel: {
-    fontSize: 11,
-    fontWeight: fontWeight.semibold,
-    color: colors.mutedForeground,
-    letterSpacing: 0.8,
-  },
-  appleSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  comingSoonBadge: {
-    backgroundColor: colors.muted,
-    borderRadius: radius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  comingSoonText: {
-    fontSize: 10,
-    color: colors.mutedForeground,
-    fontWeight: fontWeight.medium,
-  },
+  paymentSection: { gap: spacing.sm },
+  paymentSectionLabel: { fontSize: 11, fontWeight: fontWeight.semibold, color: colors.mutedForeground, letterSpacing: 0.8 },
 
-  // Stripe button
-  stripeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#635bff',
-    borderRadius: radius.md,
-    paddingVertical: 15,
-  },
-  stripeBtnText: {
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
-    color: '#fff',
-  },
-  stripeConfirmBox: {
-    gap: spacing.sm,
-  },
-  stripeConfirmMsg: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  reopenLink: {
-    alignSelf: 'center',
-    paddingVertical: 4,
-  },
-  reopenLinkText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textDecorationLine: 'underline',
-  },
+  stripeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#635bff', borderRadius: radius.md, paddingVertical: 15 },
+  stripeBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
+  stripeConfirmBox: { gap: spacing.sm },
+  stripeConfirmMsg: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20 },
+  reopenLink: { alignSelf: 'center', paddingVertical: 4 },
+  reopenLinkText: { fontSize: fontSize.sm, color: colors.mutedForeground, textDecorationLine: 'underline' },
 
-  // Apple button (secondary, muted when unavailable)
-  appleBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: colors.card,
-  },
-  appleBtnInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  appleBtnText: {
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.medium,
-    color: colors.foreground,
-  },
+  appleBtn: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', backgroundColor: colors.card },
+  appleBtnInner: { flexDirection: 'row', alignItems: 'center' },
+  appleBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.foreground },
 
-  // Shared
   btnDisabled: { opacity: 0.5 },
 
-  // Errors
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#fef2f2',
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  errorText: {
-    fontSize: fontSize.sm,
-    color: '#ef4444',
-    flex: 1,
-  },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fef2f2', borderRadius: radius.md, padding: spacing.md },
+  errorText: { fontSize: fontSize.sm, color: '#ef4444', flex: 1 },
   retryLink: { marginTop: 6 },
-  retryLinkText: {
-    fontSize: fontSize.sm,
-    color: '#ef4444',
-    fontWeight: fontWeight.semibold,
-    textDecorationLine: 'underline',
-  },
+  retryLinkText: { fontSize: fontSize.sm, color: '#ef4444', fontWeight: fontWeight.semibold, textDecorationLine: 'underline' },
 
-  // Web upgrade notice
-  webNoticeCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  webNoticeIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  webNoticeTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.bold,
-    color: colors.foreground,
-    textAlign: 'center',
-  },
-  webNoticeBody: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  webNoticeLink: {
-    color: colors.foreground,
-    fontWeight: fontWeight.semibold,
-  },
-  webBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.foreground,
-    borderRadius: radius.lg,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.xl,
-    marginTop: 4,
-  },
-  webBtnText: {
-    color: colors.primaryForeground,
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
-  },
-  webDismiss: { paddingVertical: 8 },
-  webDismissText: {
-    fontSize: fontSize.sm,
-    color: colors.mutedForeground,
-    textDecorationLine: 'underline',
-  },
-
-  // Legal
-  legal: {
-    fontSize: 11,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  legalLink: {
-    fontSize: 11,
-    color: colors.foreground,
-    textDecorationLine: 'underline',
-  },
+  restoreSection: { alignItems: 'center', gap: 6 },
+  restoreText: { fontSize: fontSize.sm, color: colors.mutedForeground, textDecorationLine: 'underline' },
+  restoreMsgText: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center' },
+  legal: { fontSize: 11, color: colors.mutedForeground, textAlign: 'center', lineHeight: 16 },
+  legalLink: { fontSize: 11, color: colors.foreground, textDecorationLine: 'underline' },
 });

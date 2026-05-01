@@ -20,6 +20,7 @@ export default function Register() {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const redirected = useRef(false);
+  const referralCode = useRef<string | null>(null);
 
   // Already logged in on arrival — redirect out
   useEffect(() => {
@@ -27,6 +28,10 @@ export default function Register() {
       redirected.current = true;
       setLocation('/onboarding');
     }
+    // Capture ?ref= or stored referral code
+    const urlRef = new URLSearchParams(window.location.search).get('ref');
+    const storedRef = localStorage.getItem('axiom_referral');
+    referralCode.current = urlRef || storedRef || null;
   }, [user, loading]);
 
   async function handleRegister(e: React.FormEvent) {
@@ -34,7 +39,8 @@ export default function Register() {
     if (!name || !email || !password) return;
     setSubmitting(true);
     try {
-      await register(name, email, password, dateOfBirth || undefined);
+      await register(name, email, password, dateOfBirth || undefined, referralCode.current || undefined);
+      if (referralCode.current) localStorage.removeItem('axiom_referral');
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
       setLocation('/onboarding');
