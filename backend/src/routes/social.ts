@@ -1,8 +1,12 @@
-import { Router } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser } from '../services/notificationService.js';
-import { getUserGoalTags, getFeedItemsForTags } from '../services/feedService.js';
+import { getUserGoalTags, getCachedFeedItems } from '../services/feedService.js';
+
+const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
+  (req: Request, res: Response, next: NextFunction) =>
+    fn(req, res, next).catch(next);
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -37,7 +41,7 @@ async function areFriendsOrColleagues(userA: string, userB: string): Promise<boo
 // ─── Friends ──────────────────────────────────────────────────────────────────
 
 // GET /api/social/friends
-router.get('/social/friends', async (req, res) => {
+router.get('/social/friends', wrap(async (req, res) => {
   const userId = req.user!.id;
   const friendships = await prisma.friendship.findMany({
     where: {
@@ -53,11 +57,11 @@ router.get('/social/friends', async (req, res) => {
     f.requesterId === userId ? f.addressee : f.requester
   );
   res.json(friends);
-});
+}));
 
 // GET /api/social/notifications/counts
 // Returns total unread DMs + pending friend requests — used for the tab badge
-router.get('/social/notifications/counts', async (req, res) => {
+router.get('/social/notifications/counts', wrap(async (req, res) => {
   const userId = req.user!.id;
   const [pendingRequests, convos] = await Promise.all([
     prisma.friendship.count({ where: { addresseeId: userId, status: 'pending' } }),
@@ -76,17 +80,17 @@ router.get('/social/notifications/counts', async (req, res) => {
       })
     : 0;
   res.json({ pendingRequests, unreadMessages, total: pendingRequests + unreadMessages });
-});
+}));
 
 // GET /api/social/friends/requests
-router.get('/social/friends/requests', async (req, res) => {
+router.get('/social/friends/requests', wrap(async (req, res) => {
   const requests = await prisma.friendship.findMany({
     where: { addresseeId: req.user!.id, status: 'pending' },
     include: { requester: { select: { id: true, name: true, username: true } } },
     orderBy: { createdAt: 'desc' },
   });
   res.json(requests);
-});
+}));
 
 // POST /api/social/friends/request
 router.post('/social/friends/request', async (req, res) => {
@@ -125,7 +129,7 @@ router.post('/social/friends/request', async (req, res) => {
 });
 
 // POST /api/social/friends/accept
-router.post('/social/friends/accept', async (req, res) => {
+router.post('/social/friends/accept', wrap(async (req, res) => {
   const { requesterId } = req.body;
   const friendship = await prisma.friendship.findUnique({
     where: { requesterId_addresseeId: { requesterId, addresseeId: req.user!.id } },
@@ -137,10 +141,10 @@ router.post('/social/friends/accept', async (req, res) => {
     data: { status: 'accepted' },
   });
   res.json(updated);
-});
+}));
 
 // POST /api/social/friends/decline
-router.post('/social/friends/decline', async (req, res) => {
+router.post('/social/friends/decline', wrap(async (req, res) => {
   const { requesterId } = req.body;
   await prisma.friendship.deleteMany({
     where: {
@@ -152,10 +156,10 @@ router.post('/social/friends/decline', async (req, res) => {
     },
   });
   res.json({ ok: true });
-});
+}));
 
 // DELETE /api/social/friends/:userId
-router.delete('/social/friends/:userId', async (req, res) => {
+router.delete('/social/friends/:userId', wrap(async (req, res) => {
   const userId = req.user!.id;
   const otherId = req.params.userId;
   await prisma.friendship.deleteMany({
@@ -168,10 +172,10 @@ router.delete('/social/friends/:userId', async (req, res) => {
     },
   });
   res.json({ ok: true });
-});
+}));
 
 // POST /api/social/friends/block
-router.post('/social/friends/block', async (req, res) => {
+router.post('/social/friends/block', wrap(async (req, res) => {
   const { targetUserId } = req.body;
   const userId = req.user!.id;
   // Remove any existing friendship first
@@ -187,10 +191,10 @@ router.post('/social/friends/block', async (req, res) => {
     data: { requesterId: userId, addresseeId: targetUserId, status: 'blocked' },
   });
   res.json(block);
-});
+}));
 
 // GET /api/social/users/search?q=
-router.get('/social/users/search', async (req, res) => {
+router.get('/social/users/search', wrap(async (req, res) => {
   const q = (req.query.q as string)?.trim();
   if (!q || q.length < 2) return res.json([]);
 
@@ -217,10 +221,20 @@ router.get('/social/users/search', async (req, res) => {
   });
   const blockedIds = new Set(blocked.flatMap(f => [f.requesterId, f.addresseeId]).filter(id => id !== userId));
   res.json(users.filter(u => !blockedIds.has(u.id)));
-});
+}));
+
+// GET /api/social/users/:userId/avatar — returns only the avatarBase64 (lazy-load, cached by client)
+router.get('/social/users/:userId/avatar', wrap(async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.params.userId },
+    select: { avatarBase64: true },
+  });
+  if (!user) return res.status(404).json({ error: 'Not found' });
+  res.json({ avatarBase64: user.avatarBase64 ?? null });
+}));
 
 // GET /api/social/profile/:userId
-router.get('/social/profile/:userId', async (req, res) => {
+router.get('/social/profile/:userId', wrap(async (req, res) => {
   const viewerId = req.user!.id;
   const { userId } = req.params;
 
@@ -281,12 +295,12 @@ router.get('/social/profile/:userId', async (req, res) => {
   viewerFriendIds.forEach(id => { if (targetFriendIds.has(id)) mutualFriendsCount++; });
 
   res.json({ user: targetUser, isFriend, friendshipStatus, mutualFriendsCount });
-});
+}));
 
 // ─── Conversations & Messages ─────────────────────────────────────────────────
 
 // GET /api/social/conversations
-router.get('/social/conversations', async (req, res) => {
+router.get('/social/conversations', wrap(async (req, res) => {
   const userId = req.user!.id;
   const convos = await prisma.directConversation.findMany({
     where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
@@ -320,10 +334,10 @@ router.get('/social/conversations', async (req, res) => {
     };
   }));
   res.json(result);
-});
+}));
 
 // POST /api/social/conversations
-router.post('/social/conversations', async (req, res) => {
+router.post('/social/conversations', wrap(async (req, res) => {
   const { participantId } = req.body;
   const userId = req.user!.id;
   if (!participantId || participantId === userId) return res.status(400).json({ error: 'Invalid participant' });
@@ -350,10 +364,10 @@ router.post('/social/conversations', async (req, res) => {
     lastMessageAt: convo.updatedAt,
     unreadCount: 0,
   });
-});
+}));
 
 // GET /api/social/conversations/:conversationId/messages
-router.get('/social/conversations/:conversationId/messages', async (req, res) => {
+router.get('/social/conversations/:conversationId/messages', wrap(async (req, res) => {
   const userId = req.user!.id;
   const { conversationId } = req.params;
   const limit = parseInt(req.query.limit as string) || 50;
@@ -374,10 +388,10 @@ router.get('/social/conversations/:conversationId/messages', async (req, res) =>
     take: limit,
   });
   res.json(messages.reverse());
-});
+}));
 
 // POST /api/social/conversations/:conversationId/messages
-router.post('/social/conversations/:conversationId/messages', async (req, res) => {
+router.post('/social/conversations/:conversationId/messages', wrap(async (req, res) => {
   const userId = req.user!.id;
   const { conversationId } = req.params;
   const { body } = req.body;
@@ -405,20 +419,20 @@ router.post('/social/conversations/:conversationId/messages', async (req, res) =
   sendPushToUser(recipientId, `Message from ${senderDisplay}`, preview, { type: 'message', conversationId }).catch(() => {});
 
   res.status(201).json(message);
-});
+}));
 
 // POST /api/social/conversations/:conversationId/read
-router.post('/social/conversations/:conversationId/read', async (req, res) => {
+router.post('/social/conversations/:conversationId/read', wrap(async (req, res) => {
   const userId = req.user!.id;
   await prisma.message.updateMany({
     where: { conversationId: req.params.conversationId, senderId: { not: userId }, readAt: null },
     data: { readAt: new Date() },
   });
   res.json({ ok: true });
-});
+}));
 
 // GET /api/social/conversations/:conversationId/poll?after=<msgId>
-router.get('/social/conversations/:conversationId/poll', async (req, res) => {
+router.get('/social/conversations/:conversationId/poll', wrap(async (req, res) => {
   const userId = req.user!.id;
   const { conversationId } = req.params;
   const after = req.query.after as string | undefined;
@@ -439,24 +453,39 @@ router.get('/social/conversations/:conversationId/poll', async (req, res) => {
     orderBy: { createdAt: 'asc' },
   });
   res.json(messages);
-});
+}));
 
 // ─── Sharing ──────────────────────────────────────────────────────────────────
 
 const FEED_INCLUDE = {
-  sharer: { select: { id: true, name: true, username: true, avatarBase64: true } },
+  sharer: { select: { id: true, name: true, username: true } },
   reactions: { select: { userId: true, type: true } },
   comments: {
-    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
+    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true } } },
     orderBy: { createdAt: 'asc' as const },
     take: 50,
   },
 } as const;
 
 function serializeFeedItem(item: any, viewerId: string) {
+  const rawPayload = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+
+  // Strip imageBase64 from the feed payload — images are large and slow the feed.
+  // PostCard lazy-loads via GET /api/social/posts/:id/image when hasImage is true.
+  let payload = rawPayload;
+  if (rawPayload?.imageBase64) {
+    const { imageBase64: _img, ...rest } = rawPayload;
+    payload = { ...rest, hasImage: true };
+  }
+  // Also strip from nested originalPayload in reposts
+  if (rawPayload?.originalPayload?.imageBase64) {
+    const { imageBase64: _img, ...restOrig } = rawPayload.originalPayload;
+    payload = { ...payload, originalPayload: { ...restOrig, hasImage: true } };
+  }
+
   return {
     ...item,
-    payload: typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload,
+    payload,
     reactionCount: item.reactions?.length ?? 0,
     likedByMe: item.reactions?.some((r: any) => r.userId === viewerId) ?? false,
     commentCount: item.comments?.length ?? 0,
@@ -526,7 +555,7 @@ router.post('/social/share', async (req, res) => {
 });
 
 // GET /api/social/shared-feed
-router.get('/social/shared-feed', async (req, res) => {
+router.get('/social/shared-feed', wrap(async (req, res) => {
   const userId = req.user!.id;
 
   // Get accepted friend IDs
@@ -569,42 +598,54 @@ router.get('/social/shared-feed', async (req, res) => {
   const deduped = filtered.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
 
   res.json(deduped.map(i => serializeFeedItem(i, userId)));
-});
+}));
 
 // ─── GET /api/social/feed — interleaved friend posts + research/article items ─
 // Every 2 friend posts, inject 1 goal-matched FeedItem. Hard cap: 10 FeedItems.
 // If no friend posts, returns up to 10 FeedItems directly.
 
-router.get('/social/feed', async (req, res) => {
+router.get('/social/feed', wrap(async (req, res) => {
   const userId = req.user!.id;
+  const t0 = Date.now();
 
-  // Reuse shared-feed logic to get friend posts
-  const friendships = await prisma.friendship.findMany({
-    where: {
-      OR: [{ requesterId: userId }, { addresseeId: userId }],
-      status: 'accepted',
-    },
-    select: { requesterId: true, addresseeId: true },
-  });
+  // Phase 1: friendships + goal tags are independent — run in parallel
+  const [friendships, tags] = await Promise.all([
+    prisma.friendship.findMany({
+      where: {
+        OR: [{ requesterId: userId }, { addresseeId: userId }],
+        status: 'accepted',
+      },
+      select: { requesterId: true, addresseeId: true },
+    }),
+    getUserGoalTags(userId),
+  ]);
+  const t1 = Date.now();
+
   const friendIds = friendships.map(f =>
     f.requesterId === userId ? f.addresseeId : f.requesterId
   );
 
-  const rawItems = await prisma.sharedItem.findMany({
-    where: {
-      OR: [
-        { recipientId: userId },
-        { sharerId: userId },
-        ...(friendIds.length > 0 ? [{
-          sharerId: { in: friendIds },
-          recipientId: { in: friendIds },
-        }] : []),
-      ],
-    },
-    include: FEED_INCLUDE,
-    orderBy: { createdAt: 'desc' },
-    take: 100,
-  });
+  // Phase 2: posts query + research cache lookup — run in parallel
+  const [rawItems, feedItems] = await Promise.all([
+    prisma.sharedItem.findMany({
+      where: {
+        OR: [
+          { recipientId: userId },
+          { sharerId: userId },
+          ...(friendIds.length > 0 ? [{
+            sharerId: { in: friendIds },
+            recipientId: { in: friendIds },
+          }] : []),
+        ],
+      },
+      include: FEED_INCLUDE,
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    }),
+    getCachedFeedItems(userId, tags, 10),
+  ]);
+  const t2 = Date.now();
+  console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length}`);
 
   const friendIdSet = new Set(friendIds);
   const seen = new Set<string>();
@@ -618,9 +659,6 @@ router.get('/social/feed', async (req, res) => {
     .slice(0, 50)
     .map(i => ({ kind: 'post' as const, data: serializeFeedItem(i, userId) }));
 
-  // Fetch goal-matched feed items
-  const tags = await getUserGoalTags(userId);
-  const feedItems = await getFeedItemsForTags(tags, 10);
   const researchItems = feedItems.map(fi => ({ kind: 'research' as const, data: fi }));
 
   // Interleave: 1 research item after every 2 friend posts
@@ -644,12 +682,12 @@ router.get('/social/feed', async (req, res) => {
   }
 
   res.json({ items: result });
-});
+}));
 
 // ─── Reactions ────────────────────────────────────────────────────────────────
 
 // POST /api/social/posts/:id/react — toggle heart reaction
-router.post('/social/posts/:id/react', async (req, res) => {
+router.post('/social/posts/:id/react', wrap(async (req, res) => {
   const userId = req.user!.id;
   const postId = req.params.id;
 
@@ -668,22 +706,22 @@ router.post('/social/posts/:id/react', async (req, res) => {
       sendPushToUser(post.sharerId, 'New like', `${display} liked your post`, { type: 'reaction', postId }).catch(() => {});
     }
   }
-});
+}));
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 
 // GET /api/social/posts/:id/comments
-router.get('/social/posts/:id/comments', async (req, res) => {
+router.get('/social/posts/:id/comments', wrap(async (req, res) => {
   const comments = await prisma.postComment.findMany({
     where: { postId: req.params.id },
     include: { author: { select: { id: true, name: true, username: true } } },
     orderBy: { createdAt: 'asc' },
   });
   res.json(comments);
-});
+}));
 
 // POST /api/social/posts/:id/comments
-router.post('/social/posts/:id/comments', async (req, res) => {
+router.post('/social/posts/:id/comments', wrap(async (req, res) => {
   const { text } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'Comment text required' });
   const comment = await prisma.postComment.create({
@@ -698,22 +736,35 @@ router.post('/social/posts/:id/comments', async (req, res) => {
     const display = commenter?.username ? `@${commenter.username}` : (commenter?.name ?? 'Someone');
     sendPushToUser(post.sharerId, 'New comment', `${display}: ${text.trim().slice(0, 60)}`, { type: 'comment', postId: req.params.id }).catch(() => {});
   }
-});
+}));
+
+// GET /api/social/posts/:id/image — returns only the imageBase64 for a post (lazy-load)
+router.get('/social/posts/:id/image', wrap(async (req, res) => {
+  const post = await prisma.sharedItem.findUnique({
+    where: { id: req.params.id },
+    select: { payload: true },
+  });
+  if (!post) return res.status(404).json({ error: 'Not found' });
+  const p = typeof post.payload === 'string' ? JSON.parse(post.payload) : post.payload;
+  const imageBase64 = p?.imageBase64 ?? null;
+  if (!imageBase64) return res.status(404).json({ error: 'No image' });
+  res.json({ imageBase64 });
+}));
 
 // DELETE /api/social/posts/:id — delete own post
-router.delete('/social/posts/:id', async (req, res) => {
+router.delete('/social/posts/:id', wrap(async (req, res) => {
   const userId = req.user!.id;
   const post = await prisma.sharedItem.findUnique({ where: { id: req.params.id } });
   if (!post) return res.status(404).json({ error: 'Post not found' });
   if (post.sharerId !== userId) return res.status(403).json({ error: 'Not your post' });
   await prisma.sharedItem.delete({ where: { id: req.params.id } });
   res.json({ ok: true });
-});
+}));
 
 // ─── Forward (send post to DM) ────────────────────────────────────────────────
 
 // POST /api/social/posts/:id/forward — forward a post as a DM message
-router.post('/social/posts/:id/forward', async (req, res) => {
+router.post('/social/posts/:id/forward', wrap(async (req, res) => {
   const userId = req.user!.id;
   const { recipientId, message } = req.body;
   if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
@@ -758,7 +809,7 @@ router.post('/social/posts/:id/forward', async (req, res) => {
   sendPushToUser(recipientId, `Post from ${display}`, message || 'Forwarded you a post', { type: 'message', conversationId: convo.id }).catch(() => {});
 
   res.status(201).json({ ok: true, conversationId: convo.id });
-});
+}));
 
 // ─── Leaderboard ──────────────────────────────────────────────────────────────
 
@@ -775,7 +826,7 @@ function epley(weight: number, reps: number): number {
 
 // GET /api/social/leaderboard?lift=flat_bench_press
 // Returns viewer + accepted friends ranked by estimated 1RM for the specified lift
-router.get('/social/leaderboard', async (req, res) => {
+router.get('/social/leaderboard', wrap(async (req, res) => {
   const userId = req.user!.id;
   const lift = (req.query.lift as string) || 'flat_bench_press';
 
@@ -832,11 +883,11 @@ router.get('/social/leaderboard', async (req, res) => {
     .map((entry, i) => ({ ...entry, rank: i + 1 }));
 
   res.json({ lift, entries });
-});
+}));
 
 // GET /api/social/leaderboard/lifts
 // Returns which lifts the user and their friends have data for
-router.get('/social/leaderboard/lifts', async (req, res) => {
+router.get('/social/leaderboard/lifts', wrap(async (req, res) => {
   const userId = req.user!.id;
   const friendships = await prisma.friendship.findMany({
     where: { OR: [{ requesterId: userId }, { addresseeId: userId }], status: 'accepted' },
@@ -852,12 +903,12 @@ router.get('/social/leaderboard/lifts', async (req, res) => {
   });
   const lifts = sessions.map(s => s.selectedLift);
   res.json({ lifts });
-});
+}));
 
 // ─── Content Reporting ────────────────────────────────────────────────────────
 // POST /api/social/report — report a shared post as objectionable/inappropriate
 // Required for apps with user-generated content under Apple App Store guidelines.
-router.post('/social/report', requireAuth, async (req, res) => {
+router.post('/social/report', requireAuth, wrap(async (req, res) => {
   const reporterId = req.user!.id;
   const { itemId, reason } = req.body as { itemId?: string; reason?: string };
   if (!itemId) return res.status(400).json({ error: 'itemId required' });
@@ -872,12 +923,12 @@ router.post('/social/report', requireAuth, async (req, res) => {
   // Auto-hide the post from the reporter immediately
   // (they won't see it again in their feed)
   res.json({ success: true, message: 'Thank you — we\'ll review this post.' });
-});
+}));
 
 // ─── Invite Links ─────────────────────────────────────────────────────────────
 
 // GET /api/social/invite
-router.get('/social/invite', async (req, res) => {
+router.get('/social/invite', wrap(async (req, res) => {
   const userId = req.user!.id;
   let invite = await prisma.userInvite.findFirst({ where: { inviterId: userId, usedByUserId: null } });
   if (!invite) {
@@ -885,6 +936,6 @@ router.get('/social/invite', async (req, res) => {
   }
   const link = `${process.env.FRONTEND_URL || 'https://axiomtraining.io'}/register?ref=${invite.code}`;
   res.json({ code: invite.code, link });
-});
+}));
 
 export default router;

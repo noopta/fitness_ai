@@ -42,6 +42,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5000',
   'http://localhost:5173',
   'http://localhost:3000',
+  // Allow any Replit preview URLs
+  ...(process.env.EXTRA_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
 ];
 
 app.use(cors({
@@ -49,6 +51,8 @@ app.use(cors({
     // Allow requests with no origin (curl, mobile apps, Postman)
     if (!origin) return callback(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    // Allow any Replit dev preview URL
+    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co')) return callback(null, true);
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

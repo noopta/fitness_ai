@@ -168,10 +168,9 @@ async function fetchPubMed(tag: FeedTag, maxResults = 5): Promise<void> {
       summary = await summarize(item.title, abstract || item.title, 'research');
     } catch { continue; }
 
-    const doi = item.articleids?.find(a => a.idtype === 'doi')?.value;
-    const url = doi
-      ? `https://doi.org/${doi}`
-      : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
+    // Always use the PubMed URL — DOI redirects are unreliable (malformed DOIs
+    // return a 200 "DOI NOT FOUND" HTML page which the WebView can't detect as an error).
+    const url = `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
 
     let publishedAt: Date | null = null;
     if (item.pubdate) {
@@ -314,6 +313,33 @@ export async function getFeedItemsForTags(tags: FeedTag[], limit = 10): Promise<
     publishedAt: item.publishedAt?.toISOString() ?? null,
     fetchedAt: item.fetchedAt.toISOString(),
   }));
+}
+
+// ─── Research item cache (in-process, per user+tags, 10-min TTL) ─────────────
+// Avoids a DB round-trip on every feed load for data that changes at most once/day.
+
+const researchCache = new Map<string, { items: any[]; expiresAt: number }>();
+const RESEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+export async function getCachedFeedItems(userId: string, tags: FeedTag[], limit = 10): Promise<any[]> {
+  const key = `${userId}:${[...tags].sort().join(',')}`;
+  const hit = researchCache.get(key);
+  if (hit && Date.now() < hit.expiresAt) return hit.items;
+
+  const items = await getFeedItemsForTags(tags, limit);
+  researchCache.set(key, { items, expiresAt: Date.now() + RESEARCH_CACHE_TTL });
+  return items;
+}
+
+// Called by the daily fetch job so fresh items are reflected on next TTL expiry
+export function invalidateResearchCache(userId?: string): void {
+  if (userId) {
+    for (const key of researchCache.keys()) {
+      if (key.startsWith(`${userId}:`)) researchCache.delete(key);
+    }
+  } else {
+    researchCache.clear();
+  }
 }
 
 export { TAG_LABELS };
