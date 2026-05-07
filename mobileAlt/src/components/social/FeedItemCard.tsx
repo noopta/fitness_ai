@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
-  SafeAreaView, ActivityIndicator,
+  SafeAreaView, ActivityIndicator, FlatList, TextInput,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../constants/theme';
+
+export interface FriendForShare {
+  id: string;
+  name: string | null;
+  username: string | null;
+}
 
 export interface FeedItem {
   id: string;
@@ -43,16 +49,46 @@ const TAG_COLOR: Record<string, string> = {
 
 interface Props {
   item: FeedItem;
+  isSaved?: boolean;
+  onToggleSave?: () => void;
+  friends?: FriendForShare[];
+  onShareToFriend?: (friendId: string, note?: string) => Promise<void> | void;
 }
 
-export function FeedItemCard({ item }: Props) {
+export function FeedItemCard({ item, isSaved, onToggleSave, friends, onShareToFriend }: Props) {
   const [webViewOpen, setWebViewOpen] = useState(false);
   const [webViewLoading, setWebViewLoading] = useState(true);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareSearch, setShareSearch] = useState('');
+  const [shareNote, setShareNote] = useState('');
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
 
   const primaryTag = item.tags[0] ?? 'general';
   const tagColor = TAG_COLOR[primaryTag] ?? TAG_COLOR.general;
   const tagLabel = TAG_LABEL[primaryTag] ?? 'Fitness';
   const isResearch = item.type === 'research';
+
+  const filteredFriends = (friends ?? []).filter(f => {
+    if (!shareSearch.trim()) return true;
+    const q = shareSearch.toLowerCase();
+    return (
+      (f.username ?? '').toLowerCase().includes(q) ||
+      (f.name ?? '').toLowerCase().includes(q)
+    );
+  });
+
+  async function handleSendTo(friendId: string) {
+    if (!onShareToFriend) return;
+    setSendingTo(friendId);
+    try {
+      await onShareToFriend(friendId, shareNote.trim() || undefined);
+      setShareOpen(false);
+      setShareNote('');
+      setShareSearch('');
+    } finally {
+      setSendingTo(null);
+    }
+  }
 
   return (
     <>
@@ -61,7 +97,7 @@ export function FeedItemCard({ item }: Props) {
         activeOpacity={0.85}
         onPress={() => setWebViewOpen(true)}
       >
-        {/* Top row: type badge + source */}
+        {/* Top row: type badge + source + actions */}
         <View style={styles.topRow}>
           <View style={[styles.typeBadge, { backgroundColor: tagColor + '18' }]}>
             <Ionicons
@@ -73,7 +109,31 @@ export function FeedItemCard({ item }: Props) {
               {isResearch ? 'RESEARCH' : 'ARTICLE'}
             </Text>
           </View>
-          <Text style={styles.source}>{item.source}</Text>
+          <View style={styles.topRowRight}>
+            <Text style={styles.source}>{item.source}</Text>
+            {onToggleSave && (
+              <TouchableOpacity
+                onPress={(e) => { e.stopPropagation?.(); onToggleSave(); }}
+                hitSlop={8}
+                style={styles.iconAction}
+              >
+                <Ionicons
+                  name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                  size={18}
+                  color={isSaved ? colors.primary : colors.mutedForeground}
+                />
+              </TouchableOpacity>
+            )}
+            {onShareToFriend && (
+              <TouchableOpacity
+                onPress={(e) => { e.stopPropagation?.(); setShareOpen(true); }}
+                hitSlop={8}
+                style={styles.iconAction}
+              >
+                <Ionicons name="paper-plane-outline" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Title */}
@@ -93,6 +153,73 @@ export function FeedItemCard({ item }: Props) {
           </View>
         </View>
       </TouchableOpacity>
+
+      {/* Share-to-friend modal */}
+      <Modal
+        visible={shareOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShareOpen(false)}
+      >
+        <SafeAreaView style={styles.shareContainer}>
+          <View style={styles.shareHeader}>
+            <TouchableOpacity onPress={() => setShareOpen(false)} style={styles.closeBtn}>
+              <Ionicons name="close" size={22} color={colors.foreground} />
+            </TouchableOpacity>
+            <Text style={styles.shareTitle}>Share article</Text>
+            <View style={{ width: 30 }} />
+          </View>
+          <Text style={styles.shareSubtitle} numberOfLines={2}>{item.title}</Text>
+          <TextInput
+            style={styles.shareNoteInput}
+            placeholder="Add a note (optional)"
+            placeholderTextColor={colors.mutedForeground}
+            value={shareNote}
+            onChangeText={setShareNote}
+            multiline
+            maxLength={240}
+          />
+          <TextInput
+            style={styles.shareSearchInput}
+            placeholder="Search friends…"
+            placeholderTextColor={colors.mutedForeground}
+            value={shareSearch}
+            onChangeText={setShareSearch}
+            autoCapitalize="none"
+          />
+          <FlatList
+            data={filteredFriends}
+            keyExtractor={(f) => f.id}
+            ListEmptyComponent={
+              <Text style={styles.shareEmpty}>
+                {(friends?.length ?? 0) === 0 ? 'Add friends to share articles.' : 'No friends match your search.'}
+              </Text>
+            }
+            renderItem={({ item: friend }) => (
+              <TouchableOpacity
+                style={styles.shareFriendRow}
+                activeOpacity={0.85}
+                disabled={sendingTo !== null}
+                onPress={() => handleSendTo(friend.id)}
+              >
+                <View style={styles.shareFriendAvatar}>
+                  <Text style={styles.shareFriendAvatarText}>
+                    {((friend.username ?? friend.name ?? '?')[0] ?? '?').toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={styles.shareFriendName}>
+                  {friend.username ? `@${friend.username}` : (friend.name ?? 'User')}
+                </Text>
+                {sendingTo === friend.id ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Ionicons name="paper-plane" size={16} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            )}
+          />
+        </SafeAreaView>
+      </Modal>
 
       {/* Full-screen WebView modal */}
       <Modal
@@ -163,6 +290,95 @@ const styles = StyleSheet.create({
   source: {
     fontSize: fontSize.xs,
     color: colors.mutedForeground,
+  },
+  topRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  iconAction: {
+    padding: 2,
+  },
+  shareContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  shareHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  shareTitle: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  shareSubtitle: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    fontStyle: 'italic',
+  },
+  shareNoteInput: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.muted,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    color: colors.foreground,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  shareSearchInput: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+    padding: spacing.sm,
+    backgroundColor: colors.muted,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    color: colors.foreground,
+  },
+  shareEmpty: {
+    textAlign: 'center',
+    color: colors.mutedForeground,
+    fontSize: fontSize.sm,
+    paddingVertical: spacing.lg,
+  },
+  shareFriendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  shareFriendAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareFriendAvatarText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  shareFriendName: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.foreground,
   },
 
   title: {

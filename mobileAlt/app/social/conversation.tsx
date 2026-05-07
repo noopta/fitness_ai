@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -133,9 +134,42 @@ export default function ConversationScreen() {
     return null;
   }
 
+  function parseSharedArticle(
+    body: string,
+  ): { id: string; title: string; summary?: string; src?: string; type?: string; url?: string; note?: string } | null {
+    try {
+      const parsed = JSON.parse(body);
+      if (parsed && parsed._art === true && typeof parsed.id === 'string' && typeof parsed.title === 'string') {
+        return parsed;
+      }
+    } catch {}
+    return null;
+  }
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isMine = item.senderId === user?.id;
     const fwd = parseForwardedPost(item.body);
+    const art = parseSharedArticle(item.body);
+
+    if (art) {
+      return (
+        <View style={[styles.bubbleWrapper, isMine ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
+          <TouchableOpacity
+            style={[styles.forwardCard, isMine ? styles.forwardCardMine : styles.forwardCardTheirs]}
+            activeOpacity={0.85}
+            onPress={() => {
+              if (art.url) Linking.openURL(art.url).catch(() => {});
+            }}
+          >
+            <Text style={styles.forwardLabel}>↪ {(art.type ?? 'article').toUpperCase()} {art.src ? `· ${art.src}` : ''}</Text>
+            {art.note ? <Text style={styles.forwardNote}>{art.note}</Text> : null}
+            <Text style={[styles.forwardBody, { fontWeight: fontWeight.semibold }]} numberOfLines={3}>{art.title}</Text>
+            {art.summary ? <Text style={styles.forwardCap} numberOfLines={3}>{art.summary}</Text> : null}
+            {art.url ? <Text style={styles.forwardImgHint}>🔗 Tap to open</Text> : null}
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
     if (fwd) {
       return (

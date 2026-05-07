@@ -73,8 +73,8 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
 
   const phases: any[] = savedProgram.phases ?? [];
 
-  // Walk cumulative phase durations to find the current phase — matches backend logic.
-  // The old formula assumed equal-duration phases which is wrong for most programs.
+  // Prefer server-computed phase index (single source of truth in programPhaseService).
+  // Fall back to client-side cumulative-week walk only if the server didn't supply it.
   function getCurrentPhaseIdx(currentWeek: number): number {
     let cumulative = 0;
     for (let i = 0; i < phases.length; i++) {
@@ -85,7 +85,15 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
   }
 
   const currentWeek = coachData?.currentWeek ?? 1;
-  const currentPhaseIdx = phases.length > 0 ? getCurrentPhaseIdx(currentWeek) : 0;
+  const serverPhaseIdx: number | null =
+    typeof coachData?.currentPhaseIndex === 'number' ? coachData.currentPhaseIndex : null;
+  const currentPhaseIdx =
+    serverPhaseIdx !== null
+      ? serverPhaseIdx
+      : phases.length > 0
+        ? getCurrentPhaseIdx(currentWeek)
+        : 0;
+  const serverPhaseName: string | null = coachData?.currentPhaseName ?? null;
 
   return (
     <>
@@ -113,7 +121,7 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
           {phases.length > 0 && (
             <View style={styles.currentPhaseBadge}>
               <Text style={styles.currentPhaseText}>
-                Current Phase: {phases[currentPhaseIdx]?.name || phases[currentPhaseIdx]?.phaseName || `Phase ${currentPhaseIdx + 1}`}
+                Current Phase: {serverPhaseName || phases[currentPhaseIdx]?.name || phases[currentPhaseIdx]?.phaseName || `Phase ${currentPhaseIdx + 1}`}
               </Text>
             </View>
           )}

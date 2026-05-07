@@ -383,7 +383,20 @@ export const socialApi = {
   shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object; caption?: string }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
-  getFeed: () => apiFetch('/social/feed'),
+  getFeed: (opts?: { fresh?: boolean }) =>
+    apiFetch(`/social/feed${opts?.fresh ? '?fresh=1' : ''}`),
+
+  // Saved articles
+  saveArticle: (articleId: string) =>
+    apiFetch(`/social/articles/${articleId}/save`, { method: 'POST' }),
+  unsaveArticle: (articleId: string) =>
+    apiFetch(`/social/articles/${articleId}/save`, { method: 'DELETE' }),
+  getSavedArticles: () => apiFetch('/social/articles/saved'),
+  forwardArticle: (articleId: string, recipientId: string, message?: string) =>
+    apiFetch(`/social/articles/${articleId}/forward`, {
+      method: 'POST',
+      body: JSON.stringify({ recipientId, message }),
+    }),
 
   // Reactions
   reactToPost: (postId: string) =>

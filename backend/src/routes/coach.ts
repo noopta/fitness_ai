@@ -12,6 +12,7 @@ import {
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal, generateWelcomeMessage,
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
+import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
@@ -65,6 +66,8 @@ router.get('/coach/messages', requireAuth, async (req, res) => {
 
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const phaseState = computePhaseState(parseSavedProgram(user.savedProgram), user.programStartDate);
+
     const sessionSummaries = user.sessions.map(s => {
       const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
       return {
@@ -94,6 +97,11 @@ router.get('/coach/messages', requireAuth, async (req, res) => {
       messages,
       sessionSummaries,
       tier: user.tier,
+      currentWeek: user.savedProgram ? phaseState.weekNumber : null,
+      currentPhaseName: phaseState.phaseName,
+      currentPhaseIndex: user.savedProgram ? phaseState.phaseIndex : null,
+      currentPhaseNumber: user.savedProgram ? phaseState.phaseNumber : null,
+      weekInPhase: user.savedProgram ? phaseState.weekInPhase : null,
     });
   } catch (err) {
     console.error('Coach messages error:', err);
@@ -771,31 +779,8 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     if (cachedToday) return res.json(cachedToday);
 
     const program = JSON.parse(user.savedProgram);
-    const startDate = user.programStartDate || new Date();
-
-    // Calculate which week we're on (1-indexed).
-    // Use EST calendar dates so the day doesn't flip before midnight EST.
-    const todayMidnight = estMidnight();
-    const startMidnight = estMidnight(new Date(startDate));
-    const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
-    const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
-
-    // Find which phase we're in
-    let cumulativeWeeks = 0;
-    let currentPhase = program.phases?.[0] || null;
-    let phaseNumber = 1;
-    if (program.phases) {
-      for (let i = 0; i < program.phases.length; i++) {
-        cumulativeWeeks += program.phases[i].durationWeeks;
-        if (weekNumber <= cumulativeWeeks) {
-          currentPhase = program.phases[i];
-          phaseNumber = i + 1;
-          break;
-        }
-        currentPhase = program.phases[i];
-        phaseNumber = i + 1;
-      }
-    }
+    const phaseState = computePhaseState(program, user.programStartDate);
+    const { weekNumber, phaseNumber, currentPhase, daysSinceStart } = phaseState;
 
     if (!currentPhase || !currentPhase.trainingDays) {
       return res.json({
@@ -843,7 +828,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
           dayName: todaySession.day,
           dayFocus: todaySession.focus,
           exercises: todaySession.exercises || [],
-          phaseName: currentPhase.phaseName,
+          phaseName: phaseState.phaseName ?? '',
           weekNumber,
           sleepHours: latestCheckin?.sleepHours ?? null,
           stressLevel: latestCheckin?.stress ?? null,
@@ -910,26 +895,13 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
     if (user.savedProgram) {
       const program = JSON.parse(user.savedProgram);
       const startDate = user.programStartDate || new Date();
-      const _todayMid = estMidnight();
-      const _startMid = estMidnight(new Date(startDate));
-      const daysSinceStart = Math.floor((_todayMid.getTime() - _startMid.getTime()) / (1000 * 60 * 60 * 24));
-      const wk = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
-      weekNumber = wk;
+      const phaseState = computePhaseState(program, user.programStartDate);
+      weekNumber = phaseState.weekNumber;
+      phaseName = phaseState.phaseName;
 
-      let cumulativeWeeks = 0;
-      let currentPhase = program.phases?.[0] || null;
-      if (program.phases) {
-        for (let i = 0; i < program.phases.length; i++) {
-          cumulativeWeeks += program.phases[i].durationWeeks;
-          if (wk <= cumulativeWeeks) { currentPhase = program.phases[i]; break; }
-          currentPhase = program.phases[i];
-        }
-      }
-      phaseName = currentPhase?.phaseName || null;
-
-      const trainingDays = currentPhase?.trainingDays || [];
+      const trainingDays = phaseState.trainingDays;
       const totalDays = trainingDays.length;
-      const dayInWeek = daysSinceStart % 7;
+      const dayInWeek = phaseState.daysSinceStart % 7;
       const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
       isRestDay = !session;
       todaySession = session ? { day: session.day, focus: session.focus } : null;
@@ -1011,23 +983,13 @@ function buildScheduleData(user: { savedProgram: string | null; programStartDate
 
   const program = JSON.parse(user.savedProgram);
   const startDate = user.programStartDate || new Date();
+  const phaseState = computePhaseState(program, user.programStartDate);
+  const { weekNumber, currentPhase } = phaseState;
 
   const todayMidnight = estMidnight();
   const startMidnight = estMidnight(new Date(startDate));
-  const daysSinceStart = Math.floor((todayMidnight.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
-  const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, program.durationWeeks || 12);
 
-  let cumulativeWeeks = 0;
-  let currentPhase = program.phases?.[0] || null;
-  if (program.phases) {
-    for (let i = 0; i < program.phases.length; i++) {
-      cumulativeWeeks += program.phases[i].durationWeeks;
-      if (weekNumber <= cumulativeWeeks) { currentPhase = program.phases[i]; break; }
-      currentPhase = program.phases[i];
-    }
-  }
-
-  const trainingDays = currentPhase?.trainingDays || [];
+  const trainingDays = phaseState.trainingDays;
   const totalDays = trainingDays.length;
 
   const dow = new Date(getESTDateString() + 'T12:00:00Z').getUTCDay();
@@ -1468,13 +1430,10 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
     let phaseName: string | null = null;
     let currentWeek: number | null = null;
     if (user.savedProgram) {
-      try {
-        const prog = JSON.parse(user.savedProgram);
-        phaseName = prog.phases?.[0]?.phaseName ?? null;
-        if (user.programStartDate) {
-          currentWeek = Math.floor((now.getTime() - new Date(user.programStartDate).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-        }
-      } catch { /* ignore */ }
+      const prog = parseSavedProgram(user.savedProgram);
+      const state = computePhaseState(prog, user.programStartDate, now);
+      phaseName = state.phaseName;
+      currentWeek = state.weekNumber;
     }
 
     const message = await generateWelcomeMessage({

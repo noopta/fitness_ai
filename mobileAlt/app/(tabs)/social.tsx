@@ -490,17 +490,52 @@ export default function SocialScreen() {
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [exhausted, setExhausted] = useState(false);
 
-  const loadFeed = useCallback(() => {
+  const loadFeed = useCallback((fresh = false) => {
     setLoadingFeed(true);
-    return socialApi.getFeed()
-      .then((data) => setFeed(Array.isArray(data) ? data : data.items ?? []))
+    return socialApi.getFeed({ fresh })
+      .then((data) => {
+        setFeed(Array.isArray(data) ? data : data.items ?? []);
+        setExhausted(!!data?.exhausted);
+      })
       .catch(() => socialApi.getSharedFeed()
         .then((data) => setFeed((Array.isArray(data) ? data : data.items ?? []).map((item: any) => ({ kind: 'post', data: item }))))
         .catch(() => setFeed([]))
       )
       .finally(() => setLoadingFeed(false));
   }, []);
+
+  const loadSaved = useCallback(() => {
+    return socialApi.getSavedArticles()
+      .then((data: any) => {
+        const items: any[] = Array.isArray(data) ? data : data.items ?? [];
+        setSavedIds(new Set(items.map(i => i.id)));
+      })
+      .catch(() => { /* not fatal */ });
+  }, []);
+
+  const handleToggleSave = useCallback(async (articleId: string) => {
+    const isSaved = savedIds.has(articleId);
+    // Optimistic update
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (isSaved) next.delete(articleId); else next.add(articleId);
+      return next;
+    });
+    try {
+      if (isSaved) await socialApi.unsaveArticle(articleId);
+      else await socialApi.saveArticle(articleId);
+    } catch {
+      // Revert on failure
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        if (isSaved) next.add(articleId); else next.delete(articleId);
+        return next;
+      });
+    }
+  }, [savedIds]);
 
   const loadFriends = useCallback(() => {
     setLoadingFriends(true);
@@ -526,13 +561,16 @@ export default function SocialScreen() {
     loadFeed();
     loadFriends();
     loadNotificationCounts();
-  }, [loadFeed, loadFriends, loadNotificationCounts]);
+    loadSaved();
+  }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeed(), loadFriends(), loadNotificationCounts()]);
+    // fresh=true on pull-to-refresh tells the server to bypass the per-user cache
+    // and (if the user is exhausted on unseen items) trigger a source pull.
+    await Promise.all([loadFeed(true), loadFriends(), loadNotificationCounts(), loadSaved()]);
     setRefreshing(false);
-  }, [loadFeed, loadFriends, loadNotificationCounts]);
+  }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
 
   const handleInvite = async () => {
     try {
@@ -563,6 +601,9 @@ export default function SocialScreen() {
       <View style={styles.topBar}>
         <Text style={styles.screenTitle}>Social</Text>
         <View style={styles.topBarActions}>
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/social/saved')}>
+            <Ionicons name="bookmark-outline" size={22} color={colors.foreground} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => { router.push('/social/messages'); setUnreadDMs(0); }}>
             <Ionicons name="chatbubbles-outline" size={22} color={colors.foreground} />
             {unreadDMs > 0 && (
@@ -637,11 +678,32 @@ export default function SocialScreen() {
             ) : (
               feed.map((item: any, index: number) => {
                 if (item.kind === 'research') {
-                  return <FeedItemCard key={item.data.id} item={item.data as FeedItem} />;
+                  const fi = item.data as FeedItem;
+                  return (
+                    <FeedItemCard
+                      key={fi.id}
+                      item={fi}
+                      isSaved={savedIds.has(fi.id)}
+                      onToggleSave={() => handleToggleSave(fi.id)}
+                      friends={friends}
+                      onShareToFriend={async (friendId, note) => {
+                        try {
+                          await socialApi.forwardArticle(fi.id, friendId, note);
+                        } catch (e: any) {
+                          Alert.alert('Could not share', e?.message ?? 'Please try again.');
+                        }
+                      }}
+                    />
+                  );
                 }
                 const postData = item.kind === 'post' ? item.data : item;
                 return <PostCard key={postData.id ?? index} item={postData} currentUserId={user?.id} friends={friends} />;
               })
+            )}
+            {!loadingFeed && exhausted && feed.length > 0 && (
+              <View style={styles.center}>
+                <Text style={styles.mutedText}>You're all caught up. Pull to refresh for new articles.</Text>
+              </View>
             )}
           </>
         ) : (

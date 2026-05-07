@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser } from '../services/notificationService.js';
-import { getUserGoalTags, getCachedFeedItems } from '../services/feedService.js';
+import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSources } from '../services/feedService.js';
 
 const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
   (req: Request, res: Response, next: NextFunction) =>
@@ -606,6 +606,7 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
 
 router.get('/social/feed', wrap(async (req, res) => {
   const userId = req.user!.id;
+  const fresh = req.query.fresh === '1' || req.query.fresh === 'true';
   const t0 = Date.now();
 
   // Phase 1: friendships + goal tags are independent — run in parallel
@@ -626,7 +627,7 @@ router.get('/social/feed', wrap(async (req, res) => {
   );
 
   // Phase 2: posts query + research cache lookup — run in parallel
-  const [rawItems, feedItems] = await Promise.all([
+  const [rawItems, feedResult] = await Promise.all([
     prisma.sharedItem.findMany({
       where: {
         OR: [
@@ -642,10 +643,25 @@ router.get('/social/feed', wrap(async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: 50,
     }),
-    getCachedFeedItems(userId, tags, 10),
+    getCachedFeedItems(userId, tags, 10, { forceRefresh: fresh, excludeSeen: true }),
   ]);
+  const { items: feedItems, exhausted } = feedResult;
   const t2 = Date.now();
-  console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length}`);
+  console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} exhausted=${exhausted}`);
+
+  // Record views so subsequent refreshes return different items.
+  // Fire-and-forget — don't block the response.
+  if (feedItems.length > 0) {
+    recordFeedViews(userId, feedItems.map((i: any) => i.id)).catch(e =>
+      console.error('[feed] recordFeedViews failed:', e),
+    );
+  }
+
+  // If the user is exhausted on unseen items AND they pulled to refresh,
+  // kick the source-fetch in the background so future refreshes have new items.
+  if (fresh && exhausted) {
+    maybeFetchFromSources(userId).catch(() => { /* logged inside */ });
+  }
 
   const friendIdSet = new Set(friendIds);
   const seen = new Set<string>();
@@ -681,7 +697,114 @@ router.get('/social/feed', wrap(async (req, res) => {
     }
   }
 
-  res.json({ items: result });
+  res.json({ items: result, exhausted });
+}));
+
+// ─── Saved articles ───────────────────────────────────────────────────────────
+
+// POST /api/social/articles/:id/save — bookmark a research/article feed item
+router.post('/social/articles/:id/save', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const feedItemId = req.params.id;
+
+  const item = await prisma.feedItem.findUnique({ where: { id: feedItemId }, select: { id: true } });
+  if (!item) return res.status(404).json({ error: 'Article not found' });
+
+  await prisma.savedArticle.upsert({
+    where: { userId_feedItemId: { userId, feedItemId } },
+    create: { userId, feedItemId },
+    update: {},
+  });
+  res.json({ ok: true, saved: true });
+}));
+
+// DELETE /api/social/articles/:id/save — unbookmark
+router.delete('/social/articles/:id/save', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const feedItemId = req.params.id;
+  await prisma.savedArticle.deleteMany({ where: { userId, feedItemId } });
+  res.json({ ok: true, saved: false });
+}));
+
+// GET /api/social/articles/saved — user's saved article hub
+router.get('/social/articles/saved', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const saves = await prisma.savedArticle.findMany({
+    where: { userId },
+    orderBy: { savedAt: 'desc' },
+    include: { feedItem: true },
+  });
+
+  const items = saves.map(s => {
+    let tags: string[] = [];
+    try { tags = JSON.parse(s.feedItem.tags); } catch { /* ignore */ }
+    return {
+      id: s.feedItem.id,
+      type: s.feedItem.type as 'research' | 'article',
+      title: s.feedItem.title,
+      summary: s.feedItem.summary,
+      url: s.feedItem.url,
+      source: s.feedItem.source,
+      tags,
+      publishedAt: s.feedItem.publishedAt?.toISOString() ?? null,
+      fetchedAt: s.feedItem.fetchedAt.toISOString(),
+      savedAt: s.savedAt.toISOString(),
+    };
+  });
+  res.json({ items });
+}));
+
+// POST /api/social/articles/:id/forward — share an article to a friend via DM
+// Mirrors POST /social/posts/:id/forward; uses _art:true marker in body so
+// conversation.tsx can render a rich card.
+router.post('/social/articles/:id/forward', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const { recipientId, message } = req.body;
+  if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
+
+  const canShare = await areFriendsOrColleagues(userId, recipientId);
+  if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
+
+  const item = await prisma.feedItem.findUnique({ where: { id: req.params.id } });
+  if (!item) return res.status(404).json({ error: 'Article not found' });
+
+  const ids = canonicalParticipants(userId, recipientId);
+  const convo = await prisma.directConversation.upsert({
+    where: { participantAId_participantBId: ids },
+    create: ids,
+    update: {},
+  });
+
+  const art: Record<string, unknown> = {
+    _art: true,
+    id: item.id,
+    title: item.title.slice(0, 200),
+    summary: item.summary.slice(0, 400),
+    src: item.source,
+    type: item.type,
+    url: item.url,
+  };
+  if (message) art.note = String(message).slice(0, 240);
+  const body = JSON.stringify(art).slice(0, 1500);
+
+  const [dmMessage] = await prisma.$transaction([
+    prisma.message.create({
+      data: { conversationId: convo.id, senderId: userId, body },
+      include: { sender: { select: { id: true, name: true, username: true } } },
+    }),
+    prisma.directConversation.update({ where: { id: convo.id }, data: { updatedAt: new Date() } }),
+  ]);
+
+  const sender = await prisma.user.findUnique({ where: { id: userId }, select: { username: true, name: true } });
+  const display = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
+  sendPushToUser(
+    recipientId,
+    `${display} shared an article`,
+    item.title.slice(0, 100),
+    { type: 'message', conversationId: convo.id },
+  ).catch(() => {});
+
+  res.status(201).json({ ok: true, conversationId: convo.id, messageId: dmMessage.id });
 }));
 
 // ─── Reactions ────────────────────────────────────────────────────────────────

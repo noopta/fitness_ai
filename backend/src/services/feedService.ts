@@ -284,14 +284,40 @@ export async function runDailyFeedFetch(): Promise<void> {
 
 // ─── Feed query ───────────────────────────────────────────────────────────────
 
-export async function getFeedItemsForTags(tags: FeedTag[], limit = 10): Promise<any[]> {
-  // Try to find items matching the user's tags first, fall back to general
+export interface FeedItemQueryOptions {
+  excludeSeenForUserId?: string;
+  // When recall is exhausted (everything seen), allow returning seen items so the
+  // feed isn't empty. Used as a fallback signal to the route — see "exhausted".
+  allowSeenFallback?: boolean;
+}
+
+export interface FeedItemQueryResult {
+  items: any[];
+  exhausted: boolean; // true when we couldn't fill `limit` with unseen items
+}
+
+export async function getFeedItemsForTags(
+  tags: FeedTag[],
+  limit = 10,
+  opts: FeedItemQueryOptions = {},
+): Promise<FeedItemQueryResult> {
+  // Pull a wider pool than `limit` so per-user filtering still leaves enough to score.
+  const POOL = Math.max(200, limit * 30);
+
+  let seenItemIds = new Set<string>();
+  if (opts.excludeSeenForUserId) {
+    const views = await prisma.userFeedView.findMany({
+      where: { userId: opts.excludeSeenForUserId },
+      select: { feedItemId: true },
+    });
+    seenItemIds = new Set(views.map(v => v.feedItemId));
+  }
+
   const allItems = await prisma.feedItem.findMany({
     orderBy: { fetchedAt: 'desc' },
-    take: 200,
+    take: POOL,
   });
 
-  // Score: items whose tags overlap with user tags rank higher
   const tagSet = new Set(tags);
   const scored = allItems.map(item => {
     let itemTags: string[] = [];
@@ -302,7 +328,22 @@ export async function getFeedItemsForTags(tags: FeedTag[], limit = 10): Promise<
 
   scored.sort((a, b) => b.overlap - a.overlap || b.item.fetchedAt.getTime() - a.item.fetchedAt.getTime());
 
-  return scored.slice(0, limit).map(({ item }) => ({
+  const unseen = scored.filter(({ item }) => !seenItemIds.has(item.id));
+  let chosen = unseen.slice(0, limit);
+  let exhausted = false;
+  if (chosen.length < limit && opts.allowSeenFallback) {
+    // Top up from seen items, oldest-viewed first — but we don't have that order
+    // here without a join, so just use the same scored order. The route will mark
+    // these as already-shown so the UI can label "you're caught up."
+    exhausted = true;
+    const need = limit - chosen.length;
+    const filler = scored.filter(s => seenItemIds.has(s.item.id)).slice(0, need);
+    chosen = [...chosen, ...filler];
+  } else if (chosen.length < limit) {
+    exhausted = true;
+  }
+
+  const items = chosen.map(({ item }) => ({
     id: item.id,
     type: item.type as 'research' | 'article',
     title: item.title,
@@ -313,22 +354,76 @@ export async function getFeedItemsForTags(tags: FeedTag[], limit = 10): Promise<
     publishedAt: item.publishedAt?.toISOString() ?? null,
     fetchedAt: item.fetchedAt.toISOString(),
   }));
+
+  return { items, exhausted };
+}
+
+// Mark items as viewed by a user. Idempotent (unique on userId+feedItemId).
+export async function recordFeedViews(userId: string, feedItemIds: string[]): Promise<void> {
+  if (feedItemIds.length === 0) return;
+  await prisma.userFeedView.createMany({
+    data: feedItemIds.map(feedItemId => ({ userId, feedItemId })),
+    // SQLite supports skipDuplicates with createMany via Prisma since 4.x
+    // but if not available the @@unique will throw — wrap in try/catch as fallback.
+  }).catch(async () => {
+    for (const feedItemId of feedItemIds) {
+      try {
+        await prisma.userFeedView.create({ data: { userId, feedItemId } });
+      } catch { /* already exists */ }
+    }
+  });
+}
+
+// On-demand source fetch trigger, rate-limited per user. Returns whether we
+// kicked off a fetch.
+const lastSourceFetchAt = new Map<string, number>();
+const SOURCE_FETCH_COOLDOWN = 5 * 60 * 1000; // 5 min per user
+
+export async function maybeFetchFromSources(userId: string): Promise<boolean> {
+  const last = lastSourceFetchAt.get(userId) ?? 0;
+  if (Date.now() - last < SOURCE_FETCH_COOLDOWN) return false;
+  lastSourceFetchAt.set(userId, Date.now());
+  // Don't await — let it run in the background. Bail loudly so it doesn't crash
+  // the process if the upstream API is flaky.
+  runDailyFeedFetch().then(() => invalidateResearchCache()).catch(e => {
+    console.error('[feedService] on-demand fetch failed:', e);
+  });
+  return true;
 }
 
 // ─── Research item cache (in-process, per user+tags, 10-min TTL) ─────────────
 // Avoids a DB round-trip on every feed load for data that changes at most once/day.
 
-const researchCache = new Map<string, { items: any[]; expiresAt: number }>();
+const researchCache = new Map<string, { items: any[]; exhausted: boolean; expiresAt: number }>();
 const RESEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-export async function getCachedFeedItems(userId: string, tags: FeedTag[], limit = 10): Promise<any[]> {
-  const key = `${userId}:${[...tags].sort().join(',')}`;
-  const hit = researchCache.get(key);
-  if (hit && Date.now() < hit.expiresAt) return hit.items;
+export interface CachedFeedOptions {
+  forceRefresh?: boolean;
+  excludeSeen?: boolean;
+}
 
-  const items = await getFeedItemsForTags(tags, limit);
-  researchCache.set(key, { items, expiresAt: Date.now() + RESEARCH_CACHE_TTL });
-  return items;
+export async function getCachedFeedItems(
+  userId: string,
+  tags: FeedTag[],
+  limit = 10,
+  options: CachedFeedOptions = {},
+): Promise<{ items: any[]; exhausted: boolean }> {
+  const key = `${userId}:${[...tags].sort().join(',')}:${options.excludeSeen ? 'unseen' : 'all'}`;
+  if (!options.forceRefresh) {
+    const hit = researchCache.get(key);
+    if (hit && Date.now() < hit.expiresAt) return { items: hit.items, exhausted: hit.exhausted };
+  }
+
+  const result = await getFeedItemsForTags(tags, limit, {
+    excludeSeenForUserId: options.excludeSeen ? userId : undefined,
+    allowSeenFallback: options.excludeSeen,
+  });
+  researchCache.set(key, {
+    items: result.items,
+    exhausted: result.exhausted,
+    expiresAt: Date.now() + RESEARCH_CACHE_TTL,
+  });
+  return result;
 }
 
 // Called by the daily fetch job so fresh items are reflected on next TTL expiry

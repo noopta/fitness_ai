@@ -5,7 +5,14 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
 import { recomputeStrengthProfileInBackground } from './strength.js';
-import { notifyStreakMilestone } from '../services/notificationService.js';
+import {
+  notifyStreakMilestone,
+  notifyComeback,
+  notifyPersonalBest,
+  notifyStreakFreezeUsed,
+  notifySurpriseReward,
+} from '../services/notificationService.js';
+import { recordActivity } from '../services/streakService.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
 
@@ -13,42 +20,36 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // ─── Streak helper ────────────────────────────────────────────────────────────
+// Delegates to streakService so workout + nutrition share one source of truth
+// (handles freezes, personal bests, comebacks, surprise rewards).
 
 function updateStreakInBackground(userId: string, workoutDate: string): void {
   (async () => {
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { currentStreak: true, longestStreak: true, lastWorkoutDate: true },
-      });
-      if (!user) return;
+      const result = await recordActivity(prisma, userId, 'workout', workoutDate);
+      if (!result || result.newStreak === result.prevStreak) return;
 
-      const last = user.lastWorkoutDate;
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-      let newStreak: number;
-      if (!last || last < yesterdayStr) {
-        // Gap > 1 day or first workout ever — reset
-        newStreak = 1;
-      } else if (last === yesterdayStr || last === workoutDate) {
-        // Consecutive day or same-day re-log
-        newStreak = last === workoutDate ? user.currentStreak : user.currentStreak + 1;
-      } else {
-        newStreak = user.currentStreak + 1;
+      // Fire reinforcement pushes — order matters so we don't double-notify on
+      // the same log: milestones win over surprise; freeze-used and PB are
+      // independent and can both fire.
+      if (result.isMilestone) {
+        notifyStreakMilestone(userId, result.newStreak).catch(() => {});
+      } else if (result.fireSurpriseReward) {
+        notifySurpriseReward(userId, 'workout', result.newStreak).catch(() => {});
       }
-
-      const newLongest = Math.max(newStreak, user.longestStreak);
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: { currentStreak: newStreak, longestStreak: newLongest, lastWorkoutDate: workoutDate },
-      });
-
-      // Fire streak milestone notifications (7, 14, 30 days)
-      if ([7, 14, 30].includes(newStreak)) {
-        notifyStreakMilestone(userId, newStreak).catch(() => {});
+      if (result.freezeUsed) {
+        notifyStreakFreezeUsed(userId, 'workout', result.newStreak).catch(() => {});
+      }
+      if (result.isPersonalBest && !result.isMilestone) {
+        notifyPersonalBest(userId, 'workout', result.newStreak).catch(() => {});
+      }
+      if (result.isComeback && result.newStreak === 1) {
+        const u = await prisma.user.findUnique({
+          where: { id: userId }, select: { longestStreak: true },
+        });
+        if (u && u.longestStreak >= 3) {
+          notifyComeback(userId, 'workout', u.longestStreak).catch(() => {});
+        }
       }
     } catch (err) {
       console.error('[streak] update error:', err);

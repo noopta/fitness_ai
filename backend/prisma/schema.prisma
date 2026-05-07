@@ -47,6 +47,21 @@ model User {
   currentStreak       Int               @default(0)
   longestStreak       Int               @default(0)
   lastWorkoutDate     String?
+  // Nutrition logging streak — separate from workout streak so loss-aversion
+  // signals are clear about *which* habit is at risk.
+  nutritionStreak           Int      @default(0)
+  longestNutritionStreak    Int      @default(0)
+  lastNutritionLogDate      String?
+  // Streak protection: 1 freeze granted per 7 logged days of either kind, max 2.
+  // Consumed on a single-day miss before resetting the streak.
+  streakFreezes             Int      @default(0)
+  // Personalize at-risk push timing — exponentially-smoothed hour-of-day (0-23 EST)
+  typicalWorkoutLogHour     Int?
+  typicalNutritionLogHour   Int?
+  // Track when we last sent each kind of streak-reinforcement notification so
+  // we don't spam the user (one per kind per day max).
+  lastStreakAtRiskAt        DateTime?
+  lastSurpriseRewardAt      DateTime?
   username            String?           @unique
   avatarBase64        String?
   dailyCalorieTarget  Float?            // user-declared calorie target (overrides TDEE-computed)
@@ -70,6 +85,8 @@ model User {
   postComments             PostComment[]         @relation("UserComments")
   invitesSent              UserInvite[]          @relation("InvitesSent")
   inviteUsed               UserInvite?           @relation("InviteUsed")
+  feedViews                UserFeedView[]
+  savedArticles            SavedArticle[]
   referredByCode           String?
   // Institution
   institutionMemberships   InstitutionMember[]
@@ -440,6 +457,36 @@ model FeedItem {
   tags        String             // JSON array e.g. ["strength","fat_loss"]
   publishedAt DateTime?
   fetchedAt   DateTime  @default(now())
+  views       UserFeedView[]
+  saves       SavedArticle[]
 
   @@index([fetchedAt])
+}
+
+// Per-user view tracking so the feed doesn't re-show the same articles on every
+// pull-to-refresh. The feed endpoint records a view when an item is returned to
+// the user, and getFeedItemsForTags filters them out.
+model UserFeedView {
+  id         String   @id @default(uuid())
+  userId     String
+  feedItemId String
+  viewedAt   DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedItem   FeedItem @relation(fields: [feedItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feedItemId])
+  @@index([userId, viewedAt])
+}
+
+// User-saved (bookmarked) articles surfaced from the feed.
+model SavedArticle {
+  id         String   @id @default(uuid())
+  userId     String
+  feedItemId String
+  savedAt    DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedItem   FeedItem @relation(fields: [feedItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feedItemId])
+  @@index([userId, savedAt])
 }

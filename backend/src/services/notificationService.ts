@@ -262,12 +262,7 @@ export async function notifyStreakMilestone(
   userId: string,
   streak: number
 ): Promise<void> {
-  const milestones: Record<number, string> = {
-    7: "7 days straight. That's a habit forming.",
-    14: "2 weeks of consistency. Anakin is impressed.",
-    30: "30-day streak. You're in the top 1% of users.",
-  };
-  const msg = milestones[streak];
+  const msg = milestoneCopy(streak);
   if (!msg) return;
   await sendPushToUser(
     userId,
@@ -275,4 +270,150 @@ export async function notifyStreakMilestone(
     msg,
     { screen: 'coach', tab: 'overview' }
   );
+}
+
+// ─── Streak reinforcement (positive + loss-aversion) ──────────────────────────
+
+type StreakKind = 'workout' | 'nutrition';
+
+const KIND_LABEL: Record<StreakKind, string> = {
+  workout: 'workout',
+  nutrition: 'nutrition',
+};
+
+function milestoneCopy(streak: number): string | null {
+  // Varied copy per milestone — habituation kills these notifications fast
+  // when every "7-day streak" message reads the same.
+  switch (streak) {
+    case 3:   return "Three days in a row. Momentum is real.";
+    case 7:   return "7 days straight. That's a habit forming.";
+    case 14:  return "Two weeks of consistency. Most people quit before this.";
+    case 21:  return "21 days — the science says you're rewriting defaults now.";
+    case 30:  return "30 days. You're in the top 1% of users.";
+    case 60:  return "Two months in. This is your new normal.";
+    case 90:  return "90 days. You're a different athlete than the one who started.";
+    case 100: return "Triple digits. Anakin is genuinely impressed.";
+    case 180: return "Half a year. Keep this up and you'll outwork everyone you know.";
+    case 365: return "365 days. A full year. Take a screenshot.";
+    default:  return null;
+  }
+}
+
+/**
+ * "About to lose your streak" — fires before midnight on a day the user hasn't
+ * logged yet. Pure loss-aversion play; this is the highest-leverage push.
+ */
+export async function notifyStreakAtRisk(
+  userId: string,
+  kind: StreakKind,
+  streak: number,
+): Promise<void> {
+  const tab = kind === 'nutrition' ? 'nutrition' : 'overview';
+  const titles = [
+    `Don't break your ${streak}-day streak`,
+    `${streak} days · don't drop it now`,
+    `Your streak is on the line`,
+  ];
+  const bodies = kind === 'workout'
+    ? [
+        `You haven't logged a workout today. Even a quick session keeps your ${streak}-day streak alive.`,
+        `One log saves your ${streak}-day streak. You've come too far to lose it.`,
+        `${streak} days of work. Don't let tonight be the gap.`,
+      ]
+    : [
+        `Log your nutrition today to keep your ${streak}-day streak going.`,
+        `Your ${streak}-day nutrition streak ends at midnight if you don't log.`,
+        `Quick meal log = streak saved.`,
+      ];
+  const title = titles[streak % titles.length];
+  const body = bodies[streak % bodies.length];
+
+  await sendPushToUser(userId, title, body, { screen: 'coach', tab });
+
+  // Stamp the user so we don't double-fire today
+  await prisma.user.update({
+    where: { id: userId },
+    data: { lastStreakAtRiskAt: new Date() },
+  }).catch(() => { /* ignore */ });
+}
+
+/**
+ * Variable-reward surprise — slot-machine-style intermittent reinforcement.
+ * Fires on a random ~15% of logs after streak ≥ 5, never on milestone days.
+ * Vary copy so it feels rare and fresh.
+ */
+export async function notifySurpriseReward(
+  userId: string,
+  kind: StreakKind,
+  streak: number,
+): Promise<void> {
+  const variants = [
+    `🎰 Surprise: you've out-logged 87% of users this week.`,
+    `🎯 You're ahead of where you were a month ago. Keep going.`,
+    `⚡ Anakin noticed: you haven't missed a ${KIND_LABEL[kind]} log in ${streak} days.`,
+    `🔥 Quiet flex: ${streak} days, no breaks. Most people would have folded.`,
+  ];
+  const title = `${streak}-day ${KIND_LABEL[kind]} streak`;
+  const body = variants[Math.floor(Math.random() * variants.length)];
+  await sendPushToUser(userId, title, body, { screen: 'coach', tab: 'overview' });
+}
+
+/** Comeback nudge — user is rebuilding after losing a streak. Endowed progress. */
+export async function notifyComeback(
+  userId: string,
+  kind: StreakKind,
+  oldLongest: number,
+): Promise<void> {
+  const tab = kind === 'nutrition' ? 'nutrition' : 'overview';
+  await sendPushToUser(
+    userId,
+    `Welcome back`,
+    `Your old streak peaked at ${oldLongest} days. Day 1 of the next one starts now.`,
+    { screen: 'coach', tab },
+  );
+}
+
+/** New personal best — frames as mastery, not just numbers. */
+export async function notifyPersonalBest(
+  userId: string,
+  kind: StreakKind,
+  streak: number,
+): Promise<void> {
+  const tab = kind === 'nutrition' ? 'nutrition' : 'overview';
+  await sendPushToUser(
+    userId,
+    `New personal best 🏅`,
+    `${streak} days — that's a new ${KIND_LABEL[kind]} record for you. Anakin is keeping count.`,
+    { screen: 'coach', tab },
+  );
+}
+
+/** Freeze-consumed nudge — keeps the safety-net mechanic visible. */
+export async function notifyStreakFreezeUsed(
+  userId: string,
+  kind: StreakKind,
+  streak: number,
+): Promise<void> {
+  const tab = kind === 'nutrition' ? 'nutrition' : 'overview';
+  await sendPushToUser(
+    userId,
+    `Streak freeze used 🧊`,
+    `Your ${streak}-day ${KIND_LABEL[kind]} streak is intact — a freeze covered yesterday's miss.`,
+    { screen: 'coach', tab },
+  );
+}
+
+/**
+ * Scheduled job — checks all users for at-risk streaks and fires loss-aversion
+ * pushes. Called on a cron-ish schedule from index.ts (see scheduleAt).
+ */
+export async function runStreakAtRiskCheck(): Promise<void> {
+  const { findAtRiskStreaks } = await import('./streakService.js');
+  const candidates = await findAtRiskStreaks(prisma);
+  console.log(`[push] Streak-at-risk: ${candidates.length} candidate(s)`);
+  for (const c of candidates) {
+    await notifyStreakAtRisk(c.userId, c.kind, c.streak).catch(e =>
+      console.error('[push] at-risk push failed:', e),
+    );
+  }
 }

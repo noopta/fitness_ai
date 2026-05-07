@@ -19,7 +19,7 @@ import affiliatesRoutes from './routes/affiliates.js';
 import socialRoutes from './routes/social.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
-import { runNightlyNotifications, runWeeklySummary } from './services/notificationService.js';
+import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
 import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
@@ -188,8 +188,12 @@ function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
 scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
 scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
 scheduleAt(18, null, () => runReengagementCheck().catch(err => console.error('[scheduler] reengagement error:', err)));
+// Streak-at-risk loss-aversion pass — runs at 7pm and 9pm so we cover both
+// "evening loggers" and "late-night loggers" without waking up the early crowd.
+scheduleAt(19, null, () => runStreakAtRiskCheck().catch(err => console.error('[scheduler] streak-at-risk 19h error:', err)));
+scheduleAt(21, null, () => runStreakAtRiskCheck().catch(err => console.error('[scheduler] streak-at-risk 21h error:', err)));
 // Research/article feed — fetch new content daily at 6am
 scheduleAt(6,  null, () => runDailyFeedFetch().catch(err => console.error('[scheduler] feed fetch error:', err)));
 // Run once on startup to seed the feed if empty
 runDailyFeedFetch().catch(err => console.error('[feedService] initial fetch error:', err));
-console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 6am feed fetch)');
+console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 7pm/9pm streak-at-risk + 6am feed fetch)');

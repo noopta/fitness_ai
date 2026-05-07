@@ -10,6 +10,14 @@ const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId
 import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
+import { recordActivity } from '../services/streakService.js';
+import {
+  notifyStreakMilestone,
+  notifyComeback,
+  notifyPersonalBest,
+  notifyStreakFreezeUsed,
+  notifySurpriseReward,
+} from '../services/notificationService.js';
 import { sendJunkFoodShame, isJunkFood } from '../services/reengagementService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
@@ -23,6 +31,38 @@ const LLM_MODEL = 'gpt-5.4-mini-2026-03-17';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Update the user's nutrition streak in the background and fire reinforcement
+// pushes. Mirrors workouts.ts:updateStreakInBackground.
+function updateNutritionStreakInBackground(userId: string, dateStr: string): void {
+  (async () => {
+    try {
+      const result = await recordActivity(prisma, userId, 'nutrition', dateStr);
+      if (!result || result.newStreak === result.prevStreak) return;
+      if (result.isMilestone) {
+        notifyStreakMilestone(userId, result.newStreak).catch(() => {});
+      } else if (result.fireSurpriseReward) {
+        notifySurpriseReward(userId, 'nutrition', result.newStreak).catch(() => {});
+      }
+      if (result.freezeUsed) {
+        notifyStreakFreezeUsed(userId, 'nutrition', result.newStreak).catch(() => {});
+      }
+      if (result.isPersonalBest && !result.isMilestone) {
+        notifyPersonalBest(userId, 'nutrition', result.newStreak).catch(() => {});
+      }
+      if (result.isComeback && result.newStreak === 1) {
+        const u = await prisma.user.findUnique({
+          where: { id: userId }, select: { longestNutritionStreak: true },
+        });
+        if (u && u.longestNutritionStreak >= 3) {
+          notifyComeback(userId, 'nutrition', u.longestNutritionStreak).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.error('[nutrition-streak] update error:', err);
+    }
+  })();
+}
 
 const logSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -52,6 +92,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
       cacheDelete(`userctx:${userId}`);
       cacheDelete(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
+      updateNutritionStreakInBackground(userId, data.date);
       posthog.capture({
         distinctId: userId,
         event: 'nutrition_log_saved',
@@ -69,6 +110,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
     });
     cacheDelete(`userctx:${userId}`);
     logActivity(userId, 'nutrition').catch(() => {});
+    updateNutritionStreakInBackground(userId, data.date);
     posthog.capture({
       distinctId: userId,
       event: 'nutrition_log_saved',
@@ -233,6 +275,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
 
     cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
+    updateNutritionStreakInBackground(userId, data.date);
     res.status(201).json({
       ...entry,
       ingredients,
