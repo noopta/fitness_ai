@@ -20,6 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { nutritionApi } from '../../lib/api';
+import { invalidateCache } from '../../lib/cache';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.82;
@@ -186,6 +187,10 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
         fatG: parseFloat(fat) || 0,
         notes: notes.trim() || undefined,
       });
+      // A new meal changes today's totals (overview) and the strength-tab
+      // nutrition profile. Invalidate broad — both subtrees are cheap to refetch.
+      invalidateCache('coach:');
+      invalidateCache('nutrition:profile:');
       setName(''); setMealType('meal'); setCalories(''); setProtein(''); setCarbs(''); setFat(''); setNotes('');
       setPhotoUri(null);
       handleClose();

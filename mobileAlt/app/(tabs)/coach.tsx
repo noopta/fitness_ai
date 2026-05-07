@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, Activi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/context/AuthContext';
 import { coachApi, authApi } from '../../src/lib/api';
+import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
@@ -54,54 +55,73 @@ export default function CoachScreen() {
     initCoach();
   }, [user?.id]);
 
+  // A program is only valid if it has a phases array with at least one entry.
+  function extractProgram(raw: any): any | null {
+    if (!raw) return null;
+    let prog: any;
+    if (typeof raw === 'object' && 'program' in raw) {
+      prog = raw.program;
+    } else if (typeof raw === 'object' && 'savedProgram' in raw) {
+      prog = raw.savedProgram;
+    } else {
+      prog = raw;
+    }
+    if (typeof prog === 'string') {
+      try { prog = JSON.parse(prog); } catch { return null; }
+    }
+    if (prog && typeof prog === 'object' && Array.isArray(prog.phases) && prog.phases.length > 0) {
+      return prog;
+    }
+    return null;
+  }
+
+  async function fetchCoachInit(userId: string) {
+    const [data, programResult] = await Promise.all([
+      coachApi.getMessages().catch(() => ({})),
+      coachApi.getProgram().catch(() => null),
+    ]);
+    const resolvedProgram =
+      extractProgram(programResult)
+      ?? extractProgram(user?.savedProgram)
+      ?? extractProgram(data?.savedProgram)
+      ?? null;
+    return {
+      coachData: { ...data, savedProgram: resolvedProgram },
+      hasProgram: !!resolvedProgram,
+    };
+  }
+
   async function initCoach() {
     if (!user) {
       setStage('loading');
       return;
     }
 
-    // Fetch coach data + program in parallel
+    const cacheKey = `coach:init:${user.id}`;
+    type Cached = { coachData: any; hasProgram: boolean };
+
+    // Cache-first: serve instantly if we have a recent snapshot, then revalidate
+    // in the background so a stale program/today/tip refreshes without flicker.
+    const cached = getCached<Cached>(cacheKey, 5 * 60 * 1000);
+    if (cached) {
+      setCoachData(cached.coachData);
+      setStage(cached.hasProgram ? 'dashboard' : 'onboarding');
+      if (!cached.hasProgram) setOnboardingKey(k => k + 1);
+      setLoading(false);
+      // Background revalidate
+      fetchCoachInit(user.id).then(fresh => {
+        setCached(cacheKey, fresh);
+        setCoachData(fresh.coachData);
+        setStage(fresh.hasProgram ? 'dashboard' : 'onboarding');
+      }).catch(() => { /* keep cached state */ });
+      return;
+    }
 
     try {
-      const [data, programResult] = await Promise.all([
-        coachApi.getMessages().catch(() => ({})),
-        coachApi.getProgram().catch(() => null),
-      ]);
-
-      let resolvedProgram: any = null;
-
-      // A program is only valid if it has a phases array with at least one entry.
-      function extractProgram(raw: any): any | null {
-        if (!raw) return null;
-        // Unwrap response envelopes like { program: ... } or { savedProgram: ... }
-        let prog: any;
-        if (typeof raw === 'object' && 'program' in raw) {
-          prog = raw.program;
-        } else if (typeof raw === 'object' && 'savedProgram' in raw) {
-          prog = raw.savedProgram;
-        } else {
-          prog = raw;
-        }
-        if (typeof prog === 'string') {
-          try { prog = JSON.parse(prog); } catch { return null; }
-        }
-        // Require a real program structure
-        if (prog && typeof prog === 'object' && Array.isArray(prog.phases) && prog.phases.length > 0) {
-          return prog;
-        }
-        return null;
-      }
-
-      resolvedProgram = extractProgram(programResult)
-        ?? extractProgram(user.savedProgram)
-        ?? extractProgram(data?.savedProgram)
-        ?? null;
-
-      setCoachData({ ...data, savedProgram: resolvedProgram });
-
-      const hasProgram = !!(resolvedProgram);
-
-      if (!hasProgram) {
+      const fresh = await fetchCoachInit(user.id);
+      setCached(cacheKey, fresh);
+      setCoachData(fresh.coachData);
+      if (!fresh.hasProgram) {
         setOnboardingKey(k => k + 1);
         setStage('onboarding');
       } else {
@@ -146,24 +166,22 @@ export default function CoachScreen() {
   }
 
   async function handleProgramSave() {
+    // Saving / regenerating a program changes today's session, schedule, and
+    // the program tab. Drop the whole coach cache so the fresh fetch below
+    // (and the next tab visit) sees the new program rather than the prior
+    // snapshot.
+    invalidateCache('coach:');
     try {
       const [data, programResult] = await Promise.all([
         coachApi.getMessages(),
         coachApi.getProgram(),
       ]);
 
-      function extractProgram(raw: any): any | null {
-        if (!raw) return null;
-        let prog: any;
-        if (typeof raw === 'object' && 'program' in raw) prog = raw.program;
-        else if (typeof raw === 'object' && 'savedProgram' in raw) prog = raw.savedProgram;
-        else prog = raw;
-        if (typeof prog === 'string') { try { prog = JSON.parse(prog); } catch { return null; } }
-        return (prog && typeof prog === 'object' && Array.isArray(prog.phases) && prog.phases.length > 0) ? prog : null;
-      }
       const resolvedProgram = extractProgram(programResult) ?? null;
+      const next = { coachData: { ...data, savedProgram: resolvedProgram }, hasProgram: !!resolvedProgram };
+      if (user?.id) setCached(`coach:init:${user.id}`, next);
 
-      setCoachData({ ...data, savedProgram: resolvedProgram });
+      setCoachData(next.coachData);
       await refreshUser();
     } catch {
       // Continue

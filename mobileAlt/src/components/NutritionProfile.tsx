@@ -3,30 +3,16 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Polygon, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { nutritionApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { getCached, setCached } from '../lib/cache';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 
-const PROFILE_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
-
-async function getCachedProfile(key: string): Promise<Profile | null> {
-  try {
-    const raw = await AsyncStorage.getItem(key);
-    if (!raw) return null;
-    const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > PROFILE_CACHE_TTL_MS) return null;
-    return data as Profile;
-  } catch { return null; }
-}
-
-async function setCachedProfile(key: string, data: Profile): Promise<void> {
-  try {
-    await AsyncStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
-  } catch { /* ignore */ }
-}
+// 6 hours by default — invalidation on meal log (in MealLogModal) keeps this
+// fresh in the only path that actually changes the underlying data.
+const PROFILE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -396,23 +382,29 @@ export function NutritionProfile() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const cacheKey = `nutrition_profile_${user?.id ?? 'anon'}`;
+  // Key namespace — `invalidateCache('nutrition:profile:')` from the meal-log
+  // mutation site will purge this entry on a successful save, so the next
+  // visit re-runs the analyzer with the new meal included.
+  const cacheKey = `nutrition:profile:${user?.id ?? 'anon'}`;
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
     } else {
-      // Try cache first
-      const cached = await getCachedProfile(cacheKey);
+      // Cache-first: serve cached profile instantly so the strength tab's
+      // nutrition sub-tab doesn't recompute on every visit. Memory hit is sync;
+      // we only trigger a network call if there's no fresh entry.
+      const cached = getCached<Profile>(cacheKey, PROFILE_CACHE_TTL_MS);
       if (cached) {
         setData(cached);
         setLoading(false);
+        return; // nothing to refetch — invalidation will trigger fresh load
       }
     }
     try {
       const d = await nutritionApi.getProfile();
       setData(d);
-      if (d?.hasData) setCachedProfile(cacheKey, d);
+      if (d?.hasData) setCached(cacheKey, d);
     } catch { /* silently fail */ }
     finally { setLoading(false); setRefreshing(false); }
   }, [cacheKey]);

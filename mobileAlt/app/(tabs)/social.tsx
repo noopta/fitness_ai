@@ -19,6 +19,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constan
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { PostCard } from '../../src/components/social/PostCard';
 import { FeedItemCard, type FeedItem } from '../../src/components/social/FeedItemCard';
+import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -482,46 +483,70 @@ export default function SocialScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'friends'>('feed');
-  const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
+
+  // Cache keys are scoped per-user — never share entries between accounts.
+  const feedCacheKey = user?.id ? `social:feed:${user.id}` : null;
+  const friendsCacheKey = user?.id ? `social:friends:${user.id}` : null;
+  const savedCacheKey = user?.id ? `social:saved:${user.id}` : null;
+
+  // Hot-cache hydration: synchronous reads on first render so a tab switch
+  // doesn't flash the loading spinner. Stale data still triggers a background
+  // refresh below — see useEffect.
+  const cachedFeed = feedCacheKey ? getCached<{ items: FeedItem[]; exhausted: boolean }>(feedCacheKey, 5 * 60 * 1000) : null;
+  const cachedFriends = friendsCacheKey ? getCached<Friend[]>(friendsCacheKey, 5 * 60 * 1000) : null;
+  const cachedSavedIds = savedCacheKey ? getCached<string[]>(savedCacheKey, 30 * 60 * 1000) : null;
+
+  const [feed, setFeed] = useState<FeedItem[]>(cachedFeed?.items ?? []);
+  const [friends, setFriends] = useState<Friend[]>(cachedFriends ?? []);
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadDMs, setUnreadDMs] = useState(0);
-  const [loadingFeed, setLoadingFeed] = useState(true);
-  const [loadingFriends, setLoadingFriends] = useState(true);
+  const [loadingFeed, setLoadingFeed] = useState(cachedFeed === null);
+  const [loadingFriends, setLoadingFriends] = useState(cachedFriends === null);
   const [refreshing, setRefreshing] = useState(false);
   const [postModalVisible, setPostModalVisible] = useState(false);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [exhausted, setExhausted] = useState(false);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set(cachedSavedIds ?? []));
+  const [exhausted, setExhausted] = useState(cachedFeed?.exhausted ?? false);
 
   const loadFeed = useCallback((fresh = false) => {
-    setLoadingFeed(true);
+    if (!fresh) setLoadingFeed(feed.length === 0);
     return socialApi.getFeed({ fresh })
       .then((data) => {
-        setFeed(Array.isArray(data) ? data : data.items ?? []);
-        setExhausted(!!data?.exhausted);
+        const items = Array.isArray(data) ? data : data.items ?? [];
+        const exhaustedFlag = !!data?.exhausted;
+        setFeed(items);
+        setExhausted(exhaustedFlag);
+        if (feedCacheKey) setCached(feedCacheKey, { items, exhausted: exhaustedFlag });
       })
       .catch(() => socialApi.getSharedFeed()
-        .then((data) => setFeed((Array.isArray(data) ? data : data.items ?? []).map((item: any) => ({ kind: 'post', data: item }))))
+        .then((data) => {
+          const items = (Array.isArray(data) ? data : data.items ?? []).map((item: any) => ({ kind: 'post', data: item }));
+          setFeed(items as any);
+          if (feedCacheKey) setCached(feedCacheKey, { items, exhausted: false });
+        })
         .catch(() => setFeed([]))
       )
       .finally(() => setLoadingFeed(false));
-  }, []);
+  }, [feedCacheKey, feed.length]);
 
   const loadSaved = useCallback(() => {
     return socialApi.getSavedArticles()
       .then((data: any) => {
         const items: any[] = Array.isArray(data) ? data : data.items ?? [];
-        setSavedIds(new Set(items.map(i => i.id)));
+        const ids = items.map(i => i.id);
+        setSavedIds(new Set(ids));
+        if (savedCacheKey) setCached(savedCacheKey, ids);
       })
       .catch(() => { /* not fatal */ });
-  }, []);
+  }, [savedCacheKey]);
 
   const handleToggleSave = useCallback(async (articleId: string) => {
     const isSaved = savedIds.has(articleId);
-    // Optimistic update
+    // Optimistic update + write through to cache so the saved-articles screen
+    // and the next visit reflect the new state without a refetch.
     setSavedIds(prev => {
       const next = new Set(prev);
       if (isSaved) next.delete(articleId); else next.add(articleId);
+      if (savedCacheKey) setCached(savedCacheKey, Array.from(next));
       return next;
     });
     try {
@@ -532,18 +557,21 @@ export default function SocialScreen() {
       setSavedIds(prev => {
         const next = new Set(prev);
         if (isSaved) next.add(articleId); else next.delete(articleId);
+        if (savedCacheKey) setCached(savedCacheKey, Array.from(next));
         return next;
       });
     }
-  }, [savedIds]);
+  }, [savedIds, savedCacheKey]);
 
   const loadFriends = useCallback(() => {
-    setLoadingFriends(true);
+    if (friends.length === 0) setLoadingFriends(true);
     return socialApi.getFriends().catch(() => [])
       .then((friendsData) => {
-        setFriends(Array.isArray(friendsData) ? friendsData : friendsData.friends ?? []);
+        const list = Array.isArray(friendsData) ? friendsData : friendsData.friends ?? [];
+        setFriends(list);
+        if (friendsCacheKey) setCached(friendsCacheKey, list);
       }).finally(() => setLoadingFriends(false));
-  }, []);
+  }, [friendsCacheKey, friends.length]);
 
   const loadNotificationCounts = useCallback(() => {
     return socialApi.getNotificationCounts().then((data) => {
@@ -764,7 +792,12 @@ export default function SocialScreen() {
       <NewPostModal
         visible={postModalVisible}
         onClose={() => setPostModalVisible(false)}
-        onPosted={loadFeed}
+        onPosted={() => {
+          // New post → drop the cached feed snapshot so we don't render stale
+          // until the next refresh, and force a fresh fetch right now.
+          invalidateCache('social:feed:');
+          void loadFeed(true);
+        }}
       />
     </SafeAreaView>
   );

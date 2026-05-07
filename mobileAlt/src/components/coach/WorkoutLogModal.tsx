@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { workoutsApi, socialApi } from '../../lib/api';
+import { invalidateCache } from '../../lib/cache';
 import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
 
@@ -193,6 +194,11 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
       });
+      // Logged workout changes today's session, schedule (logged-flag), and the
+      // social feed (auto-share + friends' shares). Drop those caches so the
+      // next render fetches fresh.
+      invalidateCache('coach:');
+      invalidateCache('social:feed:');
       Analytics.workoutLogged({
         exerciseCount: validExercises.length,
         totalSets: validExercises.reduce((s, ex) => s + (parseInt(ex.sets, 10) || 1), 0),

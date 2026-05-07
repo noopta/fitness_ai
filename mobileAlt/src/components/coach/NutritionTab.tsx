@@ -23,6 +23,7 @@ import { Button } from '../ui/Button';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import Svg, { Polyline, Circle, Line, Text as SvgText, Path } from 'react-native-svg';
 import { coachApi, nutritionApi } from '../../lib/api';
+import { invalidateCache } from '../../lib/cache';
 import { MealLogModal } from './MealLogModal';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -417,7 +418,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
           try {
             await nutritionApi.deleteMeal(id);
             setTodayMeals(prev => prev.filter(m => m.id !== id));
-            await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
+            await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey); invalidateCache('nutrition:profile:'); invalidateCache('coach:');
           } catch (err: any) {
             Alert.alert('Error', err?.message || 'Failed to delete meal');
           }
@@ -456,7 +457,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
       Analytics.foodTypedLogged({ calories: parsedMeal.calories, confidence: parsedMeal.confidence });
       setMealDesc('');
       setParsedMeal(null);
-      await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
+      await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey); invalidateCache('nutrition:profile:'); invalidateCache('coach:');
       loadMealData(true);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
@@ -520,7 +521,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
       Analytics.foodScannedLogged({ calories: scannedMeal.calories, confidence: scannedMeal.confidence });
       setScannedMeal(null);
       setPhotoUri(null);
-      await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey);
+      await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey); invalidateCache('nutrition:profile:'); invalidateCache('coach:');
       loadMealData(true);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to log meal.');
@@ -1020,7 +1021,7 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
       <MealLogModal
         visible={logModalVisible}
         onClose={() => setLogModalVisible(false)}
-        onSaved={async () => { setLogModalVisible(false); await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey); loadMealData(true); }}
+        onSaved={async () => { setLogModalVisible(false); await clearCache(mealCacheKey); await clearCache(nutritionProfileCacheKey); invalidateCache('nutrition:profile:'); invalidateCache('coach:'); loadMealData(true); }}
         prefill={prefillMeal}
         date={todayStr()}
       />

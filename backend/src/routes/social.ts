@@ -477,17 +477,21 @@ const FEED_INCLUDE = {
 function serializeFeedItem(item: any, viewerId: string) {
   const rawPayload = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
 
-  // Strip imageBase64 from the feed payload — images are large and slow the feed.
-  // PostCard lazy-loads via GET /api/social/posts/:id/image when hasImage is true.
+  // Send images inline AND advertise `hasImage:true`. Stripping `imageBase64`
+  // here breaks any deployed client that doesn't yet have the lazy-load
+  // refetch (web bundle on Vercel, mobile binary on EAS), since they only
+  // know about `payload.imageBase64`. Once new clients are universally
+  // deployed, gate stripping behind a request flag (e.g. `?slim=1`) instead
+  // of doing it unconditionally — the old behavior was a silent regression.
   let payload = rawPayload;
   if (rawPayload?.imageBase64) {
-    const { imageBase64: _img, ...rest } = rawPayload;
-    payload = { ...rest, hasImage: true };
+    payload = { ...rawPayload, hasImage: true };
   }
-  // Also strip from nested originalPayload in reposts
   if (rawPayload?.originalPayload?.imageBase64) {
-    const { imageBase64: _img, ...restOrig } = rawPayload.originalPayload;
-    payload = { ...payload, originalPayload: { ...restOrig, hasImage: true } };
+    payload = {
+      ...payload,
+      originalPayload: { ...rawPayload.originalPayload, hasImage: true },
+    };
   }
 
   return {

@@ -17,6 +17,8 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/t
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { coachApi, socialApi } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
+import { getCached, setCached, invalidateCache } from '../../lib/cache';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
 import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
@@ -309,9 +311,17 @@ const sheet = StyleSheet.create({
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTabProps) {
-  const [todayData, setTodayData] = useState<TodayData | null>(null);
-  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const cacheKey = user?.id ? `coach:overview:${user.id}` : null;
+
+  // Hydrate from in-memory cache synchronously so tab switches don't flicker
+  const cachedSnapshot = cacheKey
+    ? getCached<{ today: TodayData | null; schedule: ScheduleData | null }>(cacheKey, 5 * 60 * 1000)
+    : null;
+
+  const [todayData, setTodayData] = useState<TodayData | null>(cachedSnapshot?.today ?? null);
+  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(cachedSnapshot?.schedule ?? null);
+  const [loading, setLoading] = useState(cachedSnapshot === null);
 
   const [lifeHappenedVisible, setLifeHappenedVisible] = useState(false);
   const [logWorkoutVisible, setLogWorkoutVisible] = useState(false);
@@ -324,18 +334,17 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   const [modalVideoError, setModalVideoError] = useState(false);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
     try {
       const [todayRes, schedRes] = await Promise.all([
         coachApi.getToday().catch(() => null),
         coachApi.getSchedule().catch(() => null),
       ]);
 
+      let nextToday: TodayData | null = null;
       if (todayRes) {
-        // Normalize: backend may return data directly or under todaySession key
         const isRestDay = todayRes.isRestDay ?? false;
         const session = todayRes.todaySession ?? (isRestDay ? null : todayRes.session ?? todayRes);
-        setTodayData({
+        nextToday = {
           todaySession: session,
           isRestDay,
           weekNumber: todayRes.weekNumber ?? 1,
@@ -343,24 +352,40 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           tips: todayRes.tips ?? null,
           nextTrainingDay: todayRes.nextTrainingDay ?? null,
           programGoal: todayRes.programGoal ?? null,
-        });
+        };
+        setTodayData(nextToday);
       }
 
+      let nextSchedule: ScheduleData | null = null;
       if (schedRes) {
-        setScheduleData({
+        nextSchedule = {
           weekDays: schedRes.weekDays ?? [],
           weekNumber: schedRes.weekNumber ?? null,
           phaseName: schedRes.phaseName ?? null,
-        });
+        };
+        setScheduleData(nextSchedule);
+      }
+
+      if (cacheKey && (nextToday || nextSchedule)) {
+        setCached(cacheKey, { today: nextToday ?? todayData, schedule: nextSchedule ?? scheduleData });
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cacheKey, todayData, scheduleData]);
 
+  // First mount: serve cache instantly, then revalidate in background.
+  // Subsequent mounts (tab switch): cachedSnapshot is hot → skip refetch UNTIL
+  // it ages out OR an invalidation happens (workout log, life-happened apply).
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (cachedSnapshot) {
+      // Background revalidate so a stale tip/schedule refreshes silently
+      void loadData();
+    } else {
+      void loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Parse saved program
   let savedProgram: any = null;
