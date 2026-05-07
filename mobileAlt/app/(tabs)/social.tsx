@@ -489,12 +489,15 @@ export default function SocialScreen() {
   const friendsCacheKey = user?.id ? `social:friends:${user.id}` : null;
   const savedCacheKey = user?.id ? `social:saved:${user.id}` : null;
 
-  // Hot-cache hydration: synchronous reads on first render so a tab switch
-  // doesn't flash the loading spinner. Stale data still triggers a background
-  // refresh below — see useEffect.
-  const cachedFeed = feedCacheKey ? getCached<{ items: FeedItem[]; exhausted: boolean }>(feedCacheKey, 5 * 60 * 1000) : null;
-  const cachedFriends = friendsCacheKey ? getCached<Friend[]>(friendsCacheKey, 5 * 60 * 1000) : null;
-  const cachedSavedIds = savedCacheKey ? getCached<string[]>(savedCacheKey, 30 * 60 * 1000) : null;
+  // 30-minute cache. New posts, save toggles, and pull-to-refresh invalidate
+  // or force-fetch; otherwise the cached snapshot is what the user sees.
+  const FEED_TTL_MS = 30 * 60 * 1000;
+  const FRIENDS_TTL_MS = 30 * 60 * 1000;
+  const SAVED_TTL_MS = 60 * 60 * 1000;
+
+  const cachedFeed = feedCacheKey ? getCached<{ items: FeedItem[]; exhausted: boolean }>(feedCacheKey, FEED_TTL_MS) : null;
+  const cachedFriends = friendsCacheKey ? getCached<Friend[]>(friendsCacheKey, FRIENDS_TTL_MS) : null;
+  const cachedSavedIds = savedCacheKey ? getCached<string[]>(savedCacheKey, SAVED_TTL_MS) : null;
 
   const [feed, setFeed] = useState<FeedItem[]>(cachedFeed?.items ?? []);
   const [friends, setFriends] = useState<Friend[]>(cachedFriends ?? []);
@@ -507,9 +510,21 @@ export default function SocialScreen() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(cachedSavedIds ?? []));
   const [exhausted, setExhausted] = useState(cachedFeed?.exhausted ?? false);
 
-  const loadFeed = useCallback((fresh = false) => {
-    if (!fresh) setLoadingFeed(feed.length === 0);
-    return socialApi.getFeed({ fresh })
+  // `force=true` skips the cache and tells the server to bypass its per-user
+  // feed cache (?fresh=1). Pull-to-refresh and post-mutation paths use it.
+  // Default: cache-first — no network at all if a fresh snapshot exists.
+  const loadFeed = useCallback((force = false) => {
+    if (!force && feedCacheKey) {
+      const cached = getCached<{ items: FeedItem[]; exhausted: boolean }>(feedCacheKey, FEED_TTL_MS);
+      if (cached) {
+        setFeed(cached.items);
+        setExhausted(cached.exhausted);
+        setLoadingFeed(false);
+        return Promise.resolve();
+      }
+    }
+    if (!force) setLoadingFeed(feed.length === 0);
+    return socialApi.getFeed({ fresh: force })
       .then((data) => {
         const items = Array.isArray(data) ? data : data.items ?? [];
         const exhaustedFlag = !!data?.exhausted;
@@ -526,9 +541,17 @@ export default function SocialScreen() {
         .catch(() => setFeed([]))
       )
       .finally(() => setLoadingFeed(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedCacheKey, feed.length]);
 
-  const loadSaved = useCallback(() => {
+  const loadSaved = useCallback((force = false) => {
+    if (!force && savedCacheKey) {
+      const cached = getCached<string[]>(savedCacheKey, SAVED_TTL_MS);
+      if (cached) {
+        setSavedIds(new Set(cached));
+        return Promise.resolve();
+      }
+    }
     return socialApi.getSavedArticles()
       .then((data: any) => {
         const items: any[] = Array.isArray(data) ? data : data.items ?? [];
@@ -537,6 +560,7 @@ export default function SocialScreen() {
         if (savedCacheKey) setCached(savedCacheKey, ids);
       })
       .catch(() => { /* not fatal */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedCacheKey]);
 
   const handleToggleSave = useCallback(async (articleId: string) => {
@@ -563,7 +587,15 @@ export default function SocialScreen() {
     }
   }, [savedIds, savedCacheKey]);
 
-  const loadFriends = useCallback(() => {
+  const loadFriends = useCallback((force = false) => {
+    if (!force && friendsCacheKey) {
+      const cached = getCached<Friend[]>(friendsCacheKey, FRIENDS_TTL_MS);
+      if (cached) {
+        setFriends(cached);
+        setLoadingFriends(false);
+        return Promise.resolve();
+      }
+    }
     if (friends.length === 0) setLoadingFriends(true);
     return socialApi.getFriends().catch(() => [])
       .then((friendsData) => {
@@ -571,6 +603,7 @@ export default function SocialScreen() {
         setFriends(list);
         if (friendsCacheKey) setCached(friendsCacheKey, list);
       }).finally(() => setLoadingFriends(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [friendsCacheKey, friends.length]);
 
   const loadNotificationCounts = useCallback(() => {
@@ -594,9 +627,10 @@ export default function SocialScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // fresh=true on pull-to-refresh tells the server to bypass the per-user cache
-    // and (if the user is exhausted on unseen items) trigger a source pull.
-    await Promise.all([loadFeed(true), loadFriends(), loadNotificationCounts(), loadSaved()]);
+    // Pull-to-refresh forces every loader to bypass its cache + tells the
+    // server to bypass the per-user feed cache (?fresh=1). This is the only
+    // way (along with the new-post mutation) to ask for new feed items.
+    await Promise.all([loadFeed(true), loadFriends(true), loadNotificationCounts(), loadSaved(true)]);
     setRefreshing(false);
   }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
 

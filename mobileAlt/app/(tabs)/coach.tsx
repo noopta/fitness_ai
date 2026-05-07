@@ -100,20 +100,15 @@ export default function CoachScreen() {
     const cacheKey = `coach:init:${user.id}`;
     type Cached = { coachData: any; hasProgram: boolean };
 
-    // Cache-first: serve instantly if we have a recent snapshot, then revalidate
-    // in the background so a stale program/today/tip refreshes without flicker.
-    const cached = getCached<Cached>(cacheKey, 5 * 60 * 1000);
+    // Cache-first. The program structure changes only when the user generates
+    // a new program (handleProgramSave invalidates 'coach:') or after 30 min
+    // of staleness defense. No background network call on a hot hit.
+    const cached = getCached<Cached>(cacheKey, 30 * 60 * 1000);
     if (cached) {
       setCoachData(cached.coachData);
       setStage(cached.hasProgram ? 'dashboard' : 'onboarding');
       if (!cached.hasProgram) setOnboardingKey(k => k + 1);
       setLoading(false);
-      // Background revalidate
-      fetchCoachInit(user.id).then(fresh => {
-        setCached(cacheKey, fresh);
-        setCoachData(fresh.coachData);
-        setStage(fresh.hasProgram ? 'dashboard' : 'onboarding');
-      }).catch(() => { /* keep cached state */ });
       return;
     }
 

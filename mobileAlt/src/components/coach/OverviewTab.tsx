@@ -318,13 +318,19 @@ function todayESTString(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
+// Cache lives this long without a fetch. Mutations (workout log, life-happened
+// apply) call invalidateCache('coach:') to bust it earlier. Pull-to-refresh
+// passes force=true. Past this window the next visit refetches once and is
+// cached again.
+const OVERVIEW_TTL_MS = 30 * 60 * 1000;
+
 export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTabProps) {
   const { user } = useAuth();
   const cacheKey = user?.id ? `coach:overview:${user.id}:${todayESTString()}` : null;
 
   // Hydrate from in-memory cache synchronously so tab switches don't flicker
   const cachedSnapshot = cacheKey
-    ? getCached<{ today: TodayData | null; schedule: ScheduleData | null }>(cacheKey, 5 * 60 * 1000)
+    ? getCached<{ today: TodayData | null; schedule: ScheduleData | null }>(cacheKey, OVERVIEW_TTL_MS)
     : null;
 
   const [todayData, setTodayData] = useState<TodayData | null>(cachedSnapshot?.today ?? null);
@@ -382,14 +388,12 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
     }
   }, [cacheKey, todayData, scheduleData]);
 
-  // First mount: serve cache instantly, then revalidate in background.
-  // Subsequent mounts (tab switch): cachedSnapshot is hot → skip refetch UNTIL
-  // it ages out OR an invalidation happens (workout log, life-happened apply).
+  // Cache-first: only fetch when we don't already have a fresh snapshot.
+  // Tab switches inside the TTL window paint synchronously and skip the
+  // network entirely. Mutations (workout log, life-happened) invalidate the
+  // cache so the next mount falls into the fetch branch.
   useEffect(() => {
-    if (cachedSnapshot) {
-      // Background revalidate so a stale tip/schedule refreshes silently
-      void loadData();
-    } else {
+    if (!cachedSnapshot) {
       void loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
