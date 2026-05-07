@@ -11,6 +11,7 @@ import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { recordActivity } from '../services/streakService.js';
+import { detectAndNotifyProteinHit } from '../services/progressService.js';
 import {
   notifyStreakMilestone,
   notifyComeback,
@@ -93,6 +94,9 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
       cacheDelete(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
       updateNutritionStreakInBackground(userId, data.date);
+      detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
+        console.error('[nutrition] protein hit detection error:', err)
+      );
       posthog.capture({
         distinctId: userId,
         event: 'nutrition_log_saved',
@@ -111,6 +115,9 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
     cacheDelete(`userctx:${userId}`);
     logActivity(userId, 'nutrition').catch(() => {});
     updateNutritionStreakInBackground(userId, data.date);
+    detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
+      console.error('[nutrition] protein hit detection error:', err)
+    );
     posthog.capture({
       distinctId: userId,
       event: 'nutrition_log_saved',

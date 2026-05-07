@@ -146,10 +146,77 @@ export default function ConversationScreen() {
     return null;
   }
 
+  type SharedWorkoutExercise = {
+    name: string;
+    sets?: number | null;
+    reps?: number | string | null;
+    weightLbs?: number | null;
+    weightKg?: number | null;
+    rpe?: number | null;
+    intensity?: string | null;
+  };
+  type SharedWorkout = {
+    kind: 'planned' | 'logged';
+    title?: string | null;
+    focus?: string | null;
+    date?: string | null;
+    duration?: number | null;
+    note?: string | null;
+    exercises: SharedWorkoutExercise[];
+  };
+  function parseSharedWorkout(body: string): SharedWorkout | null {
+    try {
+      const p = JSON.parse(body);
+      if (p && p._workout === true && (p.kind === 'planned' || p.kind === 'logged') && Array.isArray(p.exercises)) {
+        return p as SharedWorkout;
+      }
+    } catch {}
+    return null;
+  }
+
+  function formatExerciseLine(ex: SharedWorkoutExercise): string {
+    const parts: string[] = [];
+    if (ex.sets != null && ex.reps != null) parts.push(`${ex.sets}×${ex.reps}`);
+    else if (ex.sets != null) parts.push(`${ex.sets} sets`);
+    const weight = ex.weightLbs != null
+      ? `${Math.round(ex.weightLbs)} lb`
+      : ex.weightKg != null ? `${Math.round(ex.weightKg)} kg` : null;
+    if (weight) parts.push(weight);
+    if (ex.rpe != null) parts.push(`RPE ${ex.rpe}`);
+    else if (ex.intensity) parts.push(ex.intensity);
+    return parts.join(' · ');
+  }
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isMine = item.senderId === user?.id;
     const fwd = parseForwardedPost(item.body);
     const art = parseSharedArticle(item.body);
+    const wo  = parseSharedWorkout(item.body);
+
+    if (wo) {
+      const heading = wo.title || (wo.kind === 'planned' ? "Today's workout" : 'Logged workout');
+      return (
+        <View style={[styles.bubbleWrapper, isMine ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
+          <View style={[styles.forwardCard, isMine ? styles.forwardCardMine : styles.forwardCardTheirs]}>
+            <Text style={styles.forwardLabel}>
+              💪 {wo.kind === 'planned' ? 'PLANNED WORKOUT' : 'LOGGED WORKOUT'}
+              {wo.focus ? ` · ${wo.focus}` : ''}
+            </Text>
+            {wo.note ? <Text style={styles.forwardNote}>{wo.note}</Text> : null}
+            <Text style={[styles.forwardBody, { fontWeight: fontWeight.semibold }]} numberOfLines={2}>{heading}</Text>
+            {wo.date ? <Text style={styles.forwardCap}>{wo.date}{wo.duration ? ` · ${wo.duration} min` : ''}</Text> : null}
+            {wo.exercises.slice(0, 5).map((ex, i) => (
+              <Text key={i} style={styles.forwardCap} numberOfLines={1}>
+                • {ex.name}{formatExerciseLine(ex) ? ` — ${formatExerciseLine(ex)}` : ''}
+              </Text>
+            ))}
+            {wo.exercises.length > 5 ? (
+              <Text style={styles.forwardImgHint}>+ {wo.exercises.length - 5} more</Text>
+            ) : null}
+          </View>
+        </View>
+      );
+    }
 
     if (art) {
       return (

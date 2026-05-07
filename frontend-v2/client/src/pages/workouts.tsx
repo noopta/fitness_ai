@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Plus, Trash2, Dumbbell, ChevronDown, ChevronUp,
-  Clock, Calendar, CheckCircle2, X, Save, Loader2,
+  Clock, Calendar, CheckCircle2, X, Save, Loader2, Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
@@ -341,10 +341,139 @@ function WorkoutForm({ onSaved }: { onSaved: (log: WorkoutLog) => void }) {
   );
 }
 
+// ─── Friend type for share modal ──────────────────────────────────────────────
+interface FriendForShare {
+  id: string;
+  name: string | null;
+  username: string | null;
+  email?: string | null;
+}
+
+// ─── Share-to-friend modal ────────────────────────────────────────────────────
+function ShareWorkoutModal({
+  log, open, onClose,
+}: { log: WorkoutLog; open: boolean; onClose: () => void }) {
+  const [friends, setFriends] = useState<FriendForShare[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [search, setSearch] = useState('');
+  const [note, setNote] = useState('');
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || friends.length > 0) return;
+    setLoadingFriends(true);
+    authFetch(`${API_BASE}/social/friends`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: FriendForShare[]) => setFriends(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoadingFriends(false));
+  }, [open]);
+
+  const filtered = friends.filter(f => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (f.username ?? '').toLowerCase().includes(q) || (f.name ?? '').toLowerCase().includes(q);
+  });
+
+  async function send(friendId: string) {
+    setSendingTo(friendId);
+    try {
+      const res = await authFetch(`${API_BASE}/social/workouts/forward`, {
+        method: 'POST',
+        body: JSON.stringify({
+          recipientId: friendId,
+          kind: 'logged',
+          note: note.trim() || undefined,
+          workout: {
+            id: log.id,
+            date: log.date,
+            title: log.title,
+            duration: log.duration,
+            exercises: log.exercises.map(ex => ({
+              name: ex.name,
+              sets: ex.sets,
+              reps: ex.reps,
+              // schema label is weightKg but the field actually stores lbs in the
+              // current API — see WorkoutCard render for the same assumption.
+              weightLbs: ex.weightKg,
+              rpe: ex.rpe,
+              notes: ex.notes,
+            })),
+          },
+        }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success('Workout shared!');
+      setNote('');
+      setSearch('');
+      onClose();
+    } catch {
+      toast.error('Failed to share.');
+    } finally {
+      setSendingTo(null);
+    }
+  }
+
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-background rounded-xl border w-full max-w-md max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <p className="font-semibold text-sm">Share workout</p>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+        </div>
+        <p className="text-xs text-muted-foreground px-4 pt-2 truncate">{log.title || 'Workout'} · {formatDate(log.date)}</p>
+        <textarea
+          placeholder="Add a note (optional)"
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          maxLength={240}
+          className="m-4 mb-2 px-3 py-2 rounded-lg border bg-background text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
+          rows={2}
+        />
+        <input
+          type="text"
+          placeholder="Search friends…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="mx-4 mb-2 px-3 py-2 rounded-lg border bg-background text-sm outline-none focus:ring-1 focus:ring-primary"
+        />
+        <div className="flex-1 overflow-y-auto px-2 pb-2">
+          {loadingFriends ? (
+            <div className="flex items-center justify-center py-8"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          ) : filtered.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-6">
+              {friends.length === 0 ? 'Add friends first to share workouts.' : 'No friends match your search.'}
+            </p>
+          ) : filtered.map(friend => (
+            <button
+              key={friend.id}
+              disabled={sendingTo !== null}
+              onClick={() => send(friend.id)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg hover:bg-muted/30 text-left disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold shrink-0">
+                  {((friend.username ?? friend.name ?? '?')[0] ?? '?').toUpperCase()}
+                </div>
+                <p className="text-sm truncate">{friend.username ? `@${friend.username}` : (friend.name ?? 'User')}</p>
+              </div>
+              {sendingTo === friend.id
+                ? <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
+                : <Send className="h-3.5 w-3.5 text-primary shrink-0" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Workout history card ─────────────────────────────────────────────────────
 function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   async function handleDelete() {
     if (!confirm('Delete this workout log?')) return;
@@ -421,7 +550,13 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
               {log.notes && (
                 <p className="text-xs text-muted-foreground px-1 pt-1">{log.notes}</p>
               )}
-              <div className="pt-1">
+              <div className="pt-1 flex items-center gap-4">
+                <button
+                  onClick={() => setShareOpen(true)}
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  <Send className="h-3 w-3" /> Share with friend
+                </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
@@ -435,6 +570,7 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
           </motion.div>
         )}
       </AnimatePresence>
+      <ShareWorkoutModal log={log} open={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   );
 }

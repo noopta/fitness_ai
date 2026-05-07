@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Send, Plus, Loader2, MessageSquare, Search, X, ArrowLeft,
 } from 'lucide-react';
@@ -18,6 +18,52 @@ interface ConversationParticipant {
   id: string;
   name: string | null;
   email: string | null;
+  avatarBase64?: string | null;
+}
+
+function avatarSrc(raw: string | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  return raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`;
+}
+
+interface SharedWorkout {
+  kind: 'planned' | 'logged';
+  title?: string | null;
+  focus?: string | null;
+  date?: string | null;
+  duration?: number | null;
+  note?: string | null;
+  exercises: Array<{
+    name: string;
+    sets?: number | null;
+    reps?: number | string | null;
+    weightLbs?: number | null;
+    weightKg?: number | null;
+    rpe?: number | null;
+    intensity?: string | null;
+  }>;
+}
+
+function parseSharedWorkout(body: string): SharedWorkout | null {
+  try {
+    const p = JSON.parse(body);
+    if (p && p._workout === true && (p.kind === 'planned' || p.kind === 'logged') && Array.isArray(p.exercises)) {
+      return p as SharedWorkout;
+    }
+  } catch {}
+  return null;
+}
+
+function workoutExerciseSummary(ex: SharedWorkout['exercises'][number]): string {
+  const parts: string[] = [];
+  if (ex.sets != null && ex.reps != null) parts.push(`${ex.sets}×${ex.reps}`);
+  else if (ex.sets != null) parts.push(`${ex.sets} sets`);
+  const weight = ex.weightLbs != null ? `${Math.round(ex.weightLbs)} lb`
+    : ex.weightKg != null ? `${Math.round(ex.weightKg)} kg` : null;
+  if (weight) parts.push(weight);
+  if (ex.rpe != null) parts.push(`RPE ${ex.rpe}`);
+  else if (ex.intensity) parts.push(ex.intensity);
+  return parts.join(' · ');
 }
 
 interface Conversation {
@@ -285,6 +331,7 @@ export default function MessagesPage() {
                     className={`w-full flex items-start gap-3 px-3 py-3 text-left hover:bg-muted/30 transition-colors ${selectedId === conv.id ? 'bg-muted/50' : ''}`}
                   >
                     <Avatar className="h-9 w-9 shrink-0 mt-0.5">
+                      {avatarSrc(conv.otherUser.avatarBase64) && <AvatarImage src={avatarSrc(conv.otherUser.avatarBase64)} alt="" />}
                       <AvatarFallback className="text-xs">{initials(conv.otherUser.name, conv.otherUser.email)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
@@ -330,6 +377,9 @@ export default function MessagesPage() {
                     <ArrowLeft className="h-5 w-5" />
                   </button>
                   <Avatar className="h-8 w-8">
+                    {selectedConv && avatarSrc(selectedConv.otherUser.avatarBase64) && (
+                      <AvatarImage src={avatarSrc(selectedConv.otherUser.avatarBase64)} alt="" />
+                    )}
                     <AvatarFallback className="text-xs">
                       {selectedConv ? initials(selectedConv.otherUser.name, selectedConv.otherUser.email) : '?'}
                     </AvatarFallback>
@@ -352,6 +402,35 @@ export default function MessagesPage() {
                   ) : (
                     messages.map(msg => {
                       const isMine = msg.senderId === user?.id;
+                      const wo = parseSharedWorkout(msg.body);
+                      if (wo) {
+                        return (
+                          <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm border ${isMine ? 'bg-primary/10 border-primary/30' : 'bg-muted border-border'}`}>
+                              <p className="text-[10px] font-bold tracking-wide text-muted-foreground mb-1">
+                                💪 {wo.kind === 'planned' ? 'PLANNED WORKOUT' : 'LOGGED WORKOUT'}
+                                {wo.focus ? ` · ${wo.focus}` : ''}
+                              </p>
+                              {wo.note && <p className="text-xs italic mb-1">{wo.note}</p>}
+                              <p className="font-semibold text-sm">{wo.title || (wo.kind === 'planned' ? "Today's workout" : 'Workout')}</p>
+                              {wo.date && <p className="text-xs text-muted-foreground">{wo.date}{wo.duration ? ` · ${wo.duration} min` : ''}</p>}
+                              <ul className="mt-1.5 space-y-0.5">
+                                {wo.exercises.slice(0, 5).map((ex, i) => (
+                                  <li key={i} className="text-xs truncate">
+                                    • {ex.name}{workoutExerciseSummary(ex) ? ` — ${workoutExerciseSummary(ex)}` : ''}
+                                  </li>
+                                ))}
+                                {wo.exercises.length > 5 && (
+                                  <li className="text-xs text-muted-foreground">+ {wo.exercises.length - 5} more</li>
+                                )}
+                              </ul>
+                              <p className={`text-[10px] mt-2 ${isMine ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                                {relativeTime(msg.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
                       return (
                         <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${isMine ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm'}`}>

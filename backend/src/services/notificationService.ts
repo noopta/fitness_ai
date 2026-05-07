@@ -388,6 +388,77 @@ export async function notifyPersonalBest(
   );
 }
 
+/**
+ * Body-weight progress milestone — fires when the user crosses ±5/10/15+ lbs
+ * in their goal direction. Loss-aversion is high once these stack up, so the
+ * copy frames the milestone as evidence of compounding work, not a finish line.
+ */
+export async function notifyWeightProgress(
+  userId: string,
+  deltaLbs: number,
+  direction: 'lose' | 'gain',
+): Promise<void> {
+  const verb = direction === 'lose' ? 'down' : 'up';
+  const titleEmoji = direction === 'lose' ? '📉' : '📈';
+  const bodyByMilestone: Record<number, string> = {
+    5:  `${deltaLbs} lbs ${verb}. The first milestone is the hardest — and you're past it.`,
+    10: `${deltaLbs} lbs ${verb}. Compounding work is paying off. Anakin sees it.`,
+    15: `${deltaLbs} lbs ${verb}. Most people quit before this. You didn't.`,
+    20: `${deltaLbs} lbs ${verb}. That's a different body composition. Keep going.`,
+    25: `${deltaLbs} lbs ${verb}. You've changed your trajectory.`,
+    30: `${deltaLbs} lbs ${verb}. Take the win. Then keep stacking.`,
+  };
+  const body = bodyByMilestone[deltaLbs] ?? `${deltaLbs} lbs ${verb}. Real, measurable progress.`;
+  await sendPushToUser(
+    userId,
+    `${deltaLbs} lbs ${verb} ${titleEmoji}`,
+    body,
+    { screen: 'coach', tab: 'analytics' },
+  );
+}
+
+/**
+ * Protein-target hit (today) — small reinforce on the first hit of the day so
+ * users feel the win immediately. Avoids spamming on every meal log because
+ * the route only calls this when the daily total crosses the threshold.
+ */
+export async function notifyProteinTargetHit(
+  userId: string,
+  proteinGActual: number,
+  proteinGTarget: number,
+): Promise<void> {
+  await sendPushToUser(
+    userId,
+    `Protein target hit 💪`,
+    `${Math.round(proteinGActual)}g / ${proteinGTarget}g target. Recovery just got a boost.`,
+    { screen: 'coach', tab: 'nutrition' },
+  );
+}
+
+/**
+ * Protein-target consistency milestone — fires on a 3/7/14/21/30-day streak of
+ * hitting the daily target. Mastery framing, not just numbers.
+ */
+export async function notifyProteinTargetMilestone(
+  userId: string,
+  streak: number,
+): Promise<void> {
+  const bodyByStreak: Record<number, string> = {
+    3:  `Three days running. Nutrition consistency is sneaky — it compounds.`,
+    7:  `A full week hitting protein target. This is what muscle protein synthesis loves.`,
+    14: `Two weeks. You're not "trying" anymore — this is the new default.`,
+    21: `21 days. The behavioural-science threshold for habits. You crossed it.`,
+    30: `30 days hitting target. Few people stay this consistent on macros. You're one of them.`,
+  };
+  const body = bodyByStreak[streak] ?? `${streak} consecutive days hitting your protein target.`;
+  await sendPushToUser(
+    userId,
+    `${streak}-day protein streak 💪`,
+    body,
+    { screen: 'coach', tab: 'nutrition' },
+  );
+}
+
 /** Freeze-consumed nudge — keeps the safety-net mechanic visible. */
 export async function notifyStreakFreezeUsed(
   userId: string,

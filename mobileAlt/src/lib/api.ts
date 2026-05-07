@@ -402,6 +402,9 @@ export const socialApi = {
   reactToPost: (postId: string) =>
     apiFetch(`/social/posts/${postId}/react`, { method: 'POST' }),
 
+  // Lazy-load full image for a post (feed responses strip imageBase64)
+  getPostImage: (postId: string) => apiFetch(`/social/posts/${postId}/image`),
+
   // Comments
   getComments: (postId: string) => apiFetch(`/social/posts/${postId}/comments`),
   addComment: (postId: string, text: string) =>
@@ -410,6 +413,18 @@ export const socialApi = {
   // Forward (send to DM)
   forwardPost: (postId: string, recipientId: string, message?: string) =>
     apiFetch(`/social/posts/${postId}/forward`, { method: 'POST', body: JSON.stringify({ recipientId, message }) }),
+
+  // Forward a workout (planned program day OR a logged session) to a friend's DM
+  forwardWorkout: (
+    recipientId: string,
+    kind: 'planned' | 'logged',
+    workout: Record<string, unknown>,
+    note?: string,
+  ) =>
+    apiFetch('/social/workouts/forward', {
+      method: 'POST',
+      body: JSON.stringify({ recipientId, kind, workout, note }),
+    }),
 
   // Invite
   getInviteLink: () => apiFetch('/social/invite'),

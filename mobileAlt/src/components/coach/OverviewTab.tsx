@@ -16,9 +16,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { coachApi } from '../../lib/api';
+import { coachApi, socialApi } from '../../lib/api';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
+import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,9 +96,39 @@ function DayWorkoutSheet({
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
   const [sheetVideoError, setSheetVideoError] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [friends, setFriends] = useState<FriendForShare[]>([]);
 
   const exercises = day.session?.exercises ?? [];
   const isRestDay = !day.isTrainingDay;
+
+  // Load friends lazily on first share-button tap so we don't pay the network
+  // cost just opening the day sheet.
+  async function openShare() {
+    setShareOpen(true);
+    if (friends.length === 0) {
+      try {
+        const data = await socialApi.getFriends();
+        if (Array.isArray(data)) setFriends(data);
+      } catch { /* swallow — modal will show empty state */ }
+    }
+  }
+
+  async function sendWorkoutTo(friendId: string, note?: string) {
+    const payload = {
+      date: day.date,
+      title: day.session?.focus ?? day.session?.day ?? 'Training Day',
+      focus: day.session?.focus ?? null,
+      exercises: exercises.map((ex) => ({
+        name: ex.exercise ?? ex.name ?? '',
+        sets: ex.sets ?? null,
+        reps: ex.reps ?? null,
+        intensity: ex.intensity ?? null,
+        notes: ex.notes ?? null,
+      })),
+    };
+    await socialApi.forwardWorkout(friendId, 'planned', payload, note);
+  }
 
   return (
     <>
@@ -112,9 +143,16 @@ function DayWorkoutSheet({
                 {isRestDay ? 'Rest Day' : (day.session?.focus ?? day.session?.day ?? 'Training Day')}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={sheet.closeBtn}>
-              <Ionicons name="close" size={20} color={colors.mutedForeground} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              {!isRestDay && exercises.length > 0 && (
+                <TouchableOpacity onPress={openShare} style={sheet.closeBtn} hitSlop={8} accessibilityLabel="Share with friend">
+                  <Ionicons name="paper-plane-outline" size={20} color={colors.mutedForeground} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity onPress={onClose} style={sheet.closeBtn}>
+                <Ionicons name="close" size={20} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView
@@ -209,6 +247,14 @@ function DayWorkoutSheet({
             </View>
           )}
       </BottomSheet>
+      <ShareToFriendSheet
+        visible={shareOpen}
+        title="Share workout"
+        subtitle={day.session?.focus ?? day.session?.day ?? day.dateNumber ? `${day.session?.focus ?? 'Workout'} — ${day.monthLabel} ${day.dateNumber}` : 'Workout'}
+        friends={friends}
+        onClose={() => setShareOpen(false)}
+        onSend={sendWorkoutTo}
+      />
     </>
   );
 }

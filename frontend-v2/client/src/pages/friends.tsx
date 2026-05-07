@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Search, UserPlus, Check, X, Trash2, MessageCircle,
   Users, Loader2, UserCheck, ChevronDown, ChevronUp,
@@ -20,12 +20,13 @@ interface UserResult {
   id: string;
   name: string | null;
   email: string | null;
+  avatarBase64?: string | null;
 }
 
 interface FriendRequest {
   id: string;
   requesterId: string;
-  requester: { id: string; name: string | null; email: string | null };
+  requester: { id: string; name: string | null; email: string | null; avatarBase64?: string | null };
   createdAt: string;
 }
 
@@ -33,12 +34,18 @@ interface Friend {
   id: string;
   name: string | null;
   email: string | null;
+  avatarBase64?: string | null;
 }
 
 function initials(name: string | null, email: string | null): string {
   if (name) return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
   if (email) return email[0].toUpperCase();
   return '?';
+}
+
+function avatarSrc(raw: string | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  return raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`;
 }
 
 export default function FriendsPage() {
@@ -126,6 +133,7 @@ export default function FriendsPage() {
           id: accepted.requester.id,
           name: accepted.requester.name,
           email: accepted.requester.email,
+          avatarBase64: accepted.requester.avatarBase64 ?? null,
         }]);
       }
       toast.success('Friend request accepted!');
@@ -222,6 +230,7 @@ export default function FriendsPage() {
                   <div key={u.id} className="flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar className="h-8 w-8 shrink-0">
+                        {avatarSrc(u.avatarBase64) && <AvatarImage src={avatarSrc(u.avatarBase64)} alt="" />}
                         <AvatarFallback className="text-xs">{initials(u.name, u.email)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
@@ -277,6 +286,7 @@ export default function FriendsPage() {
                     <div key={req.id} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <Avatar className="h-9 w-9 shrink-0">
+                          {avatarSrc(req.requester.avatarBase64) && <AvatarImage src={avatarSrc(req.requester.avatarBase64)} alt="" />}
                           <AvatarFallback className="text-xs">
                             {initials(req.requester.name, req.requester.email)}
                           </AvatarFallback>
@@ -339,6 +349,7 @@ export default function FriendsPage() {
                     <div className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <Avatar className="h-9 w-9 shrink-0">
+                          {avatarSrc(friend.avatarBase64) && <AvatarImage src={avatarSrc(friend.avatarBase64)} alt="" />}
                           <AvatarFallback className="text-xs">{initials(friend.name, friend.email)}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">

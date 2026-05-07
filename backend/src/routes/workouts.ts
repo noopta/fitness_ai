@@ -13,6 +13,7 @@ import {
   notifySurpriseReward,
 } from '../services/notificationService.js';
 import { recordActivity } from '../services/streakService.js';
+import { detectAndNotifyStrengthPRs } from '../services/progressService.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
 
@@ -141,6 +142,11 @@ router.post('/workouts', requireAuth, async (req, res) => {
 
     // ── Streak tracking ───────────────────────────────────────────────────────
     updateStreakInBackground(req.user!.id, parsed.data.date);
+
+    // ── Strength PR detection (fire-and-forget) ───────────────────────────────
+    detectAndNotifyStrengthPRs(prisma, req.user!.id, log.id, exercises).catch(err =>
+      console.error('[workouts] PR detection error:', err)
+    );
 
     // ── Activity tracking ─────────────────────────────────────────────────────
     logActivity(req.user!.id, 'workout').catch(() => {});

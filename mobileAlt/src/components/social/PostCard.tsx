@@ -523,9 +523,22 @@ export function PostCard({
   const isText    = item.itemType === 'text';
   const isOwnPost = item.sharerId === currentUserId;
 
-  const rawBase64 = isRepost
-    ? item.payload?.originalPayload?.imageBase64
-    : item.payload?.imageBase64;
+  // Feed responses strip imageBase64 and set hasImage:true; lazy-load on demand.
+  const [lazyImage, setLazyImage] = useState<string | null>(null);
+  const payloadForImage = isRepost ? item.payload?.originalPayload : item.payload;
+  const inlineBase64 = payloadForImage?.imageBase64 ?? null;
+  const needsLazyImage = !inlineBase64 && !!payloadForImage?.hasImage;
+
+  useEffect(() => {
+    if (!needsLazyImage) return;
+    let cancelled = false;
+    socialApi.getPostImage(item.id)
+      .then((res: any) => { if (!cancelled && res?.imageBase64) setLazyImage(res.imageBase64); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [item.id, needsLazyImage]);
+
+  const rawBase64 = inlineBase64 ?? lazyImage;
   const imageUri = rawBase64
     ? (rawBase64.startsWith('data:') ? rawBase64 : `data:image/jpeg;base64,${rawBase64}`)
     : null;

@@ -13,6 +13,7 @@ import {
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
+import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
@@ -1238,6 +1239,13 @@ router.post('/coach/body-weight', requireAuth, async (req, res) => {
       });
     }
     cacheDelete(`userctx:${userId}`);
+
+    // Fire-and-forget weight-progress milestone detection — neuro-style
+    // reinforcement when the user crosses ±5/10/15+ lbs in their goal direction.
+    detectAndNotifyWeightMilestone(prisma, userId, date, weightLbs).catch(err =>
+      console.error('[coach] weight milestone detection error:', err)
+    );
+
     res.json(entry);
   } catch (err: any) {
     console.error('Body weight log error:', err);

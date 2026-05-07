@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Share2, Copy, Check, Loader2, Search, ChevronDown,
   Dumbbell, Apple, Trophy, Rss, Image, Video, Type,
@@ -30,13 +30,14 @@ interface PostComment {
 interface SharedFeedItem {
   id: string;
   sharerId: string;
-  sharer: { id: string; name: string | null; email: string | null; username?: string | null };
+  sharer: { id: string; name: string | null; email: string | null; username?: string | null; avatarBase64?: string | null };
   recipientId: string;
   itemType: AnyItemType;
   payload: {
     description?: string;
     text?: string;
     imageBase64?: string;
+    hasImage?: boolean;
     videoUrl?: string;
     data?: Record<string, unknown>;
   };
@@ -140,6 +141,23 @@ function FeedCard({
   const badge = itemBadge(item.itemType);
   const embedId = item.payload?.videoUrl ? getYouTubeEmbedId(item.payload.videoUrl) : null;
 
+  // Feed responses strip imageBase64 and set hasImage:true; lazy-load on demand.
+  const [lazyImage, setLazyImage] = useState<string | null>(null);
+  const inlineImage = item.payload?.imageBase64 ?? null;
+  const needsLazyImage = !inlineImage && !!item.payload?.hasImage;
+
+  useEffect(() => {
+    if (!needsLazyImage) return;
+    let cancelled = false;
+    authFetch(`${API_BASE}/social/posts/${item.id}/image`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (!cancelled && d?.imageBase64) setLazyImage(d.imageBase64); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [item.id, needsLazyImage]);
+
+  const displayImage = inlineImage ?? lazyImage;
+
   async function handleReact() {
     const wasLiked = item.likedByMe;
     setItem(prev => ({ ...prev, likedByMe: !wasLiked, reactionCount: prev.reactionCount + (wasLiked ? -1 : 1) }));
@@ -193,6 +211,9 @@ function FeedCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 shrink-0">
+            {item.sharer.avatarBase64 && (
+              <AvatarImage src={toImageSrc(item.sharer.avatarBase64)} alt="" />
+            )}
             <AvatarFallback className="text-xs">
               {initials(item.sharer.name, item.sharer.email)}
             </AvatarFallback>
@@ -223,9 +244,9 @@ function FeedCard({
       )}
 
       {/* Image */}
-      {item.payload?.imageBase64 && (
+      {displayImage && (
         <img
-          src={toImageSrc(item.payload.imageBase64)}
+          src={toImageSrc(displayImage)}
           alt="Shared image"
           className="rounded-xl max-h-96 w-full object-contain border bg-muted/20"
         />

@@ -86,7 +86,7 @@ router.get('/social/notifications/counts', wrap(async (req, res) => {
 router.get('/social/friends/requests', wrap(async (req, res) => {
   const requests = await prisma.friendship.findMany({
     where: { addresseeId: req.user!.id, status: 'pending' },
-    include: { requester: { select: { id: true, name: true, username: true } } },
+    include: { requester: { select: { id: true, name: true, username: true, email: true, avatarBase64: true } } },
     orderBy: { createdAt: 'desc' },
   });
   res.json(requests);
@@ -240,7 +240,7 @@ router.get('/social/profile/:userId', wrap(async (req, res) => {
 
   const targetUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, tier: true, createdAt: true },
+    select: { id: true, name: true, email: true, username: true, avatarBase64: true, tier: true, createdAt: true },
   });
   if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
@@ -322,7 +322,14 @@ router.get('/social/conversations', wrap(async (req, res) => {
     if (lastMessagePreview) {
       try {
         const p = JSON.parse(lastMessagePreview);
-        if (p?._fwd === true) lastMessagePreview = `↪ Forwarded a post${p.txt ? `: "${(p.txt as string).slice(0, 40)}"` : ''}`;
+        if (p?._fwd === true) {
+          lastMessagePreview = `↪ Forwarded a post${p.txt ? `: "${(p.txt as string).slice(0, 40)}"` : ''}`;
+        } else if (p?._art === true && typeof p.title === 'string') {
+          lastMessagePreview = `📰 Article: ${(p.title as string).slice(0, 60)}`;
+        } else if (p?._workout === true) {
+          const titlePart = typeof p.title === 'string' ? p.title : (p.kind === 'planned' ? "today's workout" : 'a workout');
+          lastMessagePreview = `💪 Shared ${titlePart}`.slice(0, 80);
+        }
       } catch {}
     }
     return {
@@ -383,7 +390,7 @@ router.get('/social/conversations/:conversationId/messages', wrap(async (req, re
       conversationId,
       ...(before && { id: { lt: before } }),
     },
-    include: { sender: { select: { id: true, name: true } } },
+    include: { sender: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'desc' },
     take: limit,
   });
@@ -405,7 +412,7 @@ router.post('/social/conversations/:conversationId/messages', wrap(async (req, r
   const [message] = await prisma.$transaction([
     prisma.message.create({
       data: { conversationId, senderId: userId, body: body.trim() },
-      include: { sender: { select: { id: true, name: true, username: true } } },
+      include: { sender: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     }),
     prisma.directConversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
   ]);
@@ -449,7 +456,7 @@ router.get('/social/conversations/:conversationId/poll', wrap(async (req, res) =
       createdAt: { gte: since },
       ...(after && { id: { gt: after } }),
     },
-    include: { sender: { select: { id: true, name: true } } },
+    include: { sender: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'asc' },
   });
   res.json(messages);
@@ -458,10 +465,10 @@ router.get('/social/conversations/:conversationId/poll', wrap(async (req, res) =
 // ─── Sharing ──────────────────────────────────────────────────────────────────
 
 const FEED_INCLUDE = {
-  sharer: { select: { id: true, name: true, username: true } },
+  sharer: { select: { id: true, name: true, username: true, avatarBase64: true } },
   reactions: { select: { userId: true, type: true } },
   comments: {
-    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true } } },
+    select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'asc' as const },
     take: 50,
   },
@@ -790,7 +797,7 @@ router.post('/social/articles/:id/forward', wrap(async (req, res) => {
   const [dmMessage] = await prisma.$transaction([
     prisma.message.create({
       data: { conversationId: convo.id, senderId: userId, body },
-      include: { sender: { select: { id: true, name: true, username: true } } },
+      include: { sender: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     }),
     prisma.directConversation.update({ where: { id: convo.id }, data: { updatedAt: new Date() } }),
   ]);
@@ -801,6 +808,93 @@ router.post('/social/articles/:id/forward', wrap(async (req, res) => {
     recipientId,
     `${display} shared an article`,
     item.title.slice(0, 100),
+    { type: 'message', conversationId: convo.id },
+  ).catch(() => {});
+
+  res.status(201).json({ ok: true, conversationId: convo.id, messageId: dmMessage.id });
+}));
+
+// POST /api/social/workouts/forward — send a workout (planned or logged) to a
+// friend as a structured DM. The chat client renders the `_workout: true`
+// marker as a workout card. Mirrors the `_art` / `_fwd` patterns.
+router.post('/social/workouts/forward', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const { recipientId, kind, workout, note } = req.body ?? {};
+
+  if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
+  if (kind !== 'planned' && kind !== 'logged') {
+    return res.status(400).json({ error: "kind must be 'planned' or 'logged'" });
+  }
+  if (!workout || typeof workout !== 'object') {
+    return res.status(400).json({ error: 'workout payload required' });
+  }
+
+  const canShare = await areFriendsOrColleagues(userId, recipientId);
+  if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
+
+  // For logged workouts, verify the WorkoutLog belongs to the sender. This
+  // prevents impersonation / sharing someone else's logs.
+  if (kind === 'logged' && (workout as any).id) {
+    const log = await prisma.workoutLog.findUnique({
+      where: { id: String((workout as any).id) },
+      select: { userId: true },
+    });
+    if (!log || log.userId !== userId) {
+      return res.status(403).json({ error: 'You can only share your own workouts' });
+    }
+  }
+
+  // Trim the embedded payload — exercises arrays from a long program day can
+  // get large and we don't want to bloat the messages table.
+  const trimmedExercises = Array.isArray((workout as any).exercises)
+    ? (workout as any).exercises.slice(0, 30).map((ex: any) => ({
+        name: typeof ex?.name === 'string' ? ex.name.slice(0, 80) : '',
+        sets: Number(ex?.sets) || null,
+        reps: ex?.reps ?? null,
+        weightLbs: ex?.weightLbs == null ? null : Number(ex.weightLbs),
+        weightKg: ex?.weightKg == null ? null : Number(ex.weightKg),
+        rpe: ex?.rpe == null ? null : Number(ex.rpe),
+        intensity: typeof ex?.intensity === 'string' ? ex.intensity.slice(0, 40) : null,
+        notes: typeof ex?.notes === 'string' ? ex.notes.slice(0, 120) : null,
+      }))
+    : [];
+
+  const wo: Record<string, unknown> = {
+    _workout: true,
+    kind,
+    id: typeof (workout as any).id === 'string' ? (workout as any).id : null,
+    date: typeof (workout as any).date === 'string' ? (workout as any).date.slice(0, 20) : null,
+    title: typeof (workout as any).title === 'string' ? (workout as any).title.slice(0, 80) : null,
+    focus: typeof (workout as any).focus === 'string' ? (workout as any).focus.slice(0, 60) : null,
+    duration: (workout as any).duration == null ? null : Number((workout as any).duration),
+    exercises: trimmedExercises,
+  };
+  if (note) wo.note = String(note).slice(0, 240);
+  // Cap at 4 KB so a single message can't blow up. Plenty for a workout card.
+  const body = JSON.stringify(wo).slice(0, 4000);
+
+  const ids = canonicalParticipants(userId, recipientId);
+  const convo = await prisma.directConversation.upsert({
+    where: { participantAId_participantBId: ids },
+    create: ids,
+    update: {},
+  });
+
+  const [dmMessage] = await prisma.$transaction([
+    prisma.message.create({
+      data: { conversationId: convo.id, senderId: userId, body },
+      include: { sender: { select: { id: true, name: true, username: true, avatarBase64: true } } },
+    }),
+    prisma.directConversation.update({ where: { id: convo.id }, data: { updatedAt: new Date() } }),
+  ]);
+
+  const sender = await prisma.user.findUnique({ where: { id: userId }, select: { username: true, name: true } });
+  const display = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
+  const previewTitle = (wo.title as string | null) ?? (kind === 'planned' ? "Today's workout" : 'a workout');
+  sendPushToUser(
+    recipientId,
+    `${display} shared a workout`,
+    String(previewTitle).slice(0, 100),
     { type: 'message', conversationId: convo.id },
   ).catch(() => {});
 
@@ -837,7 +931,7 @@ router.post('/social/posts/:id/react', wrap(async (req, res) => {
 router.get('/social/posts/:id/comments', wrap(async (req, res) => {
   const comments = await prisma.postComment.findMany({
     where: { postId: req.params.id },
-    include: { author: { select: { id: true, name: true, username: true } } },
+    include: { author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'asc' },
   });
   res.json(comments);
@@ -921,7 +1015,7 @@ router.post('/social/posts/:id/forward', wrap(async (req, res) => {
   const [dmMessage] = await prisma.$transaction([
     prisma.message.create({
       data: { conversationId: convo.id, senderId: userId, body: body.slice(0, 1000) },
-      include: { sender: { select: { id: true, name: true, username: true } } },
+      include: { sender: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     }),
     prisma.directConversation.update({ where: { id: convo.id }, data: { updatedAt: new Date() } }),
   ]);

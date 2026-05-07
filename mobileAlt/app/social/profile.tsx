@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -15,6 +15,8 @@ interface ProfileUser {
   id: string;
   name: string | null;
   email: string | null;
+  username?: string | null;
+  avatarBase64?: string | null;
   tier: string;
   createdAt: string;
 }
@@ -145,9 +147,17 @@ export default function ProfileScreen() {
       >
         {/* Avatar + info */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{initials(user.name, user.email)}</Text>
-          </View>
+          {(() => {
+            const raw = user.avatarBase64;
+            const avatarUri = raw ? (raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`) : null;
+            return avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatarCircle} />
+            ) : (
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{initials(user.name, user.email)}</Text>
+              </View>
+            );
+          })()}
 
           <View style={styles.profileInfo}>
             <View style={styles.nameRow}>
