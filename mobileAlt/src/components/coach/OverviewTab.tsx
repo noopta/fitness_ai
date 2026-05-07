@@ -310,9 +310,17 @@ const sheet = StyleSheet.create({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// Today's session, schedule, and current phase all roll over at midnight EST
+// (the backend computes them against America/New_York). Putting the EST date
+// in the cache key means crossing midnight invalidates last-known-good data
+// automatically — no stale "today" flashes on the first render of a new day.
+function todayESTString(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+
 export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTabProps) {
   const { user } = useAuth();
-  const cacheKey = user?.id ? `coach:overview:${user.id}` : null;
+  const cacheKey = user?.id ? `coach:overview:${user.id}:${todayESTString()}` : null;
 
   // Hydrate from in-memory cache synchronously so tab switches don't flicker
   const cachedSnapshot = cacheKey
