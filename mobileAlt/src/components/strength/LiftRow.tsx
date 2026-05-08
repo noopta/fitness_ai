@@ -27,8 +27,8 @@ interface Props {
  * Single lift row in the "Working e1RMs" list. Grid:
  *   1fr · 60px sparkline · 56px e1RM · auto delta
  *
- * Press → opens LiftDetailSheet (caller wires the handler).
- * Long-press: TODO when @gorhom/bottom-sheet is added.
+ * Press → opens LiftDetailSheet. Long-press (500ms) → caller's
+ * onLongPress handler (typically a native Alert action menu).
  */
 export function LiftRow({ lift, rowIndex, onPress, onLongPress }: Props) {
   const scale = useSharedValue(1);
