@@ -116,6 +116,26 @@ async function summarize(title: string, rawText: string, type: 'research' | 'art
   return (response.output_text as string).trim();
 }
 
+/**
+ * Heuristic to catch GPT refusals — when we hand it just a title with no
+ * abstract, the model politely says "I don't have the study's results" or
+ * "Please paste the abstract", which we then save as the user-facing summary.
+ * Reject these so they never reach the feed.
+ */
+function isFallbackRefusal(text: string): boolean {
+  const t = text.toLowerCase();
+  return (
+    t.includes("don't have") ||
+    t.includes('do not have') ||
+    t.includes('paste the abstract') ||
+    t.includes('only the title') ||
+    t.includes('only have the title') ||
+    t.includes('cannot summarize') ||
+    t.includes("can't summarize") ||
+    t.length < 40
+  );
+}
+
 // ─── PubMed fetcher ───────────────────────────────────────────────────────────
 
 interface PubMedSummary {
@@ -161,12 +181,17 @@ async function fetchPubMed(tag: FeedTag, maxResults = 5): Promise<void> {
       if (abstractRes.ok) abstract = await abstractRes.text();
     } catch { /* skip */ }
 
-    if (!abstract && !item.title) continue;
+    // Without an abstract, GPT can only stare at the title — the resulting
+    // summary is a polite refusal ("I don't have the study's results"). Skip
+    // these so they never reach the feed.
+    if (!abstract || abstract.trim().length < 100) continue;
 
     let summary = '';
     try {
-      summary = await summarize(item.title, abstract || item.title, 'research');
+      summary = await summarize(item.title, abstract, 'research');
     } catch { continue; }
+
+    if (isFallbackRefusal(summary)) continue;
 
     // Always use the PubMed URL — DOI redirects are unreliable (malformed DOIs
     // return a 200 "DOI NOT FOUND" HTML page which the WebView can't detect as an error).
@@ -424,12 +449,16 @@ async function fetchPubMedParallel(tag: FeedTag, maxResults = 3): Promise<void> 
       if (abstractRes.ok) abstract = await abstractRes.text();
     } catch { /* skip */ }
 
-    if (!abstract && !item.title) return;
+    // Skip articles where we couldn't fetch a real abstract — GPT given just a
+    // title produces "I don't have the study's results" fallback text.
+    if (!abstract || abstract.trim().length < 100) return;
 
     let summary = '';
     try {
-      summary = await summarize(item.title, abstract || item.title, 'research');
+      summary = await summarize(item.title, abstract, 'research');
     } catch { return; }
+
+    if (isFallbackRefusal(summary)) return;
 
     const url = `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
     let publishedAt: Date | null = null;

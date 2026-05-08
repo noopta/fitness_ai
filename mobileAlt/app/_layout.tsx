@@ -13,6 +13,7 @@ import { colors } from '../src/constants/theme';
 import { usePushNotifications } from '../src/lib/usePushNotifications';
 import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/components/WhatsNewModal';
+import { hydrateCacheFromStorage } from '../src/lib/cache';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,15 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  // Pre-warm the in-memory cache from AsyncStorage so a cold app launch can
+  // serve every screen's synchronous getCached() read instead of refetching.
+  // The hydration is fast (~50-100ms for our small cache footprint) and runs
+  // in parallel with auth bootstrap.
+  const [cacheReady, setCacheReady] = useState(false);
+
+  useEffect(() => {
+    void hydrateCacheFromStorage().finally(() => setCacheReady(true));
+  }, []);
 
   usePushNotifications(!!user);
 
@@ -70,7 +80,7 @@ function RootNavigator() {
     }
   }, [user, loading, needsDobCheck, segments]);
 
-  if (loading) {
+  if (loading || !cacheReady) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <LoadingSpinner />

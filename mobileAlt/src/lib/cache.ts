@@ -90,6 +90,34 @@ export function invalidateCache(prefix: string): void {
   void persistDeleteByPrefix(prefix);
 }
 
+/**
+ * Pull every persisted cache entry off AsyncStorage and load it into the
+ * in-memory Map. Without this, a cold app start has no way to serve
+ * synchronous reads from `getCached()` even though the data still lives on
+ * disk — every screen would refetch from the network on first paint.
+ *
+ * Call this once during app boot (RootNavigator) and gate rendering on its
+ * completion so screens that read synchronously see a warm cache.
+ */
+export async function hydrateCacheFromStorage(): Promise<void> {
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const ours = allKeys.filter(k => k.startsWith(STORAGE_PREFIX));
+    if (ours.length === 0) return;
+    const pairs = await AsyncStorage.multiGet(ours);
+    for (const [storageKey, raw] of pairs) {
+      if (!raw) continue;
+      try {
+        const entry = JSON.parse(raw) as CacheEntry<unknown>;
+        if (typeof entry?.ts !== 'number') continue;
+        memCache.set(storageKey.slice(STORAGE_PREFIX.length), entry);
+      } catch { /* corrupt entry — skip */ }
+    }
+  } catch {
+    // AsyncStorage failures here are non-fatal — screens just refetch.
+  }
+}
+
 // ─── React hook ───────────────────────────────────────────────────────────────
 
 interface UseCachedQueryOptions {
