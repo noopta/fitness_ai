@@ -638,7 +638,7 @@ router.get('/social/feed', wrap(async (req, res) => {
   );
 
   // Phase 2: posts query + research cache lookup — run in parallel
-  const [rawItems, feedResult] = await Promise.all([
+  const [rawItems, initialFeedResult] = await Promise.all([
     prisma.sharedItem.findMany({
       where: {
         OR: [
@@ -656,9 +656,23 @@ router.get('/social/feed', wrap(async (req, res) => {
     }),
     getCachedFeedItems(userId, tags, 10, { forceRefresh: fresh, excludeSeen: true }),
   ]);
-  const { items: feedItems, exhausted } = feedResult;
+  let feedItems = initialFeedResult.items;
+  let exhausted = initialFeedResult.exhausted;
   const t2 = Date.now();
   console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} exhausted=${exhausted}`);
+
+  // Pull-to-refresh + the user has seen everything we have for their tags →
+  // fetch from PubMed synchronously (capped latency by fetchOnDemandForUser),
+  // then re-query so the response actually contains the new items. Without
+  // this the user keeps seeing the same articles after every pull.
+  if (fresh && exhausted) {
+    const fetched = await maybeFetchFromSources(userId, tags);
+    if (fetched) {
+      const refreshed = await getCachedFeedItems(userId, tags, 10, { forceRefresh: true, excludeSeen: true });
+      feedItems = refreshed.items;
+      exhausted = refreshed.exhausted;
+    }
+  }
 
   // Record views so subsequent refreshes return different items.
   // Fire-and-forget — don't block the response.
@@ -666,12 +680,6 @@ router.get('/social/feed', wrap(async (req, res) => {
     recordFeedViews(userId, feedItems.map((i: any) => i.id)).catch(e =>
       console.error('[feed] recordFeedViews failed:', e),
     );
-  }
-
-  // If the user is exhausted on unseen items AND they pulled to refresh,
-  // kick the source-fetch in the background so future refreshes have new items.
-  if (fresh && exhausted) {
-    maybeFetchFromSources(userId).catch(() => { /* logged inside */ });
   }
 
   const friendIdSet = new Set(friendIds);

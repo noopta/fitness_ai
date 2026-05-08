@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../src/components/ui/LoadingSpinner';
 import { colors } from '../src/constants/theme';
 import { usePushNotifications } from '../src/lib/usePushNotifications';
 import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
+import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/components/WhatsNewModal';
 
 const queryClient = new QueryClient();
 
@@ -19,8 +20,27 @@ function RootNavigator() {
   const { user, loading, needsDobCheck } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
 
   usePushNotifications(!!user);
+
+  // First launch of this build version → show the What's New modal once.
+  // Gated on `user` so new sign-ups go through onboarding before being
+  // interrupted; once they hit the tabs and the WHATS_NEW_VERSION key
+  // doesn't match storage, we open it.
+  useEffect(() => {
+    if (loading || !user || needsDobCheck) return;
+    let cancelled = false;
+    void shouldShowWhatsNew().then(should => {
+      if (!cancelled && should) setWhatsNewOpen(true);
+    });
+    return () => { cancelled = true; };
+  }, [user?.id, loading, needsDobCheck]);
+
+  function handleWhatsNewClose() {
+    setWhatsNewOpen(false);
+    void markWhatsNewSeen();
+  }
 
   // Sync PostHog identity whenever auth state changes
   useEffect(() => {
@@ -58,7 +78,12 @@ function RootNavigator() {
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }} />
+      <WhatsNewModal visible={whatsNewOpen} onClose={handleWhatsNewClose} />
+    </>
+  );
 }
 
 export default function RootLayout() {

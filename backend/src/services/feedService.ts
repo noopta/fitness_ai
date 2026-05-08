@@ -375,18 +375,122 @@ export async function recordFeedViews(userId: string, feedItemIds: string[]): Pr
 }
 
 // On-demand source fetch trigger, rate-limited per user. Returns whether we
-// kicked off a fetch.
+// actually pulled new content.
 const lastSourceFetchAt = new Map<string, number>();
-const SOURCE_FETCH_COOLDOWN = 5 * 60 * 1000; // 5 min per user
+const ON_DEMAND_COOLDOWN = 60 * 1000;          // 60s for user-triggered (pull-to-refresh)
+const BG_FETCH_COOLDOWN  = 5 * 60 * 1000;       // 5min for the legacy-style background path
 
-export async function maybeFetchFromSources(userId: string): Promise<boolean> {
+/**
+ * Targeted PubMed fetch for a single tag with all per-PMID work done in
+ * parallel. The shared `fetchPubMed` does it sequentially because it runs
+ * inside the daily cron — there speed doesn't matter and serial keeps us
+ * polite to PubMed. On a user-triggered refresh, we want results fast.
+ */
+async function fetchPubMedParallel(tag: FeedTag, maxResults = 3): Promise<void> {
+  const query = encodeURIComponent(PUBMED_QUERIES[tag]);
+  // Two diversification levers so a user-triggered refresh actually surfaces
+  // items they haven't already saved:
+  //   - sort=date: most recent first, so newly-published research surfaces.
+  //   - retstart at a random offset: walks through the result space across
+  //     successive refreshes so we don't keep hitting the same N abstracts.
+  const offset = Math.floor(Math.random() * 80);
+  const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${query}&retmax=${maxResults * 6}&retstart=${offset}&retmode=json&sort=date&mindate=2022&datetype=pdat`;
+  const searchRes = await fetch(searchUrl, { signal: AbortSignal.timeout(5000) }).catch(() => null);
+  if (!searchRes?.ok) return;
+  const searchData = await searchRes.json() as { esearchresult?: { idlist?: string[] } };
+  const ids: string[] = searchData.esearchresult?.idlist ?? [];
+  if (ids.length === 0) return;
+
+  const summaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`;
+  const summaryRes = await fetch(summaryUrl, { signal: AbortSignal.timeout(5000) }).catch(() => null);
+  if (!summaryRes?.ok) return;
+  const summaryData = await summaryRes.json() as { result?: Record<string, PubMedSummary> };
+  const result = summaryData.result ?? {};
+
+  await Promise.allSettled(ids.map(async (pmid) => {
+    const item = result[pmid];
+    if (!item?.title) return;
+
+    const externalId = `pubmed:${pmid}`;
+    const exists = await prisma.feedItem.findUnique({ where: { externalId } });
+    if (exists) return;
+
+    let abstract = '';
+    try {
+      const abstractRes = await fetch(
+        `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${pmid}&rettype=abstract&retmode=text`,
+        { signal: AbortSignal.timeout(5000) },
+      );
+      if (abstractRes.ok) abstract = await abstractRes.text();
+    } catch { /* skip */ }
+
+    if (!abstract && !item.title) return;
+
+    let summary = '';
+    try {
+      summary = await summarize(item.title, abstract || item.title, 'research');
+    } catch { return; }
+
+    const url = `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
+    let publishedAt: Date | null = null;
+    if (item.pubdate) {
+      const d = new Date(item.pubdate);
+      if (!isNaN(d.getTime())) publishedAt = d;
+    }
+
+    await prisma.feedItem.create({
+      data: {
+        externalId,
+        type: 'research',
+        title: item.title,
+        summary,
+        url,
+        source: 'PubMed',
+        tags: JSON.stringify([tag]),
+        publishedAt,
+      },
+    }).catch(() => { /* race with another fetch — externalId unique constraint */ });
+  }));
+}
+
+/**
+ * Fast, awaitable, user-specific source fetch. Hits the user's top 2 tags in
+ * parallel and returns when both finish (or fail). Total wall time ~5-10s on
+ * a healthy network. Drops the per-user research cache so the next read
+ * picks up newly-inserted items.
+ */
+async function fetchOnDemandForUser(userId: string, tags: FeedTag[]): Promise<void> {
+  const target = tags.slice(0, 2); // cap latency — 2 tags is plenty for pull-to-refresh
+  if (target.length === 0) return;
+  await Promise.allSettled(target.map(tag => fetchPubMedParallel(tag, 3)));
+  invalidateResearchCache(userId);
+}
+
+/**
+ * @param userId - viewer
+ * @param userTags - when provided, runs the fast user-targeted fetch and AWAITS it
+ *                   so the caller can re-query the DB and serve a hot response.
+ *                   When omitted, kicks off the legacy background fetch.
+ */
+export async function maybeFetchFromSources(userId: string, userTags?: FeedTag[]): Promise<boolean> {
   const last = lastSourceFetchAt.get(userId) ?? 0;
-  if (Date.now() - last < SOURCE_FETCH_COOLDOWN) return false;
+  const cooldown = userTags ? ON_DEMAND_COOLDOWN : BG_FETCH_COOLDOWN;
+  if (Date.now() - last < cooldown) return false;
   lastSourceFetchAt.set(userId, Date.now());
-  // Don't await — let it run in the background. Bail loudly so it doesn't crash
-  // the process if the upstream API is flaky.
+
+  if (userTags && userTags.length > 0) {
+    try {
+      await fetchOnDemandForUser(userId, userTags);
+      return true;
+    } catch (e) {
+      console.error('[feedService] on-demand fetch failed:', e);
+      return false;
+    }
+  }
+
+  // Legacy background path — kicks off the full daily fetch fire-and-forget.
   runDailyFeedFetch().then(() => invalidateResearchCache()).catch(e => {
-    console.error('[feedService] on-demand fetch failed:', e);
+    console.error('[feedService] background fetch failed:', e);
   });
   return true;
 }

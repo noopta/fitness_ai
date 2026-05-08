@@ -19,6 +19,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constan
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { PostCard } from '../../src/components/social/PostCard';
 import { FeedItemCard, type FeedItem } from '../../src/components/social/FeedItemCard';
+import { FunRefreshIndicator } from '../../src/components/social/FunRefreshIndicator';
 import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -709,11 +710,22 @@ export default function SocialScreen() {
         </TouchableOpacity>
       </View>
 
+      <FunRefreshIndicator visible={refreshing} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            // Hide the platform spinner (we render our own pumping-dumbbell
+            // overlay above). Setting tintColor transparent on iOS + colors=[]
+            // on Android suppresses the default arc.
+            tintColor="transparent"
+            colors={['transparent']}
+          />
+        }
       >
         {activeTab === 'feed' ? (
           <>

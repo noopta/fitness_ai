@@ -88,49 +88,21 @@ function DayWorkoutSheet({
   onClose,
   onLogged,
   onLogWorkout,
+  onShareDay,
 }: {
   day: WeekDay;
   visible: boolean;
   onClose: () => void;
   onLogged: () => void;
   onLogWorkout: (exercises: Exercise[], date: string, title?: string) => void;
+  onShareDay: (day: WeekDay) => void;
 }) {
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
   const [sheetVideoError, setSheetVideoError] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [friends, setFriends] = useState<FriendForShare[]>([]);
 
   const exercises = day.session?.exercises ?? [];
   const isRestDay = !day.isTrainingDay;
-
-  // Load friends lazily on first share-button tap so we don't pay the network
-  // cost just opening the day sheet.
-  async function openShare() {
-    setShareOpen(true);
-    if (friends.length === 0) {
-      try {
-        const data = await socialApi.getFriends();
-        if (Array.isArray(data)) setFriends(data);
-      } catch { /* swallow — modal will show empty state */ }
-    }
-  }
-
-  async function sendWorkoutTo(friendId: string, note?: string) {
-    const payload = {
-      date: day.date,
-      title: day.session?.focus ?? day.session?.day ?? 'Training Day',
-      focus: day.session?.focus ?? null,
-      exercises: exercises.map((ex) => ({
-        name: ex.exercise ?? ex.name ?? '',
-        sets: ex.sets ?? null,
-        reps: ex.reps ?? null,
-        intensity: ex.intensity ?? null,
-        notes: ex.notes ?? null,
-      })),
-    };
-    await socialApi.forwardWorkout(friendId, 'planned', payload, note);
-  }
 
   return (
     <>
@@ -147,7 +119,18 @@ function DayWorkoutSheet({
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               {!isRestDay && exercises.length > 0 && (
-                <TouchableOpacity onPress={openShare} style={sheet.closeBtn} hitSlop={8} accessibilityLabel="Share with friend">
+                <TouchableOpacity
+                  onPress={() => {
+                    // Close BottomSheet first; opening a Modal while another is on
+                    // screen swallows the second on iOS. Same pattern as the
+                    // 'Log This Workout' button below.
+                    onClose();
+                    setTimeout(() => onShareDay(day), 350);
+                  }}
+                  style={sheet.closeBtn}
+                  hitSlop={8}
+                  accessibilityLabel="Share with friend"
+                >
                   <Ionicons name="paper-plane-outline" size={20} color={colors.mutedForeground} />
                 </TouchableOpacity>
               )}
@@ -249,14 +232,6 @@ function DayWorkoutSheet({
             </View>
           )}
       </BottomSheet>
-      <ShareToFriendSheet
-        visible={shareOpen}
-        title="Share workout"
-        subtitle={day.session?.focus ?? day.session?.day ?? day.dateNumber ? `${day.session?.focus ?? 'Workout'} — ${day.monthLabel} ${day.dateNumber}` : 'Workout'}
-        friends={friends}
-        onClose={() => setShareOpen(false)}
-        onSend={sendWorkoutTo}
-      />
     </>
   );
 }
@@ -343,6 +318,11 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [pastLogVisible, setPastLogVisible] = useState(false);
   const [dayLogData, setDayLogData] = useState<{ exercises: Exercise[]; date: string; title?: string } | null>(null);
+  // Share-to-friend state lives at the OverviewTab level so the modal sits as
+  // a sibling of DayWorkoutSheet rather than nested inside it. Two iOS
+  // <Modal>s on the same render branch swallow each other.
+  const [shareDay, setShareDay] = useState<WeekDay | null>(null);
+  const [shareFriends, setShareFriends] = useState<FriendForShare[]>([]);
   const [loadingVideoEx, setLoadingVideoEx] = useState<string | null>(null);
   const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
   const [modalVideoError, setModalVideoError] = useState(false);
@@ -428,6 +408,37 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
     setLifeHappenedVisible(false);
     loadData();
     onRefresh?.();
+  }
+
+  // Open share sheet for a planned day. We pre-fetch friends here (rather
+  // than inside DayWorkoutSheet) so the picker shows recipients instantly
+  // when the modal opens, instead of an empty list flashing first.
+  async function openShareForDay(day: WeekDay) {
+    setShareDay(day);
+    if (shareFriends.length === 0) {
+      try {
+        const data = await socialApi.getFriends();
+        if (Array.isArray(data)) setShareFriends(data);
+      } catch { /* swallow — modal will show empty state */ }
+    }
+  }
+
+  async function sendShareDayTo(friendId: string, note?: string) {
+    if (!shareDay) return;
+    const exs = shareDay.session?.exercises ?? [];
+    const payload = {
+      date: shareDay.date,
+      title: shareDay.session?.focus ?? shareDay.session?.day ?? 'Training Day',
+      focus: shareDay.session?.focus ?? null,
+      exercises: exs.map((ex) => ({
+        name: ex.exercise ?? ex.name ?? '',
+        sets: ex.sets ?? null,
+        reps: ex.reps ?? null,
+        intensity: ex.intensity ?? null,
+        notes: ex.notes ?? null,
+      })),
+    };
+    await socialApi.forwardWorkout(friendId, 'planned', payload, note);
   }
 
   function handleWorkoutSaved(loggedDate?: string) {
@@ -778,8 +789,23 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
             handleWorkoutSaved(loggedDate);
           }}
           onLogWorkout={(exercises, date, title) => setDayLogData({ exercises, date, title })}
+          onShareDay={(day) => { void openShareForDay(day); }}
         />
       )}
+
+      {/* Share-to-friend modal — sibling of DayWorkoutSheet, not child. */}
+      <ShareToFriendSheet
+        visible={!!shareDay}
+        title="Share workout"
+        subtitle={
+          shareDay
+            ? `${shareDay.session?.focus ?? shareDay.session?.day ?? 'Workout'} — ${shareDay.monthLabel} ${shareDay.dateNumber}`
+            : undefined
+        }
+        friends={shareFriends}
+        onClose={() => setShareDay(null)}
+        onSend={sendShareDayTo}
+      />
 
       {/* Day-specific log modal — rendered outside DayWorkoutSheet to avoid nested modals */}
       <WorkoutLogModal
