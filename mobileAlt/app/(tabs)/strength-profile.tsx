@@ -9,10 +9,14 @@ import {
   TouchableOpacity,
   RefreshControl,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Polyline, Circle, Line, Text as SvgText, Polygon, Path } from 'react-native-svg';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 import { coachApi } from '../../src/lib/api';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
@@ -21,6 +25,9 @@ import { NutritionProfile } from '../../src/components/NutritionProfile';
 import { TierHeroCard } from '../../src/components/strength/TierHeroCard';
 import { RadarChart, type RadarAxis } from '../../src/components/strength/RadarChart';
 import { LiftRow, type LiftRowData } from '../../src/components/strength/LiftRow';
+import { TierExplainerSheet } from '../../src/components/strength/TierExplainerSheet';
+import { LiftDetailSheet } from '../../src/components/strength/LiftDetailSheet';
+import { RadarAxisDrillSheet, deriveFeedingLifts } from '../../src/components/strength/RadarAxisDrillSheet';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CARD_W = SCREEN_W - spacing.md * 2;
@@ -387,10 +394,21 @@ function mapLiftToRow(lift: LiftSummary): LiftRowData {
 type ProfileTab = 'strength' | 'nutrition';
 
 export default function StrengthProfileScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<ProfileTab>('strength');
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Sheet visibility — at-most-one open at a time, but the sheets are
+  // independent components so collisions don't matter (BottomSheet renders a
+  // <Modal>; iOS only shows the most recent one).
+  const [tierSheetOpen, setTierSheetOpen] = useState(false);
+  const [liftSheet, setLiftSheet] = useState<LiftRowData | null>(null);
+  const [axisSheet, setAxisSheet] = useState<RadarAxis | null>(null);
+  // Two-finger long-press on the radar toggles the dashed target polygon —
+  // power-user shortcut from the handoff. Default visible.
+  const [showRadarTarget, setShowRadarTarget] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
@@ -421,6 +439,43 @@ export default function StrengthProfileScreen() {
   }, [loadData]));
 
   function onRefresh() { setRefreshing(true); loadData(); }
+
+  // Long-press a lift row → action menu. Using the built-in Alert API rather
+  // than ActionSheetIOS so the menu works the same on Android. Mute is wired
+  // as a toast-only no-op for now (backend doesn't yet have a per-lift mute
+  // flag); other actions route to the real flows.
+  function handleLongPressLift(lift: LiftRowData) {
+    Alert.alert(
+      lift.name,
+      undefined,
+      [
+        { text: 'Log set',     onPress: () => router.push('/(tabs)/coach') },
+        { text: 'View history', onPress: () => router.push('/(tabs)/history') },
+        { text: 'Mute', style: 'destructive', onPress: () => Alert.alert('Mute coming soon') },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      { cancelable: true },
+    );
+  }
+
+  // Two-finger long press on the radar — toggles dashed target polygon.
+  // Constructed at the top level (gestures must be stable across renders).
+  // Reanimated `runOnJS` flips the React state from the worklet thread.
+  const radarToggleGesture = Gesture.LongPress()
+    .numberOfPointers(2)
+    .minDuration(450)
+    .onStart(() => {
+      'worklet';
+      runOnJS(setShowRadarTarget)(prev => !prev);
+    });
+
+  // Tap a radar axis → open the drill-down sheet. We look up the axis object
+  // by its display label since RadarChart only passes the label string.
+  function handleAxisPress(axisLabel: string) {
+    const axes = mapRadarAxes(data?.radarScores);
+    const axis = axes.find(a => a.axis === axisLabel);
+    if (axis) setAxisSheet(axis);
+  }
 
   if (loading) {
     return (
@@ -477,6 +532,42 @@ export default function StrengthProfileScreen() {
       {activeTab === 'nutrition' && <NutritionProfile />}
 
       {/* ── Strength tab ─────────────────────────────────────────────────── */}
+      {/* ── Sheets — rendered at SafeAreaView level so they stack correctly
+          regardless of which tab is active ─────────────────────────────── */}
+      <TierExplainerSheet
+        visible={tierSheetOpen}
+        onClose={() => setTierSheetOpen(false)}
+        currentTierIndex={data ? (TIER_INDEX[data.strengthTier] ?? 0) : 0}
+      />
+      <LiftDetailSheet
+        visible={!!liftSheet}
+        onClose={() => setLiftSheet(null)}
+        lift={liftSheet}
+        percentile={null}
+        onLogSet={() => { setLiftSheet(null); router.push('/(tabs)/coach'); }}
+        onHistory={() => { setLiftSheet(null); router.push('/(tabs)/history'); }}
+      />
+      <RadarAxisDrillSheet
+        visible={!!axisSheet}
+        onClose={() => setAxisSheet(null)}
+        axisName={axisSheet?.axis ?? null}
+        current={axisSheet?.current ?? null}
+        target={axisSheet?.target ?? null}
+        feedingLifts={
+          axisSheet
+            ? deriveFeedingLifts(
+                axisSheet.axis,
+                (data?.lifts ?? []).map(l => ({
+                  name: l.canonicalName,
+                  category: l.category,
+                  current1RMLbs: l.current1RMLbs,
+                })),
+              )
+            : []
+        }
+        onApplyFix={() => { setAxisSheet(null); router.push('/(tabs)/coach'); }}
+      />
+
       {activeTab === 'strength' && <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -502,6 +593,7 @@ export default function StrengthProfileScreen() {
               percentile={null /* backend doesn't yet expose a percentile */}
               wilks={data!.overallStrengthIndex}
               delta30d={null /* backend doesn't yet expose 30D wilks delta */}
+              onPress={() => setTierSheetOpen(true)}
             />
 
             {/* ── Movement balance — 6-axis radar ────────────────────────── */}
@@ -512,11 +604,20 @@ export default function StrengthProfileScreen() {
                 <View style={styles.section}>
                   <View style={styles.sectionHeader}>
                     <Text style={styles.eyebrow}>Movement balance</Text>
-                    <Text style={styles.sectionMeta}>vs target</Text>
+                    <Text style={styles.sectionMeta}>
+                      {showRadarTarget ? 'vs target' : 'current only'}
+                    </Text>
                   </View>
-                  <View style={{ alignItems: 'center', marginTop: 8 }}>
-                    <RadarChart axes={axes} size={Math.min(310, CARD_W)} />
-                  </View>
+                  <GestureDetector gesture={radarToggleGesture}>
+                    <View style={{ alignItems: 'center', marginTop: 8 }}>
+                      <RadarChart
+                        axes={axes}
+                        size={Math.min(310, CARD_W)}
+                        showTarget={showRadarTarget}
+                        onAxisPress={handleAxisPress}
+                      />
+                    </View>
+                  </GestureDetector>
                 </View>
               );
             })()}
@@ -533,7 +634,13 @@ export default function StrengthProfileScreen() {
                     .filter(l => l.current1RMLbs != null)
                     .slice(0, 8)
                     .map((lift, i) => (
-                      <LiftRow key={lift.canonicalName} lift={mapLiftToRow(lift)} rowIndex={i} />
+                      <LiftRow
+                        key={lift.canonicalName}
+                        lift={mapLiftToRow(lift)}
+                        rowIndex={i}
+                        onPress={(l) => setLiftSheet(l)}
+                        onLongPress={handleLongPressLift}
+                      />
                     ))}
                 </View>
               </View>

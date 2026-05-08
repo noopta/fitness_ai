@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Vibration } from 'react-native';
 import Svg, { Defs, Pattern, Path, Rect } from 'react-native-svg';
 import Animated, {
-  useSharedValue, useAnimatedStyle, useDerivedValue, withTiming, runOnJS, Easing,
-  useReducedMotion, interpolate,
+  useSharedValue, useAnimatedStyle, useDerivedValue, withTiming, withSequence,
+  runOnJS, Easing, useReducedMotion,
 } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TierLadder } from './TierLadder';
 import { DeltaTag } from './DeltaTag';
+
+const CELEBRATED_KEY_PREFIX = 'strength:tierCelebrated:';
 
 interface Props {
   /** Display tier name, e.g. "Intermediate II". */
@@ -63,6 +66,54 @@ export function TierHeroCard({
     });
   }, [wilks, reducedMotion, wilksAnim]);
 
+  // ── Tier-up celebration ─────────────────────────────────────────────────
+  // When tierIndex crosses to a higher rung between sessions, the card
+  // pulses 1× to 1.4× scale on the active ladder segment (driven by ladder
+  // re-mount key change), the hero card flashes a 1px white border for
+  // 600ms, and we fire a soft haptic. Persisted per-tier in AsyncStorage so
+  // a user who already saw the 'reached Intermediate II' celebration doesn't
+  // see it again when they reopen the app.
+  const flashBorder = useSharedValue(0);
+  const lastCelebratedTier = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (tierIndex < 1) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const seen = await AsyncStorage.getItem(CELEBRATED_KEY_PREFIX + tierIndex);
+        if (cancelled || seen) return;
+        // Only celebrate when we know the previous tier (refs in-session).
+        // Fresh installs skip the celebration on first paint.
+        if (lastCelebratedTier.current == null) {
+          lastCelebratedTier.current = tierIndex;
+          // Persist anyway — the user is on tierIndex and shouldn't see it later.
+          await AsyncStorage.setItem(CELEBRATED_KEY_PREFIX + tierIndex, '1');
+          return;
+        }
+        if (tierIndex > lastCelebratedTier.current) {
+          if (!reducedMotion) {
+            flashBorder.value = withSequence(
+              withTiming(1, { duration: 80 }),
+              withTiming(0, { duration: 520, easing: Easing.out(Easing.cubic) }),
+            );
+            // Soft success haptic via built-in Vibration (avoids adding
+            // expo-haptics; pattern is short-short for a "double tap" feel).
+            try { Vibration.vibrate([0, 30, 50, 60]); } catch { /* simulator */ }
+          }
+          await AsyncStorage.setItem(CELEBRATED_KEY_PREFIX + tierIndex, '1');
+        }
+        lastCelebratedTier.current = tierIndex;
+      } catch { /* AsyncStorage failure → skip celebration */ }
+    })();
+    return () => { cancelled = true; };
+  }, [tierIndex, reducedMotion, flashBorder]);
+
+  const flashStyle = useAnimatedStyle(() => ({
+    borderWidth: flashBorder.value > 0 ? 1 : 0,
+    borderColor: 'rgba(255,255,255,1)',
+  }));
+
   // Tick the React state whenever the worklet value changes — but only on
   // integer steps so we don't churn JS for every sub-pixel frame.
   useDerivedValue(() => {
@@ -85,7 +136,7 @@ export function TierHeroCard({
       accessibilityRole="button"
       accessibilityLabel={`Tier ${tierIndex} of 6, ${tier}${percentile != null ? `, top ${percentile} percent` : ''}. Tap to view tier ladder.`}
     >
-      <Animated.View style={[styles.card, pressStyle]}>
+      <Animated.View style={[styles.card, pressStyle, flashStyle]}>
         {/* Faint grid background */}
         <Svg width="100%" height="100%" style={styles.grid} pointerEvents="none">
           <Defs>

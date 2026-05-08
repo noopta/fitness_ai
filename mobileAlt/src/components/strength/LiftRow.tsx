@@ -19,6 +19,8 @@ interface Props {
   /** Used to stagger the sparkline draw across rows (80ms each, per spec). */
   rowIndex: number;
   onPress?: (lift: LiftRowData) => void;
+  /** Fires after a 500ms hold — caller typically opens an action menu. */
+  onLongPress?: (lift: LiftRowData) => void;
 }
 
 /**
@@ -28,7 +30,7 @@ interface Props {
  * Press → opens LiftDetailSheet (caller wires the handler).
  * Long-press: TODO when @gorhom/bottom-sheet is added.
  */
-export function LiftRow({ lift, rowIndex, onPress }: Props) {
+export function LiftRow({ lift, rowIndex, onPress, onLongPress }: Props) {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
@@ -49,6 +51,8 @@ export function LiftRow({ lift, rowIndex, onPress }: Props) {
         opacity.value = withTiming(1, { duration: 160 });
       }}
       onPress={() => onPress?.(lift)}
+      onLongPress={() => onLongPress?.(lift)}
+      delayLongPress={500}
       accessibilityRole="button"
       accessibilityLabel={
         `${lift.name}, ${lift.e1rm != null ? `e1RM ${lift.e1rm} ${lift.unit}` : 'no e1RM'}`

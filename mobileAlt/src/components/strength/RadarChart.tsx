@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import Svg, { Polygon, Line, Path, Circle, Text as SvgText } from 'react-native-svg';
+import Svg, { Polygon, Line, Path, Circle, Text as SvgText, G, Rect } from 'react-native-svg';
 import Animated, {
   useSharedValue, useAnimatedProps, useDerivedValue, withTiming, Easing,
   useReducedMotion,
@@ -19,6 +19,8 @@ interface Props {
   size?: number;
   /** Set false to skip the dashed target polygon (e.g. when target == current). */
   showTarget?: boolean;
+  /** Tap handler invoked with the axis label string when an axis is tapped. */
+  onAxisPress?: (axisName: string) => void;
 }
 
 /**
@@ -30,7 +32,7 @@ interface Props {
  * Animation is one Reanimated SharedValue per axis, recomputed into a path
  * inside useDerivedValue so the morph is interpolated, not stepped.
  */
-export function RadarChart({ axes, size = 310, showTarget = true }: Props) {
+export function RadarChart({ axes, size = 310, showTarget = true, onAxisPress }: Props) {
   const reducedMotion = useReducedMotion();
   const cx = size / 2;
   const cy = size / 2;
@@ -181,12 +183,30 @@ export function RadarChart({ axes, size = 310, showTarget = true }: Props) {
       {geo.dotsCurrent.map((d, i) => (
         <Circle key={i} cx={d.x} cy={d.y} r={3.5} fill="#09090B" stroke="#FFFFFF" strokeWidth={1.5} />
       ))}
-      {/* Axis labels + numeric readout */}
+      {/* Axis labels + numeric readout. Each axis is wrapped in a <G onPress>
+          with an invisible 12pt-padded hit-rect (handoff: "Hit slop 12pt
+          around each label"). Tapping calls onAxisPress with the axis name. */}
       {axes.map((a, i) => {
         const { lx, ly } = geo.labels[i];
         const lagging = a.current < a.target;
+        const handlePress = onAxisPress ? () => onAxisPress(a.axis) : undefined;
         return (
-          <React.Fragment key={a.axis}>
+          <G
+            key={a.axis}
+            onPress={handlePress}
+            accessibilityRole={handlePress ? 'button' : undefined}
+            accessibilityLabel={`${a.axis} axis, ${Math.round(a.current)} of ${Math.round(a.target)} target`}
+          >
+            {/* Invisible hit area — extends 12pt around the visual label group */}
+            {handlePress && (
+              <Rect
+                x={lx - 28}
+                y={ly - 18}
+                width={56}
+                height={32}
+                fill="transparent"
+              />
+            )}
             <SvgText
               x={lx}
               y={ly - 4}
@@ -208,7 +228,7 @@ export function RadarChart({ axes, size = 310, showTarget = true }: Props) {
             >
               {Math.round(a.current)}
             </SvgText>
-          </React.Fragment>
+          </G>
         );
       })}
     </Svg>
