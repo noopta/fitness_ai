@@ -28,9 +28,19 @@ const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
 export default function CoachScreen() {
   const { user, refreshUser } = useAuth();
 
-  const [loading, setLoading] = useState(true);
-  const [coachData, setCoachData] = useState<any>(null);
-  const [stage, setStage] = useState<Stage>('loading');
+  // Hydrate from in-memory cache synchronously so a tab switch with a hot
+  // cache renders the dashboard on the first frame — no LoadingSpinner flash.
+  // initCoach below still runs and may overwrite with fresh data when stale.
+  const cacheKey = user?.id ? `coach:init:${user.id}` : null;
+  const cachedInit = cacheKey
+    ? getCached<{ coachData: any; hasProgram: boolean }>(cacheKey, 30 * 60 * 1000)
+    : null;
+
+  const [loading, setLoading] = useState(cachedInit === null);
+  const [coachData, setCoachData] = useState<any>(cachedInit?.coachData ?? null);
+  const [stage, setStage] = useState<Stage>(
+    cachedInit ? (cachedInit.hasProgram ? 'dashboard' : 'onboarding') : 'loading'
+  );
   const [activeTab, setActiveTab] = useState<TabId>('Overview');
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');

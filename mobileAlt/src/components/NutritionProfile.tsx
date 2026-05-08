@@ -378,27 +378,34 @@ function RecommendationList({ items }: { items: string[] }) {
 
 export function NutritionProfile() {
   const { user } = useAuth();
-  const [data, setData] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Key namespace — `invalidateCache('nutrition:profile:')` from the meal-log
   // mutation site will purge this entry on a successful save, so the next
   // visit re-runs the analyzer with the new meal included.
   const cacheKey = `nutrition:profile:${user?.id ?? 'anon'}`;
 
+  // Hydrate state synchronously from the in-memory cache so the strength →
+  // nutrition sub-tab doesn't flash a spinner on every visit. Without this,
+  // initial useState fires with `loading=true` and the cache check inside
+  // useEffect lands one frame later — long enough for the user to see the
+  // 'Analyzing your nutrition…' state and perceive a recompute.
+  const initialCached = getCached<Profile>(cacheKey, PROFILE_CACHE_TTL_MS);
+  const [data, setData] = useState<Profile | null>(initialCached ?? null);
+  const [loading, setLoading] = useState(initialCached === null);
+  const [refreshing, setRefreshing] = useState(false);
+
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
     } else {
-      // Cache-first: serve cached profile instantly so the strength tab's
-      // nutrition sub-tab doesn't recompute on every visit. Memory hit is sync;
-      // we only trigger a network call if there's no fresh entry.
+      // Cache-first on subsequent loads (e.g. user.id changes). When hot,
+      // skip the network. Invalidation from MealLogModal handles freshness
+      // when a new meal is logged.
       const cached = getCached<Profile>(cacheKey, PROFILE_CACHE_TTL_MS);
       if (cached) {
         setData(cached);
         setLoading(false);
-        return; // nothing to refetch — invalidation will trigger fresh load
+        return;
       }
     }
     try {
@@ -409,7 +416,12 @@ export function NutritionProfile() {
     finally { setLoading(false); setRefreshing(false); }
   }, [cacheKey]);
 
-  useEffect(() => { load(); }, [load]);
+  // Only fetch on mount if there was no synchronous cache hit. With a hot
+  // cache, the initial state already has the data and we skip the network.
+  useEffect(() => {
+    if (!initialCached) void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (

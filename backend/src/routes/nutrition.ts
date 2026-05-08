@@ -113,6 +113,11 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
       data: { userId, ...data },
     });
     cacheDelete(`userctx:${userId}`);
+    // Profile cache must also be busted on create — the update path above does
+    // this, but the original create branch only purged userctx. Without this
+    // line, a fresh log (first one of the day) leaves a stale profile cached
+    // server-side until the 30-day TTL expires.
+    cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
     updateNutritionStreakInBackground(userId, data.date);
     detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
