@@ -18,6 +18,9 @@ import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constan
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { NutritionProfile } from '../../src/components/NutritionProfile';
+import { TierHeroCard } from '../../src/components/strength/TierHeroCard';
+import { RadarChart, type RadarAxis } from '../../src/components/strength/RadarChart';
+import { LiftRow, type LiftRowData } from '../../src/components/strength/LiftRow';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CARD_W = SCREEN_W - spacing.md * 2;
@@ -314,6 +317,71 @@ const trendStyles = StyleSheet.create({
   legendText: { fontSize: 10, color: colors.mutedForeground, maxWidth: 90 },
 });
 
+// ─── Backend → Design data mapping ────────────────────────────────────────────
+//
+// The handoff spec is shaped around `tierIndex (1..6)`, `wilks`, `percentile`,
+// six radar axes on a 0..100 scale, and `delta30d`. Our backend currently
+// returns five-axis 0..10 radar scores, a tier *string* (no index), and an
+// overall strength index instead of a Wilks score. These helpers bridge that
+// gap so the new components stay strict and the screen remains pretty even
+// when fields aren't populated yet (handoff edge cases — show em-dash, never
+// fake-zero, never break layout).
+
+const TIER_INDEX: Record<string, number> = {
+  'Not enough data': 0,
+  Beginner:     1,
+  Novice:       2,
+  Intermediate: 4, // backend has one Intermediate; design has I/II — map to II
+  Advanced:     5,
+  Elite:        6,
+};
+
+// Visual order for the radar axes — keeps push/pull paired across the diameter
+// rather than alphabetical, which makes lateral imbalances easier to read.
+const RADAR_ORDER = ['push', 'legs', 'core', 'pull', 'hinge', 'cardio'] as const;
+const RADAR_LABEL: Record<string, string> = {
+  push: 'Push', pull: 'Pull', legs: 'Squat', hinge: 'Hinge', core: 'Core', cardio: 'Power',
+};
+// Default target — ten out of ten (mapped to 80/100 to match the design's
+// "balanced" silhouette rather than maxing every axis). Per-axis overrides
+// can be added later when the backend ships them.
+const DEFAULT_TARGET_NORMALISED = 80;
+
+function mapRadarAxes(scores: Record<string, number> | null | undefined): RadarAxis[] {
+  if (!scores) return [];
+  const axes: RadarAxis[] = [];
+  for (const key of RADAR_ORDER) {
+    const raw = scores[key];
+    if (raw == null) continue;
+    axes.push({
+      axis: RADAR_LABEL[key] ?? key,
+      current: Math.max(0, Math.min(100, raw * 10)), // 0..10 → 0..100
+      target: DEFAULT_TARGET_NORMALISED,
+    });
+  }
+  return axes;
+}
+
+function mapLiftToRow(lift: LiftSummary): LiftRowData {
+  const series = lift.weekSeries ?? [];
+  // 30D delta: difference between latest e1RM and ~4 weeks back. Falls back
+  // to monthlyGainPct expressed in lbs if the series is shorter than 4 weeks
+  // (we'd rather show a working number than em-dash a row a user has logged).
+  let delta30d: number | null = null;
+  if (series.length >= 5) {
+    delta30d = Math.round((series[series.length - 1].rmLbs - series[series.length - 5].rmLbs));
+  } else if (series.length >= 2 && lift.monthlyGainPct != null) {
+    delta30d = Math.round(lift.current1RMLbs * (lift.monthlyGainPct / 100));
+  }
+  return {
+    name: lift.canonicalName,
+    e1rm: lift.current1RMLbs ?? null,
+    unit: 'lb',
+    delta30d,
+    spark: series.map(p => p.rmLbs).filter(n => Number.isFinite(n)),
+  };
+}
+
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 type ProfileTab = 'strength' | 'nutrition';
@@ -427,76 +495,51 @@ export default function StrengthProfileScreen() {
           </Card>
         ) : (
           <>
-            {/* ── Hero Stats ── */}
-            <View style={styles.heroCard}>
-              {/* Tier + maturity badges */}
-              <View style={styles.heroBadgeRow}>
-                <View style={[styles.heroBadge, { backgroundColor: tierColor + '20', borderColor: tierColor + '40' }]}>
-                  <Text style={[styles.heroBadgeText, { color: tierColor }]}>{data!.strengthTier}</Text>
-                </View>
-                {data!.maturityLabel && (
-                  <View style={[styles.heroBadge, { backgroundColor: matColor + '20', borderColor: matColor + '40' }]}>
-                    <Text style={[styles.heroBadgeText, { color: matColor }]}>{data!.maturityLabel} Profile</Text>
+            {/* ── Tier hero card ─────────────────────────────────────────── */}
+            <TierHeroCard
+              tier={data!.strengthTier === 'Not enough data' ? 'Building…' : data!.strengthTier}
+              tierIndex={TIER_INDEX[data!.strengthTier] ?? 0}
+              percentile={null /* backend doesn't yet expose a percentile */}
+              wilks={data!.overallStrengthIndex}
+              delta30d={null /* backend doesn't yet expose 30D wilks delta */}
+            />
+
+            {/* ── Movement balance — 6-axis radar ────────────────────────── */}
+            {(() => {
+              const axes = mapRadarAxes(data!.radarScores);
+              if (axes.length < 3) return null; // edge case: <3 axes → handoff says skip radar
+              return (
+                <View style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.eyebrow}>Movement balance</Text>
+                    <Text style={styles.sectionMeta}>vs target</Text>
                   </View>
-                )}
-              </View>
+                  <View style={{ alignItems: 'center', marginTop: 8 }}>
+                    <RadarChart axes={axes} size={Math.min(310, CARD_W)} />
+                  </View>
+                </View>
+              );
+            })()}
 
-              {/* Large tier headline */}
-              <Text style={[styles.heroTierHeadline, { color: tierColor }]}>
-                {data!.strengthTier === 'Not enough data' ? 'Building…' : data!.strengthTier}
-              </Text>
-              {data!.overallStrengthIndex !== null && (
-                <Text style={styles.heroIndexSub}>Strength Index: {data!.overallStrengthIndex}</Text>
-              )}
-
-              {/* Profile confidence bar */}
-              <View style={styles.heroConfidenceSection}>
-                <View style={styles.heroConfidenceRow}>
-                  <Text style={styles.heroConfidenceLabel}>Profile confidence</Text>
-                  <Text style={styles.heroConfidencePct}>{data!.maturityPct}%</Text>
+            {/* ── Working e1RMs — list ───────────────────────────────────── */}
+            {(data!.lifts ?? []).length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.eyebrow}>Working e1RMs</Text>
+                  <Text style={styles.sectionMeta}>30D</Text>
                 </View>
-                <View style={styles.matBar}>
-                  <View style={[styles.matBarFill, { width: `${data!.maturityPct}%` as any, backgroundColor: matColor }]} />
-                </View>
-              </View>
-
-              {/* Stats row */}
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statVal}>{data!.totalLogs}</Text>
-                  <Text style={styles.statLbl}>Workouts Logged</Text>
-                </View>
-                <View style={[styles.statItem, styles.statBorder]}>
-                  <Text style={styles.statVal}>{data!.monthTonnageKg >= 1000 ? `${(data!.monthTonnageKg / 1000).toFixed(1)}t` : `${data!.monthTonnageKg}kg`}</Text>
-                  <Text style={styles.statLbl}>Month Tonnage</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statVal}>{(data!.lifts ?? []).length}</Text>
-                  <Text style={styles.statLbl}>Lifts Tracked</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* ── Movement Balance Radar ── */}
-            {data!.radarScores && Object.keys(data!.radarScores).length > 0 && (
-              <Card style={styles.card}>
-                <CardHeader><CardTitle>Movement Balance</CardTitle></CardHeader>
-                <CardContent style={styles.radarContent}>
-                  <MovementRadar scores={data!.radarScores} />
-                  <View style={styles.radarLegend}>
-                    {Object.entries(data!.radarScores).map(([cat, score]) => (
-                      <View key={cat} style={styles.radarLegendItem}>
-                        <View style={[styles.radarDot, { backgroundColor: CATEGORY_COLOR[cat] ?? '#6366f1' }]} />
-                        <Text style={styles.radarCat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</Text>
-                        <Text style={styles.radarScore}>{score}/10</Text>
-                      </View>
+                <View style={{ gap: 6, marginTop: 10 }}>
+                  {(data!.lifts ?? [])
+                    .filter(l => l.current1RMLbs != null)
+                    .slice(0, 8)
+                    .map((lift, i) => (
+                      <LiftRow key={lift.canonicalName} lift={mapLiftToRow(lift)} rowIndex={i} />
                     ))}
-                  </View>
-                </CardContent>
-              </Card>
+                </View>
+              </View>
             )}
 
-            {/* ── 1RM Trend Chart ── */}
+            {/* ── 1RM Trend Chart (kept from prior screen) ──────────────── */}
             {(data!.lifts ?? []).some(l => l.isCompound && l.weekSeries.length >= 2) && (
               <Card style={styles.card}>
                 <CardHeader>
@@ -508,19 +551,7 @@ export default function StrengthProfileScreen() {
               </Card>
             )}
 
-            {/* ── Individual Lift Cards ── */}
-            {(data!.lifts ?? []).length > 0 && (
-              <Card style={styles.card}>
-                <CardHeader><CardTitle>Lift Breakdown</CardTitle></CardHeader>
-                <CardContent style={{ paddingTop: spacing.xs }}>
-                  {(data!.lifts ?? []).slice(0, 10).map((lift, i) => (
-                    <LiftCard key={i} lift={lift} />
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* ── AI Insights ── */}
+            {/* ── AI Insights (kept from prior screen) ──────────────────── */}
             {(data!.aiInsights ?? []).length > 0 && (
               <Card style={styles.card}>
                 <CardHeader>
@@ -557,7 +588,20 @@ const styles = StyleSheet.create({
   refreshBtn: { padding: spacing.xs },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { flex: 1 },
-  scrollContent: { padding: spacing.md, gap: spacing.md, paddingBottom: 80 },
+  scrollContent: { paddingTop: 0, paddingHorizontal: 0, paddingBottom: 80, gap: spacing.lg },
+
+  // Tier+Radar handoff sections — flush layout (no card chrome) so the screen
+  // matches the design's edge-to-edge feel. The hero card owns its own
+  // horizontal margin; section headers align to a 20px screen padding.
+  section: { paddingHorizontal: 20, marginTop: 4 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  eyebrow: {
+    fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.5,
+    textTransform: 'uppercase' as const, color: '#71717A',
+  },
+  sectionMeta: {
+    fontSize: 11, color: '#71717A', fontFamily: 'Menlo',
+  },
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,
@@ -585,7 +629,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: { fontSize: fontSize.sm, color: colors.mutedForeground, fontWeight: fontWeight.medium },
   tabLabelActive: { color: colors.foreground, fontWeight: fontWeight.semibold },
-  card: {},
+  card: { marginHorizontal: 20 },
 
   // Hero card
   heroCard: {
