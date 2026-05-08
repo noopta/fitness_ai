@@ -109,17 +109,22 @@ export function TierHeroCard({
     return () => { cancelled = true; };
   }, [tierIndex, reducedMotion, flashBorder]);
 
+  // Border width is fixed (so layout never reflows); we animate opacity
+  // by interpolating the stroke color's alpha channel from 0 → 1. Avoids
+  // the layout-thrash crash that comes from animating borderWidth on iOS.
   const flashStyle = useAnimatedStyle(() => ({
-    borderWidth: flashBorder.value > 0 ? 1 : 0,
-    borderColor: 'rgba(255,255,255,1)',
+    borderColor: `rgba(255,255,255,${flashBorder.value})`,
   }));
 
   // Tick the React state whenever the worklet value changes — but only on
   // integer steps so we don't churn JS for every sub-pixel frame.
+  // Reanimated 4 expects useDerivedValue to return a value; we return the
+  // tick number so the hook is structurally well-formed.
   useDerivedValue(() => {
     'worklet';
     const intVal = Math.round(wilksAnim.value);
     runOnJS(setDisplayWilks)(intVal);
+    return intVal;
   });
 
   return (
@@ -197,6 +202,10 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     overflow: 'hidden',
     position: 'relative',
+    // Border is always present; alpha is animated via flashStyle so the
+    // celebration flash doesn't reflow layout.
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0)',
   },
   grid: {
     position: 'absolute',

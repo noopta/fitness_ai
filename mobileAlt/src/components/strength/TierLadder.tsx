@@ -2,13 +2,15 @@ import React, { useEffect } from 'react';
 import { View, ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withDelay, withTiming, Easing, useReducedMotion,
+  SharedValue,
 } from 'react-native-reanimated';
 
 interface Props {
   /** 1..6 — index of the current tier. 0 = none yet (empty state). */
   tierIndex: number;
-  /** Total tiers. Defaults to 6 per the handoff. */
-  total?: number;
+  /** Total tiers. Defaults to 6. The spec is fixed at 6 — we don't allow
+   *  arbitrary counts because the segment hooks below are unrolled. */
+  total?: 6;
   /** Override segment color. Defaults to white (works on the dark hero card). */
   fillColor?: string;
   /** Background of unfilled segments. */
@@ -16,9 +18,13 @@ interface Props {
 }
 
 /**
- * Six-segment "ladder" that visualizes which tier you're on. Each filled
- * segment scales 0 → 1 on the X axis (transformOrigin: left), staggered
- * by index. Honors useReducedMotion (snaps to final state in 80ms).
+ * Six-segment tier ladder. Each filled segment scales 0 → 1 on the X axis
+ * (transformOrigin: 0% 50%), staggered by 60ms × index. Honors
+ * useReducedMotion (snaps to final state in 80ms).
+ *
+ * Hooks are unrolled (six explicit useSharedValue calls) rather than
+ * Array.from(...).map() to keep React 19 + Reanimated 4 happy — calling
+ * hooks inside a loop callback creates ordering risk under strict mode.
  */
 export function TierLadder({
   tierIndex,
@@ -27,9 +33,13 @@ export function TierLadder({
   trackColor = 'rgba(255,255,255,0.16)',
 }: Props) {
   const reducedMotion = useReducedMotion();
-  // One shared value per segment. We always create `total` of them; the rules
-  // of hooks are happy because `total` is stable across renders.
-  const fills = Array.from({ length: total }, () => useSharedValue(0));
+  const s0 = useSharedValue(0);
+  const s1 = useSharedValue(0);
+  const s2 = useSharedValue(0);
+  const s3 = useSharedValue(0);
+  const s4 = useSharedValue(0);
+  const s5 = useSharedValue(0);
+  const fills: SharedValue<number>[] = [s0, s1, s2, s3, s4, s5];
 
   useEffect(() => {
     fills.forEach((sv, i) => {
@@ -46,9 +56,9 @@ export function TierLadder({
         })
       );
     });
-  // fills is stable; don't include it.
+  // fills is stable across renders — six SharedValues bound by hook calls.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tierIndex, total, reducedMotion]);
+  }, [tierIndex, reducedMotion]);
 
   return (
     <View
@@ -56,9 +66,12 @@ export function TierLadder({
       accessibilityValue={{ min: 1, max: total, now: Math.max(1, tierIndex) }}
       style={styles.row}
     >
-      {fills.map((sv, i) => (
-        <Segment key={i} sv={sv} fillColor={fillColor} trackColor={trackColor} />
-      ))}
+      <Segment sv={s0} fillColor={fillColor} trackColor={trackColor} />
+      <Segment sv={s1} fillColor={fillColor} trackColor={trackColor} />
+      <Segment sv={s2} fillColor={fillColor} trackColor={trackColor} />
+      <Segment sv={s3} fillColor={fillColor} trackColor={trackColor} />
+      <Segment sv={s4} fillColor={fillColor} trackColor={trackColor} />
+      <Segment sv={s5} fillColor={fillColor} trackColor={trackColor} />
     </View>
   );
 }
@@ -68,7 +81,7 @@ function Segment({
   fillColor,
   trackColor,
 }: {
-  sv: { value: number };
+  sv: SharedValue<number>;
   fillColor: string;
   trackColor: string;
 }) {
@@ -80,7 +93,10 @@ function Segment({
       <Animated.View
         style={[
           styles.fill,
-          { backgroundColor: fillColor, transformOrigin: 'left' as any },
+          // CSS-style transform-origin string — works in RN 0.76+ which
+          // accepts the same syntax as the web. Anchors the scaleX at the
+          // left edge so the segment fills L→R.
+          { backgroundColor: fillColor, transformOrigin: '0% 50%' },
           animStyle,
         ]}
       />

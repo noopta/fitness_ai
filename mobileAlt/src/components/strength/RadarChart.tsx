@@ -80,19 +80,42 @@ export function RadarChart({ axes, size = 310, showTarget = true, onAxisPress }:
     return { ringPoints, spokes, targetPoints, labels, dotsCurrent };
   }, [axes, cx, cy, r]);
 
-  // One SharedValue per axis. We always create the max we'll ever need (8 is
-  // a safe upper bound — handoff spec is 6) so the hook count is stable.
-  const v0 = useSharedValue(0); const v1 = useSharedValue(0);
-  const v2 = useSharedValue(0); const v3 = useSharedValue(0);
-  const v4 = useSharedValue(0); const v5 = useSharedValue(0);
-  const v6 = useSharedValue(0); const v7 = useSharedValue(0);
-  const values = [v0, v1, v2, v3, v4, v5, v6, v7];
+  // One SharedValue per axis. Hooks are unrolled (not via map/Array.from)
+  // so React 19 + Reanimated 4 see a stable hook order. Eight is the upper
+  // bound — the handoff caps at six. Worklet references each by name to
+  // avoid an array dereference inside the worklet thread, which Reanimated
+  // 4 sometimes refuses to capture cleanly.
+  const v0 = useSharedValue(0);
+  const v1 = useSharedValue(0);
+  const v2 = useSharedValue(0);
+  const v3 = useSharedValue(0);
+  const v4 = useSharedValue(0);
+  const v5 = useSharedValue(0);
+  const v6 = useSharedValue(0);
+  const v7 = useSharedValue(0);
+
+  // Pre-computed angle/scale constants captured by the worklet closure. The
+  // worklet captures only primitives + the SharedValue refs, never the axes
+  // array (which would force a new closure on every render).
+  const a0x = Math.cos(ang(0)) * r; const a0y = Math.sin(ang(0)) * r;
+  const a1x = Math.cos(ang(1)) * r; const a1y = Math.sin(ang(1)) * r;
+  const a2x = Math.cos(ang(2)) * r; const a2y = Math.sin(ang(2)) * r;
+  const a3x = Math.cos(ang(3)) * r; const a3y = Math.sin(ang(3)) * r;
+  const a4x = Math.cos(ang(4)) * r; const a4y = Math.sin(ang(4)) * r;
+  const a5x = Math.cos(ang(5)) * r; const a5y = Math.sin(ang(5)) * r;
+  const a6x = N > 6 ? Math.cos(ang(6)) * r : 0; const a6y = N > 6 ? Math.sin(ang(6)) * r : 0;
+  const a7x = N > 7 ? Math.cos(ang(7)) * r : 0; const a7y = N > 7 ? Math.sin(ang(7)) * r : 0;
 
   useEffect(() => {
-    axes.forEach((a, i) => {
-      const sv = values[i];
-      if (!sv) return;
-      const target = a.current;
+    const targets = [
+      axes[0]?.current ?? 0, axes[1]?.current ?? 0,
+      axes[2]?.current ?? 0, axes[3]?.current ?? 0,
+      axes[4]?.current ?? 0, axes[5]?.current ?? 0,
+      axes[6]?.current ?? 0, axes[7]?.current ?? 0,
+    ];
+    const svs = [v0, v1, v2, v3, v4, v5, v6, v7];
+    svs.forEach((sv, i) => {
+      const target = targets[i];
       if (reducedMotion) {
         sv.value = withTiming(target, { duration: 80 });
       } else {
@@ -105,21 +128,28 @@ export function RadarChart({ axes, size = 310, showTarget = true, onAxisPress }:
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [axes, reducedMotion]);
 
-  // Derived path: recomputed in worklet whenever any value changes.
+  // Derived path: recomputed in worklet whenever any value changes. References
+  // each SharedValue directly — no JS array dereferencing, no closure over
+  // mutable refs. Cheaper to capture and immune to GC reordering.
   const pathD = useDerivedValue(() => {
     'worklet';
-    const parts: string[] = [];
-    for (let i = 0; i < N; i++) {
-      const sv = values[i];
-      const v = sv ? sv.value : 0;
-      const x = cx + Math.cos(ang(i)) * r * (v / 100);
-      const y = cy + Math.sin(ang(i)) * r * (v / 100);
-      parts.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`);
-    }
-    return parts.join(' ') + ' Z';
-  // values[] is stable across renders.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [N, cx, cy, r]);
+    const seg = (active: boolean, x: number, y: number, ax: number, ay: number, sv: number, prefix: 'M' | 'L') => {
+      if (!active) return '';
+      const px = x + ax * (sv / 100);
+      const py = y + ay * (sv / 100);
+      return `${prefix}${px.toFixed(1)} ${py.toFixed(1)} `;
+    };
+    let d = '';
+    d += seg(N > 0, cx, cy, a0x, a0y, v0.value, 'M');
+    d += seg(N > 1, cx, cy, a1x, a1y, v1.value, 'L');
+    d += seg(N > 2, cx, cy, a2x, a2y, v2.value, 'L');
+    d += seg(N > 3, cx, cy, a3x, a3y, v3.value, 'L');
+    d += seg(N > 4, cx, cy, a4x, a4y, v4.value, 'L');
+    d += seg(N > 5, cx, cy, a5x, a5y, v5.value, 'L');
+    d += seg(N > 6, cx, cy, a6x, a6y, v6.value, 'L');
+    d += seg(N > 7, cx, cy, a7x, a7y, v7.value, 'L');
+    return d + 'Z';
+  });
 
   const animatedProps = useAnimatedProps(() => ({ d: pathD.value }));
 
