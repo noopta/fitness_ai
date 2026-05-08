@@ -121,18 +121,42 @@ async function summarize(title: string, rawText: string, type: 'research' | 'art
  * abstract, the model politely says "I don't have the study's results" or
  * "Please paste the abstract", which we then save as the user-facing summary.
  * Reject these so they never reach the feed.
+ *
+ * Earlier version of this function missed a real-world refusal because GPT
+ * uses curly apostrophes ('') and em-dashes (—) in its prose, while the
+ * heuristic compared against ASCII straight apostrophes. We now normalize
+ * the text first and use a broader set of refusal-only signals: words like
+ * "paste", "could you", and "can you provide" almost never appear in a real
+ * 2–3 sentence research summary, so their presence reliably flags a refusal.
  */
 function isFallbackRefusal(text: string): boolean {
-  const t = text.toLowerCase();
+  // Normalize so curly/typographic punctuation matches ASCII checks.
+  const t = text
+    .toLowerCase()
+    .replace(/[‘’]/g, "'")  // curly single quotes → '
+    .replace(/[“”]/g, '"')  // curly double quotes → "
+    .replace(/[–—]/g, '-'); // en-/em-dashes → -
+
+  if (t.length < 60) return true;
+
   return (
     t.includes("don't have") ||
     t.includes('do not have') ||
-    t.includes('paste the abstract') ||
+    t.includes('paste') ||             // "paste the abstract", "paste the study's results"
+    t.includes('could you') ||
+    t.includes('can you provide') ||
     t.includes('only the title') ||
     t.includes('only have the title') ||
+    t.includes("study's results") ||
     t.includes('cannot summarize') ||
     t.includes("can't summarize") ||
-    t.length < 40
+    // Real research summaries don't address the reader directly with "i" or
+    // "please" in the opening clause. Strong signal of a refusal.
+    /^\s*(i |i'|please )/i.test(t) ||
+    // GPT refusals frequently mention "the abstract" as a noun the user
+    // should provide; valid summaries about a study don't refer to "the
+    // abstract" — they refer to the study itself.
+    t.includes('the abstract')
   );
 }
 
