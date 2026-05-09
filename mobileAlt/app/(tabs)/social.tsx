@@ -104,7 +104,10 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const { unit } = useUnits();
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
-  const slideY = useSharedValue(400);
+  // Initial off-screen position. Uses SCREEN_HEIGHT (not 400) so the sheet
+  // is fully below the screen regardless of device height — same reason as
+  // the close-animation target below.
+  const slideY = useSharedValue(SCREEN_HEIGHT);
   const backdropAlpha = useSharedValue(0);
 
   const [postTab, setPostTab] = useState<PostTab>('text');
@@ -154,7 +157,10 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       backdropAlpha.value = withTiming(1, { duration: 320 });
     } else if (mounted) {
       resetForm();
-      slideY.value = withTiming(400, { duration: 260, easing: Easing.in(Easing.ease) }, (done) => {
+      // Use SCREEN_HEIGHT (not a magic 400) so the close animation fully
+      // slides the sheet off the bottom regardless of how tall the sheet
+      // expanded — the previous 400 left a sliver visible on tall phones.
+      slideY.value = withTiming(SCREEN_HEIGHT, { duration: 260, easing: Easing.in(Easing.ease) }, (done) => {
         if (done) runOnJS(setMounted)(false);
       });
       backdropAlpha.value = withTiming(0, { duration: 260 });
@@ -1036,8 +1042,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    height: SCREEN_HEIGHT * 0.78,
+    // flex:1 + maxHeight (no fixed height) so when KeyboardAvoidingView pads
+    // the bottom by the keyboard's height, the sheet *shrinks* to fit the
+    // remaining space rather than being pushed up off-screen. Without this
+    // the top of the sheet — including the text input — was clipped above
+    // the safe area whenever the keyboard appeared.
+    flex: 1,
     maxHeight: SCREEN_HEIGHT * 0.88,
+    minHeight: SCREEN_HEIGHT * 0.5,
   },
   modalHeader: {
     flexDirection: 'row',
