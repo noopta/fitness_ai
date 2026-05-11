@@ -26,6 +26,12 @@ model User {
   stripeCustomerId            String?
   stripeSubStatus             String?
   appleOriginalTransactionId  String?           @unique
+  // Google Play subscription tracking. purchaseToken is the long opaque string
+  // returned by Play Billing; productId pins the SKU so renewals can be matched
+  // against the right plan if we ever sell multiple products.
+  googlePurchaseToken         String?           @unique
+  googleProductId             String?
+  googleSubExpiresAt          DateTime?
   dailyAnalysisCount  Int               @default(0)
   dailyAnalysisDate   DateTime?
   dailyPhotoScanCount Int               @default(0)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
   ScrollView, Animated, Dimensions, Alert,
@@ -8,11 +8,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import {
-  initIAP, fetchProProduct, purchaseProMonthly, verifyAppleReceipt,
-  addPurchaseListener, restorePurchases,
+  initIAP as initAppleIAP,
+  fetchProProduct as fetchAppleProProduct,
+  purchaseProMonthly as purchaseAppleMonthly,
+  verifyAppleReceipt,
+  addPurchaseListener as addAppleListener,
+  restorePurchases as restoreApple,
 } from '../lib/iap';
+import {
+  initIAP as initGoogleIAP,
+  fetchProProduct as fetchGoogleProProduct,
+  purchaseProMonthly as purchaseGoogleMonthly,
+  verifyGoogleReceipt,
+  addPurchaseListener as addGoogleListener,
+  restorePurchases as restoreGoogle,
+} from '../lib/googleIap';
 import type { ProductSubscription, Purchase } from 'react-native-iap';
 import { Analytics } from '../lib/analytics';
+
+const IS_ANDROID = Platform.OS === 'android';
+const IS_IOS = Platform.OS === 'ios';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -44,14 +59,14 @@ function PaymentSheetContent({
 }) {
   const { user, refreshUser } = useAuth();
 
-  // ── Apple IAP state ──
+  // ── Native IAP state (Apple on iOS / Google Play on Android) ──
   const [product, setProduct] = useState<ProductSubscription | null>(null);
   const [iapLoading, setIapLoading] = useState(true);
   const [iapPurchasing, setIapPurchasing] = useState(false);
   const [iapError, setIapError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // ── Stripe state ──
+  // ── Stripe state (iOS web fallback only — hidden on Android per Play policy) ──
   const [stripeOpened, setStripeOpened] = useState(false);
   const [stripeConfirming, setStripeConfirming] = useState(false);
 
@@ -62,30 +77,47 @@ function PaymentSheetContent({
   const onSuccessRef = useRef(onSuccess);
   useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
 
-  // Initialise StoreKit and load the product
+  // Initialise the native billing connection for whichever store this is.
+  // Android uses Play Billing; iOS uses StoreKit 2. Same shape, different SDK.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setIapLoading(true);
       setIapError(null);
-      await initIAP();
-      const { product: p, error: fetchErr } = await fetchProProduct();
-      if (!cancelled) {
-        setProduct(p);
-        if (fetchErr) setIapError(`StoreKit: ${fetchErr}`);
-        setIapLoading(false);
+      if (IS_IOS) {
+        await initAppleIAP();
+        const { product: p, error: fetchErr } = await fetchAppleProProduct();
+        if (!cancelled) {
+          setProduct(p);
+          if (fetchErr) setIapError(`StoreKit: ${fetchErr}`);
+          setIapLoading(false);
+        }
+      } else if (IS_ANDROID) {
+        await initGoogleIAP();
+        const { product: p, error: fetchErr } = await fetchGoogleProProduct();
+        if (!cancelled) {
+          setProduct(p);
+          if (fetchErr) setIapError(`Play Billing: ${fetchErr}`);
+          setIapLoading(false);
+        }
+      } else {
+        // Web fallback — no native IAP available
+        if (!cancelled) setIapLoading(false);
       }
     })();
     return () => { cancelled = true; };
   }, [retryCount]);
 
-  // Listen for Apple purchase updates
+  // Listen for purchase updates from whichever store this platform uses.
   useEffect(() => {
-    const remove = addPurchaseListener(
+    const addListener = IS_ANDROID ? addGoogleListener : addAppleListener;
+    const verify = IS_ANDROID ? verifyGoogleReceipt : verifyAppleReceipt;
+    if (!IS_IOS && !IS_ANDROID) return;
+    const remove = addListener(
       async (purchase: Purchase) => {
         setIapPurchasing(true);
         try {
-          await verifyAppleReceipt(purchase);
+          await verify(purchase);
           Analytics.upgradeCompleted();
           onClose();
           await new Promise<void>(resolve => setTimeout(resolve, 300));
@@ -106,13 +138,14 @@ function PaymentSheetContent({
     return remove;
   }, [onClose]);
 
-  const handleAppleSubscribe = useCallback(async () => {
+  const handleNativeSubscribe = useCallback(async () => {
     if (iapPurchasing || !product) return;
-    Analytics.upgradeTapped('apple_iap');
+    Analytics.upgradeTapped(IS_ANDROID ? 'google_play' : 'apple_iap');
     setIapError(null);
     setIapPurchasing(true);
     try {
-      await purchaseProMonthly();
+      if (IS_ANDROID) await purchaseGoogleMonthly(product);
+      else await purchaseAppleMonthly();
     } catch (err: any) {
       const code = err?.code ?? err?.responseCode;
       if (code !== 'E_USER_CANCELLED' && code !== 2) {
@@ -159,14 +192,17 @@ function PaymentSheetContent({
     setRestoring(true);
     setRestoreMsg(null);
     try {
-      const restored = await restorePurchases();
+      const restore = IS_ANDROID ? restoreGoogle : restoreApple;
+      const restored = await restore();
       if (restored) {
         Analytics.upgradeCompleted();
         onClose();
         await new Promise<void>(resolve => setTimeout(resolve, 300));
         onSuccessRef.current();
       } else {
-        setRestoreMsg('No previous purchase found for this Apple ID.');
+        setRestoreMsg(IS_ANDROID
+          ? 'No previous purchase found for this Google account.'
+          : 'No previous purchase found for this Apple ID.');
       }
     } catch (err: any) {
       setRestoreMsg(err?.message ?? 'Restore failed. Please try again.');
@@ -191,46 +227,52 @@ function PaymentSheetContent({
         ))}
       </View>
 
-      {/* ── Stripe payment (primary) ─────────────────────────────────────────── */}
-      <View style={styles.paymentSection}>
-        <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
+      {/* ── Stripe payment — iOS only.
+            Google Play policy requires Play Billing for digital subscriptions;
+            offering Stripe on Android would get the app rejected. ── */}
+      {IS_IOS && (
+        <View style={styles.paymentSection}>
+          <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
 
-        {!stripeOpened ? (
-          <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
-            <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.stripeConfirmBox}>
-            <Text style={styles.stripeConfirmMsg}>
-              Complete payment in the browser, then tap below to activate your account.
-            </Text>
-            <TouchableOpacity
-              style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
-              onPress={handleStripeConfirm}
-              disabled={stripeConfirming}
-              activeOpacity={0.85}
-            >
-              {stripeConfirming ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={styles.stripeBtnText}>I've completed payment</Text>
-                </>
-              )}
+          {!stripeOpened ? (
+            <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
+              <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleStripeCheckout} style={styles.reopenLink}>
-              <Text style={styles.reopenLinkText}>Reopen checkout</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+          ) : (
+            <View style={styles.stripeConfirmBox}>
+              <Text style={styles.stripeConfirmMsg}>
+                Complete payment in the browser, then tap below to activate your account.
+              </Text>
+              <TouchableOpacity
+                style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
+                onPress={handleStripeConfirm}
+                disabled={stripeConfirming}
+                activeOpacity={0.85}
+              >
+                {stripeConfirming ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                    <Text style={styles.stripeBtnText}>I've completed payment</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleStripeCheckout} style={styles.reopenLink}>
+                <Text style={styles.reopenLinkText}>Reopen checkout</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
 
-      {/* ── Apple IAP — only shown once StoreKit confirms the product is available ── */}
+      {/* ── Native store IAP — Apple on iOS, Google Play on Android ── */}
       {(iapLoading || product || iapError) && (
         <View style={styles.paymentSection}>
-          <Text style={styles.paymentSectionLabel}>PAY WITH APPLE ID</Text>
+          <Text style={styles.paymentSectionLabel}>
+            {IS_ANDROID ? 'PAY WITH GOOGLE PLAY' : 'PAY WITH APPLE ID'}
+          </Text>
 
           {iapError ? (
             <View style={styles.errorBanner}>
@@ -245,7 +287,7 @@ function PaymentSheetContent({
           ) : (
             <TouchableOpacity
               style={[styles.appleBtn, (iapPurchasing || iapLoading || !product) && styles.btnDisabled]}
-              onPress={handleAppleSubscribe}
+              onPress={handleNativeSubscribe}
               disabled={iapPurchasing || iapLoading || !product}
               activeOpacity={0.85}
             >
@@ -253,7 +295,12 @@ function PaymentSheetContent({
                 <ActivityIndicator color={colors.mutedForeground} />
               ) : (
                 <View style={styles.appleBtnInner}>
-                  <Ionicons name="logo-apple" size={17} color={colors.foreground} style={{ marginRight: 6 }} />
+                  <Ionicons
+                    name={IS_ANDROID ? 'logo-google-playstore' : 'logo-apple'}
+                    size={17}
+                    color={colors.foreground}
+                    style={{ marginRight: 6 }}
+                  />
                   <Text style={styles.appleBtnText}>Subscribe · {displayPrice}/mo</Text>
                 </View>
               )}
@@ -279,7 +326,8 @@ function PaymentSheetContent({
 
       <Text style={styles.legal}>
         Axiom Pro · auto-renews monthly. Cancel anytime.{'\n'}
-        Card payments processed securely by Stripe.{'\n'}
+        {IS_IOS ? 'Card payments processed securely by Stripe.\n' : ''}
+        {IS_ANDROID ? 'Subscription managed by Google Play. Manage anytime in Play Store → Subscriptions.\n' : ''}
         <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms of Use</Text>
         {'  ·  '}
         <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy Policy</Text>

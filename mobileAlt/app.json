@@ -60,7 +60,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.axiom.mobile",
+      "package": "io.axiomtraining.app",
       "intentFilters": [
         {
           "action": "VIEW",
