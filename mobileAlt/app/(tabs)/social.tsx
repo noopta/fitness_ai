@@ -1042,14 +1042,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
-    // flex:1 + maxHeight (no fixed height) so when KeyboardAvoidingView pads
-    // the bottom by the keyboard's height, the sheet *shrinks* to fit the
-    // remaining space rather than being pushed up off-screen. Without this
-    // the top of the sheet — including the text input — was clipped above
-    // the safe area whenever the keyboard appeared.
+    // flex:1 gives the inner ScrollView a height to fill. maxHeight caps the
+    // sheet so it doesn't cover the status bar. No minHeight — that forced
+    // the sheet larger than the available space when the keyboard was up,
+    // clipping the header and top of the textarea above the viewport.
     flex: 1,
-    maxHeight: SCREEN_HEIGHT * 0.88,
-    minHeight: SCREEN_HEIGHT * 0.5,
+    maxHeight: SCREEN_HEIGHT * 0.85,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1107,6 +1105,7 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     backgroundColor: colors.background,
     minHeight: 120,
+    maxHeight: 160,
   },
   textInputSingleLine: {
     minHeight: 0,
