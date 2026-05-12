@@ -52,8 +52,10 @@ app.use(cors({
     // Allow requests with no origin (curl, mobile apps, Postman)
     if (!origin) return callback(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    // Allow any Replit dev preview URL
-    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co')) return callback(null, true);
+    // Allow any Replit dev preview / deploy URL (.replit.app is the newer
+    // production-deploy domain Replit uses; .replit.dev is dev previews; .repl.co
+    // is the legacy domain).
+    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co') || origin.endsWith('.replit.app')) return callback(null, true);
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
