@@ -23,6 +23,7 @@ import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import Privacy from "./pages/privacy";
 import Terms from "./pages/terms";
+import DeleteAccount from "./pages/delete-account";
 import CoachPage from "./pages/coach";
 import SettingsPage from "./pages/settings";
 import WorkoutsPage from "./pages/workouts";
@@ -179,6 +180,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/delete-account" component={DeleteAccount} />
       <Route path="/mvp" component={ProtectedOnboarding} />
       <Route path="/onboarding" component={ProtectedOnboarding} />
       <Route path="/snapshot" component={ProtectedSnapshot} />
