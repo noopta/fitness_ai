@@ -165,7 +165,26 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
     }
   }
 
+  // Reset every input-bearing field. Called from both handleClose and the
+  // post-save path so a user who logs one meal, dismisses, or cancels never
+  // sees stale text from the previous session. `mode` is intentionally
+  // preserved — if the user used Describe last time, that's their stickiness
+  // preference. Stale text in any of these fields was the source of the
+  // 'previous meal description still showing' bug.
+  function resetFields() {
+    setMealDesc('');
+    setPhotoUri(null);
+    setName('');
+    setMealType('meal');
+    setCalories('');
+    setProtein('');
+    setCarbs('');
+    setFat('');
+    setNotes('');
+  }
+
   function handleClose() {
+    resetFields();
     onClose();
   }
 
@@ -191,8 +210,8 @@ export function MealLogModal({ visible, onClose, onSaved, prefill, date }: Props
       // nutrition profile. Invalidate broad — both subtrees are cheap to refetch.
       invalidateCache('coach:');
       invalidateCache('nutrition:profile:');
-      setName(''); setMealType('meal'); setCalories(''); setProtein(''); setCarbs(''); setFat(''); setNotes('');
-      setPhotoUri(null);
+      // handleClose() resets all fields (including mealDesc) before firing
+      // onClose, so subsequent opens start from a clean slate.
       handleClose();
       onSaved();
     } catch (err: any) {
