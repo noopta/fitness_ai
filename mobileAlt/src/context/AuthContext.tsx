@@ -49,6 +49,14 @@ interface AuthContextType {
   googleLogin: () => Promise<void>;
   appleLogin: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  /**
+   * Finish an auth flow that arrived via deep link (e.g., the Android Google
+   * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
+   * the OS rather than intercepting it in-browser). Persists the token,
+   * verifies via /auth/me, and updates user + needsDobCheck state. Returns
+   * true on success, false on any failure (caller decides where to route).
+   */
+  completeAuthCallback: (token: string, opts?: { needsDob?: boolean }) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -110,6 +118,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { await authApi.logout(); } catch { /* ignore */ }
     await clearToken();
     setUser(null);
+  }
+
+  /**
+   * Used by the /auth/callback deep-link route. Same logic the googleLogin
+   * success branch runs inline, but reachable from any screen that lands
+   * with an `?token=...` parameter — needed on Android where Chrome Custom
+   * Tabs sometimes hands off the redirect to the OS rather than intercepting
+   * it inside openAuthSessionAsync.
+   */
+  async function completeAuthCallback(
+    token: string,
+    opts?: { needsDob?: boolean },
+  ): Promise<boolean> {
+    await setToken(token);
+    try {
+      const res = await fetch('https://api.airthreads.ai:4009/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        await clearToken();
+        return false;
+      }
+      setUser(data.user);
+      if (opts?.needsDob) setNeedsDobCheck(true);
+      return true;
+    } catch {
+      // Network error — token is stored, but we couldn't verify. Roll back so
+      // the user lands on the welcome screen and can retry rather than being
+      // stuck in a half-authenticated state.
+      await clearToken();
+      return false;
+    }
   }
 
   async function googleLogin() {
@@ -203,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, logout, googleLogin, appleLogin, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, logout, googleLogin, appleLogin, refreshUser, completeAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );
