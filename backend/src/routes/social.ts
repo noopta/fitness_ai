@@ -730,10 +730,14 @@ router.get('/social/feed', wrap(async (req, res) => {
 // user taps the "Research" button. Allowed to be slow (5-12s when PubMed cache
 // is exhausted) because the user explicitly opted in.
 //
-// `noSeenFallback: true` is the critical bit: when the user has seen every
-// available article, return [] instead of repeating already-seen items. The
-// frontend reads `exhausted: true` and shows a "you're caught up" alert.
-// Without this, three quick taps duplicate the same article three times.
+// Two passes:
+//   1. Try to fetch unseen items matching the user's goal tags.
+//   2. If exhausted, trigger a PubMed pull and re-query for fresh items.
+// If still nothing new, getCachedFeedItems falls back to seen items ordered by
+// least-recently-viewed — so consecutive taps cycle through the user's
+// backlog instead of returning the same article (which is what was happening
+// before this design: "no new articles" stuck users on the same top item).
+// `exhausted: true` is still set so the UI can label the response.
 router.get('/social/feed/articles', wrap(async (req, res) => {
   const userId = req.user!.id;
   const fresh = req.query.fresh === '1' || req.query.fresh === 'true';
@@ -742,24 +746,25 @@ router.get('/social/feed/articles', wrap(async (req, res) => {
   let result = await getCachedFeedItems(userId, tags, 10, {
     forceRefresh: fresh,
     excludeSeen: true,
-    noSeenFallback: true,
   });
 
-  // If unseen pool is empty, pull from PubMed and re-query. If even that returns
-  // nothing new, leave items=[] + exhausted:true so the UI shows "caught up"
-  // rather than re-displaying yesterday's article.
+  // If the unseen pool is empty, pull from PubMed and re-query so the user
+  // gets genuinely new content when it's available. recordFeedViews then
+  // bumps viewedAt on returned rows so the next tap cycles forward.
   if (fresh && result.exhausted) {
     const fetched = await maybeFetchFromSources(userId, tags);
     if (fetched) {
       result = await getCachedFeedItems(userId, tags, 10, {
         forceRefresh: true,
         excludeSeen: true,
-        noSeenFallback: true,
       });
     }
   }
 
   if (result.items.length > 0) {
+    // Upsert viewedAt — this is what makes the least-recently-viewed rotation
+    // actually rotate. Without bumping the timestamp, the same items would
+    // re-surface every tap.
     recordFeedViews(userId, result.items.map((i: any) => i.id)).catch(e =>
       console.error('[feed/articles] recordFeedViews failed:', e),
     );

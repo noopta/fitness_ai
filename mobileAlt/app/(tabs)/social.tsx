@@ -597,11 +597,24 @@ export default function SocialScreen() {
       });
 
       if (articles.length === 0) {
+        // Backend genuinely has nothing to serve (empty DB / network error).
+        // The least-recently-viewed rotation means this should be rare — the
+        // common "no new stuff" case still returns items.
         Alert.alert(
-          "You're caught up",
-          "No new research available right now. Check back later — we pull fresh studies daily.",
+          'Could not load articles',
+          'Please try again in a moment.',
         );
         return;
+      }
+
+      // Subtle nudge when the backend signals exhausted — user is rotating
+      // through their backlog rather than seeing brand-new content. Skipped
+      // when there's unseen new stuff because the toast would feel redundant.
+      if (data?.exhausted) {
+        Alert.alert(
+          "You're caught up",
+          "Showing some you've read before. We pull fresh studies daily — check back tomorrow.",
+        );
       }
 
       // Strip out any existing research items first, then interleave the new

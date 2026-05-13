@@ -335,8 +335,10 @@ export async function runDailyFeedFetch(): Promise<void> {
 
 export interface FeedItemQueryOptions {
   excludeSeenForUserId?: string;
-  // When recall is exhausted (everything seen), allow returning seen items so the
-  // feed isn't empty. Used as a fallback signal to the route — see "exhausted".
+  // When recall is exhausted, allow returning seen items so the feed isn't
+  // empty. When set, seen items are returned ordered by least-recently viewed
+  // (so the user cycles through their backlog rather than getting the same
+  // top-of-list article every tap).
   allowSeenFallback?: boolean;
 }
 
@@ -353,13 +355,18 @@ export async function getFeedItemsForTags(
   // Pull a wider pool than `limit` so per-user filtering still leaves enough to score.
   const POOL = Math.max(200, limit * 30);
 
-  let seenItemIds = new Set<string>();
+  // Pull views WITH viewedAt so we can sort seen-fallback items by least
+  // recently viewed. Without this, "no new articles" stuck users on the same
+  // top-scored item every tap.
+  let seenAtById = new Map<string, number>();
   if (opts.excludeSeenForUserId) {
     const views = await prisma.userFeedView.findMany({
       where: { userId: opts.excludeSeenForUserId },
-      select: { feedItemId: true },
+      select: { feedItemId: true, viewedAt: true },
     });
-    seenItemIds = new Set(views.map(v => v.feedItemId));
+    for (const v of views) {
+      seenAtById.set(v.feedItemId, v.viewedAt.getTime());
+    }
   }
 
   const allItems = await prisma.feedItem.findMany({
@@ -377,17 +384,20 @@ export async function getFeedItemsForTags(
 
   scored.sort((a, b) => b.overlap - a.overlap || b.item.fetchedAt.getTime() - a.item.fetchedAt.getTime());
 
-  const unseen = scored.filter(({ item }) => !seenItemIds.has(item.id));
+  const unseen = scored.filter(({ item }) => !seenAtById.has(item.id));
   let chosen = unseen.slice(0, limit);
   let exhausted = false;
   if (chosen.length < limit && opts.allowSeenFallback) {
-    // Top up from seen items, oldest-viewed first — but we don't have that order
-    // here without a join, so just use the same scored order. The route will mark
-    // these as already-shown so the UI can label "you're caught up."
     exhausted = true;
     const need = limit - chosen.length;
-    const filler = scored.filter(s => seenItemIds.has(s.item.id)).slice(0, need);
-    chosen = [...chosen, ...filler];
+    // Take from seen items, but order by least-recently viewed so consecutive
+    // taps cycle through the user's backlog instead of returning the same
+    // article. Items unseen by the user score as fetchedAt-old (-Infinity) but
+    // we filtered those out above.
+    const seenSorted = scored
+      .filter(s => seenAtById.has(s.item.id))
+      .sort((a, b) => (seenAtById.get(a.item.id)! - seenAtById.get(b.item.id)!));
+    chosen = [...chosen, ...seenSorted.slice(0, need)];
   } else if (chosen.length < limit) {
     exhausted = true;
   }
@@ -407,20 +417,20 @@ export async function getFeedItemsForTags(
   return { items, exhausted };
 }
 
-// Mark items as viewed by a user. Idempotent (unique on userId+feedItemId).
+// Mark items as viewed by a user. Upserts so an existing row gets its
+// viewedAt bumped to now — that's what makes the seen-fallback rotation in
+// getFeedItemsForTags cycle through the backlog. Without the upsert, the
+// same article would appear every time.
 export async function recordFeedViews(userId: string, feedItemIds: string[]): Promise<void> {
   if (feedItemIds.length === 0) return;
-  await prisma.userFeedView.createMany({
-    data: feedItemIds.map(feedItemId => ({ userId, feedItemId })),
-    // SQLite supports skipDuplicates with createMany via Prisma since 4.x
-    // but if not available the @@unique will throw — wrap in try/catch as fallback.
-  }).catch(async () => {
-    for (const feedItemId of feedItemIds) {
-      try {
-        await prisma.userFeedView.create({ data: { userId, feedItemId } });
-      } catch { /* already exists */ }
-    }
-  });
+  const now = new Date();
+  await Promise.all(feedItemIds.map(feedItemId =>
+    prisma.userFeedView.upsert({
+      where: { userId_feedItemId: { userId, feedItemId } },
+      create: { userId, feedItemId, viewedAt: now },
+      update: { viewedAt: now },
+    }).catch(() => { /* swallow per-row failures so one bad write doesn't sink the batch */ }),
+  ));
 }
 
 // On-demand source fetch trigger, rate-limited per user. Returns whether we
@@ -557,10 +567,6 @@ const RESEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 export interface CachedFeedOptions {
   forceRefresh?: boolean;
   excludeSeen?: boolean;
-  // When true and the pool of unseen items is empty, return [] + exhausted:true
-  // instead of falling back to previously-viewed items. Used by the explicit
-  // "Research" button so repeated taps don't keep returning the same articles.
-  noSeenFallback?: boolean;
 }
 
 export async function getCachedFeedItems(
@@ -569,8 +575,7 @@ export async function getCachedFeedItems(
   limit = 10,
   options: CachedFeedOptions = {},
 ): Promise<{ items: any[]; exhausted: boolean }> {
-  const fallbackSuffix = options.noSeenFallback ? ':strict' : '';
-  const key = `${userId}:${[...tags].sort().join(',')}:${options.excludeSeen ? 'unseen' : 'all'}${fallbackSuffix}`;
+  const key = `${userId}:${[...tags].sort().join(',')}:${options.excludeSeen ? 'unseen' : 'all'}`;
   if (!options.forceRefresh) {
     const hit = researchCache.get(key);
     if (hit && Date.now() < hit.expiresAt) return { items: hit.items, exhausted: hit.exhausted };
@@ -578,9 +583,11 @@ export async function getCachedFeedItems(
 
   const result = await getFeedItemsForTags(tags, limit, {
     excludeSeenForUserId: options.excludeSeen ? userId : undefined,
-    // When the caller passes noSeenFallback (explicit refresh), don't pad
-    // results with already-viewed items — the UI would render duplicates.
-    allowSeenFallback: options.excludeSeen && !options.noSeenFallback,
+    // Always allow the seen-fallback. getFeedItemsForTags now sorts those by
+    // least-recently-viewed, so consecutive taps rotate through the backlog
+    // instead of repeating the same article. `exhausted: true` is still set
+    // when the unseen pool is empty so the UI can label "you're caught up".
+    allowSeenFallback: !!options.excludeSeen,
   });
   researchCache.set(key, {
     items: result.items,
