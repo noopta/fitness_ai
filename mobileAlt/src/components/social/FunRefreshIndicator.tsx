@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing } from '../../constants/theme';
 
@@ -32,6 +33,11 @@ interface Props {
  * gives us a branded animation across both platforms with one component.
  */
 export function FunRefreshIndicator({ visible }: Props) {
+  // The indicator was clipping at the top because it positioned at top: spacing.md
+  // inside an absolutely-positioned wrapper, which ignored the safe area inset on
+  // notched devices and pushed the pill behind the status bar / dynamic island.
+  // We now offset below the top inset.
+  const insets = useSafeAreaInsets();
   const scale = useSharedValue(1);
   const rotate = useSharedValue(0);
   const [msgIdx, setMsgIdx] = useState(0);
@@ -79,7 +85,10 @@ export function FunRefreshIndicator({ visible }: Props) {
   if (!visible) return null;
 
   return (
-    <View pointerEvents="none" style={styles.container}>
+    <View
+      pointerEvents="none"
+      style={[styles.container, { top: insets.top + spacing.sm }]}
+    >
       <View style={styles.pill}>
         <Animated.View style={iconStyle}>
           <Ionicons name="barbell" size={22} color={colors.primary} />
@@ -93,7 +102,7 @@ export function FunRefreshIndicator({ visible }: Props) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: spacing.md,
+    // `top` is set dynamically using safe-area insets in the component above.
     left: 0,
     right: 0,
     alignItems: 'center',

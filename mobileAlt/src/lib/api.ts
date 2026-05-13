@@ -383,8 +383,23 @@ export const socialApi = {
   shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object; caption?: string }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
-  getFeed: (opts?: { fresh?: boolean }) =>
-    apiFetch(`/social/feed${opts?.fresh ? '?fresh=1' : ''}`),
+  // Pull-to-refresh: includeResearch defaults to false so the feed loads fast
+  // (article fetches can take 5-12s when the server's PubMed cache is empty).
+  // Pass includeResearch:true on first mount to seed the feed once.
+  getFeed: (opts?: { fresh?: boolean; includeResearch?: boolean }) => {
+    const params = new URLSearchParams();
+    if (opts?.fresh) params.set('fresh', '1');
+    if (opts?.includeResearch === false) params.set('include_research', '0');
+    const qs = params.toString();
+    return apiFetch(`/social/feed${qs ? `?${qs}` : ''}`);
+  },
+  // Articles-only endpoint. Called when the user explicitly taps "Get fresh
+  // research" — slower fetches are acceptable since the user opted in.
+  getFeedArticles: (opts?: { fresh?: boolean }) =>
+    apiFetch(`/social/feed/articles${opts?.fresh ? '?fresh=1' : ''}`),
+  // Polled periodically to populate the Twitter-style "N new posts" pill.
+  getNewPostCount: (afterIso: string) =>
+    apiFetch(`/social/feed/new-count?after=${encodeURIComponent(afterIso)}`),
 
   // Saved articles
   saveArticle: (articleId: string) =>

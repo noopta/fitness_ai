@@ -141,7 +141,7 @@ export default function HistoryScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Text style={styles.screenTitle}>History</Text>
+        <Text style={styles.screenTitle}>Diagnostics</Text>
         <TouchableOpacity
           style={styles.newButton}
           activeOpacity={0.82}

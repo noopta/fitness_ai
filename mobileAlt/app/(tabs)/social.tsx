@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
   Modal, TextInput, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
@@ -517,39 +517,107 @@ export default function SocialScreen() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(cachedSavedIds ?? []));
   const [exhausted, setExhausted] = useState(cachedFeed?.exhausted ?? false);
 
+  // Twitter-style "N new posts" pill state. We poll a cheap COUNT endpoint
+  // every 30s while the screen is mounted. `latestPostAtRef` is the most-recent
+  // post timestamp the user has already seen — passed as `?after=...` to the
+  // count endpoint. When the user taps the pill we re-fetch the feed and reset.
+  const [newPostCount, setNewPostCount] = useState(0);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+  const latestPostAtRef = useRef<string | null>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
+
+  // Helper to keep latestPostAtRef in sync with what's currently in the feed.
+  const updateLatestPostAt = useCallback((items: FeedItem[]) => {
+    const firstPost = items.find((it: any) => it.kind === 'post')?.data;
+    const createdAt = firstPost?.createdAt;
+    if (createdAt) latestPostAtRef.current = createdAt;
+  }, []);
+
   // `force=true` skips the cache and tells the server to bypass its per-user
   // feed cache (?fresh=1). Pull-to-refresh and post-mutation paths use it.
-  // Default: cache-first — no network at all if a fresh snapshot exists.
-  const loadFeed = useCallback((force = false) => {
+  //
+  // Posts-only by default — article fetching is opt-in via the "Get fresh
+  // research" button. This is the bug fix for the "feed loads slow" report:
+  // pulling articles in-line could block the response for 5-12s when the
+  // PubMed cache was exhausted.
+  const loadFeed = useCallback((force = false, opts?: { includeResearch?: boolean }) => {
+    const includeResearch = opts?.includeResearch ?? false;
     if (!force && feedCacheKey) {
       const cached = getCached<{ items: FeedItem[]; exhausted: boolean }>(feedCacheKey, FEED_TTL_MS);
       if (cached) {
         setFeed(cached.items);
         setExhausted(cached.exhausted);
         setLoadingFeed(false);
+        updateLatestPostAt(cached.items);
         return Promise.resolve();
       }
     }
     if (!force) setLoadingFeed(feed.length === 0);
-    return socialApi.getFeed({ fresh: force })
+    return socialApi.getFeed({ fresh: force, includeResearch })
       .then((data) => {
         const items = Array.isArray(data) ? data : data.items ?? [];
         const exhaustedFlag = !!data?.exhausted;
         setFeed(items);
         setExhausted(exhaustedFlag);
+        setNewPostCount(0); // we just refreshed — clear the pill
+        updateLatestPostAt(items);
         if (feedCacheKey) setCached(feedCacheKey, { items, exhausted: exhaustedFlag });
       })
       .catch(() => socialApi.getSharedFeed()
         .then((data) => {
           const items = (Array.isArray(data) ? data : data.items ?? []).map((item: any) => ({ kind: 'post', data: item }));
           setFeed(items as any);
+          updateLatestPostAt(items as any);
           if (feedCacheKey) setCached(feedCacheKey, { items, exhausted: false });
         })
         .catch(() => setFeed([]))
       )
       .finally(() => setLoadingFeed(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [feedCacheKey, feed.length]);
+  }, [feedCacheKey, feed.length, updateLatestPostAt]);
+
+  // Fetch articles on demand — called from the "Get fresh research" button.
+  // Merges incoming articles into the existing feed, interleaving every 3
+  // posts. Slow fetches are acceptable here because the user explicitly opted in.
+  const loadArticles = useCallback(async () => {
+    setLoadingArticles(true);
+    try {
+      const data = await socialApi.getFeedArticles({ fresh: true });
+      const articles: any[] = Array.isArray(data) ? data : data.items ?? [];
+      if (articles.length === 0) {
+        Alert.alert('No new research', "You're caught up. Check back later for fresh articles.");
+        return;
+      }
+      // Merge: interleave each new article after every 3 existing posts so the
+      // feed doesn't suddenly become a wall of articles. Existing articles are
+      // preserved at their current positions.
+      setFeed(prev => {
+        const merged: FeedItem[] = [];
+        let articleIdx = 0;
+        let postsSinceLast = 0;
+        for (const item of prev) {
+          merged.push(item);
+          if ((item as any).kind === 'post') {
+            postsSinceLast += 1;
+            if (postsSinceLast >= 3 && articleIdx < articles.length) {
+              merged.push({ kind: 'research', data: articles[articleIdx++] } as any);
+              postsSinceLast = 0;
+            }
+          }
+        }
+        // Any remaining articles go at the end.
+        while (articleIdx < articles.length) {
+          merged.push({ kind: 'research', data: articles[articleIdx++] } as any);
+        }
+        if (feedCacheKey) setCached(feedCacheKey, { items: merged, exhausted: !!data?.exhausted });
+        return merged;
+      });
+    } catch {
+      Alert.alert('Could not load research', 'Please try again in a moment.');
+    } finally {
+      setLoadingArticles(false);
+    }
+  }, [feedCacheKey]);
 
   const loadSaved = useCallback((force = false) => {
     if (!force && savedCacheKey) {
@@ -632,11 +700,41 @@ export default function SocialScreen() {
     loadSaved();
   }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
 
+  // Poll for new posts every 30s so the "N new posts" pill stays current.
+  // We pause polling when the user has the screen in the background (no point
+  // hammering the API). The effect rearms whenever `activeTab` changes back
+  // to feed so we don't poll while they're on the Friends tab either.
+  useEffect(() => {
+    if (activeTab !== 'feed') return;
+    let cancelled = false;
+
+    const poll = async () => {
+      const after = latestPostAtRef.current;
+      if (!after) return;
+      try {
+        const data = await socialApi.getNewPostCount(after);
+        if (!cancelled) setNewPostCount(data?.count ?? 0);
+      } catch { /* silent */ }
+    };
+
+    poll(); // immediate first check on tab mount
+    const id = setInterval(poll, 30_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [activeTab]);
+
+  const handleNewPostsPillTap = useCallback(async () => {
+    // Tapping the pill scrolls to top, then fetches fresh posts. Same as a
+    // pull-to-refresh but driven by the user spotting the badge.
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    setNewPostCount(0);
+    await loadFeed(true);
+  }, [loadFeed]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Pull-to-refresh forces every loader to bypass its cache + tells the
-    // server to bypass the per-user feed cache (?fresh=1). This is the only
-    // way (along with the new-post mutation) to ask for new feed items.
+    // Pull-to-refresh forces a posts-only re-fetch from the server. Article
+    // fetching is now opt-in via the "Get fresh research" button so pulls
+    // stay fast (the article path could take 5-12s on a cold PubMed cache).
     await Promise.all([loadFeed(true), loadFriends(true), loadNotificationCounts(), loadSaved(true)]);
     setRefreshing(false);
   }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
@@ -717,7 +815,24 @@ export default function SocialScreen() {
       </View>
 
       <FunRefreshIndicator visible={refreshing} />
+
+      {/* Twitter-style "N new posts" pill — visible only on the feed tab when
+          polling has detected new content since the user last refreshed. */}
+      {activeTab === 'feed' && newPostCount > 0 && (
+        <TouchableOpacity
+          style={styles.newPostsPill}
+          activeOpacity={0.85}
+          onPress={handleNewPostsPillTap}
+        >
+          <Ionicons name="arrow-up" size={14} color={colors.primaryForeground} />
+          <Text style={styles.newPostsPillText}>
+            {newPostCount === 1 ? '1 new post' : `${newPostCount} new posts`}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -735,15 +850,34 @@ export default function SocialScreen() {
       >
         {activeTab === 'feed' ? (
           <>
-            {/* New Post button */}
-            <TouchableOpacity
-              style={styles.newPostButton}
-              activeOpacity={0.82}
-              onPress={() => setPostModalVisible(true)}
-            >
-              <Ionicons name="add-circle-outline" size={18} color={colors.primaryForeground} />
-              <Text style={styles.newPostButtonText}>New Post</Text>
-            </TouchableOpacity>
+            {/* Action row: New Post (primary) + Get fresh research (secondary).
+                Articles are now opt-in so pull-to-refresh stays fast — taps
+                here trigger the (potentially slow) PubMed cache fetch. */}
+            <View style={styles.feedActionsRow}>
+              <TouchableOpacity
+                style={[styles.newPostButton, styles.feedActionPrimary]}
+                activeOpacity={0.82}
+                onPress={() => setPostModalVisible(true)}
+              >
+                <Ionicons name="add-circle-outline" size={18} color={colors.primaryForeground} />
+                <Text style={styles.newPostButtonText}>New Post</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.researchButton}
+                activeOpacity={0.82}
+                onPress={loadArticles}
+                disabled={loadingArticles}
+              >
+                {loadingArticles ? (
+                  <ActivityIndicator size="small" color={colors.foreground} />
+                ) : (
+                  <Ionicons name="newspaper-outline" size={16} color={colors.foreground} />
+                )}
+                <Text style={styles.researchButtonText}>
+                  {loadingArticles ? 'Loading…' : 'Research'}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             {loadingFeed ? (
               <View style={styles.center}>
@@ -782,7 +916,7 @@ export default function SocialScreen() {
             )}
             {!loadingFeed && exhausted && feed.length > 0 && (
               <View style={styles.center}>
-                <Text style={styles.mutedText}>You're all caught up. Pull to refresh for new articles.</Text>
+                <Text style={styles.mutedText}>You're all caught up. Tap "Research" above for new articles.</Text>
               </View>
             )}
           </>
@@ -931,6 +1065,16 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingVertical: 32, paddingBottom: spacing.xxl, gap: 24 },
 
+  // Action row: holds New Post (primary) + Research (secondary) side by side.
+  feedActionsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  feedActionPrimary: {
+    flex: 1,
+    marginBottom: 0,
+  },
   // New Post button
   newPostButton: {
     flexDirection: 'row',
@@ -943,6 +1087,47 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   newPostButtonText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
+  },
+  researchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  researchButtonText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  // Twitter-style "N new posts" pill that floats above the feed.
+  newPostsPill: {
+    position: 'absolute',
+    top: 110, // below the top bar + segment tabs
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: colors.foreground,
+    borderRadius: 999,
+    zIndex: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  newPostsPillText: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
     color: colors.primaryForeground,

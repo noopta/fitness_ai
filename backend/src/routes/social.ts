@@ -618,9 +618,15 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
 router.get('/social/feed', wrap(async (req, res) => {
   const userId = req.user!.id;
   const fresh = req.query.fresh === '1' || req.query.fresh === 'true';
+  // include_research is true by default for backward compat with older mobile
+  // builds. New mobile clients send include_research=0 on pull-to-refresh so
+  // the post fetch is fast (article fetches can take 5-12s when the PubMed
+  // cache is exhausted), and trigger a separate /social/feed/articles call
+  // when the user explicitly taps "Get fresh articles".
+  const includeResearch = req.query.include_research !== '0' && req.query.include_research !== 'false';
   const t0 = Date.now();
 
-  // Phase 1: friendships + goal tags are independent — run in parallel
+  // Phase 1: friendships + (optionally) goal tags — independent, run in parallel
   const [friendships, tags] = await Promise.all([
     prisma.friendship.findMany({
       where: {
@@ -629,7 +635,7 @@ router.get('/social/feed', wrap(async (req, res) => {
       },
       select: { requesterId: true, addresseeId: true },
     }),
-    getUserGoalTags(userId),
+    includeResearch ? getUserGoalTags(userId) : Promise.resolve([] as Awaited<ReturnType<typeof getUserGoalTags>>),
   ]);
   const t1 = Date.now();
 
@@ -637,7 +643,7 @@ router.get('/social/feed', wrap(async (req, res) => {
     f.requesterId === userId ? f.addresseeId : f.requesterId
   );
 
-  // Phase 2: posts query + research cache lookup — run in parallel
+  // Phase 2: posts query (always) + research cache lookup (only if requested)
   const [rawItems, initialFeedResult] = await Promise.all([
     prisma.sharedItem.findMany({
       where: {
@@ -654,18 +660,19 @@ router.get('/social/feed', wrap(async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: 50,
     }),
-    getCachedFeedItems(userId, tags, 10, { forceRefresh: fresh, excludeSeen: true }),
+    includeResearch
+      ? getCachedFeedItems(userId, tags, 10, { forceRefresh: fresh, excludeSeen: true })
+      : Promise.resolve({ items: [] as any[], exhausted: false }),
   ]);
   let feedItems = initialFeedResult.items;
   let exhausted = initialFeedResult.exhausted;
   const t2 = Date.now();
-  console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} exhausted=${exhausted}`);
+  console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} include_research=${includeResearch} exhausted=${exhausted}`);
 
-  // Pull-to-refresh + the user has seen everything we have for their tags →
-  // fetch from PubMed synchronously (capped latency by fetchOnDemandForUser),
-  // then re-query so the response actually contains the new items. Without
-  // this the user keeps seeing the same articles after every pull.
-  if (fresh && exhausted) {
+  // Pull-to-refresh + user exhausted on cached articles → synchronous PubMed
+  // fetch + re-query. Skip when include_research is off — that's the whole
+  // point of the flag.
+  if (includeResearch && fresh && exhausted) {
     const fetched = await maybeFetchFromSources(userId, tags);
     if (fetched) {
       const refreshed = await getCachedFeedItems(userId, tags, 10, { forceRefresh: true, excludeSeen: true });
@@ -675,7 +682,6 @@ router.get('/social/feed', wrap(async (req, res) => {
   }
 
   // Record views so subsequent refreshes return different items.
-  // Fire-and-forget — don't block the response.
   if (feedItems.length > 0) {
     recordFeedViews(userId, feedItems.map((i: any) => i.id)).catch(e =>
       console.error('[feed] recordFeedViews failed:', e),
@@ -701,7 +707,6 @@ router.get('/social/feed', wrap(async (req, res) => {
   let researchIdx = 0;
 
   if (friendPosts.length === 0) {
-    // No friends yet — just show research items
     result.push(...researchItems);
   } else {
     for (let i = 0; i < friendPosts.length; i++) {
@@ -710,13 +715,83 @@ router.get('/social/feed', wrap(async (req, res) => {
         result.push(researchItems[researchIdx++]);
       }
     }
-    // Append any remaining research items after all friend posts
     while (researchIdx < researchItems.length) {
       result.push(researchItems[researchIdx++]);
     }
   }
 
-  res.json({ items: result, exhausted });
+  // latestPostAt lets the client poll /social/feed/new-count for a Twitter-
+  // style "N new posts" pill without re-fetching the whole feed body.
+  const latestPostAt = friendPosts[0]?.data?.createdAt ?? null;
+  res.json({ items: result, exhausted, latestPostAt });
+}));
+
+// GET /api/social/feed/articles — research/article items only. Called when the
+// user taps the "Get fresh research" button. Allowed to be slow (5-12s when
+// PubMed cache is exhausted) because the user explicitly opted in.
+router.get('/social/feed/articles', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const fresh = req.query.fresh === '1' || req.query.fresh === 'true';
+
+  const tags = await getUserGoalTags(userId);
+  let result = await getCachedFeedItems(userId, tags, 10, { forceRefresh: fresh, excludeSeen: true });
+
+  // Same exhausted-fallback behavior as the main feed: on explicit fresh
+  // request, pull from PubMed and re-query if we have nothing unseen left.
+  if (fresh && result.exhausted) {
+    const fetched = await maybeFetchFromSources(userId, tags);
+    if (fetched) {
+      result = await getCachedFeedItems(userId, tags, 10, { forceRefresh: true, excludeSeen: true });
+    }
+  }
+
+  if (result.items.length > 0) {
+    recordFeedViews(userId, result.items.map((i: any) => i.id)).catch(e =>
+      console.error('[feed/articles] recordFeedViews failed:', e),
+    );
+  }
+
+  res.json({ items: result.items, exhausted: result.exhausted });
+}));
+
+// GET /api/social/feed/new-count?after=<iso> — returns the count of friend
+// posts newer than `after`. Lets the mobile show a "N new posts" pill without
+// re-fetching the entire feed. Fast: just a COUNT query, no serialization.
+router.get('/social/feed/new-count', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const after = typeof req.query.after === 'string' ? new Date(req.query.after) : null;
+  if (!after || isNaN(after.getTime())) {
+    return res.json({ count: 0 });
+  }
+
+  const friendships = await prisma.friendship.findMany({
+    where: {
+      OR: [{ requesterId: userId }, { addresseeId: userId }],
+      status: 'accepted',
+    },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIds = friendships.map(f =>
+    f.requesterId === userId ? f.addresseeId : f.requesterId
+  );
+
+  // Same filter shape as /social/feed but as a count query and excluding the
+  // viewer's own posts (they don't need a notification for what they posted).
+  const count = await prisma.sharedItem.count({
+    where: {
+      createdAt: { gt: after },
+      sharerId: { not: userId },
+      OR: [
+        { recipientId: userId },
+        ...(friendIds.length > 0 ? [{
+          sharerId: { in: friendIds },
+          recipientId: { in: friendIds },
+        }] : []),
+      ],
+    },
+  });
+
+  res.json({ count });
 }));
 
 // ─── Saved articles ───────────────────────────────────────────────────────────

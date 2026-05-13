@@ -683,6 +683,34 @@ export function PostCard({
           onComment={() => setCommentSheetVisible(true)}
           onShare={() => setShowForwardPicker(true)}
         />
+
+        {/* Inline preview of the latest comments (Instagram-style). Without
+            this, comments live entirely behind a tap on the count badge — easy
+            for users to miss when a friend leaves a short reply. */}
+        {item.comments && item.comments.length > 0 && (
+          <View style={cs.commentPreview}>
+            {item.comments.slice(-2).map((c) => {
+              const display = c.author?.username
+                ? `@${c.author.username}`
+                : (c.author?.name ?? 'User');
+              return (
+                <Text key={c.id} style={cs.commentPreviewLine} numberOfLines={2}>
+                  <Text style={cs.commentPreviewName}>{display}</Text>
+                  {'  '}
+                  {c.text}
+                </Text>
+              );
+            })}
+            {item.commentCount > 2 && (
+              <Text
+                style={cs.commentPreviewMore}
+                onPress={() => setCommentSheetVisible(true)}
+              >
+                View all {item.commentCount} comments
+              </Text>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Fullscreen image modal */}
@@ -980,6 +1008,26 @@ const cs = StyleSheet.create({
     borderRadius: 11,
     borderWidth: 2,
     borderColor: '#F87171',
+  },
+
+  // Inline comment preview below the action bar.
+  commentPreview: {
+    paddingTop: 8,
+    gap: 4,
+  },
+  commentPreviewLine: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#374151',
+  },
+  commentPreviewName: {
+    fontWeight: '600',
+    color: '#111827',
+  },
+  commentPreviewMore: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    paddingTop: 2,
   },
 
   // Comment sheet

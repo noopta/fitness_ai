@@ -1,31 +1,46 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, Linking } from 'react-native';
 
 // ── Inline token parser ────────────────────────────────────────────────────────
-// Handles **bold**, *italic*, `code` within a single line
+// Handles **bold**, __bold__, *italic*, _italic_, `code`, ~~strike~~,
+// and [link](url) within a single line.
 
 type InlineToken =
   | { type: 'text'; value: string }
   | { type: 'bold'; value: string }
   | { type: 'italic'; value: string }
-  | { type: 'code'; value: string };
+  | { type: 'code'; value: string }
+  | { type: 'strike'; value: string }
+  | { type: 'link'; value: string; href: string };
+
+// One big regex matched in declared order. Bold variants come before italic
+// so `**foo**` isn't partially consumed as italic. `__bold__` mirrors `**bold**`
+// because GPT-style outputs use both interchangeably.
+const INLINE_RE = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|`([^`]+)`|~~([^~]+)~~|\*([^*]+)\*|(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g;
 
 function parseInline(text: string): InlineToken[] {
   const tokens: InlineToken[] = [];
-  // Order matters: bold (**) before italic (*) to avoid partial matches
-  const re = /\*\*(.*?)\*\*|\*(.*?)\*|`(.*?)`/g;
+  INLINE_RE.lastIndex = 0;
   let last = 0;
   let match: RegExpExecArray | null;
-  while ((match = re.exec(text)) !== null) {
+  while ((match = INLINE_RE.exec(text)) !== null) {
     if (match.index > last) {
       tokens.push({ type: 'text', value: text.slice(last, match.index) });
     }
-    if (match[1] !== undefined) {
-      tokens.push({ type: 'bold', value: match[1] });
-    } else if (match[2] !== undefined) {
-      tokens.push({ type: 'italic', value: match[2] });
+    if (match[1] !== undefined && match[2] !== undefined) {
+      tokens.push({ type: 'link', value: match[1], href: match[2] });
     } else if (match[3] !== undefined) {
-      tokens.push({ type: 'code', value: match[3] });
+      tokens.push({ type: 'bold', value: match[3] });
+    } else if (match[4] !== undefined) {
+      tokens.push({ type: 'bold', value: match[4] });
+    } else if (match[5] !== undefined) {
+      tokens.push({ type: 'code', value: match[5] });
+    } else if (match[6] !== undefined) {
+      tokens.push({ type: 'strike', value: match[6] });
+    } else if (match[7] !== undefined) {
+      tokens.push({ type: 'italic', value: match[7] });
+    } else if (match[8] !== undefined) {
+      tokens.push({ type: 'italic', value: match[8] });
     }
     last = match.index + match[0].length;
   }
@@ -44,6 +59,18 @@ function InlineContent({ tokens, baseStyle }: { tokens: InlineToken[]; baseStyle
             return <Text key={i} style={{ fontStyle: 'italic' }}>{tok.value}</Text>;
           case 'code':
             return <Text key={i} style={s.inlineCode}>{tok.value}</Text>;
+          case 'strike':
+            return <Text key={i} style={{ textDecorationLine: 'line-through' }}>{tok.value}</Text>;
+          case 'link':
+            return (
+              <Text
+                key={i}
+                style={{ color: '#3b82f6', textDecorationLine: 'underline' }}
+                onPress={() => Linking.openURL(tok.href).catch(() => {})}
+              >
+                {tok.value}
+              </Text>
+            );
           default:
             return <Text key={i}>{tok.value}</Text>;
         }
@@ -59,14 +86,41 @@ type Block =
   | { type: 'h2'; text: string }
   | { type: 'h3'; text: string }
   | { type: 'bullet'; text: string; depth: number }
-  | { type: 'ordered'; text: string; num: number }
+  | { type: 'ordered'; text: string; num: number; depth: number }
+  | { type: 'codeblock'; text: string; lang?: string }
   | { type: 'hr' }
   | { type: 'blank' }
   | { type: 'paragraph'; text: string };
 
 function parseBlocks(markdown: string): Block[] {
   const blocks: Block[] = [];
-  for (const line of markdown.split('\n')) {
+  const lines = markdown.split('\n');
+
+  let inCodeBlock = false;
+  let codeBlockLang: string | undefined;
+  let codeBlockLines: string[] = [];
+
+  for (const line of lines) {
+    const fenceMatch = line.match(/^```\s*([A-Za-z0-9_-]*)\s*$/);
+
+    if (fenceMatch) {
+      if (inCodeBlock) {
+        blocks.push({ type: 'codeblock', text: codeBlockLines.join('\n'), lang: codeBlockLang });
+        inCodeBlock = false;
+        codeBlockLang = undefined;
+        codeBlockLines = [];
+      } else {
+        inCodeBlock = true;
+        codeBlockLang = fenceMatch[1] || undefined;
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeBlockLines.push(line);
+      continue;
+    }
+
     const trimmed = line.trimEnd();
 
     if (!trimmed.trim()) {
@@ -93,14 +147,22 @@ function parseBlocks(markdown: string): Block[] {
       continue;
     }
 
-    // Ordered list (1. 2. etc.)
+    // Ordered list (1. 2. etc.) — support indented nested items too
     if ((m = line.match(/^(\s*)(\d+)\.\s+(.*)/))) {
-      blocks.push({ type: 'ordered', text: m[3], num: parseInt(m[2], 10) });
+      const depth = Math.floor(m[1].length / 2);
+      blocks.push({ type: 'ordered', text: m[3], num: parseInt(m[2], 10), depth });
       continue;
     }
 
     blocks.push({ type: 'paragraph', text: trimmed.trim() });
   }
+
+  // If file ended mid-codeblock, flush remaining lines as a code block to avoid
+  // dropping content entirely.
+  if (inCodeBlock && codeBlockLines.length > 0) {
+    blocks.push({ type: 'codeblock', text: codeBlockLines.join('\n'), lang: codeBlockLang });
+  }
+
   return blocks;
 }
 
@@ -150,12 +212,19 @@ export function MarkdownText({ text, style }: { text: string; style?: any }) {
           case 'ordered': {
             const tokens = parseInline(block.text);
             return (
-              <View key={i} style={s.listRow}>
+              <View key={i} style={[s.listRow, { paddingLeft: 4 + block.depth * 14 }]}>
                 <Text style={[style, s.bulletDot]}>{block.num}.</Text>
                 <InlineContent tokens={tokens} baseStyle={[style, s.listText]} />
               </View>
             );
           }
+
+          case 'codeblock':
+            return (
+              <View key={i} style={s.codeBlock}>
+                <Text style={s.codeBlockText}>{block.text}</Text>
+              </View>
+            );
 
           case 'paragraph': {
             const tokens = parseInline(block.text);
@@ -217,5 +286,17 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(156,163,175,0.2)',
     paddingHorizontal: 4,
     borderRadius: 3,
+  },
+  codeBlock: {
+    backgroundColor: 'rgba(156,163,175,0.18)',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginVertical: 4,
+  },
+  codeBlockText: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 12,
+    lineHeight: 18,
   },
 });

@@ -1400,6 +1400,24 @@ router.get('/strength-profile', requireAuth, async (req, res) => {
 // Returns a personalised welcome message from Anakin. Generated once on first
 // call, stored in coachProfile JSON, never regenerated unless dismissed+reset.
 
+// Fallback used when LLM generation fails or returns empty — keeps the home
+// card populated instead of showing nothing. Personalized lightly with whatever
+// data we have so it doesn't read like canned filler.
+function fallbackWelcomeMessage(opts: {
+  firstName: string;
+  phaseName: string | null;
+  currentWeek: number | null;
+  currentStreak: number;
+}): string {
+  if (opts.phaseName && opts.currentWeek) {
+    return `You're in week ${opts.currentWeek} of the ${opts.phaseName} phase — the work compounds from here, ${opts.firstName}.`;
+  }
+  if (opts.currentStreak >= 3) {
+    return `${opts.currentStreak} days in a row, ${opts.firstName}. Don't break the chain — one session today keeps the streak alive.`;
+  }
+  return `Welcome back, ${opts.firstName}. Log a workout today to keep the momentum going.`;
+}
+
 router.get('/coach/welcome', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
@@ -1423,11 +1441,19 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
+
+    // Honor explicit dismiss (was previously written by /coach/welcome/dismiss
+    // but never read here). Surface a dismissed flag so the client can decide
+    // whether to show, instead of relying on an empty `message` to hide.
+    if (profile.welcomeDismissed) {
+      return res.json({ message: null, dismissed: true });
+    }
+
     const cachedDate = profile.welcomeMessageDate ? new Date(profile.welcomeMessageDate) : null;
     const cacheAgeHours = cachedDate ? (now.getTime() - cachedDate.getTime()) / 3600000 : Infinity;
 
     if (profile.welcomeMessage && cacheAgeHours < 6) {
-      return res.json({ message: profile.welcomeMessage });
+      return res.json({ message: profile.welcomeMessage, dismissed: false });
     }
 
     const latestPlan = user.sessions[0]?.plans[0]
@@ -1444,27 +1470,52 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
       currentWeek = state.weekNumber;
     }
 
-    const message = await generateWelcomeMessage({
-      name: user.name,
-      coachGoal: user.coachGoal,
-      trainingAge: user.trainingAge,
-      primaryLimiter,
-      selectedLift,
+    const firstName = user.name?.split(' ')[0] || user.username || 'Athlete';
+    const fallback = fallbackWelcomeMessage({
+      firstName,
       phaseName,
-      currentStreak: user.currentStreak,
-      recentWorkoutCount: recentWorkouts.length,
       currentWeek,
+      currentStreak: user.currentStreak ?? 0,
     });
+
+    let message = '';
+    try {
+      message = await generateWelcomeMessage({
+        name: user.name,
+        coachGoal: user.coachGoal,
+        trainingAge: user.trainingAge,
+        primaryLimiter,
+        selectedLift,
+        phaseName,
+        currentStreak: user.currentStreak,
+        recentWorkoutCount: recentWorkouts.length,
+        currentWeek,
+      });
+    } catch (genErr) {
+      console.error('Welcome message: LLM generation failed, using fallback:', genErr);
+    }
+
+    // Reject empty/whitespace results from the LLM — they'd hide the card on
+    // the client. Anything under 8 chars is almost certainly a bad response.
+    if (!message || message.trim().length < 8) {
+      console.warn(`Welcome message empty for user ${userId}, using fallback`);
+      message = fallback;
+    }
 
     await prisma.user.update({
       where: { id: userId },
       data: { coachProfile: JSON.stringify({ ...profile, welcomeMessage: message, welcomeMessageDate: now.toISOString() }) },
     });
 
-    res.json({ message });
+    res.json({ message, dismissed: false });
   } catch (err) {
     console.error('Welcome message error:', err);
-    res.status(500).json({ error: 'Failed to generate welcome message' });
+    // Never let this break the home page — return a fallback so the UI has
+    // something to render rather than a hidden card.
+    res.json({
+      message: 'Welcome back. Log a workout today to keep the momentum going.',
+      dismissed: false,
+    });
   }
 });
 

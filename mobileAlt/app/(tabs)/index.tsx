@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [strengthProfile, setStrengthProfile] = useState<any>(null);
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const greeting = useMemo(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)], []);
 
   useEffect(() => {
@@ -56,7 +57,14 @@ export default function HomeScreen() {
       .then((data) => setStrengthProfile(data))
       .catch(() => {});
     coachApi.getWelcomeMessage()
-      .then((data) => setWelcomeMessage(data.message ?? null))
+      .then((data) => {
+        // Treat empty strings as null so the render branch is consistent.
+        const msg = typeof data.message === 'string' && data.message.trim().length > 0
+          ? data.message
+          : null;
+        setWelcomeMessage(msg);
+        setWelcomeDismissed(!!data.dismissed);
+      })
       .catch(() => {});
   }, []);
 
@@ -125,24 +133,18 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {/* ── Secondary card ── */}
-        {isPro ? (
-          /* Paid: Anakin's Note */
-          welcomeMessage ? (
-            <View style={styles.noteCard}>
-              <View style={styles.noteAvatarRow}>
-                <View style={styles.noteAvatar}>
-                  <Ionicons name="sparkles" size={12} color={colors.primaryForeground} />
-                </View>
-                <Text style={styles.noteLabel}>ANAKIN'S NOTE</Text>
+        {/* ── Secondary card — Anakin's Note, pro only and not dismissed ── */}
+        {isPro && !welcomeDismissed && welcomeMessage ? (
+          <View style={styles.noteCard}>
+            <View style={styles.noteAvatarRow}>
+              <View style={styles.noteAvatar}>
+                <Ionicons name="sparkles" size={12} color={colors.primaryForeground} />
               </View>
-              <Text style={styles.noteText}>"{welcomeMessage}"</Text>
+              <Text style={styles.noteLabel}>ANAKIN'S NOTE</Text>
             </View>
-          ) : null
-        ) : (
-          /* Free: New Analysis secondary card (upsell hidden for App Store review) */
-          null
-        )}
+            <Text style={styles.noteText}>"{welcomeMessage}"</Text>
+          </View>
+        ) : null}
 
         {/* ── New Analysis row (for paid users, as a secondary action) ── */}
         {isPro && (
