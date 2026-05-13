@@ -1442,10 +1442,20 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
 
     const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
 
-    // Honor explicit dismiss (was previously written by /coach/welcome/dismiss
-    // but never read here). Surface a dismissed flag so the client can decide
-    // whether to show, instead of relying on an empty `message` to hide.
-    if (profile.welcomeDismissed) {
+    // Dismiss is a "not right now" signal, not "never show me this again" —
+    // resurface a fresh note 24h after the user tapped X. Matches how Twitter,
+    // IG, and iOS suggestion cards behave. Without this, one accidental X tap
+    // hides Anakin's note forever.
+    const DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
+    const dismissedAt = profile.welcomeDismissedAt
+      ? new Date(profile.welcomeDismissedAt).getTime()
+      : null;
+    const dismissActive =
+      profile.welcomeDismissed === true &&
+      dismissedAt !== null &&
+      Date.now() - dismissedAt < DISMISS_TTL_MS;
+
+    if (dismissActive) {
       return res.json({ message: null, dismissed: true });
     }
 
@@ -1519,7 +1529,9 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/coach/welcome/dismiss — user taps X, never show again
+// POST /api/coach/welcome/dismiss — user taps X. Hides the note for 24h
+// (the GET endpoint resurfaces it after that). Stamping welcomeDismissedAt
+// is what gates the TTL on the GET side.
 router.post('/coach/welcome/dismiss', requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
@@ -1527,7 +1539,13 @@ router.post('/coach/welcome/dismiss', requireAuth, async (req, res) => {
     const profile = user.coachProfile ? JSON.parse(user.coachProfile) : {};
     await prisma.user.update({
       where: { id: req.user!.id },
-      data: { coachProfile: JSON.stringify({ ...profile, welcomeDismissed: true }) },
+      data: {
+        coachProfile: JSON.stringify({
+          ...profile,
+          welcomeDismissed: true,
+          welcomeDismissedAt: new Date().toISOString(),
+        }),
+      },
     });
     res.json({ success: true });
   } catch (err) {
