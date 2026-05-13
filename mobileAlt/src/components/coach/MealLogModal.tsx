@@ -465,7 +465,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    height: SHEET_HEIGHT,
+    // flex:1 + maxHeight instead of a fixed height. When the parent
+    // KeyboardAvoidingView pads the bottom by the keyboard height, the
+    // sheet shrinks into the remaining space rather than being pushed up
+    // off the top of the screen — which was clipping the Describe mode's
+    // TextInput out of view (user could type but couldn't see what they
+    // were typing because the input was above the visible area).
+    flex: 1,
+    maxHeight: SHEET_HEIGHT,
+    minHeight: Dimensions.get('window').height * 0.5,
     paddingBottom: 34,
   },
   handle: {
