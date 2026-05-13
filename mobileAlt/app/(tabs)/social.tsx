@@ -576,36 +576,52 @@ export default function SocialScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedCacheKey, feed.length, updateLatestPostAt]);
 
-  // Fetch articles on demand — called from the "Get fresh research" button.
-  // Merges incoming articles into the existing feed, interleaving every 3
-  // posts. Slow fetches are acceptable here because the user explicitly opted in.
+  // Fetch articles on demand — called from the "Research" button. Replaces
+  // any research items already in the feed with the fresh set (interleaved
+  // every 3 posts) instead of appending, so repeated taps don't duplicate
+  // the same article. Slow fetches are acceptable here because the user
+  // explicitly opted in.
   const loadArticles = useCallback(async () => {
     setLoadingArticles(true);
     try {
       const data = await socialApi.getFeedArticles({ fresh: true });
-      const articles: any[] = Array.isArray(data) ? data : data.items ?? [];
+      const articlesRaw: any[] = Array.isArray(data) ? data : data.items ?? [];
+
+      // Defense in depth: the backend should already exclude seen + dedupe,
+      // but if anything slips through we don't want the same article twice.
+      const seenIds = new Set<string>();
+      const articles = articlesRaw.filter(a => {
+        if (!a?.id || seenIds.has(a.id)) return false;
+        seenIds.add(a.id);
+        return true;
+      });
+
       if (articles.length === 0) {
-        Alert.alert('No new research', "You're caught up. Check back later for fresh articles.");
+        Alert.alert(
+          "You're caught up",
+          "No new research available right now. Check back later — we pull fresh studies daily.",
+        );
         return;
       }
-      // Merge: interleave each new article after every 3 existing posts so the
-      // feed doesn't suddenly become a wall of articles. Existing articles are
-      // preserved at their current positions.
+
+      // Strip out any existing research items first, then interleave the new
+      // set. This is what makes Research-button taps idempotent: tapping it
+      // three times leaves you with the same one fresh set, not three copies.
       setFeed(prev => {
+        const postsOnly = prev.filter((item: any) => item.kind !== 'research');
         const merged: FeedItem[] = [];
         let articleIdx = 0;
         let postsSinceLast = 0;
-        for (const item of prev) {
+        for (const item of postsOnly) {
           merged.push(item);
-          if ((item as any).kind === 'post') {
-            postsSinceLast += 1;
-            if (postsSinceLast >= 3 && articleIdx < articles.length) {
-              merged.push({ kind: 'research', data: articles[articleIdx++] } as any);
-              postsSinceLast = 0;
-            }
+          postsSinceLast += 1;
+          if (postsSinceLast >= 3 && articleIdx < articles.length) {
+            merged.push({ kind: 'research', data: articles[articleIdx++] } as any);
+            postsSinceLast = 0;
           }
         }
-        // Any remaining articles go at the end.
+        // Any remaining articles go at the end so nothing is lost when there
+        // are fewer posts than article slots.
         while (articleIdx < articles.length) {
           merged.push({ kind: 'research', data: articles[articleIdx++] } as any);
         }

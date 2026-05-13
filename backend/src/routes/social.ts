@@ -727,21 +727,35 @@ router.get('/social/feed', wrap(async (req, res) => {
 }));
 
 // GET /api/social/feed/articles — research/article items only. Called when the
-// user taps the "Get fresh research" button. Allowed to be slow (5-12s when
-// PubMed cache is exhausted) because the user explicitly opted in.
+// user taps the "Research" button. Allowed to be slow (5-12s when PubMed cache
+// is exhausted) because the user explicitly opted in.
+//
+// `noSeenFallback: true` is the critical bit: when the user has seen every
+// available article, return [] instead of repeating already-seen items. The
+// frontend reads `exhausted: true` and shows a "you're caught up" alert.
+// Without this, three quick taps duplicate the same article three times.
 router.get('/social/feed/articles', wrap(async (req, res) => {
   const userId = req.user!.id;
   const fresh = req.query.fresh === '1' || req.query.fresh === 'true';
 
   const tags = await getUserGoalTags(userId);
-  let result = await getCachedFeedItems(userId, tags, 10, { forceRefresh: fresh, excludeSeen: true });
+  let result = await getCachedFeedItems(userId, tags, 10, {
+    forceRefresh: fresh,
+    excludeSeen: true,
+    noSeenFallback: true,
+  });
 
-  // Same exhausted-fallback behavior as the main feed: on explicit fresh
-  // request, pull from PubMed and re-query if we have nothing unseen left.
+  // If unseen pool is empty, pull from PubMed and re-query. If even that returns
+  // nothing new, leave items=[] + exhausted:true so the UI shows "caught up"
+  // rather than re-displaying yesterday's article.
   if (fresh && result.exhausted) {
     const fetched = await maybeFetchFromSources(userId, tags);
     if (fetched) {
-      result = await getCachedFeedItems(userId, tags, 10, { forceRefresh: true, excludeSeen: true });
+      result = await getCachedFeedItems(userId, tags, 10, {
+        forceRefresh: true,
+        excludeSeen: true,
+        noSeenFallback: true,
+      });
     }
   }
 

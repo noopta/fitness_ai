@@ -557,6 +557,10 @@ const RESEARCH_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 export interface CachedFeedOptions {
   forceRefresh?: boolean;
   excludeSeen?: boolean;
+  // When true and the pool of unseen items is empty, return [] + exhausted:true
+  // instead of falling back to previously-viewed items. Used by the explicit
+  // "Research" button so repeated taps don't keep returning the same articles.
+  noSeenFallback?: boolean;
 }
 
 export async function getCachedFeedItems(
@@ -565,7 +569,8 @@ export async function getCachedFeedItems(
   limit = 10,
   options: CachedFeedOptions = {},
 ): Promise<{ items: any[]; exhausted: boolean }> {
-  const key = `${userId}:${[...tags].sort().join(',')}:${options.excludeSeen ? 'unseen' : 'all'}`;
+  const fallbackSuffix = options.noSeenFallback ? ':strict' : '';
+  const key = `${userId}:${[...tags].sort().join(',')}:${options.excludeSeen ? 'unseen' : 'all'}${fallbackSuffix}`;
   if (!options.forceRefresh) {
     const hit = researchCache.get(key);
     if (hit && Date.now() < hit.expiresAt) return { items: hit.items, exhausted: hit.exhausted };
@@ -573,7 +578,9 @@ export async function getCachedFeedItems(
 
   const result = await getFeedItemsForTags(tags, limit, {
     excludeSeenForUserId: options.excludeSeen ? userId : undefined,
-    allowSeenFallback: options.excludeSeen,
+    // When the caller passes noSeenFallback (explicit refresh), don't pad
+    // results with already-viewed items — the UI would render duplicates.
+    allowSeenFallback: options.excludeSeen && !options.noSeenFallback,
   });
   researchCache.set(key, {
     items: result.items,
