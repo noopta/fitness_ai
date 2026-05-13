@@ -541,7 +541,11 @@ export default function SocialScreen() {
   // pulling articles in-line could block the response for 5-12s when the
   // PubMed cache was exhausted.
   const loadFeed = useCallback((force = false, opts?: { includeResearch?: boolean }) => {
-    const includeResearch = opts?.includeResearch ?? false;
+    // Research articles are part of the default feed shape. Previously the
+    // default was false, which meant the initial mount never showed any
+    // research — users had to tap the Research button to see them. That
+    // contradicted the design intent.
+    const includeResearch = opts?.includeResearch ?? true;
     if (!force && feedCacheKey) {
       const cached = getCached<{ items: FeedItem[]; exhausted: boolean }>(feedCacheKey, FEED_TTL_MS);
       if (cached) {

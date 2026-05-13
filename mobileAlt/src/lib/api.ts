@@ -392,15 +392,20 @@ export const socialApi = {
   shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object; caption?: string }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
-  // Pull-to-refresh: includeResearch defaults to false so the feed loads fast
-  // (article fetches can take 5-12s when the server's PubMed cache is empty).
-  // Pass includeResearch:true on first mount to seed the feed once.
+  // Feed loader. Always sends `slim=1` so the backend strips inline
+  // imageBase64 — PostCard knows to lazy-load via /posts/:id/image when it
+  // sees `hasImage:true` instead of the raw blob. That alone cut the
+  // response from ~11MB to ~4MB.
+  //
+  // includeResearch defaults to TRUE: research items should be in the feed
+  // on every load. The Research button stays as a way to force-refresh
+  // articles from PubMed, but is no longer the *only* way to see them.
   getFeed: (opts?: { fresh?: boolean; includeResearch?: boolean }) => {
     const params = new URLSearchParams();
+    params.set('slim', '1');
     if (opts?.fresh) params.set('fresh', '1');
     if (opts?.includeResearch === false) params.set('include_research', '0');
-    const qs = params.toString();
-    return apiFetch(`/social/feed${qs ? `?${qs}` : ''}`);
+    return apiFetch(`/social/feed?${params.toString()}`);
   },
   // Articles-only endpoint. Called when the user explicitly taps "Get fresh
   // research" — slower fetches are acceptable since the user opted in.
