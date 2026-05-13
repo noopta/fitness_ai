@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import { usePushNotifications } from '../src/lib/usePushNotifications';
 import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/components/WhatsNewModal';
 import { hydrateCacheFromStorage } from '../src/lib/cache';
+import { runBootPrefetch } from '../src/lib/prefetch';
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,23 @@ function RootNavigator() {
   useEffect(() => {
     void hydrateCacheFromStorage().finally(() => setCacheReady(true));
   }, []);
+
+  // Boot-time prefetch. Fires after auth resolves to a real user (skips
+  // pre-auth + age-check states), once per session per userId. Warms the
+  // in-memory caches that Coach/Social/Nutrition/Strength tabs read on
+  // mount so tab switches are instant.
+  //
+  // Fire-and-forget: failures are swallowed inside runBootPrefetch. Gated
+  // on `cacheReady` so we don't race against the AsyncStorage hydration
+  // — without that gate we could overwrite a fresh disk entry with a
+  // slightly-staler network response, or vice versa.
+  const prefetchedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!cacheReady || loading || !user?.id || needsDobCheck) return;
+    if (prefetchedFor.current === user.id) return;
+    prefetchedFor.current = user.id;
+    void runBootPrefetch(user.id, (user as any).savedProgram);
+  }, [cacheReady, loading, user?.id, needsDobCheck]);
 
   usePushNotifications(!!user);
 
