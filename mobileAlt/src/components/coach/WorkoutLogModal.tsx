@@ -45,6 +45,16 @@ const COMMON_EXERCISES = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+// When the user wants different weights/reps per set (e.g. 135x4 → 100x8 →
+// 100x8), they toggle "Vary by set" and `setEntries` becomes the source of
+// truth. The legacy uniform fields stay populated as a summary (top set) so
+// older clients and PR detection still work without per-set logic.
+interface PerSetEntry {
+  weight: string;
+  reps: string;
+  rpe: string;
+}
+
 interface ExerciseEntry {
   name: string;
   sets: string;
@@ -52,6 +62,8 @@ interface ExerciseEntry {
   weight: string;
   rpe: string;
   notes: string;
+  perSetMode: boolean;
+  setEntries: PerSetEntry[];
 }
 
 interface Props {
@@ -64,7 +76,14 @@ interface Props {
 }
 
 function emptyExercise(): ExerciseEntry {
-  return { name: '', sets: '', reps: '', weight: '', rpe: '', notes: '' };
+  return {
+    name: '', sets: '', reps: '', weight: '', rpe: '', notes: '',
+    perSetMode: false, setEntries: [],
+  };
+}
+
+function emptySet(): PerSetEntry {
+  return { weight: '', reps: '', rpe: '' };
 }
 
 function todayDateStr() {
@@ -83,6 +102,8 @@ function buildInitialExercises(
       weight: '',
       rpe: '',
       notes: '',
+      perSetMode: false,
+      setEntries: [],
     }));
   }
   return [emptyExercise()];
@@ -145,9 +166,71 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     setExercises(prev => prev.filter((_, i) => i !== index));
   }
 
+  // Toggle between uniform and per-set entry. When entering per-set mode we
+  // seed `setEntries` to match the current `sets` count (or default to 3) so
+  // the user doesn't start with an empty list. When leaving, we keep the data
+  // around in case the user toggles back.
+  function togglePerSetMode(index: number) {
+    setExercises(prev => prev.map((ex, i) => {
+      if (i !== index) return ex;
+      const turningOn = !ex.perSetMode;
+      let setEntries = ex.setEntries;
+      if (turningOn && setEntries.length === 0) {
+        const count = Math.max(parseInt(ex.sets, 10) || 3, 1);
+        setEntries = Array.from({ length: count }, () => ({
+          weight: ex.weight ?? '',
+          reps: ex.reps ?? '',
+          rpe: ex.rpe ?? '',
+        }));
+      }
+      return { ...ex, perSetMode: turningOn, setEntries };
+    }));
+  }
+
+  function updateSetEntry(exIdx: number, setIdx: number, field: keyof PerSetEntry, value: string) {
+    setExercises(prev => prev.map((ex, i) => {
+      if (i !== exIdx) return ex;
+      return {
+        ...ex,
+        setEntries: ex.setEntries.map((s, j) => j === setIdx ? { ...s, [field]: value } : s),
+      };
+    }));
+  }
+
+  function addSet(exIdx: number) {
+    setExercises(prev => prev.map((ex, i) => {
+      if (i !== exIdx) return ex;
+      const last = ex.setEntries[ex.setEntries.length - 1];
+      const seed = last ?? { weight: '', reps: '', rpe: '' };
+      return {
+        ...ex,
+        sets: String(ex.setEntries.length + 1),
+        setEntries: [...ex.setEntries, { ...seed }],
+      };
+    }));
+  }
+
+  function removeSet(exIdx: number, setIdx: number) {
+    setExercises(prev => prev.map((ex, i) => {
+      if (i !== exIdx) return ex;
+      if (ex.setEntries.length <= 1) return ex;
+      const next = ex.setEntries.filter((_, j) => j !== setIdx);
+      return { ...ex, sets: String(next.length), setEntries: next };
+    }));
+  }
+
   async function handleSave() {
-    const validExercises = exercises.filter(ex => ex.name.trim() && ex.sets && ex.reps);
-    const incompleteNamed = exercises.filter(ex => ex.name.trim() && !(ex.sets && ex.reps));
+    // Per-set exercises are "valid" if at least one set has weight + reps.
+    // Uniform exercises follow the legacy rule: name + sets + reps required.
+    const isValid = (ex: ExerciseEntry) => {
+      if (!ex.name.trim()) return false;
+      if (ex.perSetMode) {
+        return ex.setEntries.some(s => s.weight.trim() && s.reps.trim());
+      }
+      return !!(ex.sets && ex.reps);
+    };
+    const validExercises = exercises.filter(isValid);
+    const incompleteNamed = exercises.filter(ex => ex.name.trim() && !isValid(ex));
     if (validExercises.length === 0) {
       Alert.alert('Missing Info', 'Please fill in at least one exercise with name, sets, and reps.');
       return;
@@ -178,14 +261,46 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       };
       const durationVal = duration ? (parseInt(duration, 10) || undefined) : undefined;
 
-      const mappedExercises = validExercises.map(ex => ({
-        name: ex.name.trim(),
-        sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
-        reps: ex.reps.trim() || '1',
-        weightKg: ex.weight.trim() ? weightVal(ex.weight) : null,
-        rpe: ex.rpe.trim() ? rpeVal(ex.rpe) : null,
-        notes: ex.notes.trim() || null,
-      }));
+      const mappedExercises = validExercises.map(ex => {
+        if (ex.perSetMode) {
+          // Build the per-set payload from the rows the user filled in.
+          // Skip empty rows. Convert weights via toKg (lbs ↔ kg helper).
+          const validSets = ex.setEntries
+            .filter(s => s.weight.trim() && s.reps.trim())
+            .map(s => ({
+              weightKg: weightVal(s.weight),
+              reps: Math.max(parseInt(s.reps, 10) || 0, 0),
+              rpe: s.rpe.trim() ? rpeVal(s.rpe) : null,
+            }))
+            .filter(s => s.weightKg != null && s.reps > 0);
+
+          // Pick the heaviest set as the "summary" for legacy fields. This
+          // keeps PR notifications + the social-share card sensible even when
+          // they only know about the uniform shape.
+          const topSet = validSets.reduce<typeof validSets[0] | null>((best, s) => {
+            if (!best) return s;
+            return (s.weightKg ?? 0) > (best.weightKg ?? 0) ? s : best;
+          }, null);
+
+          return {
+            name: ex.name.trim(),
+            sets: Math.max(validSets.length, 1),
+            reps: topSet ? String(topSet.reps) : (ex.reps.trim() || '1'),
+            weightKg: topSet?.weightKg ?? null,
+            rpe: topSet?.rpe ?? null,
+            notes: ex.notes.trim() || null,
+            setEntries: validSets,
+          };
+        }
+        return {
+          name: ex.name.trim(),
+          sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
+          reps: ex.reps.trim() || '1',
+          weightKg: ex.weight.trim() ? weightVal(ex.weight) : null,
+          rpe: ex.rpe.trim() ? rpeVal(ex.rpe) : null,
+          notes: ex.notes.trim() || null,
+        };
+      });
 
       await workoutsApi.logWorkout({
         date: (date ?? todayDateStr()).slice(0, 10),
@@ -318,55 +433,131 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                   )}
                 </View>
 
-                <View style={styles.inlineRow}>
-                  <View style={styles.inlineField}>
-                    <Text style={styles.inlineLabel}>Sets</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="4"
-                      placeholderTextColor={colors.mutedForeground}
-                      keyboardType="numeric"
-                      value={ex.sets}
-                      onChangeText={v => updateExercise(i, 'sets', v)}
-                      inputAccessoryViewID={KEYBOARD_DONE_ID}
-                    />
+                {/* Toggle: uniform (one weight × N sets) vs per-set
+                    (different load/reps each set). Defaults to uniform. */}
+                <TouchableOpacity
+                  style={styles.perSetToggleRow}
+                  activeOpacity={0.7}
+                  onPress={() => togglePerSetMode(i)}
+                >
+                  <Ionicons
+                    name={ex.perSetMode ? 'checkbox' : 'square-outline'}
+                    size={16}
+                    color={ex.perSetMode ? colors.primary : colors.mutedForeground}
+                  />
+                  <Text style={[styles.perSetToggleLabel, ex.perSetMode && { color: colors.primary }]}>
+                    Vary by set
+                  </Text>
+                </TouchableOpacity>
+
+                {!ex.perSetMode ? (
+                  <View style={styles.inlineRow}>
+                    <View style={styles.inlineField}>
+                      <Text style={styles.inlineLabel}>Sets</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="4"
+                        placeholderTextColor={colors.mutedForeground}
+                        keyboardType="numeric"
+                        value={ex.sets}
+                        onChangeText={v => updateExercise(i, 'sets', v)}
+                        inputAccessoryViewID={KEYBOARD_DONE_ID}
+                      />
+                    </View>
+                    <View style={styles.inlineField}>
+                      <Text style={styles.inlineLabel}>Reps</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="8"
+                        placeholderTextColor={colors.mutedForeground}
+                        value={ex.reps}
+                        onChangeText={v => updateExercise(i, 'reps', v)}
+                        inputAccessoryViewID={KEYBOARD_DONE_ID}
+                      />
+                    </View>
+                    <View style={styles.inlineField}>
+                      <Text style={styles.inlineLabel}>Weight ({unit})</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder={unit === 'lbs' ? '175' : '80'}
+                        placeholderTextColor={colors.mutedForeground}
+                        keyboardType="decimal-pad"
+                        value={ex.weight}
+                        onChangeText={v => updateExercise(i, 'weight', v)}
+                        inputAccessoryViewID={KEYBOARD_DONE_ID}
+                      />
+                    </View>
+                    <View style={styles.inlineField}>
+                      <Text style={styles.inlineLabel}>RPE</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="8"
+                        placeholderTextColor={colors.mutedForeground}
+                        keyboardType="decimal-pad"
+                        value={ex.rpe}
+                        onChangeText={v => updateExercise(i, 'rpe', v)}
+                        inputAccessoryViewID={KEYBOARD_DONE_ID}
+                      />
+                    </View>
                   </View>
-                  <View style={styles.inlineField}>
-                    <Text style={styles.inlineLabel}>Reps</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="8"
-                      placeholderTextColor={colors.mutedForeground}
-                      value={ex.reps}
-                      onChangeText={v => updateExercise(i, 'reps', v)}
-                      inputAccessoryViewID={KEYBOARD_DONE_ID}
-                    />
+                ) : (
+                  <View style={styles.perSetList}>
+                    <View style={styles.perSetHeader}>
+                      <Text style={[styles.inlineLabel, { flex: 0.7 }]}>Set</Text>
+                      <Text style={[styles.inlineLabel, { flex: 1.5 }]}>Weight ({unit})</Text>
+                      <Text style={[styles.inlineLabel, { flex: 1 }]}>Reps</Text>
+                      <Text style={[styles.inlineLabel, { flex: 1 }]}>RPE</Text>
+                      <View style={{ width: 28 }} />
+                    </View>
+                    {ex.setEntries.map((set, sIdx) => (
+                      <View key={sIdx} style={styles.perSetRow}>
+                        <Text style={styles.perSetNum}>{sIdx + 1}</Text>
+                        <TextInput
+                          style={[styles.input, styles.perSetInput, { flex: 1.5 }]}
+                          placeholder={unit === 'lbs' ? '135' : '60'}
+                          placeholderTextColor={colors.mutedForeground}
+                          keyboardType="decimal-pad"
+                          value={set.weight}
+                          onChangeText={v => updateSetEntry(i, sIdx, 'weight', v)}
+                          inputAccessoryViewID={KEYBOARD_DONE_ID}
+                        />
+                        <TextInput
+                          style={[styles.input, styles.perSetInput, { flex: 1 }]}
+                          placeholder="8"
+                          placeholderTextColor={colors.mutedForeground}
+                          keyboardType="numeric"
+                          value={set.reps}
+                          onChangeText={v => updateSetEntry(i, sIdx, 'reps', v)}
+                          inputAccessoryViewID={KEYBOARD_DONE_ID}
+                        />
+                        <TextInput
+                          style={[styles.input, styles.perSetInput, { flex: 1 }]}
+                          placeholder="—"
+                          placeholderTextColor={colors.mutedForeground}
+                          keyboardType="decimal-pad"
+                          value={set.rpe}
+                          onChangeText={v => updateSetEntry(i, sIdx, 'rpe', v)}
+                          inputAccessoryViewID={KEYBOARD_DONE_ID}
+                        />
+                        <TouchableOpacity
+                          onPress={() => removeSet(i, sIdx)}
+                          disabled={ex.setEntries.length <= 1}
+                          style={styles.perSetRemove}
+                        >
+                          <Ionicons
+                            name="close-circle"
+                            size={18}
+                            color={ex.setEntries.length <= 1 ? colors.border : colors.mutedForeground}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                    <TouchableOpacity style={styles.addSetBtn} onPress={() => addSet(i)}>
+                      <Ionicons name="add" size={14} color={colors.primary} />
+                      <Text style={styles.addSetText}>Add set</Text>
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.inlineField}>
-                    <Text style={styles.inlineLabel}>Weight ({unit})</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder={unit === 'lbs' ? '175' : '80'}
-                      placeholderTextColor={colors.mutedForeground}
-                      keyboardType="decimal-pad"
-                      value={ex.weight}
-                      onChangeText={v => updateExercise(i, 'weight', v)}
-                      inputAccessoryViewID={KEYBOARD_DONE_ID}
-                    />
-                  </View>
-                  <View style={styles.inlineField}>
-                    <Text style={styles.inlineLabel}>RPE</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="8"
-                      placeholderTextColor={colors.mutedForeground}
-                      keyboardType="decimal-pad"
-                      value={ex.rpe}
-                      onChangeText={v => updateExercise(i, 'rpe', v)}
-                      inputAccessoryViewID={KEYBOARD_DONE_ID}
-                    />
-                  </View>
-                </View>
+                )}
 
                 <TextInput
                   style={styles.input}
@@ -529,6 +720,63 @@ const styles = StyleSheet.create({
   inlineRow: { flexDirection: 'row', gap: spacing.xs },
   inlineField: { flex: 1 },
   inlineLabel: { fontSize: 10, color: colors.mutedForeground, marginBottom: 2 },
+
+  // ── Per-set entry mode ────────────────────────────────────────────────────
+  perSetToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 2,
+  },
+  perSetToggleLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: colors.mutedForeground,
+  },
+  perSetList: {
+    gap: 6,
+    paddingVertical: 4,
+  },
+  perSetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 2,
+  },
+  perSetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  perSetNum: {
+    width: 22,
+    textAlign: 'center',
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground,
+  },
+  perSetInput: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  perSetRemove: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addSetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  addSetText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
+  },
   notesInput: { minHeight: 72, textAlignVertical: 'top' },
   addExBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

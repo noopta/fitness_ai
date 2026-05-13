@@ -58,6 +58,17 @@ function updateStreakInBackground(userId: string, workoutDate: string): void {
   })();
 }
 
+// Per-set entry — used when a user's weights/reps vary across sets
+// (e.g. 135x4 → 100x8 → 100x8). When `setEntries` is present, it is the
+// source of truth for the diagnostic engine + e1RM calc; the top-level
+// `weightKg` and `reps` then represent a summary view (top set's load and
+// reps) and are still accepted for backward compatibility with old clients.
+const setEntrySchema = z.object({
+  weightKg: z.number().nonnegative().optional().nullable(),
+  reps: z.number().int().min(0).max(100),
+  rpe: z.number().min(0).max(10).optional().nullable(),
+});
+
 const exerciseSchema = z.object({
   name: z.string().min(1),
   sets: z.number().int().min(1).max(100),
@@ -65,6 +76,10 @@ const exerciseSchema = z.object({
   weightKg: z.number().nonnegative().optional().nullable(),
   rpe: z.number().min(0).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
+  // Optional per-set breakdown. When provided, length should match `sets`
+  // but we don't fail validation if it doesn't — we just trust whichever
+  // value is the source of truth (setEntries.length).
+  setEntries: z.array(setEntrySchema).optional().nullable(),
 });
 
 const workoutLogSchema = z.object({

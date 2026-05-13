@@ -333,6 +333,15 @@ export const workoutsApi = {
       weightKg?: number | null;
       rpe?: number | null;
       notes?: string | null;
+      // Per-set breakdown, used when weights/reps vary across sets within
+      // the same exercise (e.g. 135x4 → 100x8 → 100x8). When present, the
+      // backend uses this for e1RM / strength-profile signals; the top-level
+      // weightKg/reps are kept as a summary of the top set.
+      setEntries?: Array<{
+        weightKg?: number | null;
+        reps: number;
+        rpe?: number | null;
+      }>;
     }>;
     notes?: string;
     duration?: number;

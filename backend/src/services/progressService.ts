@@ -15,12 +15,21 @@ import {
 
 // ─── Strength PR detection ────────────────────────────────────────────────────
 
+interface LoggedSetEntry {
+  weightKg?: number | null;
+  reps: number;
+  rpe?: number | null;
+}
+
 interface LoggedExercise {
   name: string;
   sets: number;
   reps: number | string;
   weightKg?: number | null;
   rpe?: number | null;
+  // When present, per-set breakdown is the source of truth for e1RM and
+  // diagnostic strength signals. Each entry is one working set.
+  setEntries?: LoggedSetEntry[] | null;
 }
 
 /** Epley 1RM. Reps clamped to 10 — past that the estimate diverges fast. */
@@ -42,21 +51,47 @@ function normalizeLiftName(name: string): string {
 
 /**
  * Compute best e1RM per lift across a set of logged exercises (in lbs).
- * weightKg is converted to lbs since notifications/UI use imperial units.
+ *
+ * When `setEntries` is present, we compute e1RM for each set independently
+ * and keep the highest — this is the realistic top-set estimate. Otherwise
+ * we fall back to the uniform `weightKg`/`reps` shape (legacy logs and
+ * single-load workouts).
+ *
+ * weightKg → lbs since notifications/UI use imperial units.
  */
 export function bestE1RMByLift(exercises: LoggedExercise[]): Map<string, { displayName: string; e1RMLbs: number }> {
   const out = new Map<string, { displayName: string; e1RMLbs: number }>();
+
+  function consider(key: string, displayName: string, e1RMLbs: number) {
+    const existing = out.get(key);
+    if (!existing || e1RMLbs > existing.e1RMLbs) {
+      out.set(key, { displayName, e1RMLbs });
+    }
+  }
+
   for (const ex of exercises) {
+    const key = normalizeLiftName(ex.name);
+    const displayName = ex.name.trim();
+
+    if (ex.setEntries && ex.setEntries.length > 0) {
+      // Per-set path: evaluate each set on its own merits. The top set may be
+      // a heavy 4-rep effort while later sets are lighter back-off sets — the
+      // heavy one drives the e1RM, not an average.
+      for (const set of ex.setEntries) {
+        if (!set.weightKg || set.weightKg <= 0) continue;
+        if (set.reps < 1 || set.reps > 10) continue;
+        const lbs = set.weightKg * 2.20462;
+        consider(key, displayName, epley1RM(lbs, set.reps));
+      }
+      continue;
+    }
+
+    // Legacy path: a single weight + rep range for all sets.
     if (!ex.weightKg || ex.weightKg <= 0) continue;
     const reps = lowerRep(ex.reps);
     if (reps == null || reps < 1 || reps > 10) continue;
     const lbs = ex.weightKg * 2.20462;
-    const e1 = epley1RM(lbs, reps);
-    const key = normalizeLiftName(ex.name);
-    const existing = out.get(key);
-    if (!existing || e1 > existing.e1RMLbs) {
-      out.set(key, { displayName: ex.name.trim(), e1RMLbs: e1 });
-    }
+    consider(key, displayName, epley1RM(lbs, reps));
   }
   return out;
 }

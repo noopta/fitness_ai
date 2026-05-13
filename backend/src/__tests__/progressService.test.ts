@@ -63,6 +63,48 @@ describe('bestE1RMByLift', () => {
     const out = bestE1RMByLift(ex);
     expect(out.get('ohp')!.e1RMLbs).toBe(epley1RM(50 * 2.20462, 6));
   });
+
+  it('uses per-set entries when present (top heavy set drives e1RM)', () => {
+    // User did 135x4 → 100x8 → 100x8 (kg shown here = pretend conversion).
+    // The 4-rep heavy set should give the highest e1RM, not the back-offs.
+    const ex = [{
+      name: 'Bench Press',
+      sets: 3,
+      reps: '4',
+      weightKg: 61.235, // top set, used as legacy summary
+      setEntries: [
+        { weightKg: 61.235, reps: 4 },  // 135 lbs x 4 → e1RM ≈ 153
+        { weightKg: 45.359, reps: 8 },  // 100 lbs x 8 → e1RM ≈ 126
+        { weightKg: 45.359, reps: 8 },
+      ],
+    }];
+    const out = bestE1RMByLift(ex);
+    const e1 = out.get('bench press')!.e1RMLbs;
+    // 135 lbs * (1 + 4/30) = 153
+    expect(e1).toBe(epley1RM(61.235 * 2.20462, 4));
+  });
+
+  it('falls back to legacy weightKg/reps when setEntries is absent', () => {
+    const ex = [{ name: 'Squat', sets: 3, reps: '5', weightKg: 100 }];
+    const out = bestE1RMByLift(ex);
+    expect(out.get('squat')!.e1RMLbs).toBe(epley1RM(100 * 2.20462, 5));
+  });
+
+  it('skips invalid sets within setEntries but still considers valid ones', () => {
+    const ex = [{
+      name: 'Deadlift',
+      sets: 3,
+      reps: '5',
+      weightKg: 150,
+      setEntries: [
+        { weightKg: 0, reps: 5 },          // invalid: no weight
+        { weightKg: 150, reps: 20 },       // invalid: reps too high (rep clamp protects e1RM but we skip)
+        { weightKg: 150, reps: 3 },        // valid
+      ],
+    }];
+    const out = bestE1RMByLift(ex);
+    expect(out.get('deadlift')!.e1RMLbs).toBe(epley1RM(150 * 2.20462, 3));
+  });
 });
 
 describe('inferGoalDirection', () => {
