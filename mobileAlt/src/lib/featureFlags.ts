@@ -12,6 +12,7 @@ const MUSCLE_DRILLDOWN_DEFAULT = false;
 
 const MUSCLE_DRILLDOWN_EMAIL_ALLOWLIST = new Set<string>([
   'anuptaislam33@gmail.com',
+  'inquiries@axiomtraining.io',
 ]);
 
 interface FlaggedUser {

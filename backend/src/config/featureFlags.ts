@@ -21,6 +21,7 @@ export const MUSCLE_DRILLDOWN_DEFAULT = ENV_BOOL('FEATURE_MUSCLE_DRILLDOWN');
 // Add tester emails here for staged rollout. Compared lowercase, trimmed.
 const MUSCLE_DRILLDOWN_EMAIL_ALLOWLIST = new Set<string>([
   'anuptaislam33@gmail.com',
+  'inquiries@axiomtraining.io',
 ]);
 
 /**
