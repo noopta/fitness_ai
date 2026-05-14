@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
+import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
+import { isMuscleDrillDownEnabled } from '../config/featureFlags.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -219,6 +221,15 @@ export async function computeStrengthProfile(userId: string) {
     console.error('[strength] insights error:', err);
   }
 
+  // Muscle-level scores for the radar drill-down (Phase 1 of Body Build).
+  // We compute these unconditionally — the cost is trivial (<1ms over the
+  // already-loaded lift map). The route handler strips the muscle fields
+  // from the response when the viewer's feature flag is off, so clients
+  // without the drill-down UI never see them.
+  const muscleAddition = buildMuscleProfileAddition(
+    lifts.map((l) => ({ canonicalName: l.canonicalName, current1RMkg: l.current1RMkg })),
+  );
+
   return {
     overallStrengthIndex,
     strengthTier: strengthTier(overallStrengthIndex),
@@ -227,6 +238,9 @@ export async function computeStrengthProfile(userId: string) {
     totalLogs,
     monthTonnageKg: Math.round(monthTonnage),
     radarScores,
+    muscleScores: muscleAddition.muscleScores,
+    muscleTargets: muscleAddition.muscleTargets,
+    muscleGroupsKnown: muscleAddition.muscleGroupsKnown,
     lifts,
     aiInsights,
     computedAt: new Date().toISOString(),
@@ -256,19 +270,29 @@ export function recomputeStrengthProfileInBackground(userId: string): void {
 router.get('/strength/profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
+    const viewerEmail = req.user!.email ?? null;
 
     // Return cached profile immediately if available
     const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(CACHE_KEY(userId));
+    let profile = cached;
     if (cached) {
       res.setHeader('X-Cache', 'HIT');
-      return res.json(cached);
+    } else {
+      profile = await computeStrengthProfile(userId);
+      cacheSet(CACHE_KEY(userId), profile);
+      res.setHeader('X-Cache', 'MISS');
     }
 
-    // Cache miss — compute, store, return
-    const profile = await computeStrengthProfile(userId);
-    cacheSet(CACHE_KEY(userId), profile);
+    // Feature-flag gate the muscle-level fields. Old client builds that
+    // ship without the drill-down UI never see the new fields; new builds
+    // gated on a per-user allowlist see them and can render the level-2
+    // sub-radar. Stripping at serialization time (not at compute) keeps
+    // the cache a single shape regardless of who's asking.
+    if (!isMuscleDrillDownEnabled({ email: viewerEmail }) && profile) {
+      const { muscleScores: _ms, muscleTargets: _mt, muscleGroupsKnown: _mg, ...legacyShape } = profile;
+      return res.json(legacyShape);
+    }
 
-    res.setHeader('X-Cache', 'MISS');
     res.json(profile);
   } catch (err) {
     console.error('Strength profile error:', err);
