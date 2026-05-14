@@ -136,26 +136,97 @@ export function deriveFeedingLifts(
 ): AxisLift[] {
   const bucket = axisToCategoryBucket[axisLabel];
   if (!bucket) return [];
-  const matches = lifts.filter(l => bucket.includes(l.category) && l.current1RMLbs > 0);
+  let matches = lifts.filter(l => bucket.includes(l.category) && l.current1RMLbs > 0);
+
+  // Level 2 muscle-axis: narrow further to lifts whose name actually trains
+  // this muscle (e.g., "Triceps" should not list bench press above tricep
+  // pressdowns just because bench has secondary tricep activation).
+  const muscleKeyword = MUSCLE_LIFT_KEYWORDS[axisLabel];
+  if (muscleKeyword) {
+    const filtered = matches.filter(l => muscleKeyword.test(l.name));
+    // If the muscle-keyword filter would leave us with nothing (unusual for
+    // a user with diverse lifts), fall back to the broader category match
+    // rather than show an empty list.
+    if (filtered.length > 0) matches = filtered;
+  }
+
   if (matches.length === 0) return [];
-  const total = matches.reduce((sum, l) => sum + l.current1RMLbs, 0) || 1;
-  return matches
-    .slice(0, 3)
-    .map(l => ({
-      name: l.name,
-      e1rmDisplay: `${l.current1RMLbs} lb`,
-      contribPct: Math.round((l.current1RMLbs / total) * 100),
-    }));
+  // Order by current1RMLbs descending so the "top contributing lift" reads
+  // as the most-impressive first. Take top 3 to keep the list scannable.
+  matches.sort((a, b) => b.current1RMLbs - a.current1RMLbs);
+  const top = matches.slice(0, 3);
+  const total = top.reduce((sum, l) => sum + l.current1RMLbs, 0) || 1;
+  return top.map(l => ({
+    name: l.name,
+    e1rmDisplay: `${l.current1RMLbs} lb`,
+    contribPct: Math.round((l.current1RMLbs / total) * 100),
+  }));
 }
 
 // Map design-axis label → backend lift categories that count toward it.
+// Used both for level-1 movement axes (Push/Pull/Squat/Hinge/Core/Power)
+// and level-2 muscle axes (Chest/Lats/Quads/etc.) so the same drill sheet
+// can describe lifts feeding any node in the radar tree.
 const axisToCategoryBucket: Record<string, string[]> = {
+  // Level 1 — movement buckets
   Push:  ['push'],
   Pull:  ['pull'],
   Squat: ['legs'],
   Hinge: ['hinge'],
   Core:  ['core'],
-  Power: ['cardio'], // best fit we have for the "Power" axis until backend ships it
+  Power: ['cardio'],
+  // Level 2 — muscles (point at the same backend categories; the sheet's
+  // lift list is best-effort. Muscle-specific filtering happens via the
+  // primary-muscle field in deriveFeedingLifts, see below).
+  Chest:         ['push'],
+  'Front Delt':  ['push'],
+  Triceps:       ['push'],
+  'Lateral Delt':['push'],
+  Lats:          ['pull'],
+  'Mid-back':    ['pull'],
+  'Rear Delt':   ['pull'],
+  Biceps:        ['pull'],
+  Forearms:      ['pull'],
+  Quads:         ['legs'],
+  Glutes:        ['legs', 'hinge'],
+  Adductors:     ['legs'],
+  Calves:        ['legs'],
+  Hamstrings:    ['hinge'],
+  Erectors:      ['hinge'],
+  'Lower Back':  ['hinge', 'core'],
+  Abs:           ['core'],
+  Obliques:      ['core'],
+  'Hip Power':   ['cardio', 'hinge'],
+  'Posterior Chain': ['hinge'],
+  Grip:          ['pull'],
+};
+
+// Map muscle label → keywords that appear in canonical lift names that train
+// that muscle. Used to narrow the level-2 sheet down to only relevant lifts
+// (e.g., tapping "Triceps" should show pressdowns + skullcrushers, not bench
+// press, even though bench has triceps activation).
+const MUSCLE_LIFT_KEYWORDS: Record<string, RegExp> = {
+  Chest:         /bench|fly|push.?up|dips|pec deck/i,
+  'Front Delt':  /overhead press|shoulder press|arnold|front raise|push press/i,
+  Triceps:       /triceps|skullcrusher|pressdown|close grip|dips/i,
+  'Lateral Delt':/lateral raise|upright row/i,
+  Lats:          /pull.?up|pulldown|lat|row|chin/i,
+  'Mid-back':    /row|face pull|rear delt|reverse fly|shrug/i,
+  'Rear Delt':   /rear delt|face pull|reverse fly|band pull/i,
+  Biceps:        /curl|chin.?up|biceps/i,
+  Forearms:      /hammer|wrist|farmer|grip|forearm/i,
+  Quads:         /squat|lunge|leg press|leg extension|step up|hack/i,
+  Glutes:        /squat|hip thrust|deadlift|lunge|bulgarian|glute/i,
+  Adductors:     /sumo|wide stance|adductor|copenhagen/i,
+  Calves:        /calf|raise/i,
+  Hamstrings:    /deadlift|leg curl|nordic|good morning|romanian|stiff leg|glute ham/i,
+  Erectors:      /deadlift|good morning|back extension|hyperextension/i,
+  'Lower Back':  /deadlift|good morning|back extension|hyperextension|plank/i,
+  Abs:           /crunch|sit.?up|leg raise|ab wheel|rollout|hanging|plank/i,
+  Obliques:      /russian twist|side|oblique|woodchop|pallof|landmine/i,
+  'Hip Power':   /clean|snatch|swing|jerk|power|jump/i,
+  'Posterior Chain': /deadlift|romanian|good morning|swing/i,
+  Grip:          /farmer|deadlift|pull.?up|chin|hold/i,
 };
 
 const styles = StyleSheet.create({

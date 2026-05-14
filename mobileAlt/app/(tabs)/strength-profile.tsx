@@ -28,6 +28,11 @@ import { LiftRow, type LiftRowData } from '../../src/components/strength/LiftRow
 import { TierExplainerSheet } from '../../src/components/strength/TierExplainerSheet';
 import { LiftDetailSheet } from '../../src/components/strength/LiftDetailSheet';
 import { RadarAxisDrillSheet, deriveFeedingLifts } from '../../src/components/strength/RadarAxisDrillSheet';
+import {
+  buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
+} from '../../src/lib/muscleHierarchy';
+import { isMuscleDrillDownEnabled } from '../../src/lib/featureFlags';
+import { useAuth } from '../../src/context/AuthContext';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CARD_W = SCREEN_W - spacing.md * 2;
@@ -57,6 +62,10 @@ interface StrengthProfileData {
   totalLogs: number;
   monthTonnageKg: number;
   radarScores: Record<string, number>;
+  /** Optional — only present when the muscle drill-down feature flag is on. */
+  muscleScores?: Record<string, number>;
+  muscleTargets?: { default: number };
+  muscleGroupsKnown?: readonly string[];
   lifts: LiftSummary[];
   aiInsights: string[];
 }
@@ -389,16 +398,47 @@ function mapLiftToRow(lift: LiftSummary): LiftRowData {
   };
 }
 
+// ─── Breadcrumb chip ──────────────────────────────────────────────────────────
+// Drill-down crumbs above the radar. Tap "Overview" or use the back arrow to
+// pop back to the level-1 view. Visible only when the user is at level 2.
+//
+// Animation: subtle slide-in from above on mount via Reanimated's
+// FadeInUp + opacity start at 0. Polish-pass-friendly — Claude Design can
+// retune timing/spring without touching the parent screen.
+
+function BreadcrumbChip({ label, onBack }: { label: string; onBack: () => void }) {
+  return (
+    <TouchableOpacity
+      onPress={onBack}
+      activeOpacity={0.7}
+      style={styles.crumb}
+      accessibilityRole="button"
+      accessibilityLabel={`Back to Overview from ${label}`}
+    >
+      <Text style={styles.crumbBackIcon}>{'‹'}</Text>
+      <Text style={styles.crumbOverviewLabel}>Overview</Text>
+      <Text style={styles.crumbSep}>{'·'}</Text>
+      <Text style={styles.crumbCurrentLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 type ProfileTab = 'strength' | 'nutrition';
 
 export default function StrengthProfileScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+  const drillDownEnabled = isMuscleDrillDownEnabled(user);
   const [activeTab, setActiveTab] = useState<ProfileTab>('strength');
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Radar level — `overview` shows the 6 movement axes; `bucket` morphs the
+  // chart into the muscles that feed the tapped movement. Reset on tab focus.
+  // Only meaningful when `drillDownEnabled` is true; otherwise unused.
+  const [radarLevel, setRadarLevel] = useState<RadarLevel>({ kind: 'overview' });
 
   // Sheet visibility — at-most-one open at a time, but the sheets are
   // independent components so collisions don't matter (BottomSheet renders a
@@ -432,8 +472,11 @@ export default function StrengthProfileScreen() {
 
   // Re-fetch each time the tab comes into focus so a freshly-logged workout
   // or a background strength-profile recalculation is reflected immediately.
+  // Also reset the drill-down level so a user landing on the tab always sees
+  // the familiar overview, never a forgotten level-2 view from last time.
   const isFirstFocus = useRef(true);
   useFocusEffect(useCallback(() => {
+    setRadarLevel({ kind: 'overview' });
     if (isFirstFocus.current) { isFirstFocus.current = false; return; }
     loadData();
   }, [loadData]));
@@ -469,13 +512,77 @@ export default function StrengthProfileScreen() {
       runOnJS(setShowRadarTarget)(prev => !prev);
     });
 
-  // Tap a radar axis → open the drill-down sheet. We look up the axis object
-  // by its display label since RadarChart only passes the label string.
+  // Tap a radar axis. Behavior depends on feature flag + current level:
+  //   - drill-down OFF (legacy): tap → open RadarAxisDrillSheet immediately.
+  //   - drill-down ON, overview:  tap → morph into the muscles for that bucket.
+  //   - drill-down ON, bucket:    tap → open RadarAxisDrillSheet for that muscle.
   function handleAxisPress(axisLabel: string) {
-    const axes = mapRadarAxes(data?.radarScores);
-    const axis = axes.find(a => a.axis === axisLabel);
-    if (axis) setAxisSheet(axis);
+    if (!drillDownEnabled) {
+      const axes = mapRadarAxes(data?.radarScores);
+      const axis = axes.find(a => a.axis === axisLabel);
+      if (axis) setAxisSheet(axis);
+      return;
+    }
+
+    if (radarLevel.kind === 'overview') {
+      // Only drill if the tapped axis maps to a known bucket with at least 3
+      // muscle scores available — otherwise fall through to the sheet (matches
+      // the handoff "<3 axes → no radar" rule).
+      const asBucket = axisLabel as MovementBucket;
+      if (!MOVEMENT_TO_MUSCLES[asBucket]) {
+        const ax = currentRadarAxes.find(a => a.axis === axisLabel);
+        if (ax) setAxisSheet(ax);
+        return;
+      }
+      const muscleAxes = buildAxesForLevel(
+        { kind: 'bucket', bucket: asBucket },
+        data?.radarScores,
+        data?.muscleScores,
+      );
+      if (muscleAxes.length >= 3) {
+        setRadarLevel({ kind: 'bucket', bucket: asBucket });
+      } else {
+        // Not enough muscle data to render a meaningful sub-radar — open the
+        // sheet at the movement-bucket level instead. User still gets the
+        // contributing-lifts breakdown.
+        const overviewAx = currentRadarAxes.find(a => a.axis === axisLabel);
+        if (overviewAx) setAxisSheet(overviewAx);
+      }
+      return;
+    }
+
+    // bucket level — terminal tap opens the muscle sheet.
+    const ax = currentRadarAxes.find(a => a.axis === axisLabel);
+    if (ax) setAxisSheet(ax);
   }
+
+  // Long-press a radar axis at any level → open the sheet immediately. Lets
+  // power users skip the drill animation and jump straight to the details.
+  function handleAxisLongPress(axisLabel: string) {
+    const ax = currentRadarAxes.find(a => a.axis === axisLabel);
+    if (ax) setAxisSheet(ax);
+  }
+
+  // Swipe-down inside the radar area → back out one drill level. Combined
+  // with breadcrumb tap, gives users three ways to escape from level 2.
+  const swipeBackGesture = Gesture.Pan()
+    .activeOffsetY(20)
+    .failOffsetY(-10)
+    .onEnd(() => {
+      'worklet';
+      runOnJS(setRadarLevel)({ kind: 'overview' });
+    });
+
+  // The radar axes to render right now — recomputed when level or data
+  // changes. `useMemo` not strictly necessary since buildAxesForLevel is
+  // cheap, but it stabilizes the prop identity for RadarChart's deep-eq
+  // dep check.
+  const currentRadarAxes = React.useMemo(() => {
+    if (!drillDownEnabled) {
+      return mapRadarAxes(data?.radarScores);
+    }
+    return buildAxesForLevel(radarLevel, data?.radarScores, data?.muscleScores);
+  }, [drillDownEnabled, radarLevel, data?.radarScores, data?.muscleScores]);
 
   if (loading) {
     return (
@@ -596,31 +703,45 @@ export default function StrengthProfileScreen() {
               onPress={() => setTierSheetOpen(true)}
             />
 
-            {/* ── Movement balance — 6-axis radar ────────────────────────── */}
-            {(() => {
-              const axes = mapRadarAxes(data!.radarScores);
-              if (axes.length < 3) return null; // edge case: <3 axes → handoff says skip radar
-              return (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
+            {/* ── Movement balance — radar (with optional muscle drill-down) ─ */}
+            {currentRadarAxes.length >= 3 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  {drillDownEnabled && radarLevel.kind === 'bucket' ? (
+                    <BreadcrumbChip
+                      label={radarLevel.bucket}
+                      onBack={() => setRadarLevel({ kind: 'overview' })}
+                    />
+                  ) : (
                     <Text style={styles.eyebrow}>Movement balance</Text>
-                    <Text style={styles.sectionMeta}>
-                      {showRadarTarget ? 'vs target' : 'current only'}
-                    </Text>
-                  </View>
-                  <GestureDetector gesture={radarToggleGesture}>
-                    <View style={{ alignItems: 'center', marginTop: 8 }}>
-                      <RadarChart
-                        axes={axes}
-                        size={Math.min(310, CARD_W)}
-                        showTarget={showRadarTarget}
-                        onAxisPress={handleAxisPress}
-                      />
-                    </View>
-                  </GestureDetector>
+                  )}
+                  <Text style={styles.sectionMeta}>
+                    {showRadarTarget ? 'vs target' : 'current only'}
+                  </Text>
                 </View>
-              );
-            })()}
+                <GestureDetector gesture={
+                  // Combine target-toggle + (when at level 2) swipe-back-to-overview.
+                  drillDownEnabled && radarLevel.kind === 'bucket'
+                    ? Gesture.Race(radarToggleGesture, swipeBackGesture)
+                    : radarToggleGesture
+                }>
+                  <View style={{ alignItems: 'center', marginTop: 8 }}>
+                    <RadarChart
+                      axes={currentRadarAxes}
+                      size={Math.min(310, CARD_W)}
+                      showTarget={showRadarTarget}
+                      onAxisPress={handleAxisPress}
+                      onAxisLongPress={drillDownEnabled ? handleAxisLongPress : undefined}
+                    />
+                  </View>
+                </GestureDetector>
+                {drillDownEnabled && radarLevel.kind === 'overview' && (
+                  <Text style={styles.radarHint}>
+                    Tap a movement to see the muscles inside it. Long-press for details.
+                  </Text>
+                )}
+              </View>
+            )}
 
             {/* ── Working e1RMs — list ───────────────────────────────────── */}
             {(data!.lifts ?? []).length > 0 && (
@@ -709,6 +830,22 @@ const styles = StyleSheet.create({
   sectionMeta: {
     fontSize: 11, color: '#71717A', fontFamily: 'Menlo',
   },
+  radarHint: {
+    fontSize: 11, color: '#A1A1AA', textAlign: 'center', marginTop: 6,
+    fontStyle: 'italic',
+  },
+
+  // Drill-down breadcrumb chip — pill that says "← Overview · {bucket}".
+  // Tappable to zoom back out, mirroring the swipe-down gesture on the radar.
+  crumb: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
+    backgroundColor: '#F4F4F5', borderWidth: 1, borderColor: '#E4E4E7',
+  },
+  crumbBackIcon: { color: '#71717A', fontSize: 14, fontWeight: '700' as const, marginRight: 2 },
+  crumbOverviewLabel: { fontSize: 10.5, color: '#71717A', fontWeight: '600' as const, letterSpacing: 0.6, textTransform: 'uppercase' as const },
+  crumbSep: { fontSize: 10, color: '#A1A1AA', marginHorizontal: 4 },
+  crumbCurrentLabel: { fontSize: 10.5, color: '#09090B', fontWeight: '700' as const, letterSpacing: 0.6, textTransform: 'uppercase' as const },
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,
