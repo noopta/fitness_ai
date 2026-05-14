@@ -664,6 +664,55 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
           </CardContent>
         </Card>
 
+        {/* ── Today's meals ──
+            Placed directly under Today's Calories so users see what they've
+            actually logged without scrolling past four other cards (the prior
+            ordering buried this section 6th, which led users to think their
+            meals 'weren't loading' on tab open). The card reads from the same
+            todayMeals state powering the calorie ring above. */}
+        <Card style={styles.card}>
+          <CardHeader>
+            <View style={styles.cardHeaderRow}>
+              <CardTitle>Today's Meals</CardTitle>
+              {loadingMeals && <ActivityIndicator size="small" color={colors.primary} />}
+            </View>
+          </CardHeader>
+          <CardContent style={styles.mealsContent}>
+            {todayMeals.length === 0 ? (
+              <View style={styles.mealsEmpty}>
+                <Ionicons name="restaurant-outline" size={28} color={colors.mutedForeground} />
+                <Text style={styles.mealsEmptyText}>No meals logged yet today</Text>
+                <TouchableOpacity
+                  style={styles.mealsEmptyBtn}
+                  onPress={() => { setPrefillMeal(null); setLogModalVisible(true); }}
+                >
+                  <Text style={styles.mealsEmptyBtnText}>+ Log your first meal</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.mealsList}>
+                {todayMeals.map((meal, i) => (
+                  <View key={meal.id ?? i} style={styles.mealRow}>
+                    <View style={styles.mealRowLeft}>
+                      <View style={[styles.mealTypeDot, { backgroundColor: mealTypeColor(meal.mealType) }]} />
+                      <View style={styles.mealRowInfo}>
+                        <Text style={styles.mealRowName}>{meal.name}</Text>
+                        <Text style={styles.mealRowMeta}>
+                          {meal.mealType ?? 'meal'}{meal.calories > 0 ? ` · ${Math.round(meal.calories)} kcal` : ''}
+                          {meal.proteinG > 0 ? ` · ${Math.round(meal.proteinG)}g P` : ''}
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity onPress={() => handleDeleteMeal(meal.id)} style={styles.mealDeleteBtn}>
+                      <Ionicons name="trash-outline" size={14} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </CardContent>
+        </Card>
+
         {/* ── Macro targets ── */}
         <Card style={styles.card}>
           <CardHeader><CardTitle>Macronutrients</CardTitle></CardHeader>
@@ -884,50 +933,6 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
             </CardContent>
           </Card>
         )}
-
-        {/* ── Today's meals ── */}
-        <Card style={styles.card}>
-          <CardHeader>
-            <View style={styles.cardHeaderRow}>
-              <CardTitle>Today's Meals</CardTitle>
-              {loadingMeals && <ActivityIndicator size="small" color={colors.primary} />}
-            </View>
-          </CardHeader>
-          <CardContent style={styles.mealsContent}>
-            {todayMeals.length === 0 ? (
-              <View style={styles.mealsEmpty}>
-                <Ionicons name="restaurant-outline" size={28} color={colors.mutedForeground} />
-                <Text style={styles.mealsEmptyText}>No meals logged yet today</Text>
-                <TouchableOpacity
-                  style={styles.mealsEmptyBtn}
-                  onPress={() => { setPrefillMeal(null); setLogModalVisible(true); }}
-                >
-                  <Text style={styles.mealsEmptyBtnText}>+ Log your first meal</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.mealsList}>
-                {todayMeals.map((meal, i) => (
-                  <View key={meal.id ?? i} style={styles.mealRow}>
-                    <View style={styles.mealRowLeft}>
-                      <View style={[styles.mealTypeDot, { backgroundColor: mealTypeColor(meal.mealType) }]} />
-                      <View style={styles.mealRowInfo}>
-                        <Text style={styles.mealRowName}>{meal.name}</Text>
-                        <Text style={styles.mealRowMeta}>
-                          {meal.mealType ?? 'meal'}{meal.calories > 0 ? ` · ${Math.round(meal.calories)} kcal` : ''}
-                          {meal.proteinG > 0 ? ` · ${Math.round(meal.proteinG)}g P` : ''}
-                        </Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity onPress={() => handleDeleteMeal(meal.id)} style={styles.mealDeleteBtn}>
-                      <Ionicons name="trash-outline" size={14} color={colors.mutedForeground} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-          </CardContent>
-        </Card>
 
         {/* ── Body Weight Tracking ── */}
         <Card style={styles.card}>
