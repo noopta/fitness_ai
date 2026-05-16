@@ -28,6 +28,9 @@ import { LiftRow, type LiftRowData } from '../../src/components/strength/LiftRow
 import { TierExplainerSheet } from '../../src/components/strength/TierExplainerSheet';
 import { LiftDetailSheet } from '../../src/components/strength/LiftDetailSheet';
 import { RadarAxisDrillSheet, deriveFeedingLifts } from '../../src/components/strength/RadarAxisDrillSheet';
+import { InsightCard } from '../../src/components/strength/InsightCard';
+import { RatioRow } from '../../src/components/strength/RatioRow';
+import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
 } from '../../src/lib/muscleHierarchy';
@@ -66,6 +69,8 @@ interface StrengthProfileData {
   muscleScores?: Record<string, number>;
   muscleTargets?: { default: number };
   muscleGroupsKnown?: readonly string[];
+  /** The full Athlete Model — ledger, insights, ratios. Flag-gated. */
+  athleteModel?: AthleteModel;
   lifts: LiftSummary[];
   aiInsights: string[];
 }
@@ -673,6 +678,12 @@ export default function StrengthProfileScreen() {
             : []
         }
         onApplyFix={() => { setAxisSheet(null); router.push('/(tabs)/coach'); }}
+        ledgerEntry={
+          // Level-2 muscle taps: surface the muscle's Athlete-Model ledger
+          // entry (trend / weekly sets / zone mix / confidence). Movement
+          // buckets at level 1 won't match a muscle key — undefined is fine.
+          axisSheet ? (data?.athleteModel?.ledger.entries[axisSheet.axis] ?? null) : null
+        }
       />
 
       {activeTab === 'strength' && <ScrollView
@@ -740,6 +751,39 @@ export default function StrengthProfileScreen() {
                     Tap a movement to see the muscles inside it. Long-press for details.
                   </Text>
                 )}
+              </View>
+            )}
+
+            {/* ── Anakin's Read — proactive insight feed (Athlete Model) ──── */}
+            {drillDownEnabled && data!.athleteModel && data!.athleteModel.insights.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.eyebrow}>Anakin's Read</Text>
+                  <Text style={styles.sectionMeta}>
+                    {Math.round((data!.athleteModel.confidence ?? 0) * 100)}% confidence
+                  </Text>
+                </View>
+                <View style={{ gap: 8, marginTop: 10 }}>
+                  {data!.athleteModel.insights.map((insight) => (
+                    <InsightCard key={insight.id} insight={insight} />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* ── Strength Balance — ratio scoreboard (Athlete Model) ─────── */}
+            {drillDownEnabled && data!.athleteModel
+              && data!.athleteModel.ratios.some(r => r.status !== 'no-data') && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.eyebrow}>Strength Balance</Text>
+                  <Text style={styles.sectionMeta}>vs healthy band</Text>
+                </View>
+                <View style={{ marginTop: 4 }}>
+                  {data!.athleteModel.ratios
+                    .filter(r => r.status !== 'no-data')
+                    .map((ratio) => <RatioRow key={ratio.id} ratio={ratio} />)}
+                </View>
               </View>
             )}
 

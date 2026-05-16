@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from
 import { BottomSheet } from '../ui/BottomSheet';
 import { DeltaTag } from './DeltaTag';
 import type { LiftRowData } from './LiftRow';
+import type { MuscleLedgerEntry, MuscleTrend, IntensityZone } from '../../lib/athleteModel';
 
 const SCREEN_H = Dimensions.get('window').height;
 
@@ -25,6 +26,75 @@ interface Props {
   feedingLifts: AxisLift[];
   /** Tap the apply-fix CTA — caller routes to the relevant program edit. */
   onApplyFix?: () => void;
+  /** Optional Athlete-Model ledger entry for this muscle (level-2 drill only). */
+  ledgerEntry?: MuscleLedgerEntry | null;
+}
+
+const TREND_META: Record<MuscleTrend, { label: string; color: string }> = {
+  improving:           { label: 'Improving',   color: '#15803D' },
+  plateau:             { label: 'Plateaued',   color: '#B45309' },
+  declining:           { label: 'Declining',   color: '#DC2626' },
+  'insufficient-data': { label: 'Building up', color: '#71717A' },
+};
+
+const ZONE_META: Array<{ key: IntensityZone; label: string; color: string }> = [
+  { key: 'strength',    label: 'Strength',  color: '#09090B' },
+  { key: 'hypertrophy', label: 'Hypertrophy', color: '#52525B' },
+  { key: 'endurance',   label: 'Endurance', color: '#A1A1AA' },
+  { key: 'power',       label: 'Power',     color: '#6366F1' },
+];
+
+/** Compact per-muscle ledger block — trend, weekly volume, zone split,
+ *  confidence. Rendered inside the drill sheet for level-2 muscle taps. */
+function MuscleLedgerBlock({ entry }: { entry: MuscleLedgerEntry }) {
+  const trend = TREND_META[entry.trend];
+  const zones = ZONE_META.filter((z) => (entry.zoneDistribution[z.key] ?? 0) > 0.01);
+  return (
+    <View style={styles.ledgerBlock}>
+      <View style={styles.ledgerStatRow}>
+        <View style={styles.ledgerStat}>
+          <Text style={styles.ledgerStatLabel}>TREND</Text>
+          <Text style={[styles.ledgerStatValue, { color: trend.color }]}>{trend.label}</Text>
+        </View>
+        <View style={styles.ledgerStat}>
+          <Text style={styles.ledgerStatLabel}>WEEKLY SETS</Text>
+          <Text style={styles.ledgerStatValue}>{entry.weeklyHardSets}</Text>
+        </View>
+        <View style={styles.ledgerStat}>
+          <Text style={styles.ledgerStatLabel}>CONFIDENCE</Text>
+          <Text style={styles.ledgerStatValue}>{Math.round(entry.confidence * 100)}%</Text>
+        </View>
+      </View>
+
+      {zones.length > 0 && (
+        <>
+          <Text style={[styles.eyebrow, { marginTop: 14 }]}>Training mix</Text>
+          {/* Stacked zone bar */}
+          <View style={styles.zoneBar}>
+            {zones.map((z) => (
+              <View
+                key={z.key}
+                style={{
+                  flex: Math.max(0.001, entry.zoneDistribution[z.key]),
+                  backgroundColor: z.color,
+                }}
+              />
+            ))}
+          </View>
+          <View style={styles.zoneLegend}>
+            {zones.map((z) => (
+              <View key={z.key} style={styles.zoneLegendItem}>
+                <View style={[styles.zoneDot, { backgroundColor: z.color }]} />
+                <Text style={styles.zoneLegendText}>
+                  {z.label} {Math.round(entry.zoneDistribution[z.key] * 100)}%
+                </Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
+    </View>
+  );
 }
 
 /**
@@ -40,7 +110,7 @@ interface Props {
  * the list area falls back to a friendly note rather than rendering empty.
  */
 export function RadarAxisDrillSheet({
-  visible, onClose, axisName, current, target, feedingLifts, onApplyFix,
+  visible, onClose, axisName, current, target, feedingLifts, onApplyFix, ledgerEntry,
 }: Props) {
   if (!axisName) {
     return (
@@ -85,6 +155,8 @@ export function RadarAxisDrillSheet({
             </Text>
           </View>
         )}
+
+        {ledgerEntry && <MuscleLedgerBlock entry={ledgerEntry} />}
 
         <Text style={[styles.eyebrow, { marginTop: 18 }]}>Lifts feeding this axis</Text>
         <View style={{ marginTop: 8 }}>
@@ -253,6 +325,31 @@ const styles = StyleSheet.create({
   warningTitle: { color: '#B45309', fontSize: 12, fontWeight: '700' },
   warningBody: { color: '#B45309', fontSize: 12, lineHeight: 18 },
   emptyNote: { fontSize: 13, color: '#71717A', lineHeight: 19 },
+
+  // Per-muscle ledger block (level-2 drill)
+  ledgerBlock: {
+    marginTop: 14,
+    padding: 12,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E4E4E7',
+  },
+  ledgerStatRow: { flexDirection: 'row', gap: 8 },
+  ledgerStat: { flex: 1 },
+  ledgerStatLabel: {
+    fontSize: 9, fontWeight: '700', letterSpacing: 0.6,
+    color: '#A1A1AA',
+  },
+  ledgerStatValue: { fontSize: 14, fontWeight: '700', color: '#09090B', marginTop: 2 },
+  zoneBar: {
+    flexDirection: 'row', height: 8, borderRadius: 4,
+    overflow: 'hidden', marginTop: 8,
+  },
+  zoneLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 },
+  zoneLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  zoneDot: { width: 7, height: 7, borderRadius: 3.5 },
+  zoneLegendText: { fontSize: 11, color: '#52525B' },
   liftRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingVertical: 10,
