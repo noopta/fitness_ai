@@ -5,11 +5,16 @@ import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
 import { isMuscleDrillDownEnabled } from '../config/featureFlags.js';
+import { e1rmWithRpe, parseRPE } from '../engine/e1rm.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-const CACHE_KEY = (userId: string) => `strength:profile:${userId}`;
+// Cache key carries the e1RM variant so the RPE-aware profile and the legacy
+// plain-Epley profile never clobber each other. `rpe1` = RPE-aware (flagged
+// users), `rpe0` = legacy (everyone else).
+const CACHE_KEY = (userId: string, rpeAware = false) =>
+  `strength:profile:${userId}:${rpeAware ? 'rpe1' : 'rpe0'}`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -47,7 +52,11 @@ function strengthTier(score: number | null): string {
 // ─── Core Computation ─────────────────────────────────────────────────────────
 // Extracted so both the route handler and the background recompute share it.
 
-export async function computeStrengthProfile(userId: string) {
+export async function computeStrengthProfile(
+  userId: string,
+  opts: { rpeAware?: boolean } = {},
+) {
+  const rpeAware = opts.rpeAware === true;
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   const logs = await prisma.workoutLog.findMany({
@@ -64,7 +73,7 @@ export async function computeStrengthProfile(userId: string) {
   const categoryVolume = new Map<string, number>();
 
   for (const log of logs) {
-    let exercises: Array<{ name: string; sets: number; reps: string; weightKg?: number | null }>;
+    let exercises: Array<{ name: string; sets: number; reps: string; weightKg?: number | null; rpe?: string | number | null }>;
     try { exercises = JSON.parse(log.exercises); } catch { continue; }
 
     for (const ex of exercises) {
@@ -73,7 +82,12 @@ export async function computeStrengthProfile(userId: string) {
       const norm = normMap.get(ex.name.trim());
       const canonical = norm?.canonicalName ?? ex.name.trim();
       const reps = parseLowerReps(ex.reps);
-      const oneRM = epley1RM(ex.weightKg, reps);
+      // RPE-aware e1RM when the flag is on: credits reps left in the tank
+      // (logged RPE, or a rep-range-aware assumed value) so a sub-failure
+      // set isn't under-counted. Legacy callers get plain Epley unchanged.
+      const oneRM = rpeAware
+        ? e1rmWithRpe(ex.weightKg, reps, parseRPE(ex.rpe))
+        : epley1RM(ex.weightKg, reps);
 
       if (norm && !liftMeta.has(canonical)) {
         liftMeta.set(canonical, {
@@ -252,12 +266,16 @@ export async function computeStrengthProfile(userId: string) {
 // and warms the cache — all without blocking the caller.
 
 export function recomputeStrengthProfileInBackground(userId: string): void {
-  // Evict immediately so any in-flight request computes fresh
-  cacheDelete(CACHE_KEY(userId));
+  // Evict BOTH variant caches so neither serves stale data after a workout
+  // mutation. We proactively recompute only the legacy (plain) variant —
+  // the RPE-aware variant lazily recomputes on the next flagged request,
+  // which keeps this background job cheap for the common case.
+  cacheDelete(CACHE_KEY(userId, false));
+  cacheDelete(CACHE_KEY(userId, true));
 
   computeStrengthProfile(userId)
     .then(profile => {
-      cacheSet(CACHE_KEY(userId), profile);
+      cacheSet(CACHE_KEY(userId, false), profile);
       console.log(`[strength] background recompute done for user ${userId}`);
     })
     .catch(err => {
@@ -271,15 +289,20 @@ router.get('/strength/profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const viewerEmail = req.user!.email ?? null;
+    // Flagged users get the RPE-aware e1RM math; everyone else gets legacy
+    // plain Epley. The flag picks both the compute path and the cache key,
+    // so the two variants never collide.
+    const flagOn = isMuscleDrillDownEnabled({ email: viewerEmail });
 
     // Return cached profile immediately if available
-    const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(CACHE_KEY(userId));
+    const cacheKey = CACHE_KEY(userId, flagOn);
+    const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(cacheKey);
     let profile = cached;
     if (cached) {
       res.setHeader('X-Cache', 'HIT');
     } else {
-      profile = await computeStrengthProfile(userId);
-      cacheSet(CACHE_KEY(userId), profile);
+      profile = await computeStrengthProfile(userId, { rpeAware: flagOn });
+      cacheSet(cacheKey, profile);
       res.setHeader('X-Cache', 'MISS');
     }
 
@@ -288,7 +311,7 @@ router.get('/strength/profile', requireAuth, async (req, res) => {
     // gated on a per-user allowlist see them and can render the level-2
     // sub-radar. Stripping at serialization time (not at compute) keeps
     // the cache a single shape regardless of who's asking.
-    if (!isMuscleDrillDownEnabled({ email: viewerEmail }) && profile) {
+    if (!flagOn && profile) {
       const { muscleScores: _ms, muscleTargets: _mt, muscleGroupsKnown: _mg, ...legacyShape } = profile;
       return res.json(legacyShape);
     }

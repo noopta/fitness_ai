@@ -16,6 +16,7 @@ const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
+import { RpeHelpButton } from '../ui/RpeHelpButton';
 import { workoutsApi, socialApi } from '../../lib/api';
 import { invalidateCache } from '../../lib/cache';
 import { Analytics } from '../../lib/analytics';
@@ -488,7 +489,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                       />
                     </View>
                     <View style={styles.inlineField}>
-                      <Text style={styles.inlineLabel}>RPE</Text>
+                      <View style={styles.labelWithHelp}>
+                        <Text style={styles.inlineLabel}>RPE</Text>
+                        <RpeHelpButton />
+                      </View>
                       <TextInput
                         style={styles.input}
                         placeholder="8"
@@ -506,7 +510,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                       <Text style={[styles.inlineLabel, { flex: 0.7 }]}>Set</Text>
                       <Text style={[styles.inlineLabel, { flex: 1.5 }]}>Weight ({unit})</Text>
                       <Text style={[styles.inlineLabel, { flex: 1 }]}>Reps</Text>
-                      <Text style={[styles.inlineLabel, { flex: 1 }]}>RPE</Text>
+                      <View style={[styles.labelWithHelp, { flex: 1 }]}>
+                        <Text style={styles.inlineLabel}>RPE</Text>
+                        <RpeHelpButton size={13} />
+                      </View>
                       <View style={{ width: 28 }} />
                     </View>
                     {ex.setEntries.map((set, sIdx) => (
@@ -720,6 +727,8 @@ const styles = StyleSheet.create({
   inlineRow: { flexDirection: 'row', gap: spacing.xs },
   inlineField: { flex: 1 },
   inlineLabel: { fontSize: 10, color: colors.mutedForeground, marginBottom: 2 },
+  // Row wrapper so the "?" help button sits inline with the RPE label.
+  labelWithHelp: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
 
   // ── Per-set entry mode ────────────────────────────────────────────────────
   perSetToggleRow: {
