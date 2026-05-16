@@ -6,6 +6,7 @@ import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
 import { isMuscleDrillDownEnabled } from '../config/featureFlags.js';
 import { e1rmWithRpe, parseRPE } from '../engine/e1rm.js';
+import { buildAthleteModel } from '../services/athleteModelService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -244,6 +245,56 @@ export async function computeStrengthProfile(
     lifts.map((l) => ({ canonicalName: l.canonicalName, current1RMkg: l.current1RMkg })),
   );
 
+  // ── Athlete Model (Phases 1-6) ─────────────────────────────────────────
+  // The full structured strength model: per-muscle ledger, derived metrics
+  // (ratios / relative strength / balance), movement-pattern coverage,
+  // ranked insights, and recovery factors. Built only on the RPE-aware
+  // (flagged) path — non-flagged users never pay the cost, and the route
+  // strips `athleteModel` from their response anyway.
+  let athleteModel: ReturnType<typeof buildAthleteModel> | undefined;
+  if (rpeAware) {
+    try {
+      // Re-parse logs into the canonical-named, dated shape the assembler wants.
+      const ledgerWorkouts = logs.map((log) => {
+        let exs: Array<{ name: string; sets: number; reps: string; weightKg?: number | null; rpe?: string | number | null }> = [];
+        try { exs = JSON.parse(log.exercises); } catch { /* skip */ }
+        return {
+          date: log.date,
+          exercises: exs.map((ex) => ({
+            name: normMap.get(ex.name?.trim())?.canonicalName ?? ex.name?.trim() ?? '',
+            sets: ex.sets,
+            reps: ex.reps,
+            weightKg: ex.weightKg,
+            rpe: ex.rpe,
+          })),
+        };
+      });
+
+      // Recovery/diet data — trailing 70 days is enough for the factor checks.
+      const recoveryWindowKey = (() => {
+        const d = new Date(); d.setDate(d.getDate() - 70);
+        return d.toISOString().split('T')[0];
+      })();
+      const [bwLogs, nutritionLogs, wellnessLogs] = await Promise.all([
+        prisma.bodyWeightLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+        prisma.nutritionLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+        prisma.wellnessCheckin.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+      ]);
+
+      athleteModel = buildAthleteModel({
+        workouts: ledgerWorkouts,
+        liftE1rms: lifts.map((l) => ({ canonicalName: l.canonicalName, e1rmKg: l.current1RMkg })),
+        bodyweightKg,
+        bodyWeight: bwLogs.map((b) => ({ date: b.date, weightLbs: b.weightLbs })),
+        nutrition: nutritionLogs.map((n) => ({ date: n.date, calories: n.calories, proteinG: n.proteinG })),
+        wellness: wellnessLogs.map((w) => ({ date: w.date, sleepHours: w.sleepHours, stress: w.stress, energy: w.energy })),
+      });
+    } catch (err) {
+      console.error('[strength] athlete model build failed:', err);
+      // Non-fatal — the rest of the profile still returns.
+    }
+  }
+
   return {
     overallStrengthIndex,
     strengthTier: strengthTier(overallStrengthIndex),
@@ -255,6 +306,7 @@ export async function computeStrengthProfile(
     muscleScores: muscleAddition.muscleScores,
     muscleTargets: muscleAddition.muscleTargets,
     muscleGroupsKnown: muscleAddition.muscleGroupsKnown,
+    athleteModel,
     lifts,
     aiInsights,
     computedAt: new Date().toISOString(),
@@ -312,7 +364,10 @@ router.get('/strength/profile', requireAuth, async (req, res) => {
     // sub-radar. Stripping at serialization time (not at compute) keeps
     // the cache a single shape regardless of who's asking.
     if (!flagOn && profile) {
-      const { muscleScores: _ms, muscleTargets: _mt, muscleGroupsKnown: _mg, ...legacyShape } = profile;
+      const {
+        muscleScores: _ms, muscleTargets: _mt, muscleGroupsKnown: _mg,
+        athleteModel: _am, ...legacyShape
+      } = profile;
       return res.json(legacyShape);
     }
 
