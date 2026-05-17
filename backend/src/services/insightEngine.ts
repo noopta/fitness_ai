@@ -28,6 +28,9 @@ export interface Insight {
   detail: string;      // one-line explanation, plain English
   metric?: string;     // optional numeric callout (e.g. "1.32")
   ctaHint?: string;    // optional suggested action
+  /** Optional e1RM history (oldest→newest) for the card's sparkline. Set on
+   *  stagnation insights so the UI draws the actual flat/declining trend. */
+  spark?: number[];
 }
 
 /** A lift's e1RM history, oldest → newest, for stagnation detection. */
@@ -109,6 +112,9 @@ export function generateInsights(input: InsightEngineInput, limit = 6): Insight[
         ? `${weeks} weeks without progress. The likely lock is your ${lockMuscle.toLowerCase()} — it's the weakest link feeding this lift.`
         : `${weeks} weeks without progress — time to change the stimulus (intensity, volume, or variation).`,
       ctaHint: lockMuscle ? `Add direct ${lockMuscle.toLowerCase()} work` : 'Vary intensity or volume',
+      // Real e1RM history (last 8 weeks) — the card draws the actual
+      // flat/declining shape rather than a synthetic line.
+      spark: pts.slice(-8),
     });
   }
 

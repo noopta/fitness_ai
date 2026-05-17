@@ -1,62 +1,142 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { Insight, InsightKind } from '../../lib/athleteModel';
+import { MiniSparkline } from './MiniSparkline';
+import type { Insight, InsightKind, RatioResult } from '../../lib/athleteModel';
 
-// One card in "Anakin's Read" — the proactive insight feed. First-pass
-// styling: kind-colored accent stripe + icon, priority-aware. The full
-// visual treatment (the screenshot-worthy version) comes in the design pass.
+// "Anakin's Read" insight card — kind-aware. A single entry point that
+// switches its visualization on insight.kind while sharing the chrome
+// (tag pill, priority dot, title, detail, CTA chip). Design handoff §6.
+//
+//   kind        tag         visualization
+//   stagnation  warning     flat / declining sparkline (real e1RM history)
+//   imbalance   destructive mini band track w/ marker (from the ratio)
+//   neglect     zinc        low-volume bar
+//   win         success     rising sparkline, green
+//
+// The per-kind visualizations that need data beyond the Insight object
+// (imbalance → RatioResult) receive it via the optional `ratio` prop.
 
 interface KindStyle {
-  icon: keyof typeof Ionicons.glyphMap;
-  accent: string;   // left stripe + icon color
-  tint: string;     // soft icon-bubble background
+  label: string;
+  tagBg: string;
+  tagFg: string;
+  accent: string;   // sparkline / marker color
 }
 
 const KIND_STYLE: Record<InsightKind, KindStyle> = {
-  stagnation: { icon: 'trending-down',      accent: '#B45309', tint: '#FEF3C7' },
-  imbalance:  { icon: 'git-compare-outline', accent: '#DC2626', tint: '#FEE2E2' },
-  neglect:    { icon: 'eye-off-outline',    accent: '#52525B', tint: '#F4F4F5' },
-  win:        { icon: 'trending-up',        accent: '#15803D', tint: '#DCFCE7' },
+  stagnation: { label: 'STAGNATION', tagBg: '#FEF3C7', tagFg: '#B45309', accent: '#B45309' },
+  imbalance:  { label: 'IMBALANCE',  tagBg: '#FEE2E2', tagFg: '#DC2626', accent: '#DC2626' },
+  neglect:    { label: 'NEGLECT',    tagBg: '#F4F4F5', tagFg: '#52525B', accent: '#A1A1AA' },
+  win:        { label: 'WIN',        tagBg: '#DCFCE7', tagFg: '#15803D', accent: '#15803D' },
 };
 
-export function InsightCard({ insight }: { insight: Insight }) {
-  const ks = KIND_STYLE[insight.kind];
+interface Props {
+  insight: Insight;
+  /** The matching RatioResult — supplied for imbalance insights so the card
+   *  can draw the band track. Optional. */
+  ratio?: RatioResult | null;
+  /** Tap handler — caller routes from insight.ctaHint. */
+  onPress?: (insight: Insight) => void;
+}
 
+/** Mini band track for imbalance cards — the user's value vs the healthy band. */
+function ImbalanceViz({ ratio }: { ratio: RatioResult }) {
+  const W = 66;
+  const [lo, hi] = ratio.band;
+  const span = hi - lo || 1;
+  const min = lo - span * 0.8;
+  const max = hi + span * 0.8;
+  const total = max - min || 1;
+  const pct = (v: number) => Math.max(0, Math.min(1, (v - min) / total));
+  const bandL = pct(lo);
+  const bandR = pct(hi);
+  const markerColor = ratio.status === 'in-band' ? '#09090B'
+    : ratio.severity > 0.5 ? '#DC2626' : '#B45309';
   return (
-    <View
-      style={[styles.card, { borderLeftColor: ks.accent }]}
-      accessibilityRole="text"
-      accessibilityLabel={`${insight.priority} priority ${insight.kind}: ${insight.title}. ${insight.detail}`}
-    >
-      <View style={styles.row}>
-        <View style={[styles.iconBubble, { backgroundColor: ks.tint }]}>
-          <Ionicons name={ks.icon} size={16} color={ks.accent} />
-        </View>
-        <View style={styles.body}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2}>{insight.title}</Text>
-            {insight.metric != null && (
-              <View style={[styles.metricPill, { backgroundColor: ks.tint }]}>
-                <Text style={[styles.metricText, { color: ks.accent }]}>{insight.metric}</Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.detail}>{insight.detail}</Text>
-          {insight.ctaHint && (
-            <View style={styles.ctaRow}>
-              <Ionicons name="arrow-forward" size={11} color={ks.accent} />
-              <Text style={[styles.ctaText, { color: ks.accent }]}>{insight.ctaHint}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-      {insight.priority === 'high' && (
-        <View style={styles.priorityFlag}>
-          <Text style={styles.priorityText}>PRIORITY</Text>
-        </View>
+    <View style={{ width: W, height: 24, justifyContent: 'center' }}>
+      <View style={vizStyles.trackBase} />
+      <View style={[vizStyles.trackBand, { left: bandL * W, width: (bandR - bandL) * W }]} />
+      {ratio.value != null && (
+        <View
+          style={[
+            vizStyles.marker,
+            { left: pct(ratio.value) * W - 1.5, backgroundColor: markerColor },
+          ]}
+        />
       )}
     </View>
+  );
+}
+
+/** Low-volume bar for neglect cards — a near-empty fill signaling "under-trained". */
+function NeglectViz() {
+  return (
+    <View style={{ width: 66, height: 24, justifyContent: 'center' }}>
+      <View style={vizStyles.trackBase} />
+      <View style={[vizStyles.neglectFill]} />
+    </View>
+  );
+}
+
+function InsightViz({ insight, ratio }: { insight: Insight; ratio?: RatioResult | null }) {
+  const ks = KIND_STYLE[insight.kind];
+  switch (insight.kind) {
+    case 'stagnation':
+      return <MiniSparkline values={insight.spark ?? []} color={ks.accent} />;
+    case 'win':
+      // Win cards: rising line. Real spark if present, else an indicative ramp.
+      return (
+        <MiniSparkline
+          values={insight.spark && insight.spark.length >= 2 ? insight.spark : [1, 1.4, 1.8, 2.6]}
+          color={ks.accent}
+        />
+      );
+    case 'imbalance':
+      return ratio ? <ImbalanceViz ratio={ratio} /> : null;
+    case 'neglect':
+      return <NeglectViz />;
+    default:
+      return null;
+  }
+}
+
+export function InsightCard({ insight, ratio, onPress }: Props) {
+  const ks = KIND_STYLE[insight.kind];
+  const isHigh = insight.priority === 'high';
+
+  return (
+    <Pressable
+      onPress={() => onPress?.(insight)}
+      style={({ pressed }) => [
+        styles.card,
+        isHigh && styles.cardHigh,
+        pressed && { transform: [{ scale: 0.985 }], opacity: 0.96 },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={`${insight.priority} priority ${insight.kind}: ${insight.title}. ${insight.detail}`}
+    >
+      {/* Top row — tag pill (+ priority dot) and the kind visualization */}
+      <View style={styles.topRow}>
+        <View style={styles.tagWrap}>
+          <View style={[styles.tag, { backgroundColor: ks.tagBg }]}>
+            <Text style={[styles.tagText, { color: ks.tagFg }]}>{ks.label}</Text>
+          </View>
+          {isHigh && <View style={[styles.priorityDot, { backgroundColor: ks.accent }]} />}
+        </View>
+        <InsightViz insight={insight} ratio={ratio} />
+      </View>
+
+      <Text style={styles.title}>{insight.title}</Text>
+      <Text style={styles.detail}>{insight.detail}</Text>
+
+      {insight.ctaHint && (
+        <View style={styles.ctaChip}>
+          <Text style={styles.ctaText}>{insight.ctaHint}</Text>
+          <Ionicons name="chevron-forward" size={12} color="#FFFFFF" />
+        </View>
+      )}
+    </Pressable>
   );
 }
 
@@ -65,29 +145,58 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E4E4E7',
-    borderLeftWidth: 3,
-    borderRadius: 12,
-    padding: 12,
-    position: 'relative',
+    borderRadius: 14,
+    padding: 14,
   },
-  row: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  iconBubble: {
-    width: 30, height: 30, borderRadius: 8,
-    alignItems: 'center', justifyContent: 'center', marginTop: 1,
+  cardHigh: {
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
-  body: { flex: 1 },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-  title: { flex: 1, fontSize: 13.5, fontWeight: '700', color: '#09090B', lineHeight: 18 },
-  metricPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
-  metricText: { fontSize: 11, fontWeight: '700', fontFamily: 'Menlo' },
-  detail: { fontSize: 12.5, color: '#52525B', lineHeight: 18, marginTop: 3 },
-  ctaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
-  ctaText: { fontSize: 11.5, fontWeight: '600' },
-  priorityFlag: {
-    position: 'absolute', top: -1, right: -1,
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  tagWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  tag: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
+  tagText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
+  priorityDot: { width: 6, height: 6, borderRadius: 3 },
+  title: { fontSize: 14.5, fontWeight: '700', color: '#09090B', lineHeight: 19 },
+  detail: { fontSize: 12.5, color: '#52525B', lineHeight: 18, marginTop: 4 },
+  ctaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 3,
+    marginTop: 12,
     backgroundColor: '#09090B',
-    paddingHorizontal: 6, paddingVertical: 2,
-    borderTopRightRadius: 11, borderBottomLeftRadius: 8,
+    paddingLeft: 11,
+    paddingRight: 8,
+    paddingVertical: 7,
+    borderRadius: 999,
   },
-  priorityText: { color: '#FFFFFF', fontSize: 8, fontWeight: '800', letterSpacing: 0.8 },
+  ctaText: { color: '#FFFFFF', fontSize: 11.5, fontWeight: '700' },
+});
+
+const vizStyles = StyleSheet.create({
+  trackBase: {
+    position: 'absolute', left: 0, right: 0, height: 4,
+    borderRadius: 2, backgroundColor: '#E4E4E7',
+  },
+  trackBand: {
+    position: 'absolute', height: 4, borderRadius: 2,
+    backgroundColor: '#BBF7D0',
+  },
+  marker: {
+    position: 'absolute', width: 3, height: 14, borderRadius: 1.5,
+    borderWidth: 1, borderColor: '#FFFFFF', top: 5,
+  },
+  neglectFill: {
+    position: 'absolute', left: 0, width: '14%', height: 4,
+    borderRadius: 2, backgroundColor: '#A1A1AA',
+  },
 });

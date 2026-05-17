@@ -72,6 +72,9 @@ export interface Insight {
   detail: string;
   metric?: string;
   ctaHint?: string;
+  /** e1RM history (oldest→newest) — present on stagnation insights for the
+   *  card's sparkline. */
+  spark?: number[];
 }
 
 export interface RecoveryFactor {
