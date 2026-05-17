@@ -29,7 +29,7 @@ import { TierExplainerSheet } from '../../src/components/strength/TierExplainerS
 import { LiftDetailSheet } from '../../src/components/strength/LiftDetailSheet';
 import { RadarAxisDrillSheet, deriveFeedingLifts } from '../../src/components/strength/RadarAxisDrillSheet';
 import { AnakinsRead } from '../../src/components/strength/AnakinsRead';
-import { RatioRow } from '../../src/components/strength/RatioRow';
+import { StrengthBalance } from '../../src/components/strength/StrengthBalance';
 import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
@@ -766,19 +766,8 @@ export default function StrengthProfileScreen() {
             )}
 
             {/* ── Strength Balance — ratio scoreboard (Athlete Model) ─────── */}
-            {drillDownEnabled && data!.athleteModel
-              && data!.athleteModel.ratios.some(r => r.status !== 'no-data') && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.eyebrow}>Strength Balance</Text>
-                  <Text style={styles.sectionMeta}>vs healthy band</Text>
-                </View>
-                <View style={{ marginTop: 4 }}>
-                  {data!.athleteModel.ratios
-                    .filter(r => r.status !== 'no-data')
-                    .map((ratio) => <RatioRow key={ratio.id} ratio={ratio} />)}
-                </View>
-              </View>
+            {drillDownEnabled && data!.athleteModel && data!.athleteModel.ratios.length > 0 && (
+              <StrengthBalance ratios={data!.athleteModel.ratios} />
             )}
 
             {/* ── Working e1RMs — list ───────────────────────────────────── */}

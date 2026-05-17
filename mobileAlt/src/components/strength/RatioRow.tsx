@@ -1,112 +1,140 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withSpring, useReducedMotion,
+} from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import type { RatioResult } from '../../lib/athleteModel';
 
-// One strength-ratio row in the "Strength Balance" scoreboard. Shows the
-// ratio name, the user's value, and a mini band track placing that value
-// against the healthy range. Drift is colored; in-band is calm.
-//
-// The band track: a horizontal bar where the green segment is the healthy
-// band and a dot marks where the user sits. Renders the diagnostic at a
-// glance — no numbers-reading required.
+// One strength-ratio row in the "Strength Balance" scoreboard. Design
+// handoff §6/§11: a full-width banded track — green healthy-band segment,
+// an animated marker bar showing where the user sits, monospace edge ticks
+// at the band bounds. No-data ratios render a lock-chip "unlock" variant.
 
-const TRACK_WIDTH = 96;
+function markerColorFor(ratio: RatioResult): string {
+  if (ratio.status === 'in-band') return '#09090B';
+  if (ratio.severity > 0.5) return '#DC2626';
+  return '#B45309';
+}
 
-function statusColor(status: RatioResult['status']): string {
-  switch (status) {
-    case 'in-band': return '#15803D';
-    case 'high':
-    case 'low':     return '#DC2626';
-    default:        return '#A1A1AA';
-  }
+/** No-data variant — the ratio's contributing lift hasn't been logged. */
+function NoDataRow({ ratio }: { ratio: RatioResult }) {
+  return (
+    <View style={styles.row} accessibilityRole="text" accessibilityLabel={`${ratio.name}: ${ratio.note}`}>
+      <View style={styles.headerLine}>
+        <Text style={styles.name}>{ratio.name}</Text>
+        <Text style={styles.valueMuted}>—</Text>
+      </View>
+      <View style={styles.lockChip}>
+        <Ionicons name="lock-closed" size={11} color="#A1A1AA" />
+        <Text style={styles.lockText}>{ratio.note}</Text>
+      </View>
+    </View>
+  );
 }
 
 export function RatioRow({ ratio }: { ratio: RatioResult }) {
-  const color = statusColor(ratio.status);
-  const hasData = ratio.value != null;
+  const reducedMotion = useReducedMotion();
 
-  // Map the ratio value onto the track. The visible track spans a little
-  // wider than the band so out-of-band values still render on-bar.
+  // Band-track geometry as percentages (0-100). Padding on each side so an
+  // out-of-band value still lands on the bar. §11: padding = max(0.15, hi-lo).
   const [lo, hi] = ratio.band;
   const span = hi - lo || 1;
-  const trackMin = lo - span * 0.8;
-  const trackMax = hi + span * 0.8;
-  const trackSpan = trackMax - trackMin || 1;
-  const clampPct = (v: number) => Math.max(0, Math.min(1, (v - trackMin) / trackSpan));
+  const padding = Math.max(0.15, span);
+  const min = lo - padding;
+  const max = hi + padding;
+  const total = max - min || 1;
+  const pct = (v: number) => Math.max(0, Math.min(100, ((v - min) / total) * 100));
+  const bandLo = pct(lo);
+  const bandHi = pct(hi);
+  const bandCenter = (bandLo + bandHi) / 2;
+  const markerTarget = ratio.value != null ? pct(ratio.value) : bandCenter;
 
-  const bandLeft = clampPct(lo);
-  const bandRight = clampPct(hi);
-  const dotPct = hasData ? clampPct(ratio.value as number) : 0.5;
+  // Marker springs from band-center to its real position on mount.
+  const markerX = useSharedValue(bandCenter);
+  useEffect(() => {
+    if (reducedMotion) { markerX.value = markerTarget; return; }
+    markerX.value = bandCenter;
+    markerX.value = withSpring(markerTarget, { damping: 18, stiffness: 220 });
+  }, [markerTarget, bandCenter, reducedMotion, markerX]);
+  const markerStyle = useAnimatedStyle(() => ({ left: `${markerX.value}%` }));
+
+  if (ratio.status === 'no-data' || ratio.value == null) {
+    return <NoDataRow ratio={ratio} />;
+  }
+
+  const markerColor = markerColorFor(ratio);
 
   return (
     <View
       style={styles.row}
       accessibilityRole="text"
       accessibilityLabel={
-        hasData
-          ? `${ratio.name}: ${ratio.value}, healthy range ${lo} to ${hi}, ${ratio.status}. ${ratio.note}`
-          : `${ratio.name}: not enough data`
+        `${ratio.name}: ${ratio.value}, healthy range ${lo} to ${hi}, ` +
+        `${ratio.status === 'in-band' ? 'in band' : 'drifted'}. ${ratio.note}`
       }
     >
-      <View style={styles.left}>
+      <View style={styles.headerLine}>
         <Text style={styles.name}>{ratio.name}</Text>
-        <Text style={styles.note} numberOfLines={2}>{ratio.note}</Text>
+        <Text style={[styles.value, { color: markerColor }]} allowFontScaling={false}>
+          {ratio.value.toFixed(2)}
+        </Text>
       </View>
 
-      <View style={styles.right}>
-        <Text style={[styles.value, { color: hasData ? '#09090B' : '#A1A1AA' }]}>
-          {hasData ? (ratio.value as number).toFixed(2) : '—'}
-        </Text>
-        <View style={styles.track}>
-          {/* full track */}
-          <View style={styles.trackBase} />
-          {/* healthy band segment */}
-          <View
-            style={[
-              styles.trackBand,
-              { left: bandLeft * TRACK_WIDTH, width: (bandRight - bandLeft) * TRACK_WIDTH },
-            ]}
-          />
-          {/* user value marker */}
-          {hasData && (
-            <View
-              style={[
-                styles.dot,
-                { left: dotPct * TRACK_WIDTH - 4, backgroundColor: color, borderColor: '#FFFFFF' },
-              ]}
-            />
-          )}
-        </View>
+      {/* Banded track */}
+      <View style={styles.track}>
+        <View style={styles.trackBase} />
+        <View
+          style={[styles.band, { left: `${bandLo}%`, width: `${bandHi - bandLo}%` }]}
+        />
+        <Animated.View style={[styles.marker, { backgroundColor: markerColor }, markerStyle]} />
       </View>
+
+      {/* Edge ticks at the band bounds */}
+      <View style={styles.tickRow}>
+        <Text style={[styles.tick, { left: `${bandLo}%` }]}>{lo}</Text>
+        <Text style={[styles.tick, { left: `${bandHi}%` }]}>{hi}</Text>
+      </View>
+
+      <Text style={styles.note}>{ratio.note}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F4F4F5',
-  },
-  left: { flex: 1 },
-  name: { fontSize: 13, fontWeight: '700', color: '#09090B' },
-  note: { fontSize: 11.5, color: '#71717A', marginTop: 2, lineHeight: 16 },
-  right: { width: TRACK_WIDTH, alignItems: 'center', gap: 5 },
-  value: { fontSize: 16, fontWeight: '800', fontFamily: 'Menlo', letterSpacing: -0.5 },
-  track: { width: TRACK_WIDTH, height: 14, justifyContent: 'center' },
+  row: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F4F4F5' },
+  headerLine: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  name: { fontSize: 13.5, fontWeight: '700', color: '#09090B' },
+  value: { fontSize: 17, fontWeight: '800', fontFamily: 'Menlo', letterSpacing: -0.5 },
+  valueMuted: { fontSize: 17, fontWeight: '800', fontFamily: 'Menlo', color: '#A1A1AA' },
+
+  track: { height: 16, justifyContent: 'center', marginTop: 10 },
   trackBase: {
-    position: 'absolute', left: 0, right: 0, height: 4,
-    borderRadius: 2, backgroundColor: '#E4E4E7',
+    position: 'absolute', left: 0, right: 0, height: 5,
+    borderRadius: 3, backgroundColor: '#E4E4E7',
   },
-  trackBand: {
-    position: 'absolute', height: 4, borderRadius: 2,
+  band: {
+    position: 'absolute', height: 5, borderRadius: 3,
     backgroundColor: '#BBF7D0',
+    borderWidth: 0.5, borderColor: '#86EFAC',
   },
-  dot: {
-    position: 'absolute', width: 8, height: 8, borderRadius: 4,
-    borderWidth: 1.5, top: 3,
+  marker: {
+    position: 'absolute', width: 4, height: 16, borderRadius: 2,
+    borderWidth: 2, borderColor: '#FFFFFF',
+    marginLeft: -2,  // center the 4px marker on its x
   },
+  tickRow: { height: 13, marginTop: 2 },
+  tick: {
+    position: 'absolute', fontSize: 9.5, fontFamily: 'Menlo', color: '#A1A1AA',
+    transform: [{ translateX: -10 }], width: 20, textAlign: 'center',
+  },
+  note: { fontSize: 11.5, color: '#71717A', lineHeight: 16, marginTop: 8 },
+
+  lockChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    alignSelf: 'flex-start', marginTop: 8,
+    backgroundColor: '#F4F4F5',
+    paddingHorizontal: 9, paddingVertical: 6, borderRadius: 8,
+  },
+  lockText: { fontSize: 11.5, color: '#71717A', fontWeight: '500' },
 });
