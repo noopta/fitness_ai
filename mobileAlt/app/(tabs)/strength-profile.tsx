@@ -711,6 +711,7 @@ export default function StrengthProfileScreen() {
               percentile={null /* backend doesn't yet expose a percentile */}
               wilks={data!.overallStrengthIndex}
               delta30d={null /* backend doesn't yet expose 30D wilks delta */}
+              confidence={drillDownEnabled ? (data!.athleteModel?.confidence ?? null) : null}
               onPress={() => setTierSheetOpen(true)}
             />
 

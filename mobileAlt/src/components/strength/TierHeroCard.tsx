@@ -8,6 +8,7 @@ import Animated, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TierLadder } from './TierLadder';
 import { DeltaTag } from './DeltaTag';
+import { ConfidenceRing } from './ConfidenceRing';
 
 const CELEBRATED_KEY_PREFIX = 'strength:tierCelebrated:';
 
@@ -22,6 +23,9 @@ interface Props {
   wilks: number | null;
   /** 30-day delta. null → renders em-dash placeholder. */
   delta30d: number | null;
+  /** Athlete-Model completeness 0-1. When provided, renders the confidence
+   *  ring + footer line. Omit on flag-off accounts (no Athlete Model). */
+  confidence?: number | null;
   /** Tap → opens TierExplainerSheet (callback wires to the existing sheet system). */
   onPress?: () => void;
 }
@@ -35,7 +39,7 @@ interface Props {
  * pressOut. Whole card is the hit area; opens the tier explainer sheet.
  */
 export function TierHeroCard({
-  tier, tierIndex, percentile, wilks, delta30d, onPress,
+  tier, tierIndex, percentile, wilks, delta30d, confidence, onPress,
 }: Props) {
   const reducedMotion = useReducedMotion();
 
@@ -171,9 +175,13 @@ export function TierHeroCard({
             </View>
           </View>
 
-          <View style={styles.deltaPill}>
-            <DeltaTag value={delta30d} suffix="" size={10} invert />
-            <Text style={styles.deltaPillSuffix}>  30D</Text>
+          {/* Right column — confidence ring (Athlete Model) over the 30D pill */}
+          <View style={styles.rightCol}>
+            {confidence != null && <ConfidenceRing value={confidence} size={56} />}
+            <View style={styles.deltaPill}>
+              <DeltaTag value={delta30d} suffix="" size={10} invert />
+              <Text style={styles.deltaPillSuffix}>  30D</Text>
+            </View>
           </View>
         </View>
 
@@ -187,6 +195,13 @@ export function TierHeroCard({
           <Text style={styles.tierLabel}>Adv.</Text>
           <Text style={styles.tierLabel}>Elite</Text>
         </View>
+
+        {/* Read-confidence footer line — present only with an Athlete Model */}
+        {confidence != null && (
+          <Text style={styles.confidenceFooter}>
+            Read confidence · {Math.round(confidence * 100)}% · sharpens as you log
+          </Text>
+        )}
       </Animated.View>
     </Pressable>
   );
@@ -239,6 +254,7 @@ const styles = StyleSheet.create({
   subText: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   subDot:  { fontSize: 12, color: 'rgba(255,255,255,0.4)' },
   placeholder: { fontFamily: 'Menlo', color: 'rgba(255,255,255,0.4)' },
+  rightCol: { alignItems: 'flex-end', gap: 8 },
   deltaPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -264,5 +280,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.45)',
+  },
+  confidenceFooter: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.10)',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+    fontWeight: '500',
   },
 });
