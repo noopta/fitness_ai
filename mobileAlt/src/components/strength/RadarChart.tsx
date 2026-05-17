@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, {
-  Polygon, Line, Path, Circle, Text as SvgText, G, Rect, Ellipse,
+  Polygon, Line, Path, Circle, Text as SvgText, G, Rect,
   Defs, RadialGradient, Stop,
 } from 'react-native-svg';
-import { BodySilhouette } from './BodySilhouette';
 import Animated, {
   useSharedValue, useAnimatedProps, useDerivedValue, withTiming,
   withDelay, Easing, useReducedMotion,
@@ -28,11 +27,6 @@ interface Props {
   onAxisPress?: (axisName: string) => void;
   /** Long-press handler — power-user shortcut to open the drill sheet at any level. */
   onAxisLongPress?: (axisName: string) => void;
-  /** Render the ghosted body silhouette behind the polygon (movement-level
-   *  radar only — design handoff §6). */
-  bodySilhouette?: boolean;
-  /** Render a translucent red glow over each lagging axis's region. */
-  laggingGlow?: boolean;
 }
 
 /**
@@ -53,12 +47,11 @@ interface Props {
  */
 export function RadarChart({
   axes, size = 310, showTarget = true, onAxisPress, onAxisLongPress,
-  bodySilhouette = false, laggingGlow = false,
 }: Props) {
   const reducedMotion = useReducedMotion();
   const cx = size / 2;
   const cy = size / 2;
-  const r = size / 2 - 44; // room for axis labels
+  const r = size / 2 - 52; // room for the tappable axis-label chips
 
   // Track the previous N so axis-count changes (level transitions) trigger
   // a two-phase morph: collapse to center, then expand into the new shape.
@@ -106,8 +99,8 @@ export function RadarChart({
       })
       .join(' ');
     const labels = renderAxes.map((_, i) => {
-      const lx = cx + Math.cos(ang(i)) * (r + 30);
-      const ly = cy + Math.sin(ang(i)) * (r + 30);
+      const lx = cx + Math.cos(ang(i)) * (r + 24);
+      const ly = cy + Math.sin(ang(i)) * (r + 24);
       return { lx, ly };
     });
     const dotsCurrent = renderAxes.map((a, i) => {
@@ -236,26 +229,6 @@ export function RadarChart({
         </RadialGradient>
       </Defs>
 
-      {/* Ghosted body silhouette — anatomical anchor behind the polygon. */}
-      {bodySilhouette && (
-        <BodySilhouette cx={cx} cy={cy} fitHeight={r * 1.5} opacity={0.07} />
-      )}
-
-      {/* Lagging-axis glow — translucent red region over each weak axis.
-          Wide-stroke / fill, NOT an SVG filter (perf on older Android). */}
-      {laggingGlow && geo.dotsCurrent.map((d, i) => {
-        if (!d.lagging) return null;
-        const gx = cx + Math.cos(ang(i)) * r * 0.55;
-        const gy = cy + Math.sin(ang(i)) * r * 0.55;
-        return (
-          <Ellipse
-            key={`glow-${i}`}
-            cx={gx} cy={gy} rx={26} ry={26}
-            fill="#EF4444" opacity={0.16}
-          />
-        );
-      })}
-
       {/* Reference rings */}
       {geo.ringPoints.map((points, i) => (
         <Polygon
@@ -332,8 +305,22 @@ export function RadarChart({
               accessibilityRole={handlePress ? 'button' : undefined}
               accessibilityLabel={`${a.axis} axis, ${Math.round(a.current)} of ${Math.round(a.target)} target`}
             >
+              {/* Visible chip behind each interactive axis label — makes it
+                  obvious the movement is tappable (a user scrolling past
+                  shouldn't have to read the hint to know). Drawn as a light
+                  rounded surface with a hairline border; doubles as the
+                  44pt-ish hit target. Non-interactive radars skip it. */}
               {handlePress && (
-                <Rect x={lx - 28} y={ly - 18} width={56} height={32} fill="transparent" />
+                <Rect
+                  x={lx - 27}
+                  y={ly - 17}
+                  width={54}
+                  height={32}
+                  rx={8}
+                  fill="#F4F4F5"
+                  stroke="#E4E4E7"
+                  strokeWidth={1}
+                />
               )}
               <SvgText
                 x={lx}
