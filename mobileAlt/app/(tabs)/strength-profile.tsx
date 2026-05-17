@@ -31,6 +31,7 @@ import { RadarAxisDrillSheet, deriveFeedingLifts } from '../../src/components/st
 import { AnakinsRead } from '../../src/components/strength/AnakinsRead';
 import { StrengthBalance } from '../../src/components/strength/StrengthBalance';
 import { PatternCoverage } from '../../src/components/strength/PatternCoverage';
+import { RelativeStrength } from '../../src/components/strength/RelativeStrength';
 import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
@@ -777,6 +778,11 @@ export default function StrengthProfileScreen() {
                 patterns={data!.athleteModel.patternCoverage}
                 onCellPress={() => router.push('/(tabs)/coach')}
               />
+            )}
+
+            {/* ── Relative Strength — tiered BW-multiple bars (Athlete Model) ─ */}
+            {drillDownEnabled && data!.athleteModel && data!.athleteModel.relativeStrength.length > 0 && (
+              <RelativeStrength results={data!.athleteModel.relativeStrength} />
             )}
 
             {/* ── Working e1RMs — list ───────────────────────────────────── */}
