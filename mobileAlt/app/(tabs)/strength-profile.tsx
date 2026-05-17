@@ -30,6 +30,7 @@ import { LiftDetailSheet } from '../../src/components/strength/LiftDetailSheet';
 import { RadarAxisDrillSheet, deriveFeedingLifts } from '../../src/components/strength/RadarAxisDrillSheet';
 import { AnakinsRead } from '../../src/components/strength/AnakinsRead';
 import { StrengthBalance } from '../../src/components/strength/StrengthBalance';
+import { PatternCoverage } from '../../src/components/strength/PatternCoverage';
 import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
@@ -768,6 +769,14 @@ export default function StrengthProfileScreen() {
             {/* ── Strength Balance — ratio scoreboard (Athlete Model) ─────── */}
             {drillDownEnabled && data!.athleteModel && data!.athleteModel.ratios.length > 0 && (
               <StrengthBalance ratios={data!.athleteModel.ratios} />
+            )}
+
+            {/* ── Pattern Coverage — movement-pattern grid (Athlete Model) ── */}
+            {drillDownEnabled && data!.athleteModel && data!.athleteModel.patternCoverage.length > 0 && (
+              <PatternCoverage
+                patterns={data!.athleteModel.patternCoverage}
+                onCellPress={() => router.push('/(tabs)/coach')}
+              />
             )}
 
             {/* ── Working e1RMs — list ───────────────────────────────────── */}
