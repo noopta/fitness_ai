@@ -825,8 +825,10 @@ export default function StrengthProfileScreen() {
               </Card>
             )}
 
-            {/* ── AI Insights (kept from prior screen) ──────────────────── */}
-            {(data!.aiInsights ?? []).length > 0 && (
+            {/* ── Legacy AI Insights — superseded by "Anakin's Read" for
+                Athlete-Model accounts (design handoff kill list). Still
+                shown to flag-OFF accounts, who have no Anakin's Read. ─── */}
+            {!drillDownEnabled && (data!.aiInsights ?? []).length > 0 && (
               <Card style={styles.card}>
                 <CardHeader>
                   <CardTitle>AI Insights</CardTitle>
