@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, {
-  Polygon, Line, Path, Circle, Text as SvgText, G, Rect,
+  Polygon, Line, Path, Circle, Text as SvgText, G, Rect, Ellipse,
   Defs, RadialGradient, Stop,
 } from 'react-native-svg';
+import { BodySilhouette } from './BodySilhouette';
 import Animated, {
   useSharedValue, useAnimatedProps, useDerivedValue, withTiming,
   withDelay, Easing, useReducedMotion,
@@ -27,6 +28,11 @@ interface Props {
   onAxisPress?: (axisName: string) => void;
   /** Long-press handler — power-user shortcut to open the drill sheet at any level. */
   onAxisLongPress?: (axisName: string) => void;
+  /** Render the ghosted body silhouette behind the polygon (movement-level
+   *  radar only — design handoff §6). */
+  bodySilhouette?: boolean;
+  /** Render a translucent red glow over each lagging axis's region. */
+  laggingGlow?: boolean;
 }
 
 /**
@@ -47,6 +53,7 @@ interface Props {
  */
 export function RadarChart({
   axes, size = 310, showTarget = true, onAxisPress, onAxisLongPress,
+  bodySilhouette = false, laggingGlow = false,
 }: Props) {
   const reducedMotion = useReducedMotion();
   const cx = size / 2;
@@ -228,6 +235,26 @@ export function RadarChart({
           <Stop offset="100%" stopColor="#09090B" stopOpacity={0.04} />
         </RadialGradient>
       </Defs>
+
+      {/* Ghosted body silhouette — anatomical anchor behind the polygon. */}
+      {bodySilhouette && (
+        <BodySilhouette cx={cx} cy={cy} fitHeight={r * 1.5} opacity={0.07} />
+      )}
+
+      {/* Lagging-axis glow — translucent red region over each weak axis.
+          Wide-stroke / fill, NOT an SVG filter (perf on older Android). */}
+      {laggingGlow && geo.dotsCurrent.map((d, i) => {
+        if (!d.lagging) return null;
+        const gx = cx + Math.cos(ang(i)) * r * 0.55;
+        const gy = cy + Math.sin(ang(i)) * r * 0.55;
+        return (
+          <Ellipse
+            key={`glow-${i}`}
+            cx={gx} cy={gy} rx={26} ry={26}
+            fill="#EF4444" opacity={0.16}
+          />
+        );
+      })}
 
       {/* Reference rings */}
       {geo.ringPoints.map((points, i) => (

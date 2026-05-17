@@ -746,6 +746,10 @@ export default function StrengthProfileScreen() {
                       showTarget={showRadarTarget}
                       onAxisPress={handleAxisPress}
                       onAxisLongPress={drillDownEnabled ? handleAxisLongPress : undefined}
+                      // Body silhouette + lagging glow only at the movement
+                      // (overview) level — the muscle sub-radar has no body map.
+                      bodySilhouette={drillDownEnabled && radarLevel.kind === 'overview'}
+                      laggingGlow={drillDownEnabled && radarLevel.kind === 'overview'}
                     />
                   </View>
                 </GestureDetector>
