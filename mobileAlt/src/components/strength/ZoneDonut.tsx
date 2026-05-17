@@ -45,8 +45,18 @@ export function ZoneDonut({ distribution, size = 76, stroke = 13 }: Props) {
     return seg;
   }).filter((s) => s.frac > 0.005);
 
+  // Spoken summary of the mix, e.g. "Training mix: strength 33%, hypertrophy 35%".
+  const a11yLabel = 'Training mix: ' + (segments.length
+    ? segments.map((s) => `${s.label.toLowerCase()} ${Math.round(s.frac * 100)} percent`).join(', ')
+    : 'no data');
+
   return (
-    <Svg width={size} height={size}>
+    <Svg
+      width={size}
+      height={size}
+      accessibilityRole="image"
+      accessibilityLabel={a11yLabel}
+    >
       {/* faint full-circle track behind the segments */}
       <Circle
         cx={size / 2} cy={size / 2} r={r}

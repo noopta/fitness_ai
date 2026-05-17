@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { InsightCard } from './InsightCard';
 import { MiniSparkline } from './MiniSparkline';
@@ -31,9 +31,14 @@ function ratioFor(insight: Insight, ratios: RatioResult[]): RatioResult | null {
 }
 
 export function AnakinsRead({ insights, ratios, confidence, onInsightPress }: Props) {
+  const reducedMotion = useReducedMotion();
   const newUser = confidence < NEW_USER_CONFIDENCE;
   const nonWin = insights.filter((i) => i.kind !== 'win');
   const allClear = !newUser && nonWin.length === 0;
+  // Medium confidence (0.3–0.65) — the model has a read but it's still
+  // firming up. Surface a section-level "preliminary" note rather than
+  // mutating every insight's copy (handoff §7, lighter touch).
+  const preliminary = !newUser && confidence < 0.65;
 
   return (
     <View style={styles.section}>
@@ -79,17 +84,28 @@ export function AnakinsRead({ insights, ratios, confidence, onInsightPress }: Pr
 
       {/* ── Populated state ─────────────────────────────────────────────── */}
       {!newUser && !allClear && (
-        <View style={{ gap: 8, marginTop: 10 }}>
-          {insights.map((insight, i) => (
-            <Animated.View key={insight.id} entering={FadeInDown.delay(i * 80).duration(320)}>
-              <InsightCard
-                insight={insight}
-                ratio={ratioFor(insight, ratios)}
-                onPress={onInsightPress}
-              />
-            </Animated.View>
-          ))}
-        </View>
+        <>
+          {preliminary && (
+            <Text style={styles.preliminaryNote}>
+              Preliminary read — keep logging to firm these up.
+            </Text>
+          )}
+          <View style={{ gap: 8, marginTop: preliminary ? 8 : 10 }}>
+            {insights.map((insight, i) => (
+              <Animated.View
+                key={insight.id}
+                // Reduced motion → no stagger; the card just appears.
+                entering={reducedMotion ? undefined : FadeInDown.delay(i * 80).duration(320)}
+              >
+                <InsightCard
+                  insight={insight}
+                  ratio={ratioFor(insight, ratios)}
+                  onPress={onInsightPress}
+                />
+              </Animated.View>
+            ))}
+          </View>
+        </>
       )}
     </View>
   );
@@ -103,6 +119,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', color: '#71717A',
   },
   meta: { fontSize: 11, color: '#71717A', fontFamily: 'Menlo' },
+  preliminaryNote: {
+    fontSize: 11, color: '#A1A1AA', fontStyle: 'italic', marginTop: 8,
+  },
 
   promptCard: {
     marginTop: 10,
