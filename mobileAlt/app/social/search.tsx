@@ -10,11 +10,14 @@ import { Analytics } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
+type FriendshipStatus = 'none' | 'pending_sent' | 'pending_received' | 'accepted';
+
 interface UserResult {
   id: string;
   name: string | null;
   username: string | null;
   avatarBase64: string | null;
+  friendshipStatus?: FriendshipStatus;
 }
 
 interface PendingRequest {
@@ -30,7 +33,6 @@ export default function SocialSearchScreen() {
   const [searching, setSearching] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
-  const [sentIds, setSentIds] = useState<Set<string>>(new Set());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -67,13 +69,35 @@ export default function SocialSearchScreen() {
     };
   }, []);
 
+  /** Patch one result's friendship status in place — drives the button label. */
+  const setResultStatus = (userId: string, status: FriendshipStatus) => {
+    setResults((prev) => prev.map((u) => (u.id === userId ? { ...u, friendshipStatus: status } : u)));
+  };
+
   const handleAddFriend = async (userId: string) => {
+    // Optimistic — flip to "Requested" immediately so a fast double-tap can't
+    // fire two requests, and revert if the call fails.
+    setResultStatus(userId, 'pending_sent');
     try {
-      await socialApi.sendFriendRequest(userId);
+      const resp = await socialApi.sendFriendRequest(userId);
       Analytics.friendRequestSent();
-      setSentIds((prev) => new Set([...prev, userId]));
+      // The backend auto-accepts when the other person had already requested us.
+      if (resp?.status === 'accepted') setResultStatus(userId, 'accepted');
     } catch (err: any) {
+      setResultStatus(userId, 'none');
       Alert.alert('Error', err?.message ?? 'Could not send friend request.');
+    }
+  };
+
+  /** Accept directly from a search result (the user already requested us). */
+  const handleAcceptFromResult = async (userId: string) => {
+    setResultStatus(userId, 'accepted');
+    try {
+      await socialApi.acceptFriendRequest(userId);
+      setPendingRequests((prev) => prev.filter((r) => r.requesterId !== userId));
+    } catch (err: any) {
+      setResultStatus(userId, 'pending_received');
+      Alert.alert('Error', err?.message ?? 'Could not accept request.');
     }
   };
 
@@ -199,10 +223,23 @@ export default function SocialSearchScreen() {
                       <Text style={styles.cardSub}>{user.name}</Text>
                     ) : null}
                   </View>
-                  {sentIds.has(user.id) ? (
+                  {user.friendshipStatus === 'accepted' ? (
                     <View style={styles.sentBadge}>
-                      <Text style={styles.sentBadgeText}>Sent</Text>
+                      <Text style={styles.sentBadgeText}>Friends</Text>
                     </View>
+                  ) : user.friendshipStatus === 'pending_sent' ? (
+                    <View style={styles.sentBadge}>
+                      <Text style={styles.sentBadgeText}>Requested</Text>
+                    </View>
+                  ) : user.friendshipStatus === 'pending_received' ? (
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      activeOpacity={0.8}
+                      onPress={() => handleAcceptFromResult(user.id)}
+                    >
+                      <Ionicons name="checkmark" size={14} color={colors.primaryForeground} />
+                      <Text style={styles.addButtonText}>Accept</Text>
+                    </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
                       style={styles.addButton}

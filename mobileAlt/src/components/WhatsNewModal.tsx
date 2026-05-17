@@ -10,7 +10,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../constants/them
 // Bump this string when shipping a new round of headline features. Users on
 // any prior version (or fresh installs) see the modal exactly once after
 // updating; users who already saw it for this version don't.
-export const WHATS_NEW_VERSION = '1.1.1';
+export const WHATS_NEW_VERSION = '1.2.0';
 const STORAGE_KEY = 'whatsNew:lastSeenVersion';
 
 interface Feature {
@@ -22,34 +22,34 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    icon: 'bookmark',
-    iconColor: '#6366f1',
-    title: 'Save research for later',
-    body: 'Tap the bookmark on any research article in the social feed to save it. Find them anytime in the saved articles screen.',
-  },
-  {
-    icon: 'paper-plane',
-    iconColor: '#22c55e',
-    title: 'Share articles with friends',
-    body: 'Found a study a friend would love? Tap the paper-plane on any article to send it as a message in chat — they get a rich preview.',
-  },
-  {
-    icon: 'barbell',
+    icon: 'stats-chart',
     iconColor: '#f97316',
-    title: 'Send workouts to friends',
-    body: "Open today's workout (or any upcoming day this week) and tap the share icon. Pick a friend — they'll receive the full workout in chat.",
+    title: 'Your Strength Profile, reimagined',
+    body: "A cleaner Strength Profile with a redesigned radar. Tap any movement to drill into the muscles inside it and see Anakin's read on what to work on.",
   },
   {
-    icon: 'flame',
-    iconColor: '#ef4444',
-    title: 'Streak reinforcement',
-    body: 'Anakin now celebrates your wins — milestone streaks, new PRs, hitting protein targets, weight-loss progress — and lets you know when a streak is at risk.',
+    icon: 'flash',
+    iconColor: '#eab308',
+    title: 'Faster, everywhere',
+    body: 'Your program, the social feed, and your Strength Profile now load noticeably faster — less waiting, more training.',
   },
   {
     icon: 'refresh',
     iconColor: '#0ea5e9',
-    title: 'Pull for fresh research',
-    body: "Pull down on the social feed and we'll fetch the latest peer-reviewed studies for your goals straight from PubMed.",
+    title: 'Refresh research with a tap',
+    body: 'Hit the refresh button on the social feed to pull the latest peer-reviewed studies for your goals, straight from PubMed.',
+  },
+  {
+    icon: 'barbell',
+    iconColor: '#ef4444',
+    title: 'Send workouts to friends',
+    body: "Open This Week in the Coach tab, tap share on any session, and send the full workout to a friend right in chat.",
+  },
+  {
+    icon: 'bookmark',
+    iconColor: '#6366f1',
+    title: 'Save & share research',
+    body: 'Bookmark any research article to read later, or tap the paper-plane to send it to a friend as a rich chat preview.',
   },
 ];
 
@@ -67,7 +67,7 @@ export function WhatsNewModal({ visible, onClose }: Props) {
         <View style={styles.header}>
           <View>
             <Text style={styles.eyebrow}>What's new</Text>
-            <Text style={styles.title}>Welcome to Axiom 1.1.1</Text>
+            <Text style={styles.title}>Welcome to Axiom {WHATS_NEW_VERSION}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={8}>
             <Ionicons name="close" size={22} color={colors.mutedForeground} />

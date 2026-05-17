@@ -4,30 +4,19 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
-import { isMuscleDrillDownEnabled } from '../config/featureFlags.js';
 import { e1rmWithRpe, parseRPE } from '../engine/e1rm.js';
 import { buildAthleteModel } from '../services/athleteModelService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// Cache key carries the e1RM variant so the RPE-aware profile and the legacy
-// plain-Epley profile never clobber each other. `rpe1` = RPE-aware (flagged
-// users), `rpe0` = legacy (everyone else).
-const CACHE_KEY = (userId: string, rpeAware = false) =>
-  `strength:profile:${userId}:${rpeAware ? 'rpe1' : 'rpe0'}`;
+const CACHE_KEY = (userId: string) => `strength:profile:${userId}`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseLowerReps(repsStr: string): number {
   const match = repsStr.match(/^(\d+)/);
   return match ? parseInt(match[1], 10) : 0;
-}
-
-function epley1RM(weightKg: number, reps: number): number {
-  if (reps <= 0 || reps > 15 || weightKg <= 0) return 0;
-  if (reps === 1) return weightKg;
-  return Math.round(weightKg * (1 + reps / 30));
 }
 
 function toWeekKey(dateStr: string): string {
@@ -53,11 +42,7 @@ function strengthTier(score: number | null): string {
 // ─── Core Computation ─────────────────────────────────────────────────────────
 // Extracted so both the route handler and the background recompute share it.
 
-export async function computeStrengthProfile(
-  userId: string,
-  opts: { rpeAware?: boolean } = {},
-) {
-  const rpeAware = opts.rpeAware === true;
+export async function computeStrengthProfile(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   const logs = await prisma.workoutLog.findMany({
@@ -83,12 +68,9 @@ export async function computeStrengthProfile(
       const norm = normMap.get(ex.name.trim());
       const canonical = norm?.canonicalName ?? ex.name.trim();
       const reps = parseLowerReps(ex.reps);
-      // RPE-aware e1RM when the flag is on: credits reps left in the tank
-      // (logged RPE, or a rep-range-aware assumed value) so a sub-failure
-      // set isn't under-counted. Legacy callers get plain Epley unchanged.
-      const oneRM = rpeAware
-        ? e1rmWithRpe(ex.weightKg, reps, parseRPE(ex.rpe))
-        : epley1RM(ex.weightKg, reps);
+      // RPE-aware e1RM: credits reps left in the tank (logged RPE, or a
+      // rep-range-aware assumed value) so a sub-failure set isn't under-counted.
+      const oneRM = e1rmWithRpe(ex.weightKg, reps, parseRPE(ex.rpe));
 
       if (norm && !liftMeta.has(canonical)) {
         liftMeta.set(canonical, {
@@ -248,51 +230,47 @@ export async function computeStrengthProfile(
   // ── Athlete Model (Phases 1-6) ─────────────────────────────────────────
   // The full structured strength model: per-muscle ledger, derived metrics
   // (ratios / relative strength / balance), movement-pattern coverage,
-  // ranked insights, and recovery factors. Built only on the RPE-aware
-  // (flagged) path — non-flagged users never pay the cost, and the route
-  // strips `athleteModel` from their response anyway.
+  // ranked insights, and recovery factors.
   let athleteModel: ReturnType<typeof buildAthleteModel> | undefined;
-  if (rpeAware) {
-    try {
-      // Re-parse logs into the canonical-named, dated shape the assembler wants.
-      const ledgerWorkouts = logs.map((log) => {
-        let exs: Array<{ name: string; sets: number; reps: string; weightKg?: number | null; rpe?: string | number | null }> = [];
-        try { exs = JSON.parse(log.exercises); } catch { /* skip */ }
-        return {
-          date: log.date,
-          exercises: exs.map((ex) => ({
-            name: normMap.get(ex.name?.trim())?.canonicalName ?? ex.name?.trim() ?? '',
-            sets: ex.sets,
-            reps: ex.reps,
-            weightKg: ex.weightKg,
-            rpe: ex.rpe,
-          })),
-        };
-      });
+  try {
+    // Re-parse logs into the canonical-named, dated shape the assembler wants.
+    const ledgerWorkouts = logs.map((log) => {
+      let exs: Array<{ name: string; sets: number; reps: string; weightKg?: number | null; rpe?: string | number | null }> = [];
+      try { exs = JSON.parse(log.exercises); } catch { /* skip */ }
+      return {
+        date: log.date,
+        exercises: exs.map((ex) => ({
+          name: normMap.get(ex.name?.trim())?.canonicalName ?? ex.name?.trim() ?? '',
+          sets: ex.sets,
+          reps: ex.reps,
+          weightKg: ex.weightKg,
+          rpe: ex.rpe,
+        })),
+      };
+    });
 
-      // Recovery/diet data — trailing 70 days is enough for the factor checks.
-      const recoveryWindowKey = (() => {
-        const d = new Date(); d.setDate(d.getDate() - 70);
-        return d.toISOString().split('T')[0];
-      })();
-      const [bwLogs, nutritionLogs, wellnessLogs] = await Promise.all([
-        prisma.bodyWeightLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
-        prisma.nutritionLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
-        prisma.wellnessCheckin.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
-      ]);
+    // Recovery/diet data — trailing 70 days is enough for the factor checks.
+    const recoveryWindowKey = (() => {
+      const d = new Date(); d.setDate(d.getDate() - 70);
+      return d.toISOString().split('T')[0];
+    })();
+    const [bwLogs, nutritionLogs, wellnessLogs] = await Promise.all([
+      prisma.bodyWeightLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+      prisma.nutritionLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+      prisma.wellnessCheckin.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+    ]);
 
-      athleteModel = buildAthleteModel({
-        workouts: ledgerWorkouts,
-        liftE1rms: lifts.map((l) => ({ canonicalName: l.canonicalName, e1rmKg: l.current1RMkg })),
-        bodyweightKg,
-        bodyWeight: bwLogs.map((b) => ({ date: b.date, weightLbs: b.weightLbs })),
-        nutrition: nutritionLogs.map((n) => ({ date: n.date, calories: n.calories, proteinG: n.proteinG })),
-        wellness: wellnessLogs.map((w) => ({ date: w.date, sleepHours: w.sleepHours, stress: w.stress, energy: w.energy })),
-      });
-    } catch (err) {
-      console.error('[strength] athlete model build failed:', err);
-      // Non-fatal — the rest of the profile still returns.
-    }
+    athleteModel = buildAthleteModel({
+      workouts: ledgerWorkouts,
+      liftE1rms: lifts.map((l) => ({ canonicalName: l.canonicalName, e1rmKg: l.current1RMkg })),
+      bodyweightKg,
+      bodyWeight: bwLogs.map((b) => ({ date: b.date, weightLbs: b.weightLbs })),
+      nutrition: nutritionLogs.map((n) => ({ date: n.date, calories: n.calories, proteinG: n.proteinG })),
+      wellness: wellnessLogs.map((w) => ({ date: w.date, sleepHours: w.sleepHours, stress: w.stress, energy: w.energy })),
+    });
+  } catch (err) {
+    console.error('[strength] athlete model build failed:', err);
+    // Non-fatal — the rest of the profile still returns.
   }
 
   return {
@@ -318,16 +296,13 @@ export async function computeStrengthProfile(
 // and warms the cache — all without blocking the caller.
 
 export function recomputeStrengthProfileInBackground(userId: string): void {
-  // Evict BOTH variant caches so neither serves stale data after a workout
-  // mutation. We proactively recompute only the legacy (plain) variant —
-  // the RPE-aware variant lazily recomputes on the next flagged request,
-  // which keeps this background job cheap for the common case.
-  cacheDelete(CACHE_KEY(userId, false));
-  cacheDelete(CACHE_KEY(userId, true));
+  // Evict the stale cache after a workout mutation, then recompute and
+  // re-warm so the next profile request is a cache hit.
+  cacheDelete(CACHE_KEY(userId));
 
   computeStrengthProfile(userId)
     .then(profile => {
-      cacheSet(CACHE_KEY(userId, false), profile);
+      cacheSet(CACHE_KEY(userId), profile);
       console.log(`[strength] background recompute done for user ${userId}`);
     })
     .catch(err => {
@@ -340,35 +315,17 @@ export function recomputeStrengthProfileInBackground(userId: string): void {
 router.get('/strength/profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const viewerEmail = req.user!.email ?? null;
-    // Flagged users get the RPE-aware e1RM math; everyone else gets legacy
-    // plain Epley. The flag picks both the compute path and the cache key,
-    // so the two variants never collide.
-    const flagOn = isMuscleDrillDownEnabled({ email: viewerEmail });
 
     // Return cached profile immediately if available
-    const cacheKey = CACHE_KEY(userId, flagOn);
+    const cacheKey = CACHE_KEY(userId);
     const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(cacheKey);
     let profile = cached;
     if (cached) {
       res.setHeader('X-Cache', 'HIT');
     } else {
-      profile = await computeStrengthProfile(userId, { rpeAware: flagOn });
+      profile = await computeStrengthProfile(userId);
       cacheSet(cacheKey, profile);
       res.setHeader('X-Cache', 'MISS');
-    }
-
-    // Feature-flag gate the muscle-level fields. Old client builds that
-    // ship without the drill-down UI never see the new fields; new builds
-    // gated on a per-user allowlist see them and can render the level-2
-    // sub-radar. Stripping at serialization time (not at compute) keeps
-    // the cache a single shape regardless of who's asking.
-    if (!flagOn && profile) {
-      const {
-        muscleScores: _ms, muscleTargets: _mt, muscleGroupsKnown: _mg,
-        athleteModel: _am, ...legacyShape
-      } = profile;
-      return res.json(legacyShape);
     }
 
     res.json(profile);

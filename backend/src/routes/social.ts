@@ -93,25 +93,52 @@ router.get('/social/friends/requests', wrap(async (req, res) => {
 }));
 
 // POST /api/social/friends/request
-router.post('/social/friends/request', async (req, res) => {
+// Idempotent + symmetric: re-sending an outstanding request is a no-op success
+// (never a 409 error the user reads as failure), and sending a request to
+// someone who has already requested *you* simply accepts theirs. The response
+// always carries the resulting `status` so the client can render the right
+// pill ("Requested" / "Friends") without guessing.
+router.post('/social/friends/request', wrap(async (req, res) => {
   const { targetUserId } = req.body;
   const userId = req.user!.id;
   if (!targetUserId || targetUserId === userId) return res.status(400).json({ error: 'Invalid target' });
 
-  const target = await prisma.user.findUnique({ where: { id: targetUserId } });
+  const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } });
   if (!target) return res.status(404).json({ error: 'User not found' });
 
-  // Check not blocked
-  const blocked = await prisma.friendship.findFirst({
+  // Look at any existing friendship row in either direction.
+  const existing = await prisma.friendship.findFirst({
     where: {
-      status: 'blocked',
       OR: [
         { requesterId: userId, addresseeId: targetUserId },
         { requesterId: targetUserId, addresseeId: userId },
       ],
     },
   });
-  if (blocked) return res.status(403).json({ error: 'Cannot send request' });
+
+  if (existing) {
+    if (existing.status === 'blocked') {
+      return res.status(403).json({ error: 'Cannot send request' });
+    }
+    if (existing.status === 'accepted') {
+      return res.json({ status: 'accepted', friendship: existing });
+    }
+    // status === 'pending'
+    if (existing.requesterId === userId) {
+      // We already requested them — idempotent success, not an error.
+      return res.json({ status: 'pending', friendship: existing });
+    }
+    // They already requested us — sending back accepts their request and
+    // makes a friendship immediately, rather than creating a duplicate row.
+    const accepted = await prisma.friendship.update({
+      where: { requesterId_addresseeId: { requesterId: targetUserId, addresseeId: userId } },
+      data: { status: 'accepted' },
+    });
+    const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } });
+    const myDisplay = me?.username ? `@${me.username}` : (me?.name ?? 'Someone');
+    sendPushToUser(targetUserId, 'Friend request accepted', `${myDisplay} accepted your friend request`, { type: 'friend_accepted', userId }).catch(() => {});
+    return res.json({ status: 'accepted', friendship: accepted });
+  }
 
   try {
     const friendship = await prisma.friendship.create({
@@ -121,12 +148,14 @@ router.post('/social/friends/request', async (req, res) => {
     const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } });
     const senderDisplay = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
     sendPushToUser(targetUserId, 'New Friend Request', `${senderDisplay} sent you a friend request`, { type: 'friend_request', requesterId: userId }).catch(() => {});
-    res.status(201).json(friendship);
+    return res.status(201).json({ status: 'pending', friendship });
   } catch (err: any) {
-    if (err?.code === 'P2002') return res.status(409).json({ error: 'Request already exists' });
-    res.status(500).json({ error: 'Failed to send request' });
+    // P2002 = unique-constraint race (a concurrent identical request landed
+    // first). The request still exists, so report success.
+    if (err?.code === 'P2002') return res.json({ status: 'pending' });
+    throw err;
   }
-});
+}));
 
 // POST /api/social/friends/accept
 router.post('/social/friends/accept', wrap(async (req, res) => {
@@ -212,15 +241,45 @@ router.get('/social/users/search', wrap(async (req, res) => {
     take: 10,
   });
 
-  // Filter out blocked users
-  const blocked = await prisma.friendship.findMany({
-    where: {
-      status: 'blocked',
-      OR: [{ requesterId: userId }, { addresseeId: userId }],
-    },
-  });
-  const blockedIds = new Set(blocked.flatMap(f => [f.requesterId, f.addresseeId]).filter(id => id !== userId));
-  res.json(users.filter(u => !blockedIds.has(u.id)));
+  // Friendship rows between the viewer and any returned user — one query.
+  // Drives both the blocked-user filter and the per-result `friendshipStatus`
+  // so the client can render "Add" / "Requested" / "Friends" correctly
+  // instead of always showing "Add" (which then 409s on a re-tap).
+  const resultIds = users.map(u => u.id);
+  const friendships = resultIds.length
+    ? await prisma.friendship.findMany({
+        where: {
+          OR: [
+            { requesterId: userId, addresseeId: { in: resultIds } },
+            { addresseeId: userId, requesterId: { in: resultIds } },
+          ],
+        },
+      })
+    : [];
+
+  const statusByUser = new Map<string, 'none' | 'pending_sent' | 'pending_received' | 'accepted'>();
+  for (const f of friendships) {
+    const otherId = f.requesterId === userId ? f.addresseeId : f.requesterId;
+    if (f.status === 'accepted') {
+      statusByUser.set(otherId, 'accepted');
+    } else if (f.status === 'pending') {
+      statusByUser.set(otherId, f.requesterId === userId ? 'pending_sent' : 'pending_received');
+    }
+    // 'blocked' rows are handled by the filter below.
+  }
+
+  const blockedIds = new Set(
+    friendships
+      .filter(f => f.status === 'blocked')
+      .flatMap(f => [f.requesterId, f.addresseeId])
+      .filter(id => id !== userId),
+  );
+
+  res.json(
+    users
+      .filter(u => !blockedIds.has(u.id))
+      .map(u => ({ ...u, friendshipStatus: statusByUser.get(u.id) ?? 'none' })),
+  );
 }));
 
 // GET /api/social/users/:userId/avatar — returns only the avatarBase64 (lazy-load, cached by client)

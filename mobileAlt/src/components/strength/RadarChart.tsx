@@ -30,6 +30,35 @@ interface Props {
 }
 
 /**
+ * Estimate the chip dimensions for an axis label. Long muscle names ("LATERAL
+ * DELT", "FRONT DELT") overflow a fixed-width chip, so we step the font down
+ * for longer strings and size the chip to the estimated text width. SVG has no
+ * synchronous text-measurement API, so we approximate from glyph metrics —
+ * uppercase bold glyphs run ~0.63em wide. Overestimating slightly is fine: it
+ * just yields a touch more horizontal padding.
+ */
+const CHIP_CHAR_W = 0.63;
+const CHIP_PAD_X = 14;
+const CHIP_MIN_W = 46;
+const CHIP_H = 32;
+
+function labelMetrics(label: string) {
+  const len = label.length;
+  let fontSize = 11;
+  let letterSpacing = 0.4;
+  if (len > 11) {
+    fontSize = 8.5;
+    letterSpacing = 0.1;
+  } else if (len > 8) {
+    fontSize = 9.5;
+    letterSpacing = 0.2;
+  }
+  const textW = len * (fontSize * CHIP_CHAR_W + letterSpacing);
+  const chipW = Math.max(Math.ceil(textW + CHIP_PAD_X), CHIP_MIN_W);
+  return { fontSize, letterSpacing, chipW };
+}
+
+/**
  * Animated radar chart with drill-down support.
  *
  * Renders four reference rings, axis spokes, a dashed target polygon, and an
@@ -53,10 +82,13 @@ export function RadarChart({
   const cy = size / 2;
   const r = size / 2 - 52; // room for the tappable axis-label chips
 
-  // Track the previous N so axis-count changes (level transitions) trigger
-  // a two-phase morph: collapse to center, then expand into the new shape.
-  // Same-count changes (e.g., refreshed data) just retarget directly.
-  const prevNRef = useRef(axes.length);
+  // Track the previous axis identity (the joined labels) so a level transition
+  // — an axis-*set* change, even one that keeps the same axis count, e.g. the
+  // 5-axis overview → the 5-muscle Pull sub-radar — triggers a two-phase morph:
+  // collapse to center, then expand into the new shape. A pure data refresh
+  // (same labels) just retargets the values directly. Comparing counts alone
+  // would miss same-count level transitions and leave the radar stuck.
+  const prevAxisKeyRef = useRef(axes.map((a) => a.axis).join('|'));
 
   // Cross-fade opacity for axis labels. Drops to 0 mid-morph on level
   // transitions, then back to 1 once the new labels are settled.
@@ -131,9 +163,10 @@ export function RadarChart({
 
   useEffect(() => {
     const svs = [v0, v1, v2, v3, v4, v5, v6, v7];
-    const sameCount = axes.length === prevNRef.current;
+    const axisKey = axes.map((a) => a.axis).join('|');
+    const sameAxes = axisKey === prevAxisKeyRef.current;
 
-    if (sameCount) {
+    if (sameAxes) {
       // Direct morph — retarget each value, geometry stays put.
       const targets = svs.map((_, i) => axes[i]?.current ?? 0);
       const dur = reducedMotion ? 80 : 520;
@@ -157,7 +190,7 @@ export function RadarChart({
 
     const swapTimer = setTimeout(() => {
       setRenderAxes(axes);
-      prevNRef.current = axes.length;
+      prevAxisKeyRef.current = axisKey;
       // Schedule the expand on the next paint so renderAxes has propagated
       // through React's commit phase before we start animating values.
       requestAnimationFrame(() => {
@@ -297,6 +330,16 @@ export function RadarChart({
           const lagging = a.current < a.target - 10;
           const handlePress = onAxisPress ? () => onAxisPress(a.axis) : undefined;
           const handleLong = onAxisLongPress ? () => onAxisLongPress(a.axis) : undefined;
+
+          // Size the chip to the label so long muscle names ("LATERAL DELT")
+          // fit, then clamp it inside the SVG bounds so an edge axis can't
+          // push half the chip off-canvas. Text is centered in the (clamped)
+          // chip, not at the raw label anchor.
+          const label = a.axis.toUpperCase();
+          const { fontSize, letterSpacing, chipW } = labelMetrics(label);
+          const chipX = Math.min(Math.max(lx - chipW / 2, 2), size - 2 - chipW);
+          const textX = chipX + chipW / 2;
+
           return (
             <G
               key={`${a.axis}-${i}`}
@@ -312,10 +355,10 @@ export function RadarChart({
                   44pt-ish hit target. Non-interactive radars skip it. */}
               {handlePress && (
                 <Rect
-                  x={lx - 27}
+                  x={chipX}
                   y={ly - 17}
-                  width={54}
-                  height={32}
+                  width={chipW}
+                  height={CHIP_H}
                   rx={8}
                   fill="#F4F4F5"
                   stroke="#E4E4E7"
@@ -323,18 +366,18 @@ export function RadarChart({
                 />
               )}
               <SvgText
-                x={lx}
+                x={textX}
                 y={ly - 4}
                 textAnchor="middle"
-                fontSize={11}
+                fontSize={fontSize}
                 fontWeight="700"
                 fill="#09090B"
-                letterSpacing={0.4}
+                letterSpacing={letterSpacing}
               >
-                {a.axis.toUpperCase()}
+                {label}
               </SvgText>
               <SvgText
-                x={lx}
+                x={textX}
                 y={ly + 8}
                 textAnchor="middle"
                 fontSize={9.5}

@@ -1,5 +1,10 @@
-// ─── Re-engagement & Shame Message Pools ──────────────────────────────────────
+// ─── Re-engagement & Encouragement Message Pools ──────────────────────────────
 // Placeholders: {{name}} {{days}} {{food}} {{calories}}
+//
+// Tone: warm, supportive, motivating — the voice of a coach who's in your
+// corner. No shame, no sarcasm, no crude humour. Beginners and casual users
+// should feel welcomed back, never judged. Every message frames the next
+// action as easy and worthwhile, and treats any gap as normal.
 
 export interface MessageTemplate {
   title: string;
@@ -29,54 +34,54 @@ function fill(template: string, vars: Record<string, string | number>): string {
 
 const WORKOUT_EARLY: MessageTemplate[] = [
   {
-    title: 'The gym misses you 🏋️',
-    body: "It's been {{days}} days, {{name}}. Cheating on me with an IRL trainer are you? 💔",
+    title: 'Ready when you are 💪',
+    body: "It's been {{days}} days, {{name}}. A short session today is a great way to keep your momentum going.",
   },
   {
-    title: "{{days}} days, {{name}}",
-    body: "The bar isn't going to lift itself chief. Log something today.",
+    title: 'Your next workout is waiting',
+    body: "{{days}} days since your last log. Even 20 minutes counts — Anakin has your plan ready when you are.",
   },
   {
-    title: 'Where have you been?',
-    body: "Your muscles have been on vacation for {{days}} days. Time to clock back in.",
+    title: "Let's pick it back up, {{name}}",
+    body: "A {{days}}-day breather is completely fine. Today's a great day to log your next session.",
   },
   {
-    title: 'Lock in, {{name}}',
-    body: "Doing a whole lot of hollering about gains but it's been {{days}} days since you logged anything.",
+    title: 'Small steps add up',
+    body: "It's been {{days}} days. One workout today keeps you moving toward your goal — you've got this.",
   },
   {
-    title: 'Anakin is concerned 👀',
-    body: "{{days}} days of radio silence from the gym, {{name}}. You good? Tap in.",
+    title: "Anakin's got your plan ready",
+    body: "{{days}} days out, {{name}}. Whenever you're ready, your next session is just one tap away.",
   },
 ];
 
 const WORKOUT_MID: MessageTemplate[] = [
   {
-    title: 'Your pre-workout has a problem',
-    body: "{{days}} days without a log. At this point your pre-workout has a best-before date problem.",
+    title: 'A fresh start today',
+    body: "{{days}} days since your last workout, {{name}}. No pressure — pick one movement and log it. That's all it takes.",
   },
   {
-    title: 'Charitable donation',
-    body: "Your gym membership is basically a donation right now. {{days}} days, zero logs.",
+    title: 'Consistency beats perfection',
+    body: "It's been {{days}} days. Getting back in today matters far more than the gap before it.",
   },
   {
-    title: '{{days}} days, {{name}} 😐',
-    body: "The couch won't build your program. Tap in, even 20 minutes counts.",
+    title: 'Your goals are still in reach',
+    body: "{{days}} days off won't undo your progress, {{name}}. A session today gets you right back on track.",
   },
 ];
 
 const WORKOUT_LATE: MessageTemplate[] = [
   {
-    title: 'Not mad. Just disappointed.',
-    body: "A week+ with no workout log. Not mad. Just deeply, professionally disappointed. Come back.",
+    title: "We'd love to see you back",
+    body: "It's been {{days}} days, {{name}}. Whenever you're ready, today is a perfect day to start again.",
   },
   {
-    title: 'Are you coming back?',
-    body: "{{days}} days. The gains you worked for are starting to wonder if you're coming back. Are you?",
+    title: 'Every comeback starts with one',
+    body: "{{days}} days away. One workout today and you're moving forward again — Anakin's ready to help.",
   },
   {
-    title: 'We put your gains on a milk carton',
-    body: "{{days}} days offline. Your strength profile is collecting dust. Whatever happened — we're here.",
+    title: 'No judgment, just support',
+    body: "Life gets busy, {{name}}. Your plan is still here, and a fresh start is always one session away.",
   },
 ];
 
@@ -84,66 +89,54 @@ const WORKOUT_LATE: MessageTemplate[] = [
 
 const NUTRITION_EARLY: MessageTemplate[] = [
   {
-    title: "My 600 Lb Life casting is open 😬",
-    body: "Keep skipping meal logs and you're on a shortlist. It's been {{days}} days, {{name}}. Log it.",
+    title: 'Quick meal log?',
+    body: "It's been {{days}} days, {{name}}. Logging today helps Anakin keep your nutrition guidance on point.",
   },
   {
-    title: 'Calories still count',
-    body: "{{days}} days of mystery eating. Calories don't stop existing because you stopped counting them.",
+    title: 'Stay in the loop',
+    body: "{{days}} days without a food log. A couple of quick entries today keeps your macros accurate.",
   },
   {
-    title: 'Fasting or hiding something?',
-    body: "{{days}} days no food logs, {{name}}. Either you're fasting or hiding something. Which is it?",
+    title: 'Small habit, big results',
+    body: "Logging meals takes a minute and really pays off, {{name}}. It's been {{days}} days — jump back in.",
   },
   {
-    title: 'Your macros have no idea',
-    body: "{{days}} days of mystery meals. Your macros have absolutely no idea what's happening right now.",
+    title: 'Anakin wants to help',
+    body: "{{days}} days of meals untracked. Log today and Anakin can fine-tune your nutrition guidance.",
   },
   {
-    title: 'Bold. Very chaotic.',
-    body: "{{days}} days no nutrition logs. Bold strategy. Very chaotic. Anakin disapproves.",
-  },
-  {
-    title: 'Don\'t be a chud, {{name}}',
-    body: "{{days}} days without logging a single meal. Log your food, stop being a chud.",
-  },
-  {
-    title: 'Big Chungus energy 🐰',
-    body: "{{days}} days of untracked eating is big chungus monkey energy. Get it together and log your meals.",
+    title: "You're doing great — keep logging",
+    body: "It's been {{days}} days, {{name}}. A quick meal log today keeps your progress moving.",
   },
 ];
 
 const NUTRITION_MID: MessageTemplate[] = [
   {
-    title: 'Anakin is improvising',
-    body: "{{days}} days with no food logs. At this point Anakin is just guessing your macros. Help him out.",
+    title: "Let's get your macros back on track",
+    body: "{{days}} days without food logs, {{name}}. A few quick entries today and you're right back in rhythm.",
   },
   {
-    title: 'Your protein target is crying',
-    body: "Your protein target has been crying for {{days}} days. Feed it. Or at least tell us what you ate.",
+    title: 'Your protein goal is waiting',
+    body: "It's been {{days}} days. Logging today helps you hit your protein target and recover stronger.",
   },
   {
-    title: '{{days}} days, {{name}}',
-    body: "A week of mystery nutrition. Whatever you're eating, your future self wants receipts.",
-  },
-  {
-    title: 'Fat chud behaviour',
-    body: "{{days}} days zero nutrition logs. This is fat chud behaviour, {{name}}. Snap out of it.",
+    title: 'One meal at a time',
+    body: "{{days}} days off, {{name}}. No need to catch up — just log your next meal and keep going.",
   },
 ];
 
 const NUTRITION_LATE: MessageTemplate[] = [
   {
-    title: 'Ghost nutrition 👻',
-    body: "The only macro Anakin can track right now is your {{days}}-day absence. Come back.",
+    title: 'A fresh start with your nutrition',
+    body: "It's been {{days}} days, {{name}}. Log one meal today and Anakin can pick things right back up.",
   },
   {
-    title: "It's between you and your stomach",
-    body: "{{days}} days without a food log. Whatever you've been eating, it's a secret between you two. Log it.",
+    title: 'Nutrition is half your progress',
+    body: "{{days}} days without logs. Whenever you're ready, a quick entry gets you back on track.",
   },
   {
-    title: 'Full chungus monkey mode',
-    body: "{{days}} days, {{name}}. You've entered full chungus monkey mode. Time to log a meal and come back to reality.",
+    title: "We're here when you're ready",
+    body: "{{days}} days, {{name}}. No pressure at all — just log your next meal and keep building.",
   },
 ];
 
@@ -151,79 +144,81 @@ const NUTRITION_LATE: MessageTemplate[] = [
 
 const INACTIVITY_EARLY: MessageTemplate[] = [
   {
-    title: 'The app misses you',
-    body: "{{name}}, it's been {{days}} days. The app is getting clingy. Just tap in.",
+    title: "We're here when you're ready",
+    body: "{{name}}, it's been {{days}} days. Pop back in whenever — your plan and progress are waiting for you.",
   },
   {
-    title: 'Silent retreat or rage quit?',
-    body: "{{days}} days offline. Either you're on a silent retreat or you've rage-quit. Either way, come back.",
+    title: 'Your progress is saved',
+    body: "{{days}} days away. Everything's right where you left it, {{name}}. Come say hi whenever you like.",
   },
   {
-    title: 'Still alive out there, {{name}}?',
-    body: "Your strength profile is gathering dust. {{days}} days dark. Tap in.",
+    title: 'A quick check-in?',
+    body: "It's been {{days}} days. Even a minute in the app keeps you connected to your goals, {{name}}.",
   },
   {
-    title: 'Future you has opinions',
-    body: "{{days}} days away, {{name}}. Your future self is going to have words with your current self.",
+    title: "Anakin's still in your corner",
+    body: "{{days}} days out, {{name}}. Whenever you're ready, we're ready to help you keep going.",
   },
 ];
 
 const INACTIVITY_MID: MessageTemplate[] = [
   {
-    title: 'You ghosted us 💀',
-    body: "{{days}} days and nothing. We're not mad. We're just... logging it.",
+    title: 'Let\'s pick up where you left off',
+    body: "{{days}} days away, {{name}}. Your plan, your progress, and Anakin are all still here for you.",
   },
   {
-    title: 'No pressure. Some pressure.',
-    body: "{{days}} days dark. The app, your program, and Anakin are all waiting. Some pressure.",
+    title: 'Still cheering you on',
+    body: "It's been {{days}} days. No pressure at all — just know your goals are still well within reach.",
   },
 ];
 
 const INACTIVITY_LATE: MessageTemplate[] = [
   {
-    title: 'Gains on a milk carton 🥛',
-    body: "Week+ offline, {{name}}. We've put your gains on a milk carton. Please come back.",
+    title: 'A warm welcome back awaits',
+    body: "It's been {{days}} days, {{name}}. Whenever you're ready, we'd love to help you start again.",
   },
   {
-    title: 'We\'re still here',
-    body: "It's been {{days}} days, {{name}}. Whatever happened — we're here. Just tap the app.",
+    title: "We're still here for you",
+    body: "It's been {{days}} days, {{name}}. Whatever got in the way, today is a great day to begin again.",
   },
 ];
 
-// ─── Junk Food (instant — fired when junk logged) ─────────────────────────────
+// ─── Junk Food (instant — fired when an indulgent item is logged) ─────────────
+// Positive framing: logging an indulgence honestly is a win in itself. These
+// reassure the user that one treat fits inside a balanced week — never shame.
 
 const JUNK_FOOD_MESSAGES: MessageTemplate[] = [
   {
-    title: 'We saw that 👀',
-    body: "{{food}} logged. Full judgment. But hey, at least you're being honest. Back on track tomorrow.",
+    title: 'Logged it — nice work 👍',
+    body: "You tracked your {{food}}, and honest logging is what real progress is built on. One meal won't derail your week.",
   },
   {
-    title: 'Anakin has seen the {{food}}',
-    body: "He's not angry. Just deeply, professionally concerned about your choices.",
+    title: 'Every meal counts as data',
+    body: "{{food}} logged. Tracking the treats too gives Anakin the full picture — that's how real balance happens.",
   },
   {
-    title: '{{calories}} kcal. Worth it?',
-    body: "That {{food}} just cost you {{calories}} kcal. Worth it? (Don't answer that) 😂",
+    title: 'Balance, not perfection',
+    body: "Enjoyed a {{food}}? That's part of a sustainable approach. Log it, savour it, and carry on, {{name}}.",
   },
   {
-    title: 'Extra cardio incoming',
-    body: "You logged a {{food}}. Anakin is adding extra cardio to your program as we speak. 😤",
+    title: 'Honesty pays off',
+    body: "You logged your {{food}} — that consistency is a win on its own. Tomorrow's a fresh page, {{name}}.",
   },
   {
-    title: 'Your macros called',
-    body: "They want to know what the {{food}} is doing here. Get it together, {{name}}.",
+    title: 'One treat, no worries',
+    body: "That {{food}} ({{calories}} kcal) is logged. A single meal fits just fine inside a balanced week.",
   },
   {
-    title: 'Respect the honesty',
-    body: "Logging that {{food}} was step one. Step two is never doing it again. We believe in you.",
+    title: 'Great tracking, {{name}}',
+    body: "Logging the {{food}} keeps your numbers accurate. Small, honest habits are what move the needle.",
   },
   {
-    title: 'Bold. Chaotic.',
-    body: "{{food}} logged. The shame is real but so is the accountability. That's literally the point 💪",
+    title: "You're building a real habit",
+    body: "{{food}} logged. Tracking everything — treats included — is exactly how lasting change sticks.",
   },
   {
-    title: 'Are you okay?',
-    body: "{{food}}?? Anakin would like to schedule an emergency check-in. Please tap in.",
+    title: 'Progress, not guilt',
+    body: "You logged a {{food}}, and that's something to feel good about. Anakin's got your back, not a scoreboard.",
   },
 ];
 

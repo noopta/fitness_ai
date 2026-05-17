@@ -1,6 +1,7 @@
 // ─── Re-engagement Detection & Nudge Service ──────────────────────────────────
-// Runs nightly. Detects users who have fallen off and sends shame/reality-check
-// push notifications based on workout gaps, nutrition gaps, and app inactivity.
+// Runs nightly. Detects users who have fallen off and sends supportive,
+// encouraging push notifications based on workout gaps, nutrition gaps, and
+// app inactivity.
 
 import { PrismaClient } from '@prisma/client';
 import { sendPushNotification } from './notificationService.js';
@@ -144,14 +145,14 @@ export async function runReengagementCheck(): Promise<void> {
   console.log(`[reengagement] Done. Sent ${nudgesSent} nudge(s) to ${users.length} user(s) checked.`);
 }
 
-// ─── Instant: junk food shame push ────────────────────────────────────────────
-// Max one junk food push per user per 6 hours — prevents multiple nudges
-// if they log several junk items in the same session.
+// ─── Instant: indulgent-meal encouragement push ───────────────────────────────
+// Max one such push per user per 6 hours — prevents multiple nudges if they
+// log several indulgent items in the same session.
 
 const JUNK_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
 const junkSentAt = new Map<string, number>(); // userId → timestamp
 
-export async function sendJunkFoodShame(
+export async function sendJunkFoodEncouragement(
   userId: string,
   mealName: string,
   calories: number,
@@ -177,8 +178,8 @@ export async function sendJunkFoodShame(
       body: msg.body,
       data: { screen: 'coach', tab: 'Nutrition' },
     });
-    console.log(`[reengagement] Junk food shame sent to user ${userId} for "${mealName}" (${Math.round(calories)} kcal)`);
+    console.log(`[reengagement] Indulgent-meal encouragement sent to user ${userId} for "${mealName}" (${Math.round(calories)} kcal)`);
   } catch (err) {
-    console.error('[reengagement] Junk food shame error:', err);
+    console.error('[reengagement] Indulgent-meal encouragement error:', err);
   }
 }

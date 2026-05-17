@@ -16,22 +16,52 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Map notification data.screen → Expo Router path
+// Map a notification's data payload → Expo Router path.
+// Two payload shapes exist: re-engagement / streak pushes carry `data.screen`,
+// while social pushes (friend requests, DMs, post activity) carry `data.type`.
+// Both must resolve, or tapping a social notification silently does nothing.
 function resolveDeepLink(data?: Record<string, unknown>): string | null {
-  if (!data?.screen) return null;
-  const screen = data.screen as string;
-  const tab = data.tab as string | undefined;
+  if (!data) return null;
 
-  switch (screen) {
-    case 'coach':
-      return tab ? `/(tabs)/coach?tab=${tab}` : '/(tabs)/coach';
-    case 'strength-profile':
-      return '/(tabs)/strength-profile';
-    case 'history':
-      return '/(tabs)/history';
-    default:
-      return null;
+  // ── Social notifications (data.type) ───────────────────────────────────────
+  if (typeof data.type === 'string') {
+    switch (data.type) {
+      case 'friend_request':
+        // The Find Friends screen surfaces incoming requests at the top.
+        return '/social/search';
+      case 'friend_accepted':
+        return '/(tabs)/social';
+      case 'message':
+        return data.conversationId
+          ? `/social/conversation?id=${data.conversationId}`
+          : '/social/messages';
+      case 'new_post':
+      case 'repost':
+      case 'reaction':
+      case 'comment':
+        return '/(tabs)/social';
+      default:
+        return null;
+    }
   }
+
+  // ── Re-engagement / streak / program notifications (data.screen) ───────────
+  if (typeof data.screen === 'string') {
+    const screen = data.screen as string;
+    const tab = data.tab as string | undefined;
+    switch (screen) {
+      case 'coach':
+        return tab ? `/(tabs)/coach?tab=${tab}` : '/(tabs)/coach';
+      case 'strength-profile':
+        return '/(tabs)/strength-profile';
+      case 'history':
+        return '/(tabs)/history';
+      default:
+        return null;
+    }
+  }
+
+  return null;
 }
 
 export function usePushNotifications(isAuthenticated: boolean) {

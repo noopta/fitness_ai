@@ -36,8 +36,6 @@ import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
 } from '../../src/lib/muscleHierarchy';
-import { isMuscleDrillDownEnabled } from '../../src/lib/featureFlags';
-import { useAuth } from '../../src/context/AuthContext';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CARD_W = SCREEN_W - spacing.md * 2;
@@ -359,32 +357,6 @@ const TIER_INDEX: Record<string, number> = {
   Elite:        6,
 };
 
-// Visual order for the radar axes — keeps push/pull paired across the diameter
-// rather than alphabetical, which makes lateral imbalances easier to read.
-const RADAR_ORDER = ['push', 'legs', 'core', 'pull', 'hinge', 'cardio'] as const;
-const RADAR_LABEL: Record<string, string> = {
-  push: 'Push', pull: 'Pull', legs: 'Squat', hinge: 'Hinge', core: 'Core', cardio: 'Power',
-};
-// Default target — ten out of ten (mapped to 80/100 to match the design's
-// "balanced" silhouette rather than maxing every axis). Per-axis overrides
-// can be added later when the backend ships them.
-const DEFAULT_TARGET_NORMALISED = 80;
-
-function mapRadarAxes(scores: Record<string, number> | null | undefined): RadarAxis[] {
-  if (!scores) return [];
-  const axes: RadarAxis[] = [];
-  for (const key of RADAR_ORDER) {
-    const raw = scores[key];
-    if (raw == null) continue;
-    axes.push({
-      axis: RADAR_LABEL[key] ?? key,
-      current: Math.max(0, Math.min(100, raw * 10)), // 0..10 → 0..100
-      target: DEFAULT_TARGET_NORMALISED,
-    });
-  }
-  return axes;
-}
-
 function mapLiftToRow(lift: LiftSummary): LiftRowData {
   const series = lift.weekSeries ?? [];
   // 30D delta: difference between latest e1RM and ~4 weeks back. Falls back
@@ -436,15 +408,12 @@ type ProfileTab = 'strength' | 'nutrition';
 
 export default function StrengthProfileScreen() {
   const router = useRouter();
-  const { user } = useAuth();
-  const drillDownEnabled = isMuscleDrillDownEnabled(user);
   const [activeTab, setActiveTab] = useState<ProfileTab>('strength');
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   // Radar level — `overview` shows the 6 movement axes; `bucket` morphs the
   // chart into the muscles that feed the tapped movement. Reset on tab focus.
-  // Only meaningful when `drillDownEnabled` is true; otherwise unused.
   const [radarLevel, setRadarLevel] = useState<RadarLevel>({ kind: 'overview' });
 
   // Sheet visibility — at-most-one open at a time, but the sheets are
@@ -519,18 +488,10 @@ export default function StrengthProfileScreen() {
       runOnJS(setShowRadarTarget)(prev => !prev);
     });
 
-  // Tap a radar axis. Behavior depends on feature flag + current level:
-  //   - drill-down OFF (legacy): tap → open RadarAxisDrillSheet immediately.
-  //   - drill-down ON, overview:  tap → morph into the muscles for that bucket.
-  //   - drill-down ON, bucket:    tap → open RadarAxisDrillSheet for that muscle.
+  // Tap a radar axis. Behavior depends on the current drill level:
+  //   - overview: tap → morph the radar into the muscles for that bucket.
+  //   - bucket:   tap → open RadarAxisDrillSheet for that muscle.
   function handleAxisPress(axisLabel: string) {
-    if (!drillDownEnabled) {
-      const axes = mapRadarAxes(data?.radarScores);
-      const axis = axes.find(a => a.axis === axisLabel);
-      if (axis) setAxisSheet(axis);
-      return;
-    }
-
     if (radarLevel.kind === 'overview') {
       // Only drill if the tapped axis maps to a known bucket with at least 3
       // muscle scores available — otherwise fall through to the sheet (matches
@@ -585,11 +546,8 @@ export default function StrengthProfileScreen() {
   // cheap, but it stabilizes the prop identity for RadarChart's deep-eq
   // dep check.
   const currentRadarAxes = React.useMemo(() => {
-    if (!drillDownEnabled) {
-      return mapRadarAxes(data?.radarScores);
-    }
     return buildAxesForLevel(radarLevel, data?.radarScores, data?.muscleScores);
-  }, [drillDownEnabled, radarLevel, data?.radarScores, data?.muscleScores]);
+  }, [radarLevel, data?.radarScores, data?.muscleScores]);
 
   if (loading) {
     return (
@@ -713,15 +671,15 @@ export default function StrengthProfileScreen() {
               percentile={null /* backend doesn't yet expose a percentile */}
               wilks={data!.overallStrengthIndex}
               delta30d={null /* backend doesn't yet expose 30D wilks delta */}
-              confidence={drillDownEnabled ? (data!.athleteModel?.confidence ?? null) : null}
+              confidence={data!.athleteModel?.confidence ?? null}
               onPress={() => setTierSheetOpen(true)}
             />
 
-            {/* ── Movement balance — radar (with optional muscle drill-down) ─ */}
+            {/* ── Movement balance — radar (with muscle drill-down) ───────── */}
             {currentRadarAxes.length >= 3 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  {drillDownEnabled && radarLevel.kind === 'bucket' ? (
+                  {radarLevel.kind === 'bucket' ? (
                     <BreadcrumbChip
                       label={radarLevel.bucket}
                       onBack={() => setRadarLevel({ kind: 'overview' })}
@@ -735,7 +693,7 @@ export default function StrengthProfileScreen() {
                 </View>
                 <GestureDetector gesture={
                   // Combine target-toggle + (when at level 2) swipe-back-to-overview.
-                  drillDownEnabled && radarLevel.kind === 'bucket'
+                  radarLevel.kind === 'bucket'
                     ? Gesture.Race(radarToggleGesture, swipeBackGesture)
                     : radarToggleGesture
                 }>
@@ -745,11 +703,11 @@ export default function StrengthProfileScreen() {
                       size={Math.min(310, CARD_W)}
                       showTarget={showRadarTarget}
                       onAxisPress={handleAxisPress}
-                      onAxisLongPress={drillDownEnabled ? handleAxisLongPress : undefined}
+                      onAxisLongPress={handleAxisLongPress}
                     />
                   </View>
                 </GestureDetector>
-                {drillDownEnabled && radarLevel.kind === 'overview' && (
+                {radarLevel.kind === 'overview' && (
                   <Text style={styles.radarHint}>
                     Tap a movement to see the muscles inside it. Long-press for details.
                   </Text>
@@ -758,7 +716,7 @@ export default function StrengthProfileScreen() {
             )}
 
             {/* ── Anakin's Read — proactive insight feed (Athlete Model) ──── */}
-            {drillDownEnabled && data!.athleteModel && (
+            {data!.athleteModel && (
               <AnakinsRead
                 insights={data!.athleteModel.insights}
                 ratios={data!.athleteModel.ratios}
@@ -768,12 +726,12 @@ export default function StrengthProfileScreen() {
             )}
 
             {/* ── Strength Balance — ratio scoreboard (Athlete Model) ─────── */}
-            {drillDownEnabled && data!.athleteModel && data!.athleteModel.ratios.length > 0 && (
+            {data!.athleteModel && data!.athleteModel.ratios.length > 0 && (
               <StrengthBalance ratios={data!.athleteModel.ratios} />
             )}
 
             {/* ── Pattern Coverage — movement-pattern grid (Athlete Model) ── */}
-            {drillDownEnabled && data!.athleteModel && data!.athleteModel.patternCoverage.length > 0 && (
+            {data!.athleteModel && data!.athleteModel.patternCoverage.length > 0 && (
               <PatternCoverage
                 patterns={data!.athleteModel.patternCoverage}
                 onCellPress={() => router.push('/(tabs)/coach')}
@@ -781,7 +739,7 @@ export default function StrengthProfileScreen() {
             )}
 
             {/* ── Relative Strength — tiered BW-multiple bars (Athlete Model) ─ */}
-            {drillDownEnabled && data!.athleteModel && data!.athleteModel.relativeStrength.length > 0 && (
+            {data!.athleteModel && data!.athleteModel.relativeStrength.length > 0 && (
               <RelativeStrength results={data!.athleteModel.relativeStrength} />
             )}
 
@@ -821,10 +779,11 @@ export default function StrengthProfileScreen() {
               </Card>
             )}
 
-            {/* ── Legacy AI Insights — superseded by "Anakin's Read" for
-                Athlete-Model accounts (design handoff kill list). Still
-                shown to flag-OFF accounts, who have no Anakin's Read. ─── */}
-            {!drillDownEnabled && (data!.aiInsights ?? []).length > 0 && (
+            {/* ── Legacy AI Insights — "Anakin's Read" supersedes this when
+                the Athlete Model is available. Kept as a fallback for the
+                rare case the model fails to build, so the user still sees
+                insights rather than a blank section. ─── */}
+            {!data!.athleteModel && (data!.aiInsights ?? []).length > 0 && (
               <Card style={styles.card}>
                 <CardHeader>
                   <CardTitle>AI Insights</CardTitle>

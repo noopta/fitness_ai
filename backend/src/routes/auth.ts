@@ -511,7 +511,7 @@ router.put('/auth/push-token', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/auth/reengagement-opt-out — toggle shame/re-engagement notifications
+// PUT /api/auth/reengagement-opt-out — toggle re-engagement notifications
 router.put('/auth/reengagement-opt-out', requireAuth, async (req, res) => {
   try {
     const { optOut } = req.body;
