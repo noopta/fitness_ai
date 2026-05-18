@@ -77,14 +77,14 @@ export function teardownIAP() {
 export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
   try {
     iapLog('fetchProducts(subs) — skus:', APPLE_PRODUCT_IDS);
-    let products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' });
+    let products = (await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' })) ?? [];
     iapLog(`fetchProducts(subs) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
 
     // Fallback: if subs type returns empty, try fetching all types
     if (products.length === 0) {
       iapWarn('subs fetch empty — retrying with type:all after 500ms');
       await new Promise<void>(r => setTimeout(r, 500));
-      products = await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'all' });
+      products = (await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'all' })) ?? [];
       iapLog(`fetchProducts(all) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
     }
 
@@ -92,10 +92,15 @@ export async function fetchProProduct(): Promise<{ product: ProductSubscription 
     const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
     if (match) {
       iapLog('product found:', match.id, 'price:', (match as any).displayPrice ?? (match as any).localizedPrice);
-    } else {
-      iapWarn('product NOT found after both attempts. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
+      return { product: match, error: null };
     }
-    return { product: match, error: null };
+    // No product came back. Surface an error so the paywall shows a Retry
+    // instead of silently hiding the App Store option entirely.
+    iapWarn('product NOT found after both attempts. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
+    return {
+      product: null,
+      error: 'App Store subscription unavailable right now. Tap Retry, or pay with card below.',
+    };
   } catch (err: any) {
     const msg = err?.message ?? err?.code ?? String(err);
     iapError('fetchProducts threw:', msg, 'code:', err?.code, 'full:', JSON.stringify(err));

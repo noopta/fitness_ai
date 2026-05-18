@@ -32,7 +32,7 @@ export async function clearToken(): Promise<void> {
   return SecureStore!.deleteItemAsync(TOKEN_KEY);
 }
 
-async function apiFetch(path: string, options?: RequestInit, requiresAuth = true): Promise<any> {
+export async function apiFetch(path: string, options?: RequestInit, requiresAuth = true): Promise<any> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),

@@ -25,13 +25,12 @@ import {
 } from '../lib/googleIap';
 import type { ProductSubscription, Purchase } from 'react-native-iap';
 import { Analytics } from '../lib/analytics';
+import { apiFetch } from '../lib/api';
 
 const IS_ANDROID = Platform.OS === 'android';
 const IS_IOS = Platform.OS === 'ios';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const API_BASE = 'https://api.airthreads.ai:4009/api';
 
 export const PRO_PRICE_FALLBACK = '$9.99';
 
@@ -158,18 +157,18 @@ function PaymentSheetContent({
   const handleStripeCheckout = useCallback(async () => {
     Analytics.upgradeTapped('stripe');
     try {
-      const res = await fetch(`${API_BASE}/payments/create-checkout`, {
+      // apiFetch attaches the Bearer token. The previous raw fetch sent
+      // `credentials: 'include'` only — a cookie mobile never has — so
+      // create-checkout always 401'd and the browser never opened.
+      const d = await apiFetch('/payments/create-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({}),
       });
-      const d = await res.json();
-      if (!res.ok || !d.url) throw new Error(d.error || 'Could not create checkout session');
+      if (!d?.url) throw new Error('Could not create checkout session');
       await Linking.openURL(d.url);
       setStripeOpened(true);
-    } catch {
-      Alert.alert('Could not open browser', 'Please visit axiomtraining.io to upgrade.');
+    } catch (err: any) {
+      Alert.alert('Could not start checkout', err?.message ?? 'Please visit axiomtraining.io to upgrade.');
     }
   }, []);
 
@@ -213,6 +212,47 @@ function PaymentSheetContent({
 
   const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? PRO_PRICE_FALLBACK;
 
+  // ── Stripe (card) section ──
+  // Offered on both platforms. On Android it renders *after* the Google Play
+  // option (Play policy expects Play Billing to be at least as prominent as
+  // any alternative); on iOS it stays first, as it was.
+  const stripeSection = (
+    <View style={styles.paymentSection}>
+      <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
+
+      {!stripeOpened ? (
+        <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
+          <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.stripeConfirmBox}>
+          <Text style={styles.stripeConfirmMsg}>
+            Complete payment in the browser, then tap below to activate your account.
+          </Text>
+          <TouchableOpacity
+            style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
+            onPress={handleStripeConfirm}
+            disabled={stripeConfirming}
+            activeOpacity={0.85}
+          >
+            {stripeConfirming ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.stripeBtnText}>I've completed payment</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleStripeCheckout} style={styles.reopenLink}>
+            <Text style={styles.reopenLinkText}>Reopen checkout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
       {/* Perks */}
@@ -227,45 +267,8 @@ function PaymentSheetContent({
         ))}
       </View>
 
-      {/* ── Stripe payment — iOS only.
-            Google Play policy requires Play Billing for digital subscriptions;
-            offering Stripe on Android would get the app rejected. ── */}
-      {IS_IOS && (
-        <View style={styles.paymentSection}>
-          <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
-
-          {!stripeOpened ? (
-            <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
-              <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.stripeConfirmBox}>
-              <Text style={styles.stripeConfirmMsg}>
-                Complete payment in the browser, then tap below to activate your account.
-              </Text>
-              <TouchableOpacity
-                style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
-                onPress={handleStripeConfirm}
-                disabled={stripeConfirming}
-                activeOpacity={0.85}
-              >
-                {stripeConfirming ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-                    <Text style={styles.stripeBtnText}>I've completed payment</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleStripeCheckout} style={styles.reopenLink}>
-                <Text style={styles.reopenLinkText}>Reopen checkout</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      )}
+      {/* iOS: card option leads. */}
+      {IS_IOS && stripeSection}
 
       {/* ── Native store IAP — Apple on iOS, Google Play on Android ── */}
       {(iapLoading || product || iapError) && (
@@ -309,6 +312,9 @@ function PaymentSheetContent({
         </View>
       )}
 
+      {/* Android: card option follows Google Play. */}
+      {IS_ANDROID && stripeSection}
+
       {/* Restore Purchases — required by App Store guideline 3.1.1 */}
       <View style={styles.restoreSection}>
         <TouchableOpacity
@@ -327,7 +333,7 @@ function PaymentSheetContent({
       <Text style={styles.legal}>
         Axiom Pro · auto-renews monthly. Cancel anytime.{'\n'}
         {IS_IOS ? 'Card payments processed securely by Stripe.\n' : ''}
-        {IS_ANDROID ? 'Subscription managed by Google Play. Manage anytime in Play Store → Subscriptions.\n' : ''}
+        {IS_ANDROID ? 'Card payments processed securely by Stripe. Google Play subscriptions are managed in Play Store → Subscriptions.\n' : ''}
         <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms of Use</Text>
         {'  ·  '}
         <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy Policy</Text>

@@ -67,24 +67,31 @@ export function teardownIAP() {
 export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
   try {
     iapLog('[google] fetchProducts(subs) — skus:', GOOGLE_PRODUCT_IDS);
-    let products = await fetchProducts({ skus: GOOGLE_PRODUCT_IDS, type: 'subs' });
+    let products = (await fetchProducts({ skus: GOOGLE_PRODUCT_IDS, type: 'subs' })) ?? [];
     iapLog(`[google] fetchProducts(subs) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
 
     // Same warm-up workaround as iOS: occasional empty first response.
     if (products.length === 0) {
       iapWarn('[google] subs fetch empty — retrying after 500ms');
       await new Promise<void>(r => setTimeout(r, 500));
-      products = await fetchProducts({ skus: GOOGLE_PRODUCT_IDS, type: 'subs' });
+      products = (await fetchProducts({ skus: GOOGLE_PRODUCT_IDS, type: 'subs' })) ?? [];
     }
 
     const subs = products as ProductSubscription[];
     const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
     if (match) {
       iapLog('[google] product found:', match.id);
-    } else {
-      iapWarn('[google] product NOT found. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
+      return { product: match, error: null };
     }
-    return { product: match, error: null };
+    // No product came back. Surface an error so the paywall shows a Retry
+    // instead of silently hiding the Google Play option entirely (the build
+    // must be installed from a Play track and the SKU/base plan must be
+    // active in Play Console for this to return anything).
+    iapWarn('[google] product NOT found. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
+    return {
+      product: null,
+      error: 'Google Play subscription unavailable right now. It may still be activating — tap Retry, or pay with card below.',
+    };
   } catch (err: any) {
     const msg = err?.message ?? err?.code ?? String(err);
     iapError('[google] fetchProducts threw:', msg);
