@@ -9,6 +9,7 @@ import { BrandLogo } from '@/components/BrandLogo';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { SEO } from '@/components/SEO';
+import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 
@@ -155,6 +156,7 @@ export default function Login() {
         </div>
 
         <Card className="p-6 space-y-4">
+          <InAppBrowserWarning />
           <Button
             variant="outline"
             className="w-full"

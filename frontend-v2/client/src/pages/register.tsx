@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 import { SEO } from '@/components/SEO';
+import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 
 export default function Register() {
   const { register, googleLogin, user, loading } = useAuth();
@@ -73,6 +74,7 @@ export default function Register() {
         </div>
 
         <Card className="p-6 space-y-4">
+          <InAppBrowserWarning />
           <Button
             variant="outline"
             className="w-full"

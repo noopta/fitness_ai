@@ -517,8 +517,6 @@ export function PostCard({
     setItem(initialItem);
   }, [initialItem.id, initialItem.reactionCount, initialItem.commentCount]);
 
-  if (deleted) return null;
-
   const isRepost  = item.itemType === 'repost';
   const isText    = item.itemType === 'text';
   const isOwnPost = item.sharerId === currentUserId;
@@ -648,6 +646,11 @@ export function PostCard({
       setReposting(false);
     }
   }
+
+  // Hide the card once deleted. This guard MUST stay below every hook above —
+  // an early return placed among the hooks skips them on the post-delete
+  // re-render and crashes with "rendered fewer hooks than expected".
+  if (deleted) return null;
 
   return (
     <Pressable onLongPress={handleLongPress} delayLongPress={400}>
