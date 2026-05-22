@@ -16,8 +16,13 @@ import { useAuth } from "@/context/AuthContext";
 import { WebAnalytics } from "@/lib/analytics";
 import { AppStoreBadge } from "./AppStoreBadge";
 
-/** Set to the real Apple App Store URL once published. */
-const APPLE_APP_STORE_URL = "https://apps.apple.com/app/axiom-training";
+/**
+ * Country-neutral App Store URL — Apple redirects to the user's storefront
+ * automatically. The country-prefixed form
+ * (https://apps.apple.com/us/app/axiom-ai-personal-trainer/id6761032954) would
+ * pin every visitor to the US store.
+ */
+const APPLE_APP_STORE_URL = "https://apps.apple.com/app/id6761032954";
 
 interface Props {
   /** Existing HeroStatsRow (the 5 stat pills) — rendered below the grid, unchanged from v1. */
