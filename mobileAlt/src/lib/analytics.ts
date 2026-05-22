@@ -9,8 +9,20 @@ export const posthog = new PostHog(
     // Flush events every 30 s or when 20 events are queued
     flushAt: 20,
     flushInterval: 30000,
-    // Don't capture device info automatically — we add context manually
-    captureNativeAppLifecycleEvents: true,
+    // Capture native lifecycle events (Application Opened / Became Active / etc.)
+    captureAppLifecycleEvents: true,
+    // Record native in-app sessions. Project-side "Record user sessions" must
+    // also be enabled in PostHog → Project Settings → Session replay for these
+    // to actually persist. The session-replay native module is auto-detected
+    // when posthog-react-native-session-replay is installed.
+    enableSessionReplay: true,
+    sessionReplayConfig: {
+      // Text inputs (emails, search, message composers) are masked by default
+      // and we want that. Images stay visible so PRs, profile photos, and
+      // workout screenshots are inspectable in replays.
+      maskAllTextInputs: true,
+      maskAllImages: false,
+    },
   }
 );
 
@@ -134,8 +146,59 @@ export const Analytics = {
   upgradeTapped: (source: string) =>
     posthog.capture('upgrade_tapped', { source }),
 
-  upgradeCompleted: () =>
-    posthog.capture('upgrade_completed'),
+  /**
+   * Pro purchase succeeded. `source` is the same vocabulary as upgradeTapped
+   * ('apple_iap' | 'google_play' | 'stripe' | …) so the PostHog funnel can
+   * tie the tap to the conversion regardless of platform. Without the source
+   * the mobile IAP path is invisible — the cross-platform server-side
+   * subscription_checkout_completed event only fires for Stripe.
+   */
+  upgradeCompleted: (source?: string) => {
+    posthog.capture('upgrade_completed', source ? { source } : {});
+    // Mirror under the funnel-canonical name so the existing
+    // pricing_viewed → subscription_checkout_completed funnel can also see
+    // mobile IAP conversions without rebuilding it.
+    posthog.capture('subscription_checkout_completed', source ? { source } : {});
+  },
+
+  // ── Research articles (social feed) ───────────────────────────────────────
+  /** A research article card appeared on the feed and was tapped open. */
+  articleOpened: (props: { articleId: string; source?: 'feed' | 'saved' | 'shared' }) =>
+    posthog.capture('article_opened', props),
+
+  /** Bookmarked an article for later. */
+  articleSaved: (articleId: string) =>
+    posthog.capture('article_saved', { articleId }),
+
+  /** Removed an article from Saved. */
+  articleUnsaved: (articleId: string) =>
+    posthog.capture('article_unsaved', { articleId }),
+
+  /** Forwarded an article to a friend via DM. */
+  articleShared: (articleId: string) =>
+    posthog.capture('article_shared', { articleId }),
+
+  /** User pulled to refresh the social feed (forces a fresh fetch of research). */
+  feedRefreshed: (source: 'pull_to_refresh' | 'refresh_button') =>
+    posthog.capture('feed_refreshed', { source }),
+
+  // ── Workouts (forwarding + planned-vs-logged) ─────────────────────────────
+  /** Sent a workout (planned or logged) to a friend from the Coach tab. */
+  workoutSharedToFriend: (kind: 'planned' | 'logged') =>
+    posthog.capture('workout_shared_to_friend', { kind }),
+
+  // ── Coach ────────────────────────────────────────────────────────────────
+  /** User tapped one of the suggested-prompt chips on the Coach screen. */
+  coachSuggestedPromptTapped: (prompt: string) =>
+    posthog.capture('coach_suggested_prompt_tapped', { prompt }),
+
+  // ── Account churn ─────────────────────────────────────────────────────────
+  /** User submitted the delete-account exit survey. */
+  deleteAccountSurveySubmitted: (reason: string, freeText?: string) =>
+    posthog.capture(
+      'delete_account_survey_submitted',
+      freeText ? { reason, freeText } : { reason },
+    ),
 
   // ── Strength Profile ──────────────────────────────────────────────────────
   strengthProfileViewed: () =>

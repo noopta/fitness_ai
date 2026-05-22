@@ -117,7 +117,9 @@ function PaymentSheetContent({
         setIapPurchasing(true);
         try {
           await verify(purchase);
-          Analytics.upgradeCompleted();
+          // Mirrors upgradeTapped(source) so the funnel can attribute
+          // mobile IAP revenue too (otherwise it only sees Stripe completes).
+          Analytics.upgradeCompleted(IS_ANDROID ? 'google_play' : 'apple_iap');
           onClose();
           await new Promise<void>(resolve => setTimeout(resolve, 300));
           onSuccessRef.current();
@@ -176,7 +178,7 @@ function PaymentSheetContent({
     setStripeConfirming(true);
     try {
       await refreshUser();
-      Analytics.upgradeCompleted();
+      Analytics.upgradeCompleted('stripe');
       onClose();
       await new Promise<void>(resolve => setTimeout(resolve, 300));
       onSuccessRef.current();
@@ -194,7 +196,7 @@ function PaymentSheetContent({
       const restore = IS_ANDROID ? restoreGoogle : restoreApple;
       const restored = await restore();
       if (restored) {
-        Analytics.upgradeCompleted();
+        Analytics.upgradeCompleted(IS_ANDROID ? 'google_play_restore' : 'apple_iap_restore');
         onClose();
         await new Promise<void>(resolve => setTimeout(resolve, 300));
         onSuccessRef.current();

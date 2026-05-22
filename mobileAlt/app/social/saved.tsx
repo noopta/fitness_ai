@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { FeedItemCard, type FeedItem, type FriendForShare } from '../../src/components/social/FeedItemCard';
-import { trackScreen, trackScreenTime } from '../../src/lib/analytics';
+import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 
 export default function SavedArticlesScreen() {
   const router = useRouter();
@@ -50,6 +50,7 @@ export default function SavedArticlesScreen() {
     setItems(prev => prev.filter(i => i.id !== articleId));
     try {
       await socialApi.unsaveArticle(articleId);
+      Analytics.articleUnsaved(articleId);
     } catch {
       // Reload on failure to recover state
       load();
@@ -92,8 +93,10 @@ export default function SavedArticlesScreen() {
               onToggleSave={() => handleUnsave(item.id)}
               friends={friends}
               onShareToFriend={async (friendId, note) => {
-                try { await socialApi.forwardArticle(item.id, friendId, note); }
-                catch { /* surfaced inside the card */ }
+                try {
+                  await socialApi.forwardArticle(item.id, friendId, note);
+                  Analytics.articleShared(item.id);
+                } catch { /* surfaced inside the card */ }
               }}
             />
           ))

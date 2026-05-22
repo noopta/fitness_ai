@@ -47,6 +47,9 @@ export default function CoachScreen() {
     cachedInit ? (cachedInit.hasProgram ? 'dashboard' : 'onboarding') : 'loading'
   );
   const [activeTab, setActiveTab] = useState<TabId>('Overview');
+  // Suggested-prompt routing: a chip tap on Overview stashes the prompt here
+  // and switches to Chat; ChatTab reads it as initialPrompt and clears it.
+  const [pendingChatPrompt, setPendingChatPrompt] = useState<string | null>(null);
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
   const [onboardingKey, setOnboardingKey] = useState(0);
@@ -319,6 +322,10 @@ export default function CoachScreen() {
             coachData={coachData}
             onGoToProgram={() => setActiveTab('Program')}
             onRefresh={initCoach}
+            onAskAnakin={(prompt) => {
+              setPendingChatPrompt(prompt);
+              setActiveTab('Chat');
+            }}
           />
         )}
         {activeTab === 'Program' && (
@@ -337,7 +344,11 @@ export default function CoachScreen() {
           <WellnessTab coachData={coachData} />
         )}
         {activeTab === 'Chat' && (
-          <ChatTab coachData={coachData} />
+          <ChatTab
+            coachData={coachData}
+            initialPrompt={pendingChatPrompt ?? undefined}
+            onInitialPromptConsumed={() => setPendingChatPrompt(null)}
+          />
         )}
       </View>
     </SafeAreaView>

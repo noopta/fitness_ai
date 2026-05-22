@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking,
-  TextInput, Image, ActivityIndicator,
+  TextInput, Image, ActivityIndicator, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -27,6 +27,12 @@ export default function SettingsScreen() {
   const [browserUrl, setBrowserUrl] = useState('');
   const [browserTitle, setBrowserTitle] = useState('');
   const [browserVisible, setBrowserVisible] = useState(false);
+  // Exit-survey state — gates the destructive deleteAccount call so we
+  // capture *why* someone is leaving. Three churns/month is small in absolute
+  // numbers but the signal compounds.
+  const [exitSurveyVisible, setExitSurveyVisible] = useState(false);
+  const [exitFreeText, setExitFreeText] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
   useEffect(() => {
@@ -118,37 +124,39 @@ export default function SettingsScreen() {
   function handleDeleteAccount() {
     Alert.alert(
       'Delete Account',
-      'This permanently deletes your account and all data — sessions, plans, nutrition logs, and social activity. This cannot be undone.',
+      'This permanently deletes your account and all data, sessions, plans, nutrition logs, and social activity. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete My Account',
+          text: 'Continue',
           style: 'destructive',
           onPress: () => {
-            Alert.alert(
-              'Are you absolutely sure?',
-              'All your data will be permanently removed from our servers.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Yes, Delete Everything',
-                  style: 'destructive',
-                  onPress: async () => {
-                    try {
-                      await authApi.deleteAccount();
-                      await auth.logout();
-                      router.replace('/(auth)/welcome');
-                    } catch (err: any) {
-                      Alert.alert('Error', err?.message ?? 'Could not delete account. Please try again.');
-                    }
-                  },
-                },
-              ]
-            );
+            setExitFreeText('');
+            setExitSurveyVisible(true);
           },
         },
       ]
     );
+  }
+
+  /**
+   * Final delete step. Captures the survey reason (and any free-text) into
+   * PostHog as `delete_account_survey_submitted`, then runs the actual delete.
+   * `reason` is one of a small fixed vocabulary so the dashboard can group it.
+   */
+  async function performDelete(reason: string) {
+    setDeletingAccount(true);
+    try {
+      Analytics.deleteAccountSurveySubmitted(reason, exitFreeText.trim() || undefined);
+      await authApi.deleteAccount();
+      await auth.logout();
+      router.replace('/(auth)/welcome');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message ?? 'Could not delete account. Please try again.');
+    } finally {
+      setDeletingAccount(false);
+      setExitSurveyVisible(false);
+    }
   }
 
   function handleSignOut() {
@@ -414,9 +422,85 @@ export default function SettingsScreen() {
         onClose={() => setShowUpgrade(false)}
         onSuccess={async () => { setShowUpgrade(false); await auth.refreshUser(); }}
       />
+
+      {/* Exit survey — short, single screen, runs before the actual delete. */}
+      <Modal
+        visible={exitSurveyVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => !deletingAccount && setExitSurveyVisible(false)}
+      >
+        <SafeAreaView style={styles.exitContainer} edges={['top', 'bottom']}>
+          <View style={styles.exitHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.exitEyebrow}>One last thing</Text>
+              <Text style={styles.exitTitle}>What's making you leave?</Text>
+              <Text style={styles.exitSub}>
+                Your answer is anonymous and goes straight to the team. It helps us
+                fix what's not working.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => !deletingAccount && setExitSurveyVisible(false)}
+              hitSlop={8}
+              disabled={deletingAccount}
+            >
+              <Ionicons name="close" size={22} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.exitBody}>
+            {EXIT_REASONS.map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={styles.exitReason}
+                activeOpacity={0.85}
+                onPress={() => performDelete(r.id)}
+                disabled={deletingAccount}
+              >
+                <Text style={styles.exitReasonText}>{r.label}</Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            ))}
+
+            <Text style={styles.exitFieldLabel}>Anything else? (optional)</Text>
+            <TextInput
+              style={styles.exitFreeText}
+              value={exitFreeText}
+              onChangeText={setExitFreeText}
+              placeholder="Tell us what would have kept you here"
+              placeholderTextColor={colors.mutedForeground}
+              multiline
+              numberOfLines={3}
+              editable={!deletingAccount}
+            />
+
+            <View style={{ height: 16 }} />
+            <Text style={styles.exitFinePrint}>
+              Tapping any reason above immediately deletes your account and all data.
+            </Text>
+
+            {deletingAccount && (
+              <View style={styles.exitLoading}>
+                <ActivityIndicator color={colors.mutedForeground} />
+                <Text style={styles.exitLoadingText}>Deleting your account…</Text>
+              </View>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const EXIT_REASONS: Array<{ id: string; label: string }> = [
+  { id: 'too_expensive',        label: "Too expensive" },
+  { id: 'didnt_use_enough',     label: "I wasn't using it enough" },
+  { id: 'missing_features',     label: "Missing features I need" },
+  { id: 'switching_apps',       label: "Switching to a different app" },
+  { id: 'tech_issues',          label: "Bugs or technical issues" },
+  { id: 'other',                label: "Other reason" },
+];
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
@@ -602,4 +686,81 @@ const styles = StyleSheet.create({
   unitOption: { fontSize: fontSize.sm, color: colors.mutedForeground, fontWeight: fontWeight.medium },
   unitOptionActive: { color: colors.foreground, fontWeight: fontWeight.bold },
   unitSep: { fontSize: fontSize.xs, color: colors.mutedForeground },
+
+  // ── Exit survey modal ──────────────────────────────────────────────────────
+  exitContainer: { flex: 1, backgroundColor: colors.background },
+  exitHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: spacing.md,
+  },
+  exitEyebrow: {
+    fontSize: 11,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 1.2,
+    color: colors.mutedForeground,
+    textTransform: 'uppercase',
+  },
+  exitTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    marginTop: 4,
+  },
+  exitSub: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    marginTop: 6,
+    lineHeight: 20,
+  },
+  exitBody: { padding: spacing.lg, gap: 10, paddingBottom: spacing.xl },
+  exitReason: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+  },
+  exitReasonText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.medium,
+    color: colors.foreground,
+  },
+  exitFieldLabel: {
+    fontSize: 11,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 0.8,
+    color: colors.mutedForeground,
+    textTransform: 'uppercase',
+    marginTop: 8,
+  },
+  exitFreeText: {
+    minHeight: 72,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: 12,
+    fontSize: fontSize.sm,
+    color: colors.foreground,
+    backgroundColor: colors.card,
+    textAlignVertical: 'top',
+  },
+  exitFinePrint: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  exitLoading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16 },
+  exitLoadingText: { fontSize: fontSize.sm, color: colors.mutedForeground },
 });

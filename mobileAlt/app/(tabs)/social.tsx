@@ -491,6 +491,13 @@ export default function SocialScreen() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'friends'>('feed');
 
+  // Hide ghost surfaces. PostHog showed 3 Leaderboard and 1 SavedArticles
+  // views in 30 days — not worth the nav real estate. The screens are still
+  // mounted at /social/saved and /social/leaderboard, just unlinked from the
+  // primary surface. Flip these to true after a redesign + re-surface.
+  const SHOW_LEADERBOARD_ENTRY = false;
+  const SHOW_SAVED_ENTRY = false;
+
   // Cache keys are scoped per-user — never share entries between accounts.
   const feedCacheKey = user?.id ? `social:feed:${user.id}` : null;
   const friendsCacheKey = user?.id ? `social:friends:${user.id}` : null;
@@ -587,6 +594,7 @@ export default function SocialScreen() {
   // explicitly opted in.
   const loadArticles = useCallback(async () => {
     setLoadingArticles(true);
+    Analytics.feedRefreshed('refresh_button');
     try {
       const data = await socialApi.getFeedArticles({ fresh: true });
       const articlesRaw: any[] = Array.isArray(data) ? data : data.items ?? [];
@@ -682,8 +690,13 @@ export default function SocialScreen() {
       return next;
     });
     try {
-      if (isSaved) await socialApi.unsaveArticle(articleId);
-      else await socialApi.saveArticle(articleId);
+      if (isSaved) {
+        await socialApi.unsaveArticle(articleId);
+        Analytics.articleUnsaved(articleId);
+      } else {
+        await socialApi.saveArticle(articleId);
+        Analytics.articleSaved(articleId);
+      }
     } catch {
       // Revert on failure
       setSavedIds(prev => {
@@ -765,6 +778,7 @@ export default function SocialScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    Analytics.feedRefreshed('pull_to_refresh');
     // Pull-to-refresh forces a posts-only re-fetch from the server. Article
     // fetching is now opt-in via the "Get fresh research" button so pulls
     // stay fast (the article path could take 5-12s on a cold PubMed cache).
@@ -801,9 +815,11 @@ export default function SocialScreen() {
       <View style={styles.topBar}>
         <Text style={styles.screenTitle}>Social</Text>
         <View style={styles.topBarActions}>
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/social/saved')}>
-            <Ionicons name="bookmark-outline" size={22} color={colors.foreground} />
-          </TouchableOpacity>
+          {SHOW_SAVED_ENTRY && (
+            <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/social/saved')}>
+              <Ionicons name="bookmark-outline" size={22} color={colors.foreground} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => { router.push('/social/messages'); setUnreadDMs(0); }}>
             <Ionicons name="chatbubbles-outline" size={22} color={colors.foreground} />
             {unreadDMs > 0 && (
@@ -936,6 +952,7 @@ export default function SocialScreen() {
                       onShareToFriend={async (friendId, note) => {
                         try {
                           await socialApi.forwardArticle(fi.id, friendId, note);
+                          Analytics.articleShared(fi.id);
                         } catch (e: any) {
                           Alert.alert('Could not share', e?.message ?? 'Please try again.');
                         }
@@ -968,14 +985,16 @@ export default function SocialScreen() {
             </View>
 
             {/* Leaderboard CTA */}
-            <TouchableOpacity style={styles.leaderboardBanner} activeOpacity={0.8} onPress={() => router.push('/social/leaderboard')}>
-              <Text style={styles.leaderboardBannerEmoji}>🏆</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.leaderboardBannerTitle}>Friends Leaderboard</Text>
-                <Text style={styles.leaderboardBannerSub}>See who lifts the most — ranked by estimated 1RM</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-            </TouchableOpacity>
+            {SHOW_LEADERBOARD_ENTRY && (
+              <TouchableOpacity style={styles.leaderboardBanner} activeOpacity={0.8} onPress={() => router.push('/social/leaderboard')}>
+                <Text style={styles.leaderboardBannerEmoji}>🏆</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.leaderboardBannerTitle}>Friends Leaderboard</Text>
+                  <Text style={styles.leaderboardBannerSub}>See who lifts the most, ranked by estimated 1RM</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
 
             {/* Pending requests prompt */}
             {pendingCount > 0 && (

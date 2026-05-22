@@ -20,6 +20,14 @@ const API_BASE = 'https://api.airthreads.ai:4009/api';
 
 interface ChatTabProps {
   coachData: any;
+  /**
+   * Pre-fill the message composer when the user lands here from a suggested
+   * prompt on the Overview tab. Used to reduce the "blank cursor" friction
+   * that left only 18 of 116 Coach openers actually starting a conversation.
+   */
+  initialPrompt?: string;
+  /** Called once the initial prompt has been written into the input. */
+  onInitialPromptConsumed?: () => void;
 }
 
 interface ChatMessage {
@@ -50,11 +58,20 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
   );
 }
 
-export function ChatTab({ coachData }: ChatTabProps) {
+export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: ChatTabProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  // Seed the composer when arriving via a suggested-prompt chip. Notify the
+  // parent so it can clear its pending-prompt state once consumed.
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.length > 0) {
+      setInputText(initialPrompt);
+      onInitialPromptConsumed?.();
+    }
+  }, [initialPrompt, onInitialPromptConsumed]);
 
   // Load messages from coachData on mount
   useEffect(() => {

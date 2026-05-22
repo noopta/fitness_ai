@@ -6,6 +6,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../constants/theme';
+import { Analytics } from '../../lib/analytics';
 
 export interface FriendForShare {
   id: string;
@@ -95,7 +96,10 @@ export function FeedItemCard({ item, isSaved, onToggleSave, friends, onShareToFr
       <TouchableOpacity
         style={styles.card}
         activeOpacity={0.85}
-        onPress={() => setWebViewOpen(true)}
+        onPress={() => {
+          Analytics.articleOpened({ articleId: item.id, source: 'feed' });
+          setWebViewOpen(true);
+        }}
       >
         {/* Top row: type badge + source + actions */}
         <View style={styles.topRow}>

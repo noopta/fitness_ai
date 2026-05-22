@@ -22,6 +22,7 @@ import { getCached, setCached, invalidateCache } from '../../lib/cache';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
 import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
+import { Analytics } from '../../lib/analytics';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,7 +76,24 @@ interface OverviewTabProps {
   coachData: any;
   onGoToProgram?: () => void;
   onRefresh?: () => void;
+  /**
+   * Switch to the Chat tab with a pre-filled prompt. Wired in from the
+   * Coach screen; tapping a suggested-prompt chip calls this. PostHog
+   * showed 116 Coach Overview views vs 18 Conversation opens, which is the
+   * blank-cursor problem; one-tap chips collapse the friction.
+   */
+  onAskAnakin?: (prompt: string) => void;
 }
+
+/** Starter prompts surfaced on the Overview screen so new users have one-tap
+ *  paths into a Coach conversation instead of staring at an empty composer. */
+const SUGGESTED_PROMPTS = [
+  "Review my last workout",
+  "Plan my deload week",
+  "What should I eat post-workout?",
+  "My shoulder feels tweaky, can I still squat?",
+  "Why is my bench stuck?",
+];
 
 // ─── Day Workout Sheet ────────────────────────────────────────────────────────
 
@@ -299,7 +317,7 @@ function todayESTString(): string {
 // cached again.
 const OVERVIEW_TTL_MS = 30 * 60 * 1000;
 
-export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTabProps) {
+export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }: OverviewTabProps) {
   const { user } = useAuth();
   const cacheKey = user?.id ? `coach:overview:${user.id}:${todayESTString()}` : null;
 
@@ -477,6 +495,32 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh }: OverviewTab
           <View style={styles.goalBanner}>
             <Ionicons name="trophy-outline" size={14} color={colors.primary} />
             <Text style={styles.goalText}>Goal: {programGoal}</Text>
+          </View>
+        )}
+
+        {/* ── Ask Anakin — suggested-prompt chips ──────────────────────────── */}
+        {onAskAnakin && (
+          <View style={chips.section}>
+            <Text style={chips.eyebrow}>Ask Anakin</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={chips.row}
+            >
+              {SUGGESTED_PROMPTS.map((prompt) => (
+                <TouchableOpacity
+                  key={prompt}
+                  style={chips.chip}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    Analytics.coachSuggestedPromptTapped(prompt);
+                    onAskAnakin(prompt);
+                  }}
+                >
+                  <Text style={chips.chipText}>{prompt}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
@@ -1472,6 +1516,37 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: fontSize.sm,
     color: colors.primary,
+    fontWeight: fontWeight.medium,
+  },
+});
+
+const chips = StyleSheet.create({
+  section: { marginTop: spacing.sm, marginBottom: spacing.sm },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 1.2,
+    color: colors.mutedForeground,
+    textTransform: 'uppercase',
+    paddingHorizontal: spacing.md,
+    marginBottom: 8,
+  },
+  row: {
+    paddingHorizontal: spacing.md,
+    gap: 8,
+    flexDirection: 'row',
+  },
+  chip: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.full,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  chipText: {
+    fontSize: fontSize.sm,
+    color: colors.foreground,
     fontWeight: fontWeight.medium,
   },
 });
