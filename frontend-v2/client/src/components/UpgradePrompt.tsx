@@ -1,18 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Zap } from 'lucide-react';
-
-const STRIPE_URL = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
+import { startProCheckout } from '@/lib/checkout';
 
 interface UpgradePromptProps {
+  /** Kept for backward compatibility with existing callsites; no longer needed. */
   userId?: string;
 }
 
-export function UpgradePrompt({ userId }: UpgradePromptProps) {
-  const upgradeUrl = userId
-    ? `${STRIPE_URL}?client_reference_id=${userId}`
-    : STRIPE_URL;
-
+export function UpgradePrompt(_props: UpgradePromptProps) {
   return (
     <Card className="p-6 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800">
       <div className="flex items-start gap-4">
@@ -26,7 +22,7 @@ export function UpgradePrompt({ userId }: UpgradePromptProps) {
           </p>
           <Button
             className="mt-4 bg-amber-600 hover:bg-amber-700 text-white"
-            onClick={() => window.open(upgradeUrl, '_blank')}
+            onClick={() => { void startProCheckout(); }}
           >
             Upgrade to Pro
             <Zap className="ml-2 h-4 w-4" />

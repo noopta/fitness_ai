@@ -13,6 +13,8 @@ import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 import { SEO } from "@/components/SEO";
+import { HeroV2 } from "@/components/landing/HeroV2";
+import { SocialProofSection } from "@/components/landing/SocialProofSection";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -32,7 +34,7 @@ function FadeUp({
       ref={ref}
       initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay, ease: [0.22,1, 0.36,1] }}
       className={className}
     >
       {children}
@@ -238,7 +240,7 @@ function LifeHappenedMock() {
         className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2"
       >
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-amber-900">Illness — Fever</span>
+          <span className="text-sm font-semibold text-amber-900">Illness, Fever</span>
           <span className="text-xs font-bold text-amber-600 uppercase tracking-wide">Moderate</span>
         </div>
         <p className="text-xs text-amber-800 leading-relaxed">
@@ -248,9 +250,9 @@ function LifeHappenedMock() {
       <div className="grid grid-cols-2 gap-2">
         {[
           { icon: "🧬", text: "Elevated cortisol depletes muscle glycogen" },
-          { icon: "💧", text: "Rehydrate aggressively — 500ml extra/day" },
+          { icon: "💧", text: "Rehydrate aggressively, 500ml extra/day" },
           { icon: "📅", text: "Shift program back 2 days" },
-          { icon: "🥩", text: "High protein today — 1.8g/kg minimum" },
+          { icon: "🥩", text: "High protein today, 1.8g/kg minimum" },
         ].map((item, i) => (
           <motion.div
             key={i}
@@ -286,12 +288,12 @@ function ChatMock() {
     { role: "user", text: "My shoulder clicks on the way down during bench. Should I be worried?" },
     {
       role: "ai",
-      text: "Based on your last diagnosis — triceps lockout limitation with slight shoulder index deficit — this is likely subscapularis tension during horizontal abduction, not impingement. Try widening your grip 1 finger and actively pulling the bar apart on descent. If it persists past 2 sessions, flag it and we'll adjust.",
+      text: "Based on your last diagnosis, triceps lockout limitation with slight shoulder index deficit, this is likely subscapularis tension during horizontal abduction, not impingement. Try widening your grip 1 finger and actively pulling the bar apart on descent. If it persists past 2 sessions, flag it and we'll adjust.",
     },
     { role: "user", text: "That makes sense. Anything to add before Thursday's session?" },
     {
       role: "ai",
-      text: "You logged 5.5h sleep and energy 3/5 today. Dial intensity to ~82% 1RM on your top sets — quality reps over grinding. Prioritize the face pulls as your first accessory, not last.",
+      text: "You logged 5.5h sleep and energy 3/5 today. Dial intensity to ~82% 1RM on your top sets, quality reps over grinding. Prioritize the face pulls as your first accessory, not last.",
     },
   ];
   return (
@@ -340,7 +342,7 @@ function SmartSuggestionsMock() {
     {
       icon: "😴",
       label: "Sleep Signal",
-      text: "5.5h logged — drop bench top set to 82% 1RM and add 90s extra rest between sets.",
+      text: "5.5h logged, drop bench top set to 82% 1RM and add 90s extra rest between sets.",
     },
     {
       icon: "💪",
@@ -390,7 +392,7 @@ function SmartSuggestionsMock() {
           <span className="shrink-0">Triceps Index: 68 → improving</span>
         </div>
         <div className="text-xs text-muted-foreground">
-          Up 6 points since Week 1 — overhead extension volume is working.
+          Up 6 points since Week 1, overhead extension volume is working.
         </div>
       </div>
     </div>
@@ -405,23 +407,23 @@ const ANAKIN_TABS = [
     label: "Training Program",
     icon: Calendar,
     headline: "Periodized programs built around your weakest link",
-    body: "Anakin doesn't generate templates. Every program is built from your diagnostic signals — your primary weakness determines exercise selection, your training age sets volume, your schedule and equipment shape the structure. Strength, hypertrophy, athletic, or mixed — 2 to 16 weeks, 2 to 6 days.",
+    body: "Anakin doesn't generate templates. Every program is built from your diagnostic signals, your primary weakness determines exercise selection, your training age sets volume, your schedule and equipment shape the structure. Strength, hypertrophy, athletic, or mixed, 2 to 16 weeks, 2 to 6 days.",
     mock: ProgramMock,
   },
   {
     id: "nutrition",
     label: "Nutrition Intelligence",
     icon: Utensils,
-    headline: "A 4-layer dietitian stack — not a calorie calculator",
-    body: "A deterministic engine computes your TDEE, a rules engine adjusts for your goal (deficit, surplus, or recomp), RAG retrieval pulls peer-reviewed sports science, and an LLM dietitian persona reasons over pre-computed data — never guessing, always citing. Log meals manually, by description, or by photo.",
+    headline: "A 4-layer dietitian stack, not a calorie calculator",
+    body: "A deterministic engine computes your TDEE, a rules engine adjusts for your goal (deficit, surplus, or recomp), RAG retrieval pulls peer-reviewed sports science, and an LLM dietitian persona reasons over pre-computed data, never guessing, always citing. Log meals manually, by description, or by photo.",
     mock: NutritionMock,
   },
   {
     id: "life",
     label: "Life Happened",
     icon: Heart,
-    headline: "Tell Anakin what happened — he'll handle the rest",
-    body: "Missed sessions, illness, alcohol, a bad night's sleep. Describe it in plain English. Anakin classifies the disruption, explains the physiological impact on your body, gives you a recovery nutrition protocol, and automatically reschedules your program — one tap.",
+    headline: "Tell Anakin what happened, he'll handle the rest",
+    body: "Missed sessions, illness, alcohol, a bad night's sleep. Describe it in plain English. Anakin classifies the disruption, explains the physiological impact on your body, gives you a recovery nutrition protocol, and automatically reschedules your program, one tap.",
     mock: LifeHappenedMock,
   },
   {
@@ -429,7 +431,7 @@ const ANAKIN_TABS = [
     label: "24/7 Chat",
     icon: MessageCircle,
     headline: "A coach with full memory who never clocks out",
-    body: "Anakin is trained on NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science — and he knows your complete training history, current program phase, diagnostic results, wellness check-ins, and nutrition logs. Every answer is specific to you, not generic advice from a textbook.",
+    body: "Anakin is trained on NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science, and he knows your complete training history, current program phase, diagnostic results, wellness check-ins, and nutrition logs. Every answer is specific to you, not generic advice from a textbook.",
     mock: ChatMock,
   },
   {
@@ -462,7 +464,7 @@ function AnakinSection() {
         </FadeUp>
         <FadeUp delay={0.1}>
           <p className="text-background/65 max-w-xl text-lg mb-8 sm:mb-12">
-            Anakin synthesizes your diagnostics, workouts, nutrition, and wellness into a single coaching intelligence — and acts on it without being asked.
+            Anakin synthesizes your diagnostics, workouts, nutrition, and wellness into a single coaching intelligence, and acts on it without being asked.
           </p>
         </FadeUp>
 
@@ -593,20 +595,20 @@ function DiagnosticSection() {
             </FadeUp>
             <FadeUp delay={0.1}>
               <p className="text-muted-foreground mb-8 sm:mb-10 leading-relaxed">
-                Before any AI runs, a pure deterministic engine computes your strength ratios from actual training data — no guessing, no hallucination. The AI then cross-checks these signals against your subjective report to confirm the diagnosis.
+                Before any AI runs, a pure deterministic engine computes your strength ratios from actual training data, no guessing, no hallucination. The AI then cross-checks these signals against your subjective report to confirm the diagnosis.
               </p>
             </FadeUp>
 
             <EngineStep
               number="1"
               title="Snapshot your lifts"
-              body="Log your working weights, sets, and reps across the primary and supporting exercises for your chosen lift — bench, squat, deadlift, Olympic lifts."
+              body="Log your working weights, sets, and reps across the primary and supporting exercises for your chosen lift, bench, squat, deadlift, Olympic lifts."
               delay={0.05}
             />
             <EngineStep
               number="2"
               title="Engine computes your ratios"
-              body="Epley-estimated 1RMs feed 5 muscle-group indices: Quad, Posterior Chain, Back Tension, Triceps, and Shoulder. These reveal which muscle group is the structural bottleneck — without asking."
+              body="Epley-estimated 1RMs feed 5 muscle-group indices: Quad, Posterior Chain, Back Tension, Triceps, and Shoulder. These reveal which muscle group is the structural bottleneck, without asking."
               delay={0.1}
             />
             <EngineStep
@@ -618,7 +620,7 @@ function DiagnosticSection() {
             <EngineStep
               number="4"
               title="AI interview confirms the signal"
-              body="Anakin asks targeted questions about your subjective experience — sticking points, bar drift, fatigue pattern. Your answers corroborate or redirect the engine's hypothesis, producing a confident diagnosis."
+              body="Anakin asks targeted questions about your subjective experience, sticking points, bar drift, fatigue pattern. Your answers corroborate or redirect the engine's hypothesis, producing a confident diagnosis."
               delay={0.2}
             />
           </div>
@@ -683,7 +685,7 @@ function DiagnosticSection() {
 // ─── Strength Profile Section ─────────────────────────────────────────────────
 
 const SVG_CX = 110, SVG_CY = 110, SVG_R = 85;
-const PENTA_ANGLES = [-90, -18, 54, 126, 198]; // pentagon pointing up
+const PENTA_ANGLES = [-90, -18,54,126,198]; // pentagon pointing up
 const RADAR_LABELS = ["Quad", "Shoulder", "Posterior", "Triceps", "Back Tension"];
 
 function radarPolyPoints(vals: number[]): string {
@@ -701,23 +703,23 @@ const PROFILE_STAGES = [
     label: "Session 1",
     subtitle: "Baseline from first snapshot",
     score: 58,
-    vals: [62, 41, 70, 35, 55],
+    vals: [62,41,70,35,55],
     e1rm: "~102 kg",
     insights: [
       { label: "Triceps", val: 35, note: "Primary limiter identified", color: "#3b82f6" },
       { label: "Shoulder", val: 41, note: "Secondary weakness flagged", color: "#8b5cf6" },
-      { label: "Posterior Chain", val: 70, note: "Above average — a strength", color: "#10b981" },
+      { label: "Posterior Chain", val: 70, note: "Above average, a strength", color: "#10b981" },
     ],
   },
   {
     label: "Week 4",
     subtitle: "3 targeted sessions completed",
     score: 67,
-    vals: [69, 55, 76, 53, 65],
+    vals: [69,55,76,53,65],
     e1rm: "~109 kg",
     insights: [
-      { label: "Triceps", val: 53, note: "+18 pts — close-grip work responding", color: "#3b82f6" },
-      { label: "Shoulder", val: 55, note: "+14 pts — overhead volume helping", color: "#8b5cf6" },
+      { label: "Triceps", val: 53, note: "+18 pts, close-grip work responding", color: "#3b82f6" },
+      { label: "Shoulder", val: 55, note: "+14 pts, overhead volume helping", color: "#8b5cf6" },
       { label: "Posterior Chain", val: 76, note: "Continuing to build", color: "#10b981" },
     ],
   },
@@ -725,11 +727,11 @@ const PROFILE_STAGES = [
     label: "Week 12",
     subtitle: "Profile fully resolved",
     score: 81,
-    vals: [82, 73, 88, 77, 83],
+    vals: [82,73,88,77,83],
     e1rm: "~121 kg",
     insights: [
-      { label: "Triceps", val: 77, note: "+42 pts — limiter fully resolved", color: "#3b82f6" },
-      { label: "Shoulder", val: 73, note: "+32 pts — now a genuine strength", color: "#8b5cf6" },
+      { label: "Triceps", val: 77, note: "+42 pts, limiter fully resolved", color: "#3b82f6" },
+      { label: "Shoulder", val: 73, note: "+32 pts, now a genuine strength", color: "#8b5cf6" },
       { label: "Posterior Chain", val: 88, note: "Elite range", color: "#10b981" },
     ],
   },
@@ -738,7 +740,7 @@ const PROFILE_STAGES = [
 function StrengthProfileSection() {
   const [stage, setStage] = useState(0);
   const s = PROFILE_STAGES[stage];
-  const rings = [25, 50, 75, 100];
+  const rings = [25,50,75,100];
 
   return (
     <section className="py-16 sm:py-24 border-t">
@@ -752,7 +754,7 @@ function StrengthProfileSection() {
             Your profile sharpens with every session
           </h2>
           <p className="text-muted-foreground mt-3 max-w-xl text-[15px]">
-            Every workout you log refines Axiom's model of your strength. Muscle-group indices evolve, limiters get resolved, and your efficiency score tracks real progress — not effort.
+            Every workout you log refines Axiom's model of your strength. Muscle-group indices evolve, limiters get resolved, and your efficiency score tracks real progress, not effort.
           </p>
         </FadeUp>
 
@@ -1008,13 +1010,13 @@ function ProgramFlowSection() {
         <FadeUp className="mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
             <Calendar className="h-3.5 w-3.5" />
-            Pro — AI Coach intake
+            Pro, AI Coach intake
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             The most thorough fitness intake you've ever done
           </h2>
           <p className="text-muted-foreground mt-3 max-w-xl text-[15px]">
-            Pro users complete a 30-question intake across 7 sections — goals, medical history, training background, nutrition, lifestyle, logistics, and body composition. Anakin uses every answer to build a fully periodized program and a matched nutrition plan from scratch.
+            Pro users complete a 30-question intake across 7 sections, goals, medical history, training background, nutrition, lifestyle, logistics, and body composition. Anakin uses every answer to build a fully periodized program and a matched nutrition plan from scratch.
           </p>
         </FadeUp>
 
@@ -1154,7 +1156,7 @@ const FEATURE_GRID = [
   {
     icon: BarChart3,
     title: "Strength Profile & Analytics",
-    body: "Radar chart, efficiency score trend, exercise progression per lift, weekly volume, top limiters by frequency — all updating in real time.",
+    body: "Radar chart, efficiency score trend, exercise progression per lift, weekly volume, top limiters by frequency, all updating in real time.",
   },
   {
     icon: Camera,
@@ -1174,12 +1176,12 @@ const FEATURE_GRID = [
   {
     icon: Users,
     title: "Friends & 1RM Leaderboard",
-    body: "Add friends, compare Epley-estimated 1RMs per lift, and see where you rank. Strength earned — not self-reported.",
+    body: "Add friends, compare Epley-estimated 1RMs per lift, and see where you rank. Strength earned, not self-reported.",
   },
   {
     icon: MessageCircle,
     title: "Social & Direct Messaging",
-    body: "Share your diagnostic results, post to the activity feed, and message friends directly — all within the app.",
+    body: "Share your diagnostic results, post to the activity feed, and message friends directly, all within the app.",
   },
   {
     icon: Zap,
@@ -1189,7 +1191,7 @@ const FEATURE_GRID = [
   {
     icon: TrendingUp,
     title: "Body Weight Projection",
-    body: "Log your weight daily and Anakin projects your trajectory to your goal date based on your caloric trend — not a generic formula.",
+    body: "Log your weight daily and Anakin projects your trajectory to your goal date based on your caloric trend, not a generic formula.",
   },
 ];
 
@@ -1206,7 +1208,7 @@ function FeatureGrid() {
             The full coaching stack
           </h2>
           <p className="text-muted-foreground mt-3 max-w-xl text-[15px]">
-            No separate nutrition app, no separate workout tracker, no separate messaging platform. Everything Anakin needs to coach you — in one place.
+            No separate nutrition app, no separate workout tracker, no separate messaging platform. Everything Anakin needs to coach you, in one place.
           </p>
         </FadeUp>
 
@@ -1336,7 +1338,7 @@ function ComparisonSection() {
           <div className="min-w-[680px] px-4 sm:px-0">
           <div className="rounded-2xl border overflow-hidden">
             {/* Header */}
-            <div className="grid bg-muted/50 border-b" style={{ gridTemplateColumns: "1fr repeat(5, 100px)" }}>
+            <div className="grid bg-muted/50 border-b" style={{ gridTemplateColumns: "1fr repeat(5,100px)" }}>
               <div className="px-5 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feature</div>
               {COMPETITORS.map((c, i) => (
                 <div
@@ -1355,7 +1357,7 @@ function ComparisonSection() {
               <motion.div
                 key={row.feature}
                 className="grid border-b last:border-b-0 hover:bg-muted/20 transition-colors"
-                style={{ gridTemplateColumns: "1fr repeat(5, 100px)" }}
+                style={{ gridTemplateColumns: "1fr repeat(5,100px)" }}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-20px" }}
@@ -1394,7 +1396,7 @@ function CTASection() {
             Train with a purpose.<br />Know exactly why.
           </h2>
           <p className="text-background/65 max-w-xl mx-auto text-base sm:text-lg mb-8 sm:mb-10">
-            Run your first diagnostic free — no credit card, no commitment. See your weakness identified in minutes.
+            Run your first diagnostic free, no credit card, no commitment. See your weakness identified in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" variant="secondary" className="rounded-xl text-base font-semibold px-8" asChild onClick={() => WebAnalytics.ctaClicked(user ? 'Start a Diagnostic' : 'Get Started Free', 'cta_section')}>
@@ -1413,73 +1415,24 @@ function CTASection() {
   );
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+// ─── Hero stats row ───────────────────────────────────────────────────────────
+// The 5-pill stats row that lives below the hero text/phone columns. Extracted
+// from the v1 hero so HeroV2 can compose it via the `statsRow` prop without
+// re-defining the pills.
 
-function HeroSection() {
-  const { user } = useAuth();
+function HeroStatsRow() {
   return (
-    <section className="pt-14 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
-      <div className="container-tight">
-        <div className="max-w-2xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-6">
-              <Target className="h-3.5 w-3.5" />
-              Every feature, explained
-            </div>
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.05 }}
-            className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-tight"
-          >
-            Stop guessing.<br />Start training with precision.
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-muted-foreground text-lg mb-8 sm:mb-10 leading-relaxed"
-          >
-            Axiom is the only fitness platform that identifies exactly why your lifts are stalling — then builds your program, nutrition, and coaching around that answer. Backed by NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.15 }}
-            className="flex flex-col sm:flex-row gap-3 justify-center"
-          >
-            <Button size="lg" className="rounded-xl text-base font-semibold px-8" asChild onClick={() => WebAnalytics.ctaClicked(user ? 'Start a Diagnostic' : 'Try It Free', 'hero')}>
-              <Link href={user ? "/snapshot" : "/register"}>
-                {user ? "Start a Diagnostic" : "Try It Free"}
-                <ChevronRight className="ml-1 h-4.5 w-4.5" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="rounded-xl text-base px-8" asChild onClick={() => WebAnalytics.pricingViewed()}>
-              <Link href="/pricing">See Pricing</Link>
-            </Button>
-          </motion.div>
-        </div>
-
-        {/* Stats bar — 2-col grid on mobile, 5-col on sm+ */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-12 sm:mt-16 rounded-2xl border bg-card overflow-hidden grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x"
-        >
-          <StatPill value="9" label="Supported lifts including Olympic" />
-          <StatPill value="5" label="Muscle-group indices per session" />
-          <StatPill value="7,000+" label="Pages of research — NASM, ISSA, ACE + more" />
-          <StatPill value="4-layer" label="AI nutrition pipeline" />
-          <StatPill value="24/7" label="Coaching with full memory" className="col-span-2 sm:col-span-1 border-t sm:border-t-0" />
-        </motion.div>
-      </div>
-    </section>
+    <div className="rounded-2xl border bg-card overflow-hidden grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x">
+      <StatPill value="9" label="Supported lifts including Olympic" />
+      <StatPill value="5" label="Muscle-group indices per session" />
+      <StatPill value="7,000+" label="Pages of research from NASM, ISSA, ACE" />
+      <StatPill value="4-layer" label="AI nutrition pipeline" />
+      <StatPill
+        value="24/7"
+        label="Coaching with full memory"
+        className="col-span-2 sm:col-span-1 border-t sm:border-t-0"
+      />
+    </div>
   );
 }
 
@@ -1508,7 +1461,7 @@ const LANDING_JSON_LD = [
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "Free lift diagnostic — no credit card required"
+      "description": "Free lift diagnostic, no credit card required"
     },
     "featureList": ["Lift diagnostic", "AI coaching", "Nutrition planning", "Strength tracking", "Workout logging"]
   },
@@ -1537,7 +1490,7 @@ const LANDING_JSON_LD = [
         "name": "Is Axiom free to use?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. The full lift diagnostic — including weakness identification and a targeted accessory program — is free with no credit card required. A Pro tier unlocks unlimited diagnostics, AI coaching chat, and advanced analytics."
+          "text": "Yes. The full lift diagnostic, including weakness identification and a targeted accessory program, is free with no credit card required. A Pro tier unlocks unlimited diagnostics, AI coaching chat, and advanced analytics."
         }
       },
       {
@@ -1591,11 +1544,12 @@ export default function FeaturesPage() {
     <div className="min-h-screen bg-background">
       <SEO
         canonical="/"
-        description="Axiom diagnoses exactly why your bench press, squat, or deadlift is stuck — using your working weights and training data. Free lift diagnostic. No credit card required."
+        description="Axiom diagnoses exactly why your bench press, squat, or deadlift is stuck, using your working weights and training data. Free lift diagnostic. No credit card required."
         jsonLd={LANDING_JSON_LD}
       />
       <Navbar />
-      <HeroSection />
+      <HeroV2 statsRow={<HeroStatsRow />} />
+      <SocialProofSection />
       <AnakinSection />
       <DiagnosticSection />
       <ProgramFlowSection />

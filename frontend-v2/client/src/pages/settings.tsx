@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 import { Link } from 'wouter';
 
+import { startProCheckout } from '@/lib/checkout';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
-const STRIPE_PRO_URL = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
@@ -28,7 +29,9 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
-      window.open(data.url, '_blank');
+      // Same-tab navigation: popup blockers and mobile/in-app browsers
+      // routinely suppress _blank opens, leaving the user stuck.
+      window.location.href = data.url;
     } catch (err: any) {
       toast.error(err.message || 'Could not open billing portal');
     } finally {
@@ -36,9 +39,9 @@ export default function SettingsPage() {
     }
   }
 
-  function handleUpgrade() {
+  async function handleUpgrade() {
     if (!user) return;
-    window.open(`${STRIPE_PRO_URL}?client_reference_id=${user.id}`, '_blank');
+    await startProCheckout();
   }
 
   const joinDate = (user as any)?.createdAt

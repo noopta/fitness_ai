@@ -9,9 +9,9 @@ import { Navbar } from "@/components/Navbar";
 import { BrandLogo } from "@/components/BrandLogo";
 import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 import { SEO } from "@/components/SEO";
+import { startProCheckout } from "@/lib/checkout";
 
 const FREE_LIMIT = 2;
-const STRIPE_PRO_URL = "https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00";
 
 const tiers = [
   {
@@ -75,14 +75,17 @@ export default function Pricing() {
     return trackPageTime('pricing');
   }, []);
 
-  function handleProClick() {
+  async function handleProClick() {
     WebAnalytics.upgradeTapped('pricing_page');
     if (!user) {
       navigate('/login?redirect=/pricing');
       return;
     }
-    const url = `${STRIPE_PRO_URL}?client_reference_id=${user.id}`;
-    window.open(url, "_blank");
+    // Goes through /payments/create-checkout (same-tab redirect) — see
+    // lib/checkout.ts for the full reasoning. The old direct payment link
+    // opened a new tab that mobile/in-app browsers silently blocked, AND
+    // created duplicate Stripe customers on every use.
+    await startProCheckout();
   }
 
   function handleFreeClick() {
