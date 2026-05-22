@@ -43,13 +43,13 @@ const REVIEWS: ReviewData[] = [
     short: "My triceps index went from 38 to 71. More motivating than streaks.",
   },
   {
-    name: "Dev R.",
-    meta: "Novice to Intermediate",
-    lift: "Deadlift",
-    before: "275 lb · form doubt",
-    after: "365 lb",
-    gain: "+90 lb / 14 wks",
-    short: "Asked Anakin about a tweaky shoulder at 2 AM. It rewrote Friday.",
+    name: "Cara M.",
+    meta: "Beginner · lost 22 lb",
+    lift: "Body Composition",
+    before: "163 lb · no plan",
+    after: "141 lb",
+    gain: "−22 lb / 12 wks",
+    short: "Finally understood why my lifts were stalling. The nutrition piece changed everything.",
   },
 ];
 
