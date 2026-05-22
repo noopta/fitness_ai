@@ -154,7 +154,7 @@ export function HeroV2({ statsRow }: Props) {
                   textWrap: "pretty" as any,
                 }}
               >
-                Axiom is the only fitness platform that identifies exactly why your lifts are stalling, then builds your program, nutrition, and coaching around that answer.
+                Axiom tracks your training and nutrition as a system — building deep profiles our AI uses to proactively spot weakpoints, adapt your program, and push you toward your genetic potential.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start mt-6">
