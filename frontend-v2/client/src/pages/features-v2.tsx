@@ -1484,7 +1484,7 @@ function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-muted-foreground text-lg mb-8 sm:mb-10 leading-relaxed"
           >
-            Axiom tracks your training and nutrition as a system — building deep profiles our AI uses to proactively spot weakpoints, adapt your program, and push you toward your genetic potential. Backed by NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science.
+            Axiom tracks your training and nutrition as a system, building deep profiles our AI uses to proactively spot weakpoints, adapt your program, and push you toward your genetic potential. Backed by NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
