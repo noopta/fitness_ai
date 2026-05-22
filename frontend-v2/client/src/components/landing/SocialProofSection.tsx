@@ -49,7 +49,7 @@ const REVIEWS: ReviewData[] = [
     before: "163 lb · no plan",
     after: "141 lb",
     gain: "−22 lb / 12 wks",
-    short: "Finally understood why my lifts were stalling. The nutrition piece changed everything.",
+    short: "Weight loss had stalled for months. The nutrition profile finally showed me why.",
   },
 ];
 
