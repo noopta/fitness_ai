@@ -1,0 +1,101 @@
+// Floating action dock — 4 buttons (Describe / Snap / Voice / Suggest) above
+// the bottom tab bar. Spec: handoff §06.
+//
+// v1 scope: dock is always visible (no hide-on-scroll yet) and only the
+// Describe button is wired to a real flow (the existing MealLogModal).
+// Snap / Voice / Suggest fire onComingSoon so the parent can show a toast.
+// Keyboard avoidance is handled at the screen level — when an inspector
+// input is focused the dock hides via a hidden prop.
+
+import React from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { fontWeight } from '../../../constants/theme';
+
+export type DockAction = 'describe' | 'snap' | 'voice' | 'suggest';
+
+interface Props {
+  onAction: (action: DockAction) => void;
+  /** When true, the dock is animated out (e.g. keyboard is open). */
+  hidden?: boolean;
+}
+
+function DockButton({
+  label, icon, primary, onPress,
+}: {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  primary?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.btn,
+        primary ? styles.btnPrimary : styles.btnGhost,
+        primary && { flex: 1.4 },
+        pressed && primary && { transform: [{ scale: 0.98 }] },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <Ionicons name={icon} size={14} color={primary ? '#09090b' : '#ffffff'} />
+      <Text style={[styles.btnLabel, { color: primary ? '#09090b' : '#ffffff' }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+export function ActionDock({ onAction, hidden }: Props) {
+  if (hidden) return null;
+  return (
+    <View style={styles.dock} pointerEvents="box-none">
+      <View style={styles.bar}>
+        <DockButton label="Describe" icon="sparkles-outline" primary onPress={() => onAction('describe')} />
+        <DockButton label="Snap"     icon="camera-outline"            onPress={() => onAction('snap')} />
+        <DockButton label="Voice"    icon="mic-outline"               onPress={() => onAction('voice')} />
+        <DockButton label="Suggest"  icon="restaurant-outline"        onPress={() => onAction('suggest')} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  dock: {
+    position: 'absolute',
+    left: 14, right: 14, bottom: 14,
+  },
+  bar: {
+    backgroundColor: '#09090b',
+    borderRadius: 16,
+    padding: 6,
+    flexDirection: 'row',
+    gap: 4,
+    // Per-platform shadows in the wider app are managed in theme; inline here
+    // because no other dark surface gets this elevation.
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.4,
+    shadowRadius: 22,
+    elevation: 12,
+  },
+  btn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 6,
+  },
+  btnPrimary: { backgroundColor: '#ffffff' },
+  btnGhost:   { backgroundColor: 'transparent' },
+  btnLabel: {
+    fontSize: 11,
+    fontWeight: fontWeight.bold,
+    letterSpacing: -0.1,
+  },
+});

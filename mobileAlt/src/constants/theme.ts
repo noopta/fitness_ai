@@ -24,6 +24,20 @@ export const colors = {
   destructiveForeground: '#FFFFFF',
   success: '#22c55e',
   warning: '#f59e0b',
+
+  /**
+   * Macro accents (Nutrition v17b).
+   *
+   * Doctrine: only used for the macro-ring stroke and the per-item gram
+   * numerals inside the dark inspector. Never on backgrounds, cards,
+   * borders, or any chrome — the page itself stays monochrome.
+   */
+  macro: {
+    protein: '#3b82f6',
+    carbs:   '#f59e0b',
+    fat:     '#ec4899',
+    fiber:   '#22c55e',
+  },
 };
 
 export const spacing = {
