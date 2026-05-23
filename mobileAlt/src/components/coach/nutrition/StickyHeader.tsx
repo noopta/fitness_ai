@@ -62,7 +62,19 @@ export function StickyHeader({
           on iPhone 12+). We render rings inline on the right; on narrower
           screens they wrap below via flexWrap. */}
       <View style={styles.topRow}>
-        <View style={styles.heroBlock}>
+        <View
+          style={styles.heroBlock}
+          accessibilityRole="summary"
+          accessibilityLabel={
+            targetWithBurn != null
+              ? `${Math.round(kcal.used)} of ${Math.round(targetWithBurn)} calories logged today, ${
+                  remaining != null && remaining >= 0
+                    ? `${Math.round(remaining)} calories remaining`
+                    : `${Math.round(Math.abs(remaining ?? 0))} calories over target`
+                }${kcal.workoutBurn > 0 ? `, including ${Math.round(kcal.workoutBurn)} from your workout` : ''}.`
+              : `${Math.round(kcal.used)} calories logged today, no target set.`
+          }
+        >
           <Text style={styles.eyebrow}>{dateLabel}</Text>
           <View style={styles.numRow}>
             <Text style={styles.numeral} allowFontScaling={false}>

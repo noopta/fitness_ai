@@ -95,7 +95,17 @@ export function WeightInspector({ weight, unit = 'lb', onLog, onPressBody }: Pro
       </View>
 
       {hasHistory && weight.series.length > 0 && (
-        <View style={styles.sparklineRow}>
+        <View
+          style={styles.sparklineRow}
+          accessibilityRole="image"
+          accessibilityLabel={
+            weight.current != null
+              ? `Body weight trend over the last ${weight.series.length} days, currently ${weight.current.toFixed(1)} ${unit}${
+                  weight.weeklyDelta ? `, ${weight.weeklyDelta} per week` : ''
+                }.`
+              : 'Body weight trend chart.'
+          }
+        >
           <WeightSparkline
             data={weight.series}
             projection={weight.projection}

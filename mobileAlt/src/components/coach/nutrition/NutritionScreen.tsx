@@ -1,29 +1,25 @@
 // NutritionScreen — root layout of the rebuilt Nutrition tab (v17b).
-// Composes StickyHeader → Inspector → DayTimeline → ActionDock.
+// Composes StickyHeader → Inspector → DayTimeline → ActionDock + the
+// purpose-built bottom sheets (Describe / Snap / Voice / Suggest /
+// MealEdit) and the WeightDetailScreen push.
 //
-// Data sources stay the same as the old four-card stack — this is a chassis
-// swap, not a feature change. We pull from:
-//   • coachData.savedProgram.nutritionPlan       — kcal + macro targets
-//   • nutritionApi.getMeals(today)               — logged meals (timeline)
-//   • workoutsApi.getWorkoutByDate(today)        — workout calorie burn
-//   • coachApi.getBodyWeight()                   — 30-day weight series
-//   • useAuth().user                             — subtract-workout-burn pref
-//
-// Sheet integrations the spec calls out (Describe/Snap/Voice/Suggest) are
-// staged. v1 wires Describe to the existing MealLogModal (the same flow the
-// old "Log by description" card used). Snap routes through the existing
-// MealLogModal scan path; Voice / Suggest surface a "coming soon" toast.
+// Data sources are unchanged from the pre-v17b stack — chassis swap, not
+// a feature change:
+//   • coachData.savedProgram.nutritionPlan  — kcal + macro targets
+//   • nutritionApi.getMeals(today)          — logged meals (timeline)
+//   • workoutsApi.getWorkoutByDate(today)   — workout calorie burn
+//   • coachApi.getBodyWeight()              — 30-day weight series
+//   • useAuth().user                        — subtract-workout-burn pref
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, StyleSheet, Alert, Keyboard,
+  View, StyleSheet, Alert, Keyboard, Modal,
   type NativeSyntheticEvent, type NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Analytics } from '../../../lib/analytics';
-import { MealLogModal } from '../MealLogModal';
 import { colors } from '../../../constants/theme';
 import { StickyHeader } from './StickyHeader';
 import { Inspector } from './Inspector';
@@ -32,6 +28,12 @@ import { MacroInspector } from './MacroInspector';
 import { DayTimeline, type LoggedMeal, type GhostSlot } from './DayTimeline';
 import { ActionDock, type DockAction } from './ActionDock';
 import type { MacroKey, MacroState } from './MacroRing';
+import { DescribeSheet } from './sheets/DescribeSheet';
+import { SnapSheet } from './sheets/SnapSheet';
+import { VoiceSheet } from './sheets/VoiceSheet';
+import { SuggestSheet } from './sheets/SuggestSheet';
+import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
+import { WeightDetailScreen } from './WeightDetailScreen';
 
 interface Props {
   coachData: any;
@@ -148,8 +150,14 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     }
   }, []);
 
-  // ── Sheets ───────────────────────────────────────────────────────────────
-  const [logModalVisible, setLogModalVisible] = useState(false);
+  // ── Sheet visibility ─────────────────────────────────────────────────────
+  // Spec §10 calls for one-sheet-at-a-time. We collapse all five into a
+  // single union state so opening a new sheet automatically dismisses the
+  // others.
+  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'suggest' | 'edit';
+  const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
+  const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
+  const [weightDetailOpen, setWeightDetailOpen] = useState(false);
 
   // ── Targets from the saved program ───────────────────────────────────────
   const nutritionPlan = useMemo(() => {
@@ -308,26 +316,13 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   }, []);
 
   const handleDockAction = useCallback((action: DockAction) => {
-    if (action === 'describe' || action === 'snap') {
-      // Snap currently routes through the same MealLogModal flow; v1 keeps
-      // them collapsed until the dedicated SnapSheet ships.
-      setLogModalVisible(true);
-      return;
-    }
-    if (action === 'voice') {
-      Alert.alert('Voice logging', "Coming soon — Anakin will take voice notes here.");
-      return;
-    }
-    if (action === 'suggest') {
-      Alert.alert(
-        'Anakin suggestions',
-        "Coming soon — Anakin will suggest meals based on your remaining macros for the day.",
-      );
-    }
+    // One-sheet-at-a-time discipline — this state mutation is the discipline.
+    setOpenSheet(action);
   }, []);
 
   const handleMealLogged = useCallback(async () => {
-    setLogModalVisible(false);
+    setOpenSheet(null);
+    setEditingMeal(null);
     await loadAll();
   }, [loadAll]);
 
@@ -363,18 +358,48 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   }, [todayMeals]);
 
   /**
-   * Long-press a meal — the spec calls for an action sheet with [Edit
-   * portion, Duplicate to tomorrow, Move to slot, Delete]. v1 lands the
-   * two destructive paths (Delete + Edit which opens the existing modal)
-   * and defers Duplicate/Move to the MealEditSheet PR.
+   * Long-press a meal — action sheet with Edit (opens MealEditSheet for
+   * portion / slot / macro tweaks) + Delete (confirm + remove).
+   * Duplicate / Move-to-slot live inside MealEditSheet now.
    */
-  const handleLongPressMeal = useCallback((m: { id: string; name: string }) => {
+  const handleLongPressMeal = useCallback((m: LoggedMeal) => {
     Alert.alert(m.name, undefined, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Edit',   onPress: () => setLogModalVisible(true) },
+      {
+        text: 'Edit',
+        onPress: () => {
+          setEditingMeal({
+            id: m.id,
+            name: m.name,
+            calories: m.calories,
+            proteinG: m.proteinG,
+            carbsG: m.carbsG,
+            fatG: m.fatG,
+            slot: m.slot,
+          });
+          setOpenSheet('edit');
+        },
+      },
       { text: 'Delete', style: 'destructive', onPress: () => handleDeleteMeal(m) },
     ]);
   }, [handleDeleteMeal]);
+
+  // Tap a logged meal → MealEditSheet (replaces the v1 stop-gap that just
+  // opened the generic log modal). Ghost slots still route through Suggest.
+  const handleMealPress = useCallback((m: LoggedMeal) => {
+    setEditingMeal({
+      id: m.id,
+      name: m.name,
+      calories: m.calories,
+      proteinG: m.proteinG,
+      carbsG: m.carbsG,
+      fatG: m.fatG,
+      slot: m.slot,
+    });
+    setOpenSheet('edit');
+  }, []);
+
+  const handleGhostPress = useCallback(() => setOpenSheet('suggest'), []);
 
   const handleLogWeight = useCallback(async (lb: number) => {
     try {
@@ -403,7 +428,13 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
 
       <Inspector
         mode={selectedMacro ? 'macro' : 'weight'}
-        weight={<WeightInspector weight={weight} onLog={handleLogWeight} />}
+        weight={
+          <WeightInspector
+            weight={weight}
+            onLog={handleLogWeight}
+            onPressBody={() => setWeightDetailOpen(true)}
+          />
+        }
         macro={
           selectedMacro && (() => {
             const m = macroStates.find((x) => x.key === selectedMacro)!;
@@ -424,8 +455,8 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         <DayTimeline
           meals={meals}
           ghosts={ghosts}
-          onMealPress={() => setLogModalVisible(true)}
-          onGhostPress={() => setLogModalVisible(true)}
+          onMealPress={handleMealPress}
+          onGhostPress={handleGhostPress}
           onDeleteMeal={handleDeleteMeal}
           onLongPressMeal={handleLongPressMeal}
           onScroll={handleTimelineScroll}
@@ -434,12 +465,52 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
 
       <ActionDock onAction={handleDockAction} hidden={dockHidden || keyboardUp} />
 
-      <MealLogModal
-        visible={logModalVisible}
-        onClose={() => setLogModalVisible(false)}
-        onSaved={handleMealLogged}
-        date={todayStr()}
+      {/* Sheets — spec §10 sheet-stack discipline lives in `openSheet`,
+          so setting a new value automatically dismisses the others. */}
+      <DescribeSheet
+        visible={openSheet === 'describe'}
+        onClose={() => setOpenSheet(null)}
+        onLogged={handleMealLogged}
       />
+      <SnapSheet
+        visible={openSheet === 'snap'}
+        onClose={() => setOpenSheet(null)}
+        onLogged={handleMealLogged}
+      />
+      <VoiceSheet
+        visible={openSheet === 'voice'}
+        onClose={() => setOpenSheet(null)}
+        onUseDescribe={() => setOpenSheet('describe')}
+      />
+      <SuggestSheet
+        visible={openSheet === 'suggest'}
+        onClose={() => setOpenSheet(null)}
+        onLogged={handleMealLogged}
+        remaining={{
+          kcal:    Math.max(0, remainingKcal),
+          protein: Math.max(0, (targetProtein ?? 0) - used.p),
+          carbs:   Math.max(0, (targetCarbs   ?? 0) - used.c),
+          fat:     Math.max(0, (targetFat     ?? 0) - used.f),
+        }}
+      />
+      <MealEditSheet
+        visible={openSheet === 'edit'}
+        meal={editingMeal}
+        onClose={() => { setOpenSheet(null); setEditingMeal(null); }}
+        onChanged={handleMealLogged}
+      />
+
+      {/* WeightDetailScreen push — full-screen modal so it sits over the
+          tab bar. Keeps the inspector tap behaviour the spec calls for
+          without needing a real navigator entry. */}
+      <Modal
+        visible={weightDetailOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setWeightDetailOpen(false)}
+      >
+        <WeightDetailScreen onClose={() => setWeightDetailOpen(false)} />
+      </Modal>
     </SafeAreaView>
   );
 }
