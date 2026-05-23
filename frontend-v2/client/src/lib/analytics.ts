@@ -104,4 +104,22 @@ export const WebAnalytics = {
   // ── Upgrade ───────────────────────────────────────────────────────────────
   upgradeTapped: (source: string) =>
     posthog.capture('upgrade_tapped', { source }),
+
+  // ── Research articles (web social feed) ───────────────────────────────────
+  // Event names mirror the mobile Analytics module so PostHog dashboards can
+  // group cross-platform article behaviour.
+  articleOpened: (props: { articleId: string; source?: 'feed' | 'saved' | 'shared' }) =>
+    posthog.capture('article_opened', props),
+
+  articleSaved: (articleId: string) =>
+    posthog.capture('article_saved', { articleId }),
+
+  articleUnsaved: (articleId: string) =>
+    posthog.capture('article_unsaved', { articleId }),
+
+  articleShared: (articleId: string) =>
+    posthog.capture('article_shared', { articleId }),
+
+  feedRefreshed: (source: 'pull_to_refresh' | 'refresh_button') =>
+    posthog.capture('feed_refreshed', { source }),
 };

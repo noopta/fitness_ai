@@ -8,11 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Share2, Copy, Check, Loader2, Search, ChevronDown,
   Dumbbell, Apple, Trophy, Rss, Image, Video, Type,
-  ExternalLink, Heart, MessageCircle, Send,
+  ExternalLink, Heart, MessageCircle, Send, Bookmark, BookOpen, RefreshCw, FileText, Newspaper, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { WebAnalytics } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -48,6 +49,50 @@ interface SharedFeedItem {
   commentCount: number;
   comments: PostComment[];
 }
+
+/**
+ * Research / article feed item — same shape mobile renders. Returned by
+ * /social/feed alongside posts, and exclusively by /social/feed/articles.
+ */
+interface ResearchItem {
+  id: string;
+  type: 'research' | 'article';
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  tags: string[];
+  publishedAt: string | null;
+  fetchedAt: string;
+}
+
+/** Either a friend post or a research article. The backend `/social/feed`
+ *  interleaves them as `{ kind, data }`; the web mirrors that envelope. */
+type FeedEntry =
+  | { kind: 'post';     data: SharedFeedItem }
+  | { kind: 'research'; data: ResearchItem };
+
+// ─── Research-tag styling (mirrors mobile FeedItemCard) ─────────────────────
+const TAG_LABEL: Record<string, string> = {
+  strength: 'Strength',
+  hypertrophy: 'Muscle Building',
+  fat_loss: 'Fat Loss',
+  nutrition: 'Nutrition',
+  recovery: 'Recovery',
+  cardio: 'Cardio',
+  lifestyle: 'Lifestyle',
+  general: 'Fitness',
+};
+const TAG_COLOR: Record<string, string> = {
+  strength: '#6366f1',
+  hypertrophy: '#8b5cf6',
+  fat_loss: '#f59e0b',
+  nutrition: '#f97316',
+  recovery: '#22c55e',
+  cardio: '#38bdf8',
+  lifestyle: '#ec4899',
+  general: '#64748b',
+};
 
 interface UserResult {
   id: string;
@@ -366,12 +411,195 @@ function FeedCard({
   );
 }
 
+// ─── ResearchCard ─────────────────────────────────────────────────────────────
+// Renders a single research / article item from the interleaved feed.
+// Click anywhere on the card body to open the source in a new tab; the
+// bookmark and share buttons stop propagation so they don't double-fire.
+function ResearchCard({
+  item,
+  isSaved,
+  onToggleSave,
+  friends,
+  onShareToFriend,
+}: {
+  item: ResearchItem;
+  isSaved: boolean;
+  onToggleSave: () => void;
+  friends: UserResult[];
+  onShareToFriend: (friendId: string, message?: string) => Promise<void> | void;
+}) {
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareSearch, setShareSearch] = useState('');
+  const [shareNote, setShareNote] = useState('');
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
+
+  const primaryTag = item.tags?.[0] ?? 'general';
+  const tagLabel = TAG_LABEL[primaryTag] ?? 'Fitness';
+  const tagColor = TAG_COLOR[primaryTag] ?? TAG_COLOR.general;
+  const isResearch = item.type === 'research';
+
+  const filteredFriends = (friends ?? []).filter(f => {
+    if (!shareSearch.trim()) return true;
+    const q = shareSearch.toLowerCase();
+    return (f.username ?? '').toLowerCase().includes(q)
+      || (f.name ?? '').toLowerCase().includes(q);
+  });
+
+  const openSource = () => {
+    WebAnalytics.articleOpened({ articleId: item.id, source: 'feed' });
+    window.open(item.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSendTo = async (friendId: string) => {
+    setSendingTo(friendId);
+    try {
+      await onShareToFriend(friendId, shareNote.trim() || undefined);
+      setShareOpen(false);
+      setShareNote('');
+      setShareSearch('');
+    } finally {
+      setSendingTo(null);
+    }
+  };
+
+  return (
+    <Card
+      className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+      onClick={openSource}
+    >
+      {/* Top row: type badge + source + actions */}
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase"
+            style={{ backgroundColor: tagColor + '18', color: tagColor }}
+          >
+            {isResearch ? <FileText className="h-3 w-3" /> : <Newspaper className="h-3 w-3" />}
+            {isResearch ? 'Research' : 'Article'}
+          </span>
+          <span className="text-xs text-muted-foreground truncate">{item.source}</span>
+          <span className="text-xs text-muted-foreground"> · {tagLabel}</span>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            aria-label={isSaved ? 'Unsave article' : 'Save article'}
+            onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
+          >
+            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-foreground' : ''}`} />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            aria-label="Share to a friend"
+            onClick={(e) => { e.stopPropagation(); setShareOpen(true); }}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            aria-label="Open source"
+            onClick={(e) => { e.stopPropagation(); openSource(); }}
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Title + summary */}
+      <h3 className="font-semibold leading-tight text-base">{item.title}</h3>
+      {item.summary && (
+        <p className="mt-1.5 text-sm text-muted-foreground line-clamp-3 leading-relaxed">{item.summary}</p>
+      )}
+      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+        <BookOpen className="h-3 w-3" />
+        <span>{isResearch ? 'Peer-reviewed' : 'Editorial'}</span>
+        {item.publishedAt && <span> · {relativeTime(item.publishedAt)}</span>}
+      </div>
+
+      {/* Share modal */}
+      {shareOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={(e) => { e.stopPropagation(); setShareOpen(false); }}
+        >
+          <Card
+            className="w-full max-w-md p-4 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">Send to a friend</h4>
+              <Button size="icon" variant="ghost" onClick={() => setShareOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <Input
+              placeholder="Optional message"
+              value={shareNote}
+              onChange={(e) => setShareNote(e.target.value)}
+            />
+            <Input
+              placeholder="Search friends"
+              value={shareSearch}
+              onChange={(e) => setShareSearch(e.target.value)}
+            />
+            <div className="max-h-72 overflow-y-auto space-y-1">
+              {filteredFriends.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {(friends ?? []).length === 0
+                    ? "Add friends first to share articles with them."
+                    : "No friends match that search."}
+                </p>
+              ) : (
+                filteredFriends.map(f => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => handleSendTo(f.id)}
+                    disabled={sendingTo === f.id}
+                    className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted text-left disabled:opacity-50"
+                  >
+                    <Avatar className="h-8 w-8">
+                      {f.avatarBase64
+                        ? <AvatarImage src={toImageSrc(f.avatarBase64)} />
+                        : <AvatarFallback>{initials(f.name, f.username)}</AvatarFallback>}
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {f.username ? '@' + f.username : (f.name ?? 'User')}
+                      </div>
+                      {f.username && f.name && (
+                        <div className="text-xs text-muted-foreground truncate">{f.name}</div>
+                      )}
+                    </div>
+                    {sendingTo === f.id && <Loader2 className="h-4 w-4 animate-spin" />}
+                  </button>
+                ))
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function SocialFeedPage() {
   const { user } = useAuth();
 
-  const [feed, setFeed] = useState<SharedFeedItem[]>([]);
+  const [feed, setFeed] = useState<FeedEntry[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
   const [friends, setFriends] = useState<UserResult[]>([]);
+  // Save state for research articles (mirrors mobile). Cached server-side
+  // via /social/articles/saved.
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  // True while the "Get fresh research" button is fetching.
+  const [refreshingArticles, setRefreshingArticles] = useState(false);
 
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteLoading, setInviteLoading] = useState(false);
@@ -405,9 +633,20 @@ export default function SocialFeedPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    authFetch(`${API_BASE}/social/shared-feed`)
-      .then(r => r.ok ? r.json() : [])
-      .then(data => setFeed(Array.isArray(data) ? data : []))
+    // Switched from /social/shared-feed (posts only) to /social/feed which
+    // returns interleaved posts + research articles as { kind, data }. Web
+    // mobile previously didn't render research at all — same backend, just
+    // hadn't been wired through.
+    authFetch(`${API_BASE}/social/feed?limit=25`)
+      .then(r => r.ok ? r.json() : { items: [] })
+      .then(data => {
+        const items = Array.isArray(data?.items) ? data.items : [];
+        // Defensively coerce: drop anything that doesn't match the envelope.
+        const valid = items.filter(
+          (e: any) => e && (e.kind === 'post' || e.kind === 'research') && e.data,
+        ) as FeedEntry[];
+        setFeed(valid);
+      })
       .catch(() => {})
       .finally(() => setFeedLoading(false));
 
@@ -415,6 +654,104 @@ export default function SocialFeedPage() {
       .then(r => r.ok ? r.json() : [])
       .then(data => setFriends(Array.isArray(data) ? data : (data?.friends ?? [])))
       .catch(() => {});
+
+    // Preload the set of articles the user has already saved so the
+    // bookmark icon renders in the correct state on first paint.
+    authFetch(`${API_BASE}/social/articles/saved`)
+      .then(r => r.ok ? r.json() : { items: [] })
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data?.items ?? []);
+        setSavedIds(new Set(list.map((a: { id: string }) => a.id)));
+      })
+      .catch(() => {});
+  }, []);
+
+  /** Toggle bookmark on a research article — optimistic update + fire event. */
+  const handleToggleSaveArticle = useCallback(async (articleId: string) => {
+    const isSaved = savedIds.has(articleId);
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (isSaved) next.delete(articleId); else next.add(articleId);
+      return next;
+    });
+    try {
+      const res = await authFetch(
+        `${API_BASE}/social/articles/${articleId}/save`,
+        { method: isSaved ? 'DELETE' : 'POST' },
+      );
+      if (!res.ok) throw new Error(`save toggle failed: ${res.status}`);
+      if (isSaved) WebAnalytics.articleUnsaved(articleId);
+      else WebAnalytics.articleSaved(articleId);
+    } catch {
+      // Revert on failure.
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        if (isSaved) next.add(articleId); else next.delete(articleId);
+        return next;
+      });
+      toast.error("Couldn't update saved state");
+    }
+  }, [savedIds]);
+
+  /** Forward an article to a friend via DM. */
+  const handleForwardArticle = useCallback(async (articleId: string, recipientId: string, message?: string) => {
+    try {
+      const res = await authFetch(`${API_BASE}/social/articles/${articleId}/forward`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId, message }),
+      });
+      if (!res.ok) throw new Error(`forward failed: ${res.status}`);
+      WebAnalytics.articleShared(articleId);
+      toast.success('Sent to friend');
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't share that article");
+    }
+  }, []);
+
+  /**
+   * "Get fresh research" — calls /social/feed/articles?fresh=1, which fetches
+   * unseen items for the user's goal tags (and falls back to least-recently
+   * viewed when exhausted). We splice the result into the existing feed,
+   * dropping any previous research items so consecutive taps don't pile up.
+   */
+  const handleRefreshResearch = useCallback(async () => {
+    setRefreshingArticles(true);
+    WebAnalytics.feedRefreshed('refresh_button');
+    try {
+      const res = await authFetch(`${API_BASE}/social/feed/articles?fresh=1`);
+      const data = res.ok ? await res.json() : { items: [] };
+      const fresh: ResearchItem[] = Array.isArray(data?.items) ? data.items : [];
+      if (fresh.length === 0) {
+        toast.info('No fresh research right now — try again later.');
+        return;
+      }
+      setFeed(prev => {
+        // Keep posts in place, drop old research, then weave the new research
+        // in after every 2nd post (matches what /social/feed does server-side).
+        const posts = prev.filter(e => e.kind === 'post');
+        const out: FeedEntry[] = [];
+        let researchIdx = 0;
+        const research: FeedEntry[] = fresh.map(r => ({ kind: 'research', data: r }));
+        if (posts.length === 0) {
+          out.push(...research);
+        } else {
+          for (let i = 0; i < posts.length; i++) {
+            out.push(posts[i]);
+            if ((i + 1) % 2 === 0 && researchIdx < research.length) {
+              out.push(research[researchIdx++]);
+            }
+          }
+          while (researchIdx < research.length) out.push(research[researchIdx++]);
+        }
+        return out;
+      });
+      toast.success(`${fresh.length} fresh article${fresh.length === 1 ? '' : 's'}`);
+    } catch {
+      toast.error("Couldn't refresh research");
+    } finally {
+      setRefreshingArticles(false);
+    }
   }, []);
 
   async function loadInviteLink() {
@@ -520,7 +857,9 @@ export default function SocialFeedPage() {
       }
 
       const newItem: SharedFeedItem = await res.json();
-      setFeed(prev => [newItem, ...prev]);
+      // Wrap in the same envelope the /social/feed endpoint uses so the
+      // render branch on entry.kind stays consistent.
+      setFeed(prev => [{ kind: 'post', data: newItem }, ...prev]);
       resetForm();
       setShareOpen(false);
       toast.success('Posted successfully!');
@@ -751,7 +1090,21 @@ export default function SocialFeedPage() {
 
         {/* Feed */}
         <div>
-          <h2 className="font-semibold text-sm uppercase tracking-widest text-muted-foreground mb-3">Recent Posts</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-sm uppercase tracking-widest text-muted-foreground">Recent Posts</h2>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRefreshResearch}
+              disabled={refreshingArticles}
+              className="gap-1.5"
+            >
+              {refreshingArticles
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <RefreshCw className="h-3.5 w-3.5" />}
+              <span className="text-xs">{refreshingArticles ? 'Loading…' : 'Get fresh research'}</span>
+            </Button>
+          </div>
 
           {feedLoading ? (
             <div className="flex items-center justify-center py-10">
@@ -765,8 +1118,21 @@ export default function SocialFeedPage() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {feed.map(item => (
-                <FeedCard key={item.id} item={item} currentUserId={user?.id} friends={friends} />
+              {feed.map(entry => (
+                entry.kind === 'post' ? (
+                  <FeedCard key={entry.data.id} item={entry.data} currentUserId={user?.id} friends={friends} />
+                ) : (
+                  <ResearchCard
+                    key={entry.data.id}
+                    item={entry.data}
+                    isSaved={savedIds.has(entry.data.id)}
+                    onToggleSave={() => handleToggleSaveArticle(entry.data.id)}
+                    friends={friends}
+                    onShareToFriend={(friendId, message) =>
+                      handleForwardArticle(entry.data.id, friendId, message)
+                    }
+                  />
+                )
               ))}
             </div>
           )}
