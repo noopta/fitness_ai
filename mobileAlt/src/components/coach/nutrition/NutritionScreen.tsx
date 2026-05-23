@@ -158,6 +158,9 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
+  // When VoiceSheet hands off a transcript, we open DescribeSheet pre-filled
+  // with it. Cleared once consumed so a later Describe-button tap starts clean.
+  const [voicePrefill, setVoicePrefill] = useState<string | null>(null);
 
   // ── Targets from the saved program ───────────────────────────────────────
   const nutritionPlan = useMemo(() => {
@@ -469,8 +472,9 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
           so setting a new value automatically dismisses the others. */}
       <DescribeSheet
         visible={openSheet === 'describe'}
-        onClose={() => setOpenSheet(null)}
+        onClose={() => { setOpenSheet(null); setVoicePrefill(null); }}
         onLogged={handleMealLogged}
+        initialText={voicePrefill}
       />
       <SnapSheet
         visible={openSheet === 'snap'}
@@ -480,7 +484,10 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       <VoiceSheet
         visible={openSheet === 'voice'}
         onClose={() => setOpenSheet(null)}
-        onUseDescribe={() => setOpenSheet('describe')}
+        onTranscribed={(text) => {
+          setVoicePrefill(text);
+          setOpenSheet('describe');
+        }}
       />
       <SuggestSheet
         visible={openSheet === 'suggest'}

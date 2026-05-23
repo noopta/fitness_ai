@@ -1,70 +1,256 @@
-// VoiceSheet — record a voice note, transcribe, route into the Describe
-// review flow. Spec: handoff §10.
+// VoiceSheet — record a voice note, transcribe via Whisper, route into
+// the Describe review flow. Spec: handoff §10, §13 (transcription provider).
 //
-// v1 placeholder. Real recording needs expo-av (not yet in the project)
-// plus a transcription provider decision (in-house chat endpoint vs Apple
-// Speech / Android SpeechRecognizer) — flagged as a NEEDS ANSWER item in
-// the handoff (§13). Until that lands, this sheet surfaces the path so
-// the dock button has a destination and we know users are looking for it.
+// Provider decision: in-house chat endpoint (backend /nutrition/transcribe
+// forwards to OpenAI Whisper). Records via expo-audio's useAudioRecorder,
+// reads the file as base64 via expo-file-system/legacy, posts the bytes
+// up. The transcript is handed back via onTranscribed — the parent
+// (NutritionScreen) opens DescribeSheet pre-filled with it.
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  useAudioRecorder,
+  useAudioRecorderState,
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+} from 'expo-audio';
+import * as FileSystemLegacy from 'expo-file-system/legacy';
+import { nutritionApi } from '../../../../lib/api';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  /** Hand off to DescribeSheet with the transcribed text pre-filled. */
-  onUseDescribe?: () => void;
+  /**
+   * Hand off the transcript to the Describe flow. The parent opens
+   * DescribeSheet with this text pre-filled, then we close ourselves.
+   */
+  onTranscribed: (text: string) => void;
 }
 
-export function VoiceSheet({ visible, onClose, onUseDescribe }: Props) {
+type Stage = 'idle' | 'recording' | 'transcribing' | 'permission_denied' | 'error';
+
+/** Format milliseconds → "0:23". Kept here to avoid pulling date-fns. */
+function formatDuration(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const ss = String(s % 60).padStart(2, '0');
+  return `${m}:${ss}`;
+}
+
+export function VoiceSheet({ visible, onClose, onTranscribed }: Props) {
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const state = useAudioRecorderState(recorder, 200);
+  const [stage, setStage] = useState<Stage>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  // Pre-flight: when the sheet opens, request microphone permission + set
+  // the audio mode so iOS won't silently fail when the user is on a call
+  // or has the side-switch on silent.
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const perm = await requestRecordingPermissionsAsync();
+        if (!perm.granted) {
+          if (!cancelled) setStage('permission_denied');
+          return;
+        }
+        await setAudioModeAsync({
+          allowsRecording: true,
+          playsInSilentMode: true,
+        });
+        if (!cancelled) setStage('idle');
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message ?? 'Could not access microphone.');
+          setStage('error');
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible]);
+
+  // When the sheet is dismissed mid-recording, stop the recorder so the
+  // device doesn't keep the mic open in the background.
+  useEffect(() => {
+    if (!visible && state.isRecording) {
+      recorder.stop().catch(() => {});
+    }
+  }, [visible, state.isRecording, recorder]);
+
+  const startRecording = async () => {
+    setError(null);
+    try {
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setStage('recording');
+    } catch (e: any) {
+      setError(e?.message ?? "Couldn't start recording.");
+      setStage('error');
+    }
+  };
+
+  const stopAndTranscribe = async () => {
+    setStage('transcribing');
+    try {
+      await recorder.stop();
+      const uri = recorder.uri;
+      if (!uri) throw new Error('No recording captured.');
+      // Whisper accepts the m4a that HIGH_QUALITY produces on iOS;
+      // Android also yields m4a/mp4 by default.
+      const base64 = await FileSystemLegacy.readAsStringAsync(uri, {
+        encoding: FileSystemLegacy.EncodingType.Base64,
+      });
+      const res = await nutritionApi.transcribeAudio(base64, 'audio/m4a');
+      const text = String((res as any)?.text ?? '').trim();
+      if (!text) {
+        setError("Anakin couldn't make out what you said. Try once more.");
+        setStage('idle');
+        return;
+      }
+      onTranscribed(text);
+      onClose();
+      setStage('idle');
+    } catch (e: any) {
+      setError(e?.message ?? 'Could not transcribe.');
+      setStage('error');
+    }
+  };
+
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Voice logging">
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      title="Voice logging"
+      subtitle="Anakin transcribes what you say, then the Describe screen handles the macros."
+      dismissOnBackdrop={stage !== 'transcribing'}
+    >
       <View style={styles.body}>
-        <View style={styles.micCircle}>
-          <Ionicons name="mic-outline" size={36} color={colors.foreground} />
-        </View>
-        <Text style={styles.heading}>Coming soon</Text>
-        <Text style={styles.subtitle}>
-          Anakin will take voice notes here. Until then, the Describe flow does the
-          same thing with text — same parser, same review screen.
-        </Text>
-        {onUseDescribe ? (
-          <TouchableOpacity
-            style={styles.primary}
-            onPress={() => { onClose(); onUseDescribe(); }}
-            accessibilityRole="button"
-            accessibilityLabel="Use describe instead"
-          >
-            <Text style={styles.primaryText}>Use Describe instead</Text>
-          </TouchableOpacity>
-        ) : null}
+        {stage === 'permission_denied' ? (
+          <PermissionDenied onClose={onClose} />
+        ) : stage === 'transcribing' ? (
+          <View style={styles.center}>
+            <ActivityIndicator color={colors.foreground} />
+            <Text style={styles.statusText}>Transcribing…</Text>
+          </View>
+        ) : (
+          <>
+            <RecordButton
+              recording={stage === 'recording'}
+              onPress={stage === 'recording' ? stopAndTranscribe : startRecording}
+              durationMs={state.durationMillis ?? 0}
+              metering={state.metering ?? null}
+            />
+            <Text style={styles.helperText}>
+              {stage === 'recording'
+                ? 'Tap to stop and transcribe.'
+                : 'Tap the mic, describe your meal, then tap again to send.'}
+            </Text>
+          </>
+        )}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
     </BottomSheet>
   );
 }
 
+function RecordButton({
+  recording, onPress, durationMs, metering,
+}: {
+  recording: boolean;
+  onPress: () => void;
+  durationMs: number;
+  metering: number | null;
+}) {
+  // metering on iOS comes back negative-dB-ish; map a sensible range so the
+  // ring grows visibly when the user is actually speaking.
+  const meterScale = metering != null
+    ? Math.max(0, Math.min(1, (metering + 60) / 60))
+    : 0;
+  const haloSize = recording ? 96 + meterScale * 18 : 96;
+  return (
+    <View style={{ alignItems: 'center', gap: 14 }}>
+      <View
+        style={[
+          styles.halo,
+          { width: haloSize, height: haloSize, borderRadius: haloSize / 2 },
+          recording && styles.haloOn,
+        ]}
+      >
+        <TouchableOpacity
+          style={[styles.mic, recording && styles.micOn]}
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={recording ? 'Stop recording' : 'Start recording'}
+        >
+          <Ionicons
+            name={recording ? 'stop' : 'mic'}
+            size={32}
+            color={recording ? '#ffffff' : colors.foreground}
+          />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.duration}>{formatDuration(durationMs)}</Text>
+    </View>
+  );
+}
+
+function PermissionDenied({ onClose }: { onClose: () => void }) {
+  return (
+    <View style={styles.center}>
+      <View style={styles.permIcon}>
+        <Ionicons name="mic-off-outline" size={28} color={colors.mutedForeground} />
+      </View>
+      <Text style={styles.heading}>Microphone access denied</Text>
+      <Text style={styles.helperText}>
+        Enable microphone access in Settings to use voice logging.
+      </Text>
+      <TouchableOpacity style={styles.primary} onPress={onClose} accessibilityRole="button">
+        <Text style={styles.primaryText}>OK</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  body: { alignItems: 'center', paddingVertical: 16, gap: 12 },
-  micCircle: {
-    width: 88, height: 88, borderRadius: 999,
+  body: { alignItems: 'center', paddingVertical: 12, gap: 12 },
+  center: { alignItems: 'center', gap: 12, paddingVertical: 24 },
+  halo: {
     backgroundColor: colors.muted,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: 4,
   },
-  heading: { fontSize: 16, fontWeight: fontWeight.bold, color: colors.foreground },
-  subtitle: {
-    fontSize: 12.5, color: colors.mutedForeground, textAlign: 'center',
-    lineHeight: 18, maxWidth: 280,
+  haloOn: { backgroundColor: 'rgba(239,68,68,0.18)' },
+  mic: {
+    width: 76, height: 76, borderRadius: 999,
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
   },
+  micOn: { backgroundColor: colors.destructive, borderColor: colors.destructive },
+  duration: {
+    fontSize: 22, fontWeight: fontWeight.bold, color: colors.foreground,
+    fontVariant: ['tabular-nums'],
+  },
+  helperText: { fontSize: 12.5, color: colors.mutedForeground, textAlign: 'center', maxWidth: 280, lineHeight: 18 },
+  statusText: { fontSize: 13, color: colors.mutedForeground, marginTop: 8 },
+  errorText: { fontSize: 12, color: colors.destructive, textAlign: 'center' },
+  permIcon: {
+    width: 64, height: 64, borderRadius: 999,
+    backgroundColor: colors.muted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  heading: { fontSize: 15, fontWeight: fontWeight.bold, color: colors.foreground },
   primary: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 20, paddingVertical: 12,
-    borderRadius: 12,
-    marginTop: 8,
+    paddingHorizontal: 22, paddingVertical: 12, borderRadius: 12,
+    backgroundColor: colors.primary, marginTop: 4,
   },
-  primaryText: { color: colors.primaryForeground, fontSize: 14, fontWeight: fontWeight.bold },
+  primaryText: { color: colors.primaryForeground, fontSize: 13, fontWeight: fontWeight.bold },
 });

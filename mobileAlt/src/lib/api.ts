@@ -303,6 +303,24 @@ export const nutritionApi = {
   deleteMeal: (id: string) =>
     apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
 
+  /**
+   * Partial update of an existing meal entry. Replaces the
+   * delete-then-re-log workaround MealEditSheet used in v1 — keeps the
+   * row's id, createdAt, and saved-food backlinks intact.
+   */
+  updateMeal: (id: string, data: Partial<{
+    name: string;
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal';
+    calories: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+    notes: string | null;
+  }>) => apiFetch(`/nutrition/meals/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
   // History / aggregated daily data
   getHistory: (days?: number) =>
     apiFetch(`/nutrition/history${days ? `?days=${days}` : ''}`),
@@ -314,6 +332,27 @@ export const nutritionApi = {
   // Gemini vision — analyze a photo of a meal, get macros back
   analyzePhoto: (imageBase64: string, mimeType: string) =>
     apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
+
+  /**
+   * Anakin-ranked meal suggestions tailored to today's remaining macros.
+   * Powers the SuggestSheet — server-side LLM scoring beats the v1 static
+   * template ranker because it can pull goal/budget context the client
+   * doesn't have.
+   */
+  suggestMeals: (input: {
+    remaining: { kcal: number; protein: number; carbs: number; fat: number };
+    slot?: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal' | null;
+  }) => apiFetch('/nutrition/suggest-meals', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  }),
+
+  /** Transcribe a voice recording. Powers the VoiceSheet. */
+  transcribeAudio: (audioBase64: string, mimeType: string) =>
+    apiFetch('/nutrition/transcribe', {
+      method: 'POST',
+      body: JSON.stringify({ audioBase64, mimeType }),
+    }),
 
   // AI-generated nutrition profile (aggregates 90 days + LLM insights)
   getProfile: () => apiFetch('/nutrition/profile'),

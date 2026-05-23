@@ -8,7 +8,7 @@
 // Retry button. Spec is explicit about not dismissing the sheet on parse
 // failure (§07 dock states + §12 edge cases).
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
@@ -23,6 +23,12 @@ interface Props {
   onClose: () => void;
   /** Refresh the timeline after a successful log. */
   onLogged: () => void | Promise<void>;
+  /**
+   * Pre-fill the description input. Used when VoiceSheet hands off a
+   * transcript — we want the user to land in the prompt stage with the
+   * text already there, ready to edit + submit.
+   */
+  initialText?: string | null;
 }
 
 interface ParsedMeal {
@@ -35,13 +41,23 @@ interface ParsedMeal {
 
 type Stage = 'prompt' | 'review' | 'saving';
 
-export function DescribeSheet({ visible, onClose, onLogged }: Props) {
+export function DescribeSheet({ visible, onClose, onLogged, initialText }: Props) {
   const [stage, setStage] = useState<Stage>('prompt');
   const [text, setText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsedMeal | null>(null);
   const [slot, setSlot] = useState<MealSlotApi>(slotForNow());
+
+  // When the sheet opens with an initialText (typically from VoiceSheet's
+  // transcript), pre-fill the input. Only seeded on visibility-true so a
+  // stale prop doesn't blow over the user's in-progress edit.
+  useEffect(() => {
+    if (visible && initialText && initialText.trim()) {
+      setText(initialText);
+      setStage('prompt');
+    }
+  }, [visible, initialText]);
 
   const reset = () => {
     setStage('prompt'); setText(''); setParsing(false); setParseError(null); setParsed(null);

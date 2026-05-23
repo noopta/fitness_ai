@@ -1,13 +1,13 @@
 // SuggestSheet — Anakin's meal suggestions ranked by what's missing from
-// the day's macro targets. Spec: handoff §10 (SuggestSheet) + §06
-// (GhostSlotRow tap).
+// the day's macro targets. Spec: handoff §10 + §06 (GhostSlotRow tap).
 //
-// v1: no per-slot suggestion endpoint exists yet, so we generate three
-// candidate meals client-side from a small template library and rank them
-// by how well they close the user's biggest macro gap (protein > carbs
-// > fat). Each row has a Log button that commits via nutritionApi.logMeal.
+// Server-side LLM scoring: posts the user's remaining macros + slot
+// preference to /nutrition/suggest-meals, which pulls goal/budget context
+// from the user's coach profile and returns 4 ranked candidates. Falls
+// back to a small static template library only when the network/LLM call
+// fails (e.g. offline) so the sheet always has something useful to show.
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
@@ -20,121 +20,91 @@ import { slotForNow, todayStr, type MealSlotApi } from './sheetHelpers';
 interface Props {
   visible: boolean;
   onClose: () => void;
-  /** What's left to hit today, in grams. nulls mean "no target set". */
   remaining: {
     kcal: number;
     protein: number;
     carbs: number;
     fat: number;
   };
-  /** Optional slot pre-filter when entered via a ghost-slot tap. */
   slot?: MealSlotApi | null;
   onLogged: () => void | Promise<void>;
 }
 
-interface Template {
+interface Suggestion {
   name: string;
   calories: number;
   proteinG: number;
   carbsG: number;
   fatG: number;
-  /** Which macro this meal best closes the gap on. */
-  fits: 'protein' | 'carbs' | 'fat' | 'balanced';
-  /** Slots the suggestion makes sense in. */
-  slots: MealSlotApi[];
+  fits?: 'protein' | 'carbs' | 'fat' | 'balanced';
+  slots?: MealSlotApi[];
 }
 
 /**
- * Small static library. Each entry is an editorial choice — picked because
- * it's a real food users actually eat, with realistic macro splits. Real
- * personalisation will land when the backend exposes a suggestion endpoint.
+ * Offline fallback. Same templates the v1 SuggestSheet used. Kept small
+ * because the LLM path is the primary one — these only render when the
+ * /suggest-meals call fails outright.
  */
-const LIBRARY: Template[] = [
+const FALLBACK: Suggestion[] = [
   { name: 'Greek yogurt + berries + walnuts',
-    calories: 280, proteinG: 22, carbsG: 24, fatG: 10, fits: 'protein',
-    slots: ['breakfast', 'snack'] },
-  { name: 'Grilled chicken + jasmine rice + broccoli',
-    calories: 520, proteinG: 42, carbsG: 55, fatG: 12, fits: 'protein',
-    slots: ['lunch', 'dinner'] },
-  { name: 'Cottage cheese + apple + cinnamon',
-    calories: 220, proteinG: 22, carbsG: 26, fatG: 3, fits: 'protein',
-    slots: ['snack'] },
+    calories: 280, proteinG: 22, carbsG: 24, fatG: 10, fits: 'protein' },
+  { name: 'Grilled chicken + rice + broccoli',
+    calories: 520, proteinG: 42, carbsG: 55, fatG: 12, fits: 'protein' },
   { name: 'Whey shake + banana',
-    calories: 280, proteinG: 28, carbsG: 32, fatG: 4, fits: 'protein',
-    slots: ['snack', 'breakfast'] },
-  { name: 'Salmon + sweet potato + asparagus',
-    calories: 540, proteinG: 38, carbsG: 38, fatG: 22, fits: 'balanced',
-    slots: ['dinner'] },
-  { name: 'Steel-cut oats + whey + peanut butter',
-    calories: 460, proteinG: 32, carbsG: 50, fatG: 14, fits: 'carbs',
-    slots: ['breakfast'] },
-  { name: 'Tuna wrap + side salad',
-    calories: 420, proteinG: 30, carbsG: 38, fatG: 16, fits: 'protein',
-    slots: ['lunch'] },
-  { name: 'Casein shake + handful of almonds',
-    calories: 280, proteinG: 25, carbsG: 14, fatG: 14, fits: 'protein',
-    slots: ['snack'] },
+    calories: 280, proteinG: 28, carbsG: 32, fatG: 4, fits: 'protein' },
   { name: 'Avocado toast + 2 eggs',
-    calories: 440, proteinG: 18, carbsG: 32, fatG: 26, fits: 'fat',
-    slots: ['breakfast', 'lunch'] },
-  { name: 'Beef stir-fry + brown rice',
-    calories: 580, proteinG: 36, carbsG: 58, fatG: 18, fits: 'balanced',
-    slots: ['dinner', 'lunch'] },
+    calories: 440, proteinG: 18, carbsG: 32, fatG: 26, fits: 'fat' },
 ];
 
-/** Score a template by how much of the biggest gap it would close. */
-function scoreFor(
-  t: Template,
-  remaining: { protein: number; carbs: number; fat: number; kcal: number },
-  slot: MealSlotApi | null,
-): number {
-  let score = 0;
-  // Closing the biggest gap wins — pick whichever macro is most in deficit
-  // and reward templates that contribute to it.
-  const biggest =
-    remaining.protein >= remaining.carbs && remaining.protein >= remaining.fat ? 'protein'
-    : remaining.carbs >= remaining.fat ? 'carbs' : 'fat';
-  if (t.fits === biggest || t.fits === 'balanced') score += 40;
-  // Slot match
-  if (slot && t.slots.includes(slot)) score += 15;
-  // Don't blow through the remaining kcal budget — penalize templates that
-  // are way over (or way under) what's left.
-  if (remaining.kcal > 0) {
-    const ratio = t.calories / remaining.kcal;
-    if (ratio > 0.4 && ratio < 1.05) score += 25;
-    else if (ratio >= 1.05 && ratio < 1.4) score += 5;
-  }
-  // Small tie-breaker — prefer higher protein when scores tie.
-  score += Math.round(t.proteinG / 10);
-  return score;
-}
-
 export function SuggestSheet({ visible, onClose, remaining, slot, onLogged }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [list, setList] = useState<Suggestion[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const ranked = useMemo(() => {
-    return LIBRARY
-      .map((t) => ({ t, score: scoreFor(t, remaining, slot ?? null) }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4)
-      .map((r) => r.t);
-  }, [remaining, slot]);
+  // Fetch when the sheet opens. Refetch when the remaining numbers change
+  // by a meaningful delta (logging a meal mid-sheet would otherwise leave
+  // stale suggestions visible).
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await nutritionApi.suggestMeals({ remaining, slot: slot ?? null });
+        const suggestions = Array.isArray((res as any)?.suggestions)
+          ? (res as any).suggestions as Suggestion[]
+          : [];
+        if (!cancelled) {
+          setList(suggestions.length > 0 ? suggestions : FALLBACK);
+        }
+      } catch {
+        if (!cancelled) {
+          setList(FALLBACK);
+          setError('Showing offline suggestions.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible, remaining.kcal, remaining.protein, remaining.carbs, remaining.fat, slot]);
 
-  const handleLog = async (t: Template) => {
-    setSavingId(t.name);
+  const handleLog = async (s: Suggestion) => {
+    setSavingId(s.name);
     setError(null);
     try {
       await nutritionApi.logMeal({
         date: todayStr(),
-        name: t.name,
+        name: s.name,
         mealType: slot ?? slotForNow(),
-        calories: t.calories,
-        proteinG: t.proteinG,
-        carbsG: t.carbsG,
-        fatG: t.fatG,
+        calories: s.calories,
+        proteinG: s.proteinG,
+        carbsG: s.carbsG,
+        fatG: s.fatG,
       });
-      Analytics.foodTypedLogged({ calories: t.calories });
+      Analytics.foodTypedLogged({ calories: s.calories });
       await Promise.resolve(onLogged());
       onClose();
     } catch (err: any) {
@@ -144,42 +114,56 @@ export function SuggestSheet({ visible, onClose, remaining, slot, onLogged }: Pr
     }
   };
 
+  const subtitle = useMemo(() => {
+    const biggest =
+      remaining.protein >= remaining.carbs && remaining.protein >= remaining.fat ? 'protein'
+      : remaining.carbs >= remaining.fat ? 'carbs' : 'fat';
+    const amount = Math.round(remaining[biggest as 'protein' | 'carbs' | 'fat']);
+    return amount > 0
+      ? `Tailored to ${amount}g ${biggest} remaining.`
+      : 'Already on plan — these are gentle add-ons.';
+  }, [remaining]);
+
   return (
-    <BottomSheet
-      visible={visible}
-      onClose={onClose}
-      title="Anakin suggests"
-      subtitle={`Tailored to ${remaining.protein > 0 ? `${Math.round(remaining.protein)}g protein` : 'today'} remaining.`}
-    >
-      <View style={{ gap: 8 }}>
-        {ranked.map((t) => (
-          <View key={t.name} style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name} numberOfLines={1}>{t.name}</Text>
-              <Text style={styles.macros}>
-                {t.calories} kcal · P {t.proteinG} · C {t.carbsG} · F {t.fatG}
-              </Text>
+    <BottomSheet visible={visible} onClose={onClose} title="Anakin suggests" subtitle={subtitle}>
+      {loading ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator color={colors.foreground} />
+          <Text style={styles.loadingText}>Anakin is choosing your next meal…</Text>
+        </View>
+      ) : (
+        <View style={{ gap: 8 }}>
+          {list.map((s) => (
+            <View key={s.name} style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name} numberOfLines={1}>{s.name}</Text>
+                <Text style={styles.macros}>
+                  {s.calories} kcal · P {s.proteinG} · C {s.carbsG} · F {s.fatG}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.logBtn, savingId === s.name && styles.logBtnSaving]}
+                onPress={() => handleLog(s)}
+                disabled={!!savingId}
+                accessibilityRole="button"
+                accessibilityLabel={`Log ${s.name}`}
+              >
+                {savingId === s.name
+                  ? <ActivityIndicator color={colors.primaryForeground} />
+                  : <Text style={styles.logBtnText}>Log</Text>}
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[styles.logBtn, savingId === t.name && styles.logBtnSaving]}
-              onPress={() => handleLog(t)}
-              disabled={!!savingId}
-              accessibilityRole="button"
-              accessibilityLabel={`Log ${t.name}`}
-            >
-              {savingId === t.name
-                ? <ActivityIndicator color={colors.primaryForeground} />
-                : <Text style={styles.logBtnText}>Log</Text>}
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
+  loadingBox: { alignItems: 'center', paddingVertical: 24, gap: 10 },
+  loadingText: { fontSize: 12, color: colors.mutedForeground },
   row: {
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 12,

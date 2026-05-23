@@ -1,11 +1,10 @@
 // MealEditSheet — edit a logged meal's portion, name, slot. Spec: handoff §10.
 //
-// Implementation note: the backend doesn't expose `nutritionApi.updateMeal`
-// in v1, so "edit" is implemented as delete-then-re-log. That works fine
-// for the user-visible round-trip but means the saved meal gets a new id
-// + createdAt. Acceptable until the backend adds a true PUT endpoint.
+// Now uses the true PUT /nutrition/meals/:id endpoint, so edits keep the
+// row's id, createdAt, and saved-food backlinks instead of churning a new
+// row via delete-then-re-log.
 //
-// Portion scaling: the meal can be scaled by a 0.25-2.0× multiplier; macros
+// Portion scaling: the meal can be scaled by a 0.5-2.0× multiplier; macros
 // scale linearly. The multiplier mode is the common case ("oh, that was
 // actually a half portion"); for finer edits the user can type the macros
 // directly.
@@ -17,7 +16,7 @@ import {
 import { nutritionApi } from '../../../../lib/api';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
-import { todayStr, type MealSlotApi } from './sheetHelpers';
+import type { MealSlotApi } from './sheetHelpers';
 
 export interface EditingMeal {
   id: string;
@@ -95,11 +94,7 @@ export function MealEditSheet({ visible, meal, onClose, onChanged }: Props) {
     setSaving(true);
     setError(null);
     try {
-      // Delete original, log scaled version. The order matters — if the
-      // re-log fails we don't want to leave the user with neither.
-      await nutritionApi.deleteMeal(base.id);
-      await nutritionApi.logMeal({
-        date: todayStr(),
+      await nutritionApi.updateMeal(base.id, {
         name: scaled.name,
         mealType: slot,
         calories: scaled.calories,

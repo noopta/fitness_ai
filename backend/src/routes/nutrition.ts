@@ -7,7 +7,7 @@ import posthog from '../services/posthogClient.js';
 
 const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
 const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
-import { parseMealMacros, analyzeMealPhoto } from '../services/llmService.js';
+import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { recordActivity } from '../services/streakService.js';
@@ -393,6 +393,53 @@ router.put('/nutrition/targets', requireAuth, async (req, res) => {
   }
 });
 
+// Partial-update schema for PUT /nutrition/meals/:id — every field is
+// optional, only the keys the user actually touched in MealEditSheet are
+// sent. We deliberately don't reuse mealEntrySchema (whose defaults would
+// blast over existing values).
+const mealUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).optional(),
+  calories: z.number().min(0).max(5000).optional(),
+  proteinG: z.number().min(0).max(500).optional(),
+  carbsG: z.number().min(0).max(1000).optional(),
+  fatG: z.number().min(0).max(500).optional(),
+  notes: z.string().max(2000).optional().nullable(),
+});
+
+// PUT /api/nutrition/meals/:id - Update a meal entry in place.
+// Replaces the mobile MealEditSheet's old delete-then-re-log workaround so
+// edits keep the row's id, createdAt, and saved-food backlinks intact.
+router.put('/nutrition/meals/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = mealUpdateSchema.parse(req.body);
+    const userId = req.user!.id;
+
+    const existing = await prisma.mealEntry.findFirst({ where: { id, userId } });
+    if (!existing) return res.status(404).json({ error: 'Entry not found' });
+
+    const entry = await prisma.mealEntry.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.mealType !== undefined ? { mealType: data.mealType } : {}),
+        ...(data.calories !== undefined ? { calories: data.calories } : {}),
+        ...(data.proteinG !== undefined ? { proteinG: data.proteinG } : {}),
+        ...(data.carbsG !== undefined ? { carbsG: data.carbsG } : {}),
+        ...(data.fatG !== undefined ? { fatG: data.fatG } : {}),
+        ...(data.notes !== undefined ? { notes: data.notes } : {}),
+      },
+    });
+
+    cacheDelete(nutritionProfileCacheKey(req.user!.id));
+    res.json(entry);
+  } catch (err: any) {
+    console.error('Meal update error:', err);
+    res.status(500).json({ error: 'Failed to update meal' });
+  }
+});
+
 // DELETE /api/nutrition/meals/:id - Delete a meal entry
 router.delete('/nutrition/meals/:id', requireAuth, async (req, res) => {
   try {
@@ -407,6 +454,63 @@ router.delete('/nutrition/meals/:id', requireAuth, async (req, res) => {
   } catch (err: any) {
     console.error('Meal delete error:', err);
     res.status(500).json({ error: 'Failed to delete meal' });
+  }
+});
+
+// POST /api/nutrition/transcribe - Whisper transcription of a voice note.
+// Body is base64-encoded audio + the MIME type the recorder used. Returns
+// the plain transcript; the mobile client funnels that straight into the
+// DescribeSheet's text input.
+const transcribeSchema = z.object({
+  audioBase64: z.string().min(50),
+  mimeType: z.string().min(3).max(60),
+});
+
+router.post('/nutrition/transcribe', requireAuth, async (req, res) => {
+  try {
+    const data = transcribeSchema.parse(req.body);
+    const text = await transcribeAudio(data.audioBase64, data.mimeType);
+    res.json({ text });
+  } catch (err: any) {
+    console.error('Transcribe error:', err);
+    res.status(500).json({ error: err?.message ?? 'Failed to transcribe' });
+  }
+});
+
+// POST /api/nutrition/suggest-meals - Anakin-ranked meal candidates for today.
+// Mobile SuggestSheet calls this on open; the body carries today's remaining
+// macros + optional slot pre-filter. Replaces the v1 static template ranker
+// the sheet shipped with — we now pass goal/budget context from the user's
+// coachProfile so suggestions actually reflect their plan.
+const suggestSchema = z.object({
+  remaining: z.object({
+    kcal:    z.number().min(0).max(10000),
+    protein: z.number().min(0).max(500),
+    carbs:   z.number().min(0).max(1000),
+    fat:     z.number().min(0).max(500),
+  }),
+  slot: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).optional().nullable(),
+});
+
+router.post('/nutrition/suggest-meals', requireAuth, async (req, res) => {
+  try {
+    const data = suggestSchema.parse(req.body);
+    // Pull a thin slice of the user's profile so suggestions can lean toward
+    // their goal (lean bulk vs cut etc.) without doing a heavyweight join.
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { coachGoal: true, coachBudget: true },
+    });
+    const suggestions = await suggestMeals({
+      remaining: data.remaining,
+      slot: data.slot ?? null,
+      goal: user?.coachGoal ?? null,
+      budget: user?.coachBudget ?? null,
+    });
+    res.json({ suggestions });
+  } catch (err: any) {
+    console.error('Suggest meals error:', err);
+    res.status(500).json({ error: 'Failed to generate suggestions' });
   }
 });
 

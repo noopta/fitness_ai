@@ -43,7 +43,8 @@
           "sounds": [],
           "mode": "production"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "ios": {
       "supportsTablet": false,
@@ -52,6 +53,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
+        "NSMicrophoneUsageDescription": "Axiom uses your microphone to transcribe voice notes about meals you ate.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

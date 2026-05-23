@@ -1825,6 +1825,143 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
 }
 
 
+// ─── Meal Suggestions ────────────────────────────────────────────────────────
+// Produces 3-5 meal candidates ranked by how well they'd close the user's
+// biggest macro gap. Backs the mobile SuggestSheet — replaces its v1
+// client-side static template ranker. Plain-macro output (no micronutrient
+// estimation) keeps the prompt small + the response fast.
+
+export interface SuggestedMeal {
+  name: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  /** Which macro this meal best closes the gap on. */
+  fits: 'protein' | 'carbs' | 'fat' | 'balanced';
+  /** Slots this meal makes sense in. */
+  slots: Array<'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal'>;
+}
+
+export interface SuggestionInput {
+  remaining: {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  slot?: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal' | null;
+  /** Free-text goal hint from the user's coach profile, e.g. "lean bulk". */
+  goal?: string | null;
+  /** Free-text budget hint, e.g. "$15/day". */
+  budget?: string | null;
+}
+
+export async function suggestMeals(input: SuggestionInput): Promise<SuggestedMeal[]> {
+  const { remaining, slot, goal, budget } = input;
+  const slotLine = slot ? `\nTARGET SLOT: ${slot}` : '';
+  const goalLine = goal ? `\nUSER GOAL: ${goal}` : '';
+  const budgetLine = budget ? `\nBUDGET: ${budget}` : '';
+
+  const prompt = `You are a sports nutritionist. The user has the following remaining macros to hit today:
+- ${Math.round(remaining.kcal)} kcal
+- ${Math.round(remaining.protein)} g protein
+- ${Math.round(remaining.carbs)} g carbs
+- ${Math.round(remaining.fat)} g fat
+${slotLine}${goalLine}${budgetLine}
+
+Suggest exactly 4 realistic meals a regular gym-goer would actually eat. Order by how well each one closes the user's biggest macro gap (look at the proportions above — if protein is the largest, lead with high-protein meals). Mix simple home-cookable options with quick assembly (e.g. yogurt + berries + nuts) options. Avoid suggesting two meals that are nearly identical.
+
+For each meal, estimate macros realistically based on standard portion sizes. Include the meal types ("slots") that make sense — breakfast for oats, dinner for steak, etc.
+
+OUTPUT FORMAT (JSON only, no explanation):
+{
+  "suggestions": [
+    {
+      "name": "Grilled chicken + jasmine rice + broccoli",
+      "calories": 520,
+      "proteinG": 42,
+      "carbsG": 55,
+      "fatG": 12,
+      "fits": "protein",
+      "slots": ["lunch", "dinner"]
+    }
+  ]
+}
+
+"fits" must be one of: protein | carbs | fat | balanced
+"slots" entries must be one of: breakfast | lunch | dinner | snack | meal`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1-mini',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 600,
+    response_format: { type: 'json_object' },
+  });
+  const raw = response.choices[0]?.message?.content ?? '{}';
+  let parsed: any;
+  try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+  const list = Array.isArray(parsed?.suggestions) ? parsed.suggestions : [];
+
+  const VALID_FITS = new Set(['protein', 'carbs', 'fat', 'balanced']);
+  const VALID_SLOTS = new Set(['breakfast', 'lunch', 'dinner', 'snack', 'meal']);
+
+  return list.slice(0, 5).map((s: any): SuggestedMeal => ({
+    name: String(s?.name ?? 'Meal').slice(0, 120),
+    calories: Math.max(0, Math.round(Number(s?.calories) || 0)),
+    proteinG: Math.max(0, Math.round(Number(s?.proteinG) || 0)),
+    carbsG:   Math.max(0, Math.round(Number(s?.carbsG)   || 0)),
+    fatG:     Math.max(0, Math.round(Number(s?.fatG)     || 0)),
+    fits: VALID_FITS.has(s?.fits) ? s.fits : 'balanced',
+    slots: (Array.isArray(s?.slots) ? s.slots : [])
+      .map((x: any) => String(x))
+      .filter((x: string) => VALID_SLOTS.has(x))
+      .slice(0, 4) as SuggestedMeal['slots'],
+  })).filter((m: SuggestedMeal) => m.name.length > 0 && m.calories > 0);
+}
+
+
+// ─── Voice transcription (OpenAI Whisper) ───────────────────────────────────
+// Decodes a base64 audio blob from the mobile VoiceSheet and forwards to
+// Whisper. Returns just the text — the caller routes that into the
+// DescribeSheet's text input.
+
+/**
+ * @param audioBase64 - base64-encoded audio (m4a / mp3 / wav / webm — all
+ *                       accepted by Whisper).
+ * @param mimeType    - audio MIME, e.g. "audio/m4a". Used only for the
+ *                       multipart filename extension so Whisper picks the
+ *                       right decoder.
+ */
+export async function transcribeAudio(
+  audioBase64: string,
+  mimeType: string,
+): Promise<string> {
+  const buf = Buffer.from(audioBase64, 'base64');
+  if (buf.length === 0) throw new Error('Empty audio payload');
+  if (buf.length > 25 * 1024 * 1024) throw new Error('Audio too large (25 MB max)');
+
+  // Whisper's HTTP API expects an actual File-like with a name; Node 20+
+  // ships a global File class that the OpenAI SDK accepts. Synthesize a
+  // filename with the right extension so the server-side decoder picks
+  // the right codec.
+  const ext = mimeType.includes('mp4')  || mimeType.includes('m4a')  ? 'm4a'
+            : mimeType.includes('mpeg') || mimeType.includes('mp3')  ? 'mp3'
+            : mimeType.includes('webm')                              ? 'webm'
+            : 'wav';
+  const file = new File([new Uint8Array(buf)], `voice.${ext}`, { type: mimeType });
+
+  const res = await openai.audio.transcriptions.create({
+    file,
+    model: 'whisper-1',
+    // English-only is fine for v1 — the rest of the app's coach UX is
+    // English. Switch to auto-detect if/when we localise.
+    language: 'en',
+  });
+  return (res.text ?? '').trim();
+}
+
+
 // ─── Meal Photo Analysis (Gemini Vision) ──────────────────────────────────────
 
 export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealDetail> {
