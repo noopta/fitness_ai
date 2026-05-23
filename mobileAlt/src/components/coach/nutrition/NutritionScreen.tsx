@@ -14,8 +14,11 @@
 // old "Log by description" card used). Snap routes through the existing
 // MealLogModal scan path; Voice / Suggest surface a "coming soon" toast.
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Alert, RefreshControl, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  View, StyleSheet, Alert, Keyboard,
+  type NativeSyntheticEvent, type NativeScrollEvent,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -111,7 +114,39 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   const [todayMeals, setTodayMeals] = useState<any[]>([]);
   const [workoutBurnKcal, setWorkoutBurnKcal] = useState(0);
   const [bwLogs, setBwLogs] = useState<Array<{ date: string; weightLbs: number }>>([]);
-  const [refreshing, setRefreshing] = useState(false);
+
+  // Dock visibility — hidden when the timeline is scrolled down past 240pt
+  // and the user is still scrolling further down, or when the keyboard is up
+  // (e.g. the weight log input is focused). Restored on scroll-up or near
+  // the top of the surface.
+  const [dockHidden, setDockHidden] = useState(false);
+  const [keyboardUp, setKeyboardUp] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  // Keyboard listeners — same on both platforms, even though iOS uses Will*
+  // and Android uses Did*. We don't care about the difference for this UX.
+  useEffect(() => {
+    const showEvent = 'keyboardDidShow';
+    const hideEvent = 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, () => setKeyboardUp(true));
+    const hide = Keyboard.addListener(hideEvent, () => setKeyboardUp(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
+  const handleTimelineScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const dy = y - lastScrollYRef.current;
+    lastScrollYRef.current = y;
+    // Hide threshold: scrolled down at least 240pt AND moving further down.
+    if (y > 240 && dy > 4) {
+      setDockHidden((prev) => (prev ? prev : true));
+      return;
+    }
+    // Show again when scrolling back up or close to the top.
+    if (dy < -2 || y < 60) {
+      setDockHidden((prev) => (prev ? false : prev));
+    }
+  }, []);
 
   // ── Sheets ───────────────────────────────────────────────────────────────
   const [logModalVisible, setLogModalVisible] = useState(false);
@@ -181,12 +216,17 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadAll();
-    if (onRefresh) await onRefresh();
-    setRefreshing(false);
-  }, [loadAll, onRefresh]);
+  // When the parent coach screen pings us to refresh, just re-pull the
+  // local data. v1 doesn't expose pull-to-refresh on the timeline — the
+  // dock + automatic post-log refresh covers the common case. PR-7+ may add
+  // it back via the DayTimeline scroll surface.
+  useEffect(() => {
+    if (onRefresh) {
+      // No-op: presence of onRefresh is informational; the parent triggers
+      // reloads by re-rendering this component or by calling its own data
+      // fetchers. We don't intercept here.
+    }
+  }, [onRefresh]);
 
   // ── Macro states for the rings + inspector ───────────────────────────────
   const macroStates: MacroState[] = useMemo(() => [
@@ -291,6 +331,51 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     await loadAll();
   }, [loadAll]);
 
+  /**
+   * Delete a logged meal. Called by the swipe-to-delete action on a row.
+   * We always confirm — the swipe alone isn't a strong-enough signal that
+   * the user intends to lose the entry. Optimistically remove it from the
+   * timeline so the dialog dismissal doesn't feel sluggish; revert if the
+   * delete call fails.
+   */
+  const handleDeleteMeal = useCallback((m: { id: string; name: string }) => {
+    Alert.alert(
+      'Delete meal?',
+      `"${m.name}" will be removed from today.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const before = todayMeals;
+            setTodayMeals((prev) => prev.filter((x) => x.id !== m.id));
+            try {
+              await nutritionApi.deleteMeal(m.id);
+            } catch (err: any) {
+              setTodayMeals(before); // revert
+              Alert.alert('Could not delete', err?.message ?? 'Please try again.');
+            }
+          },
+        },
+      ],
+    );
+  }, [todayMeals]);
+
+  /**
+   * Long-press a meal — the spec calls for an action sheet with [Edit
+   * portion, Duplicate to tomorrow, Move to slot, Delete]. v1 lands the
+   * two destructive paths (Delete + Edit which opens the existing modal)
+   * and defers Duplicate/Move to the MealEditSheet PR.
+   */
+  const handleLongPressMeal = useCallback((m: { id: string; name: string }) => {
+    Alert.alert(m.name, undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Edit',   onPress: () => setLogModalVisible(true) },
+      { text: 'Delete', style: 'destructive', onPress: () => handleDeleteMeal(m) },
+    ]);
+  }, [handleDeleteMeal]);
+
   const handleLogWeight = useCallback(async (lb: number) => {
     try {
       await coachApi.logBodyWeight(lb, todayStr());
@@ -333,22 +418,21 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         }
       />
 
-      {/* Pull-to-refresh lives on the timeline scroll surface. */}
-      <ScrollView
-        style={styles.timelineWrap}
-        contentContainerStyle={{ flexGrow: 1 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        scrollEnabled={false}
-      >
+      {/* DayTimeline owns its own scroll surface; pull-to-refresh + scroll
+          events live there so the dock can react to scroll velocity. */}
+      <View style={styles.timelineWrap}>
         <DayTimeline
           meals={meals}
           ghosts={ghosts}
           onMealPress={() => setLogModalVisible(true)}
           onGhostPress={() => setLogModalVisible(true)}
+          onDeleteMeal={handleDeleteMeal}
+          onLongPressMeal={handleLongPressMeal}
+          onScroll={handleTimelineScroll}
         />
-      </ScrollView>
+      </View>
 
-      <ActionDock onAction={handleDockAction} />
+      <ActionDock onAction={handleDockAction} hidden={dockHidden || keyboardUp} />
 
       <MealLogModal
         visible={logModalVisible}

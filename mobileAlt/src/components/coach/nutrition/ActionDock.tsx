@@ -7,8 +7,15 @@
 // Keyboard avoidance is handled at the screen level — when an inspector
 // input is focused the dock hides via a hidden prop.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { fontWeight } from '../../../constants/theme';
 
@@ -48,17 +55,34 @@ function DockButton({
   );
 }
 
+/** Approx dock height; used to compute the off-screen translation. */
+const DOCK_HEIGHT = 58;
+
 export function ActionDock({ onAction, hidden }: Props) {
-  if (hidden) return null;
+  const reduced = useReducedMotion();
+  // Translate the whole dock off-screen by 90% of its height when `hidden`
+  // (e.g. timeline scrolled down past 240pt, or the keyboard is up). Spec §06
+  // calls for an 80% peek when scroll-driven; we go a touch further so the
+  // dock fully leaves the safe-area without grazing the tab bar.
+  const tY = useSharedValue(0);
+  useEffect(() => {
+    const target = hidden ? DOCK_HEIGHT * 0.9 + 14 /* + the dock's bottom margin */ : 0;
+    tY.value = reduced
+      ? target
+      : withTiming(target, { duration: 200, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+  }, [hidden, reduced]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ translateY: tY.value }] }));
+
   return (
-    <View style={styles.dock} pointerEvents="box-none">
+    <Animated.View style={[styles.dock, style]} pointerEvents={hidden ? 'none' : 'box-none'}>
       <View style={styles.bar}>
         <DockButton label="Describe" icon="sparkles-outline" primary onPress={() => onAction('describe')} />
         <DockButton label="Snap"     icon="camera-outline"            onPress={() => onAction('snap')} />
         <DockButton label="Voice"    icon="mic-outline"               onPress={() => onAction('voice')} />
         <DockButton label="Suggest"  icon="restaurant-outline"        onPress={() => onAction('suggest')} />
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
