@@ -8,7 +8,7 @@
 // Retry button. Spec is explicit about not dismissing the sheet on parse
 // failure (§07 dock states + §12 edge cases).
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
   Keyboard,
@@ -181,16 +181,24 @@ function PromptStage({
   parsing: boolean; error: string | null;
   onSubmit: () => void;
 }) {
+  const inputRef = useRef<TextInput>(null);
+  // Focus *after* the sheet's slide-in animation has finished. autoFocus
+  // racing the animation caused the iOS keyboard to pop mid-slide, which
+  // looked janky/choppy. 320ms = ENTER_MS (280) + a small buffer.
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 320);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <View>
       <TextInput
+        ref={inputRef}
         style={styles.input}
         value={text}
         onChangeText={setText}
         placeholder="e.g. Steel-cut oats with a scoop of whey and blueberries"
         placeholderTextColor={colors.mutedForeground}
         multiline
-        autoFocus
         accessibilityLabel="Meal description"
         // The iOS accessory bar gives users a way to dismiss the keyboard
         // without it covering the Parse button. Android's keyboard already
@@ -198,12 +206,12 @@ function PromptStage({
         inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {/* Submit lives in its own row, full-width, so it always renders below
+          the input regardless of how the multiline grows. We also surface a
+          "or close keyboard to see this button" affordance via the iOS Done
+          bar. */}
       <TouchableOpacity
-        // Stays visually prominent even when disabled — earlier opacity 0.45
-        // + flat-grey label made users miss it entirely. The label is also
-        // action-first ("Get macros") rather than the implementation-detail
-        // "Parse with Anakin".
-        style={[styles.primary, (!text.trim() || parsing) && styles.primaryDisabled]}
+        style={[styles.submitBtn, (!text.trim() || parsing) && styles.submitBtnDisabled]}
         onPress={() => { Keyboard.dismiss(); onSubmit(); }}
         disabled={!text.trim() || parsing}
         accessibilityRole="button"
@@ -212,9 +220,9 @@ function PromptStage({
         {parsing ? (
           <ActivityIndicator color={colors.primaryForeground} />
         ) : (
-          <View style={styles.primaryInner}>
-            <Text style={styles.primaryText}>Get macros</Text>
-            <Ionicons name="arrow-forward" size={16} color={colors.primaryForeground} />
+          <View style={styles.submitInner}>
+            <Text style={styles.submitText}>Get macros</Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.primaryForeground} />
           </View>
         )}
       </TouchableOpacity>
@@ -352,6 +360,22 @@ const styles = StyleSheet.create({
   primaryDisabled: { opacity: 0.7 },
   primaryInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   primaryText: { color: colors.primaryForeground, fontSize: 15, fontWeight: fontWeight.bold, letterSpacing: 0.2 },
+  // Dedicated submit (PromptStage). Bigger than the row-action `primary`
+  // button and never shares horizontal space, so it always reads as the
+  // affirmative CTA.
+  submitBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    height: 52,
+    marginTop: 14,
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 20,
+    shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  submitBtnDisabled: { opacity: 0.6 },
+  submitInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  submitText: { color: colors.primaryForeground, fontSize: 16, fontWeight: fontWeight.bold, letterSpacing: 0.2 },
   ghost: {
     height: 46,
     marginTop: 12,

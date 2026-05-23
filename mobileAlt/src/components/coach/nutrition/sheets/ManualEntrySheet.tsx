@@ -6,7 +6,7 @@
 // Spec: one of the four primary log paths in the action dock — Describe /
 // Snap / Voice / Manual. Same sheet-stack discipline as the other three.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
   Keyboard,
@@ -50,13 +50,19 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fresh state every time the sheet reopens.
+  const nameRef = useRef<TextInput>(null);
+  // Fresh state every time the sheet reopens. Focus the first field after
+  // the slide-in animation has finished (~280ms) — focusing during the
+  // animation caused the keyboard to push up mid-slide, which the user
+  // saw as choppy/laggy motion.
   useEffect(() => {
     if (visible) {
       setForm(EMPTY);
       setSlot(slotForNow());
       setError(null);
       setSaving(false);
+      const t = setTimeout(() => nameRef.current?.focus(), 320);
+      return () => clearTimeout(t);
     }
   }, [visible]);
 
@@ -104,13 +110,13 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
       dismissOnBackdrop={!saving}
     >
       <TextInput
+        ref={nameRef}
         style={styles.nameInput}
         value={form.name}
         onChangeText={(t) => setForm({ ...form, name: t })}
         placeholder="Meal name (optional)"
         placeholderTextColor={colors.mutedForeground}
         accessibilityLabel="Meal name"
-        autoFocus
         inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
 

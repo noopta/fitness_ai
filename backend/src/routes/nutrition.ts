@@ -467,12 +467,20 @@ const transcribeSchema = z.object({
 });
 
 router.post('/nutrition/transcribe', requireAuth, async (req, res) => {
+  // Log every request — without this we can't tell whether a "voice doesn't
+  // work" report is a client-never-sent issue, an nginx rejection, or a
+  // server-side Whisper failure. Logging only on catch hides the first two.
+  const userId = (req as any).user?.id ?? 'anon';
+  const bodyLen = req.body?.audioBase64?.length ?? 0;
+  const mime = req.body?.mimeType ?? '(none)';
+  console.log(`[transcribe] user=${userId} mime=${mime} base64=${bodyLen}b`);
   try {
     const data = transcribeSchema.parse(req.body);
     const text = await transcribeAudio(data.audioBase64, data.mimeType);
+    console.log(`[transcribe] ok user=${userId} text.length=${text.length}`);
     res.json({ text });
   } catch (err: any) {
-    console.error('Transcribe error:', err);
+    console.error(`[transcribe] FAILED user=${userId}:`, err?.message ?? err);
     res.status(500).json({ error: err?.message ?? 'Failed to transcribe' });
   }
 });

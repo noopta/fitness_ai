@@ -98,19 +98,50 @@ export function VoiceSheet({ visible, onClose, onTranscribed }: Props) {
 
   const stopAndTranscribe = async () => {
     setStage('transcribing');
+    setError(null);
     try {
+      console.log('[voice] stopping recorder…');
       await recorder.stop();
       const uri = recorder.uri;
-      if (!uri) throw new Error('No recording captured.');
-      // Whisper accepts the m4a that HIGH_QUALITY produces on iOS;
-      // Android also yields m4a/mp4 by default.
+      console.log('[voice] recorder.uri =', uri);
+      if (!uri) throw new Error('The recorder finished but produced no file. Try again.');
+
+      // Confirm the file actually exists and has meaningful size before
+      // base64-encoding it — earlier "doesn't do anything" reports were
+      // silent failures where the recorder closed without flushing audio.
+      const info = await FileSystemLegacy.getInfoAsync(uri);
+      console.log('[voice] file info =', info);
+      if (!info.exists) throw new Error('Recording file is missing on disk.');
+      const size = (info as any).size ?? 0;
+      if (size < 2000) {
+        throw new Error(`Recording is too short (${size} bytes). Hold the mic and speak for a couple of seconds.`);
+      }
+
+      // Derive mime from the file extension Expo wrote. iOS HIGH_QUALITY
+      // produces .m4a; Android sometimes writes .mp4 or .3gp. Sending the
+      // wrong mime makes Whisper 400 with a confusing "Invalid file
+      // format" error, so we mirror the actual extension.
+      const lower = uri.toLowerCase();
+      const mime =
+        lower.endsWith('.m4a')  ? 'audio/m4a' :
+        lower.endsWith('.mp4')  ? 'audio/mp4' :
+        lower.endsWith('.wav')  ? 'audio/wav' :
+        lower.endsWith('.webm') ? 'audio/webm' :
+        lower.endsWith('.3gp')  ? 'audio/3gpp' :
+        'audio/m4a';
+      console.log('[voice] reading file, mime =', mime, 'size =', size);
+
       const base64 = await FileSystemLegacy.readAsStringAsync(uri, {
         encoding: FileSystemLegacy.EncodingType.Base64,
       });
-      const res = await nutritionApi.transcribeAudio(base64, 'audio/m4a');
+      console.log('[voice] base64 length =', base64.length);
+      console.log('[voice] POST /nutrition/transcribe …');
+      const res = await nutritionApi.transcribeAudio(base64, mime);
+      console.log('[voice] transcribe response =', res);
+
       const text = String((res as any)?.text ?? '').trim();
       if (!text) {
-        setError("Anakin couldn't make out what you said. Try once more.");
+        setError("Anakin couldn't make out what you said. Try once more — speak a little closer to the mic.");
         setStage('idle');
         return;
       }
@@ -123,8 +154,9 @@ export function VoiceSheet({ visible, onClose, onTranscribed }: Props) {
       setStage('idle');
       onTranscribed(text);
     } catch (e: any) {
-      setError(e?.message ?? 'Could not transcribe.');
-      setStage('error');
+      console.error('[voice] transcribe failed:', e?.message ?? e);
+      setError(e?.message ?? 'Could not transcribe. Tap the mic to try again.');
+      setStage('idle');
     }
   };
 

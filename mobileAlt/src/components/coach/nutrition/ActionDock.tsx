@@ -78,7 +78,7 @@ export function ActionDock({ onAction, hidden }: Props) {
   return (
     <Animated.View style={[styles.dock, style]} pointerEvents={hidden ? 'none' : 'box-none'}>
       <View style={styles.bar}>
-        <DockButton label="Describe" icon="sparkles-outline" primary onPress={() => onAction('describe')} />
+        <DockButton label="Describe" icon="sparkles-outline" onPress={() => onAction('describe')} />
         <DockButton label="Snap"     icon="camera-outline"            onPress={() => onAction('snap')} />
         <DockButton label="Voice"    icon="mic-outline"               onPress={() => onAction('voice')} />
         <DockButton label="Manual"   icon="create-outline"            onPress={() => onAction('manual')} />
