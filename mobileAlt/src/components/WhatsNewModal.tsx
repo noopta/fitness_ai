@@ -10,7 +10,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../constants/them
 // Bump this string when shipping a new round of headline features. Users on
 // any prior version (or fresh installs) see the modal exactly once after
 // updating; users who already saw it for this version don't.
-export const WHATS_NEW_VERSION = '1.2.0';
+export const WHATS_NEW_VERSION = '1.2.1';
 const STORAGE_KEY = 'whatsNew:lastSeenVersion';
 
 interface Feature {
@@ -22,34 +22,34 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    icon: 'stats-chart',
+    icon: 'nutrition',
+    iconColor: '#22c55e',
+    title: 'Nutrition tab, reimagined',
+    body: "A cleaner day view: sticky kcal hero up top, four macro rings, your workouts and meals on one timeline. Tap any ring to see Anakin's prescription for what's left.",
+  },
+  {
+    icon: 'flame',
     iconColor: '#f97316',
-    title: 'Your Strength Profile, reimagined',
-    body: "A cleaner Strength Profile with a redesigned radar. Tap any movement to drill into the muscles inside it and see Anakin's read on what to work on.",
+    title: 'Workouts count toward your day',
+    body: "Logged workouts add their estimated calorie burn back into your daily target, so a hard session means a bigger plate. Toggle off in Settings if your plan already assumes high activity.",
   },
   {
-    icon: 'flash',
-    iconColor: '#eab308',
-    title: 'Faster, everywhere',
-    body: 'Your program, the social feed, and your Strength Profile now load noticeably faster — less waiting, more training.',
-  },
-  {
-    icon: 'refresh',
-    iconColor: '#0ea5e9',
-    title: 'Refresh research with a tap',
-    body: 'Hit the refresh button on the social feed to pull the latest peer-reviewed studies for your goals, straight from PubMed.',
-  },
-  {
-    icon: 'barbell',
-    iconColor: '#ef4444',
-    title: 'Send workouts to friends',
-    body: "Open This Week in the Coach tab, tap share on any session, and send the full workout to a friend right in chat.",
-  },
-  {
-    icon: 'bookmark',
+    icon: 'mic',
     iconColor: '#6366f1',
-    title: 'Save & share research',
-    body: 'Bookmark any research article to read later, or tap the paper-plane to send it to a friend as a rich chat preview.',
+    title: 'Voice-log a meal',
+    body: "Tap Voice in the Nutrition tab, describe what you ate, and Anakin transcribes it and pulls the macros. Same path as Describe, hands-free.",
+  },
+  {
+    icon: 'library',
+    iconColor: '#0ea5e9',
+    title: 'Way more research sources',
+    body: 'The research feed now pulls from PubMed, OpenAlex, NIH ClinicalTrials, Huberman Lab, and the top medical schools (Stanford, Harvard, Oxford, Hopkins, Mayo, Cleveland, UCSF, Yale).',
+  },
+  {
+    icon: 'create',
+    iconColor: '#ec4899',
+    title: 'Edit a logged meal',
+    body: "Tap any meal in the timeline to fix the portion or move it to a different slot. Long-press for the quick Delete shortcut.",
   },
 ];
 
