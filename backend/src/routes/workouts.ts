@@ -16,6 +16,7 @@ import { recordActivity } from '../services/streakService.js';
 import { detectAndNotifyStrengthPRs } from '../services/progressService.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
+import { estimateWorkoutCalories } from '../services/workoutCalories.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -139,6 +140,19 @@ router.post('/workouts', requireAuth, async (req, res) => {
       console.error('[workouts] normalization error on create:', err)
     );
 
+    // Estimated calorie burn for the session. Computed at log-time using the
+    // user's stored bodyweight + a MET-table-driven estimator; stored on the
+    // row so /workouts/burn-today is a cheap GROUP BY rather than a re-compute
+    // across every exercise on every request.
+    const userForEstimate = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { weightKg: true },
+    });
+    const caloriesBurnedKcal = estimateWorkoutCalories(exercises, {
+      bodyweightKg: userForEstimate?.weightKg ?? null,
+      totalDurationMinutes: duration ?? null,
+    });
+
     const log = await prisma.workoutLog.create({
       data: {
         userId: req.user!.id,
@@ -147,6 +161,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
         exercises: JSON.stringify(exercises),
         notes: notes || null,
         duration: duration || null,
+        caloriesBurnedKcal: caloriesBurnedKcal > 0 ? caloriesBurnedKcal : null,
       },
     });
 

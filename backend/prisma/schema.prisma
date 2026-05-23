@@ -64,6 +64,10 @@ model User {
   // Personalize at-risk push timing — exponentially-smoothed hour-of-day (0-23 EST)
   typicalWorkoutLogHour     Int?
   typicalNutritionLogHour   Int?
+  // Subtract workout calorie burn from the day's calorie target. Default on.
+  // Users whose nutrition plan already assumes a high activity multiplier can
+  // turn this off in Settings to avoid double-counting their training.
+  subtractWorkoutBurnFromCalories Boolean @default(true)
   // Track when we last sent each kind of streak-reinforcement notification so
   // we don't spam the user (one per kind per day max).
   lastStreakAtRiskAt        DateTime?
@@ -238,6 +242,10 @@ model WorkoutLog {
   exercises String
   notes     String?
   duration  Int?
+  // Estimated kcal burned for the session. Computed server-side at log time
+  // from exercises + the user's bodyweight (MET × kg × hours). Nullable so
+  // pre-migration rows stay valid.
+  caloriesBurnedKcal Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   user      User     @relation(fields: [userId], references: [id])

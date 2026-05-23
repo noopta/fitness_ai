@@ -47,6 +47,25 @@ export default function SettingsScreen() {
   }
   const { unit, toggleUnit } = useUnits();
 
+  // Subtract-workout-burn toggle. Default true on server side, so an
+  // explicit `false` from the API is the only way to be off.
+  const subtractBurn = user?.subtractWorkoutBurnFromCalories !== false;
+  const [togglingSubtractBurn, setTogglingSubtractBurn] = useState(false);
+
+  /** Flip the subtract-workout-burn flag server-side, then refresh user. */
+  async function toggleSubtractBurn() {
+    if (togglingSubtractBurn) return;
+    setTogglingSubtractBurn(true);
+    try {
+      await authApi.updateProfile({ subtractWorkoutBurnFromCalories: !subtractBurn });
+      await auth.refreshUser();
+    } catch (err: any) {
+      Alert.alert('Could not update preference', err?.message ?? 'Please try again.');
+    } finally {
+      setTogglingSubtractBurn(false);
+    }
+  }
+
   // Username editing
   const [editingUsername, setEditingUsername] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
@@ -370,6 +389,24 @@ export default function SettingsScreen() {
                 <Text style={[styles.unitOption, unit === 'kg' && styles.unitOptionActive]}>kg</Text>
               </TouchableOpacity>
             </View>
+            <View style={styles.rowDivider} />
+            <View style={styles.cardRow}>
+              <View style={styles.cardIconBox}>
+                <Ionicons name="flame-outline" size={18} color={colors.foreground} />
+              </View>
+              <View style={styles.cardRowText}>
+                <Text style={styles.cardRowTitle}>Subtract workout burn</Text>
+                <Text style={styles.cardRowSub}>Add today's estimated calorie burn to your daily target. Turn off if your plan already assumes a high activity multiplier.</Text>
+              </View>
+              <TouchableOpacity
+                onPress={toggleSubtractBurn}
+                style={[styles.toggleBox, subtractBurn && styles.toggleBoxOn]}
+                activeOpacity={0.8}
+                disabled={togglingSubtractBurn}
+              >
+                <View style={[styles.toggleKnob, subtractBurn && styles.toggleKnobOn]} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -686,6 +723,25 @@ const styles = StyleSheet.create({
   unitOption: { fontSize: fontSize.sm, color: colors.mutedForeground, fontWeight: fontWeight.medium },
   unitOptionActive: { color: colors.foreground, fontWeight: fontWeight.bold },
   unitSep: { fontSize: fontSize.xs, color: colors.mutedForeground },
+
+  // ── Subtract-workout-burn toggle ──────────────────────────────────────────
+  toggleBox: {
+    width: 44,
+    height: 26,
+    borderRadius: 999,
+    backgroundColor: colors.muted,
+    padding: 3,
+    justifyContent: 'center',
+  },
+  toggleBoxOn: { backgroundColor: colors.foreground },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    backgroundColor: colors.card,
+    alignSelf: 'flex-start',
+  },
+  toggleKnobOn: { alignSelf: 'flex-end' },
 
   // ── Exit survey modal ──────────────────────────────────────────────────────
   exitContainer: { flex: 1, backgroundColor: colors.background },

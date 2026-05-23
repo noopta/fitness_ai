@@ -36,6 +36,13 @@ export interface AuthUser {
   institutions?: InstitutionMembership[];
   username?: string | null;
   avatarBase64?: string | null;
+  /**
+   * Whether the daily calorie target should be adjusted down by today's
+   * estimated workout calorie burn. Default true. Off when the user's
+   * nutrition plan already assumes a high activity multiplier (otherwise
+   * we'd double-count training).
+   */
+  subtractWorkoutBurnFromCalories?: boolean;
 }
 
 interface AuthContextType {

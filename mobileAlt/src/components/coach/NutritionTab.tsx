@@ -22,7 +22,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import Svg, { Polyline, Circle, Line, Text as SvgText, Path } from 'react-native-svg';
-import { coachApi, nutritionApi } from '../../lib/api';
+import { coachApi, nutritionApi, workoutsApi } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
 import { invalidateCache } from '../../lib/cache';
 import { MealLogModal } from './MealLogModal';
 import * as ImagePicker from 'expo-image-picker';
@@ -289,6 +290,13 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
   const [todayMeals, setTodayMeals] = useState<any[]>([]);
   const [loadingMeals, setLoadingMeals] = useState(false);
 
+  // Estimated workout calorie burn for today (sum across all logged sessions).
+  // Subtracted from the calorie target when the user's
+  // subtractWorkoutBurnFromCalories preference is on.
+  const [workoutBurnKcal, setWorkoutBurnKcal] = useState<number>(0);
+  const { user: authUser } = useAuth();
+  const subtractBurn = authUser?.subtractWorkoutBurnFromCalories !== false;
+
   // Body weight logs
   const [bwLogs, setBwLogs] = useState<BodyWeightEntry[]>([]);
   const [bwLoading, setBwLoading] = useState(true);
@@ -387,6 +395,20 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
         if (mealsData) await setCache(mealCacheKey, mealsData);
       }
       setTodayMeals(mealsData?.entries ?? []);
+
+      // Today's workout calorie burn — sum caloriesBurnedKcal across all of
+      // today's logs. Cheap (the field is stored at log-time, not recomputed)
+      // and not cached locally so a freshly-logged session reflects on the
+      // next NutritionTab focus.
+      try {
+        const todayLogs = await workoutsApi.getWorkoutByDate(todayStr());
+        const burn = Array.isArray(todayLogs)
+          ? todayLogs.reduce((s: number, l: any) => s + (Number(l?.caloriesBurnedKcal) || 0), 0)
+          : 0;
+        setWorkoutBurnKcal(burn);
+      } catch {
+        setWorkoutBurnKcal(0);
+      }
 
       // Body weight logs: cache for 30 days
       let bwData: any = forceRefresh ? null : await getCached<any>(bwCacheKey, BW_CACHE_TTL_MS);
@@ -656,10 +678,15 @@ export function NutritionTab({ coachData, coachGoal, coachBudget, onRefresh, use
               </View>
               <Text style={styles.calRemaining}>
                 {targetCalories
-                  ? `${Math.max(0, Math.round(targetCalories - loggedCalories))} left`
+                  ? `${Math.max(0, Math.round(targetCalories + (subtractBurn ? workoutBurnKcal : 0) - loggedCalories))} left`
                   : ''}
               </Text>
             </View>
+            {subtractBurn && workoutBurnKcal > 0 && (
+              <Text style={styles.workoutBurnHint}>
+                +{Math.round(workoutBurnKcal)} kcal from today's workout
+              </Text>
+            )}
             <ProgressBar value={caloriePct} color={colors.primary} height={6} />
           </CardContent>
         </Card>
@@ -1166,6 +1193,12 @@ const styles = StyleSheet.create({
   calTarget: { fontSize: 18, fontWeight: fontWeight.semibold, color: colors.foreground },
   calUnit: { fontSize: fontSize.sm, color: colors.mutedForeground },
   calRemaining: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  workoutBurnHint: {
+    fontSize: 11,
+    color: colors.mutedForeground,
+    fontStyle: 'italic',
+    marginTop: -2,
+  },
 
   // Progress bar
   progressTrack: {

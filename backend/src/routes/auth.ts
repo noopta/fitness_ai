@@ -425,6 +425,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         programStartDate: true,
         username: true,
         avatarBase64: true,
+        subtractWorkoutBurnFromCalories: true,
         institutionMemberships: {
           where: { active: true },
           include: {
@@ -468,6 +469,10 @@ const profileSchema = z.object({
   coachBudget: z.string().max(100).optional(),
   coachOnboardingDone: z.boolean().optional(),
   coachProfile: z.string().optional(), // JSON stringified full interview answers
+  // Subtract estimated workout calorie burn from the daily calorie display.
+  // Default true; off for users whose nutrition plan already assumes a high
+  // activity multiplier.
+  subtractWorkoutBurnFromCalories: z.boolean().optional(),
 });
 
 router.put('/auth/profile', requireAuth, async (req, res) => {
@@ -484,6 +489,7 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
         heightCm: true, weightKg: true, trainingAge: true,
         equipment: true, constraintsText: true,
         coachGoal: true, coachBudget: true, coachOnboardingDone: true, coachProfile: true, savedProgram: true,
+        subtractWorkoutBurnFromCalories: true,
       }
     });
     res.json({ user });

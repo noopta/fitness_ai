@@ -102,6 +102,7 @@ export const authApi = {
     coachBudget?: string;
     coachOnboardingDone?: boolean;
     coachProfile?: string;
+    subtractWorkoutBurnFromCalories?: boolean;
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),
 
   registerPushToken: (token: string) =>

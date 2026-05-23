@@ -844,6 +844,18 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       }
     }
 
+    // Sum any workout calorie burn already logged today. Mobile NutritionTab
+    // subtracts this from the day's kcal-left display when the user has
+    // subtractWorkoutBurnFromCalories enabled.
+    const todaysLogs = await prisma.workoutLog.findMany({
+      where: { userId: req.user!.id, date: dateKey },
+      select: { caloriesBurnedKcal: true },
+    });
+    const caloriesBurnedKcalToday = todaysLogs.reduce(
+      (sum, l) => sum + (l.caloriesBurnedKcal ?? 0),
+      0,
+    );
+
     const todayResult = {
       todaySession: isRestDay ? null : todaySession,
       isRestDay,
@@ -853,6 +865,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       tips,
       nextTrainingDay,
       programGoal: program.goal,
+      caloriesBurnedKcalToday,
     };
     // Cache until the next EST day (use noon UTC of tomorrow EST to avoid timezone bleed)
     const tomorrowEST = new Date(getESTDateString() + 'T12:00:00Z');

@@ -1,5 +1,10 @@
 import OpenAI from 'openai';
 import { PrismaClient } from '@prisma/client';
+import { fetchOpenAlex } from './feed/openalex.js';
+import { fetchClinicalTrials } from './feed/clinicalTrials.js';
+import { fetchPubMedCentral } from './feed/pubmedCentral.js';
+import { fetchHubermanLab } from './feed/huberman.js';
+import { fetchAllUniversityFeeds } from './feed/universityRss.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const prisma = new PrismaClient();
@@ -319,13 +324,57 @@ export async function runDailyFeedFetch(): Promise<void> {
     }
   }
 
-  // RSS feeds
+  // PubMed Central (free full-text NIH-funded) — 3 per tag, same E-utilities
+  // host so the rate-limit pacing applies.
+  for (const tag of tags) {
+    try {
+      await fetchPubMedCentral(tag, 3);
+      await new Promise(r => setTimeout(r, 400));
+    } catch (e) {
+      console.error(`[feedService] PMC error for tag ${tag}:`, e);
+    }
+  }
+
+  // OpenAlex (broad academic graph, ~Google Scholar coverage) — 4 per tag.
+  for (const tag of tags) {
+    try {
+      await fetchOpenAlex(tag, 4);
+    } catch (e) {
+      console.error(`[feedService] OpenAlex error for tag ${tag}:`, e);
+    }
+  }
+
+  // ClinicalTrials.gov — 3 per tag.
+  for (const tag of tags) {
+    try {
+      await fetchClinicalTrials(tag, 3);
+    } catch (e) {
+      console.error(`[feedService] ClinicalTrials error for tag ${tag}:`, e);
+    }
+  }
+
+  // RSS feeds (Harvard Health blog, NIH News in Health — existing)
   for (const feed of RSS_FEEDS) {
     try {
       await fetchRSS(feed.url, feed.source);
     } catch (e) {
       console.error(`[feedService] RSS error for ${feed.source}:`, e);
     }
+  }
+
+  // Top-tier university medicine feeds (Stanford, Harvard Chan, Oxford,
+  // Hopkins, Mayo, Cleveland, UCSF, Yale). Each failure is local.
+  try {
+    await fetchAllUniversityFeeds();
+  } catch (e) {
+    console.error('[feedService] University feeds error:', e);
+  }
+
+  // Huberman Lab podcast.
+  try {
+    await fetchHubermanLab(6);
+  } catch (e) {
+    console.error('[feedService] Huberman Lab error:', e);
   }
 
   console.log('[feedService] Daily fetch complete.');
@@ -525,7 +574,13 @@ async function fetchPubMedParallel(tag: FeedTag, maxResults = 3): Promise<void> 
 async function fetchOnDemandForUser(userId: string, tags: FeedTag[]): Promise<void> {
   const target = tags.slice(0, 2); // cap latency — 2 tags is plenty for pull-to-refresh
   if (target.length === 0) return;
-  await Promise.allSettled(target.map(tag => fetchPubMedParallel(tag, 3)));
+  // Pull PubMed + OpenAlex in parallel. OpenAlex covers the journals PubMed
+  // doesn't (sports science, exercise physiology, sociology of health) so a
+  // user-triggered refresh actually surfaces variety, not just biomedical.
+  await Promise.allSettled([
+    ...target.map(tag => fetchPubMedParallel(tag, 3)),
+    ...target.map(tag => fetchOpenAlex(tag, 3)),
+  ]);
   invalidateResearchCache(userId);
 }
 
