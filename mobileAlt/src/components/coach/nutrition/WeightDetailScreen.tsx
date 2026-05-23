@@ -152,9 +152,15 @@ function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
   const { width } = useWindowDimensions();
   const W = width - 32;
   const H = 160;
-  const PAD = 16;
+  // Asymmetric padding: leave room on the left for y-axis labels and on the
+  // bottom for x-axis date labels.
+  const PAD_T = 12;
+  const PAD_B = 22;
+  const PAD_L = 36;
+  const PAD_R = 12;
+  const totalH = H + PAD_T + PAD_B;
   if (entries.length === 0) {
-    return <View style={[styles.chartCard, { height: H + PAD * 2 }]}>
+    return <View style={[styles.chartCard, { height: totalH }]}>
       <Text style={styles.emptyText}>Log a few entries to see your trend.</Text>
     </View>;
   }
@@ -162,26 +168,53 @@ function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
   const min = Math.min(...values) - 1;
   const max = Math.max(...values) + 1;
   const range = max - min || 1;
-  const dx = entries.length > 1 ? (W - PAD * 2) / (entries.length - 1) : 0;
+  const innerW = W - PAD_L - PAD_R;
+  const dx = entries.length > 1 ? innerW / (entries.length - 1) : 0;
 
   const points = values
     .map((v, i) => {
-      const x = PAD + i * dx;
-      const y = PAD + (1 - (v - min) / range) * H;
+      const x = PAD_L + i * dx;
+      const y = PAD_T + (1 - (v - min) / range) * H;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(' ');
 
-  const lastX = PAD + (entries.length - 1) * dx;
-  const lastY = PAD + (1 - (values[values.length - 1] - min) / range) * H;
+  const lastX = PAD_L + (entries.length - 1) * dx;
+  const lastY = PAD_T + (1 - (values[values.length - 1] - min) / range) * H;
+
+  // 5 y-axis ticks (top → bottom). Plot coords have y=0 at top, so tick `p`
+  // (0 = top = max, 1 = bottom = min).
+  const yTicks = [0, 0.25, 0.5, 0.75, 1];
+
+  // 4 x-axis ticks (first, ⅓, ⅔, last) — keeps labels from overlapping on
+  // narrow screens. Always include first + last when entries.length >= 2.
+  const xTickIdx = entries.length === 1
+    ? [0]
+    : entries.length <= 4
+      ? entries.map((_, i) => i)
+      : [0, Math.round((entries.length - 1) / 3), Math.round(((entries.length - 1) * 2) / 3), entries.length - 1];
 
   return (
-    <View style={[styles.chartCard, { width: W, height: H + PAD * 2 }]}>
-      <Svg width={W} height={H + PAD * 2}>
-        {/* Horizontal grid lines at min/mid/max */}
-        {[0, 0.5, 1].map((p) => {
-          const y = PAD + p * H;
-          return <Line key={p} x1={PAD} y1={y} x2={W - PAD} y2={y} stroke={colors.border} strokeWidth={1} />;
+    <View style={[styles.chartCard, { width: W, height: totalH }]}>
+      <Svg width={W} height={totalH}>
+        {/* Horizontal grid lines + y-axis labels */}
+        {yTicks.map((p) => {
+          const y = PAD_T + p * H;
+          const value = max - p * range; // p=0 → max, p=1 → min
+          return (
+            <React.Fragment key={p}>
+              <Line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke={colors.border} strokeWidth={1} />
+              <SvgText
+                x={PAD_L - 4}
+                y={y + 3}
+                fontSize={9}
+                fill={colors.mutedForeground}
+                textAnchor="end"
+              >
+                {value.toFixed(1)}
+              </SvgText>
+            </React.Fragment>
+          );
         })}
         <Polyline
           points={points}
@@ -192,9 +225,26 @@ function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
           strokeLinecap="round"
         />
         <Circle cx={lastX} cy={lastY} r={4} fill={colors.foreground} />
-        {/* Axis labels */}
-        <SvgText x={PAD} y={PAD - 2} fontSize={9} fill={colors.mutedForeground}>{max.toFixed(1)}</SvgText>
-        <SvgText x={PAD} y={H + PAD + 10} fontSize={9} fill={colors.mutedForeground}>{min.toFixed(1)}</SvgText>
+        {/* X-axis date labels */}
+        {xTickIdx.map((i, n) => {
+          const x = PAD_L + i * dx;
+          const label = formatAxisDate(entries[i]?.date);
+          // Anchor first label to start, last to end, middles centred — keeps
+          // labels from overflowing the chart on either edge.
+          const anchor = n === 0 ? 'start' : n === xTickIdx.length - 1 ? 'end' : 'middle';
+          return (
+            <SvgText
+              key={`x-${i}`}
+              x={x}
+              y={PAD_T + H + 14}
+              fontSize={9}
+              fill={colors.mutedForeground}
+              textAnchor={anchor}
+            >
+              {label}
+            </SvgText>
+          );
+        })}
       </Svg>
     </View>
   );
@@ -252,6 +302,18 @@ function linearSlope(series: BodyWeightEntry[]): number {
 }
 
 function formatEntryDate(d: string): string {
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch {
+    return d;
+  }
+}
+
+// Short axis label, e.g. "Mar 3". Falls back gracefully if `d` is undefined
+// (can happen when entries is sparse in the x-tick index slice).
+function formatAxisDate(d?: string): string {
+  if (!d) return '';
   try {
     const dt = new Date(d);
     return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

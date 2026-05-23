@@ -293,13 +293,17 @@ function Cell({ label, value, onChange }: { label: string; value: number; onChan
 
 const styles = StyleSheet.create({
   captureRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  // Tiles are sized by height (not aspect ratio) so they always fit inside the
+  // sheet on small phones (e.g. iPhone SE / mini) — earlier `aspectRatio: 1.1`
+  // produced ~180pt-tall tiles that got clipped above the home indicator.
   tile: {
-    flex: 1, aspectRatio: 1.1,
+    flex: 1, height: 110,
     borderRadius: 14,
     borderWidth: 1, borderColor: colors.border,
     backgroundColor: colors.muted,
     alignItems: 'center', justifyContent: 'center',
     gap: 8,
+    paddingHorizontal: 8,
   },
   tileLabel: { fontSize: 13, fontWeight: fontWeight.semibold, color: colors.foreground },
   analyzingBox: { alignItems: 'center', paddingVertical: 28, gap: 10 },

@@ -1940,16 +1940,19 @@ export async function transcribeAudio(
   const buf = Buffer.from(audioBase64, 'base64');
   if (buf.length === 0) throw new Error('Empty audio payload');
   if (buf.length > 25 * 1024 * 1024) throw new Error('Audio too large (25 MB max)');
+  // Whisper rejects audio under ~0.1s; defend against accidentally-uploaded
+  // empty buffers so the user gets a friendly message instead of a 400.
+  if (buf.length < 1024) throw new Error('Recording too short — try a few more seconds.');
 
-  // Whisper's HTTP API expects an actual File-like with a name; Node 20+
-  // ships a global File class that the OpenAI SDK accepts. Synthesize a
-  // filename with the right extension so the server-side decoder picks
-  // the right codec.
+  // openai.toFile() is the canonical cross-runtime helper; works on Node
+  // 18+ regardless of whether the global File is present. Earlier code
+  // used `new File()` which threw "File is not defined" on the EC2 Node
+  // 18 runtime.
   const ext = mimeType.includes('mp4')  || mimeType.includes('m4a')  ? 'm4a'
             : mimeType.includes('mpeg') || mimeType.includes('mp3')  ? 'mp3'
             : mimeType.includes('webm')                              ? 'webm'
             : 'wav';
-  const file = new File([new Uint8Array(buf)], `voice.${ext}`, { type: mimeType });
+  const file = await openaiToFile(buf, `voice.${ext}`, { type: mimeType });
 
   const res = await openai.audio.transcriptions.create({
     file,
@@ -1958,8 +1961,15 @@ export async function transcribeAudio(
     // English. Switch to auto-detect if/when we localise.
     language: 'en',
   });
-  return (res.text ?? '').trim();
+  const text = (res.text ?? '').trim();
+  if (!text) throw new Error("Couldn't make out any words. Try again somewhere quieter.");
+  return text;
 }
+
+// Lazy-import openai's toFile so the helper stays available even if the SDK
+// rearranges its public surface. We import it as a named export from the
+// same SDK we already use everywhere else.
+import { toFile as openaiToFile } from 'openai';
 
 
 // ─── Meal Photo Analysis (Gemini Vision) ──────────────────────────────────────

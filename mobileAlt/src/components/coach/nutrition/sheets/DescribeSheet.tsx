@@ -11,11 +11,13 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { nutritionApi } from '../../../../lib/api';
 import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../../ui/KeyboardDoneBar';
 import { slotForNow, todayStr, type MealSlotApi } from './sheetHelpers';
 
 interface Props {
@@ -178,11 +180,15 @@ function PromptStage({
         multiline
         autoFocus
         accessibilityLabel="Meal description"
+        // The iOS accessory bar gives users a way to dismiss the keyboard
+        // without it covering the Parse button. Android's keyboard already
+        // has a Done/Enter key so the bar no-ops there.
+        inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <TouchableOpacity
         style={[styles.primary, (!text.trim() || parsing) && styles.primaryDisabled]}
-        onPress={onSubmit}
+        onPress={() => { Keyboard.dismiss(); onSubmit(); }}
         disabled={!text.trim() || parsing}
         accessibilityRole="button"
         accessibilityLabel="Parse meal"
@@ -193,6 +199,7 @@ function PromptStage({
           <Text style={styles.primaryText}>Parse with Anakin</Text>
         )}
       </TouchableOpacity>
+      <KeyboardDoneBar />
     </View>
   );
 }
@@ -229,6 +236,7 @@ function ReviewStage({
         placeholder="Meal name"
         placeholderTextColor={colors.mutedForeground}
         accessibilityLabel="Meal name"
+        inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
 
       <View style={styles.macroGrid}>
@@ -289,6 +297,7 @@ function MacroInput({
         onChangeText={onChange}
         keyboardType="decimal-pad"
         accessibilityLabel={`${label} value`}
+        inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
     </View>
   );
@@ -302,7 +311,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     color: colors.foreground,
-    minHeight: 88,
+    // Shorter than the v1 88pt height so the Parse button stays on-screen
+    // when the keyboard pushes the sheet up. Users can still grow it via
+    // the multiline input itself.
+    minHeight: 64,
+    maxHeight: 120,
     textAlignVertical: 'top',
   },
   primary: {
