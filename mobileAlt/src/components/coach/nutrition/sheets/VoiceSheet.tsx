@@ -114,9 +114,14 @@ export function VoiceSheet({ visible, onClose, onTranscribed }: Props) {
         setStage('idle');
         return;
       }
-      onTranscribed(text);
-      onClose();
+      // Hand the transcript to the parent — it sets openSheet='describe'
+      // with the prefill. Do NOT also call onClose() here: the parent's
+      // openSheet union state means the next sheet open implicitly closes
+      // this one, and calling onClose() right after would race the parent's
+      // state update and stomp openSheet back to null (which is the original
+      // "voice flow never reaches Describe" bug).
       setStage('idle');
+      onTranscribed(text);
     } catch (e: any) {
       setError(e?.message ?? 'Could not transcribe.');
       setStage('error');

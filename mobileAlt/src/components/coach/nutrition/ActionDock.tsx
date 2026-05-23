@@ -1,11 +1,12 @@
-// Floating action dock — 4 buttons (Describe / Snap / Voice / Suggest) above
+// Floating action dock — 4 buttons (Describe / Snap / Voice / Manual) above
 // the bottom tab bar. Spec: handoff §06.
 //
-// v1 scope: dock is always visible (no hide-on-scroll yet) and only the
-// Describe button is wired to a real flow (the existing MealLogModal).
-// Snap / Voice / Suggest fire onComingSoon so the parent can show a toast.
-// Keyboard avoidance is handled at the screen level — when an inspector
-// input is focused the dock hides via a hidden prop.
+// Slot four is "Manual" entry — direct macro entry that skips the LLM
+// parser. Replaced the v1 "Suggest" slot because suggested meals were
+// noisy in user testing and people who already knew their numbers wanted
+// a fast typed-entry path. Keyboard avoidance is handled at the screen
+// level — when an inspector input is focused the dock hides via a hidden
+// prop.
 
 import React, { useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
@@ -19,7 +20,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { fontWeight } from '../../../constants/theme';
 
-export type DockAction = 'describe' | 'snap' | 'voice' | 'suggest';
+export type DockAction = 'describe' | 'snap' | 'voice' | 'manual';
 
 interface Props {
   onAction: (action: DockAction) => void;
@@ -80,7 +81,7 @@ export function ActionDock({ onAction, hidden }: Props) {
         <DockButton label="Describe" icon="sparkles-outline" primary onPress={() => onAction('describe')} />
         <DockButton label="Snap"     icon="camera-outline"            onPress={() => onAction('snap')} />
         <DockButton label="Voice"    icon="mic-outline"               onPress={() => onAction('voice')} />
-        <DockButton label="Suggest"  icon="restaurant-outline"        onPress={() => onAction('suggest')} />
+        <DockButton label="Manual"   icon="create-outline"            onPress={() => onAction('manual')} />
       </View>
     </Animated.View>
   );

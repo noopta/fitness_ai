@@ -13,6 +13,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
   Keyboard,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { nutritionApi } from '../../../../lib/api';
 import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
@@ -53,12 +54,21 @@ export function DescribeSheet({ visible, onClose, onLogged, initialText }: Props
 
   // When the sheet opens with an initialText (typically from VoiceSheet's
   // transcript), pre-fill the input. Only seeded on visibility-true so a
-  // stale prop doesn't blow over the user's in-progress edit.
+  // stale prop doesn't blow over the user's in-progress edit. We also
+  // auto-submit the transcript so the user lands directly on the review
+  // screen — the whole point of voice-logging is to skip typing, asking
+  // them to also tap a Parse button feels redundant.
   useEffect(() => {
     if (visible && initialText && initialText.trim()) {
       setText(initialText);
       setStage('prompt');
+      // Defer to next tick so state propagates before submit reads `text`.
+      const t = initialText.trim();
+      setTimeout(() => { submitWith(t); }, 0);
     }
+    // submitWith is stable inside the closure; deps lint disabled to avoid
+    // re-running when `text` state changes during prompt edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, initialText]);
 
   const reset = () => {
@@ -72,17 +82,18 @@ export function DescribeSheet({ visible, onClose, onLogged, initialText }: Props
     onClose();
   };
 
-  const submit = async () => {
-    if (!text.trim()) return;
+  const submitWith = async (raw: string) => {
+    const value = raw.trim();
+    if (!value) return;
     setParsing(true);
     setParseError(null);
     try {
-      const res = await nutritionApi.parseMeal(text.trim());
+      const res = await nutritionApi.parseMeal(value);
       // Backend returns { name, calories, proteinG, carbsG, fatG, ... } or
       // sometimes nests under .meal — defensive on both.
       const meal = (res as any)?.meal ?? res;
       const next: ParsedMeal = {
-        name: String(meal?.name ?? text.trim()),
+        name: String(meal?.name ?? value),
         calories: Number(meal?.calories) || 0,
         proteinG: Number(meal?.proteinG) || 0,
         carbsG:   Number(meal?.carbsG)   || 0,
@@ -96,6 +107,7 @@ export function DescribeSheet({ visible, onClose, onLogged, initialText }: Props
       setParsing(false);
     }
   };
+  const submit = () => submitWith(text);
 
   const log = async () => {
     if (!parsed) return;
@@ -187,16 +199,23 @@ function PromptStage({
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <TouchableOpacity
+        // Stays visually prominent even when disabled — earlier opacity 0.45
+        // + flat-grey label made users miss it entirely. The label is also
+        // action-first ("Get macros") rather than the implementation-detail
+        // "Parse with Anakin".
         style={[styles.primary, (!text.trim() || parsing) && styles.primaryDisabled]}
         onPress={() => { Keyboard.dismiss(); onSubmit(); }}
         disabled={!text.trim() || parsing}
         accessibilityRole="button"
-        accessibilityLabel="Parse meal"
+        accessibilityLabel="Get macros for this meal"
       >
         {parsing ? (
           <ActivityIndicator color={colors.primaryForeground} />
         ) : (
-          <Text style={styles.primaryText}>Parse with Anakin</Text>
+          <View style={styles.primaryInner}>
+            <Text style={styles.primaryText}>Get macros</Text>
+            <Ionicons name="arrow-forward" size={16} color={colors.primaryForeground} />
+          </View>
         )}
       </TouchableOpacity>
       <KeyboardDoneBar />
@@ -328,8 +347,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flex: 1,
   },
-  primaryDisabled: { opacity: 0.45 },
-  primaryText: { color: colors.primaryForeground, fontSize: 14, fontWeight: fontWeight.bold },
+  // Keep the button readable when disabled — earlier opacity 0.45 made the
+  // label vanish into the grey background on iOS dark mode.
+  primaryDisabled: { opacity: 0.7 },
+  primaryInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  primaryText: { color: colors.primaryForeground, fontSize: 15, fontWeight: fontWeight.bold, letterSpacing: 0.2 },
   ghost: {
     height: 46,
     marginTop: 12,

@@ -1,6 +1,6 @@
 // NutritionScreen — root layout of the rebuilt Nutrition tab (v17b).
 // Composes StickyHeader → Inspector → DayTimeline → ActionDock + the
-// purpose-built bottom sheets (Describe / Snap / Voice / Suggest /
+// purpose-built bottom sheets (Describe / Snap / Voice / Manual /
 // MealEdit) and the WeightDetailScreen push.
 //
 // Data sources are unchanged from the pre-v17b stack — chassis swap, not
@@ -31,7 +31,7 @@ import type { MacroKey, MacroState } from './MacroRing';
 import { DescribeSheet } from './sheets/DescribeSheet';
 import { SnapSheet } from './sheets/SnapSheet';
 import { VoiceSheet } from './sheets/VoiceSheet';
-import { SuggestSheet } from './sheets/SuggestSheet';
+import { ManualEntrySheet } from './sheets/ManualEntrySheet';
 import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
 import { WeightDetailScreen } from './WeightDetailScreen';
 
@@ -154,7 +154,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // Spec §10 calls for one-sheet-at-a-time. We collapse all five into a
   // single union state so opening a new sheet automatically dismisses the
   // others.
-  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'suggest' | 'edit';
+  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit';
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
@@ -388,7 +388,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   }, [handleDeleteMeal]);
 
   // Tap a logged meal → MealEditSheet (replaces the v1 stop-gap that just
-  // opened the generic log modal). Ghost slots still route through Suggest.
+  // opened the generic log modal). Ghost slots now route through Manual.
   const handleMealPress = useCallback((m: LoggedMeal) => {
     setEditingMeal({
       id: m.id,
@@ -402,7 +402,10 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     setOpenSheet('edit');
   }, []);
 
-  const handleGhostPress = useCallback(() => setOpenSheet('suggest'), []);
+  // Ghost-slot taps land on Manual entry now (the Suggest sheet was removed
+  // — see ActionDock comment). Users still see suggested kcal budgets in
+  // the ghost row; tapping just opens a clean manual form.
+  const handleGhostPress = useCallback(() => setOpenSheet('manual'), []);
 
   const handleLogWeight = useCallback(async (lb: number) => {
     try {
@@ -489,16 +492,10 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
           setOpenSheet('describe');
         }}
       />
-      <SuggestSheet
-        visible={openSheet === 'suggest'}
+      <ManualEntrySheet
+        visible={openSheet === 'manual'}
         onClose={() => setOpenSheet(null)}
         onLogged={handleMealLogged}
-        remaining={{
-          kcal:    Math.max(0, remainingKcal),
-          protein: Math.max(0, (targetProtein ?? 0) - used.p),
-          carbs:   Math.max(0, (targetCarbs   ?? 0) - used.c),
-          fat:     Math.max(0, (targetFat     ?? 0) - used.f),
-        }}
       />
       <MealEditSheet
         visible={openSheet === 'edit'}
