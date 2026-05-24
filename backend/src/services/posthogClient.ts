@@ -6,8 +6,12 @@
 import { PostHog } from 'posthog-node';
 
 type AnyArgs = any[];
+// Mirror the surface of posthog-node we actually call from the app. Keep
+// it loose (any-args) so new SDK methods don't require a stub update; we
+// only care about the *shape* matching what callers expect.
 interface PostHogLike {
   capture: (...args: AnyArgs) => any;
+  captureException: (...args: AnyArgs) => any;
   identify: (...args: AnyArgs) => any;
   alias: (...args: AnyArgs) => any;
   groupIdentify: (...args: AnyArgs) => any;
@@ -17,7 +21,7 @@ interface PostHogLike {
 function createStub(): PostHogLike {
   const noop = () => {};
   return {
-    capture: noop, identify: noop, alias: noop,
+    capture: noop, captureException: noop, identify: noop, alias: noop,
     groupIdentify: noop, shutdown: async () => {},
   };
 }
