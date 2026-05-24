@@ -1,3 +1,23 @@
+// Sentry MUST be imported and init'd before any other code so it can capture
+// crashes during the rest of the JS bundle's initialization. DSN comes from
+// EXPO_PUBLIC_SENTRY_DSN — Expo only exposes env vars to the client when
+// they start with EXPO_PUBLIC_. Without a DSN the SDK is a no-op.
+import * as Sentry from '@sentry/react-native';
+
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    environment: __DEV__ ? 'development' : 'production',
+    // Trace 10% of navigations — same budget as the backend, enough for
+    // the auto-fix loop to reproduce without flooding the project quota.
+    tracesSampleRate: 0.1,
+    // Strip PII unless explicitly attached. Names/emails get added via
+    // Sentry.setUser() once the user is logged in.
+    sendDefaultPii: false,
+  });
+}
+
 import { useEffect, useRef, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -114,7 +134,7 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <PostHogProvider client={posthog} autocapture>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -132,3 +152,8 @@ export default function RootLayout() {
     </PostHogProvider>
   );
 }
+
+// Sentry.wrap installs the JS error boundary that catches render-time
+// errors anywhere in the tree. Without the wrap, only JS errors thrown
+// outside React's render flow get reported.
+export default Sentry.wrap(RootLayout);

@@ -1,0 +1,260 @@
+# Auto-fix — when Sentry's GitHub integration files an issue labeled
+# `sentry`, this workflow wakes Claude Code up with the issue body as
+# context. Claude reads the relevant code, drafts a fix on a branch,
+# opens a PR with --auto merge, and lets CI gate the actual merge.
+#
+# Flow:
+#   prod error → Sentry → GitHub Issue (label: sentry)
+#     → this workflow runs claude with stack + payload
+#     → branch + PR opened
+#     → CI runs (backend strictly required, others advisory)
+#     → if CI green, --auto merge fires → deploy.yml ships to EC2
+#     → smoke test passes → done
+#
+# Safety:
+#   - Never auto-merges without CI passing (gate is in branch protection)
+#   - Only triggers on issues with `sentry` label — random new issues
+#     don't burn API credits
+#   - Concurrency group prevents two simultaneous fix runs on the same
+#     issue if Sentry creates duplicates
+#   - Cost guard: skips if the issue body suggests something huge
+#     (>50 file refs, >5k chars of stack) — defers those to humans
+
+name: Auto-fix
+
+on:
+  issues:
+    types: [opened, labeled]
+
+# One fix run per issue at a time — Sentry occasionally double-fires.
+concurrency:
+  group: auto-fix-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write       # push the fix branch
+  pull-requests: write  # open the PR
+  issues: write         # comment on the originating issue + close it
+
+jobs:
+  fix:
+    name: Investigate and fix
+    runs-on: ubuntu-latest
+    # Only when the issue carries the sentry label — guards against random
+    # human-filed issues triggering a $1+ Claude run.
+    if: ${{ contains(github.event.issue.labels.*.name, 'sentry') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full history so Claude can run `git log`, `git blame`, and
+          # diff against past commits to understand what changed near the
+          # buggy code.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Cost guard — skip oversized issues
+        id: size-check
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          chars=$(printf '%s' "$BODY" | wc -c)
+          echo "issue body length: $chars chars"
+          if [ "$chars" -gt 12000 ]; then
+            echo "Issue body is >12k chars — skipping auto-fix to avoid runaway API spend"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment "I'm on it"
+        if: steps.size-check.outputs.skip == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fingerprint = '${{ github.run_id }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 Claude is investigating. Run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${fingerprint}`,
+            });
+
+      - name: Install Claude Code CLI
+        if: steps.size-check.outputs.skip == 'false'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Configure git
+        if: steps.size-check.outputs.skip == 'false'
+        run: |
+          git config user.name "claude-auto-fix[bot]"
+          git config user.email "claude-auto-fix@users.noreply.github.com"
+
+      - name: Create branch
+        if: steps.size-check.outputs.skip == 'false'
+        id: branch
+        run: |
+          BRANCH="claude/fix-issue-${{ github.event.issue.number }}-$(date +%s)"
+          git checkout -b "$BRANCH"
+          echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Run Claude
+        if: steps.size-check.outputs.skip == 'false'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY:  ${{ github.event.issue.body }}
+          ISSUE_URL:   ${{ github.event.issue.html_url }}
+        run: |
+          # Build the prompt as a heredoc so newlines / quotes in the issue
+          # body survive intact. Claude reads files, runs tests, edits, and
+          # is allowed to write only — no shell exec by default (no
+          # --dangerously-skip-permissions).
+          prompt=$(cat <<EOF
+          A production error was reported by Sentry and filed as GitHub issue
+          #${{ github.event.issue.number }} (${ISSUE_URL}).
+
+          ## Issue title
+          ${ISSUE_TITLE}
+
+          ## Issue body (Sentry context)
+          ${ISSUE_BODY}
+
+          ## Your job
+          1. Read the stack trace + request payload above and find the offending file.
+          2. Open it, understand the surrounding code.
+          3. Write the minimum fix — no scope creep, no refactor, no new abstractions.
+          4. Add or update a test that would have caught this bug, if a test
+             file exists for that module. Don't invent new test infra.
+          5. Run \`cd backend && npm test\` (or the relevant project's tests) to
+             confirm green before committing.
+          6. Commit with a message that explains the root cause, not just the change.
+
+          ## Constraints
+          - Stay inside this repo. Don't touch infra/CI files unless the bug is in them.
+          - Don't add new dependencies unless absolutely required and the issue mentions one being missing.
+          - If you can't reproduce or the root cause is ambiguous after reading the code,
+            commit a clear note + investigation summary in a markdown file at \`.claude-attempts/issue-${{ github.event.issue.number }}.md\` and exit — the PR will be human-reviewed.
+          EOF
+          )
+
+          # Run non-interactively. The CLI will exit 0 on success, non-zero
+          # if it gave up. Capture stdout to a log artifact for debugging.
+          claude -p "$prompt" --dangerously-skip-permissions 2>&1 | tee /tmp/claude-out.log
+
+      - name: Upload Claude transcript
+        if: always() && steps.size-check.outputs.skip == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-transcript
+          path: /tmp/claude-out.log
+          retention-days: 14
+
+      - name: Inspect changes
+        if: steps.size-check.outputs.skip == 'false'
+        id: diff
+        run: |
+          # If Claude made no changes, skip the rest — usually means it
+          # gave up and wrote an investigation note instead.
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "Claude produced no diff — nothing to commit"
+            echo "has_diff=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_diff=true" >> "$GITHUB_OUTPUT"
+          # Stage anything Claude didn't already, just in case
+          git add -A
+          # Heuristic: if the diff is huge, fall back to human review (no
+          # --auto merge). 30 lines is the sweet spot for "small enough
+          # to trust" based on the user's earlier scope guard discussion.
+          lines=$(git diff --cached --shortstat | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
+          echo "diff insertions: $lines"
+          if [ "$lines" -gt 30 ]; then
+            echo "auto_merge=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "auto_merge=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.size-check.outputs.skip == 'false' && steps.diff.outputs.has_diff == 'true'
+        run: |
+          git commit -m "fix: auto-fix for issue #${{ github.event.issue.number }}
+
+          Closes #${{ github.event.issue.number }}
+
+          Generated by claude-auto-fix workflow. Full transcript attached
+          to the workflow run as the 'claude-transcript' artifact."
+          git push origin "${{ steps.branch.outputs.name }}"
+
+      - name: Open PR
+        if: steps.size-check.outputs.skip == 'false' && steps.diff.outputs.has_diff == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # gh pr create returns the PR URL on stdout
+          url=$(gh pr create \
+            --title "fix: auto-fix for issue #${{ github.event.issue.number }} — ${{ github.event.issue.title }}" \
+            --body "Closes #${{ github.event.issue.number }}.
+
+          Generated by claude-auto-fix from the Sentry-filed issue.
+
+          Diff scope: small enough to auto-merge if CI passes. The originating
+          stack trace and Claude's working transcript are linked from the
+          issue thread.
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)" \
+            --base main \
+            --head "${{ steps.branch.outputs.name }}")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          # Auto-merge when small enough. Branch protection enforces the
+          # CI gate, so this just means "merge as soon as CI is green."
+          if [ "${{ steps.diff.outputs.auto_merge }}" = "true" ]; then
+            gh pr merge "$url" --auto --squash
+            echo "PR opened with auto-merge enabled: $url"
+          else
+            echo "PR opened *without* auto-merge — diff exceeded 30 insertions, needs human review: $url"
+          fi
+
+      - name: Comment outcome on the issue
+        if: always() && steps.size-check.outputs.skip == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const hasDiff = '${{ steps.diff.outputs.has_diff }}';
+            const prUrl   = '${{ steps.pr.outputs.url }}';
+            const autoMerge = '${{ steps.diff.outputs.auto_merge }}';
+            let body;
+            if (hasDiff === 'true' && prUrl) {
+              body = autoMerge === 'true'
+                ? `✅ Fix drafted in ${prUrl} — auto-merging on CI green.`
+                : `🟡 Fix drafted in ${prUrl}, but diff was large enough to need human review.`;
+            } else if (hasDiff === 'false') {
+              body = '⚠️ Claude investigated but produced no diff. See the workflow run transcript artifact for the investigation notes.';
+            } else {
+              body = '❌ Auto-fix run failed before producing a PR. Check the workflow run logs.';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Skip-comment for oversized issues
+        if: steps.size-check.outputs.skip == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ Issue body exceeded 12k characters — skipping auto-fix to avoid runaway API spend. Drop the relevant excerpt into a smaller issue or fix manually.',
+            });

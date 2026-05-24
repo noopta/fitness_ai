@@ -1,3 +1,10 @@
+// MUST be first — Sentry auto-instruments imports it observes after init.
+// dotenv.config() in this file populates process.env, but instrument.ts
+// reads SENTRY_DSN at module-load time, so we load env vars before this
+// import by side-effect — see instrument.ts header for why this is OK.
+import 'dotenv/config';
+import './instrument.js';
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -93,6 +100,11 @@ app.use('/api', affiliatesRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', institutionsRoutes);
 app.use('/api', activityRoutes);
+
+// Sentry error handler — MUST come before our own error middleware, but
+// after all routes. The SDK marks the response as handled even though
+// our middleware below still owns the actual response body.
+Sentry.setupExpressErrorHandler(app);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
