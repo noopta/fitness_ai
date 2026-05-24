@@ -66,14 +66,26 @@ describe('POST /api/auth/register', () => {
     app = await buildApp();
   });
 
+  // Targeted reset on the per-prisma-method mocks (not vi.clearAllMocks /
+  // resetAllMocks): clearAllMocks doesn't drain queued
+  // mockResolvedValueOnce implementations (which previously leaked stale
+  // returns into the login suite), and resetAllMocks would wipe the
+  // PrismaClient constructor mock and break every subsequent test.
   afterEach(() => {
-    vi.clearAllMocks();
+    prismaUserMock.findUnique.mockReset();
+    prismaUserMock.create.mockReset();
+    prismaUserMock.update.mockReset();
   });
+
+  // Helper — every register request must carry a valid dateOfBirth now
+  // (registerSchema added it). Tests that don't care about DOB use this
+  // default; tests covering DOB validation override per-call.
+  const VALID_DOB = '1995-01-01';
 
   it('returns 400 when required fields are missing', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'bad' }); // missing name, password
+      .send({ email: 'bad' }); // missing name, password, dob
     expect(res.status).toBe(400);
   });
 
@@ -82,7 +94,7 @@ describe('POST /api/auth/register', () => {
 
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'Test', email: 'test@example.com', password: 'password123' });
+      .send({ name: 'Test', email: 'test@example.com', password: 'password123', dateOfBirth: VALID_DOB });
     expect(res.status).toBe(409);
     expect(res.body.error).toMatch(/already in use/i);
   });
@@ -97,7 +109,7 @@ describe('POST /api/auth/register', () => {
 
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'New User', email: 'new@example.com', password: 'password123' });
+      .send({ name: 'New User', email: 'new@example.com', password: 'password123', dateOfBirth: VALID_DOB });
 
     expect(res.status).toBe(200);
     expect(res.body.user).toBeDefined();
@@ -110,14 +122,14 @@ describe('POST /api/auth/register', () => {
   it('returns 400 for invalid email format', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'Test', email: 'not-an-email', password: 'password123' });
+      .send({ name: 'Test', email: 'not-an-email', password: 'password123', dateOfBirth: VALID_DOB });
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when password is shorter than 8 characters', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'Test', email: 'test@example.com', password: 'short' });
+      .send({ name: 'Test', email: 'test@example.com', password: 'short', dateOfBirth: VALID_DOB });
     expect(res.status).toBe(400);
   });
 });

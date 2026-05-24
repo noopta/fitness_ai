@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // build the mocks inside and re-export references for the test body to use.
 vi.mock('@prisma/client', () => {
   const feedItem = { findMany: vi.fn() };
-  const userFeedView = { findMany: vi.fn(), createMany: vi.fn(), create: vi.fn() };
+  const userFeedView = { findMany: vi.fn(), createMany: vi.fn(), create: vi.fn(), upsert: vi.fn() };
   const PrismaClient = vi.fn(function (this: any) {
     this.feedItem = feedItem;
     this.userFeedView = userFeedView;
@@ -38,6 +38,7 @@ beforeEach(() => {
   userFeedViewMock.findMany.mockReset();
   userFeedViewMock.createMany.mockReset();
   userFeedViewMock.create.mockReset();
+  userFeedViewMock.upsert.mockReset();
   invalidateResearchCache();
 });
 
@@ -65,9 +66,11 @@ describe('getFeedItemsForTags', () => {
       makeItem('b', ['strength']),
       makeItem('c', ['strength']),
     ]);
+    // Service reads viewedAt.getTime() for the rotation ordering — supply
+     // real Dates or it'll throw "Cannot read getTime of undefined".
     userFeedViewMock.findMany.mockResolvedValue([
-      { feedItemId: 'a' },
-      { feedItemId: 'b' },
+      { feedItemId: 'a', viewedAt: new Date() },
+      { feedItemId: 'b', viewedAt: new Date() },
     ]);
 
     const result = await getFeedItemsForTags(['strength'], 10, {
@@ -82,9 +85,11 @@ describe('getFeedItemsForTags', () => {
       makeItem('a', ['strength']),
       makeItem('b', ['strength']),
     ]);
+    // Service reads viewedAt.getTime() for the rotation ordering — supply
+     // real Dates or it'll throw "Cannot read getTime of undefined".
     userFeedViewMock.findMany.mockResolvedValue([
-      { feedItemId: 'a' },
-      { feedItemId: 'b' },
+      { feedItemId: 'a', viewedAt: new Date() },
+      { feedItemId: 'b', viewedAt: new Date() },
     ]);
 
     const result = await getFeedItemsForTags(['strength'], 5, {
@@ -99,7 +104,7 @@ describe('getFeedItemsForTags', () => {
     feedItemMock.findMany.mockResolvedValue([
       makeItem('a', ['strength']),
     ]);
-    userFeedViewMock.findMany.mockResolvedValue([{ feedItemId: 'a' }]);
+    userFeedViewMock.findMany.mockResolvedValue([{ feedItemId: 'a', viewedAt: new Date() }]);
 
     const result = await getFeedItemsForTags(['strength'], 10, {
       excludeSeenForUserId: 'user_1',
@@ -110,27 +115,30 @@ describe('getFeedItemsForTags', () => {
 });
 
 describe('recordFeedViews', () => {
-  it('uses createMany for batch inserts', async () => {
-    userFeedViewMock.createMany.mockResolvedValue({ count: 2 });
+  it('upserts a row per feed item so re-views refresh viewedAt', async () => {
+    userFeedViewMock.upsert.mockResolvedValue({});
     await recordFeedViews('user_1', ['a', 'b']);
-    expect(userFeedViewMock.createMany).toHaveBeenCalledWith({
-      data: [
-        { userId: 'user_1', feedItemId: 'a' },
-        { userId: 'user_1', feedItemId: 'b' },
-      ],
-    });
+    expect(userFeedViewMock.upsert).toHaveBeenCalledTimes(2);
+    // First call shape — relies on the composite unique key in schema.prisma.
+    const firstArgs = userFeedViewMock.upsert.mock.calls[0][0];
+    expect(firstArgs.where).toEqual({ userId_feedItemId: { userId: 'user_1', feedItemId: 'a' } });
+    expect(firstArgs.create.userId).toBe('user_1');
+    expect(firstArgs.create.feedItemId).toBe('a');
+    expect(firstArgs.update.viewedAt).toBeInstanceOf(Date);
   });
 
-  it('falls back to per-item create when createMany rejects (e.g. SQLite duplicate)', async () => {
-    userFeedViewMock.createMany.mockRejectedValue(new Error('unique violation'));
-    userFeedViewMock.create.mockResolvedValue({});
-    await recordFeedViews('user_1', ['a', 'b']);
-    expect(userFeedViewMock.create).toHaveBeenCalledTimes(2);
+  it('swallows per-row failures so one bad write does not sink the batch', async () => {
+    userFeedViewMock.upsert
+      .mockRejectedValueOnce(new Error('transient'))
+      .mockResolvedValue({});
+    // Should NOT throw even though the first upsert rejected.
+    await expect(recordFeedViews('user_1', ['a', 'b'])).resolves.toBeUndefined();
+    expect(userFeedViewMock.upsert).toHaveBeenCalledTimes(2);
   });
 
   it('no-ops on empty input', async () => {
     await recordFeedViews('user_1', []);
-    expect(userFeedViewMock.createMany).not.toHaveBeenCalled();
+    expect(userFeedViewMock.upsert).not.toHaveBeenCalled();
   });
 });
 
