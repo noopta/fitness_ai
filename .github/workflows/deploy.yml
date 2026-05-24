@@ -1,0 +1,89 @@
+# Deploy — SSHes to the EC2 backend and runs scripts/deploy.sh whenever
+# main is updated AND the CI workflow has gone green on that commit.
+#
+# This is the second half of the auto-merge loop. The CI workflow gates
+# what's allowed to land on main; this workflow ships whatever does. The
+# combination is "merged code is deployed code" — there's no manual step
+# between them.
+#
+# Secrets used:
+#   DEPLOY_SSH_HOST       — public IP or hostname of the EC2 box
+#   DEPLOY_SSH_USER       — typically "ubuntu" (matches /home/ubuntu/)
+#   DEPLOY_SSH_PRIVATE_KEY — full PEM of the ed25519 private key, including
+#                            the BEGIN/END lines. Public half goes into
+#                            ~/.ssh/authorized_keys on the box.
+#
+# Safety:
+#   - Workflow only runs after `CI` succeeds on the same SHA. If CI fails,
+#     nothing deploys.
+#   - StrictHostKeyChecking is intentionally relaxed (BatchMode=yes,
+#     no host key file) because GitHub Actions runners are ephemeral; if
+#     you want to harden this, switch to DEPLOY_SSH_KNOWN_HOSTS secret and
+#     a populated known_hosts file.
+
+name: Deploy
+
+on:
+  # Only trigger when CI completes successfully on main. Direct-push to
+  # main is rare (we go through PRs), but if it does happen, we still
+  # want CI to gate the deploy.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+# Serialize deploys — never two at the same time on the same box.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH → EC2 → scripts/deploy.sh
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Show what triggered this run
+        run: |
+          echo "Triggered by CI run: ${{ github.event.workflow_run.html_url }}"
+          echo "Commit: ${{ github.event.workflow_run.head_sha }}"
+
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # No known_hosts pin — see file header. Re-add later for hardening.
+          cat >> ~/.ssh/config <<EOF
+          Host deploy-target
+            HostName ${{ secrets.DEPLOY_SSH_HOST }}
+            User ${{ secrets.DEPLOY_SSH_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            BatchMode yes
+            ServerAliveInterval 30
+          EOF
+
+      - name: Run deploy script on EC2
+        # Stream stdout/stderr from the remote script back into the Action
+        # log so failures are visible without SSHing in.
+        run: ssh deploy-target 'bash -lc "/home/ubuntu/fitness_ai_repo/scripts/deploy.sh"'
+
+      - name: Post-deploy health check
+        # If the script's own smoke check passed we're already good, but
+        # also verify the service is reachable through nginx from the
+        # public internet — catches "process started, port wrong" issues.
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://api.airthreads.ai:4009/health || true)
+            if [ "$code" = "200" ]; then
+              echo "✓ /health returned 200 on attempt $i"
+              exit 0
+            fi
+            echo "Attempt $i — /health returned $code, retrying…"
+            sleep 4
+          done
+          echo "ERROR: /health never returned 200 after restart"
+          exit 1
