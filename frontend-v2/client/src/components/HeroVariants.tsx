@@ -33,14 +33,20 @@ function PhoneMockup({
 }
 
 interface HeroContent {
-  badges: { icon: string; text: string }[];
+  // Readonly so callers can pass `as const` HERO_COPY literals without TS
+  // complaining about covariance — HeroVariant4 only reads the array, it
+  // never mutates.
+  badges: readonly { icon: string; text: string }[];
   title: string;
   titleMuted: string;
   subtitle: string;
 }
 
 interface CTAContent {
-  user: { name?: string; email?: string } | null;
+  // Accept both null and undefined on name/email — the AuthUser shape uses
+  // `string | null` (matches the DB), but other callers pass `string |
+  // undefined`. Either is renderable.
+  user: { name?: string | null; email?: string | null } | null;
   children: React.ReactNode;
 }
 

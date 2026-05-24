@@ -212,8 +212,11 @@ function PreviewSection() {
     }),
   };
 
-  const spring = { type: "spring", stiffness: 300, damping: 30 };
-  const easeFade = { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] };
+  // framer-motion v11 tightened types: `type` must be the literal "spring"
+  // (not widened to string), and `ease` must be a tuple of 4 numbers (not
+  // a number[]). `as const` keeps both narrow.
+  const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
+  const easeFade = { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const };
 
   return (
     <section className="pb-16 sm:pb-24" data-testid="section-preview">
@@ -282,7 +285,7 @@ function PreviewSection() {
                     className="flex items-center gap-3 mb-3"
                     initial={{ opacity: 0, y: -12, filter: "blur(4px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0 }}
+                    transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const, delay: 0 }}
                   >
                     <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                       {current.step}
@@ -296,7 +299,7 @@ function PreviewSection() {
                     data-testid="text-preview-active-title"
                     initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0.07 }}
+                    transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const, delay: 0.07 }}
                   >
                     {current.title}
                   </motion.h3>
@@ -305,7 +308,7 @@ function PreviewSection() {
                     data-testid="text-preview-active-desc"
                     initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0.14 }}
+                    transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const, delay: 0.14 }}
                   >
                     {current.description}
                   </motion.p>
@@ -315,7 +318,7 @@ function PreviewSection() {
                   className="mt-6 flex items-center gap-2"
                   initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1], delay: 0.35 }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const, delay: 0.35 }}
                 >
                   <Button
                     variant="outline"
@@ -354,13 +357,13 @@ function PreviewSection() {
                   x: 0,
                   scale: 1,
                   filter: "blur(0px)",
-                  transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1], delay: 0.18 },
+                  transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] as const, delay: 0.18 },
                 }}
                 exit={{
                   opacity: 0,
                   scale: 0.98,
                   filter: "blur(4px)",
-                  transition: { duration: 0.15, ease: [0.25, 0.1, 0.25, 1], delay: 0 },
+                  transition: { duration: 0.15, ease: [0.25, 0.1, 0.25, 1] as const, delay: 0 },
                 }}
               />
             </AnimatePresence>
@@ -611,7 +614,7 @@ export default function Signup() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] as const }}
           >
             <HeroVariant4
               content={{
