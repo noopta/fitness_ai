@@ -158,26 +158,6 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
-  // When VoiceSheet hands off a transcript, we open DescribeSheet pre-filled
-  // with it. Cleared once consumed so a later Describe-button tap starts clean.
-  const [voicePrefill, setVoicePrefill] = useState<string | null>(null);
-
-  // Voice → Describe is a *staged* handoff: VoiceSheet must fully animate
-  // out and unmount its native Modal before DescribeSheet's Modal mounts.
-  // Mounting two RN <Modal>s in the same frame freezes the iOS app — it
-  // can only present one modal at a time, and the second one's "present"
-  // call waits forever on the first's dismissal that we just cancelled by
-  // switching React state out from under it. We close voice first (set
-  // openSheet=null), then in a separate render tick open describe.
-  useEffect(() => {
-    if (voicePrefill && openSheet === null) {
-      // 320ms = EXIT_MS (220) + a small buffer for the Modal to actually
-      // unmount. Tested empirically; anything below 250 still occasionally
-      // races on slower devices.
-      const t = setTimeout(() => setOpenSheet('describe'), 320);
-      return () => clearTimeout(t);
-    }
-  }, [voicePrefill, openSheet]);
 
   // ── Targets from the saved program ───────────────────────────────────────
   const nutritionPlan = useMemo(() => {
@@ -492,9 +472,8 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
           so setting a new value automatically dismisses the others. */}
       <DescribeSheet
         visible={openSheet === 'describe'}
-        onClose={() => { setOpenSheet(null); setVoicePrefill(null); }}
+        onClose={() => setOpenSheet(null)}
         onLogged={handleMealLogged}
-        initialText={voicePrefill}
       />
       <SnapSheet
         visible={openSheet === 'snap'}
@@ -504,15 +483,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       <VoiceSheet
         visible={openSheet === 'voice'}
         onClose={() => setOpenSheet(null)}
-        onTranscribed={(text) => {
-          // Stash the transcript, close voice. The useEffect on
-          // voicePrefill/openSheet schedules describe to open after the
-          // voice Modal has unmounted — see comment above. Skipping this
-          // staging causes iOS to freeze the entire UI because two Modals
-          // cannot be presented simultaneously.
-          setVoicePrefill(text);
-          setOpenSheet(null);
-        }}
+        onLogged={handleMealLogged}
       />
       <ManualEntrySheet
         visible={openSheet === 'manual'}

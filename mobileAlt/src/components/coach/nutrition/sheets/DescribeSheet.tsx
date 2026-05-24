@@ -26,12 +26,6 @@ interface Props {
   onClose: () => void;
   /** Refresh the timeline after a successful log. */
   onLogged: () => void | Promise<void>;
-  /**
-   * Pre-fill the description input. Used when VoiceSheet hands off a
-   * transcript — we want the user to land in the prompt stage with the
-   * text already there, ready to edit + submit.
-   */
-  initialText?: string | null;
 }
 
 interface ParsedMeal {
@@ -44,32 +38,13 @@ interface ParsedMeal {
 
 type Stage = 'prompt' | 'review' | 'saving';
 
-export function DescribeSheet({ visible, onClose, onLogged, initialText }: Props) {
+export function DescribeSheet({ visible, onClose, onLogged }: Props) {
   const [stage, setStage] = useState<Stage>('prompt');
   const [text, setText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsedMeal | null>(null);
   const [slot, setSlot] = useState<MealSlotApi>(slotForNow());
-
-  // When the sheet opens with an initialText (typically from VoiceSheet's
-  // transcript), pre-fill the input. Only seeded on visibility-true so a
-  // stale prop doesn't blow over the user's in-progress edit. We also
-  // auto-submit the transcript so the user lands directly on the review
-  // screen — the whole point of voice-logging is to skip typing, asking
-  // them to also tap a Parse button feels redundant.
-  useEffect(() => {
-    if (visible && initialText && initialText.trim()) {
-      setText(initialText);
-      setStage('prompt');
-      // Defer to next tick so state propagates before submit reads `text`.
-      const t = initialText.trim();
-      setTimeout(() => { submitWith(t); }, 0);
-    }
-    // submitWith is stable inside the closure; deps lint disabled to avoid
-    // re-running when `text` state changes during prompt edits.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, initialText]);
 
   const reset = () => {
     setStage('prompt'); setText(''); setParsing(false); setParseError(null); setParsed(null);
