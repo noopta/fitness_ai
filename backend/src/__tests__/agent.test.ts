@@ -10,9 +10,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mocks = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
   mealEntry: { findMany: vi.fn(), create: vi.fn() },
-  bodyWeightLog: { findMany: vi.fn() },
-  wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn() },
-  workoutLog: { findMany: vi.fn() },
+  bodyWeightLog: { findMany: vi.fn(), create: vi.fn() },
+  wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn() },
+  workoutLog: { findMany: vi.fn(), create: vi.fn() },
+  session: { findFirst: vi.fn() },
+  feedItem: { findMany: vi.fn() },
   agentMemory: { findUnique: vi.fn(), upsert: vi.fn() },
   agentConversation: { findUnique: vi.fn(), upsert: vi.fn() },
 }));
@@ -111,6 +113,55 @@ describe('tool registry', () => {
     const out: any = await TOOLS_BY_NAME.read_body_weight_trend.execute({ days: 30 }, USER);
     expect(out.latestLbs).toBe(191);
     expect(out.trendLbsPerWeek).toBeLessThan(0); // trending down
+  });
+
+  it('log_body_weight rejects non-positive weight', async () => {
+    await expect(TOOLS_BY_NAME.log_body_weight.execute({ weightLbs: 0 }, USER)).rejects.toThrow();
+  });
+
+  it('log_body_weight creates a row', async () => {
+    mocks.bodyWeightLog.create.mockImplementation(async ({ data }: any) => ({ id: 'bw1', ...data }));
+    const out: any = await TOOLS_BY_NAME.log_body_weight.execute({ weightLbs: 185.5 }, USER);
+    expect(out.logged.weightLbs).toBe(185.5);
+  });
+
+  it('log_wellness clamps 1-5 fields', async () => {
+    mocks.wellnessCheckin.create.mockImplementation(async ({ data }: any) => ({ id: 'w1', ...data }));
+    const out: any = await TOOLS_BY_NAME.log_wellness.execute(
+      { mood: 9, energy: 0, stress: 3, sleepHours: 7.5 }, USER,
+    );
+    expect(out.logged.mood).toBe(5);   // clamped down from 9
+    expect(out.logged.energy).toBe(1); // clamped up from 0
+    expect(out.logged.sleepHours).toBe(7.5);
+  });
+
+  it('log_workout stores exercises', async () => {
+    mocks.workoutLog.create.mockImplementation(async ({ data }: any) => ({ id: 'wk1', ...data }));
+    const out: any = await TOOLS_BY_NAME.log_workout.execute(
+      { title: 'Push', exercises: 'bench 3x5, ohp 3x8', durationMin: 50 }, USER,
+    );
+    expect(out.logged.title).toBe('Push');
+    expect(out.logged.duration).toBe(50);
+  });
+
+  it('read_latest_diagnostic returns the most recent session + plan', async () => {
+    mocks.session.findFirst.mockResolvedValue({
+      selectedLift: 'bench', goal: 'strength', createdAt: new Date(),
+      plans: [{ planText: 'Triceps are your limiter. Add close-grip.' }],
+    });
+    const out: any = await TOOLS_BY_NAME.read_latest_diagnostic.execute({}, USER);
+    expect(out.found).toBe(true);
+    expect(out.lift).toBe('bench');
+    expect(out.planText).toContain('Triceps');
+  });
+
+  it('query_research returns matching feed items', async () => {
+    mocks.feedItem.findMany.mockResolvedValue([
+      { title: 'Creatine timing', summary: 'No meaningful difference.', source: 'PubMed', url: 'http://x' },
+    ]);
+    const out: any = await TOOLS_BY_NAME.query_research.execute({ query: 'creatine' }, USER);
+    expect(out.count).toBe(1);
+    expect(out.results[0].source).toBe('PubMed');
   });
 });
 

@@ -203,6 +203,147 @@ const logMeal: AgentTool = {
   },
 };
 
+const logBodyWeight: AgentTool = {
+  name: 'log_body_weight',
+  description:
+    "Log the user's body weight for a day (lbs). Use when they tell you their current weight. Confirm what you logged.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      weightLbs: { type: 'number', description: 'Body weight in pounds.' },
+      date: { type: 'string', description: 'YYYY-MM-DD. Omit for today.' },
+    },
+    required: ['weightLbs'],
+  },
+  execute: async (input, userId) => {
+    const weightLbs = Number(input.weightLbs);
+    if (!Number.isFinite(weightLbs) || weightLbs <= 0) throw new Error('weightLbs must be a positive number');
+    const date = (input.date as string) || todayStr();
+    const entry = await prisma.bodyWeightLog.create({
+      data: { userId, date, weightLbs },
+      select: { id: true, date: true, weightLbs: true },
+    });
+    return { logged: entry };
+  },
+};
+
+const logWorkout: AgentTool = {
+  name: 'log_workout',
+  description:
+    "Log a completed workout. Provide a title and a list of exercises (free-form text or a short list). Use when the user describes a session they did. Confirm what you logged.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      title: { type: 'string', description: 'Short session title, e.g. "Push day".' },
+      exercises: { type: 'string', description: 'Exercises performed — free text or a short list.' },
+      durationMin: { type: 'number', description: 'Duration in minutes, if known.' },
+      date: { type: 'string', description: 'YYYY-MM-DD. Omit for today.' },
+    },
+    required: ['exercises'],
+  },
+  execute: async (input, userId) => {
+    const date = (input.date as string) || todayStr();
+    const entry = await prisma.workoutLog.create({
+      data: {
+        userId, date,
+        title: (input.title as string) || 'Workout',
+        exercises: String(input.exercises ?? ''),
+        duration: input.durationMin != null ? Number(input.durationMin) : null,
+      },
+      select: { id: true, date: true, title: true, duration: true },
+    });
+    return { logged: entry };
+  },
+};
+
+const logWellness: AgentTool = {
+  name: 'log_wellness',
+  description:
+    "Log a wellness check-in: mood, energy, stress (each 1-5) and sleep hours. Use when the user reports how they're feeling/sleeping. Confirm what you logged.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      mood: { type: 'number', description: '1-5' },
+      energy: { type: 'number', description: '1-5' },
+      stress: { type: 'number', description: '1-5' },
+      sleepHours: { type: 'number' },
+      date: { type: 'string', description: 'YYYY-MM-DD. Omit for today.' },
+    },
+    required: ['mood', 'energy', 'stress', 'sleepHours'],
+  },
+  execute: async (input, userId) => {
+    const clamp = (v: unknown) => Math.max(1, Math.min(5, Math.round(Number(v) || 0)));
+    const date = (input.date as string) || todayStr();
+    const entry = await prisma.wellnessCheckin.create({
+      data: {
+        userId, date,
+        mood: clamp(input.mood), energy: clamp(input.energy), stress: clamp(input.stress),
+        sleepHours: Math.max(0, Number(input.sleepHours) || 0),
+      },
+      select: { id: true, date: true, mood: true, energy: true, stress: true, sleepHours: true },
+    });
+    return { logged: entry };
+  },
+};
+
+const readLatestDiagnostic: AgentTool = {
+  name: 'read_latest_diagnostic',
+  description:
+    "Read the user's most recent lift diagnostic — which lift, the goal, and the generated plan/analysis text. Call this when advising on programming, accessories, or what's limiting a lift. This reflects the deterministic diagnostic engine's output; don't re-derive it yourself.",
+  input_schema: { type: 'object', properties: {} },
+  execute: async (_input, userId) => {
+    const session = await prisma.session.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    });
+    if (!session) return { found: false };
+    const plan = session.plans[0];
+    return {
+      found: true,
+      lift: session.selectedLift,
+      goal: session.goal,
+      createdAt: session.createdAt,
+      // planText can be long; cap so a giant plan doesn't blow the turn's budget.
+      planText: plan?.planText ? String(plan.planText).slice(0, 4000) : null,
+    };
+  },
+};
+
+const queryResearch: AgentTool = {
+  name: 'query_research',
+  description:
+    "Search the curated research/article feed (PubMed, NIH, top medical schools, Huberman Lab) for a topic and return a few relevant summaries with sources. Use to ground a claim in evidence or answer 'what does the research say about X'.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'Topic or keywords, e.g. "creatine timing".' },
+      limit: { type: 'number', description: 'Max results. Default 3.' },
+    },
+    required: ['query'],
+  },
+  execute: async (input, _userId) => {
+    const q = String(input.query ?? '').trim();
+    const limit = Math.max(1, Math.min(8, Number(input.limit) || 3));
+    if (!q) return { results: [] };
+    // Simple keyword match against title/summary/tags. The feed is small
+    // enough that a contains-filter is fine; swap for FTS if it grows.
+    const items = await prisma.feedItem.findMany({
+      where: {
+        OR: [
+          { title: { contains: q } },
+          { summary: { contains: q } },
+          { tags: { contains: q.toLowerCase() } },
+        ],
+      },
+      orderBy: { fetchedAt: 'desc' },
+      take: limit,
+      select: { title: true, summary: true, source: true, url: true },
+    });
+    return { query: q, count: items.length, results: items };
+  },
+};
+
 const remember: AgentTool = {
   name: 'remember',
   description:
@@ -223,12 +364,19 @@ const remember: AgentTool = {
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS: AgentTool[] = [
+  // Reads
   readProfile,
   readNutritionToday,
   readBodyWeightTrend,
   readRecentWorkouts,
   readWellness,
+  readLatestDiagnostic,
+  queryResearch,
+  // Writes
   logMeal,
+  logBodyWeight,
+  logWorkout,
+  logWellness,
   remember,
 ];
 
