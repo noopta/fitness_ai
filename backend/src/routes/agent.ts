@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { runAgentTurn } from '../agent/loop.js';
 import { readMemory } from '../agent/memory.js';
+import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
 import type Anthropic from '@anthropic-ai/sdk';
 
 const router = Router();
@@ -26,24 +27,27 @@ router.use('/coach/agent', (req, res, next) => {
 
 const turnSchema = z.object({
   message: z.string().min(1).max(4000),
-  // Optional prior turns, client-supplied, in Anthropic message format. For
-  // v1 the client can keep it simple and omit this (stateless single-turn);
-  // Phase 2 wires real server-side conversation persistence.
-  history: z
-    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.any() }))
-    .optional(),
+  // History is server-managed by default (Phase 2). Pass resetConversation
+  // to start a fresh thread (e.g. a "new chat" button).
+  resetConversation: z.boolean().optional(),
 });
 
-// POST /api/coach/agent — one agent turn.
+// POST /api/coach/agent — one agent turn. Conversation history is loaded +
+// persisted server-side so multi-turn continuity works without the client
+// tracking it.
 router.post('/coach/agent', requireAuth, async (req, res) => {
   try {
-    const { message, history } = turnSchema.parse(req.body);
+    const { message, resetConversation } = turnSchema.parse(req.body);
     const userId = req.user!.id;
-    const result = await runAgentTurn(
-      userId,
-      message,
-      (history as Anthropic.MessageParam[]) ?? [],
-    );
+
+    if (resetConversation) await clearConversation(userId);
+    const history: Anthropic.MessageParam[] = await loadConversation(userId);
+
+    const result = await runAgentTurn(userId, message, history);
+
+    // Persist the text transcript for next turn's continuity.
+    await appendTurn(userId, message, result.reply);
+
     res.json(result);
   } catch (err: any) {
     if (err?.name === 'ZodError') {

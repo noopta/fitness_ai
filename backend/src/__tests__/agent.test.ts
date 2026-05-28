@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn() },
   workoutLog: { findMany: vi.fn() },
   agentMemory: { findUnique: vi.fn(), upsert: vi.fn() },
+  agentConversation: { findUnique: vi.fn(), upsert: vi.fn() },
 }));
 vi.mock('@prisma/client', () => {
   const PrismaClient = vi.fn(function (this: any) {
@@ -34,6 +35,7 @@ import { runAgentTurn } from '../agent/loop.js';
 import { assembleContext, renderContext } from '../agent/context.js';
 import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
 import { readMemory, appendMemory } from '../agent/memory.js';
+import { loadConversation, appendTurn } from '../agent/conversation.js';
 
 const USER = 'user_test_1';
 
@@ -52,6 +54,8 @@ beforeEach(() => {
   mocks.workoutLog.findMany.mockResolvedValue([]);
   mocks.agentMemory.findUnique.mockResolvedValue(null);
   mocks.agentMemory.upsert.mockResolvedValue({});
+  mocks.agentConversation.findUnique.mockResolvedValue(null);
+  mocks.agentConversation.upsert.mockResolvedValue({});
 });
 
 // ─── Tool registry ────────────────────────────────────────────────────────────
@@ -148,6 +152,39 @@ describe('memory store', () => {
     await appendMemory(USER, 'targeting 405 deadlift'); // dup — should not double
     const notes = await readMemory(USER);
     expect(notes).toEqual(['targeting 405 deadlift']);
+  });
+});
+
+// ─── Conversation persistence ─────────────────────────────────────────────────
+describe('conversation persistence', () => {
+  it('loads empty history as []', async () => {
+    expect(await loadConversation(USER)).toEqual([]);
+  });
+
+  it('round-trips text turns and maps to Anthropic message shape', async () => {
+    let stored = '[]';
+    mocks.agentConversation.findUnique.mockImplementation(async () => ({ messagesJson: stored }));
+    mocks.agentConversation.upsert.mockImplementation(async ({ create, update }: any) => {
+      stored = update?.messagesJson ?? create?.messagesJson; return {};
+    });
+    await appendTurn(USER, 'how much protein left?', 'About 60g.');
+    const history = await loadConversation(USER);
+    expect(history).toEqual([
+      { role: 'user', content: 'how much protein left?' },
+      { role: 'assistant', content: 'About 60g.' },
+    ]);
+  });
+
+  it('trims to the most recent window', async () => {
+    // Pre-load 30 messages; appendTurn should cap at 24.
+    const big = Array.from({ length: 30 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', text: `m${i}` }));
+    let stored = JSON.stringify(big);
+    mocks.agentConversation.findUnique.mockImplementation(async () => ({ messagesJson: stored }));
+    mocks.agentConversation.upsert.mockImplementation(async ({ update }: any) => { stored = update.messagesJson; return {}; });
+    await appendTurn(USER, 'newU', 'newA');
+    const parsed = JSON.parse(stored);
+    expect(parsed.length).toBe(24);
+    expect(parsed[parsed.length - 1]).toEqual({ role: 'assistant', text: 'newA' });
   });
 });
 

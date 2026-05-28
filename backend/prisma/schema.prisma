@@ -98,6 +98,7 @@ model User {
   feedViews                UserFeedView[]
   savedArticles            SavedArticle[]
   agentMemory              AgentMemory?
+  agentConversation        AgentConversation?
   referredByCode           String?
   // Institution
   institutionMemberships   InstitutionMember[]
@@ -523,4 +524,16 @@ model AgentMemory {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Rolling per-user agent conversation (text transcript only — tool round-
+// trips are ephemeral per turn). Gives the agent multi-turn continuity
+// without the client managing history. Trimmed to a recent window in code.
+model AgentConversation {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  messagesJson String   @default("[]")
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
