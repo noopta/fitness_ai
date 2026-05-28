@@ -193,3 +193,95 @@ export async function runAgentTurn(
     iterations,
   };
 }
+
+// ─── Streaming variant ────────────────────────────────────────────────────────
+
+export type AgentStreamEvent =
+  | { type: 'status'; phase: 'thinking' | 'tool'; tool?: string }
+  | { type: 'delta'; text: string }
+  | { type: 'done'; reply: string; toolsUsed: string[]; iterations: number }
+  | { type: 'error'; error: string };
+
+/**
+ * Streaming version of a coach turn. Emits events as the loop runs:
+ *  - status (thinking / calling a tool)
+ *  - delta  (text tokens of the assistant's reply, as they generate)
+ *  - done   (final reply + telemetry)
+ *  - error
+ * The route turns these into Server-Sent Events. Built for the chat surface
+ * where 5-20s of silence would feel broken — the web client already expects
+ * a token stream (it uses /coach/chat/stream today).
+ */
+export async function streamAgentTurn(
+  userId: string,
+  userMessage: string,
+  onEvent: (e: AgentStreamEvent) => void,
+  history: Anthropic.MessageParam[] = [],
+  injectClient?: Pick<Anthropic, 'messages'>,
+): Promise<AgentTurnResult> {
+  const anthropic = injectClient ?? getClient();
+  const ctx = await assembleContext(userId);
+  const system = `${SYSTEM_PROMPT}\n\n${renderContext(ctx)}`;
+  const tools = [...AGENT_TOOLS];
+  const toolDefs = tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
+  const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
+
+  const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: userMessage }];
+  const toolsUsed: string[] = [];
+  let iterations = 0;
+  let finalText = '';
+
+  while (iterations < MAX_ITERATIONS) {
+    iterations++;
+    onEvent({ type: 'status', phase: 'thinking' });
+
+    // Stream this model call; forward text deltas live.
+    const stream = anthropic.messages.stream({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      system,
+      tools: toolDefs as Anthropic.Tool[],
+      messages,
+    });
+    stream.on('text', (delta: string) => {
+      finalText += delta;
+      onEvent({ type: 'delta', text: delta });
+    });
+    const res = await stream.finalMessage();
+    messages.push({ role: 'assistant', content: res.content });
+
+    if (res.stop_reason !== 'tool_use') {
+      const reply = res.content
+        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+        .map((b) => b.text).join('').trim() || finalText.trim() || '(no reply)';
+      onEvent({ type: 'done', reply, toolsUsed, iterations });
+      return { reply, toolsUsed, iterations };
+    }
+
+    // Reset accumulated text — intermediate "thinking" text before a tool
+    // call isn't the final answer.
+    finalText = '';
+    const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    for (const block of res.content) {
+      if (block.type !== 'tool_use') continue;
+      toolsUsed.push(block.name);
+      onEvent({ type: 'status', phase: 'tool', tool: block.name });
+      const tool = byName[block.name];
+      if (!tool) {
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Unknown tool: ${block.name}`, is_error: true });
+        continue;
+      }
+      try {
+        const result = await tool.execute(block.input as Record<string, unknown>, userId);
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) });
+      } catch (err: any) {
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Error: ${err?.message ?? String(err)}`, is_error: true });
+      }
+    }
+    messages.push({ role: 'user', content: toolResults });
+  }
+
+  const reply = "I ran out of steps working through that. Could you narrow the question a bit?";
+  onEvent({ type: 'done', reply, toolsUsed, iterations });
+  return { reply, toolsUsed, iterations };
+}

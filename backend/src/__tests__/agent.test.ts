@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ─── Mock Prisma (constructor form per CLAUDE.md — arrow fns break `this`) ──
 // vi.hoisted so the mock object exists when the hoisted vi.mock factory runs.
 const mocks = vi.hoisted(() => ({
-  user: { findUnique: vi.fn(), findMany: vi.fn() },
+  user: { findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() },
   mealEntry: { findMany: vi.fn(), create: vi.fn() },
   bodyWeightLog: { findMany: vi.fn(), create: vi.fn() },
   wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn() },
@@ -41,6 +41,8 @@ import { loadConversation, appendTurn } from '../agent/conversation.js';
 import { evaluateProactiveTrigger } from '../agent/proactive.js';
 import { runProactiveSweep } from '../agent/proactiveSweep.js';
 import { runAgentTask, AGENT_TASKS } from '../agent/tasks.js';
+import { streamAgentTurn } from '../agent/loop.js';
+import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
 
 const USER = 'user_test_1';
 
@@ -461,6 +463,92 @@ describe('runProactiveSweep', () => {
     expect(result.evaluated).toBe(2);
     expect(result.wouldNotify).toBe(1);
     expect(result.sent).toBe(0); // gate off → nothing sent
+  });
+});
+
+// ─── Streaming ────────────────────────────────────────────────────────────────
+describe('streamAgentTurn', () => {
+  // A mock stream: emits text deltas then resolves finalMessage.
+  function streamClient(scripted: Array<{ deltas: string[]; final: any }>) {
+    let i = 0;
+    return {
+      messages: {
+        stream: vi.fn(() => {
+          const step = scripted[i++];
+          const handlers: Record<string, (x: any) => void> = {};
+          // Fire deltas on next tick after .on('text') is registered.
+          queueMicrotask(() => step.deltas.forEach((d) => handlers.text?.(d)));
+          return {
+            on: (evt: string, cb: (x: any) => void) => { handlers[evt] = cb; },
+            finalMessage: async () => step.final,
+          };
+        }),
+      },
+    } as any;
+  }
+
+  it('emits status + delta + done for a no-tool turn', async () => {
+    const client = streamClient([
+      { deltas: ['Hey', ' there'], final: { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Hey there' }] } },
+    ]);
+    const events: any[] = [];
+    const res = await streamAgentTurn(USER, 'hi', (e) => events.push(e), [], client);
+    expect(res.reply).toBe('Hey there');
+    expect(events.some((e) => e.type === 'status' && e.phase === 'thinking')).toBe(true);
+    expect(events.filter((e) => e.type === 'delta').map((e) => e.text).join('')).toBe('Hey there');
+    expect(events.some((e) => e.type === 'done')).toBe(true);
+  });
+
+  it('emits a tool status event when the agent calls a tool', async () => {
+    mocks.mealEntry.findMany.mockResolvedValue([]);
+    const client = streamClient([
+      { deltas: [], final: { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't', name: 'read_nutrition_today', input: {} }] } },
+      { deltas: ['Done'], final: { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Done' }] } },
+    ]);
+    const events: any[] = [];
+    await streamAgentTurn(USER, 'calories?', (e) => events.push(e), [], client);
+    expect(events.some((e) => e.type === 'status' && e.phase === 'tool' && e.tool === 'read_nutrition_today')).toBe(true);
+  });
+});
+
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+describe('checkAgentRateLimit', () => {
+  function reqRes(tier: string) {
+    const req: any = { user: { id: USER, tier } };
+    const res: any = { statusCode: 200, body: null, status(c: number) { this.statusCode = c; return this; }, json(b: any) { this.body = b; return this; } };
+    return { req, res };
+  }
+
+  it('allows a free user under the cap and increments', async () => {
+    process.env.AGENT_FREE_DAILY_LIMIT = '10';
+    mocks.user.findUnique.mockResolvedValue({ agentTurnsCount: 3, agentTurnsDate: new Date() });
+    mocks.user.update.mockResolvedValue({});
+    const { req, res } = reqRes('free');
+    let nexted = false;
+    await checkAgentRateLimit(req, res, () => { nexted = true; });
+    expect(nexted).toBe(true);
+    expect(mocks.user.update).toHaveBeenCalled();
+  });
+
+  it('blocks a free user at the cap with 429 + upgrade url', async () => {
+    process.env.AGENT_FREE_DAILY_LIMIT = '10';
+    mocks.user.findUnique.mockResolvedValue({ agentTurnsCount: 10, agentTurnsDate: new Date() });
+    const { req, res } = reqRes('free');
+    let nexted = false;
+    await checkAgentRateLimit(req, res, () => { nexted = true; });
+    expect(nexted).toBe(false);
+    expect(res.statusCode).toBe(429);
+    expect(res.body.upgradeUrl).toContain(USER);
+  });
+
+  it('gives pro a higher cap (no upgrade url)', async () => {
+    process.env.AGENT_PRO_DAILY_LIMIT = '200';
+    mocks.user.findUnique.mockResolvedValue({ agentTurnsCount: 50, agentTurnsDate: new Date() });
+    mocks.user.update.mockResolvedValue({});
+    const { req, res } = reqRes('pro');
+    let nexted = false;
+    await checkAgentRateLimit(req, res, () => { nexted = true; });
+    expect(nexted).toBe(true);
   });
 });
 

@@ -36,6 +36,10 @@ model User {
   dailyAnalysisDate   DateTime?
   dailyPhotoScanCount Int               @default(0)
   dailyPhotoScanDate  String?
+  // Agentic Anakin per-day usage (cost control). Mirrors the analysis
+  // counter pattern. agentic-main only; additive.
+  agentTurnsCount     Int               @default(0)
+  agentTurnsDate      DateTime?
   coachThreadId       String?
   savedProgram        String?
   coachGoal           String?
