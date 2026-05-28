@@ -1,23 +1,10 @@
-// Sentry MUST be imported and init'd before any other code so it can capture
-// crashes during the rest of the JS bundle's initialization. DSN comes from
-// EXPO_PUBLIC_SENTRY_DSN — Expo only exposes env vars to the client when
-// they start with EXPO_PUBLIC_. Without a DSN the SDK is a no-op.
-import * as Sentry from '@sentry/react-native';
-
-const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
-if (sentryDsn) {
-  Sentry.init({
-    dsn: sentryDsn,
-    environment: __DEV__ ? 'development' : 'production',
-    // Trace 10% of navigations — same budget as the backend, enough for
-    // the auto-fix loop to reproduce without flooding the project quota.
-    tracesSampleRate: 0.1,
-    // Strip PII unless explicitly attached. Names/emails get added via
-    // Sentry.setUser() once the user is logged in.
-    sendDefaultPii: false,
-  });
-}
-
+// NOTE: Sentry JS init is intentionally DISABLED here. `@sentry/react-native`
+// is a native module — its `import` throws at startup on any binary that
+// wasn't built with the Sentry config plugin. The App Store binary (1.2.1)
+// predates the plugin, so OTA-shipping this import crashed every production
+// user on launch. Re-enable ONLY after a fresh `eas build --profile
+// production` ships a binary that includes the native module (1.2.2+). The
+// dependency + app.json plugin stay in place so that build links it.
 import { useEffect, useRef, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -153,7 +140,7 @@ function RootLayout() {
   );
 }
 
-// Sentry.wrap installs the JS error boundary that catches render-time
-// errors anywhere in the tree. Without the wrap, only JS errors thrown
-// outside React's render flow get reported.
-export default Sentry.wrap(RootLayout);
+// Sentry.wrap is disabled alongside the init above — see top-of-file note.
+// Re-add `export default Sentry.wrap(RootLayout)` once a native build with
+// the Sentry module ships.
+export default RootLayout;
