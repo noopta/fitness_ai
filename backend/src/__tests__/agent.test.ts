@@ -1,0 +1,239 @@
+// Agent tests — exercise the tool registry, context assembler, memory store,
+// and the full tool-use loop WITHOUT any live Anthropic API call. The loop
+// test injects a mock client that scripts a tool_use → end_turn exchange, so
+// CI spends $0 while still proving the orchestration wiring end-to-end.
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// ─── Mock Prisma (constructor form per CLAUDE.md — arrow fns break `this`) ──
+// vi.hoisted so the mock object exists when the hoisted vi.mock factory runs.
+const mocks = vi.hoisted(() => ({
+  user: { findUnique: vi.fn() },
+  mealEntry: { findMany: vi.fn(), create: vi.fn() },
+  bodyWeightLog: { findMany: vi.fn() },
+  wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn() },
+  workoutLog: { findMany: vi.fn() },
+  agentMemory: { findUnique: vi.fn(), upsert: vi.fn() },
+}));
+vi.mock('@prisma/client', () => {
+  const PrismaClient = vi.fn(function (this: any) {
+    Object.assign(this, mocks);
+  });
+  return { PrismaClient };
+});
+
+// Mock the heavy llmService so importing it doesn't pull OpenAI/Gemini init.
+vi.mock('../services/llmService.js', () => ({
+  parseMealMacros: vi.fn(async (desc: string) => ({
+    name: desc.slice(0, 40),
+    calories: 500, proteinG: 40, carbsG: 50, fatG: 15,
+  })),
+}));
+
+import { runAgentTurn } from '../agent/loop.js';
+import { assembleContext, renderContext } from '../agent/context.js';
+import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
+import { readMemory, appendMemory } from '../agent/memory.js';
+
+const USER = 'user_test_1';
+
+beforeEach(() => {
+  Object.values(mocks).forEach((m) => Object.values(m).forEach((fn: any) => fn.mockReset()));
+  // Sensible defaults.
+  mocks.user.findUnique.mockResolvedValue({
+    name: 'Test', tier: 'pro', heightCm: 180, weightKg: 82,
+    trainingAge: 'intermediate', equipment: 'full gym',
+    constraintsText: null, coachGoal: 'gain muscle', coachBudget: null,
+  });
+  mocks.mealEntry.findMany.mockResolvedValue([]);
+  mocks.bodyWeightLog.findMany.mockResolvedValue([]);
+  mocks.wellnessCheckin.findFirst.mockResolvedValue(null);
+  mocks.wellnessCheckin.findMany.mockResolvedValue([]);
+  mocks.workoutLog.findMany.mockResolvedValue([]);
+  mocks.agentMemory.findUnique.mockResolvedValue(null);
+  mocks.agentMemory.upsert.mockResolvedValue({});
+});
+
+// ─── Tool registry ────────────────────────────────────────────────────────────
+describe('tool registry', () => {
+  it('every tool has a name, description, schema, and executor', () => {
+    for (const t of AGENT_TOOLS) {
+      expect(t.name).toBeTruthy();
+      expect(t.description.length).toBeGreaterThan(10);
+      expect(t.input_schema.type).toBe('object');
+      expect(typeof t.execute).toBe('function');
+    }
+  });
+
+  it('read_nutrition_today rolls up meal macros', async () => {
+    mocks.mealEntry.findMany.mockResolvedValue([
+      { name: 'eggs', mealType: 'breakfast', calories: 200, proteinG: 18, carbsG: 2, fatG: 14 },
+      { name: 'rice', mealType: 'lunch', calories: 300, proteinG: 6, carbsG: 65, fatG: 1 },
+    ]);
+    const out: any = await TOOLS_BY_NAME.read_nutrition_today.execute({}, USER);
+    expect(out.totals.calories).toBe(500);
+    expect(out.totals.proteinG).toBe(24);
+    expect(out.mealCount).toBe(2);
+  });
+
+  it('log_meal parses a description when no macros are given', async () => {
+    mocks.mealEntry.create.mockImplementation(async ({ data }: any) => ({ id: 'm1', ...data }));
+    const out: any = await TOOLS_BY_NAME.log_meal.execute(
+      { description: 'chicken and rice', mealType: 'dinner' },
+      USER,
+    );
+    expect(out.logged.calories).toBe(500); // from mocked parseMealMacros
+    expect(out.logged.mealType).toBe('dinner');
+    expect(mocks.mealEntry.create).toHaveBeenCalledOnce();
+  });
+
+  it('log_meal uses explicit macros without parsing', async () => {
+    mocks.mealEntry.create.mockImplementation(async ({ data }: any) => ({ id: 'm2', ...data }));
+    const out: any = await TOOLS_BY_NAME.log_meal.execute(
+      { name: 'shake', calories: 250, proteinG: 30, carbsG: 20, fatG: 3 },
+      USER,
+    );
+    expect(out.logged.calories).toBe(250);
+    expect(out.logged.proteinG).toBe(30);
+  });
+
+  it('read_body_weight_trend computes a weekly slope', async () => {
+    const today = new Date();
+    const series = Array.from({ length: 10 }, (_, i) => {
+      const d = new Date(today); d.setDate(d.getDate() - (9 - i));
+      return { date: d.toISOString().slice(0, 10), weightLbs: 200 - i }; // losing 1lb/entry
+    });
+    mocks.bodyWeightLog.findMany.mockResolvedValue(series);
+    const out: any = await TOOLS_BY_NAME.read_body_weight_trend.execute({ days: 30 }, USER);
+    expect(out.latestLbs).toBe(191);
+    expect(out.trendLbsPerWeek).toBeLessThan(0); // trending down
+  });
+});
+
+// ─── Context assembler ──────────────────────────────────────────────────────
+describe('context assembler', () => {
+  it('assembles profile + renders a compact prompt fragment', async () => {
+    mocks.mealEntry.findMany.mockResolvedValue([
+      { calories: 400, proteinG: 30, carbsG: 40, fatG: 12 },
+    ]);
+    const ctx = await assembleContext(USER);
+    expect(ctx.profile.goal).toBe('gain muscle');
+    expect(ctx.todayNutrition?.calories).toBe(400);
+    const rendered = renderContext(ctx);
+    expect(rendered).toContain('gain muscle');
+    expect(rendered).toContain("Today's intake");
+  });
+
+  it('handles a user with no logged data', async () => {
+    const ctx = await assembleContext(USER);
+    expect(ctx.todayNutrition).toBeNull();
+    expect(ctx.bodyWeight).toBeNull();
+    expect(renderContext(ctx)).toContain('nothing logged yet');
+  });
+});
+
+// ─── Memory store ─────────────────────────────────────────────────────────────
+describe('memory store', () => {
+  it('reads empty memory as []', async () => {
+    expect(await readMemory(USER)).toEqual([]);
+  });
+
+  it('appends + dedupes notes', async () => {
+    let stored = '[]';
+    mocks.agentMemory.findUnique.mockImplementation(async () => ({ notesJson: stored }));
+    mocks.agentMemory.upsert.mockImplementation(async ({ create, update }: any) => {
+      stored = (update?.notesJson ?? create?.notesJson); return {};
+    });
+    await appendMemory(USER, 'targeting 405 deadlift');
+    await appendMemory(USER, 'targeting 405 deadlift'); // dup — should not double
+    const notes = await readMemory(USER);
+    expect(notes).toEqual(['targeting 405 deadlift']);
+  });
+});
+
+// ─── Orchestration loop (mock Anthropic — zero spend) ─────────────────────────
+describe('runAgentTurn (mocked client)', () => {
+  function mockClient(scripted: any[]) {
+    let i = 0;
+    const snapshots: any[] = [];
+    return {
+      // Snapshot args at call time — the loop mutates the messages array by
+      // reference, so inspecting it post-hoc would show the final state, not
+      // what was sent on each call.
+      messages: {
+        create: vi.fn(async (args: any) => {
+          snapshots.push(structuredClone(args));
+          return scripted[i++];
+        }),
+      },
+      snapshots,
+    } as any;
+  }
+
+  it('answers directly when no tools are needed', async () => {
+    const client = mockClient([
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Hey, ready to lift?' }] },
+    ]);
+    const res = await runAgentTurn(USER, 'hi', [], client);
+    expect(res.reply).toBe('Hey, ready to lift?');
+    expect(res.toolsUsed).toEqual([]);
+    expect(res.iterations).toBe(1);
+  });
+
+  it('runs a tool then produces a final answer', async () => {
+    mocks.mealEntry.findMany.mockResolvedValue([
+      { name: 'eggs', mealType: 'breakfast', calories: 200, proteinG: 18, carbsG: 2, fatG: 14 },
+    ]);
+    const client = mockClient([
+      // Turn 1: ask for nutrition
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'text', text: 'Let me check.' },
+          { type: 'tool_use', id: 'tu_1', name: 'read_nutrition_today', input: {} },
+        ],
+      },
+      // Turn 2: final answer
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'You\'re at 200 kcal so far.' }] },
+    ]);
+    const res = await runAgentTurn(USER, "how many calories today?", [], client);
+    expect(res.toolsUsed).toContain('read_nutrition_today');
+    expect(res.reply).toContain('200 kcal');
+    expect(res.iterations).toBe(2);
+    // Second create call must have received the tool_result in the messages.
+    const secondCall = client.snapshots[1];
+    const lastMsg = secondCall.messages[secondCall.messages.length - 1];
+    expect(lastMsg.role).toBe('user');
+    expect(lastMsg.content[0].type).toBe('tool_result');
+  });
+
+  it('feeds tool errors back to the model instead of throwing', async () => {
+    // First findMany call (context assembly) succeeds; the second (the tool)
+    // rejects — so we exercise the tool's error path, not context assembly.
+    mocks.mealEntry.findMany.mockResolvedValueOnce([]).mockRejectedValue(new Error('db down'));
+    const client = mockClient([
+      { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'tu_e', name: 'read_nutrition_today', input: {} }] },
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Had trouble reading that.' }] },
+    ]);
+    const res = await runAgentTurn(USER, 'calories?', [], client);
+    expect(res.reply).toContain('trouble');
+    const secondCall = client.snapshots[1];
+    const toolResult = secondCall.messages[secondCall.messages.length - 1].content[0];
+    expect(toolResult.is_error).toBe(true);
+  });
+
+  it('stops at the iteration ceiling without infinite-looping', async () => {
+    // Always ask for a tool — never finish.
+    const client = {
+      messages: {
+        create: vi.fn(async () => ({
+          stop_reason: 'tool_use',
+          content: [{ type: 'tool_use', id: 'tu_x', name: 'read_profile', input: {} }],
+        })),
+      },
+    } as any;
+    const res = await runAgentTurn(USER, 'loop forever', [], client);
+    expect(res.iterations).toBeLessThanOrEqual(8);
+    expect(res.reply).toContain('ran out of steps');
+  });
+});

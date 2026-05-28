@@ -97,6 +97,7 @@ model User {
   inviteUsed               UserInvite?           @relation("InviteUsed")
   feedViews                UserFeedView[]
   savedArticles            SavedArticle[]
+  agentMemory              AgentMemory?
   referredByCode           String?
   // Institution
   institutionMemberships   InstitutionMember[]
@@ -503,4 +504,23 @@ model SavedArticle {
 
   @@unique([userId, feedItemId])
   @@index([userId, savedAt])
+}
+
+// ─── Agentic Anakin (agentic-main branch) ──────────────────────────────────
+// Durable cross-session memory for the agent. One row per user holding a
+// JSON array of free-form notes the agent maintains (goals, preferences,
+// flagged constraints like "knee pain on squats"). Kept separate from
+// coachProfile so the agent owns its own memory surface.
+//
+// SAFE/ADDITIVE: enabling this in an environment requires `prisma db push`
+// (or a migration). It is gated behind the AGENT_ENABLED flag and is never
+// touched while the flag is off, so production is unaffected until a
+// deliberate cutover.
+model AgentMemory {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  notesJson String   @default("[]")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
