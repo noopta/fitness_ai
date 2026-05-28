@@ -10,8 +10,8 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { assembleContext, renderContext } from './context.js';
-import { TOOL_DEFINITIONS, TOOLS_BY_NAME } from './tools.js';
-import type { AgentTurnResult } from './types.js';
+import { AGENT_TOOLS } from './tools.js';
+import type { AgentTool, AgentTurnResult } from './types.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -48,16 +48,40 @@ function getClient(): Anthropic {
  * telemetry. `injectClient` lets tests pass a mock Anthropic client so no
  * live API calls (or spend) happen in CI.
  */
+export interface AgentTurnOptions {
+  history?: Anthropic.MessageParam[];
+  injectClient?: Pick<Anthropic, 'messages'>;
+  // Extra tools available only for this turn (e.g. propose_notification in
+  // the proactive runner). Merged with the standard registry.
+  extraTools?: AgentTool[];
+  // Replace the default chat system prompt (the proactive runner supplies
+  // its own "decide whether to notify" framing). UserContext is still
+  // appended either way.
+  systemOverride?: string;
+}
+
 export async function runAgentTurn(
   userId: string,
   userMessage: string,
-  history: Anthropic.MessageParam[] = [],
-  injectClient?: Pick<Anthropic, 'messages'>,
+  historyOrOpts: Anthropic.MessageParam[] | AgentTurnOptions = [],
+  injectClientLegacy?: Pick<Anthropic, 'messages'>,
 ): Promise<AgentTurnResult> {
-  const anthropic = injectClient ?? getClient();
+  // Back-compat: callers may pass (history, injectClient) positionally, or a
+  // single options object. Normalise.
+  const opts: AgentTurnOptions = Array.isArray(historyOrOpts)
+    ? { history: historyOrOpts, injectClient: injectClientLegacy }
+    : historyOrOpts;
+  const history = opts.history ?? [];
+  const anthropic = opts.injectClient ?? getClient();
+
+  // Per-call tool set = standard registry + any extras.
+  const tools = [...AGENT_TOOLS, ...(opts.extraTools ?? [])];
+  const toolDefs = tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
+  const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const ctx = await assembleContext(userId);
-  const system = `${SYSTEM_PROMPT}\n\n${renderContext(ctx)}`;
+  const baseSystem = opts.systemOverride ?? SYSTEM_PROMPT;
+  const system = `${baseSystem}\n\n${renderContext(ctx)}`;
 
   const messages: Anthropic.MessageParam[] = [
     ...history,
@@ -73,7 +97,7 @@ export async function runAgentTurn(
       model: MODEL,
       max_tokens: MAX_TOKENS,
       system,
-      tools: TOOL_DEFINITIONS as Anthropic.Tool[],
+      tools: toolDefs as Anthropic.Tool[],
       messages,
     });
 
@@ -96,7 +120,7 @@ export async function runAgentTurn(
     for (const block of res.content) {
       if (block.type !== 'tool_use') continue;
       toolsUsed.push(block.name);
-      const tool = TOOLS_BY_NAME[block.name];
+      const tool = byName[block.name];
       if (!tool) {
         toolResults.push({
           type: 'tool_result',

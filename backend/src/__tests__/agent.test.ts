@@ -38,6 +38,7 @@ import { assembleContext, renderContext } from '../agent/context.js';
 import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
 import { readMemory, appendMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn } from '../agent/conversation.js';
+import { evaluateProactiveTrigger } from '../agent/proactive.js';
 
 const USER = 'user_test_1';
 
@@ -310,6 +311,23 @@ describe('runAgentTurn (mocked client)', () => {
     expect(toolResult.is_error).toBe(true);
   });
 
+  it('supports extra per-turn tools (proactive propose_notification path)', async () => {
+    const client = mockClient([
+      { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'pn', name: 'propose_notification', input: { title: 'Hit protein', body: '60g to go — grab a shake.' } }] },
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Sent a protein nudge.' }] },
+    ]);
+    let captured: any = null;
+    const extra = [{
+      name: 'propose_notification',
+      description: 'x',
+      input_schema: { type: 'object', properties: {} } as any,
+      execute: async (input: any) => { captured = input; return { accepted: true }; },
+    }];
+    const res = await runAgentTurn(USER, 'evaluate', { injectClient: client, extraTools: extra as any });
+    expect(res.toolsUsed).toContain('propose_notification');
+    expect(captured.title).toBe('Hit protein');
+  });
+
   it('stops at the iteration ceiling without infinite-looping', async () => {
     // Always ask for a tool — never finish.
     const client = {
@@ -323,5 +341,35 @@ describe('runAgentTurn (mocked client)', () => {
     const res = await runAgentTurn(USER, 'loop forever', [], client);
     expect(res.iterations).toBeLessThanOrEqual(8);
     expect(res.reply).toContain('ran out of steps');
+  });
+});
+
+// ─── Proactive layer (Stage 5) ────────────────────────────────────────────────
+describe('evaluateProactiveTrigger (mocked, decision-only — never sends)', () => {
+  function mockClient(scripted: any[]) {
+    let i = 0;
+    return { messages: { create: vi.fn(async () => scripted[i++]) } } as any;
+  }
+
+  it('returns shouldNotify=false when the agent declines', async () => {
+    const client = mockClient([
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Nothing worth interrupting them for.' }] },
+    ]);
+    const d = await evaluateProactiveTrigger(USER, 'nightly_review', client);
+    expect(d.shouldNotify).toBe(false);
+    expect(d.title).toBeNull();
+    expect(d.reasoning).toContain('Nothing worth');
+  });
+
+  it('captures a proposed notification when the agent decides to send', async () => {
+    const client = mockClient([
+      { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'pn', name: 'propose_notification', input: { title: 'Protein gap', body: '55g left and it\'s 8pm — grab a shake.' } }] },
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Worth a nudge — they always miss protein on Tuesdays.' }] },
+    ]);
+    const d = await evaluateProactiveTrigger(USER, 'nutrition_gap', client);
+    expect(d.shouldNotify).toBe(true);
+    expect(d.title).toBe('Protein gap');
+    expect(d.body).toContain('shake');
+    expect(d.toolsUsed).toContain('propose_notification');
   });
 });
