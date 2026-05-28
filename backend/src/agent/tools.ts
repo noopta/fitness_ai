@@ -286,6 +286,30 @@ const logWellness: AgentTool = {
   },
 };
 
+const readProgram: AgentTool = {
+  name: 'read_program',
+  description:
+    "Read the user's current saved training program (the plan they're following — split, sessions, phase). Call this before adjusting their week, handling a missed session, or diagnosing a plateau, so your advice fits the plan they're actually on.",
+  input_schema: { type: 'object', properties: {} },
+  execute: async (_input, userId) => {
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { savedProgram: true, programStartDate: true, coachGoal: true },
+    });
+    if (!u?.savedProgram) return { hasProgram: false };
+    let program: unknown = u.savedProgram;
+    try { program = JSON.parse(u.savedProgram); } catch { /* leave as string */ }
+    // Cap stringified size so a huge plan doesn't blow the turn budget.
+    const asText = typeof program === 'string' ? program : JSON.stringify(program);
+    return {
+      hasProgram: true,
+      programStartDate: u.programStartDate,
+      goal: u.coachGoal,
+      program: asText.length > 6000 ? asText.slice(0, 6000) + '…(truncated)' : program,
+    };
+  },
+};
+
 const readLatestDiagnostic: AgentTool = {
   name: 'read_latest_diagnostic',
   description:
@@ -370,6 +394,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   readBodyWeightTrend,
   readRecentWorkouts,
   readWellness,
+  readProgram,
   readLatestDiagnostic,
   queryResearch,
   // Writes

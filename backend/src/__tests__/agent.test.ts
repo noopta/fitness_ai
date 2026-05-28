@@ -40,6 +40,7 @@ import { readMemory, appendMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn } from '../agent/conversation.js';
 import { evaluateProactiveTrigger } from '../agent/proactive.js';
 import { runProactiveSweep } from '../agent/proactiveSweep.js';
+import { runAgentTask, AGENT_TASKS } from '../agent/tasks.js';
 
 const USER = 'user_test_1';
 
@@ -155,6 +156,22 @@ describe('tool registry', () => {
     expect(out.found).toBe(true);
     expect(out.lift).toBe('bench');
     expect(out.planText).toContain('Triceps');
+  });
+
+  it('read_program returns parsed program when present', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({
+      savedProgram: JSON.stringify({ split: 'upper/lower', days: 4 }),
+      programStartDate: new Date(), coachGoal: 'strength',
+    });
+    const out: any = await TOOLS_BY_NAME.read_program.execute({}, USER);
+    expect(out.hasProgram).toBe(true);
+    expect(out.program.split).toBe('upper/lower');
+  });
+
+  it('read_program reports no program gracefully', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: null, programStartDate: null, coachGoal: null });
+    const out: any = await TOOLS_BY_NAME.read_program.execute({}, USER);
+    expect(out.hasProgram).toBe(false);
   });
 
   it('query_research returns matching feed items', async () => {
@@ -372,6 +389,43 @@ describe('evaluateProactiveTrigger (mocked, decision-only — never sends)', () 
     expect(d.title).toBe('Protein gap');
     expect(d.body).toContain('shake');
     expect(d.toolsUsed).toContain('propose_notification');
+  });
+});
+
+// ─── Agent task framework ─────────────────────────────────────────────────────
+describe('runAgentTask', () => {
+  function mockClient(text: string) {
+    return { messages: { create: vi.fn(async (args: any) => { (mockClient as any)._lastSystem = args.system; return { stop_reason: 'end_turn', content: [{ type: 'text', text }] }; }) } } as any;
+  }
+
+  it('every task definition has framing + opening', () => {
+    for (const t of Object.values(AGENT_TASKS)) {
+      expect(t.framing.length).toBeGreaterThan(50);
+      expect(t.opening.length).toBeGreaterThan(5);
+    }
+  });
+
+  it('runs a no-input task (daily_tips) off context', async () => {
+    const client = mockClient('Front-load protein at lunch today.');
+    const res = await runAgentTask(USER, 'daily_tips', undefined, client);
+    expect(res.reply).toContain('protein');
+  });
+
+  it('injects caller input into tasks that need it (life_happened)', async () => {
+    const client = mockClient('No problem — here\'s your restart.');
+    const res = await runAgentTask(USER, 'life_happened', 'I was sick all week', client);
+    expect(res.reply).toContain('restart');
+    // The opening sent to the model should contain the user's input.
+    const sentSystem = (mockClient as any)._lastSystem;
+    expect(sentSystem).toContain('disrupted'); // life_happened framing
+  });
+
+  it('rejects an input-required task with no input', async () => {
+    await expect(runAgentTask(USER, 'plateau', undefined)).rejects.toThrow(/requires input/);
+  });
+
+  it('rejects an unknown task', async () => {
+    await expect(runAgentTask(USER, 'nope' as any, 'x')).rejects.toThrow(/Unknown task/);
   });
 });
 

@@ -13,6 +13,7 @@ import { runAgentTurn } from '../agent/loop.js';
 import { readMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
+import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
 import type Anthropic from '@anthropic-ai/sdk';
 
 const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
@@ -71,6 +72,30 @@ router.get('/coach/agent/memory', requireAuth, async (req, res) => {
     res.json({ notes });
   } catch (err: any) {
     res.status(500).json({ error: err?.message ?? 'Failed to read memory' });
+  }
+});
+
+const taskSchema = z.object({ input: z.string().max(4000).optional() });
+
+// POST /api/coach/agent/task/:taskId — run a purpose-built agent task
+// (program_adjustment, life_happened, plateau, meal_suggestions, daily_tips,
+// weekly_review, injury_intake, research_apply). Each is the same agent loop
+// with a task-specific framing. `input` required for tasks that need it.
+router.post('/coach/agent/task/:taskId', requireAuth, async (req, res) => {
+  try {
+    const taskId = req.params.taskId as AgentTaskId;
+    if (!(taskId in AGENT_TASKS)) {
+      return res.status(400).json({ error: `Unknown task. One of: ${Object.keys(AGENT_TASKS).join(', ')}` });
+    }
+    const { input } = taskSchema.parse(req.body ?? {});
+    const result = await runAgentTask(req.user!.id, taskId, input);
+    res.json(result);
+  } catch (err: any) {
+    if (err?.name === 'ZodError') {
+      return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    }
+    console.error('[agent] task failed:', err?.message ?? err);
+    res.status(500).json({ error: err?.message ?? 'Agent task error' });
   }
 });
 
