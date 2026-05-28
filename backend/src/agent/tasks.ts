@@ -58,7 +58,9 @@ export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
   meal_suggestions: {
     id: 'meal_suggestions',
     framing: `${BASE}\n\nSuggest meals that fit what's LEFT in the user's day. Read today's nutrition + their plan target + goal + any remembered dietary preferences. Give 2-3 specific options with macros, sized to their remaining budget. Offer to log whichever they pick.`,
-    opening: '{input}',
+    // Has a real default so the task works with no caller input; if input IS
+    // given (e.g. "something high-protein and quick") it replaces this.
+    opening: 'Suggest meals that fit what\'s left in my day based on my targets, goal, and preferences. {input}',
     needsInput: false,
   },
   daily_tips: {
@@ -104,7 +106,10 @@ export async function runAgentTask(
   if (task.needsInput && !input?.trim()) {
     throw new Error(`Task "${taskId}" requires input.`);
   }
-  const opening = task.opening.replace('{input}', (input ?? '').trim());
+  // Guard against an empty user message (Anthropic 400s on empty content) —
+  // can happen if a no-input task's opening were ever just "{input}".
+  const opening = task.opening.replace('{input}', (input ?? '').trim()).trim()
+    || 'Help me with my training and nutrition based on my current data.';
   return runAgentTurn(userId, opening, {
     systemOverride: task.framing,
     injectClient,

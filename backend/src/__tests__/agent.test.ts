@@ -424,6 +424,17 @@ describe('runAgentTask', () => {
     await expect(runAgentTask(USER, 'plateau', undefined)).rejects.toThrow(/requires input/);
   });
 
+  it('never sends an empty user message for a no-input task', async () => {
+    let sentOpening = '';
+    const client = { messages: { create: vi.fn(async (args: any) => {
+      const last = args.messages[args.messages.length - 1];
+      sentOpening = typeof last.content === 'string' ? last.content : '';
+      return { stop_reason: 'end_turn', content: [{ type: 'text', text: 'ok' }] };
+    }) } } as any;
+    await runAgentTask(USER, 'meal_suggestions', undefined, client);
+    expect(sentOpening.trim().length).toBeGreaterThan(0);
+  });
+
   it('rejects an unknown task', async () => {
     await expect(runAgentTask(USER, 'nope' as any, 'x')).rejects.toThrow(/Unknown task/);
   });
