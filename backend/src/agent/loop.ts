@@ -58,7 +58,18 @@ export interface AgentTurnOptions {
   // its own "decide whether to notify" framing). UserContext is still
   // appended either way.
   systemOverride?: string;
+  // Recursion depth for sub-agent delegation. 0 = top level. The delegate
+  // tool is only offered while depth < MAX_SUBAGENT_DEPTH, so a sub-agent
+  // can't spawn its own sub-agents — bounding cost + recursion.
+  depth?: number;
 }
+
+// Phase 6 — sub-agent delegation. One level deep: the top-level agent can
+// delegate a bounded task to a focused sub-agent, but that sub-agent gets no
+// delegate tool of its own.
+const MAX_SUBAGENT_DEPTH = 1;
+
+const SUBAGENT_SYSTEM = `You are a focused sub-agent spun up by Anakin to handle ONE bounded task. Do exactly the task you were given using your tools, then return a concise result. Don't chat, don't ask follow-ups — produce the deliverable.`;
 
 export async function runAgentTurn(
   userId: string,
@@ -73,9 +84,32 @@ export async function runAgentTurn(
     : historyOrOpts;
   const history = opts.history ?? [];
   const anthropic = opts.injectClient ?? getClient();
+  const depth = opts.depth ?? 0;
 
-  // Per-call tool set = standard registry + any extras.
-  const tools = [...AGENT_TOOLS, ...(opts.extraTools ?? [])];
+  // Offer the delegate tool only above the depth ceiling so sub-agents can't
+  // recurse. Built here (not in the static registry) so it can capture the
+  // current depth + the injected client for nested calls.
+  const delegateTools: AgentTool[] = depth < MAX_SUBAGENT_DEPTH ? [{
+    name: 'delegate_task',
+    description:
+      'Hand a single, well-defined sub-task to a focused sub-agent (e.g. "draft a 4-day upper/lower split for my equipment" or "compute my remaining macros and propose a dinner"). The sub-agent has the same data tools and returns a concise result you can use. Use for complex multi-step work you want isolated from the main conversation.',
+    input_schema: {
+      type: 'object',
+      properties: { task: { type: 'string', description: 'The self-contained instruction for the sub-agent.' } },
+      required: ['task'],
+    },
+    execute: async (input, uid) => {
+      const sub = await runAgentTurn(uid, String(input.task ?? ''), {
+        depth: depth + 1,
+        injectClient: opts.injectClient,
+        systemOverride: SUBAGENT_SYSTEM,
+      });
+      return { result: sub.reply, toolsUsed: sub.toolsUsed };
+    },
+  }] : [];
+
+  // Per-call tool set = standard registry + delegate (if allowed) + any extras.
+  const tools = [...AGENT_TOOLS, ...delegateTools, ...(opts.extraTools ?? [])];
   const toolDefs = tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 

@@ -12,7 +12,12 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { runAgentTurn } from '../agent/loop.js';
 import { readMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
+import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
 import type Anthropic from '@anthropic-ai/sdk';
+
+const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
+  'nightly_review', 'streak_at_risk', 'post_workout', 'wellness_flag', 'nutrition_gap',
+];
 
 const router = Router();
 
@@ -66,6 +71,24 @@ router.get('/coach/agent/memory', requireAuth, async (req, res) => {
     res.json({ notes });
   } catch (err: any) {
     res.status(500).json({ error: err?.message ?? 'Failed to read memory' });
+  }
+});
+
+// POST /api/coach/agent/proactive/:trigger — DECISION-ONLY. Runs the agent's
+// proactive evaluation for the current user and returns what it would do.
+// Never sends a notification (that's the sweep + AGENT_PROACTIVE_ENABLED).
+// Exists so you can eyeball the agent's judgement before trusting delivery.
+router.post('/coach/agent/proactive/:trigger', requireAuth, async (req, res) => {
+  try {
+    const trigger = req.params.trigger as ProactiveTrigger;
+    if (!PROACTIVE_TRIGGERS.includes(trigger)) {
+      return res.status(400).json({ error: `Unknown trigger. One of: ${PROACTIVE_TRIGGERS.join(', ')}` });
+    }
+    const decision = await evaluateProactiveTrigger(req.user!.id, trigger);
+    res.json({ ...decision, note: 'decision-only — nothing was sent' });
+  } catch (err: any) {
+    console.error('[agent] proactive eval failed:', err?.message ?? err);
+    res.status(500).json({ error: err?.message ?? 'Proactive eval error' });
   }
 });
 

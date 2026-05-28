@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ─── Mock Prisma (constructor form per CLAUDE.md — arrow fns break `this`) ──
 // vi.hoisted so the mock object exists when the hoisted vi.mock factory runs.
 const mocks = vi.hoisted(() => ({
-  user: { findUnique: vi.fn() },
+  user: { findUnique: vi.fn(), findMany: vi.fn() },
   mealEntry: { findMany: vi.fn(), create: vi.fn() },
   bodyWeightLog: { findMany: vi.fn(), create: vi.fn() },
   wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn() },
@@ -39,6 +39,7 @@ import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
 import { readMemory, appendMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn } from '../agent/conversation.js';
 import { evaluateProactiveTrigger } from '../agent/proactive.js';
+import { runProactiveSweep } from '../agent/proactiveSweep.js';
 
 const USER = 'user_test_1';
 
@@ -371,5 +372,63 @@ describe('evaluateProactiveTrigger (mocked, decision-only — never sends)', () 
     expect(d.title).toBe('Protein gap');
     expect(d.body).toContain('shake');
     expect(d.toolsUsed).toContain('propose_notification');
+  });
+});
+
+// ─── Phase 5: proactive sweep (decision-only by default) ──────────────────────
+describe('runProactiveSweep', () => {
+  it('evaluates candidates and does NOT send when delivery is gated off', async () => {
+    delete process.env.AGENT_PROACTIVE_ENABLED; // ensure gate is OFF
+    mocks.user.findMany.mockResolvedValue([{ id: 'u1' }, { id: 'u2' }]);
+    // Each user's evaluation: one proposes, one declines.
+    let turn = 0;
+    const client = {
+      messages: {
+        create: vi.fn(async () => {
+          turn++;
+          return turn === 1
+            ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'p', name: 'propose_notification', input: { title: 'T', body: 'B' } }] }
+            : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'done' }] };
+        }),
+      },
+    } as any;
+    const result = await runProactiveSweep('streak_at_risk', undefined, { injectClient: client });
+    expect(result.evaluated).toBe(2);
+    expect(result.wouldNotify).toBe(1);
+    expect(result.sent).toBe(0); // gate off → nothing sent
+  });
+});
+
+// ─── Phase 6: sub-agent delegation ────────────────────────────────────────────
+describe('delegate_task (sub-agent, depth-bounded)', () => {
+  it('top-level turn is offered the delegate tool; sub-agent is not', async () => {
+    // Script: top-level delegates, sub-agent answers, top-level wraps up.
+    let call = 0;
+    const seenToolNames: string[][] = [];
+    const client = {
+      messages: {
+        create: vi.fn(async (args: any) => {
+          seenToolNames.push((args.tools ?? []).map((t: any) => t.name));
+          call++;
+          if (call === 1) {
+            // top-level: delegate
+            return { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'd1', name: 'delegate_task', input: { task: 'draft a split' } }] };
+          }
+          if (call === 2) {
+            // sub-agent turn: just answer
+            return { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Upper/Lower x4.' }] };
+          }
+          // top-level final
+          return { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Here is your split: Upper/Lower x4.' }] };
+        }),
+      },
+    } as any;
+
+    const res = await runAgentTurn(USER, 'build me a program', { injectClient: client });
+    expect(res.toolsUsed).toContain('delegate_task');
+    expect(res.reply).toContain('Upper/Lower');
+    // Call 1 (top-level) had delegate_task available; call 2 (sub-agent) did NOT.
+    expect(seenToolNames[0]).toContain('delegate_task');
+    expect(seenToolNames[1]).not.toContain('delegate_task');
   });
 });

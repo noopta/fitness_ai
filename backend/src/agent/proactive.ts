@@ -63,7 +63,9 @@ export async function evaluateProactiveTrigger(
   injectClient?: Pick<Anthropic, 'messages'>,
 ): Promise<ProactiveDecision> {
   // Closure-captured proposal — the propose_notification tool writes here.
-  let proposal: { title: string; body: string } | null = null;
+  // A holder object (not a bare `let`) so TS doesn't constant-narrow it to
+  // null: it can't see the assignment happening inside the tool's closure.
+  const holder: { proposal: { title: string; body: string } | null } = { proposal: null };
 
   const proposeNotification: AgentTool = {
     name: 'propose_notification',
@@ -78,7 +80,7 @@ export async function evaluateProactiveTrigger(
       required: ['title', 'body'],
     },
     execute: async (input) => {
-      proposal = {
+      holder.proposal = {
         title: String(input.title ?? '').slice(0, 60),
         body: String(input.body ?? '').slice(0, 140),
       };
@@ -92,6 +94,7 @@ export async function evaluateProactiveTrigger(
     injectClient,
   });
 
+  const proposal = holder.proposal;
   return {
     trigger,
     shouldNotify: proposal !== null,
