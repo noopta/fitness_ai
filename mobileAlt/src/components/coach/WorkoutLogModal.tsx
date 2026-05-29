@@ -65,6 +65,11 @@ interface ExerciseEntry {
   notes: string;
   perSetMode: boolean;
   setEntries: PerSetEntry[];
+  // Bodyweight exercises (abs, pull-ups, push-ups…) carry no external load, so
+  // the weight field is hidden and progress is tracked by reps. weightKg saves
+  // as null with a bodyweight flag so it's distinct from "forgot to enter
+  // weight".
+  bodyweight: boolean;
 }
 
 interface Props {
@@ -79,8 +84,14 @@ interface Props {
 function emptyExercise(): ExerciseEntry {
   return {
     name: '', sets: '', reps: '', weight: '', rpe: '', notes: '',
-    perSetMode: false, setEntries: [],
+    perSetMode: false, setEntries: [], bodyweight: false,
   };
+}
+
+// Heuristic: pre-flag common bodyweight movements so the weight field is
+// hidden by default for them (the user can still toggle it).
+function looksBodyweight(name: string): boolean {
+  return /\b(plank|crunch|sit[- ]?up|leg raise|hanging|knee raise|push[- ]?up|pull[- ]?up|chin[- ]?up|dip|mountain climber|russian twist|bicycle|hollow|ab wheel|flutter|v-?up|toes to bar|l-?sit|burpee|air squat|lunge|glute bridge|bird dog|dead bug|superman)\b/i.test(name);
 }
 
 function emptySet(): PerSetEntry {
@@ -96,16 +107,20 @@ function buildInitialExercises(
   todayExercises?: Props['todayExercises'],
 ): ExerciseEntry[] {
   if (todayExercises && todayExercises.length > 0) {
-    return todayExercises.map(ex => ({
-      name: ex.exercise ?? ex.name ?? '',
-      sets: ex.sets ? String(ex.sets) : '',
-      reps: ex.reps ? String(ex.reps) : '',
-      weight: '',
-      rpe: '',
-      notes: '',
-      perSetMode: false,
-      setEntries: [],
-    }));
+    return todayExercises.map(ex => {
+      const name = ex.exercise ?? ex.name ?? '';
+      return {
+        name,
+        sets: ex.sets ? String(ex.sets) : '',
+        reps: ex.reps ? String(ex.reps) : '',
+        weight: '',
+        rpe: '',
+        notes: '',
+        perSetMode: false,
+        setEntries: [],
+        bodyweight: looksBodyweight(name),
+      };
+    });
   }
   return [emptyExercise()];
 }
@@ -167,6 +182,11 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     setExercises(prev => prev.filter((_, i) => i !== index));
   }
 
+  // Bodyweight toggle — hides the weight field and tracks progress by reps.
+  function toggleBodyweight(index: number) {
+    setExercises(prev => prev.map((ex, i) => i === index ? { ...ex, bodyweight: !ex.bodyweight } : ex));
+  }
+
   // Toggle between uniform and per-set entry. When entering per-set mode we
   // seed `setEntries` to match the current `sets` count (or default to 3) so
   // the user doesn't start with an empty list. When leaving, we keep the data
@@ -226,7 +246,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     const isValid = (ex: ExerciseEntry) => {
       if (!ex.name.trim()) return false;
       if (ex.perSetMode) {
-        return ex.setEntries.some(s => s.weight.trim() && s.reps.trim());
+        // Bodyweight per-set rows need only reps; weighted need weight + reps.
+        return ex.bodyweight
+          ? ex.setEntries.some(s => s.reps.trim())
+          : ex.setEntries.some(s => s.weight.trim() && s.reps.trim());
       }
       return !!(ex.sets && ex.reps);
     };
@@ -265,15 +288,15 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       const mappedExercises = validExercises.map(ex => {
         if (ex.perSetMode) {
           // Build the per-set payload from the rows the user filled in.
-          // Skip empty rows. Convert weights via toKg (lbs ↔ kg helper).
+          // Skip empty rows. Bodyweight rows need only reps (weight null).
           const validSets = ex.setEntries
-            .filter(s => s.weight.trim() && s.reps.trim())
+            .filter(s => (ex.bodyweight ? s.reps.trim() : (s.weight.trim() && s.reps.trim())))
             .map(s => ({
-              weightKg: weightVal(s.weight),
+              weightKg: ex.bodyweight ? null : weightVal(s.weight),
               reps: Math.max(parseInt(s.reps, 10) || 0, 0),
               rpe: s.rpe.trim() ? rpeVal(s.rpe) : null,
             }))
-            .filter(s => s.weightKg != null && s.reps > 0);
+            .filter(s => s.reps > 0 && (ex.bodyweight || s.weightKg != null));
 
           // Pick the heaviest set as the "summary" for legacy fields. This
           // keeps PR notifications + the social-share card sensible even when
@@ -290,6 +313,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             weightKg: topSet?.weightKg ?? null,
             rpe: topSet?.rpe ?? null,
             notes: ex.notes.trim() || null,
+            bodyweight: ex.bodyweight,
             setEntries: validSets,
           };
         }
@@ -297,9 +321,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
           name: ex.name.trim(),
           sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
           reps: ex.reps.trim() || '1',
-          weightKg: ex.weight.trim() ? weightVal(ex.weight) : null,
+          weightKg: ex.bodyweight ? null : (ex.weight.trim() ? weightVal(ex.weight) : null),
           rpe: ex.rpe.trim() ? rpeVal(ex.rpe) : null,
           notes: ex.notes.trim() || null,
+          bodyweight: ex.bodyweight,
         };
       });
 
@@ -436,20 +461,39 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 
                 {/* Toggle: uniform (one weight × N sets) vs per-set
                     (different load/reps each set). Defaults to uniform. */}
-                <TouchableOpacity
-                  style={styles.perSetToggleRow}
-                  activeOpacity={0.7}
-                  onPress={() => togglePerSetMode(i)}
-                >
-                  <Ionicons
-                    name={ex.perSetMode ? 'checkbox' : 'square-outline'}
-                    size={16}
-                    color={ex.perSetMode ? colors.primary : colors.mutedForeground}
-                  />
-                  <Text style={[styles.perSetToggleLabel, ex.perSetMode && { color: colors.primary }]}>
-                    Vary by set
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.toggleRowGroup}>
+                  <TouchableOpacity
+                    style={styles.perSetToggleRow}
+                    activeOpacity={0.7}
+                    onPress={() => togglePerSetMode(i)}
+                  >
+                    <Ionicons
+                      name={ex.perSetMode ? 'checkbox' : 'square-outline'}
+                      size={16}
+                      color={ex.perSetMode ? colors.primary : colors.mutedForeground}
+                    />
+                    <Text style={[styles.perSetToggleLabel, ex.perSetMode && { color: colors.primary }]}>
+                      Vary by set
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Bodyweight: hides weight, tracks progress by reps (abs,
+                      pull-ups, push-ups, etc.). */}
+                  <TouchableOpacity
+                    style={styles.perSetToggleRow}
+                    activeOpacity={0.7}
+                    onPress={() => toggleBodyweight(i)}
+                  >
+                    <Ionicons
+                      name={ex.bodyweight ? 'checkbox' : 'square-outline'}
+                      size={16}
+                      color={ex.bodyweight ? colors.primary : colors.mutedForeground}
+                    />
+                    <Text style={[styles.perSetToggleLabel, ex.bodyweight && { color: colors.primary }]}>
+                      Bodyweight
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
                 {!ex.perSetMode ? (
                   <View style={styles.inlineRow}>
@@ -476,18 +520,20 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                         inputAccessoryViewID={KEYBOARD_DONE_ID}
                       />
                     </View>
-                    <View style={styles.inlineField}>
-                      <Text style={styles.inlineLabel}>Weight ({unit})</Text>
-                      <TextInput
-                        style={styles.input}
-                        placeholder={unit === 'lbs' ? '175' : '80'}
-                        placeholderTextColor={colors.mutedForeground}
-                        keyboardType="decimal-pad"
-                        value={ex.weight}
-                        onChangeText={v => updateExercise(i, 'weight', v)}
-                        inputAccessoryViewID={KEYBOARD_DONE_ID}
-                      />
-                    </View>
+                    {!ex.bodyweight && (
+                      <View style={styles.inlineField}>
+                        <Text style={styles.inlineLabel}>Weight ({unit})</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder={unit === 'lbs' ? '175' : '80'}
+                          placeholderTextColor={colors.mutedForeground}
+                          keyboardType="decimal-pad"
+                          value={ex.weight}
+                          onChangeText={v => updateExercise(i, 'weight', v)}
+                          inputAccessoryViewID={KEYBOARD_DONE_ID}
+                        />
+                      </View>
+                    )}
                     <View style={styles.inlineField}>
                       <View style={styles.labelWithHelp}>
                         <Text style={styles.inlineLabel}>RPE</Text>
@@ -508,7 +554,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                   <View style={styles.perSetList}>
                     <View style={styles.perSetHeader}>
                       <Text style={[styles.inlineLabel, { flex: 0.7 }]}>Set</Text>
-                      <Text style={[styles.inlineLabel, { flex: 1.5 }]}>Weight ({unit})</Text>
+                      {!ex.bodyweight && <Text style={[styles.inlineLabel, { flex: 1.5 }]}>Weight ({unit})</Text>}
                       <Text style={[styles.inlineLabel, { flex: 1 }]}>Reps</Text>
                       <View style={[styles.labelWithHelp, { flex: 1 }]}>
                         <Text style={styles.inlineLabel}>RPE</Text>
@@ -519,15 +565,17 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                     {ex.setEntries.map((set, sIdx) => (
                       <View key={sIdx} style={styles.perSetRow}>
                         <Text style={styles.perSetNum}>{sIdx + 1}</Text>
-                        <TextInput
-                          style={[styles.input, styles.perSetInput, { flex: 1.5 }]}
-                          placeholder={unit === 'lbs' ? '135' : '60'}
-                          placeholderTextColor={colors.mutedForeground}
-                          keyboardType="decimal-pad"
-                          value={set.weight}
-                          onChangeText={v => updateSetEntry(i, sIdx, 'weight', v)}
-                          inputAccessoryViewID={KEYBOARD_DONE_ID}
-                        />
+                        {!ex.bodyweight && (
+                          <TextInput
+                            style={[styles.input, styles.perSetInput, { flex: 1.5 }]}
+                            placeholder={unit === 'lbs' ? '135' : '60'}
+                            placeholderTextColor={colors.mutedForeground}
+                            keyboardType="decimal-pad"
+                            value={set.weight}
+                            onChangeText={v => updateSetEntry(i, sIdx, 'weight', v)}
+                            inputAccessoryViewID={KEYBOARD_DONE_ID}
+                          />
+                        )}
                         <TextInput
                           style={[styles.input, styles.perSetInput, { flex: 1 }]}
                           placeholder="8"
@@ -731,6 +779,7 @@ const styles = StyleSheet.create({
   labelWithHelp: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
 
   // ── Per-set entry mode ────────────────────────────────────────────────────
+  toggleRowGroup: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   perSetToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',

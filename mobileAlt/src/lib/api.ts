@@ -403,6 +403,9 @@ export const workoutsApi = {
       weightKg?: number | null;
       rpe?: number | null;
       notes?: string | null;
+      // True for unloaded movements (abs, push-ups, etc.). Lets progress be
+      // tracked by reps rather than load.
+      bodyweight?: boolean;
       // Per-set breakdown, used when weights/reps vary across sets within
       // the same exercise (e.g. 135x4 → 100x8 → 100x8). When present, the
       // backend uses this for e1RM / strength-profile signals; the top-level

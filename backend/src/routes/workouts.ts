@@ -77,6 +77,9 @@ const exerciseSchema = z.object({
   weightKg: z.number().nonnegative().optional().nullable(),
   rpe: z.number().min(0).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
+  // True for unloaded movements (abs, push-ups, etc.). Stored verbatim so
+  // progress/PR logic can track by reps instead of load.
+  bodyweight: z.boolean().optional(),
   // Optional per-set breakdown. When provided, length should match `sets`
   // but we don't fail validation if it doesn't — we just trust whichever
   // value is the source of truth (setEntries.length).
