@@ -19,7 +19,8 @@ export type AgentTaskId =
   | 'daily_tips'
   | 'weekly_review'
   | 'injury_intake'
-  | 'research_apply';
+  | 'research_apply'
+  | 'apply_suggestion';
 
 interface AgentTaskDef {
   id: AgentTaskId;
@@ -85,6 +86,17 @@ export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
     id: 'research_apply',
     framing: `${BASE}\n\nAnswer an evidence question and apply it to THIS user. Use query_research to ground the answer in the feed's sources, then translate it to their specific situation (read their profile/goal/program as needed). Cite the source(s). Distinguish what's well-supported from what's speculative.`,
     opening: 'The user asks: "{input}". Answer with evidence and apply it to their situation.',
+    needsInput: true,
+  },
+  // The user tapped "Apply to my plan" on a specific suggestion — the tap IS
+  // their consent, so apply directly (don't re-ask), but intelligently: read
+  // the relevant data, make the change FIT their goal + sound progression, and
+  // actually persist it via adjust_macros / apply_program_update. Then report
+  // exactly what changed in 1-2 lines so they can see (and reverse if wanted).
+  apply_suggestion: {
+    id: 'apply_suggestion',
+    framing: `${BASE}\n\nThe user tapped "Apply to my plan" on a suggestion from their Strength/Nutrition analysis. Their tap is explicit consent — DO NOT ask them to confirm again. Read the relevant data (read_program / read_latest_diagnostic / read_nutrition_today as needed), translate the suggestion into a concrete, GOAL-PRESERVING change, and APPLY it: use apply_program_update for training changes (read_program first, change only what's needed, keep goal + phase structure + progression) or adjust_macros for nutrition changes. The user's goal is the priority — fit the change around it, backed by training/nutrition science. If the suggestion can't be safely applied (ambiguous, or would compromise the goal), DON'T apply — explain why in one line instead. After applying, state exactly what you changed in 1-2 lines.`,
+    opening: 'Apply this suggestion to my plan: "{input}"',
     needsInput: true,
   },
 };

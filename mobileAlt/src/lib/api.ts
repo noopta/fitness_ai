@@ -202,6 +202,23 @@ export const liftCoachApi = {
 // ─── Coach API ────────────────────────────────────────────────────────────────
 
 export const coachApi = {
+  // Whether the agentic Anakin is available for this user (flag + allowlist).
+  // Drives visibility of "Apply to my plan" affordances. Returns
+  // { available: false } gracefully if the agent surface is off (404).
+  agentStatus: async (): Promise<{ available: boolean }> => {
+    try {
+      return await apiFetch('/coach/agent/status');
+    } catch {
+      return { available: false };
+    }
+  },
+  // Apply a Strength/Nutrition suggestion to the user's real plan. The tap is
+  // the user's consent; the agent makes a goal-preserving change and returns
+  // { reply } describing exactly what changed.
+  applySuggestion: (suggestion: string) =>
+    apiFetch('/coach/agent/task/apply_suggestion', {
+      method: 'POST', body: JSON.stringify({ input: suggestion }),
+    }),
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
   // Try the agentic Anakin first; the backend allowlist (AGENT_USER_ALLOWLIST)

@@ -33,6 +33,11 @@ vi.mock('../services/llmService.js', () => ({
   })),
 }));
 
+// Cache helpers used by applyTools — no-op in tests.
+vi.mock('../services/cacheService.js', () => ({
+  cacheDelete: vi.fn(), cacheClearByPrefix: vi.fn(), cacheGet: vi.fn(), cacheSet: vi.fn(),
+}));
+
 import { runAgentTurn } from '../agent/loop.js';
 import { assembleContext, renderContext } from '../agent/context.js';
 import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
@@ -43,8 +48,20 @@ import { runProactiveSweep } from '../agent/proactiveSweep.js';
 import { runAgentTask, AGENT_TASKS } from '../agent/tasks.js';
 import { streamAgentTurn } from '../agent/loop.js';
 import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
+import { applyMacroChange, applyProgramUpdate } from '../agent/applyTools.js';
 
 const USER = 'user_test_1';
+
+// A minimal valid saved program for apply-tool tests.
+const SAMPLE_PROGRAM = {
+  goal: 'strength',
+  daysPerWeek: 4,
+  phases: [{
+    phaseNumber: 1, phaseName: 'Foundation',
+    trainingDays: [{ day: 'Upper', focus: 'push', exercises: [{ exercise: 'Bench', sets: 4, reps: '6', intensity: 'RPE 7' }] }],
+  }],
+  nutritionPlan: { macros: { calories: 2350, proteinG: 180, carbsG: 250, fatG: 70 }, expectedOutcomes: { tdee: 2600 } },
+};
 
 beforeEach(() => {
   Object.values(mocks).forEach((m) => Object.values(m).forEach((fn: any) => fn.mockReset()));
@@ -439,6 +456,83 @@ describe('runAgentTask', () => {
 
   it('rejects an unknown task', async () => {
     await expect(runAgentTask(USER, 'nope' as any, 'x')).rejects.toThrow(/Unknown task/);
+  });
+
+  it('apply_suggestion can reach apply_program_update and persist', async () => {
+    // findUnique called by: context assembler, read_program (if used), and
+    // applyProgramUpdate. Return the sample program for all of them.
+    mocks.user.findUnique.mockResolvedValue({
+      savedProgram: JSON.stringify(SAMPLE_PROGRAM),
+      name: 'T', tier: 'pro', heightCm: null, weightKg: null, trainingAge: null,
+      equipment: null, constraintsText: null, coachGoal: 'strength', coachBudget: null,
+    });
+    mocks.user.update.mockResolvedValue({});
+    const updated = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
+    updated.phases[0].trainingDays[0].exercises.push({ exercise: 'Close-grip Bench', sets: 3, reps: '8', intensity: 'RPE 8' });
+    let i = 0;
+    const client = { messages: { create: vi.fn(async () => {
+      i++;
+      return i === 1
+        ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'a1', name: 'apply_program_update', input: { updatedProgram: updated, summary: 'added close-grip bench' } }] }
+        : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Added close-grip bench to your push day.' }] };
+    }) } } as any;
+    const res = await runAgentTask(USER, 'apply_suggestion', 'add tricep accessory for my bench limiter', client);
+    expect(res.toolsUsed).toContain('apply_program_update');
+    expect(res.reply).toContain('close-grip');
+    expect(mocks.user.update).toHaveBeenCalled();
+  });
+});
+
+// ─── Apply-suggestions tools ──────────────────────────────────────────────────
+describe('applyMacroChange', () => {
+  it('updates only provided macros, syncs target, recomputes outcomes', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(SAMPLE_PROGRAM) });
+    let saved: any = null;
+    mocks.user.update.mockImplementationOnce(async ({ data }: any) => { saved = data; return {}; });
+    const out: any = await applyMacroChange(USER, { proteinG: 200, calories: 2100 });
+    expect(out.macros.proteinG).toBe(200);
+    expect(out.macros.calories).toBe(2100);
+    expect(out.macros.carbsG).toBe(250); // unchanged
+    // surplus/deficit recomputed vs tdee 2600 → -500
+    expect(out.expectedOutcomes.surplusOrDeficit).toBe(-500);
+    // dailyCalorieTarget synced
+    expect(saved.dailyCalorieTarget).toBe(2100);
+  });
+
+  it('throws when there is no saved program', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: null });
+    await expect(applyMacroChange(USER, { calories: 2000 })).rejects.toThrow(/No saved program/);
+  });
+
+  it('rejects nonsense macro values', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(SAMPLE_PROGRAM) });
+    await expect(applyMacroChange(USER, { calories: -5 })).rejects.toThrow(/Invalid/);
+  });
+});
+
+describe('applyProgramUpdate', () => {
+  it('persists a valid goal-preserving update', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(SAMPLE_PROGRAM) });
+    mocks.user.update.mockResolvedValueOnce({});
+    const updated = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
+    updated.phases[0].trainingDays[0].exercises.push({ exercise: 'Close-grip Bench', sets: 3, reps: '8', intensity: 'RPE 8' });
+    const out: any = await applyProgramUpdate(USER, updated);
+    expect(out.applied).toBe(true);
+    expect(out.goal).toBe('strength');
+  });
+
+  it('refuses to change the goal', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(SAMPLE_PROGRAM) });
+    const updated = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
+    updated.goal = 'hypertrophy';
+    await expect(applyProgramUpdate(USER, updated)).rejects.toThrow(/goal/i);
+  });
+
+  it('refuses a structure that drops exercises', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(SAMPLE_PROGRAM) });
+    const updated = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
+    updated.phases[0].trainingDays[0].exercises = [];
+    await expect(applyProgramUpdate(USER, updated)).rejects.toThrow(/exercise/i);
   });
 });
 

@@ -10,6 +10,7 @@
 import { PrismaClient } from '@prisma/client';
 import { parseMealMacros } from '../services/llmService.js';
 import { appendMemory } from './memory.js';
+import { applyMacroChange, applyProgramUpdate } from './applyTools.js';
 import type { AgentTool } from './types.js';
 
 const prisma = new PrismaClient();
@@ -368,6 +369,54 @@ const queryResearch: AgentTool = {
   },
 };
 
+const adjustMacros: AgentTool = {
+  name: 'adjust_macros',
+  description:
+    "Apply new daily macro targets to the user's saved nutrition plan (the Nutrition tab will reflect them). Pass absolute target values for any of calories/proteinG/carbsG/fatG; omitted fields are left unchanged. ONLY call this after the user has agreed to a specific change you proposed — never apply silently. Keeps their goal intact and recomputes projected weight change.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      calories: { type: 'number', description: 'New daily calorie target.' },
+      proteinG: { type: 'number', description: 'New daily protein target (g).' },
+      carbsG: { type: 'number', description: 'New daily carb target (g).' },
+      fatG: { type: 'number', description: 'New daily fat target (g).' },
+    },
+  },
+  execute: async (input, userId) => {
+    const change = {
+      calories: input.calories as number | undefined,
+      proteinG: input.proteinG as number | undefined,
+      carbsG: input.carbsG as number | undefined,
+      fatG: input.fatG as number | undefined,
+    };
+    if (Object.values(change).every((v) => v == null)) {
+      throw new Error('Provide at least one macro target to change.');
+    }
+    return applyMacroChange(userId, change);
+  },
+};
+
+const applyProgramUpdateTool: AgentTool = {
+  name: 'apply_program_update',
+  description:
+    "Persist a modification to the user's training program. First call read_program to get the current program, then construct the FULL updated program object preserving their goal, phase structure, and sensible progression — change only what the suggestion calls for (e.g. add accessories to a day, adjust sets/reps). ONLY call this after the user has confirmed the specific change. Refuses updates that drop the structure or change the goal.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      updatedProgram: {
+        type: 'object',
+        description: 'The complete updated training program object (same shape as read_program returns), with the suggested change applied and the goal preserved.',
+      },
+      summary: { type: 'string', description: 'One-line summary of what changed, for the log/confirmation.' },
+    },
+    required: ['updatedProgram'],
+  },
+  execute: async (input, userId) => {
+    const result = await applyProgramUpdate(userId, input.updatedProgram);
+    return { ...result, summary: (input.summary as string) ?? undefined };
+  },
+};
+
 const remember: AgentTool = {
   name: 'remember',
   description:
@@ -402,6 +451,8 @@ export const AGENT_TOOLS: AgentTool[] = [
   logBodyWeight,
   logWorkout,
   logWellness,
+  adjustMacros,
+  applyProgramUpdateTool,
   remember,
 ];
 
