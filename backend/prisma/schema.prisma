@@ -103,6 +103,10 @@ model User {
   savedArticles            SavedArticle[]
   agentMemory              AgentMemory?
   agentConversation        AgentConversation?
+  // Group chats (#4)
+  groupsCreated            GroupChat[]    @relation("GroupCreator")
+  groupMemberships         GroupMember[]  @relation("GroupMemberships")
+  groupMessagesSent        GroupMessage[] @relation("GroupMessagesSent")
   referredByCode           String?
   // Institution
   institutionMemberships   InstitutionMember[]
@@ -540,4 +544,46 @@ model AgentConversation {
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Group Chats (#4: social groupchats + Anakin accountability) ───────────
+// Lightweight messaging between users with an opt-in "Anakin drops by every
+// morning" accountability layer. Each member can share their workout goal;
+// the group itself can also have a shared goal Anakin tracks.
+
+model GroupChat {
+  id                 String         @id @default(uuid())
+  name               String
+  groupGoal          String?        // optional shared group goal
+  anakinDailyEnabled Boolean        @default(false)  // opt-in daily check-in
+  createdAt          DateTime       @default(now())
+  createdById        String
+  createdBy          User           @relation("GroupCreator", fields: [createdById], references: [id])
+  members            GroupMember[]
+  messages           GroupMessage[]
+}
+
+model GroupMember {
+  id       String    @id @default(uuid())
+  groupId  String
+  userId   String
+  goal     String?   // each member's shared workout goal
+  joinedAt DateTime  @default(now())
+  group    GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation("GroupMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+model GroupMessage {
+  id        String    @id @default(uuid())
+  groupId   String
+  senderId  String?   // null = Anakin (system / accountability post)
+  text      String
+  createdAt DateTime  @default(now())
+  group     GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender    User?     @relation("GroupMessagesSent", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([groupId, createdAt])
 }

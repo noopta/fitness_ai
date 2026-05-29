@@ -26,6 +26,7 @@ import strengthRoutes from './routes/strength.js';
 import affiliatesRoutes from './routes/affiliates.js';
 import socialRoutes from './routes/social.js';
 import agentRoutes from './routes/agent.js';
+import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
 import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
@@ -103,6 +104,7 @@ app.use('/api', institutionsRoutes);
 app.use('/api', activityRoutes);
 // Agentic Anakin (flag-gated via AGENT_ENABLED; 404s when off).
 app.use('/api', agentRoutes);
+app.use('/api', groupsRoutes);
 
 // Sentry error handler — MUST come before our own error middleware, but
 // after all routes. The SDK marks the response as handled even though
