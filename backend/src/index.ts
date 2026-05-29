@@ -100,11 +100,13 @@ app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', socialRoutes);
-app.use('/api', institutionsRoutes);
-app.use('/api', activityRoutes);
 // Agentic Anakin (flag-gated via AGENT_ENABLED; 404s when off).
 app.use('/api', agentRoutes);
+// Groups must be mounted BEFORE institutionsRoutes — institutions has a
+// GET /:slug handler that otherwise swallows /api/groups as "slug=groups".
 app.use('/api', groupsRoutes);
+app.use('/api', institutionsRoutes);
+app.use('/api', activityRoutes);
 
 // Sentry error handler — MUST come before our own error middleware, but
 // after all routes. The SDK marks the response as handled even though
