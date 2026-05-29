@@ -16,12 +16,26 @@ const prisma = new PrismaClient();
 const router = Router();
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED === 'true';
+// Mirror the agent surface's allowlist for safe cutover: with allowlist set,
+// only those users get groups (no uncapped Anakin check-in spend from random
+// users). Remove/empty the allowlist to open to all users once trusted.
+const AGENT_ALLOWLIST = (process.env.AGENT_USER_ALLOWLIST || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
 
-// Master flag guard for the whole group surface.
+// Master flag guard for the whole group surface — pre-auth.
 router.use('/groups', (req, res, next) => {
   if (!AGENT_ENABLED) return res.status(404).json({ error: 'Not found' });
   next();
 });
+
+// Per-user allowlist guard — runs AFTER requireAuth. 404 (not 403) so the
+// surface stays invisible to non-allowlisted users.
+function requireGroupsAccess(req: any, res: any, next: any) {
+  if (AGENT_ALLOWLIST.length && !AGENT_ALLOWLIST.includes(req.user?.id)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  next();
+}
 
 const createSchema = z.object({
   name: z.string().min(1).max(80),
@@ -33,7 +47,7 @@ const createSchema = z.object({
 
 // POST /api/groups — create a new group chat. Creator is auto-added as a
 // member; additional members can be invited by username.
-router.post('/groups', requireAuth, async (req, res) => {
+router.post('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const { name, groupGoal, memberUsernames, selfGoal, anakinDailyEnabled } = createSchema.parse(req.body);
     const userId = req.user!.id;
@@ -68,7 +82,7 @@ router.post('/groups', requireAuth, async (req, res) => {
 });
 
 // GET /api/groups — list the groups the caller is a member of.
-router.get('/groups', requireAuth, async (req, res) => {
+router.get('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const userId = req.user!.id;
     const memberships = await prisma.groupMember.findMany({
@@ -90,7 +104,7 @@ router.get('/groups', requireAuth, async (req, res) => {
 });
 
 // GET /api/groups/:id — group details + recent messages (last 100).
-router.get('/groups/:id', requireAuth, async (req, res) => {
+router.get('/groups/:id', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const userId = req.user!.id;
     const membership = await prisma.groupMember.findUnique({
@@ -114,7 +128,7 @@ router.get('/groups/:id', requireAuth, async (req, res) => {
 const postMessageSchema = z.object({ text: z.string().min(1).max(2000) });
 
 // POST /api/groups/:id/messages — post a message as the caller.
-router.post('/groups/:id/messages', requireAuth, async (req, res) => {
+router.post('/groups/:id/messages', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const userId = req.user!.id;
     const { text } = postMessageSchema.parse(req.body);
@@ -141,7 +155,7 @@ const patchSchema = z.object({
 
 // PATCH /api/groups/:id — update group settings (goal, Anakin opt-in, name)
 // AND/OR the caller's own member goal in one call.
-router.patch('/groups/:id', requireAuth, async (req, res) => {
+router.patch('/groups/:id', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const userId = req.user!.id;
     const data = patchSchema.parse(req.body);
@@ -170,7 +184,7 @@ router.patch('/groups/:id', requireAuth, async (req, res) => {
 // POST /api/groups/:id/anakin-checkin — manually trigger Anakin's check-in
 // for this group (useful for testing). Posts a real message (or returns the
 // draft if ?dryRun=1). Membership required.
-router.post('/groups/:id/anakin-checkin', requireAuth, async (req, res) => {
+router.post('/groups/:id/anakin-checkin', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const userId = req.user!.id;
     const membership = await prisma.groupMember.findUnique({
@@ -187,7 +201,7 @@ router.post('/groups/:id/anakin-checkin', requireAuth, async (req, res) => {
 });
 
 // POST /api/groups/:id/leave — caller leaves the group.
-router.post('/groups/:id/leave', requireAuth, async (req, res) => {
+router.post('/groups/:id/leave', requireAuth, requireGroupsAccess, async (req, res) => {
   try {
     const userId = req.user!.id;
     await prisma.groupMember.deleteMany({ where: { groupId: req.params.id, userId } });
