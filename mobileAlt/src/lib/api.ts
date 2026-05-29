@@ -201,6 +201,31 @@ export const liftCoachApi = {
 
 // ─── Coach API ────────────────────────────────────────────────────────────────
 
+// ─── Group Chats (#4) ─────────────────────────────────────────────────────
+// Backend routes are AGENT_ENABLED-gated; calls fail (404) when off, which
+// mirrors the agent gating pattern. Designed for the Groups list/create/chat
+// screens.
+export const groupsApi = {
+  list: () => apiFetch('/groups'),
+  create: (data: {
+    name: string;
+    groupGoal?: string;
+    memberUsernames?: string[];
+    selfGoal?: string;
+    anakinDailyEnabled?: boolean;
+  }) => apiFetch('/groups', { method: 'POST', body: JSON.stringify(data) }),
+  get: (id: string) => apiFetch(`/groups/${id}`),
+  postMessage: (id: string, text: string) =>
+    apiFetch(`/groups/${id}/messages`, { method: 'POST', body: JSON.stringify({ text }) }),
+  patch: (id: string, data: { groupGoal?: string | null; anakinDailyEnabled?: boolean; selfGoal?: string | null; name?: string }) =>
+    apiFetch(`/groups/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  leave: (id: string) => apiFetch(`/groups/${id}/leave`, { method: 'POST' }),
+  // Manual trigger for testing Anakin's morning check-in. ?dryRun=1 returns
+  // the draft without posting.
+  anakinCheckin: (id: string, dryRun = false) =>
+    apiFetch(`/groups/${id}/anakin-checkin${dryRun ? '?dryRun=1' : ''}`, { method: 'POST' }),
+};
+
 export const coachApi = {
   // Whether the agentic Anakin is available for this user (flag + allowlist).
   // Drives visibility of "Apply to my plan" affordances. Returns
