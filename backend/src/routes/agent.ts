@@ -83,6 +83,23 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
   }
 });
 
+// GET /api/coach/agent/history — the agent's own conversation transcript,
+// shaped like /coach/messages so the chat UI can render it interchangeably.
+// Clients try this first and fall back to /coach/messages on 404 (user not on
+// the agent), keeping history consistent with whichever coach answered.
+router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, res) => {
+  try {
+    const turns = await loadConversation(req.user!.id);
+    const messages = turns.map((t) => ({
+      role: t.role,
+      content: typeof t.content === 'string' ? t.content : '',
+    }));
+    res.json({ messages, hasThread: messages.length > 0, source: 'agent' });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message ?? 'Failed to load history' });
+  }
+});
+
 // GET /api/coach/agent/memory — inspect what the agent remembers (debug + an
 // eventual "what Anakin knows about you" UI surface).
 router.get('/coach/agent/memory', requireAuth, requireAgentAccess, async (req, res) => {

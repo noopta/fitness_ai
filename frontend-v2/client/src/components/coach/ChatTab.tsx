@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Send, Loader2, RotateCcw } from 'lucide-react';
-import { authFetch } from '@/lib/api';
+import { authFetch, streamCoachChat } from '@/lib/api';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
 import { WebAnalytics } from '@/lib/analytics';
 
@@ -67,41 +67,19 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
     setSending(true);
 
     try {
-      const res = await authFetch(`${API_BASE}/coach/chat/stream`, {
-        method: 'POST',
-        body: JSON.stringify({ message: trimmed, history }),
+      // Tries the agentic Anakin stream, falls back to the classic coach for
+      // non-allowlisted users. Both formats handled inside the helper.
+      await streamCoachChat({
+        message: trimmed,
+        history,
+        onChunk: (chunk) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: 'assistant', content: updated[updated.length - 1].content + chunk };
+            return updated;
+          });
+        },
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Chat failed');
-      }
-
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const payload = line.slice(6).trim();
-          if (payload === '[DONE]') break;
-          try {
-            const { chunk } = JSON.parse(payload);
-            if (chunk) {
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: 'assistant', content: updated[updated.length - 1].content + chunk };
-                return updated;
-              });
-            }
-          } catch { /* ignore malformed chunk */ }
-        }
-      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to get response');
       setMessages(prev => prev.slice(0, -2)); // remove both user + empty assistant

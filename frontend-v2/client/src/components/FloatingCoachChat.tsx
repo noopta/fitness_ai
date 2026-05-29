@@ -4,10 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { authFetch } from '@/lib/api';
+import { streamCoachChat } from '@/lib/api';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 // Pages where the widget should be hidden (auth flow only)
 const HIDDEN_PATHS = ['/login', '/register'];
@@ -63,41 +61,18 @@ export function FloatingCoachChat() {
     setSending(true);
 
     try {
-      const res = await authFetch(`${API_BASE}/coach/chat/stream`, {
-        method: 'POST',
-        body: JSON.stringify({ message: trimmed, history }),
+      // Agentic Anakin stream with classic-coach fallback (see lib/api).
+      await streamCoachChat({
+        message: trimmed,
+        history,
+        onChunk: (chunk) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: 'assistant', content: updated[updated.length - 1].content + chunk };
+            return updated;
+          });
+        },
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Chat failed');
-      }
-
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const payload = line.slice(6).trim();
-          if (payload === '[DONE]') break;
-          try {
-            const { chunk } = JSON.parse(payload);
-            if (chunk) {
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: 'assistant', content: updated[updated.length - 1].content + chunk };
-                return updated;
-              });
-            }
-          } catch { /* ignore malformed chunk */ }
-        }
-      }
     } catch (err: any) {
       setMessages(prev => {
         const updated = [...prev];

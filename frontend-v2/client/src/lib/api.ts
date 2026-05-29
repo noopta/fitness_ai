@@ -17,6 +17,63 @@ export function authFetch(url: string, options: RequestInit = {}): Promise<Respo
   return fetch(url, { ...options, credentials: 'include', headers });
 }
 
+/**
+ * Stream a coach chat turn. Tries the agentic Anakin stream first; on 404
+ * (user not in the backend AGENT_USER_ALLOWLIST, or agent disabled) it falls
+ * back to the classic /coach/chat/stream. Parses BOTH wire formats:
+ *   - classic: data: {"chunk":"..."} ... data: [DONE]
+ *   - agent:   data: {"type":"delta","text":"..."} ... {"type":"done"} | {"type":"status"|"error"}
+ * onChunk receives text deltas; onStatus (optional) receives the agent's
+ * thinking/tool indicators. Resolves when the stream ends; throws on error.
+ */
+export async function streamCoachChat(opts: {
+  message: string;
+  history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+  onChunk: (text: string) => void;
+  onStatus?: (phase: string, tool?: string) => void;
+}): Promise<void> {
+  const body = JSON.stringify({ message: opts.message, history: opts.history });
+
+  let res = await authFetch(`${API_BASE_URL}/coach/agent/stream`, { method: 'POST', body });
+  if (res.status === 404) {
+    // Not on the agent — fall back to the classic coach stream.
+    res = await authFetch(`${API_BASE_URL}/coach/chat/stream`, { method: 'POST', body });
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as any).error || 'Chat failed');
+  }
+
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') return;
+      try {
+        const evt = JSON.parse(payload);
+        // Classic format
+        if (typeof evt.chunk === 'string') { opts.onChunk(evt.chunk); continue; }
+        // Agent format
+        if (evt.type === 'delta' && typeof evt.text === 'string') opts.onChunk(evt.text);
+        else if (evt.type === 'status') opts.onStatus?.(evt.phase, evt.tool);
+        else if (evt.type === 'done') return;
+        else if (evt.type === 'error' || evt.error) throw new Error(evt.error || 'Stream error');
+      } catch (e) {
+        // Re-throw real stream errors; ignore JSON parse noise.
+        if (e instanceof Error && e.message && !e.message.includes('JSON')) throw e;
+      }
+    }
+  }
+}
+
 export interface LiftData {
   id: string;
   name: string;
