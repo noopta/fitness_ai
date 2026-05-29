@@ -90,7 +90,22 @@ type Block =
   | { type: 'codeblock'; text: string; lang?: string }
   | { type: 'hr' }
   | { type: 'blank' }
+  | { type: 'table'; header: string[]; rows: string[][] }
   | { type: 'paragraph'; text: string };
+
+// Split a GFM table row "| a | b |" into trimmed cells, dropping the empty
+// edges produced by the leading/trailing pipes.
+function splitTableRow(line: string): string[] {
+  return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+}
+function isTableSeparator(line: string): boolean {
+  // e.g. |---|:--:|---| — cells of dashes with optional colons.
+  return /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(line.trim());
+}
+function isTableRow(line: string): boolean {
+  const t = line.trim();
+  return t.startsWith('|') && t.endsWith('|') && t.length > 2;
+}
 
 function parseBlocks(markdown: string): Block[] {
   const blocks: Block[] = [];
@@ -100,7 +115,23 @@ function parseBlocks(markdown: string): Block[] {
   let codeBlockLang: string | undefined;
   let codeBlockLines: string[] = [];
 
-  for (const line of lines) {
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
+
+    // ── GFM table: a row line, then a separator line, then body rows. ──
+    if (!inCodeBlock && isTableRow(line) && li + 1 < lines.length && isTableSeparator(lines[li + 1])) {
+      const header = splitTableRow(line);
+      const rows: string[][] = [];
+      let j = li + 2;
+      while (j < lines.length && isTableRow(lines[j])) {
+        rows.push(splitTableRow(lines[j]));
+        j++;
+      }
+      blocks.push({ type: 'table', header, rows });
+      li = j - 1; // continue after the consumed table lines
+      continue;
+    }
+
     const fenceMatch = line.match(/^```\s*([A-Za-z0-9_-]*)\s*$/);
 
     if (fenceMatch) {
@@ -226,6 +257,30 @@ export function MarkdownText({ text, style }: { text: string; style?: any }) {
               </View>
             );
 
+          case 'table': {
+            const colCount = Math.max(block.header.length, ...block.rows.map((r) => r.length));
+            return (
+              <View key={i} style={s.table}>
+                <View style={[s.tableRow, s.tableHeaderRow]}>
+                  {Array.from({ length: colCount }).map((_, c) => (
+                    <View key={c} style={s.tableCell}>
+                      <InlineContent tokens={parseInline(block.header[c] ?? '')} baseStyle={[style, s.tableHeaderText]} />
+                    </View>
+                  ))}
+                </View>
+                {block.rows.map((row, r) => (
+                  <View key={r} style={[s.tableRow, r === block.rows.length - 1 && s.tableRowLast]}>
+                    {Array.from({ length: colCount }).map((_, c) => (
+                      <View key={c} style={s.tableCell}>
+                        <InlineContent tokens={parseInline(row[c] ?? '')} baseStyle={[style, s.tableCellText]} />
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            );
+          }
+
           case 'paragraph': {
             const tokens = parseInline(block.text);
             return <InlineContent key={i} tokens={tokens} baseStyle={[style, { lineHeight: 20 }]} />;
@@ -266,6 +321,30 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(156,163,175,0.4)',
     marginVertical: 8,
   },
+  table: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(156,163,175,0.5)',
+    borderRadius: 8,
+    marginVertical: 8,
+    overflow: 'hidden',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(156,163,175,0.3)',
+  },
+  tableRowLast: { borderBottomWidth: 0 },
+  tableHeaderRow: { backgroundColor: 'rgba(156,163,175,0.12)' },
+  tableCell: {
+    flex: 1,
+    flexBasis: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: 'rgba(156,163,175,0.2)',
+  },
+  tableHeaderText: { fontSize: 12, fontWeight: '700', lineHeight: 16 },
+  tableCellText: { fontSize: 12, lineHeight: 16 },
   listRow: {
     flexDirection: 'row',
     gap: 6,
