@@ -18,6 +18,18 @@ interface ProgramSetupProps {
   onBack: () => void;
 }
 
+// Explicit goal options so weight-loss is a first-class choice (not inferred
+// from free text). `bodyComp` maps to the backend's bodyCompositionGoal
+// (fat_loss → calorie deficit, etc.); `trainingGoal` sets the program's
+// training emphasis. Fat loss is listed first so it's clearly offered.
+const GOALS = [
+  { key: 'fat_loss',    bodyComp: 'fat_loss',    trainingGoal: 'hypertrophy', label: 'Lose fat / weight', sub: 'Calorie deficit while preserving muscle' },
+  { key: 'muscle_gain', bodyComp: 'muscle_gain', trainingGoal: 'hypertrophy', label: 'Build muscle',       sub: 'Lean surplus, hypertrophy focus' },
+  { key: 'strength',    bodyComp: 'maintenance', trainingGoal: 'strength',    label: 'Get stronger',       sub: 'Maximal strength, lower reps' },
+  { key: 'recomp',      bodyComp: 'recomp',      trainingGoal: 'hypertrophy', label: 'Recomp',             sub: 'Lose fat and build muscle at once' },
+  { key: 'maintenance', bodyComp: 'maintenance', trainingGoal: 'strength',    label: 'Maintain',           sub: 'Hold your strength and physique' },
+] as const;
+
 const DURATIONS = [
   { value: 4, label: '4 Weeks', sub: 'Introductory / Deload block' },
   { value: 8, label: '8 Weeks', sub: 'Standard mesocycle', badge: 'Recommended' },
@@ -144,6 +156,7 @@ const gs = StyleSheet.create({
 // ── Program Setup ─────────────────────────────────────────────────────────────
 
 export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
+  const [goalKey, setGoalKey] = useState<string>('strength');
   const [durationWeeks, setDurationWeeks] = useState<number>(8);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
   const [loading, setLoading] = useState(false);
@@ -153,7 +166,12 @@ export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
     setError('');
     setLoading(true);
     try {
-      const result = await coachApi.generateProgram({ durationWeeks, daysPerWeek });
+      const g = GOALS.find(x => x.key === goalKey) ?? GOALS[2];
+      const result = await coachApi.generateProgram({
+        durationWeeks, daysPerWeek,
+        goal: g.trainingGoal,
+        bodyCompositionGoal: g.bodyComp,
+      });
       onGenerate(result);
     } catch (err: any) {
       setError(err?.message || 'Failed to generate program. Please try again.');
@@ -173,11 +191,31 @@ export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
       >
         <Text style={s.heading}>Configure Your Program</Text>
         <Text style={s.subheading}>
-          Choose the duration and training frequency for your program.
+          Pick your goal, duration, and training frequency.
         </Text>
 
+        {/* Goal — explicit so weight-loss is a clear option */}
+        <Text style={s.sectionLabel}>Your Goal</Text>
+        <View style={s.optionList}>
+          {GOALS.map(opt => {
+            const sel = goalKey === opt.key;
+            return (
+              <Pressable key={opt.key} onPress={() => setGoalKey(opt.key)}
+                style={[s.optionCard, sel && s.optionCardSel]}>
+                <View style={[s.radio, sel && s.radioSel]}>
+                  {sel && <View style={s.radioInner} />}
+                </View>
+                <View style={s.optionText}>
+                  <Text style={[s.optionLabel, sel && s.optionLabelSel]}>{opt.label}</Text>
+                  <Text style={s.optionSub}>{opt.sub}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {/* Duration */}
-        <Text style={s.sectionLabel}>Program Duration</Text>
+        <Text style={[s.sectionLabel, { marginTop: spacing.lg }]}>Program Duration</Text>
         <View style={s.optionList}>
           {DURATIONS.map(opt => {
             const sel = durationWeeks === opt.value;

@@ -22,6 +22,7 @@ import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constan
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { NutritionProfile } from '../../src/components/NutritionProfile';
+import { ApplyPlanButton } from '../../src/components/coach/ApplyPlanButton';
 import { TierHeroCard } from '../../src/components/strength/TierHeroCard';
 import { RadarChart, type RadarAxis } from '../../src/components/strength/RadarChart';
 import { LiftRow, type LiftRowData } from '../../src/components/strength/LiftRow';
@@ -412,6 +413,8 @@ export default function StrengthProfileScreen() {
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Gate the "Apply to my program" affordance on agent availability.
+  const [agentAvailable, setAgentAvailable] = useState(false);
   // Radar level — `overview` shows the 6 movement axes; `bucket` morphs the
   // chart into the muscles that feed the tapped movement. Reset on tab focus.
   const [radarLevel, setRadarLevel] = useState<RadarLevel>({ kind: 'overview' });
@@ -445,6 +448,12 @@ export default function StrengthProfileScreen() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    coachApi.agentStatus().then((s) => { if (!cancelled) setAgentAvailable(!!s.available); });
+    return () => { cancelled = true; };
+  }, []);
 
   // Re-fetch each time the tab comes into focus so a freshly-logged workout
   // or a background strength-profile recalculation is reflected immediately.
@@ -798,6 +807,37 @@ export default function StrengthProfileScreen() {
                 </CardContent>
               </Card>
             )}
+
+            {/* ── Apply Anakin's read to the program ─────────────────────────
+                Hands the strength analysis to the agent, which reads the
+                diagnostic + current program and makes a goal-preserving
+                change. Only shows when the agent is available + there's
+                something to act on. */}
+            {(() => {
+              const insights = (data!.athleteModel?.insights ?? data!.aiInsights ?? []) as string[];
+              if (!insights.length) return null;
+              return (
+                <Card style={styles.card}>
+                  <CardHeader>
+                    <CardTitle>Apply to your program</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Text style={styles.insightText}>
+                      Let Anakin turn this analysis into a concrete, goal-preserving change to your training program.
+                    </Text>
+                    <ApplyPlanButton
+                      available={agentAvailable}
+                      label="Apply Anakin's read to my program"
+                      onApplied={() => loadData()}
+                      suggestion={
+                        `Apply my strength analysis to my training program. Key findings: ${insights.join('; ')}. ` +
+                        `Address my weak points and limiters (read my latest diagnostic), keeping my goal and sensible progression intact.`
+                      }
+                    />
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </>
         )}
       </ScrollView>}
