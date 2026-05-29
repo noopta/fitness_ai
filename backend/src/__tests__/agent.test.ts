@@ -457,6 +457,30 @@ describe('runAgentTask', () => {
   it('rejects an unknown task', async () => {
     await expect(runAgentTask(USER, 'nope' as any, 'x')).rejects.toThrow(/Unknown task/);
   });
+
+  it('apply_suggestion can reach apply_program_update and persist', async () => {
+    // findUnique called by: context assembler, read_program (if used), and
+    // applyProgramUpdate. Return the sample program for all of them.
+    mocks.user.findUnique.mockResolvedValue({
+      savedProgram: JSON.stringify(SAMPLE_PROGRAM),
+      name: 'T', tier: 'pro', heightCm: null, weightKg: null, trainingAge: null,
+      equipment: null, constraintsText: null, coachGoal: 'strength', coachBudget: null,
+    });
+    mocks.user.update.mockResolvedValue({});
+    const updated = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
+    updated.phases[0].trainingDays[0].exercises.push({ exercise: 'Close-grip Bench', sets: 3, reps: '8', intensity: 'RPE 8' });
+    let i = 0;
+    const client = { messages: { create: vi.fn(async () => {
+      i++;
+      return i === 1
+        ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'a1', name: 'apply_program_update', input: { updatedProgram: updated, summary: 'added close-grip bench' } }] }
+        : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Added close-grip bench to your push day.' }] };
+    }) } } as any;
+    const res = await runAgentTask(USER, 'apply_suggestion', 'add tricep accessory for my bench limiter', client);
+    expect(res.toolsUsed).toContain('apply_program_update');
+    expect(res.reply).toContain('close-grip');
+    expect(mocks.user.update).toHaveBeenCalled();
+  });
 });
 
 // ─── Apply-suggestions tools ──────────────────────────────────────────────────

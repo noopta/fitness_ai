@@ -83,6 +83,15 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
   }
 });
 
+// GET /api/coach/agent/status — tells the client whether the agent is
+// available for THIS user (flag on + allowlisted), so UI like the "Apply to
+// my plan" button only shows when it'll actually work. Auth-only (no
+// allowlist guard — it answers "are you allowed?").
+router.get('/coach/agent/status', requireAuth, (req, res) => {
+  const available = AGENT_ALLOWLIST.length === 0 || AGENT_ALLOWLIST.includes(req.user!.id);
+  res.json({ available });
+});
+
 // GET /api/coach/agent/history — the agent's own conversation transcript,
 // shaped like /coach/messages so the chat UI can render it interchangeably.
 // Clients try this first and fall back to /coach/messages on 404 (user not on
