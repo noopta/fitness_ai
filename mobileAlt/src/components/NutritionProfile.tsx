@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl,
+  ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import Svg, { Polygon, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { nutritionApi } from '../lib/api';
+import { nutritionApi, coachApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { getCached, setCached } from '../lib/cache';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
@@ -393,6 +393,33 @@ export function NutritionProfile() {
   const [data, setData] = useState<Profile | null>(initialCached ?? null);
   const [loading, setLoading] = useState(initialCached === null);
   const [refreshing, setRefreshing] = useState(false);
+  // "Apply to my plan" is only shown when the agentic Anakin is available for
+  // this user (backend flag + allowlist). `applying` guards the in-flight call.
+  const [agentAvailable, setAgentAvailable] = useState(false);
+  const [applying, setApplying] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    coachApi.agentStatus().then((s) => { if (!cancelled) setAgentAvailable(!!s.available); });
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // Hand a suggestion to the agent to apply to the real plan. The agent makes
+  // a goal-preserving change and reports what it did; we surface that, then
+  // refresh so the new targets show.
+  const applySuggestion = useCallback(async (suggestion: string) => {
+    if (applying) return;
+    setApplying(true);
+    try {
+      const res = await coachApi.applySuggestion(suggestion);
+      Alert.alert('Applied', String((res as any)?.reply ?? 'Done.'));
+      await load(true);
+    } catch (err: any) {
+      Alert.alert('Could not apply', err?.message ?? 'Please try again.');
+    } finally {
+      setApplying(false);
+    }
+  }, [applying]);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -920,6 +947,23 @@ export function NutritionProfile() {
             </View>
           )}
           <Text style={styles.rationaleText}>{a.macroRecommendation.rationale}</Text>
+          {agentAvailable && (
+            <TouchableOpacity
+              style={[styles.applyBtn, applying && { opacity: 0.6 }]}
+              disabled={applying}
+              onPress={() => applySuggestion(
+                `Set my daily nutrition targets to ${a.macroRecommendation!.calories} kcal, ` +
+                `${a.macroRecommendation!.proteinG}g protein, ${a.macroRecommendation!.carbsG}g carbs, ` +
+                `${a.macroRecommendation!.fatG}g fat — from my nutrition analysis. Keep it consistent with my goal.`,
+              )}
+              accessibilityRole="button"
+              accessibilityLabel="Apply recommended targets to my plan"
+            >
+              {applying
+                ? <ActivityIndicator color="#fff" size="small" />
+                : <><Ionicons name="checkmark-circle" size={16} color="#fff" /><Text style={styles.applyBtnText}>Apply to my plan</Text></>}
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -1144,6 +1188,12 @@ const styles = StyleSheet.create({
   periodizationValue: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
 
   rationaleText: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 16 },
+  applyBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    marginTop: spacing.md, backgroundColor: colors.primary,
+    borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 14,
+  },
+  applyBtnText: { color: '#fff', fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
 
   suggestionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   suggestionNum: {
