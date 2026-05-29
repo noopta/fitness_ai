@@ -204,8 +204,21 @@ export const liftCoachApi = {
 export const coachApi = {
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
-  sendChat: (content: string) =>
-    apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ message: content }) }),
+  // Try the agentic Anakin first; the backend allowlist (AGENT_USER_ALLOWLIST)
+  // decides who gets it. A 404 means "not enabled for this user" → fall back
+  // to the classic coach so everyone else is unaffected. Both endpoints return
+  // a { reply } shape, so the chat UI doesn't change. The agent path can take
+  // longer (it reads data + reasons), which the existing send spinner covers.
+  sendChat: async (content: string) => {
+    try {
+      return await apiFetch('/coach/agent', { method: 'POST', body: JSON.stringify({ message: content }) });
+    } catch (err: any) {
+      if (err?.status === 404) {
+        return apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ message: content }) });
+      }
+      throw err;
+    }
+  },
   deleteThread: () => apiFetch('/coach/thread', { method: 'DELETE' }),
 
   // Insights
