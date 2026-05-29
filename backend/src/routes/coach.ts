@@ -582,6 +582,10 @@ router.post('/coach/nutrition-plan', requireAuth, async (req, res) => {
 // POST /api/coach/program - Generate training program
 const programSchema = z.object({
   goal: z.string().optional(), // Optional — derived from coachProfile.trainingPreference if not provided
+  // Explicit body-composition goal from the goal picker. When present it
+  // overrides the free-text inference (so "lose fat / weight" reliably drives
+  // a calorie-deficit nutrition plan instead of defaulting to maintenance).
+  bodyCompositionGoal: z.enum(['fat_loss', 'muscle_gain', 'recomp', 'maintenance']).optional(),
   daysPerWeek: z.number().int().min(2).max(6),
   durationWeeks: z.number().int().min(2).max(16),
   gender: z.string().nullable().optional(),
@@ -605,7 +609,7 @@ router.post('/coach/program', requireAuth, async (req, res) => {
     if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
       return res.status(403).json({ error: 'Pro feature', upgrade: true });
     }
-    const { goal: requestedGoal, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
+    const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
@@ -635,7 +639,8 @@ router.post('/coach/program', requireAuth, async (req, res) => {
     const coachProfileObj = user.coachProfile ? (() => { try { return JSON.parse(user.coachProfile); } catch { return {}; } })() : {};
     const resolvedGender = gender || coachProfileObj?.gender || null;
     const goal = requestedGoal || inferGoalFromProfile(coachProfileObj?.trainingPreference, coachProfileObj?.primaryGoal);
-    const bodyCompositionGoal = extractBodyCompositionGoal(coachProfileObj?.primaryGoal);
+    // Explicit picker value wins; otherwise infer from the onboarding free text.
+    const bodyCompositionGoal = requestedBodyComp || extractBodyCompositionGoal(coachProfileObj?.primaryGoal);
 
     const [program, nutritionPlan] = await Promise.all([
       generateTrainingProgram({
