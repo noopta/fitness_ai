@@ -25,12 +25,30 @@ const router = Router();
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED === 'true';
 
-// Guard middleware — if the flag is off, behave as if these routes don't
-// exist. Keeps the surface invisible in production until cutover.
+// Optional allowlist for staged rollout: when AGENT_USER_ALLOWLIST is set
+// (comma-separated user IDs), ONLY those users get the agent even with the
+// flag on — everyone else 404s and stays on the existing coach. This is how
+// you dogfood in production for just your own account before going wider.
+// Empty allowlist = available to all (once AGENT_ENABLED is on).
+const AGENT_ALLOWLIST = (process.env.AGENT_USER_ALLOWLIST || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+
+// Master flag guard — pre-auth, no user needed. 404s the whole surface when
+// the agent is off (default + production until cutover).
 router.use('/coach/agent', (req, res, next) => {
   if (!AGENT_ENABLED) return res.status(404).json({ error: 'Not found' });
   next();
 });
+
+// Per-user allowlist guard — runs AFTER requireAuth (needs req.user). Applied
+// on each route below. 404s (not 403) so the surface stays invisible to
+// non-allowlisted users rather than advertising a gated feature.
+function requireAgentAccess(req: any, res: any, next: any) {
+  if (AGENT_ALLOWLIST.length && !AGENT_ALLOWLIST.includes(req.user?.id)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  next();
+}
 
 const turnSchema = z.object({
   message: z.string().min(1).max(4000),
@@ -42,7 +60,7 @@ const turnSchema = z.object({
 // POST /api/coach/agent — one agent turn. Conversation history is loaded +
 // persisted server-side so multi-turn continuity works without the client
 // tracking it.
-router.post('/coach/agent', requireAuth, checkAgentRateLimit, async (req, res) => {
+router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit, async (req, res) => {
   try {
     const { message, resetConversation } = turnSchema.parse(req.body);
     const userId = req.user!.id;
@@ -67,7 +85,7 @@ router.post('/coach/agent', requireAuth, checkAgentRateLimit, async (req, res) =
 
 // GET /api/coach/agent/memory — inspect what the agent remembers (debug + an
 // eventual "what Anakin knows about you" UI surface).
-router.get('/coach/agent/memory', requireAuth, async (req, res) => {
+router.get('/coach/agent/memory', requireAuth, requireAgentAccess, async (req, res) => {
   try {
     const notes = await readMemory(req.user!.id);
     res.json({ notes });
@@ -79,7 +97,7 @@ router.get('/coach/agent/memory', requireAuth, async (req, res) => {
 // POST /api/coach/agent/stream — Server-Sent Events. Mirrors the existing
 // /coach/chat/stream UX (token stream) so the web client doesn't sit on a
 // 5-20s blank wait. Emits: status (thinking/tool), delta (text tokens), done.
-router.post('/coach/agent/stream', requireAuth, checkAgentRateLimit, async (req, res) => {
+router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRateLimit, async (req, res) => {
   let parsed;
   try {
     parsed = turnSchema.parse(req.body);
@@ -119,7 +137,7 @@ const taskSchema = z.object({ input: z.string().max(4000).optional() });
 // (program_adjustment, life_happened, plateau, meal_suggestions, daily_tips,
 // weekly_review, injury_intake, research_apply). Each is the same agent loop
 // with a task-specific framing. `input` required for tasks that need it.
-router.post('/coach/agent/task/:taskId', requireAuth, checkAgentRateLimit, async (req, res) => {
+router.post('/coach/agent/task/:taskId', requireAuth, requireAgentAccess, checkAgentRateLimit, async (req, res) => {
   try {
     const taskId = req.params.taskId as AgentTaskId;
     if (!(taskId in AGENT_TASKS)) {
@@ -141,7 +159,7 @@ router.post('/coach/agent/task/:taskId', requireAuth, checkAgentRateLimit, async
 // proactive evaluation for the current user and returns what it would do.
 // Never sends a notification (that's the sweep + AGENT_PROACTIVE_ENABLED).
 // Exists so you can eyeball the agent's judgement before trusting delivery.
-router.post('/coach/agent/proactive/:trigger', requireAuth, async (req, res) => {
+router.post('/coach/agent/proactive/:trigger', requireAuth, requireAgentAccess, async (req, res) => {
   try {
     const trigger = req.params.trigger as ProactiveTrigger;
     if (!PROACTIVE_TRIGGERS.includes(trigger)) {

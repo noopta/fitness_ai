@@ -53,6 +53,21 @@ deterministic engine). The agent CALLS authoritative code, it doesn't re-derive.
    comes from the fresh context each turn, so replaying old tool calls would
    be stale noise. Capped to last 24 messages.
 
+## Endpoints
+
+- `POST /coach/agent` — one turn, JSON `{ reply, toolsUsed, iterations }`.
+  Same `reply` field as the old `/coach/chat`, so mobile is a one-line swap.
+- `POST /coach/agent/stream` — SSE; events `status` / `delta` / `done`.
+  Use for web (mirrors `/coach/chat/stream`).
+- `POST /coach/agent/task/:taskId` — purpose-built tasks (program_adjustment,
+  life_happened, plateau, meal_suggestions, daily_tips, weekly_review,
+  injury_intake, research_apply).
+- `POST /coach/agent/proactive/:trigger` — decision-only, never sends.
+- `GET  /coach/agent/memory` — what the agent remembers about the user.
+
+All gated by `AGENT_ENABLED` + `AGENT_USER_ALLOWLIST`; turn endpoints are
+rate-limited per day.
+
 ## Cost — READ THIS
 
 This path bills the **Anthropic API per token. It is NOT covered by Claude
@@ -62,12 +77,17 @@ turn on Sonnet. It's $0 until you flip `AGENT_ENABLED`, because the routes
 
 ## How to turn it on (NOT done — needs you)
 
-1. `cd backend && npx prisma db push` — materialise `AgentMemory` +
-   `AgentConversation` (additive, safe).
+1. `cd backend && npx prisma db push` — materialise `AgentMemory`,
+   `AgentConversation`, and the `User.agentTurns*` counters (additive, safe).
 2. Set env in `backend/.env`:
-   - `ANTHROPIC_API_KEY=...` (already set for the auto-fix workflow)
+   - `ANTHROPIC_API_KEY=...`
    - `AGENT_ENABLED=true`
+   - **`AGENT_USER_ALLOWLIST=<your-user-id>`** — dogfood for JUST your
+     account in production. Everyone else 404s and stays on the existing
+     coach. Remove (or leave empty) to open to all once you trust it.
    - (optional) `AGENT_MODEL=claude-sonnet-4-6`
+   - (optional) `AGENT_FREE_DAILY_LIMIT=10`, `AGENT_PRO_DAILY_LIMIT=200`
+     — per-day turn caps (cost control; every turn is a real API call).
    - leave `AGENT_PROACTIVE_ENABLED` unset/false until you've watched
      proactive decisions in logs and trust them
 3. Restart the service. `POST /api/coach/agent { "message": "..." }` now works.
