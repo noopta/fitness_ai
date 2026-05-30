@@ -107,6 +107,10 @@ model User {
   groupsCreated            GroupChat[]    @relation("GroupCreator")
   groupMemberships         GroupMember[]  @relation("GroupMemberships")
   groupMessagesSent        GroupMessage[] @relation("GroupMessagesSent")
+  // Finished-programs archive — populated when a program is replaced by a new
+  // one (or when the user explicitly archives), so users can see their full
+  // training history with stats.
+  completedPrograms        CompletedProgram[]
   referredByCode           String?
   // Institution
   institutionMemberships   InstitutionMember[]
@@ -250,6 +254,29 @@ model GeneratedPlan {
   planText  String
   createdAt DateTime @default(now())
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+// A user's prior training program, archived when they start a new one (or
+// when the program completes). Lets users browse their full history with
+// the inputs they chose, the goal they pursued, and how they actually did.
+// `stats` is a JSON blob computed at archive time (workouts logged, total
+// volume, body-weight change, days active, etc.) so the screen can render
+// without re-querying every related log.
+model CompletedProgram {
+  id             String   @id @default(uuid())
+  userId         String
+  programJson    String   // the saved program at archival
+  startDate      DateTime
+  endDate        DateTime @default(now())
+  goal           String?
+  durationWeeks  Int?
+  daysPerWeek    Int?
+  stats          String?  // JSON: { workoutsLogged, totalVolumeLb, bodyWeightStart, ... }
+  reason         String?  // 'replaced' | 'completed' — why it was archived
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, endDate])
 }
 
 model WorkoutLog {

@@ -88,14 +88,28 @@ export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
     opening: 'The user asks: "{input}". Answer with evidence and apply it to their situation.',
     needsInput: true,
   },
-  // The user tapped "Apply to my plan" on a specific suggestion — the tap IS
-  // their consent, so apply directly (don't re-ask), but intelligently: read
-  // the relevant data, make the change FIT their goal + sound progression, and
-  // actually persist it via adjust_macros / apply_program_update. Then report
-  // exactly what changed in 1-2 lines so they can see (and reverse if wanted).
+  // The user tapped "Apply to my plan" on a specific suggestion. The tap
+  // means they want the agent to *propose* a concrete change — the client
+  // surfaces a side-by-side diff of current vs proposed and only writes it
+  // through after the user taps Confirm. For nutrition (adjust_macros) the
+  // change is tiny and direct-apply is fine; for training, always go through
+  // propose_program_update so the user sees the diff first.
   apply_suggestion: {
     id: 'apply_suggestion',
-    framing: `${BASE}\n\nThe user tapped "Apply to my plan" on a suggestion from their Strength/Nutrition analysis. Their tap is explicit consent — DO NOT ask them to confirm again. Read the relevant data (read_program / read_latest_diagnostic / read_nutrition_today as needed), translate the suggestion into a concrete, GOAL-PRESERVING change, and APPLY it: use apply_program_update for training changes (read_program first, change only what's needed, keep goal + phase structure + progression) or adjust_macros for nutrition changes. The user's goal is the priority — fit the change around it, backed by training/nutrition science. If the suggestion can't be safely applied (ambiguous, or would compromise the goal), DON'T apply — explain why in one line instead. After applying, state exactly what you changed in 1-2 lines.`,
+    framing: `${BASE}\n\nThe user tapped "Apply to my plan" on a suggestion from their Strength/Nutrition analysis. They WILL see a diff and confirm before any training change lands — so don't ask them to confirm in chat, just produce the best proposal you can.
+
+For TRAINING changes:
+- Read the program first (read_program), and the diagnostic if the suggestion is strength-shaped (read_latest_diagnostic).
+- Call propose_program_update (NOT apply_program_update). Pick the MINIMAL goal-preserving change, preferring in order:
+  (1) bump sets/reps on an existing exercise that already targets the weak area,
+  (2) substitute one weaker-fit exercise for a stronger-fit one of the same volume,
+  (3) add a single accessory at the end of one relevant training day.
+- Keep the goal, phase count, phase durations, and overall structure identical. Touch as few days as possible.
+
+For NUTRITION changes:
+- Read read_nutrition_today / read_profile as needed, then call adjust_macros directly. The diff there is just 4 numbers.
+
+If the suggestion can't be safely applied (ambiguous, or would compromise the goal), DON'T propose or apply — explain why in one line. After proposing/applying, state exactly what you're recommending in 1-2 lines.`,
     opening: 'Apply this suggestion to my plan: "{input}"',
     needsInput: true,
   },

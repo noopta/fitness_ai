@@ -11,7 +11,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { assembleContext, renderContext } from './context.js';
 import { AGENT_TOOLS } from './tools.js';
-import type { AgentTool, AgentTurnResult } from './types.js';
+import type { AgentTool, AgentTurnResult, AgentProposal } from './types.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -129,6 +129,9 @@ export async function runAgentTurn(
 
   const toolsUsed: string[] = [];
   let iterations = 0;
+  // Captured the last time the agent called a propose_* tool — surfaced on
+  // the turn result so the client can render a confirm-before-apply UI.
+  let proposal: AgentProposal | undefined;
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
@@ -151,7 +154,7 @@ export async function runAgentTurn(
         .map((b) => b.text)
         .join('')
         .trim();
-      return { reply: reply || '(no reply)', toolsUsed, iterations };
+      return { reply: reply || '(no reply)', toolsUsed, iterations, proposal };
     }
 
     // Execute every requested tool, collecting results for the next turn.
@@ -171,6 +174,12 @@ export async function runAgentTurn(
       }
       try {
         const result = await tool.execute(block.input as Record<string, unknown>, userId);
+        // Hoist a propose_* result onto the turn so the API caller gets the
+        // structured proposal alongside the agent's text reply.
+        if (result && typeof result === 'object' && (result as any)._proposal) {
+          const r = result as any;
+          proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+        }
         toolResults.push({
           type: 'tool_result',
           tool_use_id: block.id,
@@ -196,6 +205,7 @@ export async function runAgentTurn(
     reply: "I ran out of steps working through that. Could you narrow the question a bit?",
     toolsUsed,
     iterations,
+    proposal,
   };
 }
 
@@ -235,6 +245,7 @@ export async function streamAgentTurn(
   const toolsUsed: string[] = [];
   let iterations = 0;
   let finalText = '';
+  let proposal: AgentProposal | undefined;
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
@@ -260,7 +271,7 @@ export async function streamAgentTurn(
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text).join('').trim() || finalText.trim() || '(no reply)';
       onEvent({ type: 'done', reply, toolsUsed, iterations });
-      return { reply, toolsUsed, iterations };
+      return { reply, toolsUsed, iterations, proposal };
     }
 
     // Reset accumulated text — intermediate "thinking" text before a tool
@@ -278,6 +289,10 @@ export async function streamAgentTurn(
       }
       try {
         const result = await tool.execute(block.input as Record<string, unknown>, userId);
+        if (result && typeof result === 'object' && (result as any)._proposal) {
+          const r = result as any;
+          proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+        }
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) });
       } catch (err: any) {
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Error: ${err?.message ?? String(err)}`, is_error: true });
@@ -288,5 +303,5 @@ export async function streamAgentTurn(
 
   const reply = "I ran out of steps working through that. Could you narrow the question a bit?";
   onEvent({ type: 'done', reply, toolsUsed, iterations });
-  return { reply, toolsUsed, iterations };
+  return { reply, toolsUsed, iterations, proposal };
 }

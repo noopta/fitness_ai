@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/context/AuthContext';
 import { coachApi, authApi } from '../../src/lib/api';
@@ -184,6 +184,28 @@ export default function CoachScreen() {
     setStage('setup');
   }
 
+  function handleStartFromScratch() {
+    Alert.alert(
+      'Start from scratch?',
+      "You'll redo the full onboarding (training profile, equipment, injuries, etc.) before building a new program. Your saved program won't be deleted until you save the new one.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start over', style: 'destructive', onPress: () => {
+            // Stay local — bump the onboarding key so it remounts with fresh
+            // state, then enter onboarding. handleOnboardingComplete will
+            // overwrite coachProfile on submit; handleProgramSave replaces
+            // savedProgram on save. Until then, the user can still abort and
+            // keep their current program.
+            setOnboardingKey(k => k + 1);
+            setSetupReturnStage('onboarding');
+            setStage('onboarding');
+          },
+        },
+      ],
+    );
+  }
+
   async function handleProgramSave() {
     // Saving / regenerating a program changes today's session, schedule, and
     // the program tab. Drop the whole coach cache so the fresh fetch below
@@ -246,6 +268,7 @@ export default function CoachScreen() {
             if (setupReturnStage === 'onboarding') setOnboardingKey(k => k + 1);
             setStage(setupReturnStage);
           }}
+          onStartFromScratch={handleStartFromScratch}
         />
       </SafeAreaView>
     );
@@ -289,6 +312,28 @@ export default function CoachScreen() {
         </TouchableOpacity>
         <View style={styles.onlineDot} />
       </View>
+
+      {/* Program-complete CTA — only shows once daysSinceStart has carried
+          the user past their final week. Routes to ProgramSetup (the
+          existing new-program flow, NOT from-scratch). */}
+      {coachData?.programComplete ? (
+        <TouchableOpacity
+          style={styles.completionBanner}
+          activeOpacity={0.85}
+          onPress={() => { setSetupReturnStage('dashboard'); setStage('setup'); }}
+        >
+          <View style={styles.completionIcon}>
+            <Text style={styles.completionIconText}>🎉</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.completionTitle}>You finished your program</Text>
+            <Text style={styles.completionSub}>
+              {coachData?.totalWeeks ? `${coachData.totalWeeks} weeks done. ` : ''}Tap to build your next one — Anakin will pick up where you left off.
+            </Text>
+          </View>
+          <Text style={styles.completionArrow}>›</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {/* Tab bar */}
       <View style={styles.tabBarWrapper}>
@@ -471,6 +516,23 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     fontWeight: fontWeight.medium,
   },
+
+  // Completion banner
+  completionBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    marginHorizontal: spacing.md, marginTop: spacing.sm,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    borderRadius: radius.md, borderWidth: 1,
+    borderColor: colors.primary, backgroundColor: `${colors.primary}15`,
+  },
+  completionIcon: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: `${colors.primary}30`,
+  },
+  completionIconText: { fontSize: 18 },
+  completionTitle: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.foreground },
+  completionSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2, lineHeight: 16 },
+  completionArrow: { fontSize: fontSize.lg, color: colors.primary, fontWeight: fontWeight.bold },
 
   // Tab bar
   tabBarWrapper: {

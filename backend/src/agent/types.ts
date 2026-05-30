@@ -66,6 +66,16 @@ export interface UserContext {
   memory: string[];
 }
 
+/** Structured proposal returned by a non-persisting tool (e.g.
+ *  propose_program_update). Surfaced to clients so the UI can render a
+ *  side-by-side diff and let the user confirm before persisting. */
+export interface AgentProposal {
+  kind: 'program_update';
+  updatedProgram: any;
+  summary: string;
+  changedDays?: string[];
+}
+
 /** Result of one agent turn. */
 export interface AgentTurnResult {
   reply: string;
@@ -75,4 +85,7 @@ export interface AgentTurnResult {
   // Number of model round-trips (1 = answered without tools). Useful for
   // cost monitoring.
   iterations: number;
+  // Set when the agent called a propose_* tool — the client uses this to
+  // render a confirm-before-apply UI instead of persisting directly.
+  proposal?: AgentProposal;
 }

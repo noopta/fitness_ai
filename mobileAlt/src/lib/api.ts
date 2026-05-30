@@ -237,12 +237,30 @@ export const coachApi = {
       return { available: false };
     }
   },
-  // Apply a Strength/Nutrition suggestion to the user's real plan. The tap is
-  // the user's consent; the agent makes a goal-preserving change and returns
-  // { reply } describing exactly what changed.
-  applySuggestion: (suggestion: string) =>
+  // Apply a Strength/Nutrition suggestion to the user's real plan.
+  // For PROGRAM changes, the agent returns a `proposal` (no DB write yet) and
+  // the client renders a side-by-side diff; the user taps Confirm and we call
+  // confirmProposal to actually persist. For NUTRITION changes (adjust_macros)
+  // the agent applies directly and `proposal` will be absent — the existing
+  // single-step UX still works.
+  applySuggestion: (suggestion: string): Promise<{
+    reply: string;
+    proposal?: {
+      kind: 'program_update';
+      updatedProgram: any;
+      summary: string;
+      changedDays?: string[];
+    };
+  }> =>
     apiFetch('/coach/agent/task/apply_suggestion', {
       method: 'POST', body: JSON.stringify({ input: suggestion }),
+    }),
+  // Persist a proposed program update (the second half of the propose →
+  // confirm "Apply to my plan" flow). No LLM call — just the goal-preserving
+  // validation + write path.
+  confirmProposal: (updatedProgram: any) =>
+    apiFetch('/coach/agent/confirm-proposal', {
+      method: 'POST', body: JSON.stringify({ updatedProgram }),
     }),
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
@@ -268,6 +286,9 @@ export const coachApi = {
 
   // Program
   getProgram: () => apiFetch('/coach/program'),
+  // Finished-programs archive: history of prior programs with stats.
+  getCompletedPrograms: () => apiFetch('/coach/completed-programs'),
+  getCompletedProgram: (id: string) => apiFetch(`/coach/completed-programs/${id}`),
   generateProgram: (data: any) =>
     apiFetch('/coach/program', { method: 'POST', body: JSON.stringify(data) }),
   updateProgram: (data: any) =>

@@ -458,6 +458,31 @@ describe('runAgentTask', () => {
     await expect(runAgentTask(USER, 'nope' as any, 'x')).rejects.toThrow(/Unknown task/);
   });
 
+  it('apply_suggestion can reach propose_program_update and surface a proposal without writing', async () => {
+    mocks.user.findUnique.mockResolvedValue({
+      savedProgram: JSON.stringify(SAMPLE_PROGRAM),
+      name: 'T', tier: 'pro', heightCm: null, weightKg: null, trainingAge: null,
+      equipment: null, constraintsText: null, coachGoal: 'strength', coachBudget: null,
+    });
+    const proposed = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
+    proposed.phases[0].trainingDays[0].exercises[0].sets = 4; // volume bump on existing exercise
+    let i = 0;
+    const client = { messages: { create: vi.fn(async () => {
+      i++;
+      return i === 1
+        ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'p1', name: 'propose_program_update', input: { updatedProgram: proposed, summary: 'Bumped bench from 3 to 4 sets on day 1', changedDays: ['Day 1'] } }] }
+        : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Proposed: bumped sets to 4 on Day 1.' }] };
+    }) } } as any;
+    const res = await runAgentTask(USER, 'apply_suggestion', 'increase bench volume', client);
+    expect(res.toolsUsed).toContain('propose_program_update');
+    expect(res.proposal).toBeDefined();
+    expect(res.proposal?.kind).toBe('program_update');
+    expect(res.proposal?.summary).toMatch(/Bumped/i);
+    expect(res.proposal?.updatedProgram.phases[0].trainingDays[0].exercises[0].sets).toBe(4);
+    // Critically: no DB write happened — propose is read-only.
+    expect(mocks.user.update).not.toHaveBeenCalled();
+  });
+
   it('apply_suggestion can reach apply_program_update and persist', async () => {
     // findUnique called by: context assembler, read_program (if used), and
     // applyProgramUpdate. Return the sample program for all of them.

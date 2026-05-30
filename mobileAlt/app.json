@@ -50,7 +50,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "io.axiomtraining.app",
-      "buildNumber": "79",
+      "buildNumber": "82",
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
@@ -79,7 +79,8 @@
           ]
         }
       ],
-      "permissions": []
+      "permissions": [],
+      "versionCode": 3
     },
     "experiments": {
       "typedRoutes": true

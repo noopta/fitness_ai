@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { groupsApi } from '../../src/lib/api';
+import { groupsApi, socialApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 interface Group {
@@ -108,27 +108,62 @@ export default function GroupsScreen() {
   );
 }
 
+type Friend = { id: string; username: string | null; name: string | null };
+
 function CreateGroupSheet({
   visible, onClose, onCreated,
 }: { visible: boolean; onClose: () => void; onCreated: (g: Group) => void }) {
   const [name, setName] = useState('');
   const [groupGoal, setGroupGoal] = useState('');
-  const [members, setMembers] = useState('');
+  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+  const [memberQuery, setMemberQuery] = useState('');
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [selfGoal, setSelfGoal] = useState('');
   const [anakinDailyEnabled, setAnakinDailyEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!visible) {
-      setName(''); setGroupGoal(''); setMembers(''); setSelfGoal(''); setAnakinDailyEnabled(false); setSaving(false);
+      setName(''); setGroupGoal(''); setSelectedFriends([]); setMemberQuery('');
+      setSelfGoal(''); setAnakinDailyEnabled(false); setSaving(false);
+      return;
     }
+    // Load friends once the sheet opens so the dropdown can match by name OR
+    // username — the backend invite path only accepts usernames, so we filter
+    // out friends without one from the suggestions list.
+    socialApi.getFriends()
+      .then((r) => {
+        const list: Friend[] = Array.isArray(r) ? r : ((r as any)?.friends ?? []);
+        setFriends(list.filter((f) => !!f.username));
+      })
+      .catch(() => setFriends([]));
   }, [visible]);
+
+  const selectedIds = new Set(selectedFriends.map((f) => f.id));
+  const q = memberQuery.trim().toLowerCase();
+  const suggestions = q.length === 0
+    ? [] // hide dropdown when the input is empty so the form isn't crowded
+    : friends
+        .filter((f) => !selectedIds.has(f.id))
+        .filter((f) => {
+          const u = (f.username ?? '').toLowerCase();
+          const n = (f.name ?? '').toLowerCase();
+          return u.includes(q) || n.includes(q);
+        })
+        .slice(0, 6);
+
+  const addFriend = (f: Friend) => {
+    setSelectedFriends((prev) => prev.some((p) => p.id === f.id) ? prev : [...prev, f]);
+    setMemberQuery('');
+  };
+  const removeFriend = (id: string) =>
+    setSelectedFriends((prev) => prev.filter((p) => p.id !== id));
 
   const create = async () => {
     if (!name.trim() || saving) return;
     setSaving(true);
     try {
-      const memberUsernames = members.split(',').map((s) => s.trim()).filter(Boolean);
+      const memberUsernames = selectedFriends.map((f) => f.username!).filter(Boolean);
       const r = await groupsApi.create({
         name: name.trim(),
         groupGoal: groupGoal.trim() || undefined,
@@ -162,8 +197,49 @@ function CreateGroupSheet({
             <Field label="Group goal (optional)">
               <TextInput style={styles.input} placeholder="All hit 5 workouts/week" placeholderTextColor={colors.mutedForeground} value={groupGoal} onChangeText={setGroupGoal} />
             </Field>
-            <Field label="Invite members by username (comma-separated)">
-              <TextInput style={styles.input} placeholder="alice, bob" placeholderTextColor={colors.mutedForeground} value={members} onChangeText={setMembers} autoCapitalize="none" />
+            <Field label="Invite friends">
+              {selectedFriends.length > 0 ? (
+                <View style={styles.chipRow}>
+                  {selectedFriends.map((f) => (
+                    <TouchableOpacity key={f.id} style={styles.chip} onPress={() => removeFriend(f.id)} activeOpacity={0.7}>
+                      <Text style={styles.chipText}>@{f.username}</Text>
+                      <Ionicons name="close" size={14} color={colors.foreground} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+              <TextInput
+                style={styles.input}
+                placeholder={friends.length === 0 ? 'Add friends first to invite them' : 'Type a name or @username'}
+                placeholderTextColor={colors.mutedForeground}
+                value={memberQuery}
+                onChangeText={setMemberQuery}
+                autoCapitalize="none"
+                editable={friends.length > 0}
+                onKeyPress={(e) => {
+                  // Backspace on empty input removes the last selected friend
+                  // (familiar tokenized-input behavior).
+                  if (e.nativeEvent.key === 'Backspace' && memberQuery.length === 0 && selectedFriends.length > 0) {
+                    removeFriend(selectedFriends[selectedFriends.length - 1].id);
+                  }
+                }}
+              />
+              {suggestions.length > 0 ? (
+                <View style={styles.suggestionList}>
+                  {suggestions.map((f) => (
+                    <TouchableOpacity key={f.id} style={styles.suggestionRow} onPress={() => addFriend(f)} activeOpacity={0.7}>
+                      <View style={styles.suggestionAvatar}>
+                        <Text style={styles.suggestionAvatarText}>{((f.username || f.name || '?')[0]).toUpperCase()}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.suggestionName}>@{f.username}</Text>
+                        {f.name ? <Text style={styles.suggestionSub} numberOfLines={1}>{f.name}</Text> : null}
+                      </View>
+                      <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
             </Field>
             <Field label="Your workout goal (optional)">
               <TextInput style={styles.input} placeholder="Lose 10 lb / hit a 405 deadlift" placeholderTextColor={colors.mutedForeground} value={selfGoal} onChangeText={setSelfGoal} />
@@ -228,6 +304,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm, paddingVertical: 10,
     fontSize: fontSize.base, color: colors.foreground,
   },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: radius.full, backgroundColor: `${colors.primary}22`,
+  },
+  chipText: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.semibold },
+  suggestionList: {
+    marginTop: 6, borderRadius: radius.md, overflow: 'hidden',
+    borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card,
+  },
+  suggestionRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingHorizontal: spacing.sm, paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+  },
+  suggestionAvatar: {
+    width: 28, height: 28, borderRadius: 14, backgroundColor: colors.muted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  suggestionAvatarText: { fontSize: fontSize.xs, color: colors.foreground, fontWeight: fontWeight.semibold },
+  suggestionName: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.medium },
+  suggestionSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 1 },
+
   toggleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 4 },
   toggleLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
   toggleSub: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 16, marginTop: 2 },

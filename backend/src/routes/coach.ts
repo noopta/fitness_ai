@@ -14,6 +14,7 @@ import {
 import { buildRAGContext } from '../services/ragService.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
+import { archiveProgram } from '../services/completedProgramService.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
@@ -103,6 +104,10 @@ router.get('/coach/messages', requireAuth, async (req, res) => {
       currentPhaseIndex: user.savedProgram ? phaseState.phaseIndex : null,
       currentPhaseNumber: user.savedProgram ? phaseState.phaseNumber : null,
       weekInPhase: user.savedProgram ? phaseState.weekInPhase : null,
+      totalWeeks: user.savedProgram ? phaseState.totalWeeks : null,
+      // Mobile reads this to surface a "your program is complete — start the
+      // next one" CTA that routes to ProgramSetup.
+      programComplete: user.savedProgram ? phaseState.isComplete : false,
     });
   } catch (err) {
     console.error('Coach messages error:', err);
@@ -717,6 +722,28 @@ router.put('/coach/program', requireAuth, async (req, res) => {
     });
     const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
 
+    // Archive the prior program before it's overwritten — this is the
+    // "Finished programs" history surface. We snapshot the JSON plus computed
+    // stats (workouts logged, total volume, BW change, etc.) so the history
+    // screen can render without re-querying. Errors here must NOT block the
+    // save; archiving is best-effort.
+    if (!isNewProgram) {
+      try {
+        // If we can tell the prior program ran its full duration, mark it
+        // completed; otherwise it's just being replaced mid-cycle.
+        const priorProgram = parseSavedProgram(existing!.savedProgram ?? null);
+        const phaseState = computePhaseState(priorProgram, existing!.programStartDate ?? null);
+        await archiveProgram(
+          req.user!.id,
+          existing!.savedProgram ?? null,
+          existing!.programStartDate ?? null,
+          phaseState.isComplete ? 'completed' : 'replaced',
+        );
+      } catch (err) {
+        console.error('[coach] archive prior program failed:', (err as any)?.message ?? err);
+      }
+    }
+
     // Extract nutrition targets from the program's nutritionPlan so the
     // Nutrition Tab uses the program's calorie goal instead of TDEE formula.
     const nutritionMacros = program?.nutritionPlan?.macros ?? program?.nutritionPlan ?? null;
@@ -729,7 +756,10 @@ router.put('/coach/program', requireAuth, async (req, res) => {
       where: { id: req.user!.id },
       data: {
         savedProgram: JSON.stringify(program),
-        ...(isNewProgram ? { programStartDate: new Date() } : {}),
+        // Whether this is the first program OR a replacement, reset the start
+        // date so the new program's week 1 starts today. Otherwise replacing
+        // a finished program would land the user mid-way through the new one.
+        programStartDate: new Date(),
         ...nutritionUpdate,
       },
       select: { name: true, email: true, tier: true },
@@ -755,6 +785,55 @@ router.put('/coach/program', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to save program' });
   }
 });
+
+// GET /api/coach/completed-programs — paginated history of the user's prior
+// programs, each with a stats summary. Sorted newest-finished first.
+router.get('/coach/completed-programs', requireAuth, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(String(req.query.limit ?? '20')) || 20, 50);
+    const programs = await prisma.completedProgram.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { endDate: 'desc' },
+      take: limit,
+      select: {
+        id: true, startDate: true, endDate: true,
+        goal: true, durationWeeks: true, daysPerWeek: true,
+        stats: true, reason: true,
+      },
+    });
+    res.json({
+      programs: programs.map((p) => ({
+        ...p,
+        stats: p.stats ? safeJsonParse(p.stats) : null,
+      })),
+    });
+  } catch (err) {
+    console.error('List completed programs error:', err);
+    res.status(500).json({ error: 'Failed to load history' });
+  }
+});
+
+// GET /api/coach/completed-programs/:id — full archived program JSON + stats.
+router.get('/coach/completed-programs/:id', requireAuth, async (req, res) => {
+  try {
+    const row = await prisma.completedProgram.findFirst({
+      where: { id: req.params.id, userId: req.user!.id },
+    });
+    if (!row) return res.status(404).json({ error: 'Not found' });
+    res.json({
+      ...row,
+      programJson: safeJsonParse(row.programJson),
+      stats: row.stats ? safeJsonParse(row.stats) : null,
+    });
+  } catch (err) {
+    console.error('Get completed program error:', err);
+    res.status(500).json({ error: 'Failed to load program' });
+  }
+});
+
+function safeJsonParse(s: string): any {
+  try { return JSON.parse(s); } catch { return null; }
+}
 
 // GET /api/coach/today - Get today's workout from saved program
 router.get('/coach/today', requireAuth, async (req, res) => {

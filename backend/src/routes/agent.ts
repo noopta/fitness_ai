@@ -15,6 +15,7 @@ import { readMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
 import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
+import { applyProgramUpdate } from '../agent/applyTools.js';
 import type Anthropic from '@anthropic-ai/sdk';
 
 const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
@@ -178,6 +179,34 @@ router.post('/coach/agent/task/:taskId', requireAuth, requireAgentAccess, checkA
     }
     console.error('[agent] task failed:', err?.message ?? err);
     res.status(500).json({ error: err?.message ?? 'Agent task error' });
+  }
+});
+
+const confirmProposalSchema = z.object({
+  updatedProgram: z.unknown(),
+});
+
+// POST /api/coach/agent/confirm-proposal — second half of the
+// propose-then-apply "Apply to my plan" flow. The client previously got a
+// proposal back from /coach/agent/task/apply_suggestion (via the
+// propose_program_update tool), showed it as a diff, and the user tapped
+// Confirm. This endpoint persists that exact proposal — no LLM call, just
+// the same goal-preserving validation + write path the agent would have
+// used directly. Cheap, deterministic, and bounded by the user's tap.
+router.post('/coach/agent/confirm-proposal', requireAuth, requireAgentAccess, async (req, res) => {
+  try {
+    const { updatedProgram } = confirmProposalSchema.parse(req.body);
+    if (!updatedProgram || typeof updatedProgram !== 'object') {
+      return res.status(400).json({ error: 'updatedProgram must be the proposed program object.' });
+    }
+    const result = await applyProgramUpdate(req.user!.id, updatedProgram);
+    res.json(result);
+  } catch (err: any) {
+    if (err?.name === 'ZodError') {
+      return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    }
+    console.error('[agent] confirm-proposal failed:', err?.message ?? err);
+    res.status(400).json({ error: err?.message ?? 'Could not apply proposal' });
   }
 });
 

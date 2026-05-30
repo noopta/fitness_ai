@@ -16,6 +16,9 @@ import { coachApi } from '../../lib/api';
 interface ProgramSetupProps {
   onGenerate: (program: any) => void;
   onBack: () => void;
+  // Bubbles up "redo the whole onboarding" — parent owns the confirm + state
+  // reset so this component stays purely about program parameters.
+  onStartFromScratch?: () => void;
 }
 
 // Explicit goal options so weight-loss is a first-class choice (not inferred
@@ -155,7 +158,7 @@ const gs = StyleSheet.create({
 
 // ── Program Setup ─────────────────────────────────────────────────────────────
 
-export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
+export function ProgramSetup({ onGenerate, onBack, onStartFromScratch }: ProgramSetupProps) {
   const [goalKey, setGoalKey] = useState<string>('strength');
   const [durationWeeks, setDurationWeeks] = useState<number>(8);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
@@ -193,6 +196,13 @@ export function ProgramSetup({ onGenerate, onBack }: ProgramSetupProps) {
         <Text style={s.subheading}>
           Pick your goal, duration, and training frequency.
         </Text>
+
+        {onStartFromScratch ? (
+          <Pressable onPress={onStartFromScratch} style={s.scratchLink} hitSlop={8}>
+            <Text style={s.scratchLinkText}>↺  Start over from the beginning</Text>
+            <Text style={s.scratchLinkSub}>Redo your training profile (height, equipment, injuries, etc.)</Text>
+          </Pressable>
+        ) : null}
 
         {/* Goal — explicit so weight-loss is a clear option */}
         <Text style={s.sectionLabel}>Your Goal</Text>
@@ -277,6 +287,15 @@ const s = StyleSheet.create({
 
   heading: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, color: colors.foreground, marginTop: spacing.xs },
   subheading: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 20 },
+
+  scratchLink: {
+    padding: spacing.sm, borderRadius: radius.md, borderWidth: 1,
+    borderColor: colors.border, borderStyle: 'dashed',
+    backgroundColor: colors.muted,
+    marginTop: spacing.xs, marginBottom: spacing.xs,
+  },
+  scratchLinkText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.primary },
+  scratchLinkSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
 
   sectionLabel: {
     fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground,

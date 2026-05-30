@@ -322,6 +322,27 @@ export default function SettingsScreen() {
           <ContributionGraph userId={user?.id} />
         </View>
 
+        {/* Training history */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Training History</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.cardRow}
+              activeOpacity={0.82}
+              onPress={() => router.push('/completed-programs')}
+            >
+              <View style={styles.cardIconBox}>
+                <Ionicons name="archive-outline" size={18} color={colors.foreground} />
+              </View>
+              <View style={styles.cardRowText}>
+                <Text style={styles.cardRowTitle}>Finished programs</Text>
+                <Text style={styles.cardRowSub}>Past programs with stats — workouts, volume, BW change.</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {isPro ? (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Subscription</Text>

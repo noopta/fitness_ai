@@ -417,6 +417,44 @@ const applyProgramUpdateTool: AgentTool = {
   },
 };
 
+// Non-persisting counterpart to apply_program_update. Used by the
+// "Apply to my plan" flow when we want the user to see the diff and confirm
+// before any change lands on their program. The loop pulls the proposal off
+// the tool result (via the `_proposal: true` marker) and surfaces it on
+// AgentTurnResult.proposal so the client can render a side-by-side diff.
+const proposeProgramUpdateTool: AgentTool = {
+  name: 'propose_program_update',
+  description:
+    "Propose a goal-preserving modification to the user's training program for them to REVIEW before it lands. This DOES NOT persist — the client will render a side-by-side diff and the user will tap Confirm before anything changes. Construct the FULL updated program object the same way you would for apply_program_update, but call THIS tool instead whenever the change comes from a tap-driven 'Apply' suggestion. Preferred change type, in order: (1) bump sets/reps on an existing exercise that already targets the weak area, (2) substitute one weaker-fit exercise for a stronger-fit one of equal volume, (3) add a single accessory at the end of a relevant training day. Touch as few days as possible. Keep goal, phase count, and phase durations identical.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      updatedProgram: {
+        type: 'object',
+        description: 'The complete proposed training program object — same shape as read_program returns, with the minimal goal-preserving change applied.',
+      },
+      summary: { type: 'string', description: 'One-line plain-English summary of what changed (e.g. "Added 2 sets to RDL on Lower Day A; bumped GHR from 3×10 to 3×12").' },
+      changedDays: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Names of training days affected, for highlighting in the diff UI.',
+      },
+    },
+    required: ['updatedProgram', 'summary'],
+  },
+  execute: async (input) => {
+    // No DB write. Marker lets the loop pull it off the tool result and stamp
+    // it onto the turn's result.
+    return {
+      _proposal: true,
+      kind: 'program_update',
+      updatedProgram: input.updatedProgram,
+      summary: String(input.summary ?? 'Proposed program change'),
+      changedDays: Array.isArray(input.changedDays) ? (input.changedDays as string[]) : [],
+    };
+  },
+};
+
 const remember: AgentTool = {
   name: 'remember',
   description:
@@ -453,6 +491,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   logWellness,
   adjustMacros,
   applyProgramUpdateTool,
+  proposeProgramUpdateTool,
   remember,
 ];
 

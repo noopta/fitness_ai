@@ -29,6 +29,12 @@ export interface PhaseState {
   daysSinceStart: number;
   currentPhase: ProgramPhase | null;
   trainingDays: any[];
+  // Total weeks in the program (durationWeeks if present, else summed phases).
+  totalWeeks: number;
+  // True once daysSinceStart has carried the user past the final week. The
+  // weekNumber field is *clamped* to totalWeeks so it never indicates overrun;
+  // this flag is how callers know "they're done".
+  isComplete: boolean;
 }
 
 function getESTDateString(date: Date = new Date()): string {
@@ -57,6 +63,8 @@ export function computePhaseState(
     daysSinceStart: 0,
     currentPhase: null,
     trainingDays: [],
+    totalWeeks: 0,
+    isComplete: false,
   };
 
   if (!program) return empty;
@@ -76,9 +84,12 @@ export function computePhaseState(
     phases.reduce((sum, p) => sum + phaseDuration(p), 0) ??
     12;
   const weekNumber = Math.min(Math.floor(daysSinceStart / 7) + 1, Math.max(1, totalWeeks));
+  // True only once the user has carried *past* the final week — we don't flag
+  // mid-final-week as "done". Guards against a 0-week edge case.
+  const isComplete = totalWeeks > 0 && daysSinceStart >= totalWeeks * 7;
 
   if (phases.length === 0) {
-    return { ...empty, weekNumber, daysSinceStart };
+    return { ...empty, weekNumber, daysSinceStart, totalWeeks, isComplete };
   }
 
   let cumulative = 0;
@@ -104,6 +115,8 @@ export function computePhaseState(
     daysSinceStart,
     currentPhase,
     trainingDays: currentPhase?.trainingDays ?? currentPhase?.days ?? [],
+    totalWeeks,
+    isComplete,
   };
 }
 
