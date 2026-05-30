@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Linking, Platform } from 'react-native';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
-  ScrollView, Animated, Dimensions, Alert,
+  ScrollView, Animated, Dimensions, Alert, TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
@@ -68,6 +68,18 @@ function PaymentSheetContent({
   // ── Stripe state (iOS web fallback only — hidden on Android per Play policy) ──
   const [stripeOpened, setStripeOpened] = useState(false);
   const [stripeConfirming, setStripeConfirming] = useState(false);
+
+  // ── Referral code (attributes the Stripe purchase to an affiliate) ──
+  // Pre-fills with the user's stored referredByCode (set at signup via ?ref=).
+  // Hidden behind a toggle so users who don't have a code aren't prompted.
+  const [referralCode, setReferralCode] = useState<string>(user?.referredByCode ?? '');
+  const [showRefInput, setShowRefInput] = useState<boolean>(!!user?.referredByCode);
+  useEffect(() => {
+    if (user?.referredByCode && !referralCode) {
+      setReferralCode(user.referredByCode);
+      setShowRefInput(true);
+    }
+  }, [user?.referredByCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Restore state ──
   const [restoring, setRestoring] = useState(false);
@@ -159,12 +171,14 @@ function PaymentSheetContent({
   const handleStripeCheckout = useCallback(async () => {
     Analytics.upgradeTapped('stripe');
     try {
-      // apiFetch attaches the Bearer token. The previous raw fetch sent
-      // `credentials: 'include'` only — a cookie mobile never has — so
-      // create-checkout always 401'd and the browser never opened.
+      // Pass the referral code so the backend can attribute the purchase to an
+      // affiliate (sets affiliateId in Stripe session metadata; commission then
+      // fires from /payments/webhook on checkout.session.completed).
+      const code = (referralCode.trim() || user?.referredByCode || '').toUpperCase();
+      const body = code ? { referralCode: code } : {};
       const d = await apiFetch('/payments/create-checkout', {
         method: 'POST',
-        body: JSON.stringify({}),
+        body: JSON.stringify(body),
       });
       if (!d?.url) throw new Error('Could not create checkout session');
       await Linking.openURL(d.url);
@@ -172,7 +186,7 @@ function PaymentSheetContent({
     } catch (err: any) {
       Alert.alert('Could not start checkout', err?.message ?? 'Please visit axiomtraining.io to upgrade.');
     }
-  }, []);
+  }, [referralCode, user?.referredByCode]);
 
   const handleStripeConfirm = useCallback(async () => {
     setStripeConfirming(true);
@@ -223,10 +237,30 @@ function PaymentSheetContent({
       <Text style={styles.paymentSectionLabel}>PAY WITH CARD</Text>
 
       {!stripeOpened ? (
-        <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
-          <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
+            <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
+          </TouchableOpacity>
+
+          {!showRefInput ? (
+            <TouchableOpacity onPress={() => setShowRefInput(true)} style={styles.refToggle} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+              <Text style={styles.refToggleText}>Have a referral code?</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.refRow}>
+              <TextInput
+                value={referralCode}
+                onChangeText={(t) => setReferralCode(t.toUpperCase())}
+                placeholder="Referral code"
+                placeholderTextColor={colors.mutedForeground}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                style={styles.refInput}
+              />
+            </View>
+          )}
+        </>
       ) : (
         <View style={styles.stripeConfirmBox}>
           <Text style={styles.stripeConfirmMsg}>
@@ -411,6 +445,10 @@ const styles = StyleSheet.create({
 
   stripeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#635bff', borderRadius: radius.md, paddingVertical: 15 },
   stripeBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
+  refToggle: { alignSelf: 'center', paddingVertical: 4 },
+  refToggleText: { fontSize: fontSize.sm, color: colors.mutedForeground, textDecorationLine: 'underline' },
+  refRow: { paddingTop: 2 },
+  refInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: fontSize.sm, color: colors.foreground, backgroundColor: colors.card, letterSpacing: 1 },
   stripeConfirmBox: { gap: spacing.sm },
   stripeConfirmMsg: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20 },
   reopenLink: { alignSelf: 'center', paddingVertical: 4 },

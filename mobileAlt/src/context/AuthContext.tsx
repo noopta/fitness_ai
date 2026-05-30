@@ -43,6 +43,7 @@ export interface AuthUser {
    * we'd double-count training).
    */
   subtractWorkoutBurnFromCalories?: boolean;
+  referredByCode?: string | null;
 }
 
 interface AuthContextType {

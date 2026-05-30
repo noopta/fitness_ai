@@ -426,6 +426,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         username: true,
         avatarBase64: true,
         subtractWorkoutBurnFromCalories: true,
+        referredByCode: true,
         institutionMemberships: {
           where: { active: true },
           include: {
