@@ -101,6 +101,13 @@ export default function MessagesScreen() {
         <TouchableOpacity
           style={styles.newButton}
           activeOpacity={0.8}
+          onPress={() => router.push('/groups')}
+        >
+          <Ionicons name="people-circle-outline" size={22} color={colors.foreground} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.newButton}
+          activeOpacity={0.8}
           onPress={() => router.push('/social/search')}
         >
           <Ionicons name="create-outline" size={22} color={colors.foreground} />

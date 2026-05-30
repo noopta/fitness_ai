@@ -828,6 +828,9 @@ export default function SocialScreen() {
               </View>
             )}
           </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/groups')}>
+            <Ionicons name="people-circle-outline" size={22} color={colors.foreground} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={handleInvite}>
             <Ionicons name="person-add-outline" size={22} color={colors.foreground} />
           </TouchableOpacity>

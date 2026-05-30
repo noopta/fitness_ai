@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
 import { socialApi } from '../../src/lib/api';
@@ -28,11 +28,13 @@ export default function ConversationScreen() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastIdRef = useRef<string | undefined>(undefined);
+  const loadedOnceRef = useRef(false);
 
   useEffect(() => {
     trackScreen('Conversation');
@@ -54,8 +56,12 @@ export default function ConversationScreen() {
       if (msgs.length > 0) {
         lastIdRef.current = msgs[msgs.length - 1].id;
       }
-    } catch {
-      // silently fail
+      setLoadError(false);
+      loadedOnceRef.current = true;
+    } catch (err) {
+      // Only surface the error if we've never successfully loaded — otherwise
+      // a poll/refresh failure shouldn't wipe the visible history.
+      if (!loadedOnceRef.current) setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -92,6 +98,16 @@ export default function ConversationScreen() {
       markRead();
     });
   }, [loadMessages, scrollToBottom, markRead]);
+
+  // Refetch when the screen regains focus — guards against the case where the
+  // first load happened during a transient network/backend hiccup and the user
+  // would otherwise be stuck on the empty state. Skip the initial focus pass
+  // (the effect above already handled it).
+  const skipFirstFocus = useRef(true);
+  useFocusEffect(useCallback(() => {
+    if (skipFirstFocus.current) { skipFirstFocus.current = false; return; }
+    loadMessages().then(() => markRead());
+  }, [loadMessages, markRead]));
 
   useEffect(() => {
     pollRef.current = setInterval(pollForNew, 3000);
@@ -287,6 +303,17 @@ export default function ConversationScreen() {
           <View style={styles.center}>
             <ActivityIndicator color={colors.foreground} />
           </View>
+        ) : loadError && messages.length === 0 ? (
+          <View style={styles.center}>
+            <Text style={styles.mutedText}>Couldn't load messages.</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              activeOpacity={0.8}
+              onPress={() => { setLoading(true); loadMessages().then(() => markRead()); }}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <FlatList
             ref={flatListRef}
@@ -444,7 +471,14 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: { opacity: 0.4 },
 
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   emptyChat: { alignItems: 'center', paddingTop: spacing.xxl },
   mutedText: { fontSize: fontSize.sm, color: colors.mutedForeground },
+  retryButton: {
+    backgroundColor: colors.foreground,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: 10,
+    borderRadius: radius.xl,
+  },
+  retryButtonText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
 });
