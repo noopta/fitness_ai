@@ -14,7 +14,12 @@ const checkinSchema = z.object({
   mood: z.number().int().min(1).max(5),
   energy: z.number().int().min(1).max(5),
   sleepHours: z.number().min(0).max(24),
-  stress: z.number().int().min(1).max(5),
+  // Stress is captured on a 1–10 fatigue scale in the mobile UI ("1-3 Fresh,
+  // 4-6 Moderate, 7-10 Fatigued"), and the recent-checkins row even renders
+  // `${stress}/10`. The old .max(5) Zod cap was a leftover from an earlier
+  // 1–5 design and silently rejected every check-in where a user picked
+  // 6-10. Mood + energy remain 1-5 — those are still 5-emoji pickers.
+  stress: z.number().int().min(1).max(10),
 });
 
 // POST /api/wellness/checkin - Save or update daily check-in
