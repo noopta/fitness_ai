@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Alert, Platform } from 'react-native';
-import { authApi, getToken, setToken, clearToken } from '../lib/api';
+import { authApi, getToken, setToken, clearToken, isVerifyPending, type AuthVerifyPending } from '../lib/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -51,8 +51,15 @@ interface AuthContextType {
   loading: boolean;
   needsDobCheck: boolean;
   clearDobCheck: () => void;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, dateOfBirth?: string) => Promise<void>;
+  // login + register may resolve to a "verification pending" sentinel when
+  // the user signed up with email+password and hasn't entered their 6-digit
+  // OTP yet — the caller routes to /(auth)/verify-email in that case.
+  login: (email: string, password: string) => Promise<AuthVerifyPending | null>;
+  register: (name: string, email: string, password: string, dateOfBirth?: string) => Promise<AuthVerifyPending | null>;
+  // Submit the OTP, persist the token + user on success. Throws on
+  // mismatch/expired/etc. so the caller can show an error message.
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<{ sent: boolean; cooldownRemainingSec?: number; reason?: string }>;
   logout: () => Promise<void>;
   googleLogin: () => Promise<void>;
   appleLogin: () => Promise<void>;
@@ -110,16 +117,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init();
   }, []);
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<AuthVerifyPending | null> {
     const data = await authApi.login(email, password);
+    if (isVerifyPending(data)) return data;
+    if (data.token) await setToken(data.token);
+    setUser(data.user);
+    return null;
+  }
+
+  async function register(name: string, email: string, password: string, dateOfBirth?: string): Promise<AuthVerifyPending | null> {
+    const data = await authApi.register(name, email, password, dateOfBirth);
+    if (isVerifyPending(data)) return data;
+    if (data.token) await setToken(data.token);
+    setUser(data.user);
+    return null;
+  }
+
+  async function verifyEmail(email: string, code: string) {
+    const data = await authApi.verifyEmail(email, code);
     if (data.token) await setToken(data.token);
     setUser(data.user);
   }
 
-  async function register(name: string, email: string, password: string, dateOfBirth?: string) {
-    const data = await authApi.register(name, email, password, dateOfBirth);
-    if (data.token) await setToken(data.token);
-    setUser(data.user);
+  async function resendVerification(email: string) {
+    return authApi.resendVerification(email);
   }
 
   async function logout() {
@@ -252,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, logout, googleLogin, appleLogin, refreshUser, completeAuthCallback }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, completeAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );

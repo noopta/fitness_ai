@@ -11,6 +11,10 @@ import request from 'supertest';
 // ─── Env setup (must happen before route import) ─────────────────────────────
 process.env.JWT_SECRET = 'test_secret_key_at_least_32_chars_long!!';
 process.env.JWT_EXPIRES_IN = '1h';
+// The verification-required code paths only fire when this flag is on.
+// Production keeps it off by default until SendGrid + the mobile OTA are
+// both ready; tests turn it on so we exercise both branches.
+process.env.EMAIL_VERIFICATION_ENABLED = 'true';
 
 // ─── Mock @prisma/client ──────────────────────────────────────────────────────
 const mockUser = {
@@ -39,13 +43,27 @@ const prismaUserMock = {
   create: vi.fn(),
   update: vi.fn(),
 };
+// The register/login routes now also touch the EmailVerificationCode model
+// via emailVerificationService (upsert for new codes, findUnique for cooldown).
+const prismaEmailCodeMock = {
+  findUnique: vi.fn(),
+  upsert: vi.fn().mockResolvedValue({}),
+  update: vi.fn().mockResolvedValue({}),
+};
 
 vi.mock('@prisma/client', () => {
   const PrismaClient = vi.fn(function (this: any) {
     this.user = prismaUserMock;
+    this.emailVerificationCode = prismaEmailCodeMock;
   });
   return { PrismaClient };
 });
+
+// Don't actually hit SendGrid/Gmail when register tests trigger code emails.
+vi.mock('../services/mailService.js', () => ({
+  sendEmail: vi.fn(async () => ({ sent: true, provider: 'sendgrid' as const })),
+  isMailConfigured: () => true,
+}));
 
 // ─── Build test app ───────────────────────────────────────────────────────────
 async function buildApp() {
@@ -75,6 +93,9 @@ describe('POST /api/auth/register', () => {
     prismaUserMock.findUnique.mockReset();
     prismaUserMock.create.mockReset();
     prismaUserMock.update.mockReset();
+    prismaEmailCodeMock.findUnique.mockReset();
+    prismaEmailCodeMock.upsert.mockReset(); prismaEmailCodeMock.upsert.mockResolvedValue({});
+    prismaEmailCodeMock.update.mockReset(); prismaEmailCodeMock.update.mockResolvedValue({});
   });
 
   // Helper — every register request must carry a valid dateOfBirth now
@@ -89,8 +110,10 @@ describe('POST /api/auth/register', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 409 when email is already in use', async () => {
-    prismaUserMock.findUnique.mockResolvedValueOnce(mockUser);
+  it('returns 409 when email is already in use AND verified', async () => {
+    // Only verified rows can be "already in use" — an unverified row triggers
+    // the recovery path instead (see the next test).
+    prismaUserMock.findUnique.mockResolvedValueOnce({ ...mockUser, emailVerified: true });
 
     const res = await request(app)
       .post('/api/auth/register')
@@ -99,24 +122,39 @@ describe('POST /api/auth/register', () => {
     expect(res.body.error).toMatch(/already in use/i);
   });
 
-  it('returns 200 with user and sets cookie on success', async () => {
+  it('returns 200 + requiresVerification when the email exists but is unverified (resend path)', async () => {
+    prismaUserMock.findUnique.mockResolvedValueOnce({ ...mockUser, emailVerified: false });
+    prismaEmailCodeMock.findUnique.mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ name: 'Test', email: 'test@example.com', password: 'password123', dateOfBirth: VALID_DOB });
+    expect(res.status).toBe(200);
+    expect(res.body.requiresVerification).toBe(true);
+    expect(res.body.email).toBe('test@example.com');
+  });
+
+  it('returns 202 + requiresVerification on fresh signup (NO cookie/JWT yet)', async () => {
     prismaUserMock.findUnique.mockResolvedValueOnce(null); // no existing user
     prismaUserMock.create.mockResolvedValueOnce({
       ...mockUser,
       name: 'New User',
       email: 'new@example.com',
     });
+    prismaEmailCodeMock.findUnique.mockResolvedValueOnce(null);
 
     const res = await request(app)
       .post('/api/auth/register')
       .send({ name: 'New User', email: 'new@example.com', password: 'password123', dateOfBirth: VALID_DOB });
 
-    expect(res.status).toBe(200);
-    expect(res.body.user).toBeDefined();
-    expect(res.body.user.email).toBe('new@example.com');
-    // Cookie should be set
+    expect(res.status).toBe(202);
+    expect(res.body.requiresVerification).toBe(true);
+    expect(res.body.email).toBe('new@example.com');
+    expect(res.body.codeSent).toBe(true);
+    // No JWT issued until the user enters their 6-digit OTP.
     const cookies = (res.headers['set-cookie'] as unknown) as string[] | undefined;
-    expect(cookies?.some(c => c.includes('liftoff_jwt'))).toBe(true);
+    expect(cookies?.some(c => c.includes('liftoff_jwt'))).toBeFalsy();
+    expect(res.body.token).toBeUndefined();
   });
 
   it('returns 400 for invalid email format', async () => {
@@ -168,7 +206,7 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns 200 with user and sets cookie on valid credentials', async () => {
+  it('returns 200 with user and sets cookie on valid credentials (verified user)', async () => {
     // Use bcrypt to hash a known password for a realistic test
     const bcrypt = await import('bcryptjs');
     const hash = await bcrypt.default.hash('mypassword123', 12);
@@ -176,6 +214,7 @@ describe('POST /api/auth/login', () => {
     prismaUserMock.findUnique.mockResolvedValueOnce({
       ...mockUser,
       hashedPassword: hash,
+      emailVerified: true, // gates JWT issuance now
     });
 
     const res = await request(app)
@@ -187,6 +226,29 @@ describe('POST /api/auth/login', () => {
     expect(res.body.user.email).toBe('test@example.com');
     const cookies = (res.headers['set-cookie'] as unknown) as string[] | undefined;
     expect(cookies?.some(c => c.includes('liftoff_jwt'))).toBe(true);
+  });
+
+  it('returns 200 + requiresVerification (no cookie) when password is right but email not verified', async () => {
+    const bcrypt = await import('bcryptjs');
+    const hash = await bcrypt.default.hash('mypassword123', 12);
+
+    prismaUserMock.findUnique.mockResolvedValueOnce({
+      ...mockUser,
+      hashedPassword: hash,
+      emailVerified: false,
+    });
+    prismaEmailCodeMock.findUnique.mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'test@example.com', password: 'mypassword123' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.requiresVerification).toBe(true);
+    expect(res.body.email).toBe('test@example.com');
+    const cookies = (res.headers['set-cookie'] as unknown) as string[] | undefined;
+    expect(cookies?.some(c => c.includes('liftoff_jwt'))).toBeFalsy();
+    expect(res.body.token).toBeUndefined();
   });
 });
 

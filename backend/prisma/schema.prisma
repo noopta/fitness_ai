@@ -21,6 +21,11 @@ model User {
   hashedPassword      String?
   googleId            String?           @unique
   appleId             String?           @unique
+  // True for OAuth signups (Google/Apple confirm the email for us) and for
+  // email+password signups that have entered the 6-digit OTP we mail them.
+  // Existing rows are grandfathered to true so they aren't locked out.
+  emailVerified       Boolean           @default(false)
+  emailVerifiedAt     DateTime?
   dateOfBirth         DateTime?
   tier                        String            @default("free")
   stripeCustomerId            String?
@@ -245,6 +250,26 @@ model DiagnosticMessage {
   message   String
   createdAt DateTime @default(now())
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+// 6-digit OTP codes mailed to email+password signups before we'll issue a
+// JWT. One active row per email at a time (replaced on each new request).
+// `code` stores a SHA-256 of the digits, never the digits themselves, so a
+// DB leak doesn't hand attackers a working code. Expired/used rows are
+// kept briefly for audit; a periodic cleanup can prune them.
+model EmailVerificationCode {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  // Soft cap so we don't spam users — last send time is checked before a
+  // resend; the route enforces a 60s cooldown.
+  lastSentAt   DateTime @default(now())
+  consumedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  @@index([email])
 }
 
 model GeneratedPlan {

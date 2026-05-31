@@ -38,9 +38,15 @@ export default function RegisterScreen() {
 
     setSubmitting(true);
     try {
-      await register(name.trim(), email.trim(), password, dateOfBirth.trim());
+      const pending = await register(name.trim(), email.trim(), password, dateOfBirth.trim());
       Analytics.register('email');
-      router.replace('/(tabs)');
+      if (pending) {
+        // Email+password signups go through 6-digit OTP confirmation before
+        // we issue a JWT. The verify screen does the rest.
+        router.replace({ pathname: '/(auth)/verify-email', params: { email: pending.email } });
+      } else {
+        router.replace('/(tabs)');
+      }
     } catch (err: any) {
       Alert.alert('Registration Failed', err?.message || 'Could not create your account. Please try again.');
     } finally {

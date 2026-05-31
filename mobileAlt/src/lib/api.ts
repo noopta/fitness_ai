@@ -81,12 +81,40 @@ export async function apiFetch(path: string, options?: RequestInit, requiresAuth
 
 // ─── Auth API ────────────────────────────────────────────────────────────────
 
+export interface AuthSuccess {
+  user: { id: string; name: string | null; email: string | null; tier: string };
+  token: string;
+  alreadyVerified?: boolean;
+}
+export interface AuthVerifyPending {
+  requiresVerification: true;
+  email: string;
+  codeSent?: boolean;
+  message?: string;
+}
+export type RegisterOrLoginResult = AuthSuccess | AuthVerifyPending;
+
+// Type guard the screens use to fork between routing into the app vs into
+// the verify-email flow.
+export function isVerifyPending(r: any): r is AuthVerifyPending {
+  return !!r?.requiresVerification && typeof r?.email === 'string';
+}
+
 export const authApi = {
-  login: (email: string, password: string) =>
+  login: (email: string, password: string): Promise<RegisterOrLoginResult> =>
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, false),
 
-  register: (name: string, email: string, password: string, dateOfBirth?: string) =>
+  register: (name: string, email: string, password: string, dateOfBirth?: string): Promise<RegisterOrLoginResult> =>
     apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password, dateOfBirth }) }, false),
+
+  // 6-digit OTP confirmation for email+password signups. Returns the same
+  // AuthSuccess shape as login/register-after-verification so the caller
+  // can route into the app immediately.
+  verifyEmail: (email: string, code: string): Promise<AuthSuccess> =>
+    apiFetch('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email, code }) }, false),
+
+  resendVerification: (email: string): Promise<{ sent: boolean; cooldownRemainingSec?: number; reason?: string }> =>
+    apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }, false),
 
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
 

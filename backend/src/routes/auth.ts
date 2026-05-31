@@ -7,6 +7,12 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
 import posthog from '../services/posthogClient.js';
+import {
+  requestCode as requestEmailVerification,
+  verifyCode as verifyEmailCode,
+  getResendCooldown,
+  RESEND_COOLDOWN_SECONDS,
+} from '../services/emailVerificationService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -42,6 +48,13 @@ const PRO_TIER_EMAILS = new Set([
 function tierForEmail(email: string | null | undefined): string {
   return email && PRO_TIER_EMAILS.has(email.toLowerCase().trim()) ? 'pro' : 'free';
 }
+
+// Master gate for the email+password OTP flow. Default OFF so a fresh deploy
+// doesn't strand users on builds without the verify-email screen, or break
+// signups while the mailer is misconfigured. Flip EMAIL_VERIFICATION_ENABLED
+// in .env to 'true' once (a) SendGrid (or fallback) is working, and (b) the
+// mobile OTA with the verify screen is on every relevant build.
+const EMAIL_VERIFICATION_ENABLED = process.env.EMAIL_VERIFICATION_ENABLED === 'true';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_OPTS = {
@@ -86,7 +99,18 @@ router.post('/auth/register', async (req, res) => {
 
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
-      return res.status(409).json({ error: 'Email already in use' });
+      // With the flag OFF, behave like the old route — any existing email
+      // is a 409. With the flag ON, allow unverified rows to recover via a
+      // resend so a user who closed the app mid-flow can still finish.
+      if (!EMAIL_VERIFICATION_ENABLED || existing.emailVerified) {
+        return res.status(409).json({ error: 'Email already in use' });
+      }
+      await requestEmailVerification(data.email, { respectCooldown: false });
+      return res.status(200).json({
+        requiresVerification: true,
+        email: data.email,
+        message: 'A new verification code has been sent to your email.',
+      });
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -97,14 +121,18 @@ router.post('/auth/register', async (req, res) => {
         hashedPassword,
         dateOfBirth: new Date(data.dateOfBirth),
         tier: tierForEmail(data.email),
+        // When the flag is OFF (default), treat new signups as verified so
+        // they pass the login gate later — preserves the original behavior
+        // for mobile builds that don't yet have the verify-email screen.
+        emailVerified: !EMAIL_VERIFICATION_ENABLED,
+        emailVerifiedAt: EMAIL_VERIFICATION_ENABLED ? null : new Date(),
         ...(data.referralCode ? { referredByCode: data.referralCode.toUpperCase().trim() } : {}),
       }
     });
 
-    const token = issueToken(user);
-    res.cookie('liftoff_jwt', token, COOKIE_OPTS);
-    // Fire-and-forget notification
-    sendAuthSMS(`🆕 New Axiom signup: ${data.name} (${data.email})`);
+    // Fire-and-forget signup analytics — we still want to know they
+    // started, even if they bail before verifying.
+    sendAuthSMS(`🆕 New Axiom signup${EMAIL_VERIFICATION_ENABLED ? ' (pending verify)' : ''}: ${data.name} (${data.email})`);
     posthog.identify({
       distinctId: user.id,
       properties: {
@@ -115,12 +143,31 @@ router.post('/auth/register', async (req, res) => {
     posthog.capture({
       distinctId: user.id,
       event: 'user_signed_up',
-      properties: {
-        login_method: 'email',
-        tier: user.tier,
-      },
+      properties: { login_method: 'email', tier: user.tier, verification_required: EMAIL_VERIFICATION_ENABLED },
     });
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
+
+    if (!EMAIL_VERIFICATION_ENABLED) {
+      // Legacy fast-path: issue the JWT immediately, same shape the mobile
+      // app already expects. No mail call, no risk of SendGrid quota stranding.
+      const token = issueToken(user);
+      res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+      return res.json({
+        user: { id: user.id, name: user.name, email: user.email, tier: user.tier },
+        token,
+      });
+    }
+
+    // Verification-required path. Mail the 6-digit code; the client routes
+    // to the verify-email screen and we issue a JWT only after the user
+    // submits the right code.
+    const sendResult = await requestEmailVerification(data.email, { respectCooldown: false });
+    res.status(202).json({
+      requiresVerification: true,
+      email: data.email,
+      // Surface a deliverability problem so the client can show "couldn't
+      // send code — try Resend" instead of pretending it worked.
+      codeSent: sendResult.sent,
+    });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request', details: err.errors });
@@ -128,6 +175,104 @@ router.post('/auth/register', async (req, res) => {
     posthog.captureException(err);
     console.error('Register error:', err);
     res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// POST /api/auth/verify-email — submit the 6-digit code; on success, mark
+// the user verified and issue a JWT (same shape as a successful login so
+// the client can route into the app exactly the same way).
+const verifyEmailSchema = z.object({
+  email: z.string().email(),
+  code: z.string().regex(/^\d{6}$/),
+});
+
+router.post('/auth/verify-email', async (req, res) => {
+  try {
+    const { email, code } = verifyEmailSchema.parse(req.body);
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ error: 'No signup found for this email.' });
+
+    // Idempotent: a user who is already verified shouldn't fail here just
+    // because the code row was consumed.
+    if (user.emailVerified) {
+      const token = issueToken(user);
+      res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+      return res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, alreadyVerified: true });
+    }
+
+    const result = await verifyEmailCode(email, code);
+    if (!result.ok) {
+      const status = result.reason === 'mismatch' ? 400 : 400;
+      const message =
+        result.reason === 'expired' ? 'That code has expired — tap Resend for a new one.'
+        : result.reason === 'too_many_attempts' ? 'Too many attempts on this code. Tap Resend.'
+        : result.reason === 'no_code' ? 'No active code for this email. Tap Resend.'
+        : 'That code didn\'t match. Try again.';
+      return res.status(status).json({ error: message, reason: result.reason });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, emailVerifiedAt: new Date() },
+    });
+
+    const token = issueToken(updated);
+    res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    sendAuthSMS(`✅ Verified: ${updated.name || 'User'} (${updated.email}) [${updated.tier}]`);
+    posthog.capture({
+      distinctId: updated.id,
+      event: 'user_email_verified',
+      properties: { login_method: 'email' },
+    });
+
+    res.json({
+      user: { id: updated.id, name: updated.name, email: updated.email, tier: updated.tier },
+      token,
+    });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    console.error('verify-email error:', err);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// POST /api/auth/resend-verification — re-send a fresh 6-digit code,
+// subject to a 60s cooldown so the resend button can't be machine-gunned.
+// Returns 200 with `cooldownRemainingSec` when on cooldown so the UI can
+// show a countdown without us pretending we sent something.
+const resendSchema = z.object({ email: z.string().email() });
+
+router.post('/auth/resend-verification', async (req, res) => {
+  try {
+    const { email } = resendSchema.parse(req.body);
+    // No existence-leak guard: registration already returns 409 on a known
+    // email, and login flushes through a 401 — so resend doesn't add new
+    // info to an attacker. Keep the response shape consistent regardless.
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(200).json({ sent: false, reason: 'no_user' });
+    }
+    if (user.emailVerified) {
+      return res.status(200).json({ sent: false, reason: 'already_verified' });
+    }
+    const cooldownLeft = await getResendCooldown(email);
+    if (cooldownLeft > 0) {
+      // 200 (not 429) so the mobile apiFetch returns the body — the UI uses
+      // cooldownRemainingSec to show "Resend in 45s" instead of catching.
+      return res.status(200).json({
+        sent: false,
+        reason: 'cooldown',
+        cooldownRemainingSec: cooldownLeft,
+        cooldownTotalSec: RESEND_COOLDOWN_SECONDS,
+      });
+    }
+    const r = await requestEmailVerification(email, { respectCooldown: false });
+    res.json({ sent: r.sent, reason: r.sent ? undefined : (r.reason ?? 'send_failed') });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    console.error('resend-verification error:', err);
+    res.status(500).json({ error: 'Resend failed' });
   }
 });
 
@@ -149,6 +294,22 @@ router.post('/auth/login', async (req, res) => {
     const valid = await bcrypt.compare(data.password, user.hashedPassword);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Email+password users who never finished verifying don't get a JWT —
+    // re-send the OTP (cooldown-respected so a click-spam doesn't blow our
+    // SendGrid quota) and route the client back to the verify screen.
+    // 200 (not 403) so the mobile apiFetch returns the body instead of
+    // throwing — the client switches screens based on `requiresVerification`.
+    // Skipped entirely when the master flag is off so existing builds
+    // continue to log in as before.
+    if (EMAIL_VERIFICATION_ENABLED && !user.emailVerified) {
+      await requestEmailVerification(user.email!, { respectCooldown: true });
+      return res.status(200).json({
+        requiresVerification: true,
+        email: user.email,
+        message: 'Verify your email to finish signing in.',
+      });
     }
 
     // Silently upgrade whitelisted emails that registered before the whitelist existed
@@ -254,6 +415,9 @@ router.get('/auth/google/callback', async (req, res) => {
         googleId,
         name: name || existingUser.name,
         email: email || existingUser.email,
+        // Google has verified this email — mark it so the OTP gate never
+        // fires for an OAuth user who happens to have an unverified row.
+        ...(existingUser.emailVerified ? {} : { emailVerified: true, emailVerifiedAt: new Date() }),
       };
       // Silently upgrade whitelisted emails
       const resolvedEmail = email || existingUser.email;
@@ -263,7 +427,12 @@ router.get('/auth/google/callback', async (req, res) => {
       user = await prisma.user.update({ where: { id: existingUser.id }, data: upgradeData });
     } else {
       user = await prisma.user.create({
-        data: { googleId, email, name, tier: tierForEmail(email) }
+        data: {
+          googleId, email, name,
+          tier: tierForEmail(email),
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+        },
       });
     }
 
@@ -343,12 +512,19 @@ router.post('/auth/apple', async (req, res) => {
           appleId,
           ...(name && !existingUser.name ? { name } : {}),
           ...(email && !existingUser.email ? { email } : {}),
+          // Apple has verified this email — bypass the OTP gate.
+          ...(existingUser.emailVerified ? {} : { emailVerified: true, emailVerifiedAt: new Date() }),
           ...(existingUser.tier === 'free' && tierForEmail(resolvedEmail) === 'pro' ? { tier: 'pro' } : {}),
         },
       });
     } else {
       user = await prisma.user.create({
-        data: { appleId, email, name, tier: tierForEmail(email) },
+        data: {
+          appleId, email, name,
+          tier: tierForEmail(email),
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+        },
       });
     }
 

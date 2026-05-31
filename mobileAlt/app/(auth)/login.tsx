@@ -48,8 +48,13 @@ export default function LoginScreen() {
     }
     setSubmitting(true);
     try {
-      await login(email.trim(), password);
+      const pending = await login(email.trim(), password);
       Analytics.login('email');
+      if (pending) {
+        // User has a row but never verified — fresh code was auto-sent.
+        router.replace({ pathname: '/(auth)/verify-email', params: { email: pending.email } });
+        return;
+      }
       if (orgMode) {
         router.replace(`/institution/athlete?slug=${encodeURIComponent(orgSlug.trim())}` as any);
       } else {
