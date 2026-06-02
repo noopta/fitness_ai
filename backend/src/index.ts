@@ -65,7 +65,14 @@ app.use(cors({
     // production-deploy domain Replit uses; .replit.dev is dev previews; .repl.co
     // is the legacy domain).
     if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co') || origin.endsWith('.replit.app')) return callback(null, true);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+    // Tag the error with status:403 + a CORS marker so the global error
+    // middleware returns a clean 403 (instead of the default 500) and skips
+    // the stack trace + Sentry/PostHog noise — these get triggered constantly
+    // by nmap-style scanners using `Origin: example.com` to probe for misconfig.
+    const corsErr: any = new Error(`CORS: origin ${origin} not allowed`);
+    corsErr.status = 403;
+    corsErr._isCors = true;
+    callback(corsErr);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -117,10 +124,13 @@ Sentry.setupExpressErrorHandler(app);
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const userId = (req as any).user?.id;
   const status: number = err?.status ?? err?.statusCode ?? 500;
-  posthog.captureException(err, userId);
-  console.error('Error:', err);
 
-  if (status >= 500) {
+  // CORS rejections + other expected 4xx errors don't need Sentry/PostHog
+  // noise or a stack trace in the logs — they're constant scanner traffic.
+  const noisy = !err?._isCors && status >= 500;
+  if (noisy) {
+    posthog.captureException(err, userId);
+    console.error('Error:', err);
     alertServerError(err, req.path, req.method, status).catch(() => {});
   }
 

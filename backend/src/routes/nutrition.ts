@@ -529,6 +529,12 @@ router.post('/nutrition/parse-meal', requireAuth, async (req, res) => {
     if (!description || typeof description !== 'string' || description.trim().length < 3) {
       return res.status(400).json({ error: 'Please provide a meal description' });
     }
+    // Shared daily quota with /analyze-photo. Stops scripted abuse like the
+    // Jun 2026 Go-http-client incident (2700 calls / day from one /24).
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { tier: true } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const ok = await consumeMealLoggingQuota(req.user!.id, user.tier, res);
+    if (!ok) return;
     const parsed = await parseMealMacros(description.trim());
     const { detail, meta } = await enrichMealDetailHybrid(parsed);
     res.json({
@@ -652,7 +658,43 @@ const photoSchema = z.object({
   mimeType: z.string().regex(/^image\/(jpeg|png|webp|heic)$/),
 });
 
-const FREE_DAILY_PHOTO_LIMIT = 10;
+// Free-tier cap on AI meal-logging calls (photo analyze + text parse share
+// this counter). Dropped from 10 → 7 in response to a scripted-abuse incident
+// (~2700 parse-meal calls from a single /24 across 14 fake accounts) — real
+// users log 3-5 meals/day, so 7 is a comfortable ceiling that still kills
+// industrial-scale burn. Pro tier is unmetered.
+const FREE_DAILY_PHOTO_LIMIT = 7;
+
+/**
+ * Enforce + count one AI meal-logging call against the daily quota. Returns
+ * `true` when the call should proceed, `false` when the user is over the
+ * limit (in which case `res` has already been sent a 429). Shared between
+ * /analyze-photo and /parse-meal so the limit is global across both —
+ * otherwise an attacker could just bounce between endpoints to double their
+ * effective quota.
+ */
+async function consumeMealLoggingQuota(userId: string, tier: string, res: import('express').Response): Promise<boolean> {
+  if (tier !== 'free') return true; // pro/enterprise unmetered
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { dailyPhotoScanCount: true, dailyPhotoScanDate: true },
+  });
+  if (!user) { res.status(404).json({ error: 'User not found' }); return false; }
+  const today = new Date().toISOString().slice(0, 10);
+  const isNewDay = user.dailyPhotoScanDate !== today;
+  const count = isNewDay ? 0 : user.dailyPhotoScanCount;
+  if (count >= FREE_DAILY_PHOTO_LIMIT) {
+    res.status(429).json({
+      error: `Free tier is capped at ${FREE_DAILY_PHOTO_LIMIT} AI meal logs per day. Upgrade to Pro for unlimited.`,
+    });
+    return false;
+  }
+  await prisma.user.update({
+    where: { id: userId },
+    data: { dailyPhotoScanCount: count + 1, dailyPhotoScanDate: today },
+  });
+  return true;
+}
 
 router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
   try {
@@ -662,26 +704,10 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Rate limit free users
-    if (user.tier === 'free') {
-      const today = new Date().toISOString().slice(0, 10);
-      const isNewDay = user.dailyPhotoScanDate !== today;
-      const count = isNewDay ? 0 : user.dailyPhotoScanCount;
-
-      if (count >= FREE_DAILY_PHOTO_LIMIT) {
-        return res.status(429).json({
-          error: `Free users can scan up to ${FREE_DAILY_PHOTO_LIMIT} photos per day. Upgrade to Axiom Pro for unlimited scans.`
-        });
-      }
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          dailyPhotoScanCount: count + 1,
-          dailyPhotoScanDate: today,
-        },
-      });
-    }
+    // Shared daily quota with /parse-meal so an attacker can't double the
+    // limit by bouncing between endpoints.
+    const ok = await consumeMealLoggingQuota(userId, user.tier, res);
+    if (!ok) return;
 
     const parsed = await analyzeMealPhoto(imageBase64, mimeType);
     const { detail, meta } = await enrichMealDetailHybrid(parsed);
