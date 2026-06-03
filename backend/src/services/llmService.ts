@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { getLiftById } from '../data/lifts.js';
 import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
@@ -9,6 +10,16 @@ import { buildRAGContext } from './ragService.js';
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+// Vertex AI client (ADC). Used only for meal-photo analysis right now —
+// other prompts in this file stay on OpenAI gpt-4.1+ per the model-tier
+// policy. Project + location overridable via env to support staging.
+const gemini = new GoogleGenAI({
+  vertexai: true,
+  project: process.env.GCP_PROJECT_NUMBER ?? '656267185967',
+  location: process.env.GCP_LOCATION ?? 'global',
+});
+const GEMINI_VISION_MODEL = 'gemini-3.1-pro-preview';
 
 export interface DiagnosticContext {
   selectedLift: string;
@@ -1969,13 +1980,20 @@ export async function transcribeAudio(
 import { toFile as openaiToFile } from 'openai';
 
 
-// ─── Meal Photo Analysis (GPT-4o Vision) ──────────────────────────────────────
+// ─── Meal Photo Analysis (Gemini 3.1 Pro via Vertex AI) ──────────────────────
 //
-// Swapped back from Gemini 3.1 Pro to GPT-4o vision after the AI Studio
-// prepayment-credit billing surface ran dry mid-day and the photo analyzer
-// 429'd in production. GCP credits (Vertex AI) are the long-term home for
-// this — that migration lives on the `feature/video-form-analysis` branch
-// and will replace this when its auth setup completes.
+// Migration history (one day, three swaps):
+//   1. Original: GPT-4o vision via OpenAI.
+//   2. Swap to Gemini via AI Studio API key → ran out of prepayment credits
+//      mid-day, 429'd in production.
+//   3. Roll back to GPT-4o while Vertex auth was being set up.
+//   4. **Now: Gemini 3.1 Pro via Vertex AI + ADC.** Bills against GCP project
+//      656267185967 (our $25k credits). No API key on disk — SDK pulls
+//      Application Default Credentials from ~/.config/gcloud/.
+//
+// Schema is identical to the GPT-4o path: rich nutrition prompt → JSON →
+// coerceParsedMealDetail. Downstream code (enrichMealDetailHybrid) is
+// untouched.
 
 export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealDetail> {
   const prompt = `You are a nutrition expert analyzing a photo of a meal. Identify all food items visible, estimate portion sizes based on visual cues (plate size, utensils, hand if visible), and calculate macros.
@@ -2032,23 +2050,24 @@ OUTPUT FORMAT (JSON only, no explanation):
 digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
 biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    // response_format: json_object forces a JSON-parseable string out — works
-    // because the prompt explicitly says "OUTPUT FORMAT (JSON only)".
-    response_format: { type: 'json_object' },
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'text', text: prompt },
-        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-      ],
-    }],
-    max_tokens: 1500,
+  const result = await gemini.models.generateContent({
+    model: GEMINI_VISION_MODEL,
+    config: {
+      // The prompt declares JSON-only output; this enforces it at the model
+      // boundary so we never have to strip prose or markdown fences.
+      responseMimeType: 'application/json',
+      // Keep room for the rich nutrient object — image inputs spend a chunk
+      // of the context on the visual; allow ample output budget.
+      maxOutputTokens: 2048,
+    },
+    contents: [{ role: 'user', parts: [
+      { text: prompt },
+      { inlineData: { mimeType, data: imageBase64 } },
+    ]}],
   });
 
-  const text = response.choices[0]?.message?.content?.trim();
-  if (!text) throw new Error('GPT-4o vision returned an empty response.');
+  const text = result.text?.trim();
+  if (!text) throw new Error('Gemini vision returned an empty response.');
   return coerceParsedMealDetail(JSON.parse(text));
 }
 

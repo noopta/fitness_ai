@@ -29,6 +29,7 @@ import agentRoutes from './routes/agent.js';
 import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
+import formAnalysisRoutes from './routes/formAnalysis.js';
 import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
@@ -109,9 +110,13 @@ app.use('/api', affiliatesRoutes);
 app.use('/api', socialRoutes);
 // Agentic Anakin (flag-gated via AGENT_ENABLED; 404s when off).
 app.use('/api', agentRoutes);
-// Groups must be mounted BEFORE institutionsRoutes — institutions has a
-// GET /:slug handler that otherwise swallows /api/groups as "slug=groups".
+// Groups + formAnalysis must be mounted BEFORE institutionsRoutes —
+// institutions has a GET /:slug handler that otherwise swallows
+// single-segment paths like /api/groups, /api/form-analysis.
 app.use('/api', groupsRoutes);
+// Workout form-video analysis (Gemini 3.1 Pro via Vertex AI). Multipart
+// uploads; free tier rate-limited via featureUsageService.
+app.use('/api', formAnalysisRoutes);
 app.use('/api', institutionsRoutes);
 app.use('/api', activityRoutes);
 

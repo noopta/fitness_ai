@@ -164,6 +164,38 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
+        {/* ── Form analysis (video) — available to all tiers ── */}
+        <TouchableOpacity
+          style={styles.rowAction}
+          activeOpacity={0.8}
+          onPress={() => router.push('/form-analysis' as any)}
+        >
+          <View style={styles.rowActionIcon}>
+            <Ionicons name="videocam-outline" size={18} color={colors.foreground} />
+          </View>
+          <View style={styles.rowActionText}>
+            <Text style={styles.rowActionTitle}>Form Analysis</Text>
+            <Text style={styles.rowActionSubtitle}>Upload a lift for video form critique</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
+
+        {/* ── Meal scan (photo macros) — available to all tiers ── */}
+        <TouchableOpacity
+          style={styles.rowAction}
+          activeOpacity={0.8}
+          onPress={() => router.push('/meal-scan' as any)}
+        >
+          <View style={styles.rowActionIcon}>
+            <Ionicons name="restaurant-outline" size={18} color={colors.foreground} />
+          </View>
+          <View style={styles.rowActionText}>
+            <Text style={styles.rowActionTitle}>Scan a Meal</Text>
+            <Text style={styles.rowActionSubtitle}>Photo → macros & micronutrients</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );

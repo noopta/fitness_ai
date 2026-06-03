@@ -648,3 +648,91 @@ export const paymentsApi = {
       body: JSON.stringify({ promoCode: promoCode ?? null }),
     }),
 };
+
+// ─── Multipart upload helper ────────────────────────────────────────────────
+//
+// apiFetch always sends Content-Type: application/json, which breaks
+// multipart bodies (RN must set the multipart boundary itself). This is a
+// thin sibling that attaches the Bearer token but lets fetch own the
+// Content-Type for a FormData body. Used by form-video upload.
+export async function apiUpload(path: string, form: FormData): Promise<any> {
+  const headers: Record<string, string> = {};
+  const token = await getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const url = `${API_BASE}${path}`;
+  console.log(`[API] POST(upload) ${url}`);
+  try {
+    const res = await fetch(url, { method: 'POST', headers, body: form });
+    console.log(`[API] ${path} -> ${res.status}`);
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      let parsed: any = {};
+      try { parsed = JSON.parse(errBody); } catch {}
+      const message = parsed.error || parsed.message || `API error: ${res.status}`;
+      const error = new Error(message);
+      (error as any).status = res.status;
+      (error as any).body = parsed;
+      throw error;
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : {};
+  } catch (err: any) {
+    if (err?.status) throw err;
+    console.error(`[API] Upload network error on ${path}:`, err?.message || err);
+    throw new Error(`Network error: ${err?.message || 'Could not upload'}`);
+  }
+}
+
+// ─── Form-video analysis API ────────────────────────────────────────────────────
+
+export interface FormWeakness { issue: string; severity: 'minor' | 'moderate' | 'major'; cue: string }
+export interface FormDrill { name: string; why: string; setsReps?: string }
+export interface WorkoutVideoAnalysis {
+  exercise: string;
+  formScore: number;
+  repCount: number | null;
+  strengths: string[];
+  weaknesses: FormWeakness[];
+  recommendedDrills: FormDrill[];
+  programmingNotes: string[];
+  safetyFlags: string[];
+  summary: string;
+}
+export interface FormAnalysisResult {
+  id: string;
+  createdAt: string;
+  analysis: WorkoutVideoAnalysis;
+  usage?: { feature: string; used: number; limit: number | null; remaining: number | null; resetAt: string };
+}
+export interface FormAnalysisListItem {
+  id: string;
+  exercise: string;
+  formScore: number | null;
+  repCount: number | null;
+  createdAt: string;
+}
+
+export const formAnalysisApi = {
+  /**
+   * Upload a workout video for form analysis. `uri` is the local file URI from
+   * expo-image-picker; RN streams the file straight off disk (no base64).
+   */
+  analyzeVideo: (
+    uri: string,
+    mimeType: string,
+    exerciseHint?: string,
+  ): Promise<FormAnalysisResult> => {
+    const form = new FormData();
+    const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+    // RN's FormData accepts this {uri,name,type} shape for file parts.
+    form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
+    if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
+    return apiUpload('/form-analysis/video', form);
+  },
+
+  list: (): Promise<{ analyses: FormAnalysisListItem[] }> => apiFetch('/form-analysis'),
+
+  get: (id: string): Promise<FormAnalysisResult & { exercise: string; exerciseHint: string | null }> =>
+    apiFetch(`/form-analysis/${id}`),
+};
