@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getLiftById } from '../data/lifts.js';
 import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
@@ -10,8 +9,6 @@ import { buildRAGContext } from './ragService.js';
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-
-const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export interface DiagnosticContext {
   selectedLift: string;
@@ -1972,11 +1969,15 @@ export async function transcribeAudio(
 import { toFile as openaiToFile } from 'openai';
 
 
-// ─── Meal Photo Analysis (Gemini Vision) ──────────────────────────────────────
+// ─── Meal Photo Analysis (GPT-4o Vision) ──────────────────────────────────────
+//
+// Swapped back from Gemini 3.1 Pro to GPT-4o vision after the AI Studio
+// prepayment-credit billing surface ran dry mid-day and the photo analyzer
+// 429'd in production. GCP credits (Vertex AI) are the long-term home for
+// this — that migration lives on the `feature/video-form-analysis` branch
+// and will replace this when its auth setup completes.
 
 export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealDetail> {
-  const model = gemini.getGenerativeModel({ model: 'gemini-3.1-pro-preview' });
-
   const prompt = `You are a nutrition expert analyzing a photo of a meal. Identify all food items visible, estimate portion sizes based on visual cues (plate size, utensils, hand if visible), and calculate macros.
 
 INSTRUCTIONS:
@@ -2031,20 +2032,24 @@ OUTPUT FORMAT (JSON only, no explanation):
 digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
 biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
 
-  const result = await model.generateContent([
-    prompt,
-    {
-      inlineData: {
-        mimeType,
-        data: imageBase64,
-      },
-    },
-  ]);
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    // response_format: json_object forces a JSON-parseable string out — works
+    // because the prompt explicitly says "OUTPUT FORMAT (JSON only)".
+    response_format: { type: 'json_object' },
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'text', text: prompt },
+        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+      ],
+    }],
+    max_tokens: 1500,
+  });
 
-  const text = result.response.text().trim();
-  // Strip markdown code fences if present
-  const json = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-  return coerceParsedMealDetail(JSON.parse(json));
+  const text = response.choices[0]?.message?.content?.trim();
+  if (!text) throw new Error('GPT-4o vision returned an empty response.');
+  return coerceParsedMealDetail(JSON.parse(text));
 }
 
 // ─── Strength Profile Insights ────────────────────────────────────────────────
