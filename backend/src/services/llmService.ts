@@ -2053,16 +2053,14 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
   const result = await gemini.models.generateContent({
     model: GEMINI_VISION_MODEL,
     config: {
-      // The prompt declares JSON-only output; this enforces it at the model
-      // boundary so we never have to strip prose or markdown fences.
       responseMimeType: 'application/json',
-      // Gemini 3.1 Pro thinks internally before responding, and thinking
-      // tokens count against maxOutputTokens. The rich nutrition schema
-      // (~25 macro+micronutrient fields + ingredients + tags + biochemical
-      // effects + free-text notes) easily produces 1.5-2K tokens of content;
-      // we previously capped at 2048 and saw truncated JSON in prod
-      // ("Unterminated string in JSON at position 335"). 8192 leaves ample
-      // headroom for both thinking and content.
+      // Gemini 3.1 Pro thinks internally before responding; thinking tokens
+      // count against maxOutputTokens AND make every call multi-second slow.
+      // Capping the thinking budget keeps latency reasonable and ensures
+      // there's enough output budget for the full rich nutrition response.
+      // (For a structured-output task like macro extraction we don't need
+      // much deliberation.)
+      thinkingConfig: { thinkingBudget: 1024 },
       maxOutputTokens: 8192,
     },
     contents: [{ role: 'user', parts: [
@@ -2071,15 +2069,21 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
     ]}],
   });
 
-  const text = result.text?.trim();
-  if (!text) throw new Error('Gemini vision returned an empty response.');
+  const raw = result.text?.trim();
+  if (!raw) throw new Error('Gemini vision returned an empty response.');
+  // Despite responseMimeType=application/json, Gemini occasionally wraps the
+  // JSON in markdown code fences (```json ... ```). Strip them defensively.
+  const text = raw
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
   try {
     return coerceParsedMealDetail(JSON.parse(text));
   } catch (err: any) {
-    // Belt-and-suspenders: if the model still returns truncated/malformed
-    // JSON despite the bumped budget, log the tail so we can see what shape
-    // came back without dumping the full payload.
-    const tail = text.length > 200 ? '…' + text.slice(-200) : text;
+    // Log the tail (200 chars max) so future malformed responses can be
+    // diagnosed without dumping the full payload (which can be megabytes
+    // if Gemini gets verbose).
+    const tail = text.length > 300 ? '…' + text.slice(-300) : text;
     console.error('[meal-photo] JSON parse failed, response tail:', tail);
     throw new Error(`Meal photo response was malformed: ${err?.message ?? 'unknown'}`);
   }
