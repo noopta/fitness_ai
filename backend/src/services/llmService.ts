@@ -2056,9 +2056,14 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
       // The prompt declares JSON-only output; this enforces it at the model
       // boundary so we never have to strip prose or markdown fences.
       responseMimeType: 'application/json',
-      // Keep room for the rich nutrient object — image inputs spend a chunk
-      // of the context on the visual; allow ample output budget.
-      maxOutputTokens: 2048,
+      // Gemini 3.1 Pro thinks internally before responding, and thinking
+      // tokens count against maxOutputTokens. The rich nutrition schema
+      // (~25 macro+micronutrient fields + ingredients + tags + biochemical
+      // effects + free-text notes) easily produces 1.5-2K tokens of content;
+      // we previously capped at 2048 and saw truncated JSON in prod
+      // ("Unterminated string in JSON at position 335"). 8192 leaves ample
+      // headroom for both thinking and content.
+      maxOutputTokens: 8192,
     },
     contents: [{ role: 'user', parts: [
       { text: prompt },
@@ -2068,7 +2073,16 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
 
   const text = result.text?.trim();
   if (!text) throw new Error('Gemini vision returned an empty response.');
-  return coerceParsedMealDetail(JSON.parse(text));
+  try {
+    return coerceParsedMealDetail(JSON.parse(text));
+  } catch (err: any) {
+    // Belt-and-suspenders: if the model still returns truncated/malformed
+    // JSON despite the bumped budget, log the tail so we can see what shape
+    // came back without dumping the full payload.
+    const tail = text.length > 200 ? '…' + text.slice(-200) : text;
+    console.error('[meal-photo] JSON parse failed, response tail:', tail);
+    throw new Error(`Meal photo response was malformed: ${err?.message ?? 'unknown'}`);
+  }
 }
 
 // ─── Strength Profile Insights ────────────────────────────────────────────────
