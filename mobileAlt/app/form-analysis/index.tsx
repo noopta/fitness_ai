@@ -38,10 +38,6 @@ export default function FormAnalysisScreen() {
   const [analysis, setAnalysis] = useState<WorkoutVideoAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  // Async polling: status the server reports while we wait for the
-  // background Gemini analysis. 'uploading' → upload still in flight,
-  // 'pending' → uploaded and being analyzed.
-  const [progressLabel, setProgressLabel] = useState<string>('Uploading your clip…');
 
   const ensurePermission = async (kind: 'camera' | 'library'): Promise<boolean> => {
     const req = kind === 'camera'
@@ -82,30 +78,10 @@ export default function FormAnalysisScreen() {
   const analyze = async (uri: string, mimeType: string) => {
     setStage('analyzing');
     setError(null);
-    setProgressLabel('Uploading your clip…');
     try {
-      // Phase 1: upload — backend returns 202 the moment the upload + GCS
-      // save are done, before Gemini runs. Usually 5-20s.
-      const started = await formAnalysisApi.start(uri, mimeType, hint);
-      setProgressLabel('Anakin is reviewing your form…');
-
-      // Phase 2: poll the row every 4s until status is terminal. The hard
-      // 5-min timeout in pollUntilDone matches the server-side sweeper that
-      // marks long-pending rows as failed.
-      const detail = await formAnalysisApi.pollUntilDone(started.id, {
-        intervalMs: 4000,
-        onTick: (d) => {
-          if (d.status === 'pending') setProgressLabel('Anakin is reviewing your form…');
-        },
-      });
-
-      if (detail.status === 'failed') {
-        setError(detail.errorMessage ?? 'Could not analyze that video. Try again.');
-        setStage('capture');
-        return;
-      }
-      posthog.capture('form_video_analyzed', { exercise: detail.analysis?.exercise });
-      setAnalysis(detail.analysis);
+      const res = await formAnalysisApi.analyzeVideo(uri, mimeType, hint);
+      posthog.capture('form_video_analyzed', { exercise: res.analysis?.exercise });
+      setAnalysis(res.analysis);
       setStage('result');
     } catch (err: any) {
       if (err?.status === 429) {
@@ -172,10 +148,8 @@ export default function FormAnalysisScreen() {
         {stage === 'analyzing' && (
           <View style={styles.analyzingBox}>
             <ActivityIndicator color={colors.foreground} />
-            <Text style={styles.analyzingText}>{progressLabel}</Text>
-            <Text style={styles.analyzingSub}>
-              Typically 30–60 seconds. You can leave this screen and come back — your analysis is being processed on our servers.
-            </Text>
+            <Text style={styles.analyzingText}>Analyzing your form…</Text>
+            <Text style={styles.analyzingSub}>This can take 10–20 seconds for a full set.</Text>
           </View>
         )}
 

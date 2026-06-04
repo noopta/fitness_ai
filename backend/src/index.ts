@@ -29,7 +29,7 @@ import agentRoutes from './routes/agent.js';
 import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
-import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
+import formAnalysisRoutes from './routes/formAnalysis.js';
 import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
@@ -199,14 +199,6 @@ async function clearCoachThreads() {
 // Run once on startup (clears any stale threads), then every 24 hours
 clearCoachThreads();
 setInterval(clearCoachThreads, 24 * 60 * 60 * 1000);
-
-// Sweep orphaned 'pending' form-analysis rows every 2 minutes. Marks rows
-// that have been pending >10m as failed so the polling client gets a clean
-// terminal state instead of an infinite spinner after a server restart.
-sweepStalePendingFormAnalyses().catch((err) => console.error('[form-analysis sweep] startup:', err));
-setInterval(() => {
-  sweepStalePendingFormAnalyses().catch((err) => console.error('[form-analysis sweep] tick:', err));
-}, 2 * 60 * 1000);
 
 // ── Notification schedulers ────────────────────────────────────────────────
 // Nightly at 8pm ET: contextual push notifications (session reminders, re-engagement, streaks)
