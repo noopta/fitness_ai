@@ -32,6 +32,15 @@ vi.mock('../services/geminiService.js', () => ({
   analyzeWorkoutVideo: mockAnalyzeWorkoutVideo,
 }));
 
+// ─── Notification service mock ────────────────────────────────────────────────
+// The async path pushes a "your analysis is ready / failed" notification when
+// the background job lands. Mock it (and resolve a promise — the route does
+// `.catch()` on the result) so we can assert it fires.
+const mockSendPushToUser = vi.fn();
+vi.mock('../services/notificationService.js', () => ({
+  sendPushToUser: mockSendPushToUser,
+}));
+
 // requireAuth uses prisma.user.findUnique; we make it always resolve a real-ish
 // user by default so route logic past auth gets exercised.
 function makeToken(userId: string, tier = 'free') {
@@ -50,6 +59,8 @@ beforeEach(() => {
   prismaFormAnalysis.update.mockResolvedValue({});
   prismaFormAnalysis.updateMany.mockReset();
   prismaFormAnalysis.updateMany.mockResolvedValue({ count: 0 });
+  mockSendPushToUser.mockReset();
+  mockSendPushToUser.mockResolvedValue(undefined);
   prismaFeatureUsage.findUnique.mockReset();
   prismaFeatureUsage.upsert.mockReset();
   prismaFeatureUsage.update.mockReset();
@@ -161,6 +172,14 @@ describe('POST /api/form-analysis/video', () => {
     expect(bufArg).toBeInstanceOf(Buffer);
     expect(mimeArg).toBe('video/mp4');
     expect(hintArg).toBe('back squat');
+
+    // Completion pushed a notification deep-linking to this analysis, so the
+    // user gets pulled back in if they left the app.
+    expect(mockSendPushToUser).toHaveBeenCalledTimes(1);
+    const [pushUserId, pushTitle, , pushData] = mockSendPushToUser.mock.calls[0];
+    expect(pushUserId).toBe('u-1');
+    expect(pushTitle).toMatch(/ready/i);
+    expect(pushData).toEqual({ screen: 'form-analysis', id: 'fa-1' });
   });
 
   it('returns 429 when free user has already used today\'s quota', async () => {
@@ -211,6 +230,14 @@ describe('POST /api/form-analysis/video', () => {
     const updateData = prismaFormAnalysis.update.mock.calls[0][0].data;
     expect(updateData.status).toBe('failed');
     expect(updateData.errorMessage).toMatch(/Vertex AI timeout/);
+
+    // Failure also notifies the user (so they're not stuck on a spinner they
+    // navigated away from), deep-linking back to retry.
+    expect(mockSendPushToUser).toHaveBeenCalledTimes(1);
+    const [pushUserId, pushTitle, , pushData] = mockSendPushToUser.mock.calls[0];
+    expect(pushUserId).toBe('u-1');
+    expect(pushTitle).toMatch(/didn't finish/i);
+    expect(pushData).toEqual({ screen: 'form-analysis', id: 'fa-3' });
   });
 
   it('pro tier is unmetered (no quota upsert)', async () => {

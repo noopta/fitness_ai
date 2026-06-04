@@ -56,6 +56,9 @@ function resolveDeepLink(data?: Record<string, unknown>): string | null {
         return '/(tabs)/strength-profile';
       case 'history':
         return '/(tabs)/history';
+      case 'form-analysis':
+        // Async form-video result is ready — open the specific analysis.
+        return data.id ? `/form-analysis?id=${data.id}` : '/form-analysis';
       default:
         return null;
     }
