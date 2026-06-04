@@ -41,3 +41,8 @@ prisma/*.db-journal
 .next/
 out/
 backend/prisma/dev.db
+
+# Production WIF credential config — env-specific, generated on the EC2 by
+# 'gcloud iam workload-identity-pools create-cred-config'. Contains no secrets
+# (just URLs + audience), but each environment has its own SA + pool.
+backend/gcp-wif-credentials.json
