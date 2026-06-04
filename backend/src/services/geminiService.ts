@@ -16,6 +16,8 @@
 // different GCP project for staging / locally.
 
 import { GoogleGenAI, Type } from '@google/genai';
+import { Storage } from '@google-cloud/storage';
+import crypto from 'crypto';
 
 const MODEL = 'gemini-3.1-pro-preview';
 const PROJECT = process.env.GCP_PROJECT_NUMBER ?? '656267185967';
@@ -145,46 +147,81 @@ const WORKOUT_VIDEO_SCHEMA = {
 
 const WORKOUT_VIDEO_SYSTEM = `You are an elite strength & conditioning coach analyzing a lifter's video. Be direct, specific, and evidence-based. Focus on the BIGGEST single fix the lifter can make first. When you spot a weakness, give a concrete coaching cue ("push knees out", "brace before unrack", "drive hips forward through the bar") — not vague advice. Drill recommendations should target the actual weakness, not generic warm-ups. Flag anything that looks like an immediate injury risk (lumbar rounding under load, valgus knee collapse, dangerous unrack, etc.). If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and explain in summary.`;
 
+// ─── GCS-backed video upload (replaces inline-base64) ───────────────────────
+//
+// Vertex AI's inline-base64 path tops out around ~19MB of request body, which
+// is below a single 60s 1080p phone clip. Switching to GCS-backed fileData
+// URIs unlocks videos up to several hundred MB and removes the lossy
+// transcoding burden from the mobile client.
+//
+// Storage uses Application Default Credentials, same as the Gemini SDK, so
+// no extra auth setup beyond what's already configured. Bucket auto-creates
+// on first call if missing. Each upload uses a random GUID name so two
+// concurrent users never collide; we delete the object immediately after
+// the analysis returns.
+
+const STORAGE_BUCKET = process.env.GCP_FORM_VIDEO_BUCKET ?? `axiom-form-videos-${PROJECT}`;
+const STORAGE_LOCATION = process.env.GCP_STORAGE_LOCATION ?? 'us-central1';
+
+let _storage: Storage | null = null;
+let _bucketReady = false;
+async function getBucket() {
+  if (!_storage) _storage = new Storage({ projectId: PROJECT });
+  const bucket = _storage.bucket(STORAGE_BUCKET);
+  if (!_bucketReady) {
+    const [exists] = await bucket.exists();
+    if (!exists) {
+      // Create with a 1-day lifecycle rule so even an orphan upload gets
+      // deleted in 24h. Belt-and-suspenders alongside our explicit delete.
+      await bucket.create({
+        location: STORAGE_LOCATION,
+        uniformBucketLevelAccess: { enabled: true },
+        lifecycle: { rule: [{ action: { type: 'Delete' }, condition: { age: 1 } }] },
+      });
+    }
+    _bucketReady = true;
+  }
+  return bucket;
+}
+
 /**
- * Analyze a workout video for form. Videos are uploaded to Gemini's File
- * API (cleaner than inlining base64 for anything >5MB) and the file is
- * deleted after the call — we don't keep the user's video on Google's side
- * once we have the analysis.
+ * Analyze a workout video for form. The buffer is uploaded to GCS, referenced
+ * via gs:// URI in the Gemini request, and deleted after the call. We don't
+ * keep the user's video around — it's processed and gone in under a minute.
  */
 export async function analyzeWorkoutVideo(
   videoBuffer: Buffer,
   mimeType: string,
   exerciseHint?: string | null,
 ): Promise<WorkoutVideoAnalysis> {
-  // Vertex AI doesn't support Gemini's Files API (only the AI Studio surface
-  // does). Videos must be either inlined as base64 or referenced via gs://
-  // URIs in a GCS bucket. Inline keeps the integration zero-infrastructure
-  // and works fine for typical 1-minute phone clips up to ~20MB request
-  // size. If user video size grows past that, swap to a GCS bucket.
-  const VERTEX_INLINE_LIMIT_MB = 19; // a hair under the ~20MB request ceiling
-  const mb = videoBuffer.byteLength / (1024 * 1024);
-  if (mb > VERTEX_INLINE_LIMIT_MB) {
-    throw new Error(
-      `Video is too large for inline upload (${mb.toFixed(1)}MB > ${VERTEX_INLINE_LIMIT_MB}MB). ` +
-      `Trim the clip or switch the service layer to GCS-bucket URIs.`,
-    );
+  const bucket = await getBucket();
+  const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+  const objectName = `form-video/${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`;
+  const file = bucket.file(objectName);
+
+  // Upload, then call Gemini, then delete — try/finally so a failed call
+  // still cleans up the object.
+  await file.save(videoBuffer, { metadata: { contentType: mimeType }, resumable: false });
+  try {
+    const userText = exerciseHint
+      ? `Analyze the lifter's form in this video. They told us it's: "${exerciseHint}". Confirm or correct.`
+      : `Identify the exercise and analyze the lifter's form in this video.`;
+    const res = await client().models.generateContent({
+      model: MODEL,
+      config: {
+        systemInstruction: WORKOUT_VIDEO_SYSTEM,
+        responseMimeType: 'application/json',
+        responseSchema: WORKOUT_VIDEO_SCHEMA,
+      },
+      contents: [{ role: 'user', parts: [
+        { text: userText },
+        { fileData: { mimeType, fileUri: `gs://${STORAGE_BUCKET}/${objectName}` } },
+      ]}],
+    });
+    return JSON.parse(res.text ?? '{}');
+  } finally {
+    // Best-effort cleanup. The 1-day lifecycle rule on the bucket is the
+    // safety net if this delete races a process crash.
+    file.delete({ ignoreNotFound: true }).catch(() => {});
   }
-
-  const userText = exerciseHint
-    ? `Analyze the lifter's form in this video. They told us it's: "${exerciseHint}". Confirm or correct.`
-    : `Identify the exercise and analyze the lifter's form in this video.`;
-
-  const res = await client().models.generateContent({
-    model: MODEL,
-    config: {
-      systemInstruction: WORKOUT_VIDEO_SYSTEM,
-      responseMimeType: 'application/json',
-      responseSchema: WORKOUT_VIDEO_SCHEMA,
-    },
-    contents: [{ role: 'user', parts: [
-      { text: userText },
-      { inlineData: { mimeType, data: videoBuffer.toString('base64') } },
-    ]}],
-  });
-  return JSON.parse(res.text ?? '{}');
 }

@@ -28,11 +28,11 @@ import {
 const router = Router();
 const prisma = new PrismaClient();
 
-// Default 19MB matches Vertex AI's inline-base64 request size ceiling — if we
-// accept larger uploads we'd just fail downstream when the geminiService
-// rejects. A typical 60s phone clip at 720p sits well under this. To support
-// longer/higher-res videos, switch geminiService.analyzeWorkoutVideo to GCS.
-const MAX_MB = parseInt(process.env.FORM_VIDEO_MAX_MB || '19', 10);
+// 200MB default — covers a 60s clip even at 4K. geminiService uploads the
+// video to GCS (no inline-base64 ceiling anymore), so the real constraint
+// is now nginx's body-size limit + how long the user is willing to wait
+// for the upload over their connection. Env-overridable.
+const MAX_MB = parseInt(process.env.FORM_VIDEO_MAX_MB || '200', 10);
 const UPGRADE_URL = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
 
 // In-memory storage: the buffer goes straight to Gemini and is never written
