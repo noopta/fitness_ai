@@ -88,29 +88,36 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
     });
   }
 
-  // Create the pending row IMMEDIATELY so the client has an id to poll. The
-  // actual analysis runs in the background promise below.
+  // Backward-compatible mode select. Installed (synchronous) clients POST and
+  // wait for the analysis inline (legacy 200 contract). The new mobile build
+  // sends `X-Form-Analysis-Async: 1` to opt into the async flow: get a row id
+  // back immediately (202) and poll GET /:id, free to background the app.
+  const wantAsync = req.header('x-form-analysis-async') === '1';
+
+  const usage = {
+    feature: FEATURE.FORM_VIDEO,
+    used: quota.used,
+    limit: quota.limit,
+    remaining: quota.remaining,
+    resetAt: quota.resetAt,
+  };
+
+  // Create the row up-front as 'pending'. Both modes persist to FormAnalysis;
+  // async clients poll this id, sync clients get the row id back in the result.
   const pending = await prisma.formAnalysis.create({
-    data: {
-      userId,
-      status: 'pending',
-      exercise: 'pending',
-      exerciseHint,
-      analysisJson: '{}',
-    },
+    data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
     select: { id: true, createdAt: true },
   });
 
-  // Snapshot the buffer + mime — req.file goes out of scope as soon as the
-  // response is sent, so the background task needs its own references.
+  // Snapshot the buffer + mime — req.file goes out of scope once we respond,
+  // so the (possibly background) analysis needs its own references.
   const videoBuffer = req.file.buffer;
   const mimeType = req.file.mimetype;
 
-  // Fire-and-forget. The route returns 202 below; the analysis writes its
-  // terminal state to the row when it's done (success or failure). Any
-  // error here MUST be caught — an uncaught rejection on a fire-and-forget
-  // promise kills the Node process under most uncaughtException handlers.
-  (async () => {
+  // Shared work: run the analysis, write the row's terminal state, optionally
+  // push. Returns the analysis on success; on failure it marks the row failed,
+  // refunds the credit, then rethrows so the sync caller can 502.
+  const finalize = async (notify: boolean) => {
     try {
       const analysis = await analyzeWorkoutVideo(videoBuffer, mimeType, exerciseHint);
       await prisma.formAnalysis.update({
@@ -124,58 +131,52 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
           errorMessage: null,
         },
       });
-      // Notify the user the analysis is ready — the whole point of going async
-      // is that they can leave the app and get pulled back when it's done. The
-      // deep-link payload opens this specific analysis. No-op if they have no
-      // push token registered.
-      const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown'
-        ? analysis.exercise
-        : 'Your';
-      const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';
-      await sendPushToUser(
-        userId,
-        'Form analysis ready 🎥',
-        `${exerciseLabel} form check is done${scoreSuffix}. Tap to see your breakdown.`,
-        { screen: 'form-analysis', id: pending.id },
-      ).catch(() => {});
+      if (notify) {
+        const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise : 'Your';
+        const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';
+        await sendPushToUser(
+          userId,
+          'Form analysis ready 🎥',
+          `${exerciseLabel} form check is done${scoreSuffix}. Tap to see your breakdown.`,
+          { screen: 'form-analysis', id: pending.id },
+        ).catch(() => {});
+      }
+      return analysis;
     } catch (err: any) {
-      console.error('Form video analysis (async) error:', err);
-      // Refund the quota — the user shouldn't lose their daily credit to a
-      // failure they didn't cause.
+      console.error('Form video analysis error:', err);
+      // Refund the credit — the user shouldn't lose it to a failure they didn't cause.
       await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO).catch(() => {});
       await prisma.formAnalysis.update({
         where: { id: pending.id },
-        data: {
-          status: 'failed',
-          exercise: 'unknown',
-          errorMessage: (err?.message ?? 'Analysis failed').slice(0, 500),
-        },
+        data: { status: 'failed', exercise: 'unknown', errorMessage: (err?.message ?? 'Analysis failed').slice(0, 500) },
       }).catch(() => {});
-      // Let them know it didn't finish so they're not waiting on a spinner
-      // they navigated away from. Tapping reopens the screen to retry.
-      await sendPushToUser(
-        userId,
-        "Form analysis didn't finish",
-        "We couldn't analyze that clip. Tap to try again — your daily credit was refunded.",
-        { screen: 'form-analysis', id: pending.id },
-      ).catch(() => {});
+      if (notify) {
+        await sendPushToUser(
+          userId,
+          "Form analysis didn't finish",
+          "We couldn't analyze that clip. Tap to try again — your daily credit was refunded.",
+          { screen: 'form-analysis', id: pending.id },
+        ).catch(() => {});
+      }
+      throw err;
     }
-  })();
+  };
 
-  // 202 Accepted: created the row, processing happens in the background,
-  // poll GET /api/form-analysis/:id to track status.
-  return res.status(202).json({
-    id: pending.id,
-    createdAt: pending.createdAt,
-    status: 'pending',
-    usage: {
-      feature: FEATURE.FORM_VIDEO,
-      used: quota.used,
-      limit: quota.limit,
-      remaining: quota.remaining,
-      resetAt: quota.resetAt,
-    },
-  });
+  if (wantAsync) {
+    // Fire-and-forget; notify on completion. MUST be caught — an uncaught
+    // rejection on a fire-and-forget promise can kill the process.
+    finalize(true).catch(() => {});
+    return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending', usage });
+  }
+
+  // Synchronous (default): await and return the analysis inline — the legacy
+  // 200 contract installed clients depend on. No push (the client is waiting).
+  try {
+    const analysis = await finalize(false);
+    return res.json({ id: pending.id, createdAt: pending.createdAt, analysis, usage });
+  } catch {
+    return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
+  }
 });
 
 router.get('/form-analysis', requireAuth, async (req, res) => {

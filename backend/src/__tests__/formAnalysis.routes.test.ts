@@ -137,6 +137,7 @@ describe('POST /api/form-analysis/video', () => {
     const res = await request(app)
       .post('/api/form-analysis/video')
       .set('Authorization', `Bearer ${makeToken('u-1', 'free')}`)
+      .set('X-Form-Analysis-Async', '1')
       .field('exerciseHint', 'back squat')
       .attach('video', Buffer.from('mock video data'), { filename: 'lift.mp4', contentType: 'video/mp4' });
 
@@ -208,6 +209,7 @@ describe('POST /api/form-analysis/video', () => {
     const res = await request(app)
       .post('/api/form-analysis/video')
       .set('Authorization', `Bearer ${makeToken('u-1', 'free')}`)
+      .set('X-Form-Analysis-Async', '1')
       .attach('video', Buffer.from('x'), { filename: 'v.mp4', contentType: 'video/mp4' });
 
     // Upload still returns 202 — the failure happens in the background.
@@ -252,6 +254,7 @@ describe('POST /api/form-analysis/video', () => {
     const res = await request(app)
       .post('/api/form-analysis/video')
       .set('Authorization', `Bearer ${makeToken('u-1', 'pro')}`)
+      .set('X-Form-Analysis-Async', '1')
       .attach('video', Buffer.from('x'), { filename: 'v.mp4', contentType: 'video/mp4' });
 
     // 202 same as free — async pattern is tier-agnostic on this route.
@@ -259,6 +262,35 @@ describe('POST /api/form-analysis/video', () => {
     expect(res.body.status).toBe('pending');
     // No quota upsert for pro tier.
     expect(prismaFeatureUsage.upsert).not.toHaveBeenCalled();
+  });
+
+  it('SYNC mode (no async header): returns 200 with the analysis inline + persists complete', async () => {
+    // Installed clients don't send X-Form-Analysis-Async — they get the legacy
+    // synchronous contract: the analysis runs inline and comes back in the 200.
+    prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
+    const analysis = {
+      exercise: 'Bench press', formScore: 8, repCount: 5,
+      strengths: ['Tight arch'], weaknesses: [], recommendedDrills: [],
+      programmingNotes: [], safetyFlags: [], summary: 'Clean press.',
+    };
+    mockAnalyzeWorkoutVideo.mockResolvedValue(analysis);
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-sync', createdAt: new Date('2026-06-04T12:00:00Z') });
+
+    const res = await request(app)
+      .post('/api/form-analysis/video')
+      .set('Authorization', `Bearer ${makeToken('u-1', 'free')}`)
+      .attach('video', Buffer.from('x'), { filename: 'v.mp4', contentType: 'video/mp4' });
+
+    // Legacy 200 shape: { id, createdAt, analysis, usage } — NOT 202.
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe('fa-sync');
+    expect(res.body.analysis.exercise).toBe('Bench press');
+    expect(res.body.usage.feature).toBe('form_video');
+    // Row was created pending then updated to complete before responding.
+    expect(prismaFormAnalysis.update).toHaveBeenCalledTimes(1);
+    expect(prismaFormAnalysis.update.mock.calls[0][0].data.status).toBe('complete');
+    // No push in sync mode — the client is already waiting on the response.
+    expect(mockSendPushToUser).not.toHaveBeenCalled();
   });
 });
 

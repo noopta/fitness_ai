@@ -655,8 +655,8 @@ export const paymentsApi = {
 // multipart bodies (RN must set the multipart boundary itself). This is a
 // thin sibling that attaches the Bearer token but lets fetch own the
 // Content-Type for a FormData body. Used by form-video upload.
-export async function apiUpload(path: string, form: FormData): Promise<any> {
-  const headers: Record<string, string> = {};
+export async function apiUpload(path: string, form: FormData, extraHeaders?: Record<string, string>): Promise<any> {
+  const headers: Record<string, string> = { ...(extraHeaders ?? {}) };
   const token = await getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -762,7 +762,9 @@ export const formAnalysisApi = {
     const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
     form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
     if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
-    return apiUpload('/form-analysis/video', form);
+    // Opt into the async/poll flow — the backend defaults to the legacy
+    // synchronous 200 for clients that don't send this header.
+    return apiUpload('/form-analysis/video', form, { 'X-Form-Analysis-Async': '1' });
   },
 
   list: (): Promise<{ analyses: FormAnalysisListItem[] }> => apiFetch('/form-analysis'),
