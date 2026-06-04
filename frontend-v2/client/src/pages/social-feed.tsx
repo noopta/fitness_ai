@@ -647,7 +647,11 @@ export default function SocialFeedPage() {
     // returns interleaved posts + research articles as { kind, data }. Web
     // mobile previously didn't render research at all — same backend, just
     // hadn't been wired through.
-    authFetch(`${API_BASE}/social/feed?limit=25`)
+    // slim=1: strip inline imageBase64 from the payload (cuts a typical
+    // 25-post page from ~11MB to ~4MB). The post-image lazy-load path below
+    // (needsLazyImage → /social/posts/:id/image) refetches each image when its
+    // card renders, so nothing is lost visually. Mobile already sends this.
+    authFetch(`${API_BASE}/social/feed?limit=25&slim=1`)
       .then(r => r.ok ? r.json() : { items: [] })
       .then(data => {
         const items = Array.isArray(data?.items) ? data.items : [];
