@@ -662,8 +662,14 @@ export async function apiUpload(path: string, form: FormData): Promise<any> {
 
   const url = `${API_BASE}${path}`;
   console.log(`[API] POST(upload) ${url}`);
+  // Form-video analysis can run 60-90s end-to-end (upload + GCS save +
+  // Vertex Gemini inference). RN's default fetch timeout on iOS is 60s,
+  // which was causing "Network req failed" 499s — extend to 3 min.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 180_000);
   try {
-    const res = await fetch(url, { method: 'POST', headers, body: form });
+    const res = await fetch(url, { method: 'POST', headers, body: form, signal: controller.signal });
+    clearTimeout(timeoutId);
     console.log(`[API] ${path} -> ${res.status}`);
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
@@ -678,7 +684,13 @@ export async function apiUpload(path: string, form: FormData): Promise<any> {
     const text = await res.text();
     return text ? JSON.parse(text) : {};
   } catch (err: any) {
+    clearTimeout(timeoutId);
     if (err?.status) throw err;
+    // Distinguish "timed out after 3 min" from a generic network failure so
+    // the UI can show a helpful message rather than the lower-level error.
+    if (err?.name === 'AbortError') {
+      throw new Error('Upload timed out after 3 minutes. Try a shorter clip or a stronger connection.');
+    }
     console.error(`[API] Upload network error on ${path}:`, err?.message || err);
     throw new Error(`Network error: ${err?.message || 'Could not upload'}`);
   }
