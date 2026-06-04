@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -103,6 +104,40 @@ function todayDateStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// Date helpers for the editable "Logging for" control. We keep dates as plain
+// YYYY-MM-DD strings — they sort lexicographically, so `>=` is a valid
+// same-day-or-later check without constructing Date objects.
+function addDays(dateStr: string, n: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+}
+
+function formatLogDate(dateStr: string): string {
+  const today = todayDateStr();
+  if (dateStr === today) return 'Today';
+  if (dateStr === addDays(today, -1)) return 'Yesterday';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    weekday: 'short', month: 'short', day: 'numeric',
+  });
+}
+
+// Persisted in-progress workout. Lets the user leave the log screen (or have
+// the app killed) without losing entered sets — restored on next open, cleared
+// on a successful save. Keyed per scheduled session so different days don't
+// clobber each other.
+interface WorkoutDraft {
+  exercises: ExerciseEntry[];
+  workoutNotes: string;
+  duration: string;
+  logDate: string;
+  shareToFeed: boolean;
+  shareCaption: string;
+  savedAt: number;
+}
+
 function buildInitialExercises(
   todayExercises?: Props['todayExercises'],
 ): ExerciseEntry[] {
@@ -137,19 +172,79 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [shareToFeed, setShareToFeed] = useState(false);
   const [shareCaption, setShareCaption] = useState('');
+  // Which calendar day this session is recorded under. Defaults to the day the
+  // caller opened (today for the "Log Workout" button; the tapped day for the
+  // schedule flow) but is editable so a session done off-schedule lands on the
+  // day it was actually performed.
+  const [logDate, setLogDate] = useState(() => (date ?? todayDateStr()).slice(0, 10));
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
 
-  // Reset state every time modal opens
+  // One draft per scheduled session (date + title). Undefined date → today, so
+  // an ad-hoc draft rolls over to a fresh key the next day instead of resurfacing.
+  const draftKey = `workout-draft:v1:${(date ?? todayDateStr()).slice(0, 10)}:${workoutTitle ?? ''}`;
+  // Gate autosave until the initial load/hydrate has run, so we never persist
+  // the pristine seed over a real draft on mount.
+  const hydratedRef = useRef(false);
+
+  // On open: restore a saved draft if one exists, else seed from the scheduled
+  // exercises. Replaces the old unconditional reset that silently dropped data.
   useEffect(() => {
-    if (visible) {
-      setExercises(buildInitialExercises(todayExercises));
-      setWorkoutNotes('');
-      setDuration('');
+    if (!visible) return;
+    let cancelled = false;
+    hydratedRef.current = false;
+    (async () => {
+      let draft: WorkoutDraft | null = null;
+      try {
+        const raw = await AsyncStorage.getItem(draftKey);
+        if (raw) draft = JSON.parse(raw) as WorkoutDraft;
+      } catch { /* corrupt/absent draft — fall through to a fresh seed */ }
+      if (cancelled) return;
+      if (draft && Array.isArray(draft.exercises) && draft.exercises.length > 0) {
+        setExercises(draft.exercises);
+        setWorkoutNotes(draft.workoutNotes ?? '');
+        setDuration(draft.duration ?? '');
+        setLogDate(draft.logDate ?? (date ?? todayDateStr()).slice(0, 10));
+        setShareToFeed(!!draft.shareToFeed);
+        setShareCaption(draft.shareCaption ?? '');
+        setDraftSavedAt(draft.savedAt ?? null);
+      } else {
+        setExercises(buildInitialExercises(todayExercises));
+        setWorkoutNotes('');
+        setDuration('');
+        setLogDate((date ?? todayDateStr()).slice(0, 10));
+        setShareToFeed(false);
+        setShareCaption('');
+        setDraftSavedAt(null);
+      }
       setSuggestions([]);
       setFocusedExIndex(null);
-      setShareToFeed(false);
-      setShareCaption('');
-    }
+      hydratedRef.current = true;
+    })();
+    return () => { cancelled = true; };
   }, [visible]);
+
+  // Continuous autosave: debounce every change to the draft store while the
+  // sheet is open. An empty form clears the draft instead of persisting blanks.
+  useEffect(() => {
+    if (!visible || !hydratedRef.current) return;
+    const hasContent =
+      exercises.some(ex => ex.name.trim()) || !!workoutNotes.trim() || !!duration.trim();
+    const t = setTimeout(() => {
+      if (!hasContent) {
+        AsyncStorage.removeItem(draftKey).catch(() => {});
+        setDraftSavedAt(null);
+        return;
+      }
+      const draft: WorkoutDraft = {
+        exercises, workoutNotes, duration, logDate, shareToFeed, shareCaption,
+        savedAt: Date.now(),
+      };
+      AsyncStorage.setItem(draftKey, JSON.stringify(draft))
+        .then(() => setDraftSavedAt(draft.savedAt))
+        .catch(() => {});
+    }, 600);
+    return () => clearTimeout(t);
+  }, [visible, exercises, workoutNotes, duration, logDate, shareToFeed, shareCaption]);
 
   function updateExercise(index: number, field: keyof ExerciseEntry, value: string) {
     setExercises(prev => prev.map((ex, i) => i === index ? { ...ex, [field]: value } : ex));
@@ -329,12 +424,15 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       });
 
       await workoutsApi.logWorkout({
-        date: (date ?? todayDateStr()).slice(0, 10),
+        date: logDate,
         title: workoutTitle || undefined,
         exercises: mappedExercises,
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
       });
+      // Saved for real — drop the in-progress draft so it doesn't resurface.
+      hydratedRef.current = false;
+      AsyncStorage.removeItem(draftKey).catch(() => {});
       // Logged workout changes today's session, schedule (logged-flag), and the
       // social feed (auto-share + friends' shares). Drop those caches so the
       // next render fetches fresh.
@@ -360,7 +458,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
           payload: {
             exercises: shareExercises,
             title: workoutTitle || undefined,
-            date: (date ?? todayDateStr()).slice(0, 10),
+            date: logDate,
           },
           caption: shareCaption.trim() || undefined,
         }).catch(() => {});
@@ -403,6 +501,46 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
           >
+            {/* Log date — the calendar day this session is recorded under.
+                Visible + editable so an off-schedule session lands on the day
+                it was actually done (defaults to today / the tapped day). */}
+            <View style={styles.dateRow}>
+              <View>
+                <Text style={styles.fieldLabel}>Logging for</Text>
+                <Text style={styles.dateHint}>The day this counts toward</Text>
+              </View>
+              <View style={styles.dateControls}>
+                <View style={styles.dateStepper}>
+                  <TouchableOpacity
+                    onPress={() => setLogDate(d => addDays(d, -1))}
+                    style={styles.dateStepBtn}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="chevron-back" size={18} color={colors.foreground} />
+                  </TouchableOpacity>
+                  <Text style={styles.dateValue}>{formatLogDate(logDate)}</Text>
+                  <TouchableOpacity
+                    onPress={() => setLogDate(d => (d < todayDateStr() ? addDays(d, 1) : d))}
+                    disabled={logDate >= todayDateStr()}
+                    style={styles.dateStepBtn}
+                    hitSlop={8}
+                  >
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={logDate >= todayDateStr() ? colors.border : colors.foreground}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {logDate !== todayDateStr() && (
+                  <TouchableOpacity onPress={() => setLogDate(todayDateStr())} style={styles.todayChip}>
+                    <Ionicons name="today-outline" size={12} color={colors.primary} />
+                    <Text style={styles.todayChipText}>Today</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
             {/* Duration */}
             <View style={styles.row}>
               <Text style={styles.fieldLabel}>Duration (min)</Text>
@@ -675,6 +813,15 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
               />
             )}
 
+            {draftSavedAt && (
+              <View style={styles.draftSavedRow}>
+                <Ionicons name="cloud-done-outline" size={13} color={colors.mutedForeground} />
+                <Text style={styles.draftSavedText}>
+                  Draft saved — your entries are kept if you leave
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
               onPress={handleSave}
@@ -733,6 +880,54 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   fieldLabel: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.medium },
+  // ── Log-date control ──────────────────────────────────────────────────────
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.muted,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  dateHint: { fontSize: 10, color: colors.mutedForeground, marginTop: 1 },
+  dateControls: { alignItems: 'flex-end', gap: 4 },
+  dateStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: 4,
+  },
+  dateStepBtn: { padding: 6 },
+  dateValue: {
+    minWidth: 78,
+    textAlign: 'center',
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  todayChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+    backgroundColor: `${colors.primary}15`,
+  },
+  todayChipText: { fontSize: 11, fontWeight: fontWeight.semibold, color: colors.primary },
+  draftSavedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: spacing.sm,
+  },
+  draftSavedText: { fontSize: fontSize.xs, color: colors.mutedForeground },
   sectionTitle: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, marginTop: spacing.xs },
   exerciseBlock: {
     backgroundColor: colors.muted,
