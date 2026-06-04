@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   Loader2, Save, ChevronDown, ChevronUp, Flame, Moon,
   Zap, BarChart2, RotateCcw, Dumbbell, CalendarDays, ArrowRight,
-  Target, TrendingUp,
+  Target, TrendingUp, ShieldCheck,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -47,6 +47,7 @@ interface TrainingProgram {
   phases?: ProgramPhase[];
   autoregulationRules?: string[];
   trackingMetrics?: string[];
+  injuryAccommodations?: string[] | null;
   weeks?: Array<{ weekNumber: number; days: Array<{ day: string; focus: string; sessions: ProgramExercise[] }> }>;
   progressionNotes?: string[];
 }
@@ -470,6 +471,20 @@ export function ProgramTab({ latestPlan, isPro, onTabChange, savedProgram }: Pro
                 </Card>
               )}
             </div>
+          )}
+
+          {/* Injury accommodations — shows the athlete their stated injuries
+              were actually accounted for in the program. */}
+          {displayProgram.injuryAccommodations && displayProgram.injuryAccommodations.length > 0 && (
+            <Card className="p-5 space-y-3 border-primary/30">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">How Your Injuries Were Accounted For</p>
+              </div>
+              {displayProgram.injuryAccommodations.map((item, i) => (
+                <p key={i} className="text-xs text-foreground leading-relaxed">· {item}</p>
+              ))}
+            </Card>
           )}
 
           {/* Autoregulation */}
