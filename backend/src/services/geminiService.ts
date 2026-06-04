@@ -212,13 +212,36 @@ export async function analyzeWorkoutVideo(
         systemInstruction: WORKOUT_VIDEO_SYSTEM,
         responseMimeType: 'application/json',
         responseSchema: WORKOUT_VIDEO_SCHEMA,
+        // Gemini 3.1 Pro thinks internally before responding; thinking tokens
+        // count against maxOutputTokens AND add multi-second latency. Cap the
+        // budget so there's room for the full JSON and the call stays quick —
+        // form scoring is structured output, it doesn't need deep deliberation.
+        // (Same fix applied to the meal-photo analyzer in llmService.)
+        thinkingConfig: { thinkingBudget: 1024 },
+        maxOutputTokens: 8192,
       },
       contents: [{ role: 'user', parts: [
         { text: userText },
         { fileData: { mimeType, fileUri: `gs://${STORAGE_BUCKET}/${objectName}` } },
       ]}],
     });
-    return JSON.parse(res.text ?? '{}');
+    // Despite responseMimeType=application/json, Gemini occasionally wraps the
+    // JSON in markdown code fences (```json … ```) or truncates under thinking
+    // pressure. Strip fences and parse defensively so a recoverable formatting
+    // quirk doesn't surface to the user as "couldn't analyze your video".
+    const raw = res.text?.trim();
+    if (!raw) throw new Error('Gemini returned an empty response for the workout video.');
+    const text = raw
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    try {
+      return JSON.parse(text) as WorkoutVideoAnalysis;
+    } catch (err: any) {
+      const tail = text.length > 300 ? '…' + text.slice(-300) : text;
+      console.error('[form-video] JSON parse failed, response tail:', tail);
+      throw new Error(`Workout video response was malformed: ${err?.message ?? 'unknown'}`);
+    }
   } finally {
     // Best-effort cleanup. The 1-day lifecycle rule on the bucket is the
     // safety net if this delete races a process crash.
