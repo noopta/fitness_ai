@@ -169,15 +169,26 @@ async function getBucket() {
   if (!_storage) _storage = new Storage({ projectId: PROJECT });
   const bucket = _storage.bucket(STORAGE_BUCKET);
   if (!_bucketReady) {
-    const [exists] = await bucket.exists();
-    if (!exists) {
-      // Create with a 1-day lifecycle rule so even an orphan upload gets
-      // deleted in 24h. Belt-and-suspenders alongside our explicit delete.
-      await bucket.create({
-        location: STORAGE_LOCATION,
-        uniformBucketLevelAccess: { enabled: true },
-        lifecycle: { rule: [{ action: { type: 'Delete' }, condition: { age: 1 } }] },
-      });
+    // Best-effort bootstrap. In production the bucket already exists and the
+    // runtime identity (post-WIF) holds only roles/storage.objectUser — which
+    // grants object ops (create/get/delete) but NOT storage.buckets.get/create.
+    // So exists()/create() throw a 403 here; that's expected and must NOT fail
+    // the upload, because the actual save/get/delete below work fine with
+    // objectUser. Swallow it and proceed. Only envs whose creds include
+    // bucket-admin (e.g. local dev) will actually auto-create a missing bucket.
+    try {
+      const [exists] = await bucket.exists();
+      if (!exists) {
+        // Create with a 1-day lifecycle rule so even an orphan upload gets
+        // deleted in 24h. Belt-and-suspenders alongside our explicit delete.
+        await bucket.create({
+          location: STORAGE_LOCATION,
+          uniformBucketLevelAccess: { enabled: true },
+          lifecycle: { rule: [{ action: { type: 'Delete' }, condition: { age: 1 } }] },
+        });
+      }
+    } catch (err: any) {
+      console.warn('[form-video] bucket bootstrap skipped (expected with objectUser-only creds):', err?.message ?? err);
     }
     _bucketReady = true;
   }
