@@ -71,7 +71,7 @@ router.post('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
           ],
         },
       },
-      include: { members: { include: { user: { select: { id: true, username: true, name: true } } } } },
+      include: { members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } } },
     });
     res.json({ group });
   } catch (err: any) {
@@ -91,7 +91,7 @@ router.get('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
       include: {
         group: {
           include: {
-            members: { include: { user: { select: { id: true, username: true, name: true } } } },
+            members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } },
             messages: { orderBy: { createdAt: 'desc' }, take: 1 },
           },
         },
@@ -114,7 +114,7 @@ router.get('/groups/:id', requireAuth, requireGroupsAccess, async (req, res) => 
     const group = await prisma.groupChat.findUnique({
       where: { id: req.params.id },
       include: {
-        members: { include: { user: { select: { id: true, username: true, name: true } } } },
+        members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } },
         messages: { orderBy: { createdAt: 'desc' }, take: 100 },
       },
     });
