@@ -5,13 +5,13 @@
 // Free tier is 1 analysis/day (enforced server-side); a 429 surfaces an
 // upgrade nudge.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
   Alert, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
@@ -30,7 +30,6 @@ const SEVERITY_COLOR: Record<string, string> = {
 
 export default function FormAnalysisScreen() {
   const router = useRouter();
-  const { id: deepLinkId } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
@@ -127,35 +126,6 @@ export default function FormAnalysisScreen() {
   };
 
   const reset = () => { setAnalysis(null); setError(null); setStage('capture'); };
-
-  // Deep-link entry: tapping the "analysis ready" push opens this screen with
-  // ?id=<rowId>. Load that specific analysis straight into the result view
-  // (pollUntilDone returns immediately if it's already terminal).
-  useEffect(() => {
-    if (!deepLinkId) return;
-    let cancelled = false;
-    (async () => {
-      setStage('analyzing');
-      setError(null);
-      setProgressLabel('Loading your analysis…');
-      try {
-        const detail = await formAnalysisApi.pollUntilDone(deepLinkId, { intervalMs: 4000 });
-        if (cancelled) return;
-        if (detail.status === 'failed') {
-          setError(detail.errorMessage ?? 'Could not analyze that video. Try again.');
-          setStage('capture');
-          return;
-        }
-        setAnalysis(detail.analysis);
-        setStage('result');
-      } catch (err: any) {
-        if (cancelled) return;
-        setError(err?.message ?? 'Could not load that analysis.');
-        setStage('capture');
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [deepLinkId]);
 
   return (
     <SafeAreaView style={styles.safe}>

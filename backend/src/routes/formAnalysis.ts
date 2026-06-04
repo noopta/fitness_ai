@@ -22,7 +22,6 @@ import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { analyzeWorkoutVideo } from '../services/geminiService.js';
-import { sendPushToUser } from '../services/notificationService.js';
 import {
   consumeDailyQuota,
   refundDailyQuota,
@@ -124,20 +123,6 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
           errorMessage: null,
         },
       });
-      // Notify the user the analysis is ready — the whole point of going async
-      // is that they can leave the app and get pulled back when it's done. The
-      // deep-link payload opens this specific analysis. No-op if they have no
-      // push token registered.
-      const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown'
-        ? analysis.exercise
-        : 'Your';
-      const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';
-      await sendPushToUser(
-        userId,
-        'Form analysis ready 🎥',
-        `${exerciseLabel} form check is done${scoreSuffix}. Tap to see your breakdown.`,
-        { screen: 'form-analysis', id: pending.id },
-      ).catch(() => {});
     } catch (err: any) {
       console.error('Form video analysis (async) error:', err);
       // Refund the quota — the user shouldn't lose their daily credit to a
@@ -151,14 +136,6 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
           errorMessage: (err?.message ?? 'Analysis failed').slice(0, 500),
         },
       }).catch(() => {});
-      // Let them know it didn't finish so they're not waiting on a spinner
-      // they navigated away from. Tapping reopens the screen to retry.
-      await sendPushToUser(
-        userId,
-        "Form analysis didn't finish",
-        "We couldn't analyze that clip. Tap to try again — your daily credit was refunded.",
-        { screen: 'form-analysis', id: pending.id },
-      ).catch(() => {});
     }
   })();
 
