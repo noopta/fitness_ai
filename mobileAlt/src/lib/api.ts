@@ -711,14 +711,35 @@ export interface WorkoutVideoAnalysis {
   safetyFlags: string[];
   summary: string;
 }
-export interface FormAnalysisResult {
+export type FormAnalysisStatus = 'pending' | 'complete' | 'failed';
+
+// Response to POST /form-analysis/video — the upload returns immediately
+// with status='pending'. The client then polls GET /:id until the row's
+// status transitions to 'complete' (with `analysis` populated) or 'failed'.
+export interface FormAnalysisStarted {
   id: string;
   createdAt: string;
-  analysis: WorkoutVideoAnalysis;
+  status: 'pending';
   usage?: { feature: string; used: number; limit: number | null; remaining: number | null; resetAt: string };
 }
+
+// Response to GET /form-analysis/:id. `analysis` is meaningful only when
+// status='complete'; `errorMessage` populated on 'failed'.
+export interface FormAnalysisDetail {
+  id: string;
+  status: FormAnalysisStatus;
+  errorMessage: string | null;
+  exercise: string;
+  formScore: number | null;
+  repCount: number | null;
+  exerciseHint: string | null;
+  createdAt: string;
+  analysis: WorkoutVideoAnalysis;
+}
+
 export interface FormAnalysisListItem {
   id: string;
+  status: FormAnalysisStatus;
   exercise: string;
   formScore: number | null;
   repCount: number | null;
@@ -727,17 +748,18 @@ export interface FormAnalysisListItem {
 
 export const formAnalysisApi = {
   /**
-   * Upload a workout video for form analysis. `uri` is the local file URI from
-   * expo-image-picker; RN streams the file straight off disk (no base64).
+   * Kick off async form-video analysis. Uploads the clip, returns 202 with
+   * the row id while the heavy Gemini analysis runs in the background.
+   * `uri` is the local file URI from expo-image-picker (RN streams the
+   * file off disk — no base64).
    */
-  analyzeVideo: (
+  start: (
     uri: string,
     mimeType: string,
     exerciseHint?: string,
-  ): Promise<FormAnalysisResult> => {
+  ): Promise<FormAnalysisStarted> => {
     const form = new FormData();
     const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
-    // RN's FormData accepts this {uri,name,type} shape for file parts.
     form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
     if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
     return apiUpload('/form-analysis/video', form);
@@ -745,6 +767,30 @@ export const formAnalysisApi = {
 
   list: (): Promise<{ analyses: FormAnalysisListItem[] }> => apiFetch('/form-analysis'),
 
-  get: (id: string): Promise<FormAnalysisResult & { exercise: string; exerciseHint: string | null }> =>
-    apiFetch(`/form-analysis/${id}`),
+  get: (id: string): Promise<FormAnalysisDetail> => apiFetch(`/form-analysis/${id}`),
+
+  /**
+   * Poll GET /:id every `intervalMs` until status is terminal (complete or
+   * failed) or the request runs past `timeoutMs`. Default 4s poll, 5min
+   * timeout. `onTick` (optional) gets every intermediate status so the
+   * caller can update progress UI as the upload moves through stages.
+   * Resolves with the terminal detail; rejects on timeout/network error.
+   */
+  pollUntilDone: async (
+    id: string,
+    opts: { intervalMs?: number; timeoutMs?: number; onTick?: (s: FormAnalysisDetail) => void } = {},
+  ): Promise<FormAnalysisDetail> => {
+    const interval = opts.intervalMs ?? 4000;
+    const timeout = opts.timeoutMs ?? 300_000; // 5 min hard ceiling
+    const start = Date.now();
+    while (true) {
+      const detail = await apiFetch(`/form-analysis/${id}`) as FormAnalysisDetail;
+      opts.onTick?.(detail);
+      if (detail.status === 'complete' || detail.status === 'failed') return detail;
+      if (Date.now() - start > timeout) {
+        throw new Error('Analysis is taking longer than expected. Pull-to-refresh in a minute.');
+      }
+      await new Promise((r) => setTimeout(r, interval));
+    }
+  },
 };
