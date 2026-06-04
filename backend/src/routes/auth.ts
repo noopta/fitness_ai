@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
 import posthog from '../services/posthogClient.js';
@@ -751,9 +752,20 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
   try {
     const { avatarBase64 } = req.body;
     if (typeof avatarBase64 !== 'string') return res.status(400).json({ error: 'avatarBase64 required' });
-    // Limit to ~2MB base64
+    // Limit the raw upload to ~2MB base64.
     if (avatarBase64.length > 2_800_000) return res.status(413).json({ error: 'Image too large (max ~2MB)' });
-    await prisma.user.update({ where: { id: req.user!.id }, data: { avatarBase64 } });
+    // Downscale to a thumbnail before storing. Avatars render at ~36px but were
+    // being stored at full camera resolution (~68KB base64) and embedded per
+    // user in every social-feed response. Resizing to 96px JPEG strips ~96% of
+    // that. If decoding fails (corrupt/unsupported image), fall back to the
+    // original so the upload still succeeds.
+    let toStore = avatarBase64;
+    try {
+      toStore = await resizeAvatarBase64(avatarBase64);
+    } catch (e) {
+      console.error('[avatar] resize failed, storing original:', e);
+    }
+    await prisma.user.update({ where: { id: req.user!.id }, data: { avatarBase64: toStore } });
     res.json({ success: true });
   } catch (err) {
     console.error('Avatar update error:', err);
