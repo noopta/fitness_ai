@@ -29,6 +29,12 @@ export interface OnboardingProfile {
   medicalNotes: string;
   medications: string;
   injuries: string;
+  // Structured injury context — only surfaced when `injuries` is non-empty.
+  // Field names match the keys generateTrainingProgram reads from coachProfile.
+  injuryTimeline: string;  // "9 months post-op"
+  injurySide: string;      // "Left" / "Right" / "Both"
+  injuryStage: string;     // "Cleared by PT, rebuilding strength"
+  injuryGoal: string;      // "Build left shoulder strength"
   hormonalHealth: string;
   // Section 3 – Training
   trainingAge: string;
@@ -69,7 +75,8 @@ export interface OnboardingProfile {
 const EMPTY: OnboardingProfile = {
   primaryGoal: '', goalWhy: '', pastAttempts: '', obstacle: '', commitment: '',
   biologicalSex: '', parq: [], medicalConditions: [], medicalNotes: '', medications: '',
-  injuries: '', hormonalHealth: '',
+  injuries: '', injuryTimeline: '', injurySide: '', injuryStage: '', injuryGoal: '',
+  hormonalHealth: '',
   trainingAge: '', trainingDays: 4, sessionDuration: '', trainingTypes: [],
   benchWeight: '', benchSets: '', benchReps: '',
   squatWeight: '', squatSets: '', squatReps: '',
@@ -535,6 +542,42 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
               placeholder="e.g. Left knee MCL sprain (2022, mostly healed). Chronic lower back tightness."
               height={70}
             />
+
+            {/* Structured follow-ups — only when an injury was described. These
+                let the program reason about timeline/side/stage instead of just
+                the bare fact of an injury. */}
+            {p.injuries.trim().length > 0 && (
+              <View style={{ gap: spacing.xs, marginTop: spacing.xs }}>
+                <QLabel text="How long ago? (timeline / post-op)" optional />
+                <TA
+                  value={p.injuryTimeline}
+                  onChange={v => set('injuryTimeline', v)}
+                  placeholder="e.g. 9 months post-op"
+                  height={44}
+                />
+                <QLabel text="Which side?" optional />
+                <TA
+                  value={p.injurySide}
+                  onChange={v => set('injurySide', v)}
+                  placeholder="Left / Right / Both"
+                  height={44}
+                />
+                <QLabel text="Where are you in recovery?" optional />
+                <TA
+                  value={p.injuryStage}
+                  onChange={v => set('injuryStage', v)}
+                  placeholder="e.g. Cleared by PT, now rebuilding strength"
+                  height={44}
+                />
+                <QLabel text="Injury-specific goal?" optional />
+                <TA
+                  value={p.injuryGoal}
+                  onChange={v => set('injuryGoal', v)}
+                  placeholder="e.g. Build left shoulder strength"
+                  height={44}
+                />
+              </View>
+            )}
 
             <QLabel text="Any hormonal, neurological, or reproductive health factors?" optional />
             <Text style={s.fieldSub}>Includes menopause, postpartum, PCOS, low T, thyroid, or anything affecting energy and recovery.</Text>

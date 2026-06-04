@@ -103,15 +103,34 @@ export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateInta
   const [daysPerWeek, setDaysPerWeek] = useState<number>(() => inferDaysFromProfile(coachProfile));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Editable injury/constraint context — pre-filled from the saved profile so
+  // the athlete can "tell the coach more" and regenerate against it.
+  const [injuries, setInjuries] = useState<string>(
+    () => String(coachProfile?.injuries || coachProfile?.constraintsText || ''),
+  );
+  const [injuryTimeline, setInjuryTimeline] = useState<string>(() => String(coachProfile?.injuryTimeline || ''));
+  const [injuryGoal, setInjuryGoal] = useState<string>(() => String(coachProfile?.injuryGoal || ''));
 
   async function handleGenerate() {
     setLoading(true);
     setError(null);
     try {
+      // Only send amendments the user actually provided; the backend merges
+      // them into the saved profile and remembers them for next time.
+      const amendments: Record<string, string> = {};
+      if (injuries.trim()) amendments.injuries = injuries.trim();
+      if (injuryTimeline.trim()) amendments.injuryTimeline = injuryTimeline.trim();
+      if (injuryGoal.trim()) amendments.injuryGoal = injuryGoal.trim();
+
       const resp = await authFetch(`${API_BASE}/coach/program`, {
         method: 'POST',
         // goal is intentionally omitted — backend infers from trainingPreference
-        body: JSON.stringify({ daysPerWeek, durationWeeks, gender: coachProfile?.gender || null }),
+        body: JSON.stringify({
+          daysPerWeek,
+          durationWeeks,
+          gender: coachProfile?.gender || null,
+          ...(Object.keys(amendments).length > 0 ? { amendments } : {}),
+        }),
       });
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
@@ -204,6 +223,39 @@ export function ProgramSetup({ userName, coachProfile, onGenerated, onUpdateInta
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Injuries & constraints — editable so the program accounts for them */}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Injuries &amp; constraints <span className="font-normal normal-case">(optional)</span>
+          </p>
+          <textarea
+            value={injuries}
+            onChange={e => setInjuries(e.target.value)}
+            placeholder="e.g. Left shoulder surgery — avoid heavy overhead pressing for now"
+            rows={2}
+            className="w-full rounded-xl border border-border bg-background p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          {injuries.trim() && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                value={injuryTimeline}
+                onChange={e => setInjuryTimeline(e.target.value)}
+                placeholder="Timeline — e.g. 9 months post-op"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <input
+                value={injuryGoal}
+                onChange={e => setInjuryGoal(e.target.value)}
+                placeholder="Goal — e.g. build left shoulder strength"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            Add detail and regenerate — your program will be built around it.
+          </p>
         </div>
 
         {/* Summary card */}

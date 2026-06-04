@@ -594,6 +594,17 @@ const programSchema = z.object({
   daysPerWeek: z.number().int().min(2).max(6),
   durationWeeks: z.number().int().min(2).max(16),
   gender: z.string().nullable().optional(),
+  // Re-tune: amended injury/constraint context the athlete adds after seeing
+  // their program ("tell the coach more"). Merged into the stored profile and
+  // remembered for future generations, then the program is regenerated.
+  amendments: z.object({
+    injuries: z.string().max(2000).optional(),
+    injuryTimeline: z.string().max(200).optional(),
+    injurySide: z.string().max(50).optional(),
+    injuryStage: z.string().max(200).optional(),
+    injuryGoal: z.string().max(300).optional(),
+    additionalContext: z.string().max(2000).optional(),
+  }).optional(),
 });
 
 function inferGoalFromProfile(trainingPreference?: string, primaryGoal?: string): string {
@@ -614,7 +625,7 @@ router.post('/coach/program', requireAuth, async (req, res) => {
     if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
       return res.status(403).json({ error: 'Pro feature', upgrade: true });
     }
-    const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
+    const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender, amendments } = programSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
@@ -642,6 +653,31 @@ router.post('/coach/program', requireAuth, async (req, res) => {
 
     // Resolve gender and goal: request param > coachProfile JSON > inferred
     const coachProfileObj = user.coachProfile ? (() => { try { return JSON.parse(user.coachProfile); } catch { return {}; } })() : {};
+
+    // Re-tune: fold any amended injury/constraint context into the stored
+    // profile so this generation — and every future one — accounts for it.
+    let effectiveCoachProfileJson = user.coachProfile;
+    let effectiveConstraintsText = user.constraintsText;
+    if (amendments && Object.keys(amendments).length > 0) {
+      if (amendments.injuries !== undefined) coachProfileObj.injuries = amendments.injuries;
+      if (amendments.injuryTimeline !== undefined) coachProfileObj.injuryTimeline = amendments.injuryTimeline;
+      if (amendments.injurySide !== undefined) coachProfileObj.injurySide = amendments.injurySide;
+      if (amendments.injuryStage !== undefined) coachProfileObj.injuryStage = amendments.injuryStage;
+      if (amendments.injuryGoal !== undefined) coachProfileObj.injuryGoal = amendments.injuryGoal;
+      if (amendments.additionalContext !== undefined) coachProfileObj.additionalContext = amendments.additionalContext;
+      effectiveCoachProfileJson = JSON.stringify(coachProfileObj);
+      // Mirror the free-text injuries into constraintsText so the diagnostic/
+      // agent flows that read that field stay in sync.
+      if (amendments.injuries !== undefined) effectiveConstraintsText = amendments.injuries;
+      await prisma.user.update({
+        where: { id: req.user!.id },
+        data: {
+          coachProfile: effectiveCoachProfileJson,
+          ...(amendments.injuries !== undefined ? { constraintsText: effectiveConstraintsText } : {}),
+        },
+      });
+    }
+
     const resolvedGender = gender || coachProfileObj?.gender || null;
     const goal = requestedGoal || inferGoalFromProfile(coachProfileObj?.trainingPreference, coachProfileObj?.primaryGoal);
     // Explicit picker value wins; otherwise infer from the onboarding free text.
@@ -657,7 +693,8 @@ router.post('/coach/program', requireAuth, async (req, res) => {
         primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
         selectedLift: user.sessions[0]?.selectedLift || null,
         accessories,
-        coachProfile: user.coachProfile,
+        coachProfile: effectiveCoachProfileJson,
+        constraintsText: effectiveConstraintsText,
         diagnosticSignals,
         gender: resolvedGender,
       }),
