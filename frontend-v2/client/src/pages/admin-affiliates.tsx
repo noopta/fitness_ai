@@ -163,7 +163,8 @@ export default function AdminAffiliatesPage() {
       setPayoutsLoading(id);
       try {
         const res = await apiFetch(`/affiliates/${id}/payouts`);
-        setPayouts(p => ({ ...p, [id]: await res.json() }));
+        const data = await res.json();
+        setPayouts(p => ({ ...p, [id]: data }));
       } catch {
         toast.error('Failed to load payouts');
       } finally {
