@@ -312,20 +312,31 @@ model FeatureUsage {
 // A stored workout-form video analysis. We persist the structured critique
 // (not the video itself — that's deleted from Gemini after inference) so
 // users can browse their form history and track improvement over time.
+//
+// Lifecycle: the upload route creates the row with status='pending' and
+// returns immediately. A background promise calls Vertex Gemini and writes
+// status='complete' (with the populated fields) or status='failed' (with
+// errorMessage) when done. The mobile client polls GET /:id to render the
+// terminal state.
 model FormAnalysis {
   id           String   @id @default(uuid())
   userId       String
-  exercise     String   // detected lift, e.g. "Back squat" (or "unknown")
+  status       String   @default("complete") // 'pending' | 'complete' | 'failed'
+  errorMessage String?  // populated when status='failed'
+  exercise     String   // detected lift, e.g. "Back squat" (or "unknown" / "pending")
   formScore    Float?   // holistic 1-10, null when exercise couldn't be read
   repCount     Int?
   exerciseHint String?  // what the user said they were doing, if provided
   // Full WorkoutVideoAnalysis JSON (strengths, weaknesses, drills, etc.)
   // serialized — SQLite has no JSON column type so we store a string.
+  // Populated when status='complete'; '{}' while pending.
   analysisJson String
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([status, updatedAt])
 }
 
 // A user's prior training program, archived when they start a new one (or
