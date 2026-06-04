@@ -55,6 +55,10 @@ beforeEach(() => {
 
   // Default: a valid free user
   prismaUser.findUnique.mockResolvedValue(USER);
+  // requireAuth fires a fire-and-forget lastActiveAt update via setImmediate;
+  // give it a thenable so the un-awaited `.catch()` doesn't throw an unhandled
+  // rejection that fails the run (all assertions pass regardless).
+  prismaUser.update.mockResolvedValue({});
 });
 
 async function buildApp() {
