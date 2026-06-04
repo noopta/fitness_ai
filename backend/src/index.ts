@@ -33,6 +33,7 @@ import formAnalysisRoutes from './routes/formAnalysis.js';
 import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
+import { runAnakinGroupSweep } from './services/groupAccountability.js';
 import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
 import OpenAI from 'openai';
 
@@ -232,6 +233,10 @@ scheduleAt(19, null, () => runStreakAtRiskCheck().catch(err => console.error('[s
 scheduleAt(21, null, () => runStreakAtRiskCheck().catch(err => console.error('[scheduler] streak-at-risk 21h error:', err)));
 // Research/article feed — fetch new content daily at 6am
 scheduleAt(6,  null, () => runDailyFeedFetch().catch(err => console.error('[scheduler] feed fetch error:', err)));
+// Anakin group accountability — drops into every opted-in group chat each
+// morning at 8am with a check-in. runAnakinGroupCheckin gates on
+// anakinDailyEnabled and only posts when there's something worth saying.
+scheduleAt(8,  null, () => runAnakinGroupSweep().catch(err => console.error('[scheduler] anakin group sweep error:', err)));
 // Run once on startup to seed the feed if empty
 runDailyFeedFetch().catch(err => console.error('[feedService] initial fetch error:', err));
-console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 7pm/9pm streak-at-risk + 6am feed fetch)');
+console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 7pm/9pm streak-at-risk + 6am feed fetch + 8am Anakin group check-in)');
