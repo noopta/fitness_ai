@@ -21,6 +21,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getCached, setCached, invalidateCache } from '../../lib/cache';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
+import { SwapWorkoutModal } from './SwapWorkoutModal';
 import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
 import { Analytics } from '../../lib/analytics';
 
@@ -331,6 +332,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
   const [loading, setLoading] = useState(cachedSnapshot === null);
 
   const [lifeHappenedVisible, setLifeHappenedVisible] = useState(false);
+  const [swapVisible, setSwapVisible] = useState(false);
   const [logWorkoutVisible, setLogWorkoutVisible] = useState(false);
   const [workoutSaved, setWorkoutSaved] = useState(false);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
@@ -424,6 +426,12 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
 
   function handleLifeHappenedApplied() {
     setLifeHappenedVisible(false);
+    loadData();
+    onRefresh?.();
+  }
+
+  function handleSwapApplied() {
+    setSwapVisible(false);
     loadData();
     onRefresh?.();
   }
@@ -630,6 +638,17 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
           <Text style={styles.logBtnText}>Log Workout</Text>
         </TouchableOpacity>
 
+        {/* Swap today's workout with another day in the week */}
+        {(scheduleData?.weekDays ?? []).some(d => !d.isToday && d.isTrainingDay && d.session && !d.isLogged) && (
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.swapBtn]}
+            onPress={() => setSwapVisible(true)}
+          >
+            <Ionicons name="swap-horizontal" size={16} color={colors.foreground} />
+            <Text style={styles.swapBtnText}>Swap Today’s Workout</Text>
+          </TouchableOpacity>
+        )}
+
         {workoutSaved && (
           <View style={styles.savedBanner}>
             <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
@@ -806,6 +825,12 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
         visible={lifeHappenedVisible}
         onClose={() => setLifeHappenedVisible(false)}
         onApplied={handleLifeHappenedApplied}
+      />
+      <SwapWorkoutModal
+        visible={swapVisible}
+        onClose={() => setSwapVisible(false)}
+        weekDays={(scheduleData?.weekDays ?? []) as any}
+        onApplied={handleSwapApplied}
       />
       <WorkoutLogModal
         visible={logWorkoutVisible}
@@ -1279,6 +1304,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
     color: '#fff',
+  },
+  swapBtn: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.sm,
+  },
+  swapBtnText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
   },
 
   // Life Happened card

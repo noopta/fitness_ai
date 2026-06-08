@@ -329,6 +329,11 @@ export const coachApi = {
   // Today / schedule
   getToday: () => apiFetch('/coach/today'),
   getSchedule: () => apiFetch('/coach/schedule'),
+  // Swap today's workout with another day's, then re-balance the week (LLM).
+  swapDay: (data: { date: string; sourceDate: string }) =>
+    apiFetch('/coach/swap-day', { method: 'POST', body: JSON.stringify(data) }),
+  applyWeekPlan: (data: { week: Array<{ date: string; session: any; locked?: boolean }>; reason?: string }) =>
+    apiFetch('/coach/apply-week-plan', { method: 'POST', body: JSON.stringify(data) }),
 
   // Nutrition
   generateNutritionPlan: (data: any) =>

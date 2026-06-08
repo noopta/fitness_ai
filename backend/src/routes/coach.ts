@@ -10,6 +10,7 @@ import {
   createCoachThread, sendCoachMessage, getCoachMessages, type CoachSession,
   generateNutritionPlan, generateMealSuggestions, generateTrainingProgram, generateCoachInsight,
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal, generateWelcomeMessage,
+  rebalanceWeekAfterSwap,
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
@@ -920,7 +921,14 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     // Use daysSinceStart mod 7 to pick which day in the template week
     const dayInWeek = daysSinceStart % 7; // 0–6
     // Find if today is a training day; simple mapping: first N days of week = training
-    const todaySession = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+    let todaySession = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+    // A per-date override (from a workout swap / rebalance) wins for today.
+    const todayOverride = await prisma.scheduleOverride.findUnique({
+      where: { userId_date: { userId: req.user!.id, date: dateKey } },
+    });
+    if (todayOverride) {
+      todaySession = todayOverride.sessionJson ? JSON.parse(todayOverride.sessionJson) : null;
+    }
     const isRestDay = !todaySession;
 
     // Next training day
@@ -1111,9 +1119,189 @@ router.post('/coach/apply-adjustment', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/coach/swap-day — propose swapping the chosen day's workout into the
+// target day (today) and re-balancing the rest of the week. Returns a proposed
+// week for the user to confirm; does NOT persist. Apply via /coach/apply-week-plan.
+const swapDaySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),       // target day (usually today)
+  sourceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // day whose workout to pull in
+});
+router.post('/coach/swap-day', requireAuth, async (req, res) => {
+  try {
+    const { date, sourceDate } = swapDaySchema.parse(req.body);
+    if (date === sourceDate) return res.status(400).json({ error: 'Pick a different day to swap in.' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user || !user.savedProgram) return res.status(400).json({ error: 'No active program' });
+
+    const today = getESTDateString();
+    const overrides = await fetchOverridesMap(req.user!.id, addDaysStr(today, -7), addDaysStr(today, 7));
+    const { weekDays } = buildScheduleData(user, overrides);
+
+    // Mark logged days (can't be reflowed/rewritten).
+    const weekStart = weekDays[0]?.date ?? today;
+    const weekEnd = weekDays[weekDays.length - 1]?.date ?? today;
+    const logs = await prisma.workoutLog.findMany({
+      where: { userId: req.user!.id, date: { gte: weekStart, lte: weekEnd } },
+      select: { date: true },
+    });
+    const loggedDates = new Set(logs.map(l => l.date.slice(0, 10)));
+
+    const targetDay = weekDays.find(d => d.date === date);
+    const sourceDay = weekDays.find(d => d.date === sourceDate);
+    if (!targetDay) return res.status(400).json({ error: 'Target day not in current week' });
+    if (!sourceDay || !sourceDay.session) return res.status(400).json({ error: 'Selected day has no workout to swap in' });
+
+    const chosenSession = sourceDay.session;                 // moves to the target day
+    const displacedSession = targetDay.session ?? null;      // needs a new home
+
+    // Future, unlocked slots we may re-arrange (strictly after target, not logged).
+    const openSlots = weekDays.filter(d => d.date > date && !loggedDates.has(d.date));
+
+    // Pool = future sessions + the displaced target session, minus one copy of
+    // the chosen session (it moved to the target day).
+    const pool: any[] = [];
+    for (const d of openSlots) if (d.session) pool.push(d.session);
+    if (displacedSession) pool.push(displacedSession);
+    const chosenIdx = pool.findIndex(s => s?.day === chosenSession.day);
+    if (chosenIdx >= 0) pool.splice(chosenIdx, 1);
+
+    // Name → session lookup for mapping the LLM's choices back to real sessions.
+    const sessionByName = new Map<string, any>();
+    for (const s of [chosenSession, displacedSession, ...pool]) if (s?.day) sessionByName.set(s.day, s);
+
+    // Ask the LLM to sequence the pool across the open slots (rest spacing).
+    let assignments: Array<{ date: string; sessionName: string | null }> = [];
+    let rationale = '';
+    try {
+      const result = await rebalanceWeekAfterSwap({
+        goal: user.coachGoal,
+        trainingAge: user.trainingAge,
+        lockedDays: [
+          { date, dayLabel: targetDay.dayLabel, sessionName: chosenSession.day, focus: chosenSession.focus, note: 'swapped in for today' },
+          ...weekDays
+            .filter(d => d.date < date || loggedDates.has(d.date))
+            .map(d => ({ date: d.date, dayLabel: d.dayLabel, sessionName: d.session?.day ?? null, focus: d.session?.focus ?? null, note: loggedDates.has(d.date) ? 'already logged' : 'past' })),
+        ],
+        openSlots: openSlots.map(d => ({ date: d.date, dayLabel: d.dayLabel })),
+        pool: pool.map(s => ({ name: s.day, focus: s.focus })),
+      });
+      assignments = result.assignments;
+      rationale = result.rationale;
+    } catch (e) {
+      console.error('[swap-day] LLM rebalance failed, using deterministic fallback:', e);
+    }
+
+    // Build proposed open-slot assignments. Prefer the LLM's mapping; fall back
+    // to placing the pool in order. Each pool session is used at most once.
+    const usedNames = new Set<string>();
+    const proposedOpen = new Map<string, any | null>();
+    if (assignments.length > 0) {
+      for (const a of assignments) {
+        if (!openSlots.some(s => s.date === a.date)) continue;
+        const s = a.sessionName ? sessionByName.get(a.sessionName) : null;
+        if (s && !usedNames.has(s.day)) { proposedOpen.set(a.date, s); usedNames.add(s.day); }
+        else proposedOpen.set(a.date, null);
+      }
+    }
+    // Fill any open slot the LLM didn't address with leftover pool sessions in order.
+    const leftovers = pool.filter(s => !usedNames.has(s.day));
+    for (const slot of openSlots) {
+      if (proposedOpen.has(slot.date)) continue;
+      const next = leftovers.shift();
+      if (next) { proposedOpen.set(slot.date, next); usedNames.add(next.day); }
+      else proposedOpen.set(slot.date, null);
+    }
+
+    // Assemble the proposed week for the client to confirm.
+    const proposedWeek = weekDays.map(d => {
+      if (d.date === date) {
+        return { ...d, session: chosenSession, isTrainingDay: true, isSwapped: true, locked: false };
+      }
+      if (d.date < date || loggedDates.has(d.date)) {
+        return { ...d, locked: true };
+      }
+      const s = proposedOpen.has(d.date) ? proposedOpen.get(d.date) : d.session;
+      const changed = (s?.day ?? null) !== (d.session?.day ?? null);
+      return { ...d, session: s ?? null, isTrainingDay: !!s, isSwapped: changed, locked: false };
+    });
+
+    res.json({
+      proposedWeek,
+      rationale: rationale || `Moved ${chosenSession.day} to today and re-spaced the rest of your week for recovery.`,
+    });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    console.error('Swap-day error:', err);
+    res.status(500).json({ error: 'Failed to plan swap' });
+  }
+});
+
+// POST /api/coach/apply-week-plan — persist a confirmed proposed week as
+// per-date ScheduleOverrides and bust the today/schedule/dashboard caches.
+const applyWeekSchema = z.object({
+  week: z.array(z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    session: z.any().nullable().optional(),
+    locked: z.boolean().optional(),
+  })),
+  reason: z.string().max(300).optional(),
+});
+router.post('/coach/apply-week-plan', requireAuth, async (req, res) => {
+  try {
+    const { week, reason } = applyWeekSchema.parse(req.body);
+    const userId = req.user!.id;
+
+    // Only persist non-locked days (locked = past / logged — never overwrite).
+    const writable = week.filter(d => !d.locked);
+    await prisma.$transaction(
+      writable.map(d => prisma.scheduleOverride.upsert({
+        where: { userId_date: { userId, date: d.date } },
+        create: { userId, date: d.date, sessionJson: d.session ? JSON.stringify(d.session) : null, reason: reason ?? null },
+        update: { sessionJson: d.session ? JSON.stringify(d.session) : null, reason: reason ?? null },
+      })),
+    );
+
+    cacheClearByPrefix(`today:${userId}:`);
+    cacheClearByPrefix(`schedule:${userId}:`);
+    cacheClearByPrefix(`dashboard:${userId}:`);
+    cacheDelete(`userctx:${userId}`);
+
+    res.json({ success: true, applied: writable.length });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    console.error('Apply week plan error:', err);
+    res.status(500).json({ error: 'Failed to apply week plan' });
+  }
+});
+
+// Load per-date schedule overrides for a user within a date window and return
+// them as a Map<dateStr, session|null>. A row with null sessionJson is an
+// explicit rest day.
+async function fetchOverridesMap(userId: string, fromDate: string, toDate: string): Promise<Map<string, any | null>> {
+  const rows = await prisma.scheduleOverride.findMany({
+    where: { userId, date: { gte: fromDate, lte: toDate } },
+  });
+  const map = new Map<string, any | null>();
+  for (const r of rows) {
+    map.set(r.date, r.sessionJson ? JSON.parse(r.sessionJson) : null);
+  }
+  return map;
+}
+
+// Add/subtract whole days from a YYYY-MM-DD string (EST-noon anchored).
+function addDaysStr(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+
 // GET /api/coach/schedule - Get the current week's schedule (Mon–Sun)
 // Shared helper — computes schedule data for a user with a saved program.
-function buildScheduleData(user: { savedProgram: string | null; programStartDate: Date | null }) {
+function buildScheduleData(
+  user: { savedProgram: string | null; programStartDate: Date | null },
+  overrides?: Map<string, any | null>,
+) {
   if (!user.savedProgram) return { weekDays: [], weekNumber: null, phaseName: null };
 
   const program = JSON.parse(user.savedProgram);
@@ -1139,8 +1327,13 @@ function buildScheduleData(user: { savedProgram: string | null; programStartDate
     date.setUTCDate(sunday.getUTCDate() + i);
     const daysForDate = Math.floor((date.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
     const dayInWeek = ((daysForDate % 7) + 7) % 7;
-    const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
     const dateEST = date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+    // A per-date override (from a swap/rebalance) wins over the index lookup.
+    const hasOverride = overrides?.has(dateEST) ?? false;
+    const session = hasOverride
+      ? overrides!.get(dateEST)  // may be null = explicit rest
+      : (dayInWeek < totalDays ? trainingDays[dayInWeek] : null);
 
     weekDays.push({
       date: dateEST,
@@ -1149,6 +1342,7 @@ function buildScheduleData(user: { savedProgram: string | null; programStartDate
       monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),
       isToday: dateEST === getESTDateString(),
       isTrainingDay: !!session,
+      isSwapped: hasOverride,
       session: session || null,
     });
   }
@@ -1168,7 +1362,9 @@ router.get('/coach/schedule', requireAuth, async (req, res) => {
       return res.json({ weekDays: [], weekNumber: null, phaseName: null });
     }
 
-    const result = buildScheduleData(user);
+    const today = getESTDateString();
+    const overrides = await fetchOverridesMap(req.user!.id, addDaysStr(today, -7), addDaysStr(today, 7));
+    const result = buildScheduleData(user, overrides);
 
     // Mark days that have a logged workout
     if (result.weekDays.length > 0) {
@@ -1211,8 +1407,9 @@ router.get('/coach/dashboard', requireAuth, async (req, res) => {
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Build schedule
-    const schedule = buildScheduleData(user);
+    // Build schedule (with any swap overrides for the week applied)
+    const overrides = await fetchOverridesMap(req.user!.id, addDaysStr(dateKey, -7), addDaysStr(dateKey, 7));
+    const schedule = buildScheduleData(user, overrides);
 
     // Build today — reuse /coach/today cache if already warm
     const checkinId = user.wellnessCheckins[0]?.id || 'none';

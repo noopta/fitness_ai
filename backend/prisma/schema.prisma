@@ -91,6 +91,7 @@ model User {
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
   workoutLogs              WorkoutLog[]
+  scheduleOverrides        ScheduleOverride[]
   activityLogs             ActivityLog[]
   // Social
   sentFriendRequests       Friendship[]          @relation("SentRequests")
@@ -383,6 +384,23 @@ model WorkoutLog {
   // date or createdAt. Without these the queries were full table scans.
   @@index([userId, date])
   @@index([userId, createdAt])
+}
+
+// Per-date override of the program's index-based session for a user. Written
+// when a user swaps today's workout with another day's and the week is
+// re-balanced. The underlying savedProgram template is never mutated — reads
+// (today + schedule) check for an override for the date first and fall back to
+// the index lookup. sessionJson null = an explicit rest day for that date.
+model ScheduleOverride {
+  id          String   @id @default(uuid())
+  userId      String
+  date        String   // YYYY-MM-DD (EST)
+  sessionJson String?  // serialized ProgramDay; null = rest day
+  reason      String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  @@unique([userId, date])
+  @@index([userId, date])
 }
 
 model KnowledgeChunk {
