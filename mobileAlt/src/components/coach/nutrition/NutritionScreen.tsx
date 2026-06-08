@@ -34,6 +34,8 @@ import { VoiceSheet } from './sheets/VoiceSheet';
 import { ManualEntrySheet } from './sheets/ManualEntrySheet';
 import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
 import { WeightDetailScreen } from './WeightDetailScreen';
+import { ProteinCelebration } from './ProteinCelebration';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props {
   coachData: any;
@@ -243,6 +245,34 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     { key: 'fat',     used: used.f,  target: targetFat },
     { key: 'fiber',   used: used.fi, target: targetFiber },
   ], [used, targetProtein, targetCarbs, targetFat, targetFiber]);
+
+  // ── Protein-goal celebration ─────────────────────────────────────────────
+  // In-app only (no push). Fires once per day the first time today's logged
+  // protein reaches the target, guarded by an AsyncStorage day-key so it
+  // doesn't replay on every re-render / tab revisit.
+  const [showProteinCelebration, setShowProteinCelebration] = useState(false);
+  const proteinCelebrationChecked = useRef(false);
+  useEffect(() => {
+    if (!targetProtein || targetProtein <= 0) return;
+    if (used.p < targetProtein) return;
+    if (proteinCelebrationChecked.current) return;
+    proteinCelebrationChecked.current = true;
+    const key = `protein-celebrated:${todayStr()}`;
+    let cancelled = false;
+    (async () => {
+      try {
+        const already = await AsyncStorage.getItem(key);
+        if (already || cancelled) return;
+        await AsyncStorage.setItem(key, '1');
+        if (!cancelled) setShowProteinCelebration(true);
+      } catch {
+        // If storage fails, still celebrate (better a possible repeat than
+        // never), but only once per mount thanks to the ref guard above.
+        if (!cancelled) setShowProteinCelebration(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [used.p, targetProtein]);
 
   // ── Weight state ─────────────────────────────────────────────────────────
   const weight: WeightState = useMemo(() => {
@@ -508,6 +538,11 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       >
         <WeightDetailScreen onClose={() => setWeightDetailOpen(false)} />
       </Modal>
+
+      <ProteinCelebration
+        visible={showProteinCelebration}
+        onDone={() => setShowProteinCelebration(false)}
+      />
     </SafeAreaView>
   );
 }

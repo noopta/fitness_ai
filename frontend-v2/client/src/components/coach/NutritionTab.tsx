@@ -10,6 +10,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
 import { authFetch } from '@/lib/api';
+import { ProteinCelebration } from './ProteinCelebration';
 import { WebAnalytics } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
@@ -485,6 +486,7 @@ export function NutritionTab({
   const [logsLoading, setLogsLoading] = useState(true);
   const [form, setForm] = useState({ date: todayStr(), proteinG: '', carbsG: '', fatG: '', notes: '' });
   const [saving, setSaving] = useState(false);
+  const [showProteinCelebration, setShowProteinCelebration] = useState(false);
 
   // On-demand AI plan (if no saved plan)
   const [aiPlan, setAiPlan] = useState<NutritionPlanResult | null>(null);
@@ -572,6 +574,22 @@ export function NutritionTab({
         .then(d => { if (d.logs) setLogs(d.logs); })
         .catch(() => {});
       toast.success('Log saved');
+
+      // In-app protein-goal celebration (no push). Fire once per day when a
+      // log for *today* reaches the protein target.
+      const proteinTarget = activePlan?.macros?.proteinG ?? null;
+      const savedProtein = Number(form.proteinG) || 0;
+      if (
+        form.date === todayStr() &&
+        proteinTarget && proteinTarget > 0 &&
+        savedProtein >= proteinTarget
+      ) {
+        const key = `protein-celebrated:${form.date}`;
+        if (typeof window !== 'undefined' && !window.localStorage.getItem(key)) {
+          window.localStorage.setItem(key, '1');
+          setShowProteinCelebration(true);
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to save');
     } finally {
@@ -873,6 +891,11 @@ export function NutritionTab({
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
+
+      <ProteinCelebration
+        show={showProteinCelebration}
+        onDone={() => setShowProteinCelebration(false)}
+      />
 
       {/* Nutrition Plan — saved (from program) or on-demand */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>

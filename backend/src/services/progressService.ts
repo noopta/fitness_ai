@@ -9,8 +9,6 @@ import type { PrismaClient } from '@prisma/client';
 import {
   notifyNewPR,
   notifyWeightProgress,
-  notifyProteinTargetHit,
-  notifyProteinTargetMilestone,
 } from './notificationService.js';
 
 // ─── Strength PR detection ────────────────────────────────────────────────────
@@ -225,7 +223,6 @@ export async function detectAndNotifyWeightMilestone(
 // ─── Protein target consistency ───────────────────────────────────────────────
 
 const PROTEIN_HIT_THRESHOLD = 0.85;
-const PROTEIN_STREAK_MILESTONES = [3, 7, 14, 21, 30];
 const PROTEIN_LOOKBACK_DAYS = 21;
 
 /**
@@ -306,13 +303,10 @@ export async function detectAndNotifyProteinHit(
   // before the write becomes visible.
   byDate.set(dateStr, Math.max(byDate.get(dateStr) ?? 0, proteinGToday));
 
-  const streak = computeProteinStreak(dateStr, byDate, target);
-  if (streak === 1) {
-    // Today's first hit (no prior consecutive hit) — give a small reinforce.
-    await notifyProteinTargetHit(userId, proteinGToday, target).catch(() => {});
-    return;
-  }
-  if (PROTEIN_STREAK_MILESTONES.includes(streak)) {
-    await notifyProteinTargetMilestone(userId, streak).catch(() => {});
-  }
+  // Protein-goal recognition is now an IN-APP celebration only (handled on the
+  // client when the protein ring reaches 100%), per product decision — we do
+  // NOT fire a push notification for hitting the protein goal or for protein
+  // streak milestones. The streak is still computed above in case future
+  // surfaces want it, but no push is sent here.
+  void computeProteinStreak(dateStr, byDate, target);
 }
