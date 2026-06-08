@@ -9,6 +9,7 @@ import {
   Share2, Copy, Check, Loader2, Search, ChevronDown,
   Dumbbell, Apple, Trophy, Rss, Image, Video, Type,
   ExternalLink, Heart, MessageCircle, Send, Bookmark, BookOpen, RefreshCw, FileText, Newspaper, X,
+  Globe, Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
@@ -43,6 +44,7 @@ interface SharedFeedItem {
     data?: Record<string, unknown>;
   };
   caption?: string | null;
+  visibility?: string | null;
   createdAt: string;
   reactionCount: number;
   likedByMe: boolean;
@@ -264,8 +266,13 @@ function FeedCard({
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-semibold">
+            <p className="text-sm font-semibold flex items-center gap-1.5">
               {item.sharer.name || item.sharer.email || 'Someone'}
+              {item.visibility === 'public' && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <Globe className="h-2.5 w-2.5" /> Public
+                </span>
+              )}
             </p>
             <p className="text-xs text-muted-foreground">{relativeTime(item.createdAt)}</p>
           </div>
@@ -621,6 +628,9 @@ export default function SocialFeedPage() {
   // Caption (shared across tabs)
   const [caption, setCaption] = useState('');
 
+  // Audience for broadcast posts: friends (default) or public.
+  const [visibility, setVisibility] = useState<'friends' | 'public'>('friends');
+
   // Image tab
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -813,6 +823,7 @@ export default function SocialFeedPage() {
   function resetForm() {
     setTextContent('');
     setCaption('');
+    setVisibility('friends');
     setImageBase64(null);
     setImagePreview(null);
     setVideoUrl('');
@@ -844,6 +855,7 @@ export default function SocialFeedPage() {
     try {
       const body: Record<string, unknown> = { itemType, payload };
       if (selectedRecipient) body.recipientId = selectedRecipient.id;
+      else body.visibility = visibility; // audience only applies to broadcasts
       if (caption.trim()) body.caption = caption.trim();
 
       const res = await authFetch(`${API_BASE}/social/share`, {
@@ -1052,6 +1064,35 @@ export default function SocialFeedPage() {
                   maxLength={200}
                 />
               </div>
+
+              {/* Audience — only for broadcast posts (no direct recipient) */}
+              {!selectedRecipient && (
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Audience</Label>
+                  <div className="flex gap-2">
+                    {(['friends', 'public'] as const).map(aud => (
+                      <button
+                        key={aud}
+                        type="button"
+                        onClick={() => setVisibility(aud)}
+                        className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-sm transition-colors ${
+                          visibility === aud
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background text-muted-foreground hover:bg-muted/30'
+                        }`}
+                      >
+                        {aud === 'public' ? <Globe className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
+                        {aud === 'public' ? 'Public' : 'Friends'}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {visibility === 'public'
+                      ? 'Anyone on Axiom can see this post.'
+                      : 'Only your friends can see this post.'}
+                  </p>
+                </div>
+              )}
 
               <Button
                 onClick={handleShare}

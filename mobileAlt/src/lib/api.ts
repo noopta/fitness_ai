@@ -536,7 +536,7 @@ export const socialApi = {
     apiFetch(`/social/conversations/${conversationId}/poll${after ? `?after=${after}` : ''}`),
 
   // Sharing
-  shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object; caption?: string }) =>
+  shareItem: (data: { recipientId?: string; itemType: string; itemId?: string; payload: object; caption?: string; visibility?: 'friends' | 'public' }) =>
     apiFetch('/social/share', { method: 'POST', body: JSON.stringify(data) }),
   getSharedFeed: () => apiFetch('/social/shared-feed'),
   // Feed loader. Always sends `slim=1` so the backend strips inline

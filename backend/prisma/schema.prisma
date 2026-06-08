@@ -499,12 +499,18 @@ model SharedItem {
   itemId      String?
   payload     String
   caption     String?
+  // "friends" (default — visible to the sharer's accepted friends, current
+  // behavior) or "public" (visible to any user on the feed). Only meaningful
+  // for broadcast posts (recipientId === sharerId); direct shares stay private
+  // to the recipient regardless.
+  visibility  String   @default("friends")
   createdAt   DateTime @default(now())
   sharer      User     @relation("SharedByMe",   fields: [sharerId],    references: [id])
   recipient   User     @relation("SharedWithMe", fields: [recipientId], references: [id])
   reactions   PostReaction[]
   comments    PostComment[]
   @@index([recipientId, createdAt])
+  @@index([visibility, createdAt])
 }
 
 model PostReaction {
