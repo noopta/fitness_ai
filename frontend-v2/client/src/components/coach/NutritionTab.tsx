@@ -11,6 +11,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
 import { authFetch } from '@/lib/api';
 import { ProteinCelebration } from './ProteinCelebration';
+import { ProgressShareModal } from './ProgressShareModal';
+import { Share2 } from 'lucide-react';
 import { WebAnalytics } from '@/lib/analytics';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
@@ -487,6 +489,8 @@ export function NutritionTab({
   const [form, setForm] = useState({ date: todayStr(), proteinG: '', carbsG: '', fatG: '', notes: '' });
   const [saving, setSaving] = useState(false);
   const [showProteinCelebration, setShowProteinCelebration] = useState(false);
+  const [shareNutrition, setShareNutrition] = useState(false);
+  const [shareWeight, setShareWeight] = useState(false);
 
   // On-demand AI plan (if no saved plan)
   const [aiPlan, setAiPlan] = useState<NutritionPlanResult | null>(null);
@@ -897,6 +901,38 @@ export function NutritionTab({
         onDone={() => setShowProteinCelebration(false)}
       />
 
+      {shareNutrition && activePlan && (
+        <ProgressShareModal
+          onClose={() => setShareNutrition(false)}
+          variant={{
+            kind: 'nutrition',
+            dateLabel: form.date === todayStr() ? 'TODAY' : form.date,
+            calories: { used: calories, target: activePlan.macros.calories },
+            macros: [
+              { label: 'Protein', used: protein, target: activePlan.macros.proteinG, color: '#6366f1' },
+              { label: 'Carbs', used: carbs, target: activePlan.macros.carbsG, color: '#22c55e' },
+              { label: 'Fat', used: fat, target: activePlan.macros.fatG, color: '#f59e0b' },
+            ],
+          }}
+        />
+      )}
+
+      {shareWeight && (
+        <ProgressShareModal
+          onClose={() => setShareWeight(false)}
+          variant={{
+            kind: 'weight',
+            rangeLabel: '90D',
+            current: currentWeightLbs,
+            totalChange: (() => {
+              const sorted = [...bwLogs].sort((a, b) => a.date.localeCompare(b.date));
+              return sorted.length >= 2 ? sorted[sorted.length - 1].weightLbs - sorted[0].weightLbs : null;
+            })(),
+            series: [...bwLogs].sort((a, b) => a.date.localeCompare(b.date)).map(l => l.weightLbs),
+          }}
+        />
+      )}
+
       {/* Nutrition Plan — saved (from program) or on-demand */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         {activePlan ? (
@@ -1083,16 +1119,26 @@ export function NutritionTab({
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">
                   {hasProjection ? 'Progress & Projection' : 'Weight Trend'}
                 </p>
-                {hasProjection && (
-                  <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <span className="inline-block w-3 h-0.5 bg-[#6366f1] rounded" /> Logged
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="inline-block w-3 border-t-2 border-dashed border-[#a78bfa]" /> Projected
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  {hasProjection && (
+                    <>
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block w-3 h-0.5 bg-[#6366f1] rounded" /> Logged
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block w-3 border-t-2 border-dashed border-[#a78bfa]" /> Projected
+                      </span>
+                    </>
+                  )}
+                  {bwLogs.length >= 2 && (
+                    <button
+                      onClick={() => setShareWeight(true)}
+                      className="flex items-center gap-1 font-semibold text-primary hover:underline"
+                    >
+                      <Share2 className="h-3 w-3" /> Share
+                    </button>
+                  )}
+                </div>
               </div>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={bwCombinedChart} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
@@ -1247,6 +1293,12 @@ export function NutritionTab({
                   </div>
                 );
               })}
+              <button
+                onClick={() => setShareNutrition(true)}
+                className="w-full flex items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-semibold text-muted-foreground hover:bg-muted/30 transition-colors"
+              >
+                <Share2 className="h-3.5 w-3.5" /> Share today’s nutrition
+              </button>
             </div>
           )}
 

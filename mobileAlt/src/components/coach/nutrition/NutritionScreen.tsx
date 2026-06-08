@@ -13,9 +13,10 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, StyleSheet, Alert, Keyboard, Modal,
+  View, Text, TouchableOpacity, StyleSheet, Alert, Keyboard, Modal,
   type NativeSyntheticEvent, type NativeScrollEvent,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -35,6 +36,7 @@ import { ManualEntrySheet } from './sheets/ManualEntrySheet';
 import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
 import { WeightDetailScreen } from './WeightDetailScreen';
 import { ProteinCelebration } from './ProteinCelebration';
+import { NutritionShareModal, type MacroSummary } from '../../share/NutritionShareModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props {
@@ -274,6 +276,38 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     return () => { cancelled = true; };
   }, [used.p, targetProtein]);
 
+  // ── Nutrition share card + goal-hit prompt ───────────────────────────────
+  const [shareVisible, setShareVisible] = useState(false);
+  const [goalPromptVisible, setGoalPromptVisible] = useState(false);
+  const goalPromptChecked = useRef(false);
+
+  const shareMacros: MacroSummary[] = useMemo(() => [
+    { label: 'Protein', used: used.p, target: targetProtein, color: '#6366f1' },
+    { label: 'Carbs',   used: used.c, target: targetCarbs,   color: '#22c55e' },
+    { label: 'Fat',     used: used.f, target: targetFat,     color: '#f59e0b' },
+  ], [used, targetProtein, targetCarbs, targetFat]);
+
+  // Prompt to share once per day when the day's calories AND all macros land
+  // at/above ~95% of target (i.e. the user "hit their goals").
+  useEffect(() => {
+    const hit = (u: number, t: number | null) => !!t && t > 0 && u >= t * 0.95;
+    const allHit = hit(used.kcal, baseTargetCalories)
+      && hit(used.p, targetProtein) && hit(used.c, targetCarbs) && hit(used.f, targetFat);
+    if (!allHit || goalPromptChecked.current) return;
+    goalPromptChecked.current = true;
+    const key = `goals-share-prompt:${todayStr()}`;
+    let cancelled = false;
+    (async () => {
+      try {
+        const already = await AsyncStorage.getItem(key);
+        if (already || cancelled) return;
+        await AsyncStorage.setItem(key, '1');
+        if (!cancelled) setGoalPromptVisible(true);
+      } catch { if (!cancelled) setGoalPromptVisible(true); }
+    })();
+    return () => { cancelled = true; };
+  }, [used, baseTargetCalories, targetProtein, targetCarbs, targetFat]);
+
   // ── Weight state ─────────────────────────────────────────────────────────
   const weight: WeightState = useMemo(() => {
     const last30 = bwLogs.slice(-30).map((l) => l.weightLbs);
@@ -457,6 +491,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         macros={macroStates}
         selectedMacro={selectedMacro}
         onSelectMacro={handleSelectMacro}
+        onShare={() => setShareVisible(true)}
       />
 
       <Inspector
@@ -543,6 +578,32 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         visible={showProteinCelebration}
         onDone={() => setShowProteinCelebration(false)}
       />
+
+      {/* Goal-hit prompt → opens the shareable nutrition card */}
+      {goalPromptVisible && (
+        <View style={styles.goalPrompt}>
+          <Text style={styles.goalPromptText}>You hit your macros today 🎯</Text>
+          <View style={styles.goalPromptActions}>
+            <TouchableOpacity
+              onPress={() => { setGoalPromptVisible(false); setShareVisible(true); }}
+              style={styles.goalPromptShare}
+            >
+              <Text style={styles.goalPromptShareText}>Share your day</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setGoalPromptVisible(false)} style={styles.goalPromptDismiss}>
+              <Ionicons name="close" size={18} color="#a1a1aa" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      <NutritionShareModal
+        visible={shareVisible}
+        onClose={() => setShareVisible(false)}
+        dateLabel={todayLabel()}
+        calories={{ used: used.kcal, target: baseTargetCalories }}
+        macros={shareMacros}
+      />
     </SafeAreaView>
   );
 }
@@ -554,5 +615,28 @@ function avg(arr: number[]): number {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+  goalPrompt: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 24,
+    backgroundColor: '#0a0a0a',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  goalPromptText: { color: '#fff', fontSize: 14, fontWeight: '600', flexShrink: 1 },
+  goalPromptActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  goalPromptShare: { backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
+  goalPromptShareText: { color: '#0a0a0a', fontSize: 13, fontWeight: '700' },
+  goalPromptDismiss: { padding: 4 },
   timelineWrap: { flex: 1 },
 });

@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontWeight } from '../../../constants/theme';
 import { MacroRing, type MacroState, type MacroKey } from './MacroRing';
 
@@ -20,6 +21,8 @@ interface Props {
   dateLabel: string;
   /** Override status pill — when omitted we derive from kcal + clock. */
   status?: StatusPill;
+  /** When provided, renders a share icon that exports today's nutrition card. */
+  onShare?: () => void;
 }
 
 /**
@@ -48,7 +51,7 @@ function StatusBadge({ status }: { status: StatusPill }) {
 }
 
 export function StickyHeader({
-  kcal, macros, selectedMacro, onSelectMacro, dateLabel, status,
+  kcal, macros, selectedMacro, onSelectMacro, dateLabel, status, onShare,
 }: Props) {
   const targetWithBurn = kcal.target ? kcal.target + kcal.workoutBurn : null;
   const remaining = targetWithBurn != null ? targetWithBurn - kcal.used : null;
@@ -75,7 +78,14 @@ export function StickyHeader({
               : `${Math.round(kcal.used)} calories logged today, no target set.`
           }
         >
-          <Text style={styles.eyebrow}>{dateLabel}</Text>
+          <View style={styles.eyebrowRow}>
+            <Text style={styles.eyebrow}>{dateLabel}</Text>
+            {onShare && (
+              <Pressable onPress={onShare} hitSlop={10} accessibilityRole="button" accessibilityLabel="Share today's nutrition">
+                <Ionicons name="share-outline" size={15} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+          </View>
           <View style={styles.numRow}>
             <Text style={styles.numeral} allowFontScaling={false}>
               {Math.round(kcal.used)}
@@ -130,6 +140,7 @@ const styles = StyleSheet.create({
   },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroBlock: { flex: 1, paddingRight: 8 },
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   eyebrow: {
     fontSize: 10,
     fontWeight: fontWeight.bold,
