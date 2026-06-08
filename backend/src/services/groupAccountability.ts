@@ -9,6 +9,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import Anthropic from '@anthropic-ai/sdk';
+import { sendPushToUsers } from './notificationService.js';
 
 const prisma = new PrismaClient();
 
@@ -126,6 +127,24 @@ export async function runAnakinGroupCheckin(
   await prisma.groupMessage.create({
     data: { groupId, senderId: null, text },
   });
+
+  // Notify every member that Anakin dropped in. Deep-links to the group thread.
+  try {
+    const [group, members] = await Promise.all([
+      prisma.groupChat.findUnique({ where: { id: groupId }, select: { name: true } }),
+      prisma.groupMember.findMany({ where: { groupId }, select: { userId: true } }),
+    ]);
+    const preview = text.length > 120 ? `${text.slice(0, 117)}…` : text;
+    await sendPushToUsers(
+      members.map((m) => m.userId),
+      group?.name ? `Anakin · ${group.name}` : 'Anakin dropped in',
+      preview,
+      { type: 'group_message', groupId },
+    );
+  } catch (err) {
+    console.error('[anakin] drop-in push fan-out failed:', err);
+  }
+
   return { groupId, posted: true, text, reasoning: 'Posted to group.' };
 }
 
