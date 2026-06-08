@@ -54,6 +54,29 @@ interface Friend {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Interleave research items into a list of post entries (1 research item after
+// every 3 posts, remainder appended). Used to keep on-screen research in place
+// when a posts-only refresh comes back without research items. Loosely typed to
+// match the rest of this file, where the feed array holds `{ kind, data }`
+// wrappers accessed via `as any`.
+function interleaveResearch(postEntries: any[], researchData: any[]): any[] {
+  if (researchData.length === 0) return postEntries;
+  const merged: any[] = [];
+  let idx = 0;
+  let sinceLast = 0;
+  for (const entry of postEntries) {
+    merged.push(entry);
+    sinceLast += 1;
+    if (sinceLast >= 3 && idx < researchData.length) {
+      merged.push({ kind: 'research', data: researchData[idx++] });
+      sinceLast = 0;
+    }
+  }
+  while (idx < researchData.length) {
+    merged.push({ kind: 'research', data: researchData[idx++] });
+  }
+  return merged;
+}
 
 // ─── Friend Row ───────────────────────────────────────────────────────────────
 
@@ -568,11 +591,24 @@ export default function SocialScreen() {
       .then((data) => {
         const items = Array.isArray(data) ? data : data.items ?? [];
         const exhaustedFlag = !!data?.exhausted;
-        setFeed(items);
-        setExhausted(exhaustedFlag);
         setNewPostCount(0); // we just refreshed — clear the pill
         updateLatestPostAt(items);
-        if (feedCacheKey) setCached(feedCacheKey, { items, exhausted: exhaustedFlag });
+        setExhausted(exhaustedFlag);
+        // When research is excluded (pull-to-refresh / new-posts pill = fast,
+        // posts-only) we must NOT drop the research items already on screen.
+        // Re-interleave the existing research set into the fresh post list so
+        // a post refresh never wipes the user's research feed.
+        setFeed((prev) => {
+          let next: any[] = items;
+          if (!includeResearch) {
+            const existingResearch = (prev as any[])
+              .filter((it) => it?.kind === 'research')
+              .map((it) => it.data);
+            next = interleaveResearch(items, existingResearch);
+          }
+          if (feedCacheKey) setCached(feedCacheKey, { items: next, exhausted: exhaustedFlag });
+          return next;
+        });
       })
       .catch(() => socialApi.getSharedFeed()
         .then((data) => {
@@ -773,7 +809,7 @@ export default function SocialScreen() {
     // pull-to-refresh but driven by the user spotting the badge.
     scrollRef.current?.scrollTo({ y: 0, animated: true });
     setNewPostCount(0);
-    await loadFeed(true);
+    await loadFeed(true, { includeResearch: false });
   }, [loadFeed]);
 
   const onRefresh = useCallback(async () => {
@@ -782,7 +818,14 @@ export default function SocialScreen() {
     // Pull-to-refresh forces a posts-only re-fetch from the server. Article
     // fetching is now opt-in via the "Get fresh research" button so pulls
     // stay fast (the article path could take 5-12s on a cold PubMed cache).
-    await Promise.all([loadFeed(true), loadFriends(true), loadNotificationCounts(), loadSaved(true)]);
+    // includeResearch:false keeps the request fast and preserves the research
+    // items already on screen (re-interleaved in loadFeed).
+    await Promise.all([
+      loadFeed(true, { includeResearch: false }),
+      loadFriends(true),
+      loadNotificationCounts(),
+      loadSaved(true),
+    ]);
     setRefreshing(false);
   }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
 

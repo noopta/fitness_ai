@@ -19,6 +19,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { coachApi } from '../../src/lib/api';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
+import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { NutritionProfile } from '../../src/components/NutritionProfile';
@@ -131,23 +132,29 @@ function Sparkline({ data, color }: { data: WeekPoint[]; color: string }) {
   const W = CARD_W - spacing.md * 4;
   const H = 48;
   const PH = 4; const PV = 4;
-  if (data.length < 2) {
+  // Keep only points with a finite rmLbs. A single null/NaN value would
+  // otherwise poison Math.min/max and feed NaN coordinates into <Svg>, which
+  // hard-crashes the native view on Android (iOS silently no-ops).
+  const safe = (Array.isArray(data) ? data : []).filter(
+    (d): d is WeekPoint => d != null && Number.isFinite(d.rmLbs),
+  );
+  if (safe.length < 2) {
     return (
       <View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontSize: 10, color: colors.mutedForeground }}>Not enough data</Text>
       </View>
     );
   }
-  const vals = data.map(d => d.rmLbs);
+  const vals = safe.map(d => d.rmLbs);
   const minV = Math.min(...vals); const maxV = Math.max(...vals);
   const range = maxV - minV || 1;
-  const toX = (i: number) => PH + (i / (data.length - 1)) * (W - PH * 2);
+  const toX = (i: number) => PH + (i / (safe.length - 1)) * (W - PH * 2);
   const toY = (v: number) => PV + (1 - (v - minV) / range) * (H - PV * 2);
-  const pts = data.map((d, i) => `${toX(i).toFixed(1)},${toY(d.rmLbs).toFixed(1)}`).join(' ');
+  const pts = safe.map((d, i) => `${toX(i).toFixed(1)},${toY(d.rmLbs).toFixed(1)}`).join(' ');
   return (
     <Svg width={W} height={H}>
       <Polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <Circle cx={toX(data.length - 1)} cy={toY(vals[vals.length - 1])} r="3" fill={color} />
+      <Circle cx={toX(safe.length - 1)} cy={toY(vals[vals.length - 1])} r="3" fill={color} />
     </Svg>
   );
 }
@@ -159,6 +166,7 @@ function MovementRadar({ scores }: { scores: Record<string, number> }) {
   const cx = SIZE / 2; const cy = SIZE / 2; const R = 70;
   const cats = ['push', 'pull', 'legs', 'hinge', 'core'];
   const n = cats.length;
+  const safeScores = scores ?? {};
   const toPoint = (i: number, r: number) => {
     const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
     return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
@@ -170,7 +178,8 @@ function MovementRadar({ scores }: { scores: Record<string, number> }) {
   });
   // Data polygon
   const dataPoints = cats.map((c, i) => {
-    const v = Math.min(10, Math.max(0, scores[c] ?? 0));
+    const raw = safeScores[c];
+    const v = Math.min(10, Math.max(0, Number.isFinite(raw) ? (raw as number) : 0));
     return toPoint(i, (v / 10) * R);
   });
   const dataPoly = dataPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
@@ -282,15 +291,21 @@ const liftStyles = StyleSheet.create({
 // ─── 1RM Trend Chart (multi-line) ─────────────────────────────────────────────
 
 function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
-  const compound = lifts.filter(l => l.isCompound && l.weekSeries.length >= 2).slice(0, 5);
+  const compound = (Array.isArray(lifts) ? lifts : []).filter(
+    l => l?.isCompound && Array.isArray(l.weekSeries) &&
+      l.weekSeries.filter(p => p != null && Number.isFinite(p.rmLbs)).length >= 2,
+  ).slice(0, 5);
   if (compound.length === 0) return null;
   const W = CARD_W - spacing.md * 2; const H = 140; const PH = 40; const PV = 16;
   // Collect all weeks
   const weekSet = new Set<string>();
-  for (const l of compound) l.weekSeries.forEach(p => weekSet.add(p.week));
+  for (const l of compound) l.weekSeries.forEach(p => { if (p?.week) weekSet.add(p.week); });
   const weeks = Array.from(weekSet).sort().slice(-8);
   if (weeks.length < 2) return null;
-  const allVals = compound.flatMap(l => l.weekSeries.map(p => p.rmLbs));
+  // Filter to finite values only — a NaN here flows into SVG coords and
+  // crashes Android. If nothing finite remains, bail rather than render NaN.
+  const allVals = compound.flatMap(l => l.weekSeries.map(p => p?.rmLbs)).filter((v): v is number => Number.isFinite(v));
+  if (allVals.length === 0) return null;
   const minV = Math.min(...allVals); const maxV = Math.max(...allVals); const range = maxV - minV || 1;
   const toX = (i: number) => PH + (i / (weeks.length - 1)) * (W - PH * 2);
   const toY = (v: number) => PV + (1 - (v - minV) / range) * (H - PV * 2);
@@ -301,8 +316,10 @@ function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
         {compound.map((lift, li) => {
           const color = CATEGORY_COLOR[lift.category] ?? '#6366f1';
           const pts = weeks.map((wk, i) => {
-            const pt = lift.weekSeries.find(p => p.week === wk);
-            return pt ? `${toX(i).toFixed(1)},${toY(pt.rmLbs).toFixed(1)}` : null;
+            const pt = lift.weekSeries.find(p => p?.week === wk);
+            return pt && Number.isFinite(pt.rmLbs)
+              ? `${toX(i).toFixed(1)},${toY(pt.rmLbs).toFixed(1)}`
+              : null;
           }).filter(Boolean) as string[];
           if (pts.length < 2) return null;
           return (
@@ -407,7 +424,7 @@ function BreadcrumbChip({ label, onBack }: { label: string; onBack: () => void }
 
 type ProfileTab = 'strength' | 'nutrition';
 
-export default function StrengthProfileScreen() {
+function StrengthProfileScreenInner() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ProfileTab>('strength');
   const [data, setData] = useState<StrengthProfileData | null>(null);
@@ -432,7 +449,12 @@ export default function StrengthProfileScreen() {
   const loadData = useCallback(async () => {
     try {
       const result = await coachApi.getStrengthProfile();
-      if (result) setData(result as StrengthProfileData);
+      // Shape guard: a bare truthy `{}` would previously slip through and make
+      // the populated render branch deref `data!.lifts` etc. on undefined.
+      // Require the discriminating `totalLogs` field before trusting the payload.
+      if (result && typeof (result as any).totalLogs === 'number') {
+        setData(result as StrengthProfileData);
+      }
     } catch {
       // Non-fatal
     } finally {
@@ -842,6 +864,18 @@ export default function StrengthProfileScreen() {
         )}
       </ScrollView>}
     </SafeAreaView>
+  );
+}
+
+// Wrap the screen in an ErrorBoundary so a malformed strength-profile payload
+// (which on Android could feed NaN coords into native SVG/Reanimated and crash
+// the whole app) degrades to a recoverable "Try again" card instead. Resetting
+// the boundary remounts the inner screen, which refetches on mount.
+export default function StrengthProfileScreen() {
+  return (
+    <ErrorBoundary label="strength" message="We couldn't load your strength profile.">
+      <StrengthProfileScreenInner />
+    </ErrorBoundary>
   );
 }
 

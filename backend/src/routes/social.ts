@@ -756,17 +756,13 @@ router.get('/social/feed', wrap(async (req, res) => {
   const t2 = Date.now();
   console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} include_research=${includeResearch} exhausted=${exhausted}`);
 
-  // Pull-to-refresh + user exhausted on cached articles → synchronous PubMed
-  // fetch + re-query. Skip when include_research is off — that's the whole
-  // point of the flag.
-  if (includeResearch && fresh && exhausted) {
-    const fetched = await maybeFetchFromSources(userId, tags);
-    if (fetched) {
-      const refreshed = await getCachedFeedItems(userId, tags, 10, { forceRefresh: true, excludeSeen: true });
-      feedItems = refreshed.items;
-      exhausted = refreshed.exhausted;
-    }
-  }
+  // NOTE: the feed NEVER triggers a synchronous PubMed pull, even on
+  // fresh=1. Refreshing research articles is exclusively the job of the
+  // Research button (GET /social/feed/articles) and the daily cron — a
+  // pull-to-refresh on the social feed must only refresh user posts and stay
+  // fast. The feed serves whatever research is already cached; if the cache
+  // is exhausted it simply shows fewer (or no) research items rather than
+  // blocking the response on a 5-12s network fetch.
 
   // Record views so subsequent refreshes return different items.
   if (feedItems.length > 0) {
