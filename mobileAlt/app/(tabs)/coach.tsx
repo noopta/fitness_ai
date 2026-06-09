@@ -20,6 +20,7 @@ import { ProgramTab } from '../../src/components/coach/ProgramTab';
 import { NutritionTab } from '../../src/components/coach/NutritionTab';
 import { WellnessTab } from '../../src/components/coach/WellnessTab';
 import { ChatTab } from '../../src/components/coach/ChatTab';
+import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,7 +31,22 @@ const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
 
 // ─── Coach Screen ─────────────────────────────────────────────────────────────
 
+// Wrapper: catches render-time errors so a bug in any child component shows a
+// recoverable fallback instead of taking the whole Coach tab down. The
+// ErrorBoundary class also funnels the error to console.error which the
+// PostHog global handler in app/_layout.tsx picks up as a $exception event.
 export default function CoachScreen() {
+  return (
+    <ErrorBoundary
+      label="coach-tab"
+      message="Coach hit an unexpected error. Tap try again."
+    >
+      <CoachScreenInner />
+    </ErrorBoundary>
+  );
+}
+
+function CoachScreenInner() {
   const { user, refreshUser } = useAuth();
 
   // Hydrate from in-memory cache synchronously so a tab switch with a hot

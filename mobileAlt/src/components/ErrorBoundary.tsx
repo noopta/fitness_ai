@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, spacing, radius, fontSize, fontWeight } from '../constants/theme';
+import { posthog } from '../lib/analytics';
 
 interface Props {
   children: React.ReactNode;
@@ -30,10 +31,24 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown) {
-    // Best-effort breadcrumb. Sentry is currently disabled in this binary; a
-    // console.error is at least captured by remote log streams in dev builds.
-    console.error(`[ErrorBoundary${this.props.label ? `:${this.props.label}` : ''}]`, error);
+  componentDidCatch(error: unknown, info: { componentStack?: string }) {
+    const label = this.props.label ? `:${this.props.label}` : '';
+    console.error(`[ErrorBoundary${label}]`, error);
+    // Report to PostHog so caught render errors are visible in Activity →
+    // Errors. Without this, ErrorBoundary swallows the crash and we get no
+    // remote breadcrumb. The global handler in app/_layout.tsx only sees
+    // uncaught errors — boundaries catch theirs, so we surface them here.
+    try {
+      const err = error as Error | null;
+      posthog.capture('$exception', {
+        $exception_message: err?.message ?? String(error),
+        $exception_stack_trace_raw: err?.stack ?? '',
+        $exception_type: err?.name ?? 'Error',
+        boundary_label: this.props.label ?? null,
+        component_stack: info?.componentStack ?? null,
+        is_fatal: false,
+      });
+    } catch { /* never let our reporter mask the real error */ }
   }
 
   handleReset = () => {

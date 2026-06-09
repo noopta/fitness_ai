@@ -40,6 +40,30 @@ function RootNavigator() {
     void hydrateCacheFromStorage().finally(() => setCacheReady(true));
   }, []);
 
+  // Global JS error capture → PostHog. The previous handler still runs after
+  // we report, so React Native's red box / fatal-on-fatal behavior is
+  // unchanged. Sentry's native module isn't initialised in JS (see top of
+  // file), so without this hook uncaught render/exception errors vanish into
+  // console.error with no remote breadcrumb. PostHog captures them as
+  // $exception events visible in Activity → Errors.
+  useEffect(() => {
+    const g: any = (globalThis as any).ErrorUtils;
+    if (!g) return;
+    const prev = g.getGlobalHandler?.();
+    g.setGlobalHandler?.((error: Error, isFatal?: boolean) => {
+      try {
+        posthog.capture('$exception', {
+          $exception_message: error?.message ?? String(error),
+          $exception_stack_trace_raw: error?.stack ?? '',
+          $exception_type: (error as any)?.name ?? 'Error',
+          is_fatal: !!isFatal,
+        });
+      } catch { /* never let our reporter mask the real error */ }
+      prev?.(error, isFatal);
+    });
+    return () => { if (prev) g.setGlobalHandler?.(prev); };
+  }, []);
+
   // Boot-time prefetch. Fires after auth resolves to a real user (skips
   // pre-auth + age-check states), once per session per userId. Warms the
   // in-memory caches that Coach/Social/Nutrition/Strength tabs read on
