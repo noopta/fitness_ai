@@ -651,7 +651,7 @@ export default function StrengthProfileScreen() {
           // Level-2 muscle taps: surface the muscle's Athlete-Model ledger
           // entry (trend / weekly sets / zone mix / confidence). Movement
           // buckets at level 1 won't match a muscle key — undefined is fine.
-          axisSheet ? (data?.athleteModel?.ledger?.entries?.[axisSheet.axis] ?? null) : null
+          axisSheet ? (data?.athleteModel?.ledger.entries[axisSheet.axis] ?? null) : null
         }
       />
 

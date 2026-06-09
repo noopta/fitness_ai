@@ -1182,10 +1182,6 @@ export interface TrainingProgram {
   phases: ProgramPhase[];
   autoregulationRules: string[];  // RPE/RIR auto-regulation guidance
   trackingMetrics: string[];      // What to track each session
-  // How the program accommodated the athlete's stated injuries/constraints.
-  // Surfaced in the UI so users can see their injury context was accounted for
-  // (or that none was provided). Null/absent when no injury was stated.
-  injuryAccommodations?: string[] | null;
   // Legacy fields kept for backwards compatibility
   weeks?: Array<{
     weekNumber: number;
@@ -1208,11 +1204,6 @@ export async function generateTrainingProgram(params: {
   selectedLift: string | null;
   accessories: string[];
   coachProfile?: string | null;   // Full JSON blob of onboarding interview answers
-  // Injury/constraint free-text from the diagnostic onboarding (User.constraintsText).
-  // Distinct from coachProfile.injuries — historically only the latter reached
-  // this generator, so injuries entered in the diagnostic flow were silently
-  // dropped. Both sources are now merged into the injury context below.
-  constraintsText?: string | null;
   diagnosticSignals?: {           // From latest analysis
     primaryPhase?: string;
     hypothesisScores?: Array<{ label: string; score: number; category: string }>;
@@ -1221,14 +1212,6 @@ export async function generateTrainingProgram(params: {
   } | null;
   gender?: string | null;
 }): Promise<TrainingProgram> {
-  // Injury fields are gathered from coachProfile (structured + free-text) and
-  // merged with User.constraintsText below into one dedicated, emphasised block.
-  let injuryFree = '';      // free-text description ("left shoulder surgery")
-  let injuryTimeline = '';  // e.g. "9 months post-op"
-  let injurySide = '';      // left / right / bilateral
-  let injuryStage = '';     // rehab stage (e.g. "cleared, rebuilding strength")
-  let injuryGoal = '';      // injury-specific goal ("build left shoulder strength")
-
   // Parse coachProfile for richer context
   let profileContext = '';
   if (params.coachProfile) {
@@ -1243,13 +1226,7 @@ export async function generateTrainingProgram(params: {
       if (profile.parqScreening && !profile.parqScreening.includes('none')) lines.push(`- PAR-Q health flags (exercise safety): ${profile.parqScreening} — avoid contraindicated exercises and cap RPE appropriately`);
       if (profile.medicalConditions) lines.push(`- Medical conditions: ${profile.medicalConditions}`);
       if (profile.medications) lines.push(`- Medications/supplements: ${profile.medications}`);
-      // Injuries handled in the dedicated INJURY ACCOMMODATIONS block below —
-      // captured here, not pushed into the general profile lines.
-      if (profile.injuries) injuryFree = String(profile.injuries);
-      if (profile.injuryTimeline) injuryTimeline = String(profile.injuryTimeline);
-      if (profile.injurySide) injurySide = String(profile.injurySide);
-      if (profile.injuryStage) injuryStage = String(profile.injuryStage);
-      if (profile.injuryGoal) injuryGoal = String(profile.injuryGoal);
+      if (profile.injuries) lines.push(`- Injuries/constraints: ${profile.injuries}`);
       if (profile.hormonal) lines.push(`- Hormonal notes: ${profile.hormonal}`);
       if (profile.currentRoutine) lines.push(`- Current routine: ${profile.currentRoutine}`);
       if (profile.strengthLevel) lines.push(`- Strength level self-assessment: ${profile.strengthLevel}`);
@@ -1264,39 +1241,11 @@ export async function generateTrainingProgram(params: {
       if (profile.bodyStats) lines.push(`- Body stats: ${profile.bodyStats}`);
       if (profile.aestheticGoals) lines.push(`- Aesthetic goals: ${profile.aestheticGoals} — include 1–2 aesthetics-focused accessories alongside diagnostic-driven ones`);
       if (profile.nutritionQuality) lines.push(`- Nutrition quality self-rating: ${profile.nutritionQuality}`);
-      if (profile.additionalContext) lines.push(`- Additional context from the athlete (added after first program): ${profile.additionalContext} — weight this heavily`);
       // Gender from profile or explicit param
       const genderVal = params.gender || profile.gender;
       if (genderVal && genderVal !== 'prefer_not_to_say') lines.push(`- Biological sex: ${genderVal} — factor into volume tolerance, hormonal recovery, and caloric needs`);
       profileContext = lines.length > 0 ? `\nFULL CONSULTATION PROFILE:\n${lines.join('\n')}` : '';
     } catch { /* ignore parse errors */ }
-  }
-
-  // ── Injury context ─────────────────────────────────────────────────────────
-  // Merge every injury source — coachProfile.injuries (consultation flow),
-  // User.constraintsText (diagnostic flow), and any structured fields — then,
-  // when anything is present, give the model explicit instructions to design
-  // around it and to REPORT what it did via the injuryAccommodations output.
-  let injuryContext = '';
-  const ctxText = (params.constraintsText || '').trim();
-  // Avoid duplicating the same text if both sources hold it.
-  const freeParts = [injuryFree.trim(), ctxText]
-    .filter(Boolean)
-    .filter((v, i, a) => a.indexOf(v) === i);
-  const injuryLines: string[] = [];
-  if (freeParts.length) injuryLines.push(`- Description: ${freeParts.join(' | ')}`);
-  if (injuryTimeline) injuryLines.push(`- Timeline since injury/surgery: ${injuryTimeline}`);
-  if (injurySide) injuryLines.push(`- Affected side: ${injurySide}`);
-  if (injuryStage) injuryLines.push(`- Rehab stage: ${injuryStage}`);
-  if (injuryGoal) injuryLines.push(`- Injury-specific goal: ${injuryGoal}`);
-  if (injuryLines.length > 0) {
-    injuryContext =
-      `\nINJURY / CONSTRAINTS — ACCOUNT FOR THESE EXPLICITLY:\n${injuryLines.join('\n')}\n` +
-      `When designing the program you MUST:\n` +
-      `- Respect the rehab timeline: early post-op/early-stage → controlled ROM, lighter loading, higher reps; later stages / cleared → progressive loading toward the stated goal.\n` +
-      `- Bias exercise selection toward the affected side/area's goal (e.g. unilateral work to rebuild a specific side) while avoiding movements likely contraindicated for the injury.\n` +
-      `- Populate the "injuryAccommodations" output field with 2–4 short, specific bullets naming exactly how the program was adapted for this injury, so the athlete can see it was accounted for.\n` +
-      `Do NOT diagnose or give medical/rehab treatment advice; design training around what the athlete reported and defer to their clinician for medical clearance.`;
   }
 
   // Summarize diagnostic signals
@@ -1339,7 +1288,7 @@ ATHLETE PROFILE:
 - Equipment available: ${params.equipment || 'commercial gym'}
 - Primary lift focus: ${params.selectedLift || 'general strength'}
 - Primary mechanical weakness identified: ${params.primaryLimiter || 'none identified'}
-- Prescribed accessories from diagnostic analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}${profileContext}${injuryContext}${signalsContext}
+- Prescribed accessories from diagnostic analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}${profileContext}${signalsContext}
 
 PROGRAM ARCHITECTURE:
 Use ${phaseStructure}.
@@ -1351,7 +1300,6 @@ REQUIREMENTS (be concise — brevity is critical for all text fields):
 4. warmup: exactly 3 items (short phrases). cooldown: exactly 2 items (short phrases).
 5. deloadProtocol: 1 sentence. progressionNotes: 2 items max, concise.
 6. All intensity uses RPE. autoregulationRules: 2 items. trackingMetrics: 2 items.
-7. injuryAccommodations: if an INJURY / CONSTRAINTS block is present above, 2–4 short bullets naming exactly how the program was adapted for it. If no injury was provided, set it to null.
 
 OUTPUT FORMAT — Return valid JSON only:
 {
@@ -1381,8 +1329,7 @@ OUTPUT FORMAT — Return valid JSON only:
     }
   ],
   "autoregulationRules": ["Energy <5/10: drop 1 set per exercise", "Unexpected RPE 9+: reduce load 5%"],
-  "trackingMetrics": ["Log weight, sets, reps, RPE per set", "Note sticking point on primary lift"],
-  "injuryAccommodations": ["Left-shoulder unilateral pressing prioritized to rebuild the operated side", "Overhead loading reintroduced progressively given 9-month post-op timeline"]
+  "trackingMetrics": ["Log weight, sets, reps, RPE per set", "Note sticking point on primary lift"]
 }`;
 
   const ragQuery = `periodization training program ${params.goal || 'strength'} phases ${params.primaryLimiter || ''} ${params.selectedLift || ''} RPE progression`;
