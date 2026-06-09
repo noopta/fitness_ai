@@ -1129,9 +1129,17 @@ router.post('/coach/swap-day', requireAuth, async (req, res) => {
     const chosenIdx = pool.findIndex(s => s?.day === chosenSession.day);
     if (chosenIdx >= 0) pool.splice(chosenIdx, 1);
 
-    // Name → session lookup for mapping the LLM's choices back to real sessions.
+    // Name → session lookup. Keyed by a normalized form (lowercase, em/en-dash
+    // → '-', collapsed whitespace) because LLMs routinely return punctuation
+    // variants like "Day 4 - Lower" instead of the stored "Day 4 — Lower",
+    // which used to silently fail the exact-match lookup and drop every slot
+    // into Rest.
+    const normalizeName = (s: string) =>
+      s.toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim();
     const sessionByName = new Map<string, any>();
-    for (const s of [chosenSession, displacedSession, ...pool]) if (s?.day) sessionByName.set(s.day, s);
+    for (const s of [chosenSession, displacedSession, ...pool]) {
+      if (s?.day) sessionByName.set(normalizeName(s.day), s);
+    }
 
     // Ask the LLM to sequence the pool across the open slots (rest spacing).
     let assignments: Array<{ date: string; sessionName: string | null }> = [];
@@ -1162,15 +1170,21 @@ router.post('/coach/swap-day', requireAuth, async (req, res) => {
     if (assignments.length > 0) {
       for (const a of assignments) {
         if (!openSlots.some(s => s.date === a.date)) continue;
-        const s = a.sessionName ? sessionByName.get(a.sessionName) : null;
+        const s = a.sessionName ? sessionByName.get(normalizeName(a.sessionName)) : null;
         if (s && !usedNames.has(s.day)) { proposedOpen.set(a.date, s); usedNames.add(s.day); }
-        else proposedOpen.set(a.date, null);
+        // Intentionally do NOT set a null here. If the LLM placed null or named
+        // a session we couldn't match, leave the slot OPEN so the leftover
+        // pass below fills it. The old behavior set null here, then the
+        // leftover loop's `proposedOpen.has(...)` check skipped these slots,
+        // so any session we couldn't match got silently dropped into Rest.
       }
     }
-    // Fill any open slot the LLM didn't address with leftover pool sessions in order.
+    // Fill any open slot the LLM didn't *successfully* address with leftover
+    // pool sessions in order. Uses `.get(...) !== undefined` rather than
+    // `.has(...)` so explicit-null entries above don't block leftover fill.
     const leftovers = pool.filter(s => !usedNames.has(s.day));
     for (const slot of openSlots) {
-      if (proposedOpen.has(slot.date)) continue;
+      if (proposedOpen.get(slot.date) != null) continue;
       const next = leftovers.shift();
       if (next) { proposedOpen.set(slot.date, next); usedNames.add(next.day); }
       else proposedOpen.set(slot.date, null);
