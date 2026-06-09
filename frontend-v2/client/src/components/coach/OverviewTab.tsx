@@ -11,6 +11,7 @@ import {
 import { EfficiencyGauge } from '@/components/EfficiencyGauge';
 import { StrengthRadar } from '@/components/StrengthRadar';
 import { LifeHappenedModal } from '@/components/coach/LifeHappenedModal';
+import { SwapWorkoutDialog } from '@/components/coach/SwapWorkoutDialog';
 import { CheckInCard } from '@/components/coach/CheckInCard';
 import { FullScheduleModal } from '@/components/coach/FullScheduleModal';
 import { ExerciseDetailModal, type ExerciseDetail } from '@/components/coach/ExerciseDetailModal';
@@ -62,6 +63,8 @@ interface WeekDay {
   monthLabel: string;
   isToday: boolean;
   isTrainingDay: boolean;
+  isLogged?: boolean;
+  isSwapped?: boolean;
   session: {
     day: string;
     focus: string;
@@ -434,6 +437,7 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
   const [loggedDates, setLoggedDates] = useState<Set<string>>(new Set());
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [showLifeHappened, setShowLifeHappened] = useState(false);
+  const [showSwap, setShowSwap] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseDetail | null>(null);
   const [showQuickLog, setShowQuickLog] = useState(false);
@@ -677,6 +681,14 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
             <ClipboardList className="h-4 w-4" /> Log
           </button>
         </div>
+        {(scheduleData?.weekDays ?? []).some(d => !d.isToday && d.isTrainingDay && d.session && !d.isLogged) && (
+          <button
+            onClick={() => setShowSwap(true)}
+            className="w-full rounded-xl border border-zinc-700 py-2.5 text-sm font-semibold text-zinc-200 hover:bg-zinc-800 transition-colors"
+          >
+            Swap today’s workout
+          </button>
+        )}
       </div>
     );
   }
@@ -1052,6 +1064,21 @@ export function OverviewTab({ sessions, user, hasSavedProgram, onTabChange, coac
       {/* Full schedule / calendar modal */}
       {showFullSchedule && (
         <FullScheduleModal onClose={() => setShowFullSchedule(false)} />
+      )}
+
+      {/* Swap workout modal */}
+      {showSwap && (
+        <SwapWorkoutDialog
+          weekDays={(scheduleData?.weekDays ?? []) as any}
+          onClose={() => setShowSwap(false)}
+          onApplied={() => {
+            setShowSwap(false);
+            authFetch(`${API_BASE}/coach/today`)
+              .then(r => r.json()).then(d => setTodayData(d)).catch(() => {});
+            authFetch(`${API_BASE}/coach/schedule`)
+              .then(r => r.json()).then(d => setScheduleData(d)).catch(() => {});
+          }}
+        />
       )}
 
       {/* Life Happened modal */}

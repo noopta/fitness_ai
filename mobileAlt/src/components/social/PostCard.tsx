@@ -25,7 +25,7 @@ import Animated, {
   runOnJS,
   interpolate,
 } from 'react-native-reanimated';
-import { Heart, MessageCircle, Send, Dumbbell, ChevronUp, X } from 'lucide-react-native';
+import { Heart, MessageCircle, Send, Dumbbell, ChevronUp, X, Globe } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { socialApi } from '../../lib/api';
 
@@ -45,6 +45,7 @@ export interface FeedItem {
   itemType: string;
   payload: any;
   caption?: string | null;
+  visibility?: string | null;
   createdAt: string;
   reactionCount: number;
   likedByMe: boolean;
@@ -128,7 +129,7 @@ function FloatingHearts({ isAnimating }: { isAnimating: boolean }) {
 
 // ─── Card Header ─────────────────────────────────────────────────────────────
 
-function CardHeader({ sharer, time }: { sharer: FeedItem['sharer']; time: string }) {
+function CardHeader({ sharer, time, isPublic }: { sharer: FeedItem['sharer']; time: string; isPublic?: boolean }) {
   const displayName = sharer?.username ? `@${sharer.username}` : (sharer?.name ?? 'Unknown');
   const initials = getInitials(sharer);
   const raw = sharer?.avatarBase64;
@@ -143,6 +144,12 @@ function CardHeader({ sharer, time }: { sharer: FeedItem['sharer']; time: string
         }
       </View>
       <Text style={cs.username} numberOfLines={1}>{displayName}</Text>
+      {isPublic && (
+        <View style={cs.publicBadge}>
+          <Globe size={11} color="#6B7280" />
+          <Text style={cs.publicBadgeText}>Public</Text>
+        </View>
+      )}
       <Text style={cs.timestamp}>{time}</Text>
     </View>
   );
@@ -655,7 +662,7 @@ export function PostCard({
   return (
     <Pressable onLongPress={handleLongPress} delayLongPress={400}>
       <View style={cs.card}>
-        <CardHeader sharer={item.sharer} time={relativeTime(item.createdAt)} />
+        <CardHeader sharer={item.sharer} time={relativeTime(item.createdAt)} isPublic={item.visibility === 'public'} />
 
         {/* Repost attribution */}
         {isRepost && (
@@ -849,6 +856,17 @@ const cs = StyleSheet.create({
     fontWeight: '500',
     color: '#1F2937',
   },
+  publicBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: '#F3F4F6',
+    marginRight: 6,
+  },
+  publicBadgeText: { fontSize: 10, color: '#6B7280', fontWeight: '600' },
   username: {
     flex: 1,
     fontSize: 15,

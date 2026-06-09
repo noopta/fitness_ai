@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { socialApi } from '../../src/lib/api';
+import { socialApi, groupsApi } from '../../src/lib/api';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 interface Conversation {
@@ -20,6 +20,25 @@ interface Conversation {
   lastMessage: string | null;
   lastMessageAt: string | null;
   unreadCount: number;
+}
+
+interface GroupSummary {
+  id: string;
+  name: string;
+  createdAt?: string;
+  members?: Array<{ user?: { id: string; name: string | null; username: string | null; avatarBase64: string | null } }>;
+  messages?: Array<{ text: string; senderId: string | null; createdAt: string }>;
+}
+
+// Unified row across 1:1 conversations and group chats, sorted by last activity
+// so groups are interleaved among DMs rather than hidden in a separate tab.
+type ChatRow =
+  | { kind: 'dm'; sortAt: number; conv: Conversation }
+  | { kind: 'group'; sortAt: number; group: GroupSummary };
+
+function avatarUriFrom(raw?: string | null): string | null {
+  if (!raw) return null;
+  return raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`;
 }
 
 function relativeTime(dateStr: string | null): string {
@@ -38,20 +57,44 @@ export default function MessagesScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ friendId?: string; friendName?: string }>();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const didCreate = React.useRef(false);
 
-  const loadConversations = useCallback(() => {
-    return socialApi.getConversations()
-      .then((data) => setConversations(Array.isArray(data) ? data : data.conversations ?? []))
-      .catch(() => setConversations([]))
-      .finally(() => setLoading(false));
+  const loadAll = useCallback(() => {
+    return Promise.all([
+      socialApi.getConversations()
+        .then((data) => setConversations(Array.isArray(data) ? data : data.conversations ?? []))
+        .catch(() => setConversations([])),
+      // Groups are flag-gated server-side (404 when the agent surface is off) —
+      // treat any failure as "no groups" so the DM list still renders.
+      groupsApi.list()
+        .then((data: any) => setGroups(Array.isArray(data) ? data : data.groups ?? []))
+        .catch(() => setGroups([])),
+    ]).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+    loadAll();
+  }, [loadAll]);
+
+  // Merge DMs + groups into one list sorted by most recent activity.
+  const rows: ChatRow[] = React.useMemo(() => {
+    const dmRows: ChatRow[] = conversations.map((conv) => ({
+      kind: 'dm',
+      sortAt: conv.lastMessageAt ? new Date(conv.lastMessageAt).getTime() : 0,
+      conv,
+    }));
+    const groupRows: ChatRow[] = groups.map((group) => {
+      const last = group.messages?.[0];
+      const sortAt = last?.createdAt
+        ? new Date(last.createdAt).getTime()
+        : (group.createdAt ? new Date(group.createdAt).getTime() : 0);
+      return { kind: 'group', sortAt, group };
+    });
+    return [...dmRows, ...groupRows].sort((a, b) => b.sortAt - a.sortAt);
+  }, [conversations, groups]);
 
   // If opened from Friends "Message" button, auto-create conversation
   useEffect(() => {
@@ -78,6 +121,75 @@ export default function MessagesScreen() {
   const openConversation = (conv: Conversation) => {
     const name = conv.otherUser.name ?? conv.otherUser.email ?? 'User';
     router.push(`/social/conversation?id=${conv.id}&name=${encodeURIComponent(name)}`);
+  };
+
+  const openGroup = (group: GroupSummary) => {
+    router.push(`/groups/${group.id}`);
+  };
+
+  const renderDmRow = (conv: Conversation) => {
+    const displayName = conv.otherUser.username
+      ? `@${conv.otherUser.username}`
+      : (conv.otherUser.name ?? conv.otherUser.email ?? 'User');
+    const initials = (conv.otherUser.username ?? conv.otherUser.name ?? conv.otherUser.email ?? '?')[0].toUpperCase();
+    const avatarUri = avatarUriFrom(conv.otherUser.avatarBase64);
+    return (
+      <TouchableOpacity
+        key={`dm-${conv.id}`}
+        style={styles.convRow}
+        activeOpacity={0.8}
+        onPress={() => openConversation(conv)}
+      >
+        <View style={styles.avatarCircle}>
+          {avatarUri
+            ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+            : <Text style={styles.avatarText}>{initials}</Text>
+          }
+        </View>
+        <View style={styles.convContent}>
+          <View style={styles.convTopRow}>
+            <Text style={styles.convName} numberOfLines={1}>{displayName}</Text>
+            <Text style={styles.timeText}>{relativeTime(conv.lastMessageAt)}</Text>
+          </View>
+          {conv.lastMessage ? (
+            <Text style={styles.lastMessage} numberOfLines={1}>{conv.lastMessage}</Text>
+          ) : null}
+        </View>
+        {conv.unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadText}>{conv.unreadCount}</Text>
+          </View>
+        )}
+        <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderGroupRow = (group: GroupSummary) => {
+    const last = group.messages?.[0];
+    const preview = last
+      ? (last.senderId === null ? `Anakin: ${last.text}` : last.text)
+      : `${group.members?.length ?? 0} members`;
+    return (
+      <TouchableOpacity
+        key={`group-${group.id}`}
+        style={styles.convRow}
+        activeOpacity={0.8}
+        onPress={() => openGroup(group)}
+      >
+        <View style={[styles.avatarCircle, styles.groupAvatarCircle]}>
+          <Ionicons name="people" size={22} color={colors.primaryForeground} />
+        </View>
+        <View style={styles.convContent}>
+          <View style={styles.convTopRow}>
+            <Text style={styles.convName} numberOfLines={1}>{group.name}</Text>
+            <Text style={styles.timeText}>{relativeTime(last?.createdAt ?? null)}</Text>
+          </View>
+          <Text style={styles.lastMessage} numberOfLines={1}>{preview}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+      </TouchableOpacity>
+    );
   };
 
   if (creating) {
@@ -118,7 +230,7 @@ export default function MessagesScreen() {
         <View style={styles.center}>
           <Text style={styles.mutedText}>Loading conversations…</Text>
         </View>
-      ) : conversations.length === 0 ? (
+      ) : rows.length === 0 ? (
         <View style={styles.center}>
           <Ionicons name="chatbubbles-outline" size={40} color={colors.mutedForeground} />
           <Text style={styles.emptyTitle}>No messages yet</Text>
@@ -137,44 +249,11 @@ export default function MessagesScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {conversations.map((conv) => {
-            const displayName = conv.otherUser.username
-              ? `@${conv.otherUser.username}`
-              : (conv.otherUser.name ?? conv.otherUser.email ?? 'User');
-            const initials = (conv.otherUser.username ?? conv.otherUser.name ?? conv.otherUser.email ?? '?')[0].toUpperCase();
-            const raw = conv.otherUser.avatarBase64;
-            const avatarUri = raw ? (raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`) : null;
-            return (
-              <TouchableOpacity
-                key={conv.id}
-                style={styles.convRow}
-                activeOpacity={0.8}
-                onPress={() => openConversation(conv)}
-              >
-                <View style={styles.avatarCircle}>
-                  {avatarUri
-                    ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-                    : <Text style={styles.avatarText}>{initials}</Text>
-                  }
-                </View>
-                <View style={styles.convContent}>
-                  <View style={styles.convTopRow}>
-                    <Text style={styles.convName} numberOfLines={1}>{displayName}</Text>
-                    <Text style={styles.timeText}>{relativeTime(conv.lastMessageAt)}</Text>
-                  </View>
-                  {conv.lastMessage ? (
-                    <Text style={styles.lastMessage} numberOfLines={1}>{conv.lastMessage}</Text>
-                  ) : null}
-                </View>
-                {conv.unreadCount > 0 && (
-                  <View style={styles.unreadBadge}>
-                    <Text style={styles.unreadText}>{conv.unreadCount}</Text>
-                  </View>
-                )}
-                <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            );
-          })}
+          {rows.map((row) =>
+            row.kind === 'dm'
+              ? renderDmRow(row.conv)
+              : renderGroupRow(row.group),
+          )}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -218,6 +297,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.foreground },
   avatarImage: { width: 46, height: 46, borderRadius: radius.full },
+  groupAvatarCircle: { backgroundColor: colors.foreground },
   convContent: { flex: 1 },
   convTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   convName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground, flex: 1 },

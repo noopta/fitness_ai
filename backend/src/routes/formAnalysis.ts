@@ -1,27 +1,31 @@
-// Workout-form video analysis.
+// Workout-form video analysis (async / polling).
 //
-// POST /api/form-analysis/video — upload a ≤60s lift video (multipart, field
-//   "video"), Gemini 3.1 Pro analyzes form, we persist the critique and return
-//   it. Free tier is capped at FREE_FORM_VIDEO_DAILY_LIMIT/day (default 1);
-//   pro/enterprise are unmetered.
-// GET  /api/form-analysis        — list the caller's past analyses (newest first).
-// GET  /api/form-analysis/:id    — fetch one stored analysis with full detail.
+// POST /api/form-analysis/video — upload a lift video (multipart, "video"
+//   field, ≤200MB). Creates a FormAnalysis row with status='pending',
+//   kicks off the Gemini call in the background, and returns 202 with the
+//   row id immediately. The client polls GET /:id to render terminal state.
+//   Free tier capped at FEATURE.FORM_VIDEO daily quota; pro unmetered.
+// GET  /api/form-analysis        — history (newest first).
+// GET  /api/form-analysis/:id    — status + analysis when complete.
 //
-// Unlike the rest of the app (base64-in-JSON), video uses multipart/form-data:
-// a 60s phone clip is tens of MB, well past the global 10mb express.json cap,
-// and base64-inflating it by 33% into a JSON string is wasteful. multer keeps
-// the body off the JSON parser and hands us a Buffer we stream straight to
-// Gemini's Files API.
+// The async pattern was added after live testing surfaced 60-90s sync
+// round-trips that timed out RN's default 60s fetch (and would also kill
+// the UX even at extended timeouts — users staring at a spinner). Polling
+// lets the upload return in seconds and the analysis-complete state arrive
+// when it's ready, with the UI free to navigate away or background.
+//
+// Uploads use multipart/form-data. multer keeps the body off the JSON
+// parser and hands us a Buffer that the gemini service streams to GCS.
 
 import { Router } from 'express';
 import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { analyzeWorkoutVideo } from '../services/geminiService.js';
+import { sendPushToUser } from '../services/notificationService.js';
 import {
   consumeDailyQuota,
   refundDailyQuota,
-  peekDailyQuota,
   FEATURE,
 } from '../services/featureUsageService.js';
 
@@ -35,8 +39,9 @@ const prisma = new PrismaClient();
 const MAX_MB = parseInt(process.env.FORM_VIDEO_MAX_MB || '200', 10);
 const UPGRADE_URL = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
 
-// In-memory storage: the buffer goes straight to Gemini and is never written
-// to disk. Size-capped so a malicious upload can't exhaust memory.
+// In-memory storage: the buffer is handed to geminiService which streams it
+// to GCS, never to local disk. Size-capped so a malicious upload can't
+// exhaust memory.
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_MB * 1024 * 1024, files: 1 },
@@ -52,7 +57,7 @@ const uploadVideo = (req: any, res: any, next: any) =>
   upload.single('video')(req, res, (err: any) => {
     if (!err) return next();
     if (err?.code === 'LIMIT_FILE_SIZE') {
-      return res.status(413).json({ error: `Video is too large. Keep it under ${MAX_MB}MB (≈60 seconds).` });
+      return res.status(413).json({ error: `Video is too large. Keep it under ${MAX_MB}MB.` });
     }
     return res.status(400).json({ error: err?.message || 'Invalid video upload' });
   });
@@ -83,31 +88,93 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
     });
   }
 
+  // Backward-compatible mode select. Installed (synchronous) clients POST and
+  // wait for the analysis inline (legacy 200 contract). The new mobile build
+  // sends `X-Form-Analysis-Async: 1` to opt into the async flow: get a row id
+  // back immediately (202) and poll GET /:id, free to background the app.
+  const wantAsync = req.header('x-form-analysis-async') === '1';
+
+  const usage = {
+    feature: FEATURE.FORM_VIDEO,
+    used: quota.used,
+    limit: quota.limit,
+    remaining: quota.remaining,
+    resetAt: quota.resetAt,
+  };
+
+  // Create the row up-front as 'pending'. Both modes persist to FormAnalysis;
+  // async clients poll this id, sync clients get the row id back in the result.
+  const pending = await prisma.formAnalysis.create({
+    data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
+    select: { id: true, createdAt: true },
+  });
+
+  // Snapshot the buffer + mime — req.file goes out of scope once we respond,
+  // so the (possibly background) analysis needs its own references.
+  const videoBuffer = req.file.buffer;
+  const mimeType = req.file.mimetype;
+
+  // Shared work: run the analysis, write the row's terminal state, optionally
+  // push. Returns the analysis on success; on failure it marks the row failed,
+  // refunds the credit, then rethrows so the sync caller can 502.
+  const finalize = async (notify: boolean) => {
+    try {
+      const analysis = await analyzeWorkoutVideo(videoBuffer, mimeType, exerciseHint);
+      await prisma.formAnalysis.update({
+        where: { id: pending.id },
+        data: {
+          status: 'complete',
+          exercise: analysis.exercise || 'unknown',
+          formScore: Number.isFinite(analysis.formScore) ? analysis.formScore : null,
+          repCount: typeof analysis.repCount === 'number' ? analysis.repCount : null,
+          analysisJson: JSON.stringify(analysis),
+          errorMessage: null,
+        },
+      });
+      if (notify) {
+        const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise : 'Your';
+        const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';
+        await sendPushToUser(
+          userId,
+          'Form analysis ready 🎥',
+          `${exerciseLabel} form check is done${scoreSuffix}. Tap to see your breakdown.`,
+          { screen: 'form-analysis', id: pending.id },
+        ).catch(() => {});
+      }
+      return analysis;
+    } catch (err: any) {
+      console.error('Form video analysis error:', err);
+      // Refund the credit — the user shouldn't lose it to a failure they didn't cause.
+      await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO).catch(() => {});
+      await prisma.formAnalysis.update({
+        where: { id: pending.id },
+        data: { status: 'failed', exercise: 'unknown', errorMessage: (err?.message ?? 'Analysis failed').slice(0, 500) },
+      }).catch(() => {});
+      if (notify) {
+        await sendPushToUser(
+          userId,
+          "Form analysis didn't finish",
+          "We couldn't analyze that clip. Tap to try again — your daily credit was refunded.",
+          { screen: 'form-analysis', id: pending.id },
+        ).catch(() => {});
+      }
+      throw err;
+    }
+  };
+
+  if (wantAsync) {
+    // Fire-and-forget; notify on completion. MUST be caught — an uncaught
+    // rejection on a fire-and-forget promise can kill the process.
+    finalize(true).catch(() => {});
+    return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending', usage });
+  }
+
+  // Synchronous (default): await and return the analysis inline — the legacy
+  // 200 contract installed clients depend on. No push (the client is waiting).
   try {
-    const analysis = await analyzeWorkoutVideo(req.file.buffer, req.file.mimetype, exerciseHint);
-
-    const saved = await prisma.formAnalysis.create({
-      data: {
-        userId,
-        exercise: analysis.exercise || 'unknown',
-        formScore: Number.isFinite(analysis.formScore) ? analysis.formScore : null,
-        repCount: typeof analysis.repCount === 'number' ? analysis.repCount : null,
-        exerciseHint,
-        analysisJson: JSON.stringify(analysis),
-      },
-      select: { id: true, createdAt: true },
-    });
-
-    return res.json({
-      id: saved.id,
-      createdAt: saved.createdAt,
-      analysis,
-      usage: { feature: FEATURE.FORM_VIDEO, used: quota.used, limit: quota.limit, remaining: quota.remaining, resetAt: quota.resetAt },
-    });
-  } catch (err: any) {
-    // The analysis failed — give the free user their credit back.
-    await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO);
-    console.error('Form video analysis error:', err);
+    const analysis = await finalize(false);
+    return res.json({ id: pending.id, createdAt: pending.createdAt, analysis, usage });
+  } catch {
     return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
   }
 });
@@ -118,7 +185,9 @@ router.get('/form-analysis', requireAuth, async (req, res) => {
       where: { userId: req.user!.id },
       orderBy: { createdAt: 'desc' },
       take: 50,
-      select: { id: true, exercise: true, formScore: true, repCount: true, createdAt: true },
+      select: {
+        id: true, status: true, exercise: true, formScore: true, repCount: true, createdAt: true,
+      },
     });
     res.json({ analyses: rows });
   } catch (err) {
@@ -137,6 +206,8 @@ router.get('/form-analysis/:id', requireAuth, async (req, res) => {
     try { analysis = JSON.parse(row.analysisJson); } catch { /* corrupt row → empty */ }
     res.json({
       id: row.id,
+      status: row.status,
+      errorMessage: row.errorMessage,
       exercise: row.exercise,
       formScore: row.formScore,
       repCount: row.repCount,
@@ -149,5 +220,31 @@ router.get('/form-analysis/:id', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to load analysis' });
   }
 });
+
+// ─── Pending-row sweep ──────────────────────────────────────────────────────
+//
+// If the backend crashes / restarts mid-analysis, the in-flight promise dies
+// and the FormAnalysis row stays 'pending' forever — UI would poll it
+// indefinitely. This sweep marks any row that's been pending for >10 minutes
+// as failed so the client sees a terminal state and can retry. 10 min is
+// generous — even the slowest end-to-end (large clip + slow Vertex thinking)
+// shouldn't exceed 3-4 min, so 10 is safely past the realistic ceiling.
+const STALE_PENDING_MIN = 10;
+
+export async function sweepStalePendingFormAnalyses(): Promise<{ marked: number }> {
+  const cutoff = new Date(Date.now() - STALE_PENDING_MIN * 60_000);
+  const result = await prisma.formAnalysis.updateMany({
+    where: { status: 'pending', updatedAt: { lt: cutoff } },
+    data: {
+      status: 'failed',
+      exercise: 'unknown',
+      errorMessage: 'Analysis didn\'t complete in time. The server may have restarted — try again.',
+    },
+  });
+  if (result.count > 0) {
+    console.log(`[form-analysis] swept ${result.count} stale pending row(s) (>${STALE_PENDING_MIN}m old)`);
+  }
+  return { marked: result.count };
+}
 
 export default router;

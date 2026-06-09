@@ -580,8 +580,13 @@ function serializeFeedItem(item: any, viewerId: string, slim = false) {
 
 // POST /api/social/share
 router.post('/social/share', async (req, res) => {
-  const { recipientId, itemType, itemId, payload, caption } = req.body;
+  const { recipientId, itemType, itemId, payload, caption, visibility } = req.body;
   if (!itemType || !payload) return res.status(400).json({ error: 'itemType and payload required' });
+
+  // Audience: only meaningful for broadcast posts (no recipientId). Direct
+  // shares are always private to the recipient, so they stay "friends".
+  // Defaults to "friends" to preserve existing behavior — public is opt-in.
+  const resolvedVisibility = !recipientId && visibility === 'public' ? 'public' : 'friends';
 
   // Validate text posts have content
   if (itemType === 'text' && !payload.text?.trim()) {
@@ -607,6 +612,7 @@ router.post('/social/share', async (req, res) => {
       itemId: itemId ?? null,
       payload: JSON.stringify(payload),
       caption: caption?.trim() || null,
+      visibility: resolvedVisibility,
     },
     include: FEED_INCLUDE,
   });
@@ -663,6 +669,7 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
           sharerId: { in: friendIds },
           recipientId: { in: friendIds }, // broadcast = recipientId equals own sharerId; filter further below
         }] : []),
+        { visibility: 'public' }, // public broadcasts from anyone
       ],
     },
     include: FEED_INCLUDE,
@@ -670,12 +677,14 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
     take: 100,
   });
 
-  // Keep friends' items only when they are broadcasts (recipientId === sharerId)
+  // Keep friends' items only when they are broadcasts (recipientId === sharerId),
+  // plus any public broadcast.
   const friendIdSet = new Set(friendIds);
   const filtered = items.filter(i =>
     i.recipientId === userId ||
     i.sharerId === userId ||
-    (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId),
+    (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId) ||
+    (i.visibility === 'public' && i.recipientId === i.sharerId),
   );
 
   // Deduplicate by id and limit to 50
@@ -741,6 +750,9 @@ router.get('/social/feed', wrap(async (req, res) => {
             sharerId: { in: friendIds },
             recipientId: { in: friendIds },
           }] : []),
+          // Public posts from anyone (broadcasts marked public). Direct shares
+          // are never public, so this can't leak 1:1 messages.
+          { visibility: 'public' },
         ],
       },
       include: FEED_INCLUDE,
@@ -756,17 +768,13 @@ router.get('/social/feed', wrap(async (req, res) => {
   const t2 = Date.now();
   console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} include_research=${includeResearch} exhausted=${exhausted}`);
 
-  // Pull-to-refresh + user exhausted on cached articles → synchronous PubMed
-  // fetch + re-query. Skip when include_research is off — that's the whole
-  // point of the flag.
-  if (includeResearch && fresh && exhausted) {
-    const fetched = await maybeFetchFromSources(userId, tags);
-    if (fetched) {
-      const refreshed = await getCachedFeedItems(userId, tags, 10, { forceRefresh: true, excludeSeen: true });
-      feedItems = refreshed.items;
-      exhausted = refreshed.exhausted;
-    }
-  }
+  // NOTE: the feed NEVER triggers a synchronous PubMed pull, even on
+  // fresh=1. Refreshing research articles is exclusively the job of the
+  // Research button (GET /social/feed/articles) and the daily cron — a
+  // pull-to-refresh on the social feed must only refresh user posts and stay
+  // fast. The feed serves whatever research is already cached; if the cache
+  // is exhausted it simply shows fewer (or no) research items rather than
+  // blocking the response on a 5-12s network fetch.
 
   // Record views so subsequent refreshes return different items.
   if (feedItems.length > 0) {
@@ -781,7 +789,8 @@ router.get('/social/feed', wrap(async (req, res) => {
     .filter(i =>
       i.recipientId === userId ||
       i.sharerId === userId ||
-      (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId)
+      (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId) ||
+      (i.visibility === 'public' && i.recipientId === i.sharerId)
     )
     .filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; })
     .slice(0, limit)
@@ -893,6 +902,7 @@ router.get('/social/feed/new-count', wrap(async (req, res) => {
           sharerId: { in: friendIds },
           recipientId: { in: friendIds },
         }] : []),
+        { visibility: 'public' }, // public broadcasts from anyone count too
       ],
     },
   });

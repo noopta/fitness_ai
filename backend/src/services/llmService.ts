@@ -1620,6 +1620,82 @@ OUTPUT — valid JSON only:
   return result;
 }
 
+export interface WeekRebalanceResult {
+  // One entry per *future, unlocked* slot date the caller asked us to fill.
+  // sessionName must be one of the provided pool names, or null for a rest day.
+  assignments: Array<{ date: string; sessionName: string | null }>;
+  rationale: string;
+}
+
+/**
+ * Re-balances the remaining days of the week after the user swaps a workout in.
+ * The caller has already fixed today's session; we re-arrange the remaining
+ * sessions (the `pool`) across the future unlocked slots so that two hard,
+ * same-focus days don't land back-to-back and muscle groups get adequate rest.
+ *
+ * The LLM only *orders* existing sessions by name — it never invents exercises —
+ * which keeps the output safe to map back onto the real program sessions.
+ */
+export async function rebalanceWeekAfterSwap(params: {
+  goal: string | null;
+  trainingAge: string | null;
+  // Locked context the model must respect but cannot change (today + past/logged).
+  lockedDays: Array<{ date: string; dayLabel: string; sessionName: string | null; focus: string | null; note?: string }>;
+  // Future slots to fill, in chronological order.
+  openSlots: Array<{ date: string; dayLabel: string }>;
+  // Sessions that still need a home (displaced today-session + the other
+  // future sessions). One per open slot, with leftover becoming rest.
+  pool: Array<{ name: string; focus: string | null }>;
+}): Promise<WeekRebalanceResult> {
+  const lockedText = params.lockedDays
+    .map(d => `${d.date} (${d.dayLabel}): ${d.sessionName ? `${d.sessionName} [${d.focus || 'general'}]` : 'Rest'}${d.note ? ` — ${d.note}` : ''}`)
+    .join('\n') || '(none)';
+  const slotsText = params.openSlots.map(s => `${s.date} (${s.dayLabel})`).join('\n');
+  const poolText = params.pool.map((p, i) => `${i + 1}. ${p.name} [${p.focus || 'general'}]`).join('\n') || '(none)';
+
+  const prompt = `You are an elite strength coach re-sequencing an athlete's training week after they swapped a workout. Place the available sessions into the open day-slots to maximize recovery quality.
+
+HARD RULES:
+- Do NOT place two hard sessions with the same or overlapping muscle focus on consecutive calendar days (e.g. two "upper" days back-to-back, or lower/legs back-to-back). Insert rest or alternate focus instead.
+- Respect ~48h between training the same muscle group.
+- You may leave a slot as a rest day (sessionName: null) if placing a session would violate the rules.
+- Use ONLY session names from the POOL, each at most once. Leftover sessions that don't fit are dropped (becoming rest).
+
+ATHLETE: goal=${params.goal || 'general strength'}, training age=${params.trainingAge || 'intermediate'}
+
+LOCKED DAYS (already decided — must not change, but sequence around them):
+${lockedText}
+
+OPEN SLOTS TO FILL (chronological):
+${slotsText}
+
+SESSION POOL (place these):
+${poolText}
+
+OUTPUT — valid JSON only, one assignment per open slot in the same order:
+{
+  "assignments": [
+    { "date": "YYYY-MM-DD", "sessionName": "Upper — Push" },
+    { "date": "YYYY-MM-DD", "sessionName": null }
+  ],
+  "rationale": "One short, friendly sentence in Anakin's voice explaining the spacing decision."
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-5.4-nano',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 1200,
+    response_format: { type: 'json_object' },
+  });
+
+  const content = response.choices[0].message.content || '{}';
+  const parsed = JSON.parse(content) as Partial<WeekRebalanceResult>;
+  return {
+    assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+    rationale: typeof parsed.rationale === 'string' ? parsed.rationale : '',
+  };
+}
+
 /**
  * Sends a user message to an existing thread and returns the assistant reply.
  */

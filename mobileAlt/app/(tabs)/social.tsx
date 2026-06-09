@@ -54,6 +54,29 @@ interface Friend {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Interleave research items into a list of post entries (1 research item after
+// every 3 posts, remainder appended). Used to keep on-screen research in place
+// when a posts-only refresh comes back without research items. Loosely typed to
+// match the rest of this file, where the feed array holds `{ kind, data }`
+// wrappers accessed via `as any`.
+function interleaveResearch(postEntries: any[], researchData: any[]): any[] {
+  if (researchData.length === 0) return postEntries;
+  const merged: any[] = [];
+  let idx = 0;
+  let sinceLast = 0;
+  for (const entry of postEntries) {
+    merged.push(entry);
+    sinceLast += 1;
+    if (sinceLast >= 3 && idx < researchData.length) {
+      merged.push({ kind: 'research', data: researchData[idx++] });
+      sinceLast = 0;
+    }
+  }
+  while (idx < researchData.length) {
+    merged.push({ kind: 'research', data: researchData[idx++] });
+  }
+  return merged;
+}
 
 // ─── Friend Row ───────────────────────────────────────────────────────────────
 
@@ -121,6 +144,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([
     { name: '', sets: '3', reps: '8', weight: '' },
   ]);
+  const [visibility, setVisibility] = useState<'friends' | 'public'>('friends');
   const [submitting, setSubmitting] = useState(false);
 
   const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slideY.value }] }));
@@ -136,6 +160,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
     setShowWorkout(false);
     setWorkoutTitle('');
     setWorkoutEntries([{ name: '', sets: '3', reps: '8', weight: '' }]);
+    setVisibility('friends');
   }
 
   function updateWorkoutEntry(index: number, field: keyof WorkoutEntry, value: string) {
@@ -208,6 +233,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
           itemType: 'text',
           payload: { text: textContent.trim(), ...workoutPayload },
           caption: caption.trim() || undefined,
+          visibility,
         });
         Analytics.textPostMade();
         Alert.alert('Posted!', 'Your post has been shared.');
@@ -229,6 +255,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
           itemType: 'media',
           payload: { imageBase64, ...workoutPayload },
           caption: caption.trim() || undefined,
+          visibility,
         });
         Analytics.imagePostMade();
         Alert.alert('Posted!', 'Your image has been shared.');
@@ -250,6 +277,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
           itemType: 'media',
           payload: { videoUrl: videoUrl.trim(), ...workoutPayload },
           caption: caption.trim() || undefined,
+          visibility,
         });
         Analytics.videoPostMade();
         Alert.alert('Posted!', 'Your video link has been shared.');
@@ -374,6 +402,35 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
                   onChangeText={setCaption}
                   maxLength={200}
                 />
+
+                {/* ── Audience: Friends (default) vs Public ── */}
+                <View style={styles.audienceRow}>
+                  {(['friends', 'public'] as const).map((aud) => {
+                    const active = visibility === aud;
+                    return (
+                      <TouchableOpacity
+                        key={aud}
+                        style={[styles.audienceChip, active && styles.audienceChipActive]}
+                        activeOpacity={0.85}
+                        onPress={() => setVisibility(aud)}
+                      >
+                        <Ionicons
+                          name={aud === 'public' ? 'earth' : 'people'}
+                          size={15}
+                          color={active ? colors.primaryForeground : colors.mutedForeground}
+                        />
+                        <Text style={[styles.audienceChipText, active && styles.audienceChipTextActive]}>
+                          {aud === 'public' ? 'Public' : 'Friends'}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <Text style={styles.audienceHint}>
+                  {visibility === 'public'
+                    ? 'Anyone on Axiom can see this post.'
+                    : 'Only your friends can see this post.'}
+                </Text>
 
                 {/* ── Add Workout toggle ── */}
                 <TouchableOpacity
@@ -568,11 +625,24 @@ export default function SocialScreen() {
       .then((data) => {
         const items = Array.isArray(data) ? data : data.items ?? [];
         const exhaustedFlag = !!data?.exhausted;
-        setFeed(items);
-        setExhausted(exhaustedFlag);
         setNewPostCount(0); // we just refreshed — clear the pill
         updateLatestPostAt(items);
-        if (feedCacheKey) setCached(feedCacheKey, { items, exhausted: exhaustedFlag });
+        setExhausted(exhaustedFlag);
+        // When research is excluded (pull-to-refresh / new-posts pill = fast,
+        // posts-only) we must NOT drop the research items already on screen.
+        // Re-interleave the existing research set into the fresh post list so
+        // a post refresh never wipes the user's research feed.
+        setFeed((prev) => {
+          let next: any[] = items;
+          if (!includeResearch) {
+            const existingResearch = (prev as any[])
+              .filter((it) => it?.kind === 'research')
+              .map((it) => it.data);
+            next = interleaveResearch(items, existingResearch);
+          }
+          if (feedCacheKey) setCached(feedCacheKey, { items: next, exhausted: exhaustedFlag });
+          return next;
+        });
       })
       .catch(() => socialApi.getSharedFeed()
         .then((data) => {
@@ -773,7 +843,7 @@ export default function SocialScreen() {
     // pull-to-refresh but driven by the user spotting the badge.
     scrollRef.current?.scrollTo({ y: 0, animated: true });
     setNewPostCount(0);
-    await loadFeed(true);
+    await loadFeed(true, { includeResearch: false });
   }, [loadFeed]);
 
   const onRefresh = useCallback(async () => {
@@ -782,7 +852,14 @@ export default function SocialScreen() {
     // Pull-to-refresh forces a posts-only re-fetch from the server. Article
     // fetching is now opt-in via the "Get fresh research" button so pulls
     // stay fast (the article path could take 5-12s on a cold PubMed cache).
-    await Promise.all([loadFeed(true), loadFriends(true), loadNotificationCounts(), loadSaved(true)]);
+    // includeResearch:false keeps the request fast and preserves the research
+    // items already on screen (re-interleaved in loadFeed).
+    await Promise.all([
+      loadFeed(true, { includeResearch: false }),
+      loadFriends(true),
+      loadNotificationCounts(),
+      loadSaved(true),
+    ]);
     setRefreshing(false);
   }, [loadFeed, loadFriends, loadNotificationCounts, loadSaved]);
 
@@ -1400,6 +1477,23 @@ const styles = StyleSheet.create({
   modalScrollArea: {
     flex: 1,
   },
+  audienceRow: { flexDirection: 'row', gap: 8 },
+  audienceChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    backgroundColor: colors.background,
+  },
+  audienceChipActive: { backgroundColor: colors.foreground, borderColor: colors.foreground },
+  audienceChipText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.mutedForeground },
+  audienceChipTextActive: { color: colors.primaryForeground },
+  audienceHint: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 6, marginBottom: 2 },
   workoutToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',

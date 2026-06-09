@@ -19,6 +19,7 @@ import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { coachApi } from '../../../lib/api';
 import { colors, fontWeight } from '../../../constants/theme';
 import { useAuth } from '../../../context/AuthContext';
+import { WeightShareModal } from '../../share/WeightShareModal';
 
 interface Props {
   /** Pushed via the inspector body-press; the parent passes a back handler. */
@@ -38,6 +39,7 @@ export function WeightDetailScreen({ onClose }: Props) {
   const [logs, setLogs] = useState<BodyWeightEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<typeof RANGES[number]['key']>(30);
+  const [shareVisible, setShareVisible] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,7 +85,15 @@ export function WeightDetailScreen({ onClose }: Props) {
           <Ionicons name="chevron-back" size={24} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={styles.title}>Body weight</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity
+          onPress={() => setShareVisible(true)}
+          hitSlop={10}
+          disabled={filtered.length < 2}
+          accessibilityRole="button"
+          accessibilityLabel="Share weight progress"
+        >
+          <Ionicons name="share-outline" size={20} color={filtered.length < 2 ? colors.mutedForeground : colors.foreground} />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -142,6 +152,19 @@ export function WeightDetailScreen({ onClose }: Props) {
           )}
         </ScrollView>
       )}
+
+      <WeightShareModal
+        visible={shareVisible}
+        onClose={() => setShareVisible(false)}
+        rangeLabel={RANGES.find((r) => r.key === range)?.label ?? ''}
+        current={current}
+        totalChange={
+          filtered.length >= 2
+            ? filtered[filtered.length - 1].weightLbs - filtered[0].weightLbs
+            : null
+        }
+        series={filtered.map((e) => e.weightLbs)}
+      />
     </SafeAreaView>
   );
 }

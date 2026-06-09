@@ -5,9 +5,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl,
-  Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
+  Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { groupsApi } from '../../src/lib/api';
@@ -15,7 +15,24 @@ import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 interface Msg { id: string; senderId: string | null; text: string; createdAt: string }
-interface Member { user: { id: string; username: string | null; name: string | null }; goal: string | null }
+interface Member { user: { id: string; username: string | null; name: string | null; avatarBase64?: string | null }; goal: string | null }
+
+// Small avatar circle — image when the user has one, initials fallback
+// otherwise. Mirrors the inline pattern used in social DMs / PostCard (the app
+// has no shared Avatar component).
+function MemberAvatar({ name, avatarBase64, size = 28 }: { name: string; avatarBase64?: string | null; size?: number }) {
+  const uri = avatarBase64
+    ? (avatarBase64.startsWith('data:') ? avatarBase64 : `data:image/jpeg;base64,${avatarBase64}`)
+    : null;
+  const initials = name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+  return (
+    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}>
+      {uri
+        ? <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
+        : <Text style={[styles.avatarInitials, { fontSize: size * 0.4 }]}>{initials}</Text>}
+    </View>
+  );
+}
 interface GroupDetail {
   id: string; name: string; groupGoal: string | null; anakinDailyEnabled: boolean;
   members: Member[]; messages: Msg[];
@@ -25,6 +42,7 @@ export default function GroupChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -100,11 +118,10 @@ export default function GroupChatScreen() {
         renderItem={({ item }) => {
           const isAnakin = item.senderId === null;
           const isMine = item.senderId === user?.id;
-          const senderName = (() => {
-            if (isAnakin) return 'Anakin';
-            const m = group.members.find((x) => x.user.id === item.senderId);
-            return m?.user.name ?? m?.user.username ?? 'Member';
-          })();
+          const senderMember = isAnakin ? null : group.members.find((x) => x.user.id === item.senderId);
+          const senderName = isAnakin
+            ? 'Anakin'
+            : (senderMember?.user.name ?? senderMember?.user.username ?? 'Member');
           return (
             <View style={[styles.msgRow, isMine && styles.msgRowMine]}>
               {isAnakin ? (
@@ -113,10 +130,15 @@ export default function GroupChatScreen() {
                   <Text style={styles.anakinText}>{item.text}</Text>
                 </View>
               ) : (
-                <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
-                  {!isMine && <Text style={styles.bubbleName}>{senderName}</Text>}
-                  <Text style={[styles.bubbleText, isMine && { color: '#fff' }]}>{item.text}</Text>
-                </View>
+                <>
+                  {/* Other people's messages show their avatar on the left;
+                      your own don't need one. */}
+                  {!isMine && <MemberAvatar name={senderName} avatarBase64={senderMember?.user.avatarBase64} size={28} />}
+                  <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+                    {!isMine && <Text style={styles.bubbleName}>{senderName}</Text>}
+                    <Text style={[styles.bubbleText, isMine && { color: '#fff' }]}>{item.text}</Text>
+                  </View>
+                </>
               )}
             </View>
           );
@@ -124,8 +146,13 @@ export default function GroupChatScreen() {
         ListEmptyComponent={<Text style={styles.empty}>Start the conversation.</Text>}
       />
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.composer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        {/* paddingBottom respects the home-indicator inset so the input isn't
+            clipped below the safe area on notched iPhones. */}
+        <View style={[styles.composer, { paddingBottom: Math.max(spacing.sm, insets.bottom) }]}>
           <TextInput
             style={styles.composerInput}
             placeholder="Message"
@@ -231,6 +258,23 @@ function SettingsSheet({
             </View>
           </TouchableOpacity>
           <View>
+            <Text style={styles.fieldLabel}>Members ({group.members.length})</Text>
+            <View style={{ gap: spacing.sm, marginTop: 2 }}>
+              {group.members.map((m) => {
+                const name = m.user.name ?? m.user.username ?? 'Member';
+                return (
+                  <View key={m.user.id} style={styles.memberRow}>
+                    <MemberAvatar name={name} avatarBase64={m.user.avatarBase64} size={36} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.memberName} numberOfLines={1}>{name}</Text>
+                      {m.goal ? <Text style={styles.memberGoal} numberOfLines={1}>{m.goal}</Text> : null}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+          <View>
             <Text style={styles.fieldLabel}>Update your goal (optional)</Text>
             <TextInput style={styles.input} value={selfGoal} onChangeText={setSelfGoal} placeholder="Your current goal" placeholderTextColor={colors.mutedForeground} />
           </View>
@@ -259,8 +303,13 @@ const styles = StyleSheet.create({
   loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { textAlign: 'center', color: colors.mutedForeground, marginTop: spacing.xl, fontSize: fontSize.sm },
 
-  msgRow: { flexDirection: 'row' },
+  msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
   msgRowMine: { justifyContent: 'flex-end' },
+  avatar: {
+    backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarInitials: { color: colors.mutedForeground, fontWeight: fontWeight.semibold },
   bubble: { maxWidth: '80%', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 14 },
   bubbleMine: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: colors.muted, borderBottomLeftRadius: 4 },
@@ -299,6 +348,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm, paddingVertical: 10,
     fontSize: fontSize.base, color: colors.foreground, minHeight: 44,
   },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  memberName: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
+  memberGoal: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 1 },
   toggleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   toggleLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
   toggleSub: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 16, marginTop: 2 },

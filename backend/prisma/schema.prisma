@@ -91,6 +91,7 @@ model User {
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
   workoutLogs              WorkoutLog[]
+  scheduleOverrides        ScheduleOverride[]
   activityLogs             ActivityLog[]
   // Social
   sentFriendRequests       Friendship[]          @relation("SentRequests")
@@ -312,20 +313,31 @@ model FeatureUsage {
 // A stored workout-form video analysis. We persist the structured critique
 // (not the video itself — that's deleted from Gemini after inference) so
 // users can browse their form history and track improvement over time.
+//
+// Lifecycle: the upload route creates the row with status='pending' and
+// returns immediately. A background promise calls Vertex Gemini and writes
+// status='complete' (with the populated fields) or status='failed' (with
+// errorMessage) when done. The mobile client polls GET /:id to render the
+// terminal state.
 model FormAnalysis {
   id           String   @id @default(uuid())
   userId       String
-  exercise     String   // detected lift, e.g. "Back squat" (or "unknown")
+  status       String   @default("complete") // 'pending' | 'complete' | 'failed'
+  errorMessage String?  // populated when status='failed'
+  exercise     String   // detected lift, e.g. "Back squat" (or "unknown" / "pending")
   formScore    Float?   // holistic 1-10, null when exercise couldn't be read
   repCount     Int?
   exerciseHint String?  // what the user said they were doing, if provided
   // Full WorkoutVideoAnalysis JSON (strengths, weaknesses, drills, etc.)
   // serialized — SQLite has no JSON column type so we store a string.
+  // Populated when status='complete'; '{}' while pending.
   analysisJson String
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([status, updatedAt])
 }
 
 // A user's prior training program, archived when they start a new one (or
@@ -372,6 +384,23 @@ model WorkoutLog {
   // date or createdAt. Without these the queries were full table scans.
   @@index([userId, date])
   @@index([userId, createdAt])
+}
+
+// Per-date override of the program's index-based session for a user. Written
+// when a user swaps today's workout with another day's and the week is
+// re-balanced. The underlying savedProgram template is never mutated — reads
+// (today + schedule) check for an override for the date first and fall back to
+// the index lookup. sessionJson null = an explicit rest day for that date.
+model ScheduleOverride {
+  id          String   @id @default(uuid())
+  userId      String
+  date        String   // YYYY-MM-DD (EST)
+  sessionJson String?  // serialized ProgramDay; null = rest day
+  reason      String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  @@unique([userId, date])
+  @@index([userId, date])
 }
 
 model KnowledgeChunk {
@@ -488,12 +517,18 @@ model SharedItem {
   itemId      String?
   payload     String
   caption     String?
+  // "friends" (default — visible to the sharer's accepted friends, current
+  // behavior) or "public" (visible to any user on the feed). Only meaningful
+  // for broadcast posts (recipientId === sharerId); direct shares stay private
+  // to the recipient regardless.
+  visibility  String   @default("friends")
   createdAt   DateTime @default(now())
   sharer      User     @relation("SharedByMe",   fields: [sharerId],    references: [id])
   recipient   User     @relation("SharedWithMe", fields: [recipientId], references: [id])
   reactions   PostReaction[]
   comments    PostComment[]
   @@index([recipientId, createdAt])
+  @@index([visibility, createdAt])
 }
 
 model PostReaction {

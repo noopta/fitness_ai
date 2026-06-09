@@ -74,6 +74,15 @@ function labelMetrics(label: string) {
  * Accessibility: single image-role group with a labelled summary, plus
  * per-axis button-role hit areas with their own labels.
  */
+// Coerce a possibly null/undefined/NaN axis percentage into a finite 0..100
+// value. A NaN here flows into SVG path coords ("MNaN NaN") and into Reanimated
+// worklet shared values, both of which hard-crash the native view on Android.
+function clampPct(v: unknown): number {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, n));
+}
+
 export function RadarChart({
   axes, size = 310, showTarget = true, onAxisPress, onAxisLongPress,
 }: Props) {
@@ -125,8 +134,9 @@ export function RadarChart({
     });
     const targetPoints = renderAxes
       .map((a, i) => {
-        const x = cx + Math.cos(ang(i)) * r * (a.target / 100);
-        const y = cy + Math.sin(ang(i)) * r * (a.target / 100);
+        const t = clampPct(a.target);
+        const x = cx + Math.cos(ang(i)) * r * (t / 100);
+        const y = cy + Math.sin(ang(i)) * r * (t / 100);
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       })
       .join(' ');
@@ -136,9 +146,10 @@ export function RadarChart({
       return { lx, ly };
     });
     const dotsCurrent = renderAxes.map((a, i) => {
-      const x = cx + Math.cos(ang(i)) * r * (a.current / 100);
-      const y = cy + Math.sin(ang(i)) * r * (a.current / 100);
-      return { x, y, lagging: a.current < a.target - 10 };
+      const c = clampPct(a.current);
+      const x = cx + Math.cos(ang(i)) * r * (c / 100);
+      const y = cy + Math.sin(ang(i)) * r * (c / 100);
+      return { x, y, lagging: c < clampPct(a.target) - 10 };
     });
     return { ringPoints, spokes, targetPoints, labels, dotsCurrent };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -168,7 +179,7 @@ export function RadarChart({
 
     if (sameAxes) {
       // Direct morph — retarget each value, geometry stays put.
-      const targets = svs.map((_, i) => axes[i]?.current ?? 0);
+      const targets = svs.map((_, i) => clampPct(axes[i]?.current));
       const dur = reducedMotion ? 80 : 520;
       const ease = reducedMotion ? Easing.linear : Easing.bezier(0.16, 1, 0.3, 1);
       svs.forEach((sv, i) => { sv.value = withTiming(targets[i], { duration: dur, easing: ease }); });
@@ -194,7 +205,7 @@ export function RadarChart({
       // Schedule the expand on the next paint so renderAxes has propagated
       // through React's commit phase before we start animating values.
       requestAnimationFrame(() => {
-        const targets = svs.map((_, i) => axes[i]?.current ?? 0);
+        const targets = svs.map((_, i) => clampPct(axes[i]?.current));
         svs.forEach((sv, i) => {
           sv.value = withTiming(targets[i], {
             duration: expandDur,

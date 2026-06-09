@@ -56,6 +56,41 @@ export async function sendPushToUser(
   await sendPushNotification({ to: user.expoPushToken, title, body, data });
 }
 
+/**
+ * Send the same notification to a specific set of users (those with a push
+ * token). Used for group-chat fan-out (new message / Anakin drop-in). Batches
+ * to Expo's 100-message limit.
+ */
+export async function sendPushToUsers(
+  userIds: string[],
+  title: string,
+  body: string,
+  data?: Record<string, unknown>
+): Promise<void> {
+  const unique = Array.from(new Set(userIds)).filter(Boolean);
+  if (unique.length === 0) return;
+  const users = await prisma.user.findMany({
+    where: { id: { in: unique }, expoPushToken: { not: null } },
+    select: { expoPushToken: true },
+  });
+  const messages: PushMessage[] = users
+    .filter((u): u is { expoPushToken: string } => !!u.expoPushToken)
+    .map((u) => ({ to: u.expoPushToken, title, body, data, sound: 'default' as const }));
+  if (messages.length === 0) return;
+  for (let i = 0; i < messages.length; i += 100) {
+    const batch = messages.slice(i, i + 100);
+    try {
+      await fetch(EXPO_PUSH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(batch),
+      });
+    } catch (err) {
+      console.error('[push] Group batch send error:', err);
+    }
+  }
+}
+
 // ─── Batch send helpers ───────────────────────────────────────────────────────
 
 /** Send to all users who have a push token. Filter function optional. */

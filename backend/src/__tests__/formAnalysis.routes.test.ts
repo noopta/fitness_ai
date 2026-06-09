@@ -14,7 +14,7 @@ process.env.JWT_EXPIRES_IN = '1h';
 
 // ─── Prisma mock ──────────────────────────────────────────────────────────────
 const prismaUser = { findUnique: vi.fn(), update: vi.fn() };
-const prismaFormAnalysis = { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn() };
+const prismaFormAnalysis = { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
 const prismaFeatureUsage = { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
 
 vi.mock('@prisma/client', () => {
@@ -32,6 +32,15 @@ vi.mock('../services/geminiService.js', () => ({
   analyzeWorkoutVideo: mockAnalyzeWorkoutVideo,
 }));
 
+// ─── Notification service mock ────────────────────────────────────────────────
+// The async path pushes a "your analysis is ready / failed" notification when
+// the background job lands. Mock it (and resolve a promise — the route does
+// `.catch()` on the result) so we can assert it fires.
+const mockSendPushToUser = vi.fn();
+vi.mock('../services/notificationService.js', () => ({
+  sendPushToUser: mockSendPushToUser,
+}));
+
 // requireAuth uses prisma.user.findUnique; we make it always resolve a real-ish
 // user by default so route logic past auth gets exercised.
 function makeToken(userId: string, tier = 'free') {
@@ -46,6 +55,12 @@ beforeEach(() => {
   prismaFormAnalysis.create.mockReset();
   prismaFormAnalysis.findMany.mockReset();
   prismaFormAnalysis.findFirst.mockReset();
+  prismaFormAnalysis.update.mockReset();
+  prismaFormAnalysis.update.mockResolvedValue({});
+  prismaFormAnalysis.updateMany.mockReset();
+  prismaFormAnalysis.updateMany.mockResolvedValue({ count: 0 });
+  mockSendPushToUser.mockReset();
+  mockSendPushToUser.mockResolvedValue(undefined);
   prismaFeatureUsage.findUnique.mockReset();
   prismaFeatureUsage.upsert.mockReset();
   prismaFeatureUsage.update.mockReset();
@@ -100,11 +115,9 @@ describe('POST /api/form-analysis/video', () => {
     expect(res.body.error).toMatch(/only video/i);
   });
 
-  it('analyzes a valid video and persists the result', async () => {
-    // Free user, no prior usage today
-    prismaFeatureUsage.findUnique.mockResolvedValue(null);
+  it('returns 202 + pending immediately, then completes asynchronously', async () => {
     prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
-    // Gemini returns a structured analysis
+    // Gate the Gemini call so we can observe pending → complete transition.
     const fakeAnalysis = {
       exercise: 'Back squat',
       formScore: 7.5,
@@ -116,35 +129,58 @@ describe('POST /api/form-analysis/video', () => {
       safetyFlags: [],
       summary: 'Strong squat with one minor knee fix.',
     };
-    mockAnalyzeWorkoutVideo.mockResolvedValue(fakeAnalysis);
+    let resolveAnalysis!: (a: typeof fakeAnalysis) => void;
+    const gate = new Promise<typeof fakeAnalysis>((res) => { resolveAnalysis = res; });
+    mockAnalyzeWorkoutVideo.mockImplementation(() => gate);
     prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date('2026-06-03T12:00:00Z') });
 
     const res = await request(app)
       .post('/api/form-analysis/video')
       .set('Authorization', `Bearer ${makeToken('u-1', 'free')}`)
+      .set('X-Form-Analysis-Async', '1')
       .field('exerciseHint', 'back squat')
       .attach('video', Buffer.from('mock video data'), { filename: 'lift.mp4', contentType: 'video/mp4' });
 
-    expect(res.status).toBe(200);
+    // Upload returns 202 + pending while Gemini is still running.
+    expect(res.status).toBe(202);
     expect(res.body.id).toBe('fa-1');
-    expect(res.body.analysis.exercise).toBe('Back squat');
-    expect(res.body.analysis.formScore).toBe(7.5);
+    expect(res.body.status).toBe('pending');
     expect(res.body.usage.feature).toBe('form_video');
-    expect(res.body.usage.used).toBe(1);
+    // The pending row was created with status='pending' (no analysis fields yet).
+    const createData = prismaFormAnalysis.create.mock.calls[0][0].data;
+    expect(createData.status).toBe('pending');
+    expect(createData.exercise).toBe('pending');
+    expect(createData.exerciseHint).toBe('back squat');
+    // No 'complete' update yet — Gemini hasn't returned.
+    expect(prismaFormAnalysis.update).not.toHaveBeenCalled();
 
-    // Gemini service was called with the right args
+    // Let Gemini resolve, then drain microtasks. The fire-and-forget promise
+    // should now update the row to 'complete' with the real fields.
+    resolveAnalysis(fakeAnalysis);
+    await new Promise((r) => setImmediate(r));
+    await new Promise((r) => setImmediate(r));
+
+    expect(prismaFormAnalysis.update).toHaveBeenCalledTimes(1);
+    const updateData = prismaFormAnalysis.update.mock.calls[0][0].data;
+    expect(updateData.status).toBe('complete');
+    expect(updateData.exercise).toBe('Back squat');
+    expect(updateData.formScore).toBe(7.5);
+    expect(JSON.parse(updateData.analysisJson).summary).toMatch(/squat/i);
+
+    // Gemini service was called with the right args.
     expect(mockAnalyzeWorkoutVideo).toHaveBeenCalledTimes(1);
     const [bufArg, mimeArg, hintArg] = mockAnalyzeWorkoutVideo.mock.calls[0];
     expect(bufArg).toBeInstanceOf(Buffer);
     expect(mimeArg).toBe('video/mp4');
     expect(hintArg).toBe('back squat');
 
-    // Persisted
-    const createCall = prismaFormAnalysis.create.mock.calls[0][0].data;
-    expect(createCall.userId).toBe('u-1');
-    expect(createCall.exercise).toBe('Back squat');
-    expect(createCall.formScore).toBe(7.5);
-    expect(JSON.parse(createCall.analysisJson).summary).toMatch(/squat/i);
+    // Completion pushed a notification deep-linking to this analysis, so the
+    // user gets pulled back in if they left the app.
+    expect(mockSendPushToUser).toHaveBeenCalledTimes(1);
+    const [pushUserId, pushTitle, , pushData] = mockSendPushToUser.mock.calls[0];
+    expect(pushUserId).toBe('u-1');
+    expect(pushTitle).toMatch(/ready/i);
+    expect(pushData).toEqual({ screen: 'form-analysis', id: 'fa-1' });
   });
 
   it('returns 429 when free user has already used today\'s quota', async () => {
@@ -165,26 +201,48 @@ describe('POST /api/form-analysis/video', () => {
     expect(mockAnalyzeWorkoutVideo).not.toHaveBeenCalled();
   });
 
-  it('refunds the daily credit when Gemini fails', async () => {
+  it('refunds the daily credit + marks row failed when Gemini errors asynchronously', async () => {
     prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
     mockAnalyzeWorkoutVideo.mockRejectedValue(new Error('Vertex AI timeout'));
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-3', createdAt: new Date() });
 
     const res = await request(app)
       .post('/api/form-analysis/video')
       .set('Authorization', `Bearer ${makeToken('u-1', 'free')}`)
+      .set('X-Form-Analysis-Async', '1')
       .attach('video', Buffer.from('x'), { filename: 'v.mp4', contentType: 'video/mp4' });
 
-    expect(res.status).toBe(502);
-    expect(res.body.error).toMatch(/could not analyze/i);
-    // refundDailyQuota calls updateMany with a count>0 guard — confirm it ran.
+    // Upload still returns 202 — the failure happens in the background.
+    expect(res.status).toBe(202);
+    expect(res.body.status).toBe('pending');
+
+    // Drain microtasks so the fire-and-forget catch path runs.
+    await new Promise((r) => setImmediate(r));
+    await new Promise((r) => setImmediate(r));
+
+    // Refund happened: featureUsage.updateMany with decrement.
     expect(prismaFeatureUsage.updateMany).toHaveBeenCalledTimes(1);
     const refundCall = prismaFeatureUsage.updateMany.mock.calls[0][0];
     expect(refundCall.where.userId).toBe('u-1');
     expect(refundCall.where.feature).toBe('form_video');
     expect(refundCall.data.count).toEqual({ decrement: 1 });
+
+    // Row got flipped to status='failed' with the error message.
+    expect(prismaFormAnalysis.update).toHaveBeenCalled();
+    const updateData = prismaFormAnalysis.update.mock.calls[0][0].data;
+    expect(updateData.status).toBe('failed');
+    expect(updateData.errorMessage).toMatch(/Vertex AI timeout/);
+
+    // Failure also notifies the user (so they're not stuck on a spinner they
+    // navigated away from), deep-linking back to retry.
+    expect(mockSendPushToUser).toHaveBeenCalledTimes(1);
+    const [pushUserId, pushTitle, , pushData] = mockSendPushToUser.mock.calls[0];
+    expect(pushUserId).toBe('u-1');
+    expect(pushTitle).toMatch(/didn't finish/i);
+    expect(pushData).toEqual({ screen: 'form-analysis', id: 'fa-3' });
   });
 
-  it('pro tier is unmetered (no upsert, no quota check)', async () => {
+  it('pro tier is unmetered (no quota upsert)', async () => {
     prismaUser.findUnique.mockResolvedValue({ ...USER, tier: 'pro' });
     mockAnalyzeWorkoutVideo.mockResolvedValue({
       exercise: 'Deadlift', formScore: 9, repCount: 1,
@@ -196,12 +254,43 @@ describe('POST /api/form-analysis/video', () => {
     const res = await request(app)
       .post('/api/form-analysis/video')
       .set('Authorization', `Bearer ${makeToken('u-1', 'pro')}`)
+      .set('X-Form-Analysis-Async', '1')
       .attach('video', Buffer.from('x'), { filename: 'v.mp4', contentType: 'video/mp4' });
 
-    expect(res.status).toBe(200);
-    // No quota upsert for pro
+    // 202 same as free — async pattern is tier-agnostic on this route.
+    expect(res.status).toBe(202);
+    expect(res.body.status).toBe('pending');
+    // No quota upsert for pro tier.
     expect(prismaFeatureUsage.upsert).not.toHaveBeenCalled();
-    expect(res.body.analysis.exercise).toBe('Deadlift');
+  });
+
+  it('SYNC mode (no async header): returns 200 with the analysis inline + persists complete', async () => {
+    // Installed clients don't send X-Form-Analysis-Async — they get the legacy
+    // synchronous contract: the analysis runs inline and comes back in the 200.
+    prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
+    const analysis = {
+      exercise: 'Bench press', formScore: 8, repCount: 5,
+      strengths: ['Tight arch'], weaknesses: [], recommendedDrills: [],
+      programmingNotes: [], safetyFlags: [], summary: 'Clean press.',
+    };
+    mockAnalyzeWorkoutVideo.mockResolvedValue(analysis);
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-sync', createdAt: new Date('2026-06-04T12:00:00Z') });
+
+    const res = await request(app)
+      .post('/api/form-analysis/video')
+      .set('Authorization', `Bearer ${makeToken('u-1', 'free')}`)
+      .attach('video', Buffer.from('x'), { filename: 'v.mp4', contentType: 'video/mp4' });
+
+    // Legacy 200 shape: { id, createdAt, analysis, usage } — NOT 202.
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe('fa-sync');
+    expect(res.body.analysis.exercise).toBe('Bench press');
+    expect(res.body.usage.feature).toBe('form_video');
+    // Row was created pending then updated to complete before responding.
+    expect(prismaFormAnalysis.update).toHaveBeenCalledTimes(1);
+    expect(prismaFormAnalysis.update.mock.calls[0][0].data.status).toBe('complete');
+    // No push in sync mode — the client is already waiting on the response.
+    expect(mockSendPushToUser).not.toHaveBeenCalled();
   });
 });
 
@@ -223,13 +312,33 @@ describe('GET /api/form-analysis', () => {
   });
 });
 
+describe('sweepStalePendingFormAnalyses', () => {
+  it('marks pending rows older than 10 min as failed', async () => {
+    prismaFormAnalysis.updateMany.mockResolvedValue({ count: 3 });
+    const { sweepStalePendingFormAnalyses } = await import('../routes/formAnalysis.js');
+    const r = await sweepStalePendingFormAnalyses();
+    expect(r.marked).toBe(3);
+    expect(prismaFormAnalysis.updateMany).toHaveBeenCalledTimes(1);
+    const call = prismaFormAnalysis.updateMany.mock.calls[0][0];
+    expect(call.where.status).toBe('pending');
+    expect(call.where.updatedAt.lt).toBeInstanceOf(Date);
+    // 10min cutoff (within a 2-second test tolerance).
+    const minutesAgo = (Date.now() - call.where.updatedAt.lt.getTime()) / 60_000;
+    expect(minutesAgo).toBeGreaterThan(9.99);
+    expect(minutesAgo).toBeLessThan(10.05);
+    expect(call.data.status).toBe('failed');
+    expect(call.data.exercise).toBe('unknown');
+  });
+});
+
 describe('GET /api/form-analysis/:id', () => {
   let app: express.Express;
   beforeAll(async () => { app = await buildApp(); });
 
-  it('returns the full record with parsed JSON', async () => {
+  it('returns the full record with parsed JSON + status + errorMessage', async () => {
     prismaFormAnalysis.findFirst.mockResolvedValue({
-      id: 'a', exercise: 'Bench', formScore: 7, repCount: 5, exerciseHint: null,
+      id: 'a', status: 'complete', errorMessage: null,
+      exercise: 'Bench', formScore: 7, repCount: 5, exerciseHint: null,
       createdAt: new Date('2026-06-03'),
       analysisJson: JSON.stringify({ summary: 'Solid', strengths: ['braced'] }),
     });
@@ -237,8 +346,24 @@ describe('GET /api/form-analysis/:id', () => {
       .get('/api/form-analysis/a')
       .set('Authorization', `Bearer ${makeToken('u-1')}`);
     expect(res.status).toBe(200);
+    expect(res.body.status).toBe('complete');
     expect(res.body.analysis.summary).toBe('Solid');
     expect(res.body.analysis.strengths).toEqual(['braced']);
+  });
+
+  it('exposes pending status while analysis runs', async () => {
+    prismaFormAnalysis.findFirst.mockResolvedValue({
+      id: 'b', status: 'pending', errorMessage: null,
+      exercise: 'pending', formScore: null, repCount: null, exerciseHint: 'squat',
+      createdAt: new Date('2026-06-04'),
+      analysisJson: '{}',
+    });
+    const res = await request(app)
+      .get('/api/form-analysis/b')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`);
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('pending');
+    expect(res.body.formScore).toBeNull();
   });
 
   it('returns 404 when no row for this user/id', async () => {

@@ -169,15 +169,26 @@ async function getBucket() {
   if (!_storage) _storage = new Storage({ projectId: PROJECT });
   const bucket = _storage.bucket(STORAGE_BUCKET);
   if (!_bucketReady) {
-    const [exists] = await bucket.exists();
-    if (!exists) {
-      // Create with a 1-day lifecycle rule so even an orphan upload gets
-      // deleted in 24h. Belt-and-suspenders alongside our explicit delete.
-      await bucket.create({
-        location: STORAGE_LOCATION,
-        uniformBucketLevelAccess: { enabled: true },
-        lifecycle: { rule: [{ action: { type: 'Delete' }, condition: { age: 1 } }] },
-      });
+    // Best-effort bootstrap. In production the bucket already exists and the
+    // runtime identity (post-WIF) holds only roles/storage.objectUser — which
+    // grants object ops (create/get/delete) but NOT storage.buckets.get/create.
+    // So exists()/create() throw a 403 here; that's expected and must NOT fail
+    // the upload, because the actual save/get/delete below work fine with
+    // objectUser. Swallow it and proceed. Only envs whose creds include
+    // bucket-admin (e.g. local dev) will actually auto-create a missing bucket.
+    try {
+      const [exists] = await bucket.exists();
+      if (!exists) {
+        // Create with a 1-day lifecycle rule so even an orphan upload gets
+        // deleted in 24h. Belt-and-suspenders alongside our explicit delete.
+        await bucket.create({
+          location: STORAGE_LOCATION,
+          uniformBucketLevelAccess: { enabled: true },
+          lifecycle: { rule: [{ action: { type: 'Delete' }, condition: { age: 1 } }] },
+        });
+      }
+    } catch (err: any) {
+      console.warn('[form-video] bucket bootstrap skipped (expected with objectUser-only creds):', err?.message ?? err);
     }
     _bucketReady = true;
   }
@@ -212,13 +223,36 @@ export async function analyzeWorkoutVideo(
         systemInstruction: WORKOUT_VIDEO_SYSTEM,
         responseMimeType: 'application/json',
         responseSchema: WORKOUT_VIDEO_SCHEMA,
+        // Gemini 3.1 Pro thinks internally before responding; thinking tokens
+        // count against maxOutputTokens AND add multi-second latency. Cap the
+        // budget so there's room for the full JSON and the call stays quick —
+        // form scoring is structured output, it doesn't need deep deliberation.
+        // (Same fix applied to the meal-photo analyzer in llmService.)
+        thinkingConfig: { thinkingBudget: 1024 },
+        maxOutputTokens: 8192,
       },
       contents: [{ role: 'user', parts: [
         { text: userText },
         { fileData: { mimeType, fileUri: `gs://${STORAGE_BUCKET}/${objectName}` } },
       ]}],
     });
-    return JSON.parse(res.text ?? '{}');
+    // Despite responseMimeType=application/json, Gemini occasionally wraps the
+    // JSON in markdown code fences (```json … ```) or truncates under thinking
+    // pressure. Strip fences and parse defensively so a recoverable formatting
+    // quirk doesn't surface to the user as "couldn't analyze your video".
+    const raw = res.text?.trim();
+    if (!raw) throw new Error('Gemini returned an empty response for the workout video.');
+    const text = raw
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    try {
+      return JSON.parse(text) as WorkoutVideoAnalysis;
+    } catch (err: any) {
+      const tail = text.length > 300 ? '…' + text.slice(-300) : text;
+      console.error('[form-video] JSON parse failed, response tail:', tail);
+      throw new Error(`Workout video response was malformed: ${err?.message ?? 'unknown'}`);
+    }
   } finally {
     // Best-effort cleanup. The 1-day lifecycle rule on the bucket is the
     // safety net if this delete races a process crash.

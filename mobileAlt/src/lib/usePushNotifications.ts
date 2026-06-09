@@ -35,6 +35,9 @@ function resolveDeepLink(data?: Record<string, unknown>): string | null {
         return data.conversationId
           ? `/social/conversation?id=${data.conversationId}`
           : '/social/messages';
+      case 'group_message':
+        // New group-chat message or Anakin drop-in — open the group thread.
+        return data.groupId ? `/groups/${data.groupId}` : '/social/messages';
       case 'new_post':
       case 'repost':
       case 'reaction':
@@ -56,6 +59,9 @@ function resolveDeepLink(data?: Record<string, unknown>): string | null {
         return '/(tabs)/strength-profile';
       case 'history':
         return '/(tabs)/history';
+      case 'form-analysis':
+        // Async form-video result is ready — open the specific analysis.
+        return data.id ? `/form-analysis?id=${data.id}` : '/form-analysis';
       default:
         return null;
     }

@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { runAnakinGroupCheckin } from '../services/groupAccountability.js';
+import { sendPushToUsers } from '../services/notificationService.js';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -71,7 +72,7 @@ router.post('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
           ],
         },
       },
-      include: { members: { include: { user: { select: { id: true, username: true, name: true } } } } },
+      include: { members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } } },
     });
     res.json({ group });
   } catch (err: any) {
@@ -91,7 +92,7 @@ router.get('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
       include: {
         group: {
           include: {
-            members: { include: { user: { select: { id: true, username: true, name: true } } } },
+            members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } },
             messages: { orderBy: { createdAt: 'desc' }, take: 1 },
           },
         },
@@ -114,7 +115,7 @@ router.get('/groups/:id', requireAuth, requireGroupsAccess, async (req, res) => 
     const group = await prisma.groupChat.findUnique({
       where: { id: req.params.id },
       include: {
-        members: { include: { user: { select: { id: true, username: true, name: true } } } },
+        members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } },
         messages: { orderBy: { createdAt: 'desc' }, take: 100 },
       },
     });
@@ -140,6 +141,33 @@ router.post('/groups/:id/messages', requireAuth, requireGroupsAccess, async (req
       data: { groupId: req.params.id, senderId: userId, text },
     });
     res.json({ message: msg });
+
+    // Fire-and-forget push to every other member of the group. Deep-links to
+    // the group thread via { type: 'group_message', groupId }.
+    (async () => {
+      try {
+        const [group, sender, members] = await Promise.all([
+          prisma.groupChat.findUnique({ where: { id: req.params.id }, select: { name: true } }),
+          prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } }),
+          prisma.groupMember.findMany({
+            where: { groupId: req.params.id, userId: { not: userId } },
+            select: { userId: true },
+          }),
+        ]);
+        const recipientIds = members.map((m) => m.userId);
+        if (recipientIds.length === 0) return;
+        const senderName = sender?.name || sender?.username || 'Someone';
+        const preview = text.length > 120 ? `${text.slice(0, 117)}…` : text;
+        await sendPushToUsers(
+          recipientIds,
+          group?.name || 'Group chat',
+          `${senderName}: ${preview}`,
+          { type: 'group_message', groupId: req.params.id },
+        );
+      } catch (err) {
+        console.error('[groups] message push fan-out failed:', err);
+      }
+    })();
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
     res.status(500).json({ error: err?.message ?? 'Failed to post message' });

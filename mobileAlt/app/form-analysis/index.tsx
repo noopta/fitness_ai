@@ -5,13 +5,13 @@
 // Free tier is 1 analysis/day (enforced server-side); a 429 surfaces an
 // upgrade nudge.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
   Alert, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
@@ -30,6 +30,7 @@ const SEVERITY_COLOR: Record<string, string> = {
 
 export default function FormAnalysisScreen() {
   const router = useRouter();
+  const { id: deepLinkId } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
@@ -38,6 +39,10 @@ export default function FormAnalysisScreen() {
   const [analysis, setAnalysis] = useState<WorkoutVideoAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  // Async polling: status the server reports while we wait for the
+  // background Gemini analysis. 'uploading' → upload still in flight,
+  // 'pending' → uploaded and being analyzed.
+  const [progressLabel, setProgressLabel] = useState<string>('Uploading your clip…');
 
   const ensurePermission = async (kind: 'camera' | 'library'): Promise<boolean> => {
     const req = kind === 'camera'
@@ -78,10 +83,30 @@ export default function FormAnalysisScreen() {
   const analyze = async (uri: string, mimeType: string) => {
     setStage('analyzing');
     setError(null);
+    setProgressLabel('Uploading your clip…');
     try {
-      const res = await formAnalysisApi.analyzeVideo(uri, mimeType, hint);
-      posthog.capture('form_video_analyzed', { exercise: res.analysis?.exercise });
-      setAnalysis(res.analysis);
+      // Phase 1: upload — backend returns 202 the moment the upload + GCS
+      // save are done, before Gemini runs. Usually 5-20s.
+      const started = await formAnalysisApi.start(uri, mimeType, hint);
+      setProgressLabel('Anakin is reviewing your form…');
+
+      // Phase 2: poll the row every 4s until status is terminal. The hard
+      // 5-min timeout in pollUntilDone matches the server-side sweeper that
+      // marks long-pending rows as failed.
+      const detail = await formAnalysisApi.pollUntilDone(started.id, {
+        intervalMs: 4000,
+        onTick: (d) => {
+          if (d.status === 'pending') setProgressLabel('Anakin is reviewing your form…');
+        },
+      });
+
+      if (detail.status === 'failed') {
+        setError(detail.errorMessage ?? 'Could not analyze that video. Try again.');
+        setStage('capture');
+        return;
+      }
+      posthog.capture('form_video_analyzed', { exercise: detail.analysis?.exercise });
+      setAnalysis(detail.analysis);
       setStage('result');
     } catch (err: any) {
       if (err?.status === 429) {
@@ -102,6 +127,35 @@ export default function FormAnalysisScreen() {
   };
 
   const reset = () => { setAnalysis(null); setError(null); setStage('capture'); };
+
+  // Deep-link entry: tapping the "analysis ready" push opens this screen with
+  // ?id=<rowId>. Load that specific analysis straight into the result view
+  // (pollUntilDone returns immediately if it's already terminal).
+  useEffect(() => {
+    if (!deepLinkId) return;
+    let cancelled = false;
+    (async () => {
+      setStage('analyzing');
+      setError(null);
+      setProgressLabel('Loading your analysis…');
+      try {
+        const detail = await formAnalysisApi.pollUntilDone(deepLinkId, { intervalMs: 4000 });
+        if (cancelled) return;
+        if (detail.status === 'failed') {
+          setError(detail.errorMessage ?? 'Could not analyze that video. Try again.');
+          setStage('capture');
+          return;
+        }
+        setAnalysis(detail.analysis);
+        setStage('result');
+      } catch (err: any) {
+        if (cancelled) return;
+        setError(err?.message ?? 'Could not load that analysis.');
+        setStage('capture');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [deepLinkId]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -148,8 +202,10 @@ export default function FormAnalysisScreen() {
         {stage === 'analyzing' && (
           <View style={styles.analyzingBox}>
             <ActivityIndicator color={colors.foreground} />
-            <Text style={styles.analyzingText}>Analyzing your form…</Text>
-            <Text style={styles.analyzingSub}>This can take 10–20 seconds for a full set.</Text>
+            <Text style={styles.analyzingText}>{progressLabel}</Text>
+            <Text style={styles.analyzingSub}>
+              Typically 30–60 seconds. You can leave this screen and come back — your analysis is being processed on our servers.
+            </Text>
           </View>
         )}
 
