@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -27,10 +28,8 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009
  */
 export async function startProCheckout(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/payments/create-checkout`, {
+    const res = await authFetch(`${API_BASE}/payments/create-checkout`, {
       method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
     if (!res.ok) {

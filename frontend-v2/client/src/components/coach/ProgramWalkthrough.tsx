@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { TrainingProgram, ProgramPhase, NutritionPlanResult } from './ProgramSetup';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -482,10 +483,8 @@ export function ProgramWalkthrough({ program, userName, coachProfile, onSaved, o
   async function handleSave() {
     setSaving(true);
     try {
-      const resp = await fetch(`${API_BASE}/coach/program`, {
+      const resp = await authFetch(`${API_BASE}/coach/program`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ program }),
       });
       if (!resp.ok) throw new Error('Failed to save');

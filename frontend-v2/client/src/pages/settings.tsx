@@ -13,6 +13,7 @@ import {
 import { Link } from 'wouter';
 
 import { startProCheckout } from '@/lib/checkout';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -23,9 +24,8 @@ export default function SettingsPage() {
   async function openStripePortal() {
     setPortalLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/payments/portal`, {
+      const res = await authFetch(`${API_BASE}/payments/portal`, {
         method: 'POST',
-        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');

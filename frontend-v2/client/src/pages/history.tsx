@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2, History, ArrowRight, Dumbbell, ChevronRight, Share2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -46,7 +47,7 @@ export default function HistoryPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetch(`${API_BASE}/sessions/history`, { credentials: 'include' })
+    authFetch(`${API_BASE}/sessions/history`)
       .then(r => r.ok ? r.json() : { sessions: [] })
       .then(data => setSessions(Array.isArray(data?.sessions) ? data.sessions : []))
       .catch(() => setSessions([]))

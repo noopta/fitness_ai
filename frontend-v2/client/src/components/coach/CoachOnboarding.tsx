@@ -6,6 +6,7 @@ import {
   Loader2, ChevronRight, Sparkles, Heart, Target, Dumbbell,
   Moon, Settings, User, Apple, Shield,
 } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -1161,10 +1162,8 @@ export function CoachOnboarding({ userName, onComplete }: Props) {
         advanced: 'advanced', elite: 'advanced',
       };
 
-      await fetch(`${API_BASE}/auth/profile`, {
+      await authFetch(`${API_BASE}/auth/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           trainingAge: trainingAgeMap[final.trainingAge] || final.trainingAge || undefined,
           equipment: final.equipment || undefined,

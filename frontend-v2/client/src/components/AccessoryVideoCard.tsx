@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -30,7 +31,7 @@ export function AccessoryVideoCard({ exerciseId, exerciseName }: AccessoryVideoC
         if (entry.isIntersecting && !fetched.current) {
           fetched.current = true;
           setLoading(true);
-          fetch(`${API_BASE}/exercises/${exerciseId}/video`, { credentials: 'include' })
+          authFetch(`${API_BASE}/exercises/${exerciseId}/video`)
             .then(r => r.ok ? r.json() : null)
             .then(data => { if (data?.videoId) setVideo(data); })
             .catch(() => {})

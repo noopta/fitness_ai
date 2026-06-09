@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -21,10 +22,8 @@ export function ShareAnalysis({ sessionId }: ShareAnalysisProps) {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/sessions/${sessionId}/share`, {
+      const res = await authFetch(`${API_BASE}/sessions/${sessionId}/share`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
       });
       if (!res.ok) throw new Error('Failed to share');
       const data = await res.json();

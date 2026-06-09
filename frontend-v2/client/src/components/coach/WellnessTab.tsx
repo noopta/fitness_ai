@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Sparkles, Heart } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -64,7 +65,7 @@ export function WellnessTab({ latestPlan }: Props) {
   const [insight, setInsight] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/wellness/checkins`, { credentials: 'include' })
+    authFetch(`${API_BASE}/wellness/checkins`)
       .then(r => r.json())
       .then(d => setCheckins(d.checkins || []))
       .catch(() => {})
@@ -74,10 +75,8 @@ export function WellnessTab({ latestPlan }: Props) {
   async function submitCheckin() {
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/wellness/checkin`, {
+      const res = await authFetch(`${API_BASE}/wellness/checkin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ date: todayStr(), ...form }),
       });
       const data = await res.json();
