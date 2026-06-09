@@ -106,8 +106,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
-          // Hidden for free users pending IAP setup
-          href: user?.tier === 'pro' || user?.tier === 'enterprise' ? undefined : null,
+          // Visible to all tiers: free users go through onboarding + plan
+          // generation, then hit the in-dashboard upgrade gate (see coach.tsx).
         }}
       />
       <Tabs.Screen

@@ -125,7 +125,10 @@ function RootNavigator() {
     } else if (user && needsDobCheck && !inAgeCheck) {
       router.replace('/age-check' as any);
     } else if (user && !needsDobCheck && inAuthGroup) {
-      router.replace('/(tabs)');
+      // Funnel: users who haven't completed coach onboarding go straight into
+      // it (intake → plan → paywall) rather than the Home tab. Onboarded users
+      // land on Home as before.
+      router.replace((user.coachOnboardingDone ? '/(tabs)' : '/(tabs)/coach') as any);
     }
   }, [user, loading, needsDobCheck, segments]);
 

@@ -21,6 +21,7 @@ import { NutritionTab } from '../../src/components/coach/NutritionTab';
 import { WellnessTab } from '../../src/components/coach/WellnessTab';
 import { ChatTab } from '../../src/components/coach/ChatTab';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,12 @@ function CoachScreenInner() {
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
   const [onboardingKey, setOnboardingKey] = useState(0);
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
+
+  // Free users complete onboarding + generate one plan, then the dashboard is
+  // a paywall tease: the plan is visible but every interaction opens the
+  // upgrade sheet. Onboarding/setup/walkthrough stages stay fully usable.
+  const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
   useEffect(() => {
     trackScreen('Coach');
     return trackScreenTime('Coach');
@@ -320,7 +327,10 @@ function CoachScreenInner() {
           <Text style={styles.headerSubtitle}>AI Strength Coach</Text>
         </View>
         <TouchableOpacity
-          onPress={() => { setSetupReturnStage('dashboard'); setStage('setup'); }}
+          onPress={() => {
+            if (!isPro) { setUpgradeVisible(true); return; }
+            setSetupReturnStage('dashboard'); setStage('setup');
+          }}
           style={styles.newProgramBtn}
           activeOpacity={0.7}
         >
@@ -336,7 +346,10 @@ function CoachScreenInner() {
         <TouchableOpacity
           style={styles.completionBanner}
           activeOpacity={0.85}
-          onPress={() => { setSetupReturnStage('dashboard'); setStage('setup'); }}
+          onPress={() => {
+            if (!isPro) { setUpgradeVisible(true); return; }
+            setSetupReturnStage('dashboard'); setStage('setup');
+          }}
         >
           <View style={styles.completionIcon}>
             <Text style={styles.completionIconText}>🎉</Text>
@@ -351,67 +364,95 @@ function CoachScreenInner() {
         </TouchableOpacity>
       ) : null}
 
-      {/* Tab bar */}
-      <View style={styles.tabBarWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabBar}
-        >
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab;
-            return (
-              <Pressable
-                key={tab}
-                onPress={() => setActiveTab(tab)}
-                style={styles.tabItem}
-              >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                  {tab}
-                </Text>
-                {isActive && <View style={styles.tabUnderline} />}
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+      {/* Tab bar + content. For free users the plan stays visible but inert
+          (pointerEvents none); a tap-anywhere scrim on top opens the upgrade
+          sheet — the "your plan is ready, upgrade to use it" paywall. */}
+      <View style={styles.dashboardBody}>
+        <View style={styles.flex} pointerEvents={isPro ? 'auto' : 'none'}>
+          {/* Tab bar */}
+          <View style={styles.tabBarWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabBar}
+            >
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab;
+                return (
+                  <Pressable
+                    key={tab}
+                    onPress={() => setActiveTab(tab)}
+                    style={styles.tabItem}
+                  >
+                    <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                      {tab}
+                    </Text>
+                    {isActive && <View style={styles.tabUnderline} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Tab content */}
+          <View style={styles.tabContent}>
+            {activeTab === 'Overview' && (
+              <OverviewTab
+                coachData={coachData}
+                onGoToProgram={() => setActiveTab('Program')}
+                onRefresh={initCoach}
+                onAskAnakin={(prompt) => {
+                  setPendingChatPrompt(prompt);
+                  setActiveTab('Chat');
+                }}
+              />
+            )}
+            {activeTab === 'Program' && (
+              <ProgramTab coachData={coachData} />
+            )}
+            {activeTab === 'Nutrition' && (
+              <NutritionTab
+                coachData={coachData}
+                coachGoal={user?.coachGoal ?? null}
+                coachBudget={user?.coachBudget ?? null}
+                onRefresh={initCoach}
+                userId={user?.id}
+              />
+            )}
+            {activeTab === 'Wellness' && (
+              <WellnessTab coachData={coachData} />
+            )}
+            {activeTab === 'Chat' && (
+              <ChatTab
+                coachData={coachData}
+                initialPrompt={pendingChatPrompt ?? undefined}
+                onInitialPromptConsumed={() => setPendingChatPrompt(null)}
+              />
+            )}
+          </View>
+        </View>
+
+        {!isPro && (
+          <Pressable style={styles.upgradeScrim} onPress={() => setUpgradeVisible(true)}>
+            <View style={styles.upgradeCard}>
+              <Text style={styles.upgradeLockIcon}>🔒</Text>
+              <Text style={styles.upgradeCardTitle}>Your plan is ready</Text>
+              <Text style={styles.upgradeCardSub}>
+                Upgrade to Pro to unlock your full program, AI coaching, nutrition tracking, and more.
+              </Text>
+              <View style={styles.upgradeCardBtn}>
+                <Text style={styles.upgradeCardBtnText}>Upgrade to Pro</Text>
+              </View>
+            </View>
+          </Pressable>
+        )}
       </View>
 
-      {/* Tab content */}
-      <View style={styles.tabContent}>
-        {activeTab === 'Overview' && (
-          <OverviewTab
-            coachData={coachData}
-            onGoToProgram={() => setActiveTab('Program')}
-            onRefresh={initCoach}
-            onAskAnakin={(prompt) => {
-              setPendingChatPrompt(prompt);
-              setActiveTab('Chat');
-            }}
-          />
-        )}
-        {activeTab === 'Program' && (
-          <ProgramTab coachData={coachData} />
-        )}
-        {activeTab === 'Nutrition' && (
-          <NutritionTab
-            coachData={coachData}
-            coachGoal={user?.coachGoal ?? null}
-            coachBudget={user?.coachBudget ?? null}
-            onRefresh={initCoach}
-            userId={user?.id}
-          />
-        )}
-        {activeTab === 'Wellness' && (
-          <WellnessTab coachData={coachData} />
-        )}
-        {activeTab === 'Chat' && (
-          <ChatTab
-            coachData={coachData}
-            initialPrompt={pendingChatPrompt ?? undefined}
-            onInitialPromptConsumed={() => setPendingChatPrompt(null)}
-          />
-        )}
-      </View>
+      <UpgradeSheet
+        visible={upgradeVisible}
+        onClose={() => setUpgradeVisible(false)}
+        onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
+      />
     </SafeAreaView>
   );
 }
@@ -590,5 +631,54 @@ const styles = StyleSheet.create({
   // Tab content
   tabContent: {
     flex: 1,
+  },
+
+  // Free-tier dashboard paywall
+  flex: { flex: 1 },
+  dashboardBody: { flex: 1 },
+  upgradeScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  upgradeCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  upgradeLockIcon: { fontSize: 32 },
+  upgradeCardTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    textAlign: 'center',
+  },
+  upgradeCardSub: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  upgradeCardBtn: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.full,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  upgradeCardBtnText: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.primaryForeground,
   },
 });
