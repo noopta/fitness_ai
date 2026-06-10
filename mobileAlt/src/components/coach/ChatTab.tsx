@@ -10,13 +10,23 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
-import { getToken } from '../../lib/api';
+import { coachApi, getToken } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { MarkdownText } from '../ui/MarkdownText';
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
+
+// Shape of the proposal the agent returns on tools like propose_program_update.
+// Mirrors backend/src/agent/loop.ts AgentTurnResult.proposal.
+interface AgentProposal {
+  kind: 'program_update' | string;
+  summary: string;
+  updatedProgram?: any;
+  changedDays?: string[];
+}
 
 interface ChatTabProps {
   coachData: any;
@@ -36,24 +46,103 @@ interface ChatMessage {
   content: string;
   createdAt?: string;
   _isTemp?: boolean;
+  /** Set when the assistant turn included an agent tool proposal. */
+  proposal?: AgentProposal;
+  /** Set after a proposal has been applied or dismissed by the user. */
+  proposalState?: 'applied' | 'dismissed' | 'applying' | 'failed';
 }
 
-function MessageBubble({ msg }: { msg: ChatMessage }) {
+interface ProposalCardProps {
+  proposal: AgentProposal;
+  state: ChatMessage['proposalState'];
+  onApply: () => void;
+  onDismiss: () => void;
+}
+
+// Inline card surfaced below an assistant message when the agent returned a
+// proposal (currently only program_update). Apply persists via the
+// /coach/agent/confirm-proposal route, which runs the same goal-preserving
+// validation as a direct /coach/program write — the agent does NOT mutate
+// state on its own.
+function ProposalCard({ proposal, state, onApply, onDismiss }: ProposalCardProps) {
+  const isTerminal = state === 'applied' || state === 'dismissed';
+  return (
+    <View style={styles.proposalCard}>
+      <View style={styles.proposalHeader}>
+        <Ionicons name="construct-outline" size={16} color={colors.primary} />
+        <Text style={styles.proposalEyebrow}>
+          {state === 'applied' ? 'Applied' : state === 'dismissed' ? 'Dismissed' : 'Proposed change'}
+        </Text>
+      </View>
+      <Text style={styles.proposalSummary}>{proposal.summary}</Text>
+      {proposal.changedDays && proposal.changedDays.length > 0 ? (
+        <Text style={styles.proposalDays}>
+          Affects: {proposal.changedDays.join(', ')}
+        </Text>
+      ) : null}
+      {!isTerminal ? (
+        <View style={styles.proposalActions}>
+          <Pressable
+            style={[styles.proposalBtn, styles.proposalBtnGhost]}
+            onPress={onDismiss}
+            disabled={state === 'applying'}
+          >
+            <Text style={styles.proposalBtnGhostText}>Not now</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.proposalBtn, styles.proposalBtnPrimary, state === 'applying' && { opacity: 0.6 }]}
+            onPress={onApply}
+            disabled={state === 'applying'}
+          >
+            {state === 'applying' ? (
+              <ActivityIndicator size="small" color={colors.primaryForeground} />
+            ) : (
+              <Text style={styles.proposalBtnPrimaryText}>Apply</Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
+      {state === 'failed' ? (
+        <Text style={styles.proposalError}>Couldn't apply — please try again.</Text>
+      ) : null}
+    </View>
+  );
+}
+
+function MessageBubble({
+  msg,
+  onApplyProposal,
+  onDismissProposal,
+}: {
+  msg: ChatMessage;
+  onApplyProposal: (msgId: string) => void;
+  onDismissProposal: (msgId: string) => void;
+}) {
   const isUser = msg.role === 'user';
   return (
-    <View style={[styles.bubbleRow, isUser ? styles.bubbleRowUser : styles.bubbleRowAssistant]}>
-      {!isUser && (
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>A</Text>
-        </View>
-      )}
-      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
-        {isUser ? (
-          <Text style={[styles.bubbleText, styles.bubbleTextUser]}>{msg.content}</Text>
-        ) : (
-          <MarkdownText text={msg.content} style={[styles.bubbleText, styles.bubbleTextAssistant]} />
+    <View>
+      <View style={[styles.bubbleRow, isUser ? styles.bubbleRowUser : styles.bubbleRowAssistant]}>
+        {!isUser && (
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>A</Text>
+          </View>
         )}
+        <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
+          {isUser ? (
+            <Text style={[styles.bubbleText, styles.bubbleTextUser]}>{msg.content}</Text>
+          ) : (
+            <MarkdownText text={msg.content} style={[styles.bubbleText, styles.bubbleTextAssistant]} />
+          )}
+        </View>
       </View>
+      {msg.proposal && msg.id ? (
+        <ProposalCard
+          proposal={msg.proposal}
+          state={msg.proposalState}
+          onApply={() => onApplyProposal(msg.id!)}
+          onDismiss={() => onDismissProposal(msg.id!)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -106,68 +195,29 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
     Analytics.coachMessageSent(text.length);
 
     const userMsg: ChatMessage = { role: 'user', content: text };
-    const historyForRequest = messages.filter((m) => !m._isTemp).slice(-12);
-
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setSending(true);
 
-    // Add a streaming placeholder for the assistant reply
+    // Placeholder for the assistant reply — replaced with the agent result.
     const streamId = `stream-${Date.now()}`;
     setMessages((prev) => [...prev, { role: 'assistant', content: '', id: streamId, _isTemp: true }]);
 
     try {
-      const token = await getToken();
-      const response = await fetch(`${API_BASE}/coach/chat/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          message: text,
-          history: historyForRequest.map((m) => ({ role: m.role, content: m.content })),
-        }),
-      });
+      // coachApi.sendAgent calls /coach/agent (the tool-use loop). Server
+      // manages conversation history so we don't pass it. Falls back to the
+      // classic /coach/chat endpoint if the agent is disabled (404).
+      const result: any = await coachApi.sendAgent(text);
+      const reply: string = result?.reply ?? result?.message ?? '';
+      const proposal: AgentProposal | undefined =
+        result?.proposal && typeof result.proposal === 'object' ? result.proposal : undefined;
 
-      if (!response.ok) {
-        const errText = await response.text().catch(() => '');
-        let msg = `Error ${response.status}`;
-        try { msg = JSON.parse(errText).error ?? msg; } catch {}
-        throw new Error(msg);
-      }
-
-      // React Native (Hermes) does not support ReadableStream / getReader().
-      // Read the full SSE body as text then parse all data lines at once.
-      const rawText = await response.text();
-      let accumulated = '';
-
-      for (const line of rawText.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') break;
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed.chunk) {
-            accumulated += parsed.chunk;
-          } else if (parsed.error) {
-            throw new Error(parsed.error);
-          }
-        } catch (parseErr: any) {
-          if (parseErr?.message && !parseErr.message.startsWith('JSON')) {
-            throw parseErr;
-          }
-        }
-      }
-
-      // Render the full accumulated reply at once
       setMessages((prev) =>
-        prev.map((m) => (m.id === streamId ? { ...m, content: accumulated } : m))
-      );
-
-      // Mark the streaming message as final
-      setMessages((prev) =>
-        prev.map((m) => (m.id === streamId ? { ...m, _isTemp: false } : m))
+        prev.map((m) =>
+          m.id === streamId
+            ? { ...m, content: reply || "I'm here but didn't generate a reply this time.", _isTemp: false, proposal }
+            : m
+        )
       );
     } catch (err: any) {
       setMessages((prev) =>
@@ -180,6 +230,25 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
     } finally {
       setSending(false);
     }
+  }
+
+  // Apply a proposal: persists via /coach/agent/confirm-proposal which runs
+  // the same goal-preserving validation as a direct PUT /coach/program. On
+  // success we mark the card terminal so it can't be re-applied.
+  async function handleApplyProposal(msgId: string) {
+    const target = messages.find((m) => m.id === msgId);
+    if (!target?.proposal?.updatedProgram) return;
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applying' } : m)));
+    try {
+      await coachApi.confirmProposal(target.proposal.updatedProgram);
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applied' } : m)));
+    } catch {
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'failed' } : m)));
+    }
+  }
+
+  function handleDismissProposal(msgId: string) {
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'dismissed' } : m)));
   }
 
   const canSend = inputText.trim().length > 0 && !sending;
@@ -201,7 +270,12 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
       >
         {messages.map((msg, idx) =>
           msg._isTemp && msg.content.length === 0 ? null : (
-            <MessageBubble key={msg.id ?? `msg-${idx}`} msg={msg} />
+            <MessageBubble
+              key={msg.id ?? `msg-${idx}`}
+              msg={msg}
+              onApplyProposal={handleApplyProposal}
+              onDismissProposal={handleDismissProposal}
+            />
           )
         )}
 
@@ -258,6 +332,41 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: 12,
   },
+
+  // Proposal card (agent tool-call surface)
+  proposalCard: {
+    marginTop: 8,
+    marginLeft: 40, // align with assistant bubble (avatar width)
+    padding: spacing.md,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    gap: 6,
+  },
+  proposalHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  proposalEyebrow: {
+    fontSize: 11,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  proposalSummary: { fontSize: fontSize.sm, color: colors.foreground, lineHeight: 20 },
+  proposalDays: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  proposalActions: { flexDirection: 'row', gap: 8, marginTop: 6 },
+  proposalBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  proposalBtnGhost: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
+  proposalBtnGhostText: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.semibold },
+  proposalBtnPrimary: { backgroundColor: colors.foreground },
+  proposalBtnPrimaryText: { fontSize: fontSize.sm, color: colors.primaryForeground, fontWeight: fontWeight.semibold },
+  proposalError: { fontSize: fontSize.xs, color: '#ef4444', marginTop: 6 },
 
   // Bubbles
   bubbleRow: {
