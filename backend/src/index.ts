@@ -172,6 +172,25 @@ process.on('SIGTERM', async () => {
 // Clears OpenAI Assistants threads once every 24h to reduce token storage costs.
 // Users will get a fresh thread on their next chat message.
 const prisma = new PrismaClient();
+
+// ── SQLite tuning ──────────────────────────────────────────────────────────
+// WAL mode lets readers proceed while a write is in flight. In the default
+// `delete`/rollback-journal mode, any write — e.g. the on-demand feed research
+// fetch writing FeedItem rows — takes a database-wide exclusive lock that
+// blocks every concurrent read, which was turning ~150ms social-feed loads
+// into multi-second ones whenever a fetch was running. journal_mode=WAL is a
+// persistent property of the DB file, so this single call converts it for
+// every PrismaClient connection in the process (and stays set across restarts).
+// busy_timeout gives a writer a grace window to retry on momentary contention
+// instead of failing immediately. NOTE: busy_timeout is per-connection, so this
+// only covers this client; consolidating the ~40 scattered `new PrismaClient()`
+// instances behind one shared module — and setting the pragma there — is a
+// recommended follow-up.
+prisma.$queryRawUnsafe('PRAGMA journal_mode=WAL;')
+  .then(() => prisma.$queryRawUnsafe('PRAGMA busy_timeout=5000;'))
+  .then(() => console.log('✓ SQLite: WAL mode + busy_timeout=5000ms enabled'))
+  .catch((err) => console.error('SQLite pragma setup failed:', err));
+
 const openaiForCleanup = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function clearCoachThreads() {

@@ -768,13 +768,24 @@ router.get('/social/feed', wrap(async (req, res) => {
   const t2 = Date.now();
   console.log(`[feed] phase1=${t1-t0}ms phase2=${t2-t1}ms total=${t2-t0}ms posts=${rawItems.length} fresh=${fresh} include_research=${includeResearch} exhausted=${exhausted}`);
 
-  // NOTE: the feed NEVER triggers a synchronous PubMed pull, even on
-  // fresh=1. Refreshing research articles is exclusively the job of the
-  // Research button (GET /social/feed/articles) and the daily cron — a
-  // pull-to-refresh on the social feed must only refresh user posts and stay
-  // fast. The feed serves whatever research is already cached; if the cache
-  // is exhausted it simply shows fewer (or no) research items rather than
-  // blocking the response on a 5-12s network fetch.
+  // Pull-to-refresh + user exhausted on cached articles → trigger a source
+  // fetch, but DO NOT block the response on it. The PubMed/OpenAlex fetch can
+  // take 5-20s when the cache is exhausted, and awaiting it here was the main
+  // cause of multi-second feed loads — both for the refreshing user and, via
+  // the SQLite write lock it held, for every other user loading concurrently.
+  // Fire-and-forget instead: this response returns immediately with the current
+  // cache, and the fetched items populate the cache for the next load.
+  // maybeFetchFromSources is internally rate-limited per user and invalidates
+  // the cache on completion, so the freshly fetched items surface on the
+  // client's next feed load or its /social/feed/new-count poll. Clients that
+  // want fresh articles synchronously use the dedicated /social/feed/articles
+  // endpoint, which intentionally still awaits. Skip entirely when
+  // include_research is off — that's the whole point of the flag.
+  if (includeResearch && fresh && exhausted) {
+    maybeFetchFromSources(userId, tags).catch(e =>
+      console.error('[feed] background source fetch failed:', e),
+    );
+  }
 
   // Record views so subsequent refreshes return different items.
   if (feedItems.length > 0) {

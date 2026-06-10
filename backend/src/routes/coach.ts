@@ -612,9 +612,6 @@ function inferGoalFromProfile(trainingPreference?: string, primaryGoal?: string)
 
 router.post('/coach/program', requireAuth, async (req, res) => {
   try {
-    if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
-      return res.status(403).json({ error: 'Pro feature', upgrade: true });
-    }
     const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
@@ -628,6 +625,15 @@ router.post('/coach/program', requireAuth, async (req, res) => {
       }
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Free users get exactly one generated plan (the onboarding hook). Once
+    // they've saved a program (savedProgram set), regeneration / "New Program"
+    // is pro-only. Pro/enterprise generate freely. The dashboard also blocks
+    // regeneration client-side, so this is the server-side backstop.
+    const isPaid = req.user!.tier === 'pro' || req.user!.tier === 'enterprise';
+    if (!isPaid && user.savedProgram) {
+      return res.status(403).json({ error: 'Pro feature', upgrade: true });
+    }
 
     const latestPlan = user.sessions[0]?.plans[0] ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
     const accessories = latestPlan?.bench_day_plan?.accessories?.map((a: any) => a.exercise_name) || [];
