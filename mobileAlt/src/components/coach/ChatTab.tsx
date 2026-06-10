@@ -19,14 +19,12 @@ import { MarkdownText } from '../ui/MarkdownText';
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
 
-// Shape of the proposal the agent returns on tools like propose_program_update.
-// Mirrors backend/src/agent/loop.ts AgentTurnResult.proposal.
-interface AgentProposal {
-  kind: 'program_update' | string;
-  summary: string;
-  updatedProgram?: any;
-  changedDays?: string[];
-}
+// Shape of the proposal the agent returns. Discriminated union — new kinds
+// added on the backend can be ignored gracefully (we just don't render
+// them). Mirrors backend/src/agent/types.ts AgentProposal.
+type AgentProposal =
+  | { kind: 'program_update'; summary: string; updatedProgram: any; changedDays?: string[] }
+  | { kind: 'workout_swap'; summary: string; rationale: string; proposedWeek: any[]; sourceDate: string; chosenSessionName: string };
 
 interface ChatTabProps {
   coachData: any;
@@ -66,18 +64,40 @@ interface ProposalCardProps {
 // state on its own.
 function ProposalCard({ proposal, state, onApply, onDismiss }: ProposalCardProps) {
   const isTerminal = state === 'applied' || state === 'dismissed';
+  const isSwap = proposal.kind === 'workout_swap';
+  const eyebrow =
+    state === 'applied' ? (isSwap ? 'Week applied' : 'Applied') :
+    state === 'dismissed' ? 'Dismissed' :
+    (isSwap ? 'Proposed swap' : 'Proposed change');
+  const icon = isSwap ? 'swap-horizontal' : 'construct-outline';
+
+  // For workout_swap, the most useful preview is the resolved week — show
+  // each day's session name (or Rest) so the user can verify spacing before
+  // tapping Apply. For program_update, the agent already wrote a summary
+  // and a list of changedDays we can render verbatim.
+  const swapWeek = isSwap ? (proposal as any).proposedWeek as Array<any> | undefined : undefined;
   return (
     <View style={styles.proposalCard}>
       <View style={styles.proposalHeader}>
-        <Ionicons name="construct-outline" size={16} color={colors.primary} />
-        <Text style={styles.proposalEyebrow}>
-          {state === 'applied' ? 'Applied' : state === 'dismissed' ? 'Dismissed' : 'Proposed change'}
-        </Text>
+        <Ionicons name={icon as any} size={16} color={colors.primary} />
+        <Text style={styles.proposalEyebrow}>{eyebrow}</Text>
       </View>
       <Text style={styles.proposalSummary}>{proposal.summary}</Text>
-      {proposal.changedDays && proposal.changedDays.length > 0 ? (
+      {isSwap && (proposal as any).rationale ? (
+        <Text style={styles.proposalDays}>{(proposal as any).rationale}</Text>
+      ) : null}
+      {isSwap && swapWeek && swapWeek.length > 0 ? (
+        <View style={{ gap: 2, marginTop: 4 }}>
+          {swapWeek.map((d: any) => (
+            <Text key={d.date} style={styles.proposalDays}>
+              {d.dayLabel ?? d.date.slice(5)}: {d.session?.day ?? 'Rest'}{d.isSwapped ? ' ←' : ''}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+      {!isSwap && (proposal as any).changedDays && (proposal as any).changedDays.length > 0 ? (
         <Text style={styles.proposalDays}>
-          Affects: {proposal.changedDays.join(', ')}
+          Affects: {(proposal as any).changedDays.join(', ')}
         </Text>
       ) : null}
       {!isTerminal ? (
@@ -237,10 +257,18 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
   // success we mark the card terminal so it can't be re-applied.
   async function handleApplyProposal(msgId: string) {
     const target = messages.find((m) => m.id === msgId);
-    if (!target?.proposal?.updatedProgram) return;
+    const proposal = target?.proposal;
+    if (!proposal) return;
     setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applying' } : m)));
     try {
-      await coachApi.confirmProposal(target.proposal.updatedProgram);
+      // The two proposal kinds have different apply payloads; the
+      // /coach/agent/confirm-proposal route discriminates on which field is
+      // present (updatedProgram vs proposedWeek).
+      if (proposal.kind === 'workout_swap') {
+        await coachApi.confirmProposal({ proposedWeek: (proposal as any).proposedWeek, reason: 'Agent swap' });
+      } else {
+        await coachApi.confirmProposal({ updatedProgram: (proposal as any).updatedProgram });
+      }
       setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applied' } : m)));
     } catch {
       setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'failed' } : m)));

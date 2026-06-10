@@ -1088,6 +1088,164 @@ router.post('/coach/apply-adjustment', requireAuth, async (req, res) => {
   }
 });
 
+// Returns the current week's resolved schedule for a user — applying any
+// per-date ScheduleOverrides. Used by the agent's read_schedule_week tool
+// so chat answers about "today's workout" know about swaps and edits.
+// Centralized so chat and on-screen Program tab always see the same week.
+export async function getCurrentWeekSchedule(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { savedProgram: true, programStartDate: true, coachGoal: true },
+  });
+  if (!user || !user.savedProgram) return { weekDays: [], weekNumber: null, phaseName: null };
+  const today = getESTDateString();
+  const overrides = await fetchOverridesMap(userId, addDaysStr(today, -7), addDaysStr(today, 7));
+  const result = buildScheduleData(user as any, overrides);
+  return {
+    ...(result as any),
+    today,
+    goal: user.coachGoal,
+  };
+}
+
+// Shared swap-proposal builder. Used by the POST /coach/swap-day route AND
+// the agent's propose_workout_swap tool — both must produce identical
+// rebalanced weeks so chat and on-screen taps stay in lockstep. Throws a
+// SwapProposalError with a user-readable message on validation failure
+// (no active program, source day has no session, etc.).
+export class SwapProposalError extends Error {
+  status: number;
+  constructor(message: string, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function buildSwapProposal(
+  userId: string,
+  date: string,        // target day (where the new workout will land — usually today)
+  sourceDate: string,  // day whose workout we're pulling in
+): Promise<{ proposedWeek: any[]; rationale: string; chosenSessionName: string }> {
+  if (date === sourceDate) throw new SwapProposalError('Pick a different day to swap in.');
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || !user.savedProgram) throw new SwapProposalError('No active program');
+
+  const today = getESTDateString();
+  const overrides = await fetchOverridesMap(userId, addDaysStr(today, -7), addDaysStr(today, 7));
+  const { weekDays } = buildScheduleData(user, overrides);
+
+  const weekStart = weekDays[0]?.date ?? today;
+  const weekEnd = weekDays[weekDays.length - 1]?.date ?? today;
+  const logs = await prisma.workoutLog.findMany({
+    where: { userId, date: { gte: weekStart, lte: weekEnd } },
+    select: { date: true },
+  });
+  const loggedDates = new Set(logs.map(l => l.date.slice(0, 10)));
+
+  const targetDay = weekDays.find(d => d.date === date);
+  const sourceDay = weekDays.find(d => d.date === sourceDate);
+  if (!targetDay) throw new SwapProposalError('Target day not in current week');
+  if (!sourceDay || !sourceDay.session) throw new SwapProposalError('Selected day has no workout to swap in');
+
+  const chosenSession = sourceDay.session;
+  const displacedSession = targetDay.session ?? null;
+
+  const openSlots = weekDays.filter(d => d.date > date && !loggedDates.has(d.date));
+
+  const pool: any[] = [];
+  for (const d of openSlots) if (d.session) pool.push(d.session);
+  if (displacedSession) pool.push(displacedSession);
+  const chosenIdx = pool.findIndex(s => s?.day === chosenSession.day);
+  if (chosenIdx >= 0) pool.splice(chosenIdx, 1);
+
+  const normalizeName = (s: string) =>
+    s.toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim();
+  const sessionByName = new Map<string, any>();
+  for (const s of [chosenSession, displacedSession, ...pool]) {
+    if (s?.day) sessionByName.set(normalizeName(s.day), s);
+  }
+
+  let assignments: Array<{ date: string; sessionName: string | null }> = [];
+  let rationale = '';
+  try {
+    const result = await rebalanceWeekAfterSwap({
+      goal: user.coachGoal,
+      trainingAge: user.trainingAge,
+      lockedDays: [
+        { date, dayLabel: targetDay.dayLabel, sessionName: chosenSession.day, focus: chosenSession.focus, note: 'swapped in for today' },
+        ...weekDays
+          .filter(d => d.date < date || loggedDates.has(d.date))
+          .map(d => ({ date: d.date, dayLabel: d.dayLabel, sessionName: d.session?.day ?? null, focus: d.session?.focus ?? null, note: loggedDates.has(d.date) ? 'already logged' : 'past' })),
+      ],
+      openSlots: openSlots.map(d => ({ date: d.date, dayLabel: d.dayLabel })),
+      pool: pool.map(s => ({ name: s.day, focus: s.focus })),
+    });
+    assignments = result.assignments;
+    rationale = result.rationale;
+  } catch (e) {
+    console.error('[swap-day] LLM rebalance failed, using deterministic fallback:', e);
+  }
+
+  const usedNames = new Set<string>();
+  const proposedOpen = new Map<string, any | null>();
+  if (assignments.length > 0) {
+    for (const a of assignments) {
+      if (!openSlots.some(s => s.date === a.date)) continue;
+      const s = a.sessionName ? sessionByName.get(normalizeName(a.sessionName)) : null;
+      if (s && !usedNames.has(s.day)) { proposedOpen.set(a.date, s); usedNames.add(s.day); }
+    }
+  }
+  const leftovers = pool.filter(s => !usedNames.has(s.day));
+  for (const slot of openSlots) {
+    if (proposedOpen.get(slot.date) != null) continue;
+    const next = leftovers.shift();
+    if (next) { proposedOpen.set(slot.date, next); usedNames.add(next.day); }
+    else proposedOpen.set(slot.date, null);
+  }
+
+  const proposedWeek = weekDays.map(d => {
+    if (d.date === date) {
+      return { ...d, session: chosenSession, isTrainingDay: true, isSwapped: true, locked: false };
+    }
+    if (d.date < date || loggedDates.has(d.date)) {
+      return { ...d, locked: true };
+    }
+    const s = proposedOpen.has(d.date) ? proposedOpen.get(d.date) : d.session;
+    const changed = (s?.day ?? null) !== (d.session?.day ?? null);
+    return { ...d, session: s ?? null, isTrainingDay: !!s, isSwapped: changed, locked: false };
+  });
+
+  return {
+    proposedWeek,
+    rationale: rationale || `Moved ${chosenSession.day} to today and re-spaced the rest of your week for recovery.`,
+    chosenSessionName: chosenSession.day,
+  };
+}
+
+// Shared apply path for a proposed week — agent confirm-proposal and the
+// /coach/apply-week-plan route both call this. Persists per-date overrides
+// and busts the same caches the original route did.
+export async function applyProposedWeek(
+  userId: string,
+  week: Array<{ date: string; session?: any; locked?: boolean }>,
+  reason: string | null,
+): Promise<{ applied: number }> {
+  const writable = week.filter(d => !d.locked);
+  await prisma.$transaction(
+    writable.map(d => prisma.scheduleOverride.upsert({
+      where: { userId_date: { userId, date: d.date } },
+      create: { userId, date: d.date, sessionJson: d.session ? JSON.stringify(d.session) : null, reason: reason ?? null },
+      update: { sessionJson: d.session ? JSON.stringify(d.session) : null, reason: reason ?? null },
+    })),
+  );
+  cacheClearByPrefix(`today:${userId}:`);
+  cacheClearByPrefix(`schedule:${userId}:`);
+  cacheClearByPrefix(`dashboard:${userId}:`);
+  cacheDelete(`userctx:${userId}`);
+  return { applied: writable.length };
+}
+
 // POST /api/coach/swap-day — propose swapping the chosen day's workout into the
 // target day (today) and re-balancing the rest of the week. Returns a proposed
 // week for the user to confirm; does NOT persist. Apply via /coach/apply-week-plan.
@@ -1098,125 +1256,13 @@ const swapDaySchema = z.object({
 router.post('/coach/swap-day', requireAuth, async (req, res) => {
   try {
     const { date, sourceDate } = swapDaySchema.parse(req.body);
-    if (date === sourceDate) return res.status(400).json({ error: 'Pick a different day to swap in.' });
-
-    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-    if (!user || !user.savedProgram) return res.status(400).json({ error: 'No active program' });
-
-    const today = getESTDateString();
-    const overrides = await fetchOverridesMap(req.user!.id, addDaysStr(today, -7), addDaysStr(today, 7));
-    const { weekDays } = buildScheduleData(user, overrides);
-
-    // Mark logged days (can't be reflowed/rewritten).
-    const weekStart = weekDays[0]?.date ?? today;
-    const weekEnd = weekDays[weekDays.length - 1]?.date ?? today;
-    const logs = await prisma.workoutLog.findMany({
-      where: { userId: req.user!.id, date: { gte: weekStart, lte: weekEnd } },
-      select: { date: true },
-    });
-    const loggedDates = new Set(logs.map(l => l.date.slice(0, 10)));
-
-    const targetDay = weekDays.find(d => d.date === date);
-    const sourceDay = weekDays.find(d => d.date === sourceDate);
-    if (!targetDay) return res.status(400).json({ error: 'Target day not in current week' });
-    if (!sourceDay || !sourceDay.session) return res.status(400).json({ error: 'Selected day has no workout to swap in' });
-
-    const chosenSession = sourceDay.session;                 // moves to the target day
-    const displacedSession = targetDay.session ?? null;      // needs a new home
-
-    // Future, unlocked slots we may re-arrange (strictly after target, not logged).
-    const openSlots = weekDays.filter(d => d.date > date && !loggedDates.has(d.date));
-
-    // Pool = future sessions + the displaced target session, minus one copy of
-    // the chosen session (it moved to the target day).
-    const pool: any[] = [];
-    for (const d of openSlots) if (d.session) pool.push(d.session);
-    if (displacedSession) pool.push(displacedSession);
-    const chosenIdx = pool.findIndex(s => s?.day === chosenSession.day);
-    if (chosenIdx >= 0) pool.splice(chosenIdx, 1);
-
-    // Name → session lookup. Keyed by a normalized form (lowercase, em/en-dash
-    // → '-', collapsed whitespace) because LLMs routinely return punctuation
-    // variants like "Day 4 - Lower" instead of the stored "Day 4 — Lower",
-    // which used to silently fail the exact-match lookup and drop every slot
-    // into Rest.
-    const normalizeName = (s: string) =>
-      s.toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim();
-    const sessionByName = new Map<string, any>();
-    for (const s of [chosenSession, displacedSession, ...pool]) {
-      if (s?.day) sessionByName.set(normalizeName(s.day), s);
-    }
-
-    // Ask the LLM to sequence the pool across the open slots (rest spacing).
-    let assignments: Array<{ date: string; sessionName: string | null }> = [];
-    let rationale = '';
-    try {
-      const result = await rebalanceWeekAfterSwap({
-        goal: user.coachGoal,
-        trainingAge: user.trainingAge,
-        lockedDays: [
-          { date, dayLabel: targetDay.dayLabel, sessionName: chosenSession.day, focus: chosenSession.focus, note: 'swapped in for today' },
-          ...weekDays
-            .filter(d => d.date < date || loggedDates.has(d.date))
-            .map(d => ({ date: d.date, dayLabel: d.dayLabel, sessionName: d.session?.day ?? null, focus: d.session?.focus ?? null, note: loggedDates.has(d.date) ? 'already logged' : 'past' })),
-        ],
-        openSlots: openSlots.map(d => ({ date: d.date, dayLabel: d.dayLabel })),
-        pool: pool.map(s => ({ name: s.day, focus: s.focus })),
-      });
-      assignments = result.assignments;
-      rationale = result.rationale;
-    } catch (e) {
-      console.error('[swap-day] LLM rebalance failed, using deterministic fallback:', e);
-    }
-
-    // Build proposed open-slot assignments. Prefer the LLM's mapping; fall back
-    // to placing the pool in order. Each pool session is used at most once.
-    const usedNames = new Set<string>();
-    const proposedOpen = new Map<string, any | null>();
-    if (assignments.length > 0) {
-      for (const a of assignments) {
-        if (!openSlots.some(s => s.date === a.date)) continue;
-        const s = a.sessionName ? sessionByName.get(normalizeName(a.sessionName)) : null;
-        if (s && !usedNames.has(s.day)) { proposedOpen.set(a.date, s); usedNames.add(s.day); }
-        // Intentionally do NOT set a null here. If the LLM placed null or named
-        // a session we couldn't match, leave the slot OPEN so the leftover
-        // pass below fills it. The old behavior set null here, then the
-        // leftover loop's `proposedOpen.has(...)` check skipped these slots,
-        // so any session we couldn't match got silently dropped into Rest.
-      }
-    }
-    // Fill any open slot the LLM didn't *successfully* address with leftover
-    // pool sessions in order. Uses `.get(...) !== undefined` rather than
-    // `.has(...)` so explicit-null entries above don't block leftover fill.
-    const leftovers = pool.filter(s => !usedNames.has(s.day));
-    for (const slot of openSlots) {
-      if (proposedOpen.get(slot.date) != null) continue;
-      const next = leftovers.shift();
-      if (next) { proposedOpen.set(slot.date, next); usedNames.add(next.day); }
-      else proposedOpen.set(slot.date, null);
-    }
-
-    // Assemble the proposed week for the client to confirm.
-    const proposedWeek = weekDays.map(d => {
-      if (d.date === date) {
-        return { ...d, session: chosenSession, isTrainingDay: true, isSwapped: true, locked: false };
-      }
-      if (d.date < date || loggedDates.has(d.date)) {
-        return { ...d, locked: true };
-      }
-      const s = proposedOpen.has(d.date) ? proposedOpen.get(d.date) : d.session;
-      const changed = (s?.day ?? null) !== (d.session?.day ?? null);
-      return { ...d, session: s ?? null, isTrainingDay: !!s, isSwapped: changed, locked: false };
-    });
-
-    res.json({
-      proposedWeek,
-      rationale: rationale || `Moved ${chosenSession.day} to today and re-spaced the rest of your week for recovery.`,
-    });
+    const { proposedWeek, rationale } = await buildSwapProposal(req.user!.id, date, sourceDate);
+    return res.json({ proposedWeek, rationale });
   } catch (err: any) {
+    if (err instanceof SwapProposalError) return res.status(err.status).json({ error: err.message });
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
     console.error('Swap-day error:', err);
-    res.status(500).json({ error: 'Failed to plan swap' });
+    return res.status(500).json({ error: 'Failed to plan swap' });
   }
 });
 

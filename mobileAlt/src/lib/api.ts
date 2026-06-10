@@ -286,10 +286,23 @@ export const coachApi = {
   // Persist a proposed program update (the second half of the propose →
   // confirm "Apply to my plan" flow). No LLM call — just the goal-preserving
   // validation + write path.
-  confirmProposal: (updatedProgram: any) =>
-    apiFetch('/coach/agent/confirm-proposal', {
-      method: 'POST', body: JSON.stringify({ updatedProgram }),
-    }),
+  // Accepts either { updatedProgram } (program_update kind) or
+  // { proposedWeek, reason? } (workout_swap kind). Backend route
+  // discriminates on which field is present.
+  confirmProposal: (
+    payload:
+      | any
+      | { updatedProgram: any }
+      | { proposedWeek: any[]; reason?: string }
+  ) => {
+    const body =
+      payload && (payload.updatedProgram || payload.proposedWeek)
+        ? payload
+        : { updatedProgram: payload };
+    return apiFetch('/coach/agent/confirm-proposal', {
+      method: 'POST', body: JSON.stringify(body),
+    });
+  },
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
   // Try the agentic Anakin first; the backend allowlist (AGENT_USER_ALLOWLIST)

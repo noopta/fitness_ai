@@ -67,14 +67,24 @@ export interface UserContext {
 }
 
 /** Structured proposal returned by a non-persisting tool (e.g.
- *  propose_program_update). Surfaced to clients so the UI can render a
- *  side-by-side diff and let the user confirm before persisting. */
-export interface AgentProposal {
-  kind: 'program_update';
-  updatedProgram: any;
-  summary: string;
-  changedDays?: string[];
-}
+ *  propose_program_update, propose_workout_swap). Discriminated union on
+ *  `kind` so new proposal shapes can be added without breaking existing
+ *  clients — they just ignore kinds they don't know how to render. */
+export type AgentProposal =
+  | {
+      kind: 'program_update';
+      updatedProgram: any;
+      summary: string;
+      changedDays?: string[];
+    }
+  | {
+      kind: 'workout_swap';
+      proposedWeek: any[];        // resolved week, returned by buildSwapProposal
+      rationale: string;
+      summary: string;
+      sourceDate: string;
+      chosenSessionName: string;
+    };
 
 /** Result of one agent turn. */
 export interface AgentTurnResult {

@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { parseMealMacros } from '../services/llmService.js';
 import { appendMemory } from './memory.js';
 import { applyMacroChange, applyProgramUpdate } from './applyTools.js';
+import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '../routes/coach.js';
 import type { AgentTool } from './types.js';
 
 const prisma = new PrismaClient();
@@ -472,6 +473,57 @@ const remember: AgentTool = {
   },
 };
 
+// ─── Schedule / swap-workout tools ──────────────────────────────────────────
+
+const readScheduleWeek: AgentTool = {
+  name: 'read_schedule_week',
+  description:
+    "Read the user's resolved training schedule for the current week (Mon–Sun) with any swap/override sessions already applied. Each day includes its date, day label, the planned session (name + focus + exercise list) or null for rest, and an isToday flag. Use this any time the user asks about 'today', 'this week', 'tomorrow', 'what's my workout', or wants to swap a day — it shows what's actually scheduled, including the effect of any prior swaps. Returns weekDays, today, weekNumber, phaseName, and goal.",
+  input_schema: { type: 'object', properties: {} },
+  execute: async (_input, userId) => {
+    return getCurrentWeekSchedule(userId);
+  },
+};
+
+const proposeWorkoutSwap: AgentTool = {
+  name: 'propose_workout_swap',
+  description:
+    "Propose pulling another day's training session into today (or another target day) and re-balancing the rest of the week for proper recovery spacing. Returns a proposed week the user must REVIEW and confirm before anything persists — the loop surfaces it on AgentTurnResult.proposal so the client can render the swap card. Always call read_schedule_week first so you know which date holds the workout the user wants to bring in. Inputs: date = target day to receive the workout (default = today), sourceDate = the day whose session to pull in. Goal- and recovery-preserving by construction (LLM rebalances spacing internally).",
+  input_schema: {
+    type: 'object',
+    properties: {
+      sourceDate: {
+        type: 'string',
+        description: 'YYYY-MM-DD — the date whose scheduled session should move into the target day.',
+      },
+      date: {
+        type: 'string',
+        description: 'YYYY-MM-DD — target day to receive the swapped-in session. Defaults to today (EST) if omitted.',
+      },
+    },
+    required: ['sourceDate'],
+  },
+  execute: async (input, userId) => {
+    const sourceDate = String(input.sourceDate ?? '');
+    const date = String(input.date ?? todayStr());
+    try {
+      const { proposedWeek, rationale, chosenSessionName } = await buildSwapProposal(userId, date, sourceDate);
+      return {
+        _proposal: true,
+        kind: 'workout_swap',
+        proposedWeek,
+        rationale,
+        sourceDate,
+        chosenSessionName,
+        summary: `Move ${chosenSessionName} into ${date}; rebalance the rest of the week.`,
+      };
+    } catch (err) {
+      if (err instanceof SwapProposalError) return { error: err.message };
+      throw err;
+    }
+  },
+};
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS: AgentTool[] = [
@@ -482,6 +534,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   readRecentWorkouts,
   readWellness,
   readProgram,
+  readScheduleWeek,
   readLatestDiagnostic,
   queryResearch,
   // Writes
@@ -492,6 +545,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   adjustMacros,
   applyProgramUpdateTool,
   proposeProgramUpdateTool,
+  proposeWorkoutSwap,
   remember,
 ];
 

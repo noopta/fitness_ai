@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
 import { runAgentTurn, streamAgentTurn, type AgentStreamEvent } from '../agent/loop.js';
+import { applyProposedWeek } from './coach.js';
 import { readMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
@@ -183,7 +184,13 @@ router.post('/coach/agent/task/:taskId', requireAuth, requireAgentAccess, checkA
 });
 
 const confirmProposalSchema = z.object({
-  updatedProgram: z.unknown(),
+  // program_update path (existing): pass the proposed full program object.
+  updatedProgram: z.unknown().optional(),
+  // workout_swap path (new): pass the proposed week (array of day objects
+  // with date + session) + optional reason. Mutually exclusive with
+  // updatedProgram — the kind is inferred from which field is present.
+  proposedWeek: z.array(z.any()).optional(),
+  reason: z.string().max(300).optional(),
 });
 
 // POST /api/coach/agent/confirm-proposal — second half of the
@@ -195,12 +202,21 @@ const confirmProposalSchema = z.object({
 // used directly. Cheap, deterministic, and bounded by the user's tap.
 router.post('/coach/agent/confirm-proposal', requireAuth, requireAgentAccess, async (req, res) => {
   try {
-    const { updatedProgram } = confirmProposalSchema.parse(req.body);
-    if (!updatedProgram || typeof updatedProgram !== 'object') {
-      return res.status(400).json({ error: 'updatedProgram must be the proposed program object.' });
+    const parsed = confirmProposalSchema.parse(req.body);
+
+    // workout_swap path — proposedWeek is present.
+    if (parsed.proposedWeek && Array.isArray(parsed.proposedWeek)) {
+      const result = await applyProposedWeek(req.user!.id, parsed.proposedWeek as any, parsed.reason ?? null);
+      return res.json({ success: true, kind: 'workout_swap', ...result });
     }
-    const result = await applyProgramUpdate(req.user!.id, updatedProgram);
-    res.json(result);
+
+    // program_update path — updatedProgram is present (existing behavior).
+    if (parsed.updatedProgram && typeof parsed.updatedProgram === 'object') {
+      const result = await applyProgramUpdate(req.user!.id, parsed.updatedProgram);
+      return res.json({ ...result, kind: 'program_update' });
+    }
+
+    return res.status(400).json({ error: 'Pass either updatedProgram (program_update) or proposedWeek (workout_swap).' });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request', details: err.errors });

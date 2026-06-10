@@ -178,7 +178,18 @@ export async function runAgentTurn(
         // structured proposal alongside the agent's text reply.
         if (result && typeof result === 'object' && (result as any)._proposal) {
           const r = result as any;
-          proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+          if (r.kind === 'workout_swap') {
+            proposal = {
+              kind: 'workout_swap',
+              proposedWeek: r.proposedWeek ?? [],
+              rationale: r.rationale ?? '',
+              summary: r.summary ?? 'Proposed workout swap',
+              sourceDate: r.sourceDate ?? '',
+              chosenSessionName: r.chosenSessionName ?? '',
+            };
+          } else {
+            proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+          }
         }
         toolResults.push({
           type: 'tool_result',
@@ -291,7 +302,18 @@ export async function streamAgentTurn(
         const result = await tool.execute(block.input as Record<string, unknown>, userId);
         if (result && typeof result === 'object' && (result as any)._proposal) {
           const r = result as any;
-          proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+          if (r.kind === 'workout_swap') {
+            proposal = {
+              kind: 'workout_swap',
+              proposedWeek: r.proposedWeek ?? [],
+              rationale: r.rationale ?? '',
+              summary: r.summary ?? 'Proposed workout swap',
+              sourceDate: r.sourceDate ?? '',
+              chosenSessionName: r.chosenSessionName ?? '',
+            };
+          } else {
+            proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+          }
         }
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) });
       } catch (err: any) {
