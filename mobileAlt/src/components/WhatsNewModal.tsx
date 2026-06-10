@@ -10,7 +10,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../constants/them
 // Bump this string when shipping a new round of headline features. Users on
 // any prior version (or fresh installs) see the modal exactly once after
 // updating; users who already saw it for this version don't.
-export const WHATS_NEW_VERSION = '1.2.1';
+export const WHATS_NEW_VERSION = '2.0.2';
 const STORAGE_KEY = 'whatsNew:lastSeenVersion';
 
 interface Feature {
@@ -22,34 +22,40 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    icon: 'nutrition',
-    iconColor: '#22c55e',
-    title: 'Nutrition tab, reimagined',
-    body: "A cleaner day view: sticky kcal hero up top, four macro rings, your workouts and meals on one timeline. Tap any ring to see Anakin's prescription for what's left.",
-  },
-  {
-    icon: 'flame',
-    iconColor: '#f97316',
-    title: 'Workouts count toward your day',
-    body: "Logged workouts add their estimated calorie burn back into your daily target, so a hard session means a bigger plate. Toggle off in Settings if your plan already assumes high activity.",
-  },
-  {
-    icon: 'mic',
+    icon: 'swap-horizontal',
     iconColor: '#6366f1',
-    title: 'Voice-log a meal',
-    body: "Tap Voice in the Nutrition tab, describe what you ate, and Anakin transcribes it and pulls the macros. Same path as Describe, hands-free.",
+    title: "Swap today's workout",
+    body: "Not feeling today's session? Tap Swap on the Program tab to pull another day's workout into today. Anakin re-sequences the rest of your week so you still get the right recovery between hard sessions.",
   },
   {
-    icon: 'library',
+    icon: 'share-social',
+    iconColor: '#22c55e',
+    title: 'Share your wins',
+    body: "Hit a protein goal or a new weight milestone? Tap the share icon to export a clean card to your stories. Built-in for both nutrition and weight progress.",
+  },
+  {
+    icon: 'people-circle',
     iconColor: '#0ea5e9',
-    title: 'Way more research sources',
-    body: 'The research feed now pulls from PubMed, OpenAlex, NIH ClinicalTrials, Huberman Lab, and the top medical schools (Stanford, Harvard, Oxford, Hopkins, Mayo, Cleveland, UCSF, Yale).',
+    title: 'Group chats',
+    body: "Train with friends? Start a group in Messages, share progress, and pull Anakin in for a daily check-in. Avatars, push notifications, and a shared coach in one thread.",
   },
   {
-    icon: 'create',
-    iconColor: '#ec4899',
-    title: 'Edit a logged meal',
-    body: "Tap any meal in the timeline to fix the portion or move it to a different slot. Long-press for the quick Delete shortcut.",
+    icon: 'trophy',
+    iconColor: '#f59e0b',
+    title: 'Protein goal celebration',
+    body: "Hit your daily protein target and we'll celebrate it in-app instead of pinging you with another push notification. The protein push is gone — the moment lives where it belongs, in the Nutrition tab.",
+  },
+  {
+    icon: 'lock-closed',
+    iconColor: '#a855f7',
+    title: 'Private posts',
+    body: 'Choose who sees each social post — friends only or fully private. The toggle is right next to the post button when you share.',
+  },
+  {
+    icon: 'shield-checkmark',
+    iconColor: '#ef4444',
+    title: 'More stable, faster',
+    body: 'Crash protection around the Coach tab, faster social feed loads, and lighter avatars throughout. Less waiting, fewer surprises.',
   },
 ];
 

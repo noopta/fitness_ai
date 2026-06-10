@@ -21,6 +21,7 @@ import { NutritionTab } from '../../src/components/coach/NutritionTab';
 import { WellnessTab } from '../../src/components/coach/WellnessTab';
 import { ChatTab } from '../../src/components/coach/ChatTab';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
+import { CoachDashboardSkeleton } from '../../src/components/ui/Skeleton';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -258,7 +259,7 @@ function CoachScreenInner() {
   if (loading || stage === 'loading') {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <LoadingSpinner message="Loading your coach..." />
+        <CoachDashboardSkeleton />
       </SafeAreaView>
     );
   }
