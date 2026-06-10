@@ -38,6 +38,25 @@ vi.mock('../services/cacheService.js', () => ({
   cacheDelete: vi.fn(), cacheClearByPrefix: vi.fn(), cacheGet: vi.fn(), cacheSet: vi.fn(),
 }));
 
+// Coach route helpers used by the new schedule + swap tools — stub them out
+// so the test doesn't transitively pull in the OpenAI client init when the
+// route file loads. Real swap behavior is exercised through coach route
+// tests (and the live e2e), not through the agent loop test.
+vi.mock('../routes/coach.js', () => ({
+  buildSwapProposal: vi.fn(async (_uid: string, _date: string, sourceDate: string) => ({
+    proposedWeek: [{ date: '2026-06-12', session: { day: 'Upper' }, isSwapped: true }],
+    rationale: 'Mock rebalance.',
+    chosenSessionName: 'Upper',
+  })),
+  getCurrentWeekSchedule: vi.fn(async () => ({
+    weekDays: [{ date: '2026-06-12', dayLabel: 'Fri', session: { day: 'Upper' } }],
+    today: '2026-06-12',
+    goal: 'strength',
+  })),
+  applyProposedWeek: vi.fn(async () => ({ applied: 1 })),
+  SwapProposalError: class extends Error { status = 400; },
+}));
+
 import { runAgentTurn } from '../agent/loop.js';
 import { assembleContext, renderContext } from '../agent/context.js';
 import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
