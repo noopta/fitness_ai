@@ -224,10 +224,10 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
     setMessages((prev) => [...prev, { role: 'assistant', content: '', id: streamId, _isTemp: true }]);
 
     try {
-      // coachApi.sendAgent calls /coach/agent (the tool-use loop). Server
+      // coachApi.sendChat calls /coach/agent (the tool-use loop). Server
       // manages conversation history so we don't pass it. Falls back to the
       // classic /coach/chat endpoint if the agent is disabled (404).
-      const result: any = await coachApi.sendAgent(text);
+      const result: any = await coachApi.sendChat(text);
       const reply: string = result?.reply ?? result?.message ?? '';
       const proposal: AgentProposal | undefined =
         result?.proposal && typeof result.proposal === 'object' ? result.proposal : undefined;
