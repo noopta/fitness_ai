@@ -263,7 +263,7 @@ TONE: Specific, data-driven, coach-like. Reference actual numbers from the signa
     : systemPrompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [
       { role: 'system', content: finalSystemPrompt },
       { role: 'user', content: 'Analyze the snapshot data and generate 3 tailored diagnostic questions.' }
@@ -369,7 +369,7 @@ Current question count: ${questionCount}/8`;
   });
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages,
     max_completion_tokens: 1000
   });
@@ -555,7 +555,7 @@ OUTPUT ONLY VALID JSON:
     : systemPrompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [
       { role: 'system', content: finalSystemPrompt },
       { role: 'user', content: 'Generate the workout plan now.' }
@@ -1069,7 +1069,7 @@ OUTPUT FORMAT (JSON only):
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 1500,
     response_format: { type: 'json_object' },
@@ -1131,7 +1131,7 @@ OUTPUT FORMAT (JSON object with "meals" array):
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 2000,
     response_format: { type: 'json_object' },
@@ -1337,7 +1337,7 @@ OUTPUT FORMAT — Return valid JSON only:
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 8000,
     response_format: { type: 'json_object' },
@@ -1393,7 +1393,7 @@ Output only the insight text, no JSON, no labels.`;
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 700,
   });
@@ -1422,7 +1422,7 @@ Output only the recommendation text, no JSON, no labels.`;
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 700,
   });
@@ -1487,7 +1487,7 @@ INSTRUCTIONS:
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 1000,
   });
@@ -1602,7 +1602,7 @@ OUTPUT — valid JSON only:
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5.4-nano',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 2500,
     response_format: { type: 'json_object' },
@@ -1682,7 +1682,7 @@ OUTPUT — valid JSON only, one assignment per open slot in the same order:
 }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5.4-nano',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 1200,
     response_format: { type: 'json_object' },
@@ -1898,7 +1898,7 @@ digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" =
 biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 1200,
     response_format: { type: 'json_object' },
@@ -1977,7 +1977,7 @@ OUTPUT FORMAT (JSON only, no explanation):
 "slots" entries must be one of: breakfast | lunch | dinner | snack | meal`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1-mini',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 600,
     response_format: { type: 'json_object' },
@@ -2223,7 +2223,7 @@ Example format:
 ["insight 1", "insight 2", "insight 3", "insight 4"]`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 300,
     response_format: { type: 'json_object' },
@@ -2286,7 +2286,7 @@ Example tone (returning): "Your quad dominance is still the bottleneck — Week 
 Example tone (new): "Your first phase is built around fixing the most common weak point for your goal — stay patient with the process, the work compounds fast."`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4.1',
+    model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 120,
   });

@@ -113,7 +113,7 @@ async function summarize(title: string, rawText: string, type: 'research' | 'art
     : 'This is a health/fitness article from a reputable source.';
 
   const response = await (openai as any).responses.create({
-    model: 'gpt-5-mini-2025-08-07',
+    model: 'gpt-5.4-mini',
     input: `${context} Write a 2–3 sentence plain-English summary a fitness enthusiast would find useful. Be specific about the finding or key takeaway. Do not start with "This study" or "This article".\n\nTitle: ${title}\n\nContent: ${rawText.slice(0, 1500)}`,
     reasoning: { effort: 'low' },
     text: { verbosity: 'low' },
