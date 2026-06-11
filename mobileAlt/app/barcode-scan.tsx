@@ -1,14 +1,19 @@
 // Barcode-scan flow. Opens the camera with a guide reticle, fires once on
 // the first valid product barcode (EAN-13/UPC-A/EAN-8/UPC-E etc.), looks
 // the code up in OpenFoodFacts via the backend, and routes the result
-// into ManualEntrySheet (pre-filled) so the user can adjust portion size
-// before logging. 404 → manual entry empty, user can still type the meal.
+// into the barcode-confirm screen.
+//
+// IMPORTANT — same pattern as the Sentry-disable note in _layout.tsx:
+// `expo-camera` is a native module. If we import it at the top of this
+// file, an OTA update delivered to a binary that does NOT include the
+// camera plugin will crash on file load. To avoid that, the import is
+// LAZY (inside a try/catch around require) and we render a friendly
+// "needs the latest version" fallback when the module isn't present.
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform,
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform,
 } from 'react-native';
-import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,27 +23,50 @@ import { colors, spacing, radius, fontSize, fontWeight } from '../src/constants/
 
 const SCAN_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] as const;
 
+// Lazy-load expo-camera. Wrapped in try/catch so an OTA on an old binary
+// (no expo-camera plugin) shows the upgrade screen instead of crashing.
+type ExpoCameraModule = typeof import('expo-camera');
+function loadCameraModule(): ExpoCameraModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    return require('expo-camera') as ExpoCameraModule;
+  } catch {
+    return null;
+  }
+}
+type BarcodeScanningResult = { data: string };
+
 export default function BarcodeScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [permission, requestPermission] = useCameraPermissions();
+  const [cameraModule] = useState(() => loadCameraModule());
   const [lookingUp, setLookingUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Single-fire guard — the camera fires onBarcodeScanned multiple times per
   // second once a code is locked. We only want to hit the API once.
   const firedRef = useRef(false);
 
+  // useCameraPermissions is itself part of expo-camera. Calling the hook
+  // unconditionally would crash on binaries without the native module, so
+  // we route through the lazy-loaded module and degrade gracefully when
+  // it's missing.
+  const useCameraPermissions = cameraModule?.useCameraPermissions;
+  const permissionTuple = useCameraPermissions ? useCameraPermissions() : [null, () => Promise.resolve({ granted: false, canAskAgain: false } as any)];
+  const permission = permissionTuple[0] as { granted: boolean; canAskAgain: boolean } | null;
+  const requestPermission = permissionTuple[1];
+
   useEffect(() => {
     Analytics.barcodeScanOpened?.();
   }, []);
 
-  // Auto-request permission on first mount. Some users will deny — we show
-  // a fallback CTA in that branch.
+  // Auto-request permission on first mount. Skipped when the camera module
+  // isn't loaded (old binary path — the upgrade screen renders instead).
   useEffect(() => {
+    if (!cameraModule) return;
     if (permission && !permission.granted && permission.canAskAgain) {
-      requestPermission();
+      void requestPermission();
     }
-  }, [permission, requestPermission]);
+  }, [permission, requestPermission, cameraModule]);
 
   async function handleScanned(result: BarcodeScanningResult) {
     if (firedRef.current) return;
@@ -90,6 +118,29 @@ export default function BarcodeScanScreen() {
     }
   }
 
+  // Native module not in this binary (legacy TestFlight build that predates
+  // the expo-camera plugin addition). Render an "update needed" screen
+  // instead of crashing — the user can install a fresh build and the
+  // scanner will work then.
+  if (!cameraModule) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centerWrap}>
+          <Ionicons name="cloud-download-outline" size={48} color={colors.mutedForeground} />
+          <Text style={styles.title}>Update needed</Text>
+          <Text style={styles.body}>
+            The barcode scanner needs the latest version of Axiom. Install
+            the newest build from TestFlight or the App Store, then come back
+            and try again.
+          </Text>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => router.back()}>
+            <Text style={styles.primaryBtnText}>Go back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // Permission denied — give the user a way out.
   if (permission && !permission.granted && !permission.canAskAgain) {
     return (
@@ -119,12 +170,13 @@ export default function BarcodeScanScreen() {
     );
   }
 
+  const CameraView = cameraModule.CameraView;
   return (
     <View style={styles.cameraWrap}>
       <CameraView
         style={StyleSheet.absoluteFill}
         facing="back"
-        barcodeScannerSettings={{ barcodeTypes: [...SCAN_TYPES] }}
+        barcodeScannerSettings={{ barcodeTypes: [...SCAN_TYPES] as any }}
         onBarcodeScanned={lookingUp ? undefined : handleScanned}
       />
 
