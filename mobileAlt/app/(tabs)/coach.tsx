@@ -25,6 +25,7 @@ import { CoachDashboardSkeleton } from '../../src/components/ui/Skeleton';
 import { CoachMarkTooltip } from '../../src/components/CoachMarkTooltip';
 import { TOURS } from '../../src/lib/coachMarks';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
+import { maybeShowPostPlanPaywall } from '../../src/lib/paywallTriggers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -254,6 +255,11 @@ function CoachScreenInner() {
       // Continue
     }
     setStage('dashboard');
+    // Value-moment paywall: just generated their first plan = peak excitement.
+    // One-shot per user; fires only for free tier and only the first time.
+    void maybeShowPostPlanPaywall({ tier: user?.tier }).then((shouldShow) => {
+      if (shouldShow) setUpgradeVisible(true);
+    });
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────

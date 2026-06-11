@@ -24,6 +24,8 @@ import { WorkoutLogModal } from './WorkoutLogModal';
 import { SwapWorkoutModal } from './SwapWorkoutModal';
 import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
 import { Analytics } from '../../lib/analytics';
+import { UpgradeSheet } from '../UpgradeSheet';
+import { maybeShowPostWorkoutPaywall } from '../../lib/paywallTriggers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -335,6 +337,9 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
   const [swapVisible, setSwapVisible] = useState(false);
   const [logWorkoutVisible, setLogWorkoutVisible] = useState(false);
   const [workoutSaved, setWorkoutSaved] = useState(false);
+  // Value-moment paywall — opened by handleWorkoutSaved when the user hits
+  // their 3rd workout and is still on the free tier. One-shot per user.
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const [pastLogVisible, setPastLogVisible] = useState(false);
   const [dayLogData, setDayLogData] = useState<{ exercises: Exercise[]; date: string; title?: string } | null>(null);
@@ -470,6 +475,11 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
   function handleWorkoutSaved(loggedDate?: string) {
     setWorkoutSaved(true);
     setTimeout(() => setWorkoutSaved(false), 3000);
+    // Value-moment paywall — fires once after the user's 3rd logged workout
+    // (free tier only). Habit-formed signal == best moment to offer Pro.
+    void maybeShowPostWorkoutPaywall({ tier: user?.tier }).then((shouldShow) => {
+      if (shouldShow) setPaywallVisible(true);
+    });
     if (loggedDate) {
       const dateKey = loggedDate.slice(0, 10);
       setScheduleData(prev => prev ? {
@@ -922,6 +932,14 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
           )
         )}
       </BottomSheet>
+
+      {/* Value-moment paywall (D.4). Triggers from handleWorkoutSaved on the
+          3rd logged workout; one-shot per user via paywallTriggers.ts. */}
+      <UpgradeSheet
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
+        onSuccess={() => setPaywallVisible(false)}
+      />
     </>
   );
 }

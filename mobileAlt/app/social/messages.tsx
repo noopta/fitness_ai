@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { RefreshControl } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Image,
 } from 'react-native';
@@ -59,6 +61,7 @@ export default function MessagesScreen() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const didCreate = React.useRef(false);
 
@@ -77,6 +80,29 @@ export default function MessagesScreen() {
 
   useEffect(() => {
     loadAll();
+  }, [loadAll]);
+
+  // Focused polling — refresh the inbox every 5s while the user is on this
+  // screen so new DMs/group messages show up without a screen-leave-return.
+  // Hibernates when the screen blurs (the cleanup) and on logout/unmount.
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      // Refresh once on focus (covers the "left screen, came back" path).
+      void loadAll();
+      pollRef.current = setInterval(() => { void loadAll(); }, 5000);
+      return () => {
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+      };
+    }, [loadAll]),
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await loadAll(); } finally { setRefreshing(false); }
   }, [loadAll]);
 
   // Merge DMs + groups into one list sorted by most recent activity.
@@ -248,6 +274,9 @@ export default function MessagesScreen() {
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.foreground} />
+          }
         >
           {rows.map((row) =>
             row.kind === 'dm'

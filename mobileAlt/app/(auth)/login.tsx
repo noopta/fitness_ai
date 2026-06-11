@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import { Ionicons } from '@expo/vector-icons';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { GoogleLogo } from '../../src/components/ui/GoogleLogo';
 import { Input } from '../../src/components/ui/Input';
@@ -233,6 +234,24 @@ export default function LoginScreen() {
             </>
           )}
 
+          {/* Pre-auth value teaser — primary route for evaluators per the
+              user-psychology report. Hands them a concrete result before the
+              signup wall. (D.6) */}
+          {!orgMode && (
+            <Pressable
+              onPress={() => {
+                Analytics.diagnosticPreviewStarted?.();
+                router.push('/(auth)/diagnostic-preview');
+              }}
+              style={styles.teaserLink}
+            >
+              <Ionicons name="flash" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+              <Text style={styles.teaserLinkText}>
+                Try the <Text style={styles.teaserLinkHighlight}>60-second strength check</Text>
+              </Text>
+            </Pressable>
+          )}
+
           {/* Register link */}
           {!orgMode && (
             <Pressable
@@ -370,6 +389,22 @@ const styles = StyleSheet.create({
   },
 
   registerLink: { alignItems: 'center', paddingVertical: spacing.sm },
+
+  // Pre-auth diagnostic teaser link (D.6)
+  teaserLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.sm,
+    backgroundColor: `${colors.primary}10`,
+  },
+  teaserLinkText: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.medium },
+  teaserLinkHighlight: { color: colors.primary, fontWeight: fontWeight.bold },
   registerLinkText: { fontSize: fontSize.sm, color: colors.mutedForeground },
   registerLinkHighlight: { color: colors.foreground, fontWeight: fontWeight.semibold },
 

@@ -524,6 +524,37 @@ const proposeWorkoutSwap: AgentTool = {
   },
 };
 
+const proposeExerciseSwap: AgentTool = {
+  name: 'propose_exercise_swap',
+  description:
+    "Propose substituting one exercise in the user's training program with another (e.g. swap Back Squat for Bulgarian Split Squat when their knee is bothering them on bilateral work). Returns a program_update proposal — the client renders Apply/Not now buttons and persists via the same goal-preserving confirm-proposal path used by propose_program_update. Always call read_program first to get the exact exercise name + which day(s) it appears on so the proposal references the real plan, not a hallucinated one. Inputs: fromExerciseName = exact name as it appears in the program; toExerciseName = the replacement; reason = one short sentence the agent will surface in the proposal summary (e.g. 'knee discomfort on squats').",
+  input_schema: {
+    type: 'object',
+    properties: {
+      fromExerciseName: { type: 'string', description: 'Exact name of the exercise to replace, e.g. "Back Squat".' },
+      toExerciseName:   { type: 'string', description: 'Exact name of the replacement, e.g. "Bulgarian Split Squat".' },
+      reason:           { type: 'string', description: 'One short sentence explaining the swap (e.g. equipment, injury, preference).' },
+      updatedProgram:   {
+        type: 'object',
+        description: 'The COMPLETE updated training program object (same shape as read_program returns), with fromExerciseName replaced by toExerciseName everywhere it appears. Reps/sets/RPE should map sensibly to the new movement.',
+      },
+    },
+    required: ['fromExerciseName', 'toExerciseName', 'updatedProgram'],
+  },
+  execute: async (input) => {
+    const from = String(input.fromExerciseName ?? '');
+    const to   = String(input.toExerciseName ?? '');
+    const reason = String(input.reason ?? '');
+    return {
+      _proposal: true,
+      kind: 'program_update', // shares the confirm-proposal path with propose_program_update
+      updatedProgram: input.updatedProgram,
+      summary: `Swap ${from} → ${to}${reason ? ` (${reason})` : ''}`,
+      changedDays: [],
+    };
+  },
+};
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS: AgentTool[] = [
@@ -546,6 +577,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   applyProgramUpdateTool,
   proposeProgramUpdateTool,
   proposeWorkoutSwap,
+  proposeExerciseSwap,
   remember,
 ];
 

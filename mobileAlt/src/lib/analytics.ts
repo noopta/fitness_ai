@@ -109,6 +109,14 @@ export const Analytics = {
   socialProofShown: (count: number) =>
     posthog.capture('signup_social_proof_shown', { user_count: count }),
 
+  // ── Diagnostic teaser (pre-auth value preview) ───────────────────────────
+  diagnosticPreviewStarted: () =>
+    posthog.capture('diagnostic_preview_started'),
+  diagnosticPreviewCompleted: (props: { tier: string; weakest?: string }) =>
+    posthog.capture('diagnostic_preview_completed', props),
+  diagnosticPreviewToSignup: (props: { tier: string }) =>
+    posthog.capture('diagnostic_preview_to_signup', props),
+
   // ── Navigation ────────────────────────────────────────────────────────────
   coachDashboardOpened: (source: 'home_cta' | 'tab' | 'upsell') =>
     posthog.capture('coach_dashboard_opened', { source }),

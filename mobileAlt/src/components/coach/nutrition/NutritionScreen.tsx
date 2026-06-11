@@ -37,6 +37,7 @@ import { ManualEntrySheet } from './sheets/ManualEntrySheet';
 import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
 import { WeightDetailScreen } from './WeightDetailScreen';
 import { ProteinCelebration } from './ProteinCelebration';
+import { UpgradeSheet } from '../../UpgradeSheet';
 import { NutritionShareModal, type MacroSummary } from '../../share/NutritionShareModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -268,14 +269,20 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         if (already || cancelled) return;
         await AsyncStorage.setItem(key, '1');
         if (!cancelled) setShowProteinCelebration(true);
+        // D.4: value-moment paywall — first-ever protein-goal hit is a high
+        // positive-reinforcement moment. One-shot per user, free tier only.
+        const { maybeShowProteinHitPaywall } = await import('../../../lib/paywallTriggers');
+        const shouldShow = await maybeShowProteinHitPaywall({ tier: user?.tier });
+        if (!cancelled && shouldShow) setProteinHitPaywallVisible(true);
       } catch {
-        // If storage fails, still celebrate (better a possible repeat than
-        // never), but only once per mount thanks to the ref guard above.
         if (!cancelled) setShowProteinCelebration(true);
       }
     })();
     return () => { cancelled = true; };
-  }, [used.p, targetProtein]);
+  }, [used.p, targetProtein, user?.tier]);
+
+  // Paywall state surfaced after the protein-celebration animation finishes.
+  const [proteinHitPaywallVisible, setProteinHitPaywallVisible] = useState(false);
 
   // ── Nutrition share card + goal-hit prompt ───────────────────────────────
   const [shareVisible, setShareVisible] = useState(false);
@@ -585,6 +592,13 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       <ProteinCelebration
         visible={showProteinCelebration}
         onDone={() => setShowProteinCelebration(false)}
+      />
+
+      {/* D.4: value-moment paywall on first protein-goal hit (free users). */}
+      <UpgradeSheet
+        visible={proteinHitPaywallVisible}
+        onClose={() => setProteinHitPaywallVisible(false)}
+        onSuccess={() => setProteinHitPaywallVisible(false)}
       />
 
       {/* Goal-hit prompt → opens the shareable nutrition card */}

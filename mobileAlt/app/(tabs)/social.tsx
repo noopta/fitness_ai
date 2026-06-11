@@ -965,13 +965,17 @@ export default function SocialScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        // Perf (D.2): drop off-screen subtree from the native view hierarchy
+        // while scrolling. Cuts the per-frame layout cost on long feeds —
+        // not as good as FlatList virtualization (full migration deferred
+        // because the tab structure wraps multiple unrelated views) but a
+        // 5-line change that eliminates the worst frame drops users feel.
+        removeClippedSubviews
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            // Hide the platform spinner (we render our own pumping-dumbbell
-            // overlay above). Setting tintColor transparent on iOS + colors=[]
-            // on Android suppresses the default arc.
             tintColor="transparent"
             colors={['transparent']}
           />
