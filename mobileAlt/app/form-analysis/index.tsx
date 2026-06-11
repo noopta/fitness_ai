@@ -20,7 +20,16 @@ import { formAnalysisApi, type WorkoutVideoAnalysis } from '../../src/lib/api';
 import { posthog } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
-type Stage = 'capture' | 'analyzing' | 'result';
+// 'capture'    — upload picker
+// 'uploading'  — POST /form-analysis/video still in flight (shows spinner)
+// 'submitted'  — backend has the video, analysis running in background. User
+//                free to leave; they can come back via the Diagnostics tab or
+//                the "analysis ready" push notification.
+// 'analyzing'  — used ONLY for the deep-link entry (notification tap). We
+//                poll to terminal state here because the user explicitly
+//                navigated INTO viewing the analysis.
+// 'result'     — final analysis rendered
+type Stage = 'capture' | 'uploading' | 'submitted' | 'analyzing' | 'result';
 
 const SEVERITY_COLOR: Record<string, string> = {
   minor: colors.warning,
@@ -39,6 +48,9 @@ export default function FormAnalysisScreen() {
   const [analysis, setAnalysis] = useState<WorkoutVideoAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  // Persisted across the in-flight analysis so the submitted-state CTA can
+  // route the user straight into the detail view if they tap Track progress.
+  const [submittedId, setSubmittedId] = useState<string | null>(null);
   // Async polling: status the server reports while we wait for the
   // background Gemini analysis. 'uploading' → upload still in flight,
   // 'pending' → uploaded and being analyzed.
@@ -80,34 +92,22 @@ export default function FormAnalysisScreen() {
     await analyze(a.uri, mimeType);
   };
 
+  // New analysis: upload → submitted state. We no longer block on
+  // pollUntilDone here — the user can leave the screen freely and find the
+  // result in the Diagnostics tab (or via the "analysis ready" push). This
+  // is the fix for "users had to stay on screen until done."
   const analyze = async (uri: string, mimeType: string) => {
-    setStage('analyzing');
+    setStage('uploading');
     setError(null);
-    setProgressLabel('Uploading your clip…');
     try {
-      // Phase 1: upload — backend returns 202 the moment the upload + GCS
-      // save are done, before Gemini runs. Usually 5-20s.
+      // Backend returns 202 the moment the upload + GCS save are done,
+      // before Gemini runs. Usually 5-20s.
       const started = await formAnalysisApi.start(uri, mimeType, hint);
-      setProgressLabel('Anakin is reviewing your form…');
-
-      // Phase 2: poll the row every 4s until status is terminal. The hard
-      // 5-min timeout in pollUntilDone matches the server-side sweeper that
-      // marks long-pending rows as failed.
-      const detail = await formAnalysisApi.pollUntilDone(started.id, {
-        intervalMs: 4000,
-        onTick: (d) => {
-          if (d.status === 'pending') setProgressLabel('Anakin is reviewing your form…');
-        },
-      });
-
-      if (detail.status === 'failed') {
-        setError(detail.errorMessage ?? 'Could not analyze that video. Try again.');
-        setStage('capture');
-        return;
-      }
-      posthog.capture('form_video_analyzed', { exercise: detail.analysis?.exercise });
-      setAnalysis(detail.analysis);
-      setStage('result');
+      // Remember the in-flight analysis id so we can deep-link to the
+      // detail screen if the user taps "Track progress" below.
+      setSubmittedId(started.id);
+      setStage('submitted');
+      posthog.capture('form_video_submitted', { analysisId: started.id });
     } catch (err: any) {
       if (err?.status === 429) {
         setStage('capture');
@@ -121,7 +121,7 @@ export default function FormAnalysisScreen() {
         );
         return;
       }
-      setError(err?.message ?? 'Could not analyze that video. Try again.');
+      setError(err?.message ?? 'Could not upload that video. Try again.');
       setStage('capture');
     }
   };
@@ -199,12 +199,70 @@ export default function FormAnalysisScreen() {
           </>
         )}
 
+        {/* In-flight upload (POST /form-analysis/video). Brief: should resolve
+            within 5-20s. Once it resolves we transition straight to
+            'submitted' — we no longer block-poll for the LLM result. */}
+        {stage === 'uploading' && (
+          <View style={styles.analyzingBox}>
+            <ActivityIndicator color={colors.foreground} />
+            <Text style={styles.analyzingText}>Uploading your clip…</Text>
+            <Text style={styles.analyzingSub}>This usually takes 5–20 seconds.</Text>
+          </View>
+        )}
+
+        {/* Submitted state: backend has the video, analysis is running in the
+            background. User is FREE to leave — we'll notify them on done +
+            it'll appear in the Diagnostics tab. This is the fix for "users
+            had to stay on screen until done." */}
+        {stage === 'submitted' && (
+          <View style={styles.analyzingBox}>
+            <View style={styles.submittedIconWrap}>
+              <Ionicons name="checkmark-circle" size={48} color={colors.primary} />
+            </View>
+            <Text style={styles.analyzingText}>Submitted for analysis</Text>
+            <Text style={styles.analyzingSub}>
+              Anakin is reviewing your form (~30–60 seconds). You'll get a push notification when it's done, and you can always find it in the Diagnostics tab.
+            </Text>
+            <View style={styles.submittedActions}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={() => router.replace('/(tabs)/history')}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="analytics-outline" size={16} color={colors.primaryForeground} />
+                <Text style={styles.primaryBtnText}>View in Diagnostics</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.secondaryBtn}
+                onPress={reset}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.secondaryBtnText}>Analyze another</Text>
+              </TouchableOpacity>
+              {submittedId ? (
+                <TouchableOpacity
+                  style={styles.linkBtn}
+                  onPress={() => {
+                    // Deep-link path on the same screen — useEffect picks it up.
+                    router.replace({ pathname: '/form-analysis', params: { id: submittedId } });
+                  }}
+                >
+                  <Text style={styles.linkBtnText}>Wait here for the result</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+        )}
+
+        {/* Deep-link viewing path: notification tap or "wait here" button
+            from above. We poll here because the user explicitly navigated
+            INTO viewing this specific analysis. */}
         {stage === 'analyzing' && (
           <View style={styles.analyzingBox}>
             <ActivityIndicator color={colors.foreground} />
             <Text style={styles.analyzingText}>{progressLabel}</Text>
             <Text style={styles.analyzingSub}>
-              Typically 30–60 seconds. You can leave this screen and come back — your analysis is being processed on our servers.
+              You can leave this screen and come back — your analysis is being processed on our servers.
             </Text>
           </View>
         )}
@@ -343,10 +401,27 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
   },
   tileLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
-  analyzingBox: { alignItems: 'center', paddingVertical: 48, gap: spacing.sm },
+  analyzingBox: { alignItems: 'center', paddingVertical: 48, gap: spacing.sm, paddingHorizontal: spacing.lg },
   analyzingText: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.foreground },
-  analyzingSub: { fontSize: fontSize.sm, color: colors.mutedForeground },
+  analyzingSub: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20 },
   errorText: { color: colors.destructive, fontSize: fontSize.sm, marginTop: spacing.sm },
+
+  // Submitted-state (async result delivery)
+  submittedIconWrap: { marginBottom: spacing.sm },
+  submittedActions: { width: '100%', marginTop: spacing.lg, gap: spacing.sm },
+  primaryBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: colors.foreground,
+    paddingVertical: 15, borderRadius: radius.full,
+  },
+  primaryBtnText: { color: colors.primaryForeground, fontWeight: fontWeight.semibold, fontSize: fontSize.sm },
+  secondaryBtn: {
+    paddingVertical: 13, borderRadius: radius.full,
+    borderWidth: 1, borderColor: colors.border, alignItems: 'center',
+  },
+  secondaryBtnText: { color: colors.foreground, fontWeight: fontWeight.semibold, fontSize: fontSize.sm },
+  linkBtn: { alignItems: 'center', paddingVertical: 8 },
+  linkBtnText: { color: colors.mutedForeground, fontSize: fontSize.sm },
 
   scoreCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, Alert, Animated,
 } from 'react-native';
@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
-import { liftCoachApi } from '../../src/lib/api';
+import { liftCoachApi, formAnalysisApi, type FormAnalysisListItem } from '../../src/lib/api';
+import { useFocusEffect } from 'expo-router';
 import { Badge } from '../../src/components/ui/Badge';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -108,6 +109,51 @@ function SectionLabel({ title, count }: { title: string; count: number }) {
   );
 }
 
+// Row for one form-video analysis. Pending rows pulse a faint indicator;
+// complete rows show the score; failed rows show the error and let the user
+// retry by tapping into the detail (which will route them back to capture).
+function FormAnalysisCard({ item }: { item: FormAnalysisListItem }) {
+  const router = useRouter();
+  const pending = item.status === 'pending';
+  const failed  = item.status === 'failed';
+  const exercise = item.exercise || (pending ? 'Detecting lift…' : 'Unknown');
+
+  return (
+    <Pressable
+      onPress={() => router.push(`/form-analysis?id=${item.id}`)}
+      style={({ pressed }) => [styles.sessionCard, { opacity: pressed ? 0.72 : 1 }]}
+    >
+      <View style={styles.row}>
+        <Ionicons
+          name={pending ? 'time-outline' : failed ? 'alert-circle-outline' : 'videocam-outline'}
+          size={18}
+          color={pending ? colors.mutedForeground : failed ? colors.destructive ?? '#ef4444' : colors.foreground}
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.liftName} numberOfLines={1}>{exercise}</Text>
+      </View>
+
+      <View style={[styles.row, { marginTop: 6, gap: 8 }]}>
+        {pending ? (
+          <Badge variant="secondary">Analyzing…</Badge>
+        ) : failed ? (
+          <Badge variant="destructive">Failed</Badge>
+        ) : (
+          <>
+            {item.formScore != null && (
+              <Badge variant="secondary">Score {Math.round(item.formScore)}/10</Badge>
+            )}
+            {item.repCount != null && (
+              <Badge variant="secondary">{item.repCount} rep{item.repCount === 1 ? '' : 's'}</Badge>
+            )}
+          </>
+        )}
+        <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export default function HistoryScreen() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -124,6 +170,33 @@ export default function HistoryScreen() {
       .catch(() => setSessions([]))
       .finally(() => setLoading(false));
   }, []);
+
+  // ── Form-video analyses (async surface) ────────────────────────────────────
+  // Listed alongside diagnostic sessions so users who uploaded a video and
+  // left the screen can come back here, find it, and tap into the result.
+  // Polls every 4s while there's a pending row so the "Analyzing…" badge
+  // flips to "Tap to view" without the user having to refresh manually.
+  const [formAnalyses, setFormAnalyses] = useState<FormAnalysisListItem[]>([]);
+
+  const loadFormAnalyses = useCallback(async () => {
+    try {
+      const data = await formAnalysisApi.list();
+      setFormAnalyses(Array.isArray(data?.analyses) ? data.analyses : []);
+    } catch {
+      setFormAnalyses([]);
+    }
+  }, []);
+
+  useEffect(() => { void loadFormAnalyses(); }, [loadFormAnalyses]);
+
+  // Smart polling: only when there's an unfinished analysis. Idle otherwise.
+  useFocusEffect(useCallback(() => {
+    void loadFormAnalyses();
+    const hasPending = formAnalyses.some((a) => a.status === 'pending');
+    if (!hasPending) return;
+    const t = setInterval(() => { void loadFormAnalyses(); }, 4000);
+    return () => clearInterval(t);
+  }, [loadFormAnalyses, formAnalyses]));
 
   async function handleDelete(id: string) {
     try {
@@ -156,7 +229,7 @@ export default function HistoryScreen() {
         <View style={styles.center}>
           <LoadingSpinner message="Loading sessions…" />
         </View>
-      ) : sessions.length === 0 ? (
+      ) : sessions.length === 0 && formAnalyses.length === 0 ? (
         <View style={styles.center}>
           <Ionicons name="time-outline" size={40} color={colors.mutedForeground} />
           <Text style={styles.emptyTitle}>No sessions yet</Text>
@@ -175,6 +248,15 @@ export default function HistoryScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Form video analyses — listed first because pending rows update
+              live (4s poll while focused) and most users will be coming
+              back here to check on one. */}
+          {formAnalyses.length > 0 && (
+            <View style={styles.section}>
+              <SectionLabel title="Form videos" count={formAnalyses.length} />
+              {formAnalyses.map((a) => <FormAnalysisCard key={a.id} item={a} />)}
+            </View>
+          )}
           {completed.length > 0 && (
             <View style={styles.section}>
               <SectionLabel title="Completed" count={completed.length} />
