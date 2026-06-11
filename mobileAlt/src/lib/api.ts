@@ -418,7 +418,31 @@ export const coachApi = {
 
 // ─── Nutrition / Meal Logging API ─────────────────────────────────────────────
 
+export interface BarcodeLookupResult {
+  code: string;
+  name: string;
+  brand: string | null;
+  imageUrl: string | null;
+  per100g: {
+    calories: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+    fiberG: number | null;
+    sugarG: number | null;
+    sodiumMg: number | null;
+  };
+  servingSize: string | null;
+  servingQuantityG: number | null;
+  source: 'openfoodfacts';
+}
+
 export const nutritionApi = {
+  // Look up a UPC/EAN/GTIN barcode in OpenFoodFacts. Throws on 404 (barcode
+  // not in DB) — caller should fall through to manual entry / LLM parse.
+  lookupBarcode: (code: string): Promise<BarcodeLookupResult> =>
+    apiFetch(`/nutrition/barcode/${encodeURIComponent(code)}`),
+
   // Individual meal entries
   getMeals: (date?: string) =>
     apiFetch(`/nutrition/meals${date ? `?date=${date}` : ''}`),

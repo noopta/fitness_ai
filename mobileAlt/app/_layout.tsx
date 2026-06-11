@@ -18,6 +18,7 @@ import { UnitsProvider } from '../src/context/UnitsContext';
 import { LoadingSpinner } from '../src/components/ui/LoadingSpinner';
 import { colors } from '../src/constants/theme';
 import { usePushNotifications } from '../src/lib/usePushNotifications';
+import { ensureDailyReminderScheduled, cancelDailyReminder } from '../src/lib/dailyReminder';
 import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/components/WhatsNewModal';
 import { hydrateCacheFromStorage } from '../src/lib/cache';
@@ -82,6 +83,16 @@ function RootNavigator() {
   }, [cacheReady, loading, user?.id, needsDobCheck]);
 
   usePushNotifications(!!user);
+
+  // Schedule the daily training reminder when the user signs in (or boots
+  // already-signed-in). Cancel when they log out so we don't keep nagging
+  // an account that's no longer active on this device. Targets the
+  // 6% week-1 retention finding from the user-psychology audit.
+  useEffect(() => {
+    if (loading) return;
+    if (user?.id) void ensureDailyReminderScheduled();
+    else void cancelDailyReminder();
+  }, [loading, user?.id]);
 
   // First launch of this build version → show the What's New modal once.
   // Gated on `user` so new sign-ups go through onboarding before being

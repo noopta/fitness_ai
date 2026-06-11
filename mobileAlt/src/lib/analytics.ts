@@ -145,6 +145,14 @@ export const Analytics = {
   foodLoggedViaMealModal: () =>
     posthog.capture('food_logged_via_modal'),
 
+  // Barcode-scan flow (1.1). Distinct events from food_scanned_logged so we
+  // can compare adoption vs the photo-parse path.
+  barcodeScanOpened: () => posthog.capture('barcode_scan_opened'),
+  foodBarcodeLogged: (props: { code: string; name: string; servingsLogged?: number }) =>
+    posthog.capture('food_barcode_logged', props),
+  foodBarcodeLookupFailed: (props: { code: string; reason: 'not_found' | 'error' }) =>
+    posthog.capture('food_barcode_lookup_failed', props),
+
   bodyWeightLogged: () =>
     posthog.capture('body_weight_logged'),
 

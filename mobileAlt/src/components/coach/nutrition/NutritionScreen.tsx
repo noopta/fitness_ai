@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Analytics } from '../../../lib/analytics';
@@ -158,7 +159,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // Spec §10 calls for one-sheet-at-a-time. We collapse all five into a
   // single union state so opening a new sheet automatically dismisses the
   // others.
-  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit';
+  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode';
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
@@ -379,10 +380,17 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     setSelectedMacro((prev) => (prev === key ? null : key));
   }, []);
 
+  const router = useRouter();
   const handleDockAction = useCallback((action: DockAction) => {
+    // Barcode scan is a full-screen camera route, not a bottom sheet —
+    // route to it directly and let the dock-state logic handle the rest.
+    if (action === 'barcode') {
+      router.push('/barcode-scan');
+      return;
+    }
     // One-sheet-at-a-time discipline — this state mutation is the discipline.
     setOpenSheet(action);
-  }, []);
+  }, [router]);
 
   const handleMealLogged = useCallback(async () => {
     setOpenSheet(null);

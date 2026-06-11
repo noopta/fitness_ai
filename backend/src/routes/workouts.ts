@@ -181,6 +181,21 @@ router.post('/workouts', requireAuth, async (req, res) => {
       console.error('[workouts] PR detection error:', err)
     );
 
+    // ── Proactive agent: post-workout drop-in (fire-and-forget) ───────────────
+    // Per the user-psychology audit's "AI coach: opened but barely messaged"
+    // finding — give Anakin a reason to surface AFTER the user logs a workout
+    // instead of waiting for them to open the chat tab and find a blank cursor.
+    // The sweep itself only sends a notification when AGENT_PROACTIVE_ENABLED
+    // is on, so this call is inert until the flag flips.
+    void (async () => {
+      try {
+        const { runProactiveSweep } = await import('../agent/proactiveSweep.js');
+        await runProactiveSweep('post_workout', [req.user!.id]);
+      } catch (err: any) {
+        console.error('[workouts] post_workout proactive sweep failed:', err?.message ?? err);
+      }
+    })();
+
     // ── Activity tracking ─────────────────────────────────────────────────────
     logActivity(req.user!.id, 'workout').catch(() => {});
 
