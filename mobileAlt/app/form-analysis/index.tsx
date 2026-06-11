@@ -206,7 +206,9 @@ export default function FormAnalysisScreen() {
           <View style={styles.analyzingBox}>
             <ActivityIndicator color={colors.foreground} />
             <Text style={styles.analyzingText}>Uploading your clip…</Text>
-            <Text style={styles.analyzingSub}>This usually takes 5–20 seconds.</Text>
+            <Text style={styles.analyzingSub}>
+              Usually 5–20 seconds. Once it's uploaded, you can leave this screen — we'll push you a notification when Anakin finishes the breakdown, and it'll be waiting in the Diagnostics tab.
+            </Text>
           </View>
         )}
 
@@ -219,9 +221,9 @@ export default function FormAnalysisScreen() {
             <View style={styles.submittedIconWrap}>
               <Ionicons name="checkmark-circle" size={48} color={colors.primary} />
             </View>
-            <Text style={styles.analyzingText}>Submitted for analysis</Text>
+            <Text style={styles.analyzingText}>You're free to go.</Text>
             <Text style={styles.analyzingSub}>
-              Anakin is reviewing your form (~30–60 seconds). You'll get a push notification when it's done, and you can always find it in the Diagnostics tab.
+              We've got your clip. Anakin is reviewing your form right now (about 30–60 seconds). You'll get a push notification the moment it's ready — and it'll be sitting in your Diagnostics tab too. Close the app, switch screens, do anything you want.
             </Text>
             <View style={styles.submittedActions}>
               <TouchableOpacity
