@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable,
   Alert, Platform, TouchableOpacity, ActivityIndicator,
@@ -37,6 +37,16 @@ export default function LoginScreen() {
   const [orgMode, setOrgMode] = useState(false);
   const [orgSlug, setOrgSlug] = useState('');
 
+  // C.1: collapse the email form behind a tap by default — OAuth gets the
+  // visual weight. Returning users who default to email tap one extra time.
+  const [emailFormOpen, setEmailFormOpen] = useState(false);
+  const shownOnceRef = useRef(false);
+  useEffect(() => {
+    if (shownOnceRef.current) return;
+    shownOnceRef.current = true;
+    Analytics.authScreenShown('login');
+  }, []);
+
   async function handleLogin() {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Missing Fields', 'Please enter your email and password.');
@@ -68,6 +78,7 @@ export default function LoginScreen() {
   }
 
   async function handleGoogleLogin() {
+    Analytics.authProviderTapped('google', 'login');
     setGoogleLoading(true);
     try {
       await googleLogin();
@@ -78,6 +89,7 @@ export default function LoginScreen() {
   }
 
   async function handleAppleLogin() {
+    Analytics.authProviderTapped('apple', 'login');
     setAppleLoading(true);
     try {
       await appleLogin();
@@ -148,63 +160,78 @@ export default function LoginScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* Divider */}
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>OR</Text>
-                <View style={styles.dividerLine} />
-              </View>
             </>
           )}
 
-          {/* Fields */}
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="you@example.com"
-            containerStyle={styles.inputContainer}
-          />
-          <Input
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            containerStyle={styles.inputContainer}
-          />
+          {/* Email-form toggle — collapsed by default unless we're in org
+              mode (which requires email-based slug auth). C.1 conversion fix. */}
+          {!orgMode && !emailFormOpen ? (
+            <TouchableOpacity
+              style={styles.emailToggleBtn}
+              activeOpacity={0.82}
+              onPress={() => {
+                Analytics.authProviderTapped('email_toggle', 'login');
+                setEmailFormOpen(true);
+              }}
+            >
+              <Text style={styles.emailToggleBtnText}>Sign in with email</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>{orgMode ? 'ORG' : 'OR EMAIL'}</Text>
+                <View style={styles.dividerLine} />
+              </View>
 
-          {/* Org slug field — shown only in org mode */}
-          {orgMode && (
-            <Input
-              label="Organization slug"
-              value={orgSlug}
-              onChangeText={setOrgSlug}
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder="e.g. state-university"
-              containerStyle={styles.inputContainer}
-            />
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="you@example.com"
+                containerStyle={styles.inputContainer}
+              />
+              <Input
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                placeholder="••••••••"
+                containerStyle={styles.inputContainer}
+              />
+
+              {/* Org slug field — shown only in org mode */}
+              {orgMode && (
+                <Input
+                  label="Organization slug"
+                  value={orgSlug}
+                  onChangeText={setOrgSlug}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="e.g. state-university"
+                  containerStyle={styles.inputContainer}
+                />
+              )}
+
+              <TouchableOpacity
+                style={[styles.signInPill, submitting && { opacity: 0.5 }]}
+                activeOpacity={0.82}
+                onPress={handleLogin}
+                disabled={submitting}
+              >
+                <Text style={styles.signInPillText}>
+                  {submitting
+                    ? 'Signing in…'
+                    : orgMode
+                      ? 'Sign in to organization'
+                      : 'Sign in'}
+                </Text>
+              </TouchableOpacity>
+            </>
           )}
-
-          {/* Primary CTA */}
-          <TouchableOpacity
-            style={[styles.signInPill, submitting && { opacity: 0.5 }]}
-            activeOpacity={0.82}
-            onPress={handleLogin}
-            disabled={submitting}
-          >
-            <Text style={styles.signInPillText}>
-              {submitting
-                ? 'Signing in…'
-                : orgMode
-                  ? 'Sign in to organization'
-                  : 'Sign in'}
-            </Text>
-          </TouchableOpacity>
 
           {/* Register link */}
           {!orgMode && (
@@ -309,6 +336,23 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: { marginBottom: spacing.md },
+
+  // Collapsed email-form toggle (C.1 — push OAuth as primary path)
+  emailToggleBtn: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  emailToggleBtnText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
 
   // Black pill CTA
   signInPill: {

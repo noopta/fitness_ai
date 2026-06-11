@@ -91,6 +91,26 @@ const registerSchema = z.object({
   referralCode: z.string().optional(),
 });
 
+// GET /api/auth/user-count — total registered users, used as social proof on
+// the signup screen ("Join 2,847 strength athletes"). Cached in-memory for
+// 60s so a viral spike on the auth screen doesn't hammer Prisma. Public,
+// auth-not-required by design — these are aggregate non-PII counts.
+let _userCountCache: { value: number; expiresAt: number } | null = null;
+router.get('/auth/user-count', async (_req, res) => {
+  try {
+    const now = Date.now();
+    if (_userCountCache && _userCountCache.expiresAt > now) {
+      return res.json({ count: _userCountCache.value, cached: true });
+    }
+    const count = await prisma.user.count();
+    _userCountCache = { value: count, expiresAt: now + 60_000 };
+    return res.json({ count, cached: false });
+  } catch (err: any) {
+    console.error('[auth/user-count] failed:', err?.message ?? err);
+    return res.json({ count: 0, error: true });
+  }
+});
+
 router.post('/auth/register', async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);

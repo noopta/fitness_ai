@@ -84,6 +84,31 @@ export const Analytics = {
   register: (method: 'email' | 'google' | 'apple') =>
     posthog.capture('register', { method }),
 
+  // ── Conversion funnel ─────────────────────────────────────────────────────
+  // Fired at every screen between "Application Opened" and "register" so we
+  // can finally see the 95% drop-off broken down by step. Each step is its
+  // own event so PostHog funnel viz works.
+  authScreenShown: (screen: 'login' | 'register' | 'age-check') =>
+    posthog.capture('auth_screen_shown', { screen }),
+
+  authProviderTapped: (provider: 'apple' | 'google' | 'email_toggle', screen: 'login' | 'register') =>
+    posthog.capture('auth_provider_tapped', { provider, screen }),
+
+  signupFieldFilled: (field: 'email' | 'password' | 'dob' | 'name', screen: 'login' | 'register') =>
+    posthog.capture('signup_field_filled', { field, screen }),
+
+  signupSubmitAttempted: (screen: 'login' | 'register') =>
+    posthog.capture('signup_submit_attempted', { screen }),
+
+  signupSubmitFailed: (screen: 'login' | 'register', reason: string) =>
+    posthog.capture('signup_submit_failed', { screen, reason }),
+
+  firstScreenAfterAuth: (screen: string) =>
+    posthog.capture('first_screen_after_auth', { screen }),
+
+  socialProofShown: (count: number) =>
+    posthog.capture('signup_social_proof_shown', { user_count: count }),
+
   // ── Navigation ────────────────────────────────────────────────────────────
   coachDashboardOpened: (source: 'home_cta' | 'tab' | 'upsell') =>
     posthog.capture('coach_dashboard_opened', { source }),

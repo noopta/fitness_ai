@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Linking from 'expo-linking';
@@ -18,7 +19,16 @@ interface Message {
   senderId: string;
   body: string;
   createdAt: string;
+  // Set on the local-only optimistic copy while the network round-trip is in
+  // flight. Cleared (and id replaced) when the real server message lands.
+  _pending?: boolean;
+  _failed?: boolean;
 }
+
+// AsyncStorage key for the per-conversation message cache. Capped at 50 most
+// recent so the keys never grow unbounded and load is fast on open.
+const CACHE_KEY = (id: string) => `chat-cache:v1:${id}`;
+const CACHE_MAX = 50;
 
 export default function ConversationScreen() {
   const router = useRouter();
@@ -47,6 +57,29 @@ export default function ConversationScreen() {
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated }), 200);
   }, []);
 
+  // Hydrate from AsyncStorage cache on mount — instant paint, then the
+  // network fetch below catches up (and silently replaces if anything changed).
+  // Without this, every open of a chat shows a spinner for ~500ms even though
+  // we already know the last 50 messages from the previous visit.
+  useEffect(() => {
+    if (!conversationId) return;
+    let cancelled = false;
+    AsyncStorage.getItem(CACHE_KEY(conversationId))
+      .then((raw) => {
+        if (cancelled || !raw) return;
+        try {
+          const cached = JSON.parse(raw) as Message[];
+          if (Array.isArray(cached) && cached.length > 0) {
+            setMessages(cached.filter((m) => !m._pending && !m._failed));
+            lastIdRef.current = cached[cached.length - 1]?.id;
+            setLoading(false); // we have something to show — skip the spinner
+          }
+        } catch { /* corrupt cache — ignore */ }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [conversationId]);
+
   const loadMessages = useCallback(async () => {
     if (!conversationId) return;
     try {
@@ -55,6 +88,8 @@ export default function ConversationScreen() {
       setMessages(msgs);
       if (msgs.length > 0) {
         lastIdRef.current = msgs[msgs.length - 1].id;
+        // Persist the most recent slice for next-open instant paint.
+        AsyncStorage.setItem(CACHE_KEY(conversationId), JSON.stringify(msgs.slice(-CACHE_MAX))).catch(() => {});
       }
       setLoadError(false);
       loadedOnceRef.current = true;
@@ -109,31 +144,58 @@ export default function ConversationScreen() {
     loadMessages().then(() => markRead());
   }, [loadMessages, markRead]));
 
+  // Poll every 1s while focused (was 3s — felt sluggish per the
+  // user-psychology report's "chat is laggy" feedback). The poll endpoint is
+  // delta-only (uses lastIdRef.current) so it's cheap.
   useEffect(() => {
-    pollRef.current = setInterval(pollForNew, 3000);
+    pollRef.current = setInterval(pollForNew, 1000);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [pollForNew]);
 
+  // Optimistic-send: render the user's own message immediately with a temp id +
+  // _pending flag, then swap in the real server message when the round trip
+  // returns. If the network call fails we mark _failed (a future iteration
+  // could add a retry tap; today we re-populate the input).
   const handleSend = async () => {
     const text = inputText.trim();
-    if (!text || !conversationId) return;
+    if (!text || !conversationId || !user?.id) return;
     Analytics.messageSentToFriend();
     setInputText('');
+
+    const tempId = `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const optimistic: Message = {
+      id: tempId,
+      senderId: user.id,
+      body: text,
+      createdAt: new Date().toISOString(),
+      _pending: true,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    scrollToBottom();
     setSending(true);
+
     try {
       const data = await socialApi.sendMessage(conversationId, text);
       const newMsg: Message = data.message ?? data;
       if (newMsg?.id) {
         setMessages((prev) => {
+          const next = prev.map((m) => (m.id === tempId ? { ...newMsg, _pending: false } : m));
           lastIdRef.current = newMsg.id;
-          return [...prev, newMsg];
+          // Persist with the real id so the next open hydrates from the
+          // canonical message, not the temp.
+          AsyncStorage.setItem(CACHE_KEY(conversationId), JSON.stringify(next.slice(-CACHE_MAX))).catch(() => {});
+          return next;
         });
-        scrollToBottom();
+      } else {
+        // Server accepted but didn't echo — clear the pending flag so it
+        // doesn't show a spinner forever.
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _pending: false } : m)));
       }
     } catch {
-      setInputText(text);
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _failed: true, _pending: false } : m)));
+      setInputText(text); // restore for retry
     } finally {
       setSending(false);
     }

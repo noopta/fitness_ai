@@ -323,6 +323,67 @@ router.get('/nutrition/meals', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/nutrition/barcode/:code — look up a food product by barcode (UPC/EAN/GTIN).
+// Source: OpenFoodFacts (free, no API key, 3M+ products globally). Falls
+// back gracefully when the barcode isn't in their DB so the client can
+// route the user to manual entry or LLM-photo parse. Public-API spec:
+//   https://world.openfoodfacts.org/api/v3/product/<barcode>.json
+const OFF_BASE = 'https://world.openfoodfacts.org/api/v3/product';
+router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
+  const code = String(req.params.code ?? '').trim();
+  if (!/^[0-9]{6,14}$/.test(code)) {
+    return res.status(400).json({ error: 'Invalid barcode format' });
+  }
+  try {
+    const r = await fetch(`${OFF_BASE}/${code}.json`, {
+      headers: { 'User-Agent': 'Axiom-Fitness/2.0.2 (https://axiomtraining.io)' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) {
+      return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: r.status });
+    }
+    const json: any = await r.json();
+    // status: 1 = product found, 0 = not in DB
+    if (!json || json.status === 0 || !json.product) {
+      return res.status(404).json({ error: 'Barcode not in database', code });
+    }
+    const p = json.product;
+    const nut = p.nutriments ?? {};
+    // OFF returns per-100g values. We pass them through plus the typical
+    // serving size if available so the client can show both default-100g
+    // and per-serving cards. Energy is in kJ in EU products — fall back to
+    // energy-kcal when present.
+    const kcalPer100 = num(nut['energy-kcal_100g']) ?? Math.round((num(nut['energy_100g']) ?? 0) / 4.184);
+    const servingSize = String(p.serving_size ?? '').trim() || null;
+    const servingQtyG = num(p.serving_quantity);
+    return res.json({
+      code,
+      name: p.product_name?.trim() || p.generic_name?.trim() || 'Unknown product',
+      brand: p.brands?.split(',')[0]?.trim() || null,
+      imageUrl: p.image_front_small_url ?? p.image_front_url ?? null,
+      per100g: {
+        calories: kcalPer100,
+        proteinG: num(nut.proteins_100g) ?? 0,
+        carbsG:   num(nut.carbohydrates_100g) ?? 0,
+        fatG:     num(nut.fat_100g) ?? 0,
+        fiberG:   num(nut.fiber_100g) ?? null,
+        sugarG:   num(nut.sugars_100g) ?? null,
+        sodiumMg: nut.sodium_100g != null ? Math.round(num(nut.sodium_100g)! * 1000) : null,
+      },
+      servingSize,
+      servingQuantityG: servingQtyG,
+      source: 'openfoodfacts',
+    });
+  } catch (err: any) {
+    console.error('[nutrition/barcode] lookup failed:', err?.message ?? err);
+    return res.status(502).json({ error: 'Lookup failed', message: err?.message });
+  }
+});
+function num(v: unknown): number | null {
+  const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : NaN);
+  return Number.isFinite(n) ? n : null;
+}
+
 // GET /api/nutrition/foods - Saved food library
 router.get('/nutrition/foods', requireAuth, async (req, res) => {
   try {

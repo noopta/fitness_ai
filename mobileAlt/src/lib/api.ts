@@ -120,6 +120,16 @@ export const authApi = {
 
   getMe: () => apiFetch('/auth/me'),
 
+  // C.3: total registered user count, used as social proof on the signup
+  // screen. Cached server-side for 60s so a hot auth screen doesn't hammer
+  // Prisma. Returns 0 on any failure so the caller can fall through gracefully.
+  userCount: async (): Promise<number> => {
+    try {
+      const r = await apiFetch('/auth/user-count', undefined, false) as { count?: number };
+      return typeof r?.count === 'number' ? r.count : 0;
+    } catch { return 0; }
+  },
+
   updateProfile: (profile: {
     trainingAge?: string;
     equipment?: string;
