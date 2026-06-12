@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { nutritionApi, type BarcodeLookupResult } from '../src/lib/api';
 import { Analytics } from '../src/lib/analytics';
+import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { colors, spacing, radius, fontSize, fontWeight } from '../src/constants/theme';
 
 const SCAN_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] as const;
@@ -36,7 +37,22 @@ function loadCameraModule(): ExpoCameraModule | null {
 }
 type BarcodeScanningResult = { data: string };
 
+// Wrapper: catch any render-time crash from CameraView (e.g. iPhone XR on
+// older iOS where expo-camera 56's new-architecture bridge can misbehave).
+// Without this, the camera view crashing kills the whole app. With it, the
+// user sees a friendly "device not supported" screen instead.
 export default function BarcodeScanScreen() {
+  return (
+    <ErrorBoundary
+      label="barcode-scan"
+      message="The barcode scanner had trouble starting on this device. Open the manual entry instead?"
+    >
+      <BarcodeScanScreenInner />
+    </ErrorBoundary>
+  );
+}
+
+function BarcodeScanScreenInner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [cameraModule] = useState(() => loadCameraModule());

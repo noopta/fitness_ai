@@ -267,10 +267,18 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
         )
       );
     } catch (err: any) {
+      // Surface the actual error message + log to the JS console so we can
+      // diagnose remote failures (PostHog $exception via the global handler
+      // in app/_layout.tsx will also pick it up). Generic "Something went
+      // wrong" with no detail was making real bugs invisible per user
+      // feedback "I typed and all I got was Something went wrong."
+      const errMsg = err?.message || (typeof err === 'string' ? err : 'Unknown error');
+      const status = err?.status ? ` (HTTP ${err.status})` : '';
+      console.error('[ChatTab] handleSend failed:', errMsg, err);
       setMessages((prev) =>
         prev.map((m) =>
           m.id === streamId
-            ? { ...m, content: err?.message ?? 'Something went wrong. Please try again.', _isTemp: false }
+            ? { ...m, content: `Couldn't reach Anakin${status}. ${errMsg}`, _isTemp: false }
             : m
         )
       );
