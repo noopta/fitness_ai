@@ -63,6 +63,7 @@
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
         "NSMicrophoneUsageDescription": "Axiom uses your microphone to transcribe voice notes about meals you ate.",
+        "NSLocationWhenInUseUsageDescription": "Axiom does not use your location. This purpose string is required only because one of our SDKs (react-native-vision-camera) references location APIs.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
