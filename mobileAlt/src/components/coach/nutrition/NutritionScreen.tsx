@@ -392,6 +392,23 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     // Barcode scan is a full-screen camera route, not a bottom sheet —
     // route to it directly and let the dock-state logic handle the rest.
     if (action === 'barcode') {
+      // Probe expo-camera before navigating. A binary that predates the
+      // expo-camera plugin would crash the navigation itself on iOS new-arch
+      // (TurboModule lookup throws natively, JS can't catch). Alert + open
+      // manual entry as a fallback so the user can still log a meal.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+      const { isCameraAvailable } = require('../../../lib/cameraAvailable');
+      if (!isCameraAvailable()) {
+        Alert.alert(
+          'Update needed',
+          'The barcode scanner needs the latest build of Axiom. Install the newest version from TestFlight or the App Store, then come back here. In the meantime, you can log this meal manually.',
+          [
+            { text: 'Manual entry', onPress: () => setOpenSheet('manual') },
+            { text: 'OK', style: 'cancel' },
+          ],
+        );
+        return;
+      }
       router.push('/barcode-scan');
       return;
     }

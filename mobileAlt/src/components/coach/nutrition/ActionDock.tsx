@@ -96,9 +96,13 @@ const styles = StyleSheet.create({
   bar: {
     backgroundColor: '#09090b',
     borderRadius: 16,
-    padding: 6,
+    // Bumped from padding:6 / gap:4 to give each tile breathing room — at
+    // five dock items the icons were sitting right at the bar's edge and
+    // looked cramped per user feedback.
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     flexDirection: 'row',
-    gap: 4,
+    gap: 6,
     // Per-platform shadows in the wider app are managed in theme; inline here
     // because no other dark surface gets this elevation.
     shadowColor: '#000',

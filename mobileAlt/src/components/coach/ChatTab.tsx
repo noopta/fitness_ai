@@ -14,8 +14,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { coachApi, getToken } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
+import { invalidateCache } from '../../lib/cache';
+
+// Tool names that mutate program / nutrition / wellness state on the server.
+// After the agent uses any of these, the mobile-side coach cache must be
+// invalidated so the Overview/Program/Nutrition tabs re-fetch on next focus
+// instead of showing the stale snapshot they hydrated from.
+const MUTATING_AGENT_TOOLS = new Set([
+  'apply_program_update',
+  'adjust_macros',
+  'log_meal',
+  'log_workout',
+  'log_body_weight',
+  'log_wellness',
+]);
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { MarkdownText } from '../ui/MarkdownText';
+import { ThinkingDots, useThinkingLabel } from './ThinkingLabel';
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
 
@@ -232,6 +247,18 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
       const proposal: AgentProposal | undefined =
         result?.proposal && typeof result.proposal === 'object' ? result.proposal : undefined;
 
+      // If the agent ran any state-mutating tool this turn (e.g.
+      // apply_program_update, adjust_macros, log_*), drop the mobile coach
+      // cache so the next visit to Overview/Program/Nutrition pulls fresh.
+      // Without this, the chat says "done" but the user navigates away and
+      // sees the previous snapshot the screen hydrated from. Bug report:
+      // "in chat it says success, but Today's workout looks the same."
+      const toolsUsed: string[] = Array.isArray(result?.toolsUsed) ? result.toolsUsed : [];
+      const mutated = toolsUsed.some((t) => MUTATING_AGENT_TOOLS.has(t));
+      if (mutated) {
+        invalidateCache('coach:');
+      }
+
       setMessages((prev) =>
         prev.map((m) =>
           m.id === streamId
@@ -264,6 +291,9 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
       // The two proposal kinds have different apply payloads; the
       // /coach/agent/confirm-proposal route discriminates on which field is
       // present (updatedProgram vs proposedWeek).
+      // Either kind mutates the user's program — drop the mobile cache so
+      // Overview/Program re-fetch fresh on next focus.
+      invalidateCache('coach:');
       if (proposal.kind === 'workout_swap') {
         await coachApi.confirmProposal({ proposedWeek: (proposal as any).proposedWeek, reason: 'Agent swap' });
       } else {
@@ -314,7 +344,8 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
               <Text style={styles.avatarText}>A</Text>
             </View>
             <View style={[styles.bubble, styles.bubbleAssistant, styles.typingBubble]}>
-              <ActivityIndicator size="small" color={colors.mutedForeground} />
+              <ThinkingDots />
+              <Text style={styles.thinkingLabel}>{useThinkingLabel(sending)}</Text>
             </View>
           </View>
         )}
@@ -442,6 +473,13 @@ const styles = StyleSheet.create({
   typingBubble: {
     paddingVertical: 13,
     paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  thinkingLabel: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    fontStyle: 'italic',
   },
   bubbleText: {
     fontSize: fontSize.sm,

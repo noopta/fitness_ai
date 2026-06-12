@@ -502,7 +502,7 @@ function CommentSheet({
 
 // ─── Post Card ────────────────────────────────────────────────────────────────
 
-export function PostCard({
+function PostCardInner({
   item: initialItem,
   currentUserId,
   friends,
@@ -1222,3 +1222,11 @@ const cs = StyleSheet.create({
     fontWeight: '500',
   },
 });
+
+// React.memo wrapper — feed re-renders frequently (pull-refresh, new-post
+// poll, mark-read, etc.) and without memoization every PostCard re-runs
+// on each parent update, which is the dominant frame-drop source on the
+// social feed per user-reported scroll lag. Default shallow comparison is
+// enough since `item` is replaced wholesale and `friends`/`currentUserId`
+// are stable across re-renders.
+export const PostCard = React.memo(PostCardInner);
