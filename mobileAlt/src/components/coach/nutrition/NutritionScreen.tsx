@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Analytics } from '../../../lib/analytics';
@@ -229,6 +229,17 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // Re-pull when the screen regains focus. The barcode flow routes the user
+  // OUT to /barcode-scan → /barcode-confirm and back via router.back(), so
+  // the screen is never unmounted — without this hook the new meal logged
+  // from barcode-confirm would not appear until next tab switch. Same goes
+  // for any other navigation-away path (settings → back, etc.). The mount
+  // effect above still fires once for the initial load; this complements
+  // it for every subsequent focus.
+  useFocusEffect(useCallback(() => {
+    void loadAll();
+  }, [loadAll]));
 
   // When the parent coach screen pings us to refresh, just re-pull the
   // local data. v1 doesn't expose pull-to-refresh on the timeline — the
