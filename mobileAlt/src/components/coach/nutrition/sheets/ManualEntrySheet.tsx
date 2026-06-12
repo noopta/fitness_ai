@@ -6,13 +6,13 @@
 // Spec: one of the four primary log paths in the action dock — Describe /
 // Snap / Voice / Manual. Same sheet-stack discipline as the other three.
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
-  Keyboard,
+  Keyboard, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { nutritionApi } from '../../../../lib/api';
+import { nutritionApi, type SavedFoodItem } from '../../../../lib/api';
 import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
@@ -50,6 +50,14 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Recent + matching SavedFoods for the autocomplete row. Empty query
+  // returns the user's most-used (highest useCount) foods so the list is
+  // useful even before the user starts typing. As they type, it filters
+  // by normalized-name match server-side. Debounced so we don't spam the
+  // endpoint on every keystroke.
+  const [suggestions, setSuggestions] = useState<SavedFoodItem[]>([]);
+  const [suggestQuery, setSuggestQuery] = useState('');
+
   const nameRef = useRef<TextInput>(null);
   // Fresh state every time the sheet reopens. Focus the first field after
   // the slide-in animation has finished (~280ms) — focusing during the
@@ -61,10 +69,51 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
       setSlot(slotForNow());
       setError(null);
       setSaving(false);
+      setSuggestQuery('');
       const t = setTimeout(() => nameRef.current?.focus(), 320);
       return () => clearTimeout(t);
     }
   }, [visible]);
+
+  // Initial load: surface recently-used foods the moment the sheet opens
+  // so users see options before typing a single character.
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    nutritionApi.searchFoods('', 12)
+      .then((r) => { if (!cancelled) setSuggestions(r?.foods ?? []); })
+      .catch(() => { if (!cancelled) setSuggestions([]); });
+    return () => { cancelled = true; };
+  }, [visible]);
+
+  // Debounced search as the user types in the Name field. 220 ms feels
+  // responsive without hammering the endpoint on a long burst.
+  useEffect(() => {
+    if (!visible) return;
+    const q = suggestQuery.trim();
+    let cancelled = false;
+    const t = setTimeout(() => {
+      nutritionApi.searchFoods(q, 12)
+        .then((r) => { if (!cancelled) setSuggestions(r?.foods ?? []); })
+        .catch(() => {});
+    }, 220);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [visible, suggestQuery]);
+
+  // When the user taps a suggestion, autofill the form with its macros so
+  // they can just hit Save (or tweak the kcal first if the portion's
+  // different today). Name carries over so the log row reads sensibly.
+  const pickSuggestion = (food: SavedFoodItem) => {
+    setForm({
+      name:     food.name,
+      calories: String(food.calories ?? ''),
+      proteinG: String(food.proteinG ?? ''),
+      carbsG:   String(food.carbsG   ?? ''),
+      fatG:     String(food.fatG     ?? ''),
+    });
+    setSuggestQuery(food.name); // keep input in sync visually
+    Keyboard.dismiss();
+  };
 
   const handleClose = () => {
     if (saving) return;
@@ -113,12 +162,43 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
         ref={nameRef}
         style={styles.nameInput}
         value={form.name}
-        onChangeText={(t) => setForm({ ...form, name: t })}
-        placeholder="Meal name (optional)"
+        onChangeText={(t) => { setForm({ ...form, name: t }); setSuggestQuery(t); }}
+        placeholder="Meal name — pick from history or type new"
         placeholderTextColor={colors.mutedForeground}
         accessibilityLabel="Meal name"
         inputAccessoryViewID={KEYBOARD_DONE_ID}
       />
+
+      {/* SavedFood autocomplete strip. Always shows recent picks when the
+          input's empty, filters as the user types. Tap to autofill the
+          macro grid — they can save right away or tweak first. */}
+      {suggestions.length > 0 && (
+        <View style={styles.suggestWrap}>
+          <Text style={styles.suggestLabel}>
+            {suggestQuery.trim() ? 'Matches from your history' : 'Recent foods'}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.suggestRow}
+          >
+            {suggestions.map((s) => (
+              <TouchableOpacity
+                key={s.id}
+                style={styles.suggestChip}
+                onPress={() => pickSuggestion(s)}
+                activeOpacity={0.82}
+              >
+                <Text numberOfLines={1} style={styles.suggestChipName}>{s.name}</Text>
+                <Text style={styles.suggestChipMeta}>
+                  {Math.round(s.calories)}kcal · {Math.round(s.proteinG)}p
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       <View style={styles.macroGrid}>
         <Cell
@@ -217,6 +297,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10,
     fontSize: 14, color: colors.foreground,
   },
+
+  // Autocomplete strip — horizontal chips sitting under the Name field.
+  suggestWrap: { marginTop: 10 },
+  suggestLabel: {
+    fontSize: 10, fontWeight: fontWeight.semibold,
+    color: colors.mutedForeground, letterSpacing: 1,
+    marginBottom: 6,
+  },
+  suggestRow: { gap: 8, paddingRight: 8 },
+  suggestChip: {
+    backgroundColor: colors.muted,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    maxWidth: 200,
+    gap: 2,
+  },
+  suggestChipName: { fontSize: 13, color: colors.foreground, fontWeight: fontWeight.semibold },
+  suggestChipMeta: { fontSize: 11, color: colors.mutedForeground },
+
   macroGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   macroCell: { flexBasis: '47%', flexGrow: 1 },
   fieldLabel: {

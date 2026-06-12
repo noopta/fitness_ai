@@ -77,7 +77,13 @@ export default function BarcodeConfirmScreen() {
         fatG:     scaled.fatG,
       } as any);
       Analytics.foodBarcodeLogged({ code: String(params.code ?? ''), name: productName, servingsLogged: 1 });
-      router.replace('/(tabs)');
+      // Pop back to where the user came from (Nutrition tab inside Coach)
+      // instead of routing to the Home tab. router.back() unwinds the
+      // /barcode-scan → /barcode-confirm chain, returning to (tabs)/coach
+      // with the Nutrition sub-tab still selected. The NutritionScreen's
+      // focus effect will refetch and show the newly-logged meal at the
+      // top of the timeline.
+      router.back();
     } catch (err: any) {
       Alert.alert('Could not log', err?.message || 'Try again.');
       setLogging(false);

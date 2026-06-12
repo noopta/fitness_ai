@@ -418,6 +418,17 @@ export const coachApi = {
 
 // ─── Nutrition / Meal Logging API ─────────────────────────────────────────────
 
+export interface SavedFoodItem {
+  id: string;
+  name: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  source?: string;
+  useCount?: number;
+}
+
 export interface BarcodeLookupResult {
   code: string;
   name: string;
@@ -442,6 +453,14 @@ export const nutritionApi = {
   // not in DB) — caller should fall through to manual entry / LLM parse.
   lookupBarcode: (code: string): Promise<BarcodeLookupResult> =>
     apiFetch(`/nutrition/barcode/${encodeURIComponent(code)}`),
+
+  // SavedFood library — every meal logged via POST /nutrition/meals
+  // auto-upserts into this library on the backend, so this returns the
+  // user's full log history of food names + macros + use counts. Used by
+  // the Manual-entry autocomplete and other quick-log surfaces.
+  // `q` filters by normalized name match; empty = recent-by-useCount.
+  searchFoods: (q: string, limit = 20): Promise<{ foods: SavedFoodItem[] }> =>
+    apiFetch(`/nutrition/foods?q=${encodeURIComponent(q)}&limit=${limit}`),
 
   // Individual meal entries
   getMeals: (date?: string) =>
