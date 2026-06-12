@@ -15,6 +15,9 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/t
 import { coachApi, getToken } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
 import { invalidateCache } from '../../lib/cache';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
+import { MarkdownText } from '../ui/MarkdownText';
+import { ThinkingDots, useThinkingLabel } from './ThinkingLabel';
 
 // Tool names that mutate program / nutrition / wellness state on the server.
 // After the agent uses any of these, the mobile-side coach cache must be
@@ -28,9 +31,6 @@ const MUTATING_AGENT_TOOLS = new Set([
   'log_body_weight',
   'log_wellness',
 ]);
-import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
-import { MarkdownText } from '../ui/MarkdownText';
-import { ThinkingDots, useThinkingLabel } from './ThinkingLabel';
 
 const API_BASE = 'https://api.airthreads.ai:4009/api';
 
@@ -187,6 +187,13 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  // Hooks must be called unconditionally at the top of the component body —
+  // calling useThinkingLabel inside the conditional typing-indicator JSX
+  // below was a Rules-of-Hooks violation and crashed ChatTab whenever
+  // `sending` toggled (the symptom was Expo Router's "An error occurred"
+  // screen swallowing the whole Coach tab). The hook itself just returns
+  // a string; we use it inside the conditional render below.
+  const thinkingLabel = useThinkingLabel(sending);
 
   // Seed the composer when arriving via a suggested-prompt chip. Notify the
   // parent so it can clear its pending-prompt state once consumed.
@@ -353,7 +360,7 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
             </View>
             <View style={[styles.bubble, styles.bubbleAssistant, styles.typingBubble]}>
               <ThinkingDots />
-              <Text style={styles.thinkingLabel}>{useThinkingLabel(sending)}</Text>
+              <Text style={styles.thinkingLabel}>{thinkingLabel}</Text>
             </View>
           </View>
         )}
