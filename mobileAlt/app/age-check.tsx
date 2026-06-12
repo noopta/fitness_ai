@@ -18,6 +18,17 @@ export default function AgeCheckScreen() {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Auto-format the DOB input the same way register.tsx does — user types
+  // digits, the dashes appear automatically (YYYY-MM-DD). Backspace works
+  // naturally because we re-derive the formatted string from the digit
+  // stream every keystroke.
+  function formatDob(input: string): string {
+    const digits = input.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+  }
+
   async function handleContinue() {
     if (!dateOfBirth.trim()) {
       Alert.alert('Required', 'Please enter your date of birth.');
@@ -42,7 +53,11 @@ export default function AgeCheckScreen() {
     try {
       await authApi.setDob(dateOfBirth.trim());
       clearDobCheck();
-      router.replace('/(tabs)');
+      // Drop the user straight into Coach — that's where the
+      // CoachOnboarding questionnaire + program-generation flow lives.
+      // New users (no savedProgram) see onboarding immediately; returning
+      // users see their dashboard.
+      router.replace('/(tabs)/coach');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not save your date of birth. Please try again.');
     } finally {
@@ -77,9 +92,9 @@ export default function AgeCheckScreen() {
         <Input
           label="Date of Birth"
           value={dateOfBirth}
-          onChangeText={setDateOfBirth}
+          onChangeText={(v) => setDateOfBirth(formatDob(v))}
           placeholder="YYYY-MM-DD"
-          keyboardType="numbers-and-punctuation"
+          keyboardType="number-pad"
           autoCorrect={false}
           containerStyle={styles.inputContainer}
         />
