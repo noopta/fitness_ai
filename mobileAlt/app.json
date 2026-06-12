@@ -38,7 +38,8 @@
         "react-native-vision-camera",
         {
           "cameraPermissionText": "Axiom uses your camera to scan food barcodes and analyze meals.",
-          "enableCodeScanner": true
+          "enableCodeScanner": true,
+          "enableFrameProcessors": false
         }
       ],
       "expo-apple-authentication",
