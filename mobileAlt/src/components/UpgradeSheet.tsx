@@ -32,7 +32,16 @@ const IS_IOS = Platform.OS === 'ios';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const PRO_PRICE_FALLBACK = '$9.99';
+export const PRO_PRICE_FALLBACK = '$12.99';
+// Stripe is priced lower than Apple/Google so the customer-keeps-more
+// math beats the App Store / Play 30% cut + still lets us net more per
+// sub. The exact value here must match the Stripe Product configuration
+// referenced from /payments/create-checkout — keep them in sync.
+export const STRIPE_PRICE_DISPLAY = '$11.99';
+// AXIOMTRIAL promo code applies in Stripe checkout — 1 month free trial.
+// Backend already accepts promotion_code via allow_promotion_codes on
+// the session (payments.ts), this string is the user-facing surface.
+export const TRIAL_PROMO_CODE = 'AXIOMTRIAL';
 
 interface Props {
   visible: boolean;
@@ -240,7 +249,7 @@ function PaymentSheetContent({
         <>
           <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
             <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.stripeBtnText}>Subscribe · CA$12.99/mo</Text>
+            <Text style={styles.stripeBtnText}>Subscribe · {STRIPE_PRICE_DISPLAY}/mo</Text>
           </TouchableOpacity>
 
           {!showRefInput ? (
@@ -301,6 +310,18 @@ function PaymentSheetContent({
             <Text style={styles.perkText}>{perk.text}</Text>
           </View>
         ))}
+      </View>
+
+      {/* AXIOMTRIAL promo callout — shown on every paywall surface (this sheet
+          is reused by all value-moment paywalls + the regular upgrade flow).
+          Stripe checkout has allow_promotion_codes enabled, so users just
+          paste the code on the Stripe page. Apple/Google IAP can't accept
+          promo codes — see the per-section copy below. */}
+      <View style={styles.promoBanner}>
+        <Ionicons name="gift-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+        <Text style={styles.promoText}>
+          Use code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> at Stripe checkout for <Text style={{ fontWeight: fontWeight.bold }}>1 month free</Text>.
+        </Text>
       </View>
 
       {/* iOS: card option leads. */}
@@ -437,6 +458,21 @@ const styles = StyleSheet.create({
 
   perksCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md, gap: spacing.sm },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+
+  // AXIOMTRIAL promo banner (shown on every paywall surface)
+  promoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `${colors.primary}15`,
+    borderWidth: 1,
+    borderColor: `${colors.primary}40`,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.md,
+  },
+  promoText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1, lineHeight: 18 },
+  promoCode: { fontWeight: fontWeight.bold, color: colors.primary, letterSpacing: 0.5 },
   perkIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center' },
   perkText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1 },
 

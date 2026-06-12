@@ -89,7 +89,10 @@ export default function VerifyEmailScreen() {
     setError(null);
     try {
       await verifyEmail(email, code);
-      router.replace('/(tabs)');
+      // Route straight into Coach (where CoachOnboarding → program generation
+      // kicks off) instead of the Home tab — give new users first value
+      // immediately, no tab-hunting.
+      router.replace('/(tabs)/coach');
     } catch (err: any) {
       setError(err?.message ?? 'That code didn\'t match. Try again.');
       // Clear digits so the user can re-type without manually wiping each.

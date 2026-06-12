@@ -42,10 +42,24 @@ export default function LoginScreen() {
   // visual weight. Returning users who default to email tap one extra time.
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const shownOnceRef = useRef(false);
+  // Live user count for the social-proof line. Falls back to a clean string
+  // when the call fails so the UI still reads as confident.
+  const [userCount, setUserCount] = useState<number | null>(null);
   useEffect(() => {
     if (shownOnceRef.current) return;
     shownOnceRef.current = true;
     Analytics.authScreenShown('login');
+    // Public, cached server-side — safe to call before auth.
+    void (async () => {
+      try {
+        const { authApi } = await import('../../src/lib/api');
+        const n = await authApi.userCount();
+        if (typeof n === 'number' && n > 0) {
+          setUserCount(n);
+          Analytics.socialProofShown(n);
+        }
+      } catch { /* silent */ }
+    })();
   }, []);
 
   async function handleLogin() {
@@ -234,22 +248,19 @@ export default function LoginScreen() {
             </>
           )}
 
-          {/* Pre-auth value teaser — primary route for evaluators per the
-              user-psychology report. Hands them a concrete result before the
-              signup wall. (D.6) */}
+          {/* Social proof — replaces the previous diagnostic-preview teaser.
+              "Join 200+ athletes using the most advanced training tech."
+              Pulled live from /auth/user-count when possible, with a clean
+              fallback string so the UI stays confident when the call fails. */}
           {!orgMode && (
-            <Pressable
-              onPress={() => {
-                Analytics.diagnosticPreviewStarted?.();
-                router.push('/(auth)/diagnostic-preview');
-              }}
-              style={styles.teaserLink}
-            >
-              <Ionicons name="flash" size={14} color={colors.primary} style={{ marginRight: 4 }} />
-              <Text style={styles.teaserLinkText}>
-                Try the <Text style={styles.teaserLinkHighlight}>60-second strength check</Text>
+            <View style={styles.socialProofBox}>
+              <Ionicons name="trophy" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+              <Text style={styles.socialProofText}>
+                Join <Text style={styles.socialProofHighlight}>
+                  {userCount && userCount > 0 ? `${userCount.toLocaleString()}+ athletes` : 'a growing community'}
+                </Text> using the most advanced training tech.
               </Text>
-            </Pressable>
+            </View>
           )}
 
           {/* Register link */}
@@ -390,21 +401,19 @@ const styles = StyleSheet.create({
 
   registerLink: { alignItems: 'center', paddingVertical: spacing.sm },
 
-  // Pre-auth diagnostic teaser link (D.6)
-  teaserLink: {
+  // Social-proof box on the login screen (replaced the diagnostic-preview pill)
+  socialProofBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginTop: spacing.sm,
+    borderRadius: radius.md,
     backgroundColor: `${colors.primary}10`,
+    marginTop: spacing.sm,
   },
-  teaserLinkText: { fontSize: fontSize.sm, color: colors.foreground, fontWeight: fontWeight.medium },
-  teaserLinkHighlight: { color: colors.primary, fontWeight: fontWeight.bold },
+  socialProofText: { fontSize: fontSize.sm, color: colors.foreground, textAlign: 'center', flexShrink: 1 },
+  socialProofHighlight: { color: colors.primary, fontWeight: fontWeight.bold },
   registerLinkText: { fontSize: fontSize.sm, color: colors.mutedForeground },
   registerLinkHighlight: { color: colors.foreground, fontWeight: fontWeight.semibold },
 

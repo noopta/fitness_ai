@@ -35,6 +35,17 @@ export default function RegisterScreen() {
   // wants email still gets it, but the default visual is one-tap OAuth.
   const [emailFormOpen, setEmailFormOpen] = useState(false);
 
+  // Auto-format the DOB input so the user just types digits and the dashes
+  // appear automatically (YYYY-MM-DD). Backspace works naturally because we
+  // re-derive the formatted string from the underlying digit stream every
+  // keystroke — there's no special-case logic to maintain.
+  function formatDob(input: string): string {
+    const digits = input.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+  }
+
   // C.3: live user count for social proof. Falls back gracefully on error.
   const [userCount, setUserCount] = useState<number | null>(null);
 
@@ -72,7 +83,11 @@ export default function RegisterScreen() {
       if (pending) {
         router.replace({ pathname: '/(auth)/verify-email', params: { email: pending.email } });
       } else {
-        router.replace('/(tabs)');
+        // Drop the user directly into Coach where the CoachOnboarding flow
+        // kicks off and the program-generation loop runs. Bypasses the Home
+        // tab so new users see the first piece of real value (questionnaire
+        // → personalized plan) immediately rather than browsing tabs.
+        router.replace('/(tabs)/coach');
       }
     } catch (err: any) {
       Analytics.signupSubmitFailed('register', err?.message ?? 'unknown');
@@ -85,13 +100,24 @@ export default function RegisterScreen() {
   async function handleGoogleLogin() {
     Analytics.authProviderTapped('google', 'register');
     setGoogleLoading(true);
-    try { await googleLogin(); Analytics.register('google'); } finally { setGoogleLoading(false); }
+    try {
+      await googleLogin();
+      Analytics.register('google');
+      // Same fast-path as email signup — straight to Coach tab where
+      // onboarding kicks off for new users (returning users land on
+      // their dashboard, which the Coach screen handles natively).
+      router.replace('/(tabs)/coach');
+    } finally { setGoogleLoading(false); }
   }
 
   async function handleAppleLogin() {
     Analytics.authProviderTapped('apple', 'register');
     setAppleLoading(true);
-    try { await appleLogin(); Analytics.register('apple'); } finally { setAppleLoading(false); }
+    try {
+      await appleLogin();
+      Analytics.register('apple');
+      router.replace('/(tabs)/coach');
+    } finally { setAppleLoading(false); }
   }
 
   return (
@@ -186,9 +212,13 @@ export default function RegisterScreen() {
               <Input
                 label="Date of Birth"
                 value={dateOfBirth}
-                onChangeText={(v) => { setDateOfBirth(v); if (v.length === 1) Analytics.signupFieldFilled('dob', 'register'); }}
+                onChangeText={(v) => {
+                  const formatted = formatDob(v);
+                  setDateOfBirth(formatted);
+                  if (formatted.length === 1) Analytics.signupFieldFilled('dob', 'register');
+                }}
                 placeholder="YYYY-MM-DD"
-                keyboardType="numbers-and-punctuation"
+                keyboardType="number-pad"
                 autoCorrect={false}
                 containerStyle={styles.inputContainer}
               />
