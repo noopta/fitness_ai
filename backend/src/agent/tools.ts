@@ -527,7 +527,7 @@ const proposeWorkoutSwap: AgentTool = {
 const proposeExerciseSwap: AgentTool = {
   name: 'propose_exercise_swap',
   description:
-    "Propose substituting one exercise in the user's training program with another (e.g. swap Back Squat for Bulgarian Split Squat when their knee is bothering them on bilateral work). Returns a program_update proposal — the client renders Apply/Not now buttons and persists via the same goal-preserving confirm-proposal path used by propose_program_update. Always call read_program first to get the exact exercise name + which day(s) it appears on so the proposal references the real plan, not a hallucinated one. Inputs: fromExerciseName = exact name as it appears in the program; toExerciseName = the replacement; reason = one short sentence the agent will surface in the proposal summary (e.g. 'knee discomfort on squats').",
+    "CALL THIS when the user agrees to swap one exercise for another in their program — even casually (\"yes\", \"sure\", \"ok do it\"). This is the ONLY way to make the swap actually take effect; text-only confirmation does NOT modify the program. Returns a proposal card the user taps to apply (goal-preserving validation runs server-side at that moment, not now). REQUIRED steps before calling: (1) call read_program to get the exact stored exercise name and which day(s) it appears on; (2) construct the FULL updatedProgram object with the exercise replaced everywhere it appears, reps/sets/RPE mapped sensibly to the new movement, all other days untouched. Inputs: fromExerciseName = exact name as stored; toExerciseName = the replacement; reason = one short sentence for the proposal summary; updatedProgram = complete updated program object.",
   input_schema: {
     type: 'object',
     properties: {
