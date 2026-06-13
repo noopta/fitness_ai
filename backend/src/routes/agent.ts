@@ -72,6 +72,12 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
 
     const result = await runAgentTurn(userId, message, history);
 
+    // Log what the agent did this turn — invaluable for diagnosing
+    // "agent said done but nothing changed" bug reports. The toolsUsed
+    // array is what the mobile client cross-references with its
+    // MUTATING_AGENT_TOOLS set to decide whether to invalidate caches.
+    console.log(`[agent] user=${userId.slice(0,8)} turn=${result.iterations} tools=${JSON.stringify(result.toolsUsed)} hasProposal=${!!result.proposal}`);
+
     // Persist the text transcript for next turn's continuity.
     await appendTurn(userId, message, result.reply);
 
