@@ -40,10 +40,19 @@ export function identifyUser(userId: string, props?: {
     username: props?.username ?? undefined,
     tier: props?.tier ?? 'free',
   });
+  // Firebase: ties the device's analytics events to our user id so
+  // Google Ads can attribute installs → in-app conversions per user. Also
+  // sets the user_tier property so we can split conversion reports by
+  // free vs pro in Firebase + Google Ads.
+  setFirebaseUserId(userId);
+  if (props?.tier) setFirebaseUserProperty('user_tier', props.tier);
 }
 
 export function resetUser() {
   posthog.reset();
+  // Clear Firebase's user id on logout — important for shared-device
+  // accuracy so events after logout don't get attributed to the prior user.
+  setFirebaseUserId(null);
 }
 
 // ─── Screen tracking ──────────────────────────────────────────────────────────
@@ -76,13 +85,27 @@ export function trackScreenTime(screenName: string): () => void {
 // ─── Feature events ───────────────────────────────────────────────────────────
 
 // Auth
+// Firebase Analytics mirror — for Google Ads conversion tracking. Product
+// analytics + funnels remain on PostHog; Firebase only sees the events
+// Google's conversion bidding needs to optimize against. See
+// firebaseAnalytics.ts for the lazy-loaded module pattern.
+import { logFirebaseEvent, setFirebaseUserId, setFirebaseUserProperty } from './firebaseAnalytics';
+
 export const Analytics = {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  login: (method: 'email' | 'google' | 'apple') =>
-    posthog.capture('login', { method }),
+  login: (method: 'email' | 'google' | 'apple') => {
+    posthog.capture('login', { method });
+    // Firebase's recommended login event — feeds Google Ads "Login" conversion.
+    logFirebaseEvent('login', { method });
+  },
 
-  register: (method: 'email' | 'google' | 'apple') =>
-    posthog.capture('register', { method }),
+  register: (method: 'email' | 'google' | 'apple') => {
+    posthog.capture('register', { method });
+    // Firebase's recommended sign_up event — primary Google Ads install
+    // conversion goal. Google's bidding optimizes for this when the campaign
+    // is set to "Install volume".
+    logFirebaseEvent('sign_up', { method });
+  },
 
   // ── Conversion funnel ─────────────────────────────────────────────────────
   // Fired at every screen between "Application Opened" and "register" so we
@@ -125,8 +148,13 @@ export const Analytics = {
   diagnosticStarted: (lift: string) =>
     posthog.capture('diagnostic_started', { lift }),
 
-  diagnosticCompleted: (lift: string) =>
-    posthog.capture('diagnostic_completed', { lift }),
+  diagnosticCompleted: (lift: string) => {
+    posthog.capture('diagnostic_completed', { lift });
+    // Firebase tutorial_complete — the standard "user finished onboarding"
+    // event Google Ads recognizes. Marks the moment the user got real
+    // value from the app for the first time.
+    logFirebaseEvent('tutorial_complete', { lift });
+  },
 
   // ── Coach — Life Happened ─────────────────────────────────────────────────
   lifeHappenedSubmitted: (disruptionType?: string) =>
@@ -200,6 +228,18 @@ export const Analytics = {
     // pricing_viewed → subscription_checkout_completed funnel can also see
     // mobile IAP conversions without rebuilding it.
     posthog.capture('subscription_checkout_completed', source ? { source } : {});
+    // Firebase purchase event — feeds Google Ads "Pro upgrade" conversion.
+    // Google's bidding uses this as the highest-value conversion. We
+    // approximate value (in CAD); the actual price is set on the IAP/Stripe
+    // side. Currency is required by Firebase's purchase schema.
+    const valueCAD = source === 'stripe' ? 11.99 : 12.99;
+    logFirebaseEvent('purchase', {
+      currency: 'CAD',
+      value: valueCAD,
+      transaction_id: `${source ?? 'unknown'}-${Date.now()}`,
+      items: [{ item_id: 'pro_monthly', item_name: 'Axiom Pro Monthly' }],
+      source,
+    });
   },
 
   // ── Research articles (social feed) ───────────────────────────────────────
