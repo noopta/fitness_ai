@@ -25,6 +25,7 @@ import { ThinkingDots, useThinkingLabel } from './ThinkingLabel';
 // instead of showing the stale snapshot they hydrated from.
 const MUTATING_AGENT_TOOLS = new Set([
   'apply_program_update',
+  'swap_exercise_in_program',
   'adjust_macros',
   'log_meal',
   'log_workout',

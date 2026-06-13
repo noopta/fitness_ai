@@ -104,6 +104,69 @@ function validateProgram(updated: any, currentGoal: string | null): void {
  * persisted with the same cache + dailyCalorieTarget handling as the program
  * save endpoint.
  */
+/**
+ * Simpler swap: take exercise NAMES, edit the saved program server-side,
+ * persist. Removes the cognitive load on the agent of constructing a full
+ * updatedProgram object — it just hands us the from/to names + reason and
+ * we do the surgery. Case-insensitive match for the exercise name; also
+ * matches the `exercise` field (some entries use `exercise` instead of
+ * `name`). Bumps useCount for analytics. Returns how many days were
+ * affected so the agent can confirm.
+ */
+function normExercise(s: string): string {
+  return s.toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim();
+}
+
+export async function applyExerciseSwap(userId: string, fromName: string, toName: string, reason?: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+  if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
+  const program = JSON.parse(user.savedProgram);
+
+  const fromKey = normExercise(fromName);
+  const toLabel = toName.trim();
+  if (!fromKey || !toLabel) throw new Error('fromExerciseName and toExerciseName are both required.');
+
+  let touched = 0;
+  const daysAffected: string[] = [];
+  for (const phase of program.phases ?? []) {
+    for (const day of phase.trainingDays ?? []) {
+      for (const ex of day.exercises ?? []) {
+        const nameField = (ex.exercise ?? ex.name ?? '').toString();
+        if (normExercise(nameField) === fromKey) {
+          // Preserve the original field name so the program shape stays
+          // consistent (`exercise` vs `name` is mixed across phases).
+          if ('exercise' in ex) ex.exercise = toLabel;
+          if ('name' in ex) ex.name = toLabel;
+          if (!('exercise' in ex) && !('name' in ex)) ex.name = toLabel;
+          touched += 1;
+          if (day.day && !daysAffected.includes(day.day)) daysAffected.push(day.day);
+        }
+      }
+    }
+  }
+
+  if (touched === 0) {
+    return {
+      applied: false,
+      reason: `Could not find "${fromName}" in your program. Try the exact name as listed in today's workout.`,
+      occurrences: 0,
+    };
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { savedProgram: JSON.stringify(program) },
+  });
+  invalidateProgramCaches(userId);
+
+  return {
+    applied: true,
+    occurrences: touched,
+    daysAffected,
+    summary: `Swapped ${fromName} → ${toLabel} across ${touched} occurrence(s)${reason ? ` (${reason})` : ''}.`,
+  };
+}
+
 export async function applyProgramUpdate(userId: string, updatedProgram: any) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');

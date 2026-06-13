@@ -10,7 +10,7 @@
 import { PrismaClient } from '@prisma/client';
 import { parseMealMacros } from '../services/llmService.js';
 import { appendMemory } from './memory.js';
-import { applyMacroChange, applyProgramUpdate } from './applyTools.js';
+import { applyMacroChange, applyProgramUpdate, applyExerciseSwap } from './applyTools.js';
 import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '../routes/coach.js';
 import type { AgentTool } from './types.js';
 
@@ -555,6 +555,27 @@ const proposeExerciseSwap: AgentTool = {
   },
 };
 
+const swapExerciseInProgram: AgentTool = {
+  name: 'swap_exercise_in_program',
+  description:
+    "Replace one exercise in the user's saved training program with another, EVERYWHERE it appears, AND PERSIST. Use this the moment the user agrees to a swap suggestion (any agreement: 'yes', 'sure', 'ok', 'go with X', 'let's do it', etc.). This is the simpler alternative to propose_exercise_swap — no need to construct a full updatedProgram object; the backend does the surgery from just the names. Returns occurrences swapped + days affected so you can report what changed. After calling this, your reply MUST acknowledge that the program was updated (e.g. 'Done — swapped on Day 4'). Inputs: fromExerciseName = exact stored name (call read_program if you're not 100% sure of the casing); toExerciseName = the replacement; reason = one short string surfaced in audit (e.g. 'no bench available').",
+  input_schema: {
+    type: 'object',
+    properties: {
+      fromExerciseName: { type: 'string', description: 'Exact name as stored, e.g. "Bulgarian Split Squat".' },
+      toExerciseName:   { type: 'string', description: 'Replacement, e.g. "Reverse Lunge".' },
+      reason:           { type: 'string', description: 'One short sentence for audit/log.' },
+    },
+    required: ['fromExerciseName', 'toExerciseName'],
+  },
+  execute: async (input, userId) => {
+    const from = String(input.fromExerciseName ?? '');
+    const to   = String(input.toExerciseName ?? '');
+    const reason = input.reason != null ? String(input.reason) : undefined;
+    return applyExerciseSwap(userId, from, to, reason);
+  },
+};
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS: AgentTool[] = [
@@ -578,6 +599,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   proposeProgramUpdateTool,
   proposeWorkoutSwap,
   proposeExerciseSwap,
+  swapExerciseInProgram,
   remember,
 ];
 
