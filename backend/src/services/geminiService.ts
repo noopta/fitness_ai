@@ -19,7 +19,10 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { Storage } from '@google-cloud/storage';
 import crypto from 'crypto';
 
-const MODEL = 'gemini-3.1-pro-preview';
+// gemini-3.1-pro-preview lost project access ~Jun 10 (preview allowlist drop).
+// 2.5-pro is GA and works on the project's Vertex region. Swap back when 3.1
+// Model Garden access is restored under inquiries@axiomtraining.io.
+const MODEL = 'gemini-2.5-pro';
 const PROJECT = process.env.GCP_PROJECT_NUMBER ?? '656267185967';
 const LOCATION = process.env.GCP_LOCATION ?? 'global';
 

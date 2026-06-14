@@ -19,7 +19,10 @@ const gemini = new GoogleGenAI({
   project: process.env.GCP_PROJECT_NUMBER ?? '656267185967',
   location: process.env.GCP_LOCATION ?? 'global',
 });
-const GEMINI_VISION_MODEL = 'gemini-3.1-pro-preview';
+// gemini-3.1-pro-preview lost project access ~Jun 10 (preview allowlist drop).
+// 2.5-pro is GA, same Vertex region, same responseSchema support, vision-capable.
+// Swap back to 3.1 once Model Garden access is restored under inquiries@axiomtraining.io.
+const GEMINI_VISION_MODEL = 'gemini-2.5-pro';
 
 export interface DiagnosticContext {
   selectedLift: string;
