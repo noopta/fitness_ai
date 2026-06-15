@@ -965,12 +965,10 @@ export default function SocialScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        // Perf (D.2): drop off-screen subtree from the native view hierarchy
-        // while scrolling. Cuts the per-frame layout cost on long feeds —
-        // not as good as FlatList virtualization (full migration deferred
-        // because the tab structure wraps multiple unrelated views) but a
-        // 5-line change that eliminates the worst frame drops users feel.
-        removeClippedSubviews
+        // removeClippedSubviews was here for perf but broke TouchableOpacity
+        // taps on feed cards (cards became unclickable after scrolling). The
+        // proper perf path is a FlatList virtualization migration — until then
+        // keep the cards reliably tappable. scrollEventThrottle is harmless.
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl

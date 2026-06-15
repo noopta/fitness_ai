@@ -9,6 +9,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { AxiomLogo } from '../../src/components/ui/AxiomLogo';
 import { liftCoachApi, coachApi } from '../../src/lib/api';
 import { Badge } from '../../src/components/ui/Badge';
+import { DailyQuoteCard } from '../../src/components/home/DailyQuoteCard';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 
@@ -89,6 +90,9 @@ export default function HomeScreen() {
         <Text style={styles.greetingTitle}>
           {greeting}{'\n'}{firstName}.
         </Text>
+
+        {/* ── Daily motivational quote ── */}
+        <DailyQuoteCard />
 
         {/* ── Hero card ── */}
         {isPro ? (
