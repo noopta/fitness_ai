@@ -1,22 +1,20 @@
-// Custom Expo config plugin — makes @react-native-firebase build under
+// Custom Expo config plugin — makes @react-native-firebase v24 build under
 // `useFrameworks: 'static'`.
 //
-// The journey:
-//   1. Default config:  "include of non-modular header inside framework module"
-//      → use_modular_headers! at top scope didn't propagate through use_react_native!
-//   2. CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES on RNFB targets:
-//      → bypassed the include error, but surfaced the deeper issue —
-//      "RCTBridgeModule must be imported from module RNFBApp.RNFBAppModule"
-//      because the React macros can't expand properly without a real module
-//      context.
-//   3. The canonical @react-native-firebase fix: `$RNFirebaseAsStaticFramework`
-//      global at the top of the Podfile. Tells RNFB's own podspec to declare
-//      itself as a static framework cleanly, which sidesteps the entire
-//      module-visibility mess.
+// Iteration log (so future-me knows what didn't work):
+//   v1: use_modular_headers! at top-level scope → no effect, pods inside
+//       target block weren't touched
+//   v2: CLANG_ALLOW_NON_MODULAR_INCLUDES on RNFB targets → bypassed include
+//       error but RCTBridgeModule macros still failed to expand because
+//       React-Core wasn't actually modular
+//   v3: $RNFirebaseAsStaticFramework = true → that variable is from older
+//       RNFB versions (< 18), v24 doesn't honor it
+//   v4 (current): use_modular_headers! INSIDE the target block, right
+//       before use_react_native! → applies to all pods declared by the RN
+//       helper including React-Core itself
 //
-// We do BOTH:
-//   - $RNFirebaseAsStaticFramework = true at the top (the real fix)
-//   - the CLANG flag in post_install as a safety net (cheap, harmless)
+// The CLANG flag is kept as defense-in-depth (cheap, harmless). The pre-
+// target $RNFirebaseAsStaticFramework injection is dropped (v24 ignores it).
 //
 // Idempotent — sentinel-guarded.
 
@@ -24,13 +22,8 @@ const { withDangerousMod } = require('@expo/config-plugins');
 const path = require('path');
 const fs = require('fs');
 
-const SENTINEL_PRE  = '# axiom:rnfb-static-framework';
-const SENTINEL_POST = '# axiom:rnfb-allow-non-modular-includes';
-
-const PRE_INJECT = `
-${SENTINEL_PRE} — see plugins/with-modular-headers.js
-$RNFirebaseAsStaticFramework = true
-`.trim();
+const SENTINEL_IN_TARGET = '# axiom:use-modular-headers-in-target';
+const SENTINEL_POST      = '# axiom:rnfb-allow-non-modular-includes';
 
 const POST_INJECT = `
     ${SENTINEL_POST} — see plugins/with-modular-headers.js
@@ -51,39 +44,50 @@ function patchPodfile(podfilePath) {
   let contents = fs.readFileSync(podfilePath, 'utf8');
   let changed = false;
 
-  // ── 1. $RNFirebaseAsStaticFramework = true at top scope ────────────────
-  if (!contents.includes(SENTINEL_PRE)) {
-    // Land it AFTER the `require` lines (autolinking scripts) but BEFORE any
-    // target block. Simplest: insert immediately after the `platform :ios`
-    // line, which is top-scope and always present.
-    const platformRegex = /^platform :ios.*$/m;
-    if (platformRegex.test(contents)) {
-      contents = contents.replace(platformRegex, (m) => `${m}\n\n${PRE_INJECT}\n`);
+  // ── 1. use_modular_headers! INSIDE the target block ───────────────────
+  // The target block looks like:
+  //   target 'mobileAlt' do
+  //     use_expo_modules!
+  //     ...
+  //     use_react_native!(...)
+  //   end
+  // We need use_modular_headers! to land BEFORE use_react_native! so the RN
+  // pods it declares pick up the flag. Inserting right after use_expo_modules!
+  // (always the first line of the target block in Expo's template).
+  if (!contents.includes(SENTINEL_IN_TARGET)) {
+    const useExpoRegex = /(use_expo_modules!.*$)/m;
+    if (useExpoRegex.test(contents)) {
+      const inject = `\n\n  ${SENTINEL_IN_TARGET} — see plugins/with-modular-headers.js\n  use_modular_headers!`;
+      contents = contents.replace(useExpoRegex, (m) => `${m}${inject}`);
+      changed = true;
+      console.log('[with-modular-headers] injected use_modular_headers! inside target block');
     } else {
-      contents = `${PRE_INJECT}\n\n${contents}`;
+      console.warn('[with-modular-headers] use_expo_modules! not found — could not place use_modular_headers!');
     }
-    changed = true;
-    console.log('[with-modular-headers] injected $RNFirebaseAsStaticFramework = true');
   }
 
-  // ── 2. CLANG_ALLOW_NON_MODULAR_INCLUDES on RNFB targets in post_install ──
+  // ── 2. CLANG_ALLOW_NON_MODULAR_INCLUDES on RNFB targets in post_install
   if (!contents.includes(SENTINEL_POST)) {
     const blockStart = /post_install do \|installer\|/;
     if (blockStart.test(contents)) {
       contents = contents.replace(blockStart, (m) => `${m}\n${POST_INJECT}`);
       changed = true;
-      console.log('[with-modular-headers] merged RNFB build-settings into existing post_install');
+      console.log('[with-modular-headers] merged RNFB CLANG flag into post_install');
     } else {
-      // Fallback — append a standalone block. Shouldn't happen with Expo's
-      // template (it always emits a post_install) but defensive.
       contents = `${contents}\n\npost_install do |installer|\n${POST_INJECT}end\n`;
       changed = true;
       console.log('[with-modular-headers] appended standalone post_install (no existing block)');
     }
   }
 
-  if (changed) fs.writeFileSync(podfilePath, contents);
-  else        console.log('[with-modular-headers] Podfile already patched, skipping');
+  if (changed) {
+    fs.writeFileSync(podfilePath, contents);
+    // Debug — first 60 lines so we can confirm in EAS logs the injection landed.
+    const head = contents.split('\n').slice(0, 60).join('\n');
+    console.log('[with-modular-headers] Podfile head after patching:\n' + head);
+  } else {
+    console.log('[with-modular-headers] Podfile already patched, skipping');
+  }
 }
 
 module.exports = function withModularHeaders(config) {
