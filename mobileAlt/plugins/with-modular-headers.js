@@ -1,36 +1,39 @@
-// Custom Expo config plugin — patches the generated iOS Podfile so the
-// @react-native-firebase native modules can build under
+// Custom Expo config plugin — makes @react-native-firebase build under
 // `useFrameworks: 'static'`.
 //
-// WHY the previous attempt (use_modular_headers!) wasn't enough:
-//   `use_modular_headers!` at top-level scope is supposed to flip all pods
-//   to modular header builds, but Expo declares React-Core via the
-//   `use_react_native!` helper inside a target block, and the helper's
-//   pod declarations don't pick up the global flag reliably. Result: RNFB
-//   targets still see React-Core headers as non-modular and the framework-
-//   module compile errors out.
+// The journey:
+//   1. Default config:  "include of non-modular header inside framework module"
+//      → use_modular_headers! at top scope didn't propagate through use_react_native!
+//   2. CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES on RNFB targets:
+//      → bypassed the include error, but surfaced the deeper issue —
+//      "RCTBridgeModule must be imported from module RNFBApp.RNFBAppModule"
+//      because the React macros can't expand properly without a real module
+//      context.
+//   3. The canonical @react-native-firebase fix: `$RNFirebaseAsStaticFramework`
+//      global at the top of the Podfile. Tells RNFB's own podspec to declare
+//      itself as a static framework cleanly, which sidesteps the entire
+//      module-visibility mess.
 //
-// The fix: directly set CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES
-// to YES on every RNFB* pod target via a post_install hook. This tells the
-// compiler "allow non-modular includes inside this framework module" — the
-// targeted brute-force fix recommended in the @react-native-firebase iOS
-// troubleshooting guide.
+// We do BOTH:
+//   - $RNFirebaseAsStaticFramework = true at the top (the real fix)
+//   - the CLANG flag in post_install as a safety net (cheap, harmless)
 //
-// We inject INTO the existing post_install block Expo generates, so we don't
-// fight CocoaPods' "only one post_install per target_definition" rule.
-//
-// Idempotent — guarded by a sentinel comment.
+// Idempotent — sentinel-guarded.
 
 const { withDangerousMod } = require('@expo/config-plugins');
 const path = require('path');
 const fs = require('fs');
 
-const SENTINEL = '# axiom:rnfb-allow-non-modular-includes — see plugins/with-modular-headers.js';
+const SENTINEL_PRE  = '# axiom:rnfb-static-framework';
+const SENTINEL_POST = '# axiom:rnfb-allow-non-modular-includes';
 
-// Body of the build-settings loop. Indented to match Expo's existing
-// post_install style (2-space).
-const INJECTION = `
-    ${SENTINEL}
+const PRE_INJECT = `
+${SENTINEL_PRE} — see plugins/with-modular-headers.js
+$RNFirebaseAsStaticFramework = true
+`.trim();
+
+const POST_INJECT = `
+    ${SENTINEL_POST} — see plugins/with-modular-headers.js
     installer.pods_project.targets.each do |t|
       if t.name.start_with?('RNFB')
         t.build_configurations.each do |c|
@@ -40,40 +43,47 @@ const INJECTION = `
     end
 `.replace(/^\n/, '');
 
-// Standalone post_install block — used as a fallback if the Podfile doesn't
-// already contain one for us to merge into.
-const STANDALONE = `
-${SENTINEL.replace('see plugins/with-modular-headers.js', 'standalone block')}
-post_install do |installer|
-${INJECTION}end
-`.trim();
-
 function patchPodfile(podfilePath) {
   if (!fs.existsSync(podfilePath)) {
     console.warn(`[with-modular-headers] Podfile not found at ${podfilePath} — skipping`);
     return;
   }
   let contents = fs.readFileSync(podfilePath, 'utf8');
-  if (contents.includes(SENTINEL.split(' — ')[0])) {
-    console.log('[with-modular-headers] Podfile already patched, skipping');
-    return;
+  let changed = false;
+
+  // ── 1. $RNFirebaseAsStaticFramework = true at top scope ────────────────
+  if (!contents.includes(SENTINEL_PRE)) {
+    // Land it AFTER the `require` lines (autolinking scripts) but BEFORE any
+    // target block. Simplest: insert immediately after the `platform :ios`
+    // line, which is top-scope and always present.
+    const platformRegex = /^platform :ios.*$/m;
+    if (platformRegex.test(contents)) {
+      contents = contents.replace(platformRegex, (m) => `${m}\n\n${PRE_INJECT}\n`);
+    } else {
+      contents = `${PRE_INJECT}\n\n${contents}`;
+    }
+    changed = true;
+    console.log('[with-modular-headers] injected $RNFirebaseAsStaticFramework = true');
   }
 
-  // Try to inject INSIDE the existing `post_install do |installer|` block.
-  // Expo's generated Podfile always contains one (calls react_native_post_install).
-  const blockStart = /post_install do \|installer\|/;
-  if (blockStart.test(contents)) {
-    contents = contents.replace(
-      blockStart,
-      (match) => `${match}\n${INJECTION}`,
-    );
-    console.log('[with-modular-headers] merged RNFB build-settings into existing post_install block');
-  } else {
-    contents = `${contents}\n\n${STANDALONE}\n`;
-    console.log('[with-modular-headers] appended standalone post_install block (no existing block found)');
+  // ── 2. CLANG_ALLOW_NON_MODULAR_INCLUDES on RNFB targets in post_install ──
+  if (!contents.includes(SENTINEL_POST)) {
+    const blockStart = /post_install do \|installer\|/;
+    if (blockStart.test(contents)) {
+      contents = contents.replace(blockStart, (m) => `${m}\n${POST_INJECT}`);
+      changed = true;
+      console.log('[with-modular-headers] merged RNFB build-settings into existing post_install');
+    } else {
+      // Fallback — append a standalone block. Shouldn't happen with Expo's
+      // template (it always emits a post_install) but defensive.
+      contents = `${contents}\n\npost_install do |installer|\n${POST_INJECT}end\n`;
+      changed = true;
+      console.log('[with-modular-headers] appended standalone post_install (no existing block)');
+    }
   }
 
-  fs.writeFileSync(podfilePath, contents);
+  if (changed) fs.writeFileSync(podfilePath, contents);
+  else        console.log('[with-modular-headers] Podfile already patched, skipping');
 }
 
 module.exports = function withModularHeaders(config) {
