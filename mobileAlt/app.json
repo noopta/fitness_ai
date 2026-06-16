@@ -28,12 +28,16 @@
       "expo-asset",
       "expo-font",
       "@react-native-firebase/app",
-      "./plugins/with-modular-headers.js",
       [
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static"
+            "useFrameworks": "static",
+            "buildReactNativeFromSource": true,
+            "forceStaticLinking": [
+              "RNFBApp",
+              "RNFBAnalytics"
+            ]
           }
         }
       ],
@@ -63,7 +67,8 @@
         }
       ],
       "expo-audio",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "expo-web-browser"
     ],
     "ios": {
       "supportsTablet": false,
