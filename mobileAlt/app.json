@@ -42,14 +42,6 @@
         }
       ],
       [
-        "react-native-iap",
-        {
-          "ios": {
-            "with-folly-no-coroutines": true
-          }
-        }
-      ],
-      [
         "expo-image-picker",
         {
           "photosPermission": "Axiom uses your photo library to analyze meals and estimate calories.",

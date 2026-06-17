@@ -3,8 +3,12 @@
  *
  * Why a separate file: the surface area is similar but the listeners, the
  * purchase-object shape, and the receipt-verification payload all differ. Mixing
- * them in one file made the iOS path harder to follow when react-native-iap
- * v14 changed its API.
+ * them in one file made the iOS path harder to follow.
+ *
+ * Downgraded from react-native-iap v14 → v13 (see iap.ts header for why — Nitro
+ * launch crash under static frameworks). v13 API: getSubscriptions({ skus }),
+ * requestSubscription({ subscriptionOffers }), product.productId,
+ * product.subscriptionOfferDetails, purchase.purchaseToken.
  *
  * Purchase flow:
  *   1. initIAP() — opens the Play Billing connection.
@@ -18,13 +22,13 @@
 import {
   initConnection,
   endConnection,
-  fetchProducts,
-  requestPurchase,
+  getSubscriptions,
+  requestSubscription,
   getAvailablePurchases,
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
-  type ProductSubscription,
+  type Subscription,
   type Purchase,
   type PurchaseError,
 } from 'react-native-iap';
@@ -64,37 +68,36 @@ export function teardownIAP() {
 }
 
 // ─── Fetch Products ───────────────────────────────────────────────────────────
-export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
+export async function fetchProProduct(): Promise<{ product: Subscription | null; error: string | null }> {
   try {
-    iapLog('[google] fetchProducts(subs) — skus:', GOOGLE_PRODUCT_IDS);
-    let products = (await fetchProducts({ skus: GOOGLE_PRODUCT_IDS, type: 'subs' })) ?? [];
-    iapLog(`[google] fetchProducts(subs) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
+    iapLog('[google] getSubscriptions — skus:', GOOGLE_PRODUCT_IDS);
+    let products = (await getSubscriptions({ skus: GOOGLE_PRODUCT_IDS })) ?? [];
+    iapLog(`[google] getSubscriptions — returned ${products.length} item(s):`, products.map((p: any) => p.productId));
 
     // Same warm-up workaround as iOS: occasional empty first response.
     if (products.length === 0) {
       iapWarn('[google] subs fetch empty — retrying after 500ms');
       await new Promise<void>(r => setTimeout(r, 500));
-      products = (await fetchProducts({ skus: GOOGLE_PRODUCT_IDS, type: 'subs' })) ?? [];
+      products = (await getSubscriptions({ skus: GOOGLE_PRODUCT_IDS })) ?? [];
     }
 
-    const subs = products as ProductSubscription[];
-    const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
+    const match = products.find(p => p.productId === PRO_MONTHLY_ID) ?? products[0] ?? null;
     if (match) {
-      iapLog('[google] product found:', match.id);
+      iapLog('[google] product found:', match.productId);
       return { product: match, error: null };
     }
     // No product came back. Surface an error so the paywall shows a Retry
     // instead of silently hiding the Google Play option entirely (the build
     // must be installed from a Play track and the SKU/base plan must be
     // active in Play Console for this to return anything).
-    iapWarn('[google] product NOT found. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
+    iapWarn('[google] product NOT found. Wanted:', PRO_MONTHLY_ID, '— got IDs:', products.map((p: any) => p.productId));
     return {
       product: null,
       error: 'Google Play subscription unavailable right now. It may still be activating — tap Retry, or pay with card below.',
     };
   } catch (err: any) {
     const msg = err?.message ?? err?.code ?? String(err);
-    iapError('[google] fetchProducts threw:', msg);
+    iapError('[google] getSubscriptions threw:', msg);
     return { product: null, error: msg };
   }
 }
@@ -106,23 +109,17 @@ export async function fetchProProduct(): Promise<{ product: ProductSubscription 
  * offer attached to the base plan — apps with multiple offer tiers should pick
  * deliberately, but we have one offer right now.
  */
-export async function purchaseProMonthly(product: ProductSubscription): Promise<void> {
-  iapLog('[google] requestPurchase — sku:', PRO_MONTHLY_ID);
+export async function purchaseProMonthly(product: Subscription): Promise<void> {
+  iapLog('[google] requestSubscription — sku:', PRO_MONTHLY_ID);
   // The Play subscription product has one or more "subscription offers" each
   // with an offerToken. We need at least one to launch the sheet.
-  const offers = (product as any).subscriptionOfferDetailsAndroid ?? (product as any).subscriptionOfferDetails ?? [];
+  const offers = (product as any).subscriptionOfferDetails ?? (product as any).subscriptionOfferDetailsAndroid ?? [];
   const offerToken = offers[0]?.offerToken;
   if (!offerToken) {
     throw new Error('No subscription offer found for this product. Check Play Console base plan setup.');
   }
-  await requestPurchase({
-    type: 'subs',
-    request: {
-      android: {
-        skus: [PRO_MONTHLY_ID],
-        subscriptionOffers: [{ sku: PRO_MONTHLY_ID, offerToken }],
-      },
-    },
+  await requestSubscription({
+    subscriptionOffers: [{ sku: PRO_MONTHLY_ID, offerToken }],
   });
 }
 

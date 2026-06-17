@@ -23,7 +23,7 @@ import {
   addPurchaseListener as addGoogleListener,
   restorePurchases as restoreGoogle,
 } from '../lib/googleIap';
-import type { ProductSubscription, Purchase } from 'react-native-iap';
+import type { Subscription, Purchase } from 'react-native-iap';
 import { Analytics } from '../lib/analytics';
 import { apiFetch } from '../lib/api';
 
@@ -68,7 +68,7 @@ function PaymentSheetContent({
   const { user, refreshUser } = useAuth();
 
   // ── Native IAP state (Apple on iOS / Google Play on Android) ──
-  const [product, setProduct] = useState<ProductSubscription | null>(null);
+  const [product, setProduct] = useState<Subscription | null>(null);
   const [iapLoading, setIapLoading] = useState(true);
   const [iapPurchasing, setIapPurchasing] = useState(false);
   const [iapError, setIapError] = useState<string | null>(null);

@@ -1,23 +1,29 @@
 /**
- * Apple In-App Purchase service (react-native-iap v14 / StoreKit 2)
+ * Apple In-App Purchase service (react-native-iap v13 / StoreKit)
  *
- * v14 breaking changes:
- *  - getSubscriptions()   → fetchProducts({ skus, type: 'subs' })
- *  - requestSubscription()→ requestPurchase({ type: 'subs', request: { apple: { sku } } })
- *  - Subscription type    → ProductSubscription
- *  - product.localizedPrice → product.displayPrice (iOS)
- *  - purchase.transactionId → purchase.id
+ * Downgraded from v14 → v13 to remove react-native-nitro-modules: v14's Nitro
+ * (Swift HybridObject) layer crashed at launch under `useFrameworks: static`
+ * (required by Firebase) + the New Architecture. v13 uses the standard
+ * TurboModule bridge and links cleanly under static frameworks.
+ *
+ * v13 API (differs from the v14 we came from):
+ *  - getSubscriptions({ skus })            (was fetchProducts({ skus, type: 'subs' }))
+ *  - requestSubscription({ sku })          (was requestPurchase({ type, request: { apple: { sku } } }))
+ *  - Subscription type                     (was ProductSubscription)
+ *  - product.productId                     (was product.id)
+ *  - product.localizedPrice (iOS)          (was product.displayPrice)
+ *  - purchase.transactionId                (was purchase.id)
  */
 import {
   initConnection,
   endConnection,
-  fetchProducts,
-  requestPurchase,
+  getSubscriptions,
+  requestSubscription,
   getAvailablePurchases,
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
-  type ProductSubscription,
+  type Subscription,
   type Purchase,
   type PurchaseError,
 } from 'react-native-iap';
@@ -46,8 +52,8 @@ export async function initIAP(): Promise<boolean> {
     iapLog('initConnection — start');
     await initConnection();
     connectionInitialised = true;
-    // Brief pause — Nitro/StoreKit bridge needs a tick to fully settle
-    // before product fetches will succeed on first launch.
+    // Brief pause — StoreKit needs a tick to settle before product fetches
+    // will succeed on first launch (cold-start race).
     await new Promise<void>(r => setTimeout(r, 800));
     iapLog('initConnection — ready');
     return true;
@@ -69,67 +75,61 @@ export function teardownIAP() {
  * Fetches the Pro subscription product from StoreKit.
  *
  * Strategy:
- *  1. Try type:'subs' (correct v14 API for subscriptions).
- *  2. If that returns empty, fall back to type:'all' — a known workaround for
- *     the Nitro bridge warm-up race condition in react-native-iap v14.
- *  3. Match by product ID; accept the first result if exact match not found.
+ *  1. getSubscriptions({ skus }) — the v13 subscription fetch.
+ *  2. If empty, retry once after 500ms — guards the occasional empty first
+ *     response on a cold StoreKit connection.
+ *  3. Match by productId; accept the first result if exact match not found.
  */
-export async function fetchProProduct(): Promise<{ product: ProductSubscription | null; error: string | null }> {
+export async function fetchProProduct(): Promise<{ product: Subscription | null; error: string | null }> {
   try {
-    iapLog('fetchProducts(subs) — skus:', APPLE_PRODUCT_IDS);
-    let products = (await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'subs' })) ?? [];
-    iapLog(`fetchProducts(subs) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
+    iapLog('getSubscriptions — skus:', APPLE_PRODUCT_IDS);
+    let products = (await getSubscriptions({ skus: APPLE_PRODUCT_IDS })) ?? [];
+    iapLog(`getSubscriptions — returned ${products.length} item(s):`, products.map((p: any) => p.productId));
 
-    // Fallback: if subs type returns empty, try fetching all types
+    // Retry once if the first response is empty (cold-start race).
     if (products.length === 0) {
-      iapWarn('subs fetch empty — retrying with type:all after 500ms');
+      iapWarn('subs fetch empty — retrying after 500ms');
       await new Promise<void>(r => setTimeout(r, 500));
-      products = (await fetchProducts({ skus: APPLE_PRODUCT_IDS, type: 'all' })) ?? [];
-      iapLog(`fetchProducts(all) — returned ${products.length} item(s):`, products.map((p: any) => p.id ?? p.productId));
+      products = (await getSubscriptions({ skus: APPLE_PRODUCT_IDS })) ?? [];
+      iapLog(`getSubscriptions (retry) — returned ${products.length} item(s):`, products.map((p: any) => p.productId));
     }
 
-    const subs = products as ProductSubscription[];
-    const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
+    const match = products.find(p => p.productId === PRO_MONTHLY_ID) ?? products[0] ?? null;
     if (match) {
-      iapLog('product found:', match.id, 'price:', (match as any).displayPrice ?? (match as any).localizedPrice);
+      iapLog('product found:', match.productId, 'price:', (match as any).localizedPrice);
       return { product: match, error: null };
     }
     // No product came back. Surface an error so the paywall shows a Retry
     // instead of silently hiding the App Store option entirely.
-    iapWarn('product NOT found after both attempts. Wanted:', PRO_MONTHLY_ID, '— got IDs:', subs.map(p => p.id));
+    iapWarn('product NOT found after both attempts. Wanted:', PRO_MONTHLY_ID, '— got IDs:', products.map((p: any) => p.productId));
     return {
       product: null,
       error: 'App Store subscription unavailable right now. Tap Retry, or pay with card below.',
     };
   } catch (err: any) {
     const msg = err?.message ?? err?.code ?? String(err);
-    iapError('fetchProducts threw:', msg, 'code:', err?.code, 'full:', JSON.stringify(err));
+    iapError('getSubscriptions threw:', msg, 'code:', err?.code, 'full:', JSON.stringify(err));
     return { product: null, error: msg };
   }
 }
 
 // ─── Purchase ─────────────────────────────────────────────────────────────────
 /**
- * Initiates a StoreKit 2 subscription purchase.
+ * Initiates a StoreKit subscription purchase.
  * Receipt delivery is handled by the purchaseUpdatedListener in UpgradeSheet.
  */
 export async function purchaseProMonthly(): Promise<void> {
-  iapLog('requestPurchase — sku:', PRO_MONTHLY_ID);
-  await requestPurchase({
-    type: 'subs',
-    request: {
-      apple: { sku: PRO_MONTHLY_ID },
-    },
-  });
+  iapLog('requestSubscription — sku:', PRO_MONTHLY_ID);
+  await requestSubscription({ sku: PRO_MONTHLY_ID });
 }
 
 // ─── Verify with backend ──────────────────────────────────────────────────────
 /**
- * Sends the StoreKit 2 transaction ID to our backend for App Store Server API
+ * Sends the StoreKit transaction ID to our backend for App Store Server API
  * verification and tier upgrade. No receipt blob needed.
  */
 export async function verifyAppleReceipt(purchase: Purchase): Promise<void> {
-  const transactionId = purchase.id ?? (purchase as any).transactionId;
+  const transactionId = purchase.transactionId ?? (purchase as any).id;
   iapLog('verifyAppleReceipt — transactionId:', transactionId, 'productId:', purchase.productId);
 
   if (!transactionId) {
