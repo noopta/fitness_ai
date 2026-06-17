@@ -1,11 +1,10 @@
-// NOTE: Sentry JS init is intentionally DISABLED here. `@sentry/react-native`
-// is a native module — its `import` throws at startup on any binary that
-// wasn't built with the Sentry config plugin. The App Store binary (1.2.1)
-// predates the plugin, so OTA-shipping this import crashed every production
-// user on launch. Re-enable ONLY after a fresh `eas build --profile
-// production` ships a binary that includes the native module (1.2.2+). The
-// dependency + app.json plugin stay in place so that build links it.
+// Sentry RE-ENABLED for the 2.2.2+ native build (this build links the
+// @sentry/react-native native module via the app.json plugin). OTA-safe:
+// updates are keyed to runtimeVersion=appVersion, so this JS only reaches
+// 2.2.2+ binaries that contain the native module — it can never land on the
+// old 1.2.x App Store binary that lacked it (the original OTA-crash cause).
 import { useEffect, useRef, useState } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -24,6 +23,15 @@ import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/comp
 import { hydrateCacheFromStorage } from '../src/lib/cache';
 import { runBootPrefetch } from '../src/lib/prefetch';
 import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
+
+Sentry.init({
+  dsn: 'https://e3d5d2d971a53361b904ffc7eafe97d3@o4511583169609728.ingest.us.sentry.io/4511583170658304',
+  // Crash visibility is the goal — keep perf tracing volume low.
+  tracesSampleRate: 0.1,
+  // Native crash handling is on by default; this makes session/release
+  // attribution explicit so crashes map to the build that produced them.
+  enableAutoSessionTracking: true,
+});
 
 const queryClient = new QueryClient();
 
@@ -191,7 +199,5 @@ function RootLayout() {
   );
 }
 
-// Sentry.wrap is disabled alongside the init above — see top-of-file note.
-// Re-add `export default Sentry.wrap(RootLayout)` once a native build with
-// the Sentry module ships.
-export default RootLayout;
+// Sentry.wrap enables navigation/render error boundaries + touch breadcrumbs.
+export default Sentry.wrap(RootLayout);
