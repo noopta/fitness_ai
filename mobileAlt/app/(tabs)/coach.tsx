@@ -413,8 +413,16 @@ function CoachScreenInner() {
             </ScrollView>
           </View>
 
-          {/* Tab content */}
+          {/* Tab content — wrapped in a per-tab boundary so a crash reports
+              boundary_label="coach:Chat" (etc.) to PostHog instead of the
+              undifferentiated "coach-tab", localizing trips to one sub-tab. The
+              key remounts (clears the error) when the user switches tabs. */}
           <View style={styles.tabContent}>
+            <ErrorBoundary
+              key={activeTab}
+              label={`coach:${activeTab}`}
+              message="This tab hit an unexpected error. Tap try again."
+            >
             {activeTab === 'Overview' && (
               <OverviewTab
                 coachData={coachData}
@@ -448,6 +456,7 @@ function CoachScreenInner() {
                 onInitialPromptConsumed={() => setPendingChatPrompt(null)}
               />
             )}
+            </ErrorBoundary>
           </View>
         </View>
 

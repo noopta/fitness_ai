@@ -19,10 +19,9 @@ const gemini = new GoogleGenAI({
   project: process.env.GCP_PROJECT_NUMBER ?? '656267185967',
   location: process.env.GCP_LOCATION ?? 'global',
 });
-// gemini-3.1-pro-preview lost project access ~Jun 10 (preview allowlist drop).
-// 2.5-pro is GA, same Vertex region, same responseSchema support, vision-capable.
-// Swap back to 3.1 once Model Garden access is restored under inquiries@axiomtraining.io.
-const GEMINI_VISION_MODEL = 'gemini-2.5-pro';
+// Single env var (GEMINI_VISION_MODEL) governs both food-photo and form-video
+// analysis. 3.1-pro-preview is on the Vertex `global` endpoint.
+const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-3.1-pro-preview';
 
 export interface DiagnosticContext {
   selectedLift: string;
@@ -1651,10 +1650,10 @@ export async function rebalanceWeekAfterSwap(params: {
   pool: Array<{ name: string; focus: string | null }>;
 }): Promise<WeekRebalanceResult> {
   const lockedText = params.lockedDays
-    .map(d => `${d.date} (${d.dayLabel}): ${d.sessionName ? `${d.sessionName} [${d.focus || 'general'}]` : 'Rest'}${d.note ? ` — ${d.note}` : ''}`)
+    .map(d => `${d.date} (${d.dayLabel}): ${d.sessionName ? `${d.sessionName} [muscle: ${d.focus || 'general'}]` : 'Rest'}${d.note ? ` — ${d.note}` : ''}`)
     .join('\n') || '(none)';
   const slotsText = params.openSlots.map(s => `${s.date} (${s.dayLabel})`).join('\n');
-  const poolText = params.pool.map((p, i) => `${i + 1}. ${p.name} [${p.focus || 'general'}]`).join('\n') || '(none)';
+  const poolText = params.pool.map((p, i) => `${i + 1}. ${p.name} [muscle: ${p.focus || 'general'}]`).join('\n') || '(none)';
 
   const prompt = `You are an elite strength coach re-sequencing an athlete's training week after they swapped a workout. Place the available sessions into the open day-slots to maximize recovery quality.
 
