@@ -193,7 +193,18 @@ export async function runAgentTurn(
               chosenSessionName: r.chosenSessionName ?? '',
             };
           } else {
-            proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+            // Coerce summary to a non-empty string: the client renders it
+            // directly as a <Text> child, and an object/undefined here trips the
+            // Coach ErrorBoundary ("Objects are not valid as a React child").
+            const summary = typeof r.summary === 'string' && r.summary.trim()
+              ? r.summary
+              : 'Program update proposed';
+            proposal = {
+              kind: r.kind ?? 'program_update',
+              updatedProgram: r.updatedProgram,
+              summary,
+              changedDays: Array.isArray(r.changedDays) ? r.changedDays : [],
+            };
           }
         }
         toolResults.push({
@@ -317,7 +328,18 @@ export async function streamAgentTurn(
               chosenSessionName: r.chosenSessionName ?? '',
             };
           } else {
-            proposal = { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary: r.summary, changedDays: r.changedDays ?? [] };
+            // Coerce summary to a non-empty string: the client renders it
+            // directly as a <Text> child, and an object/undefined here trips the
+            // Coach ErrorBoundary ("Objects are not valid as a React child").
+            const summary = typeof r.summary === 'string' && r.summary.trim()
+              ? r.summary
+              : 'Program update proposed';
+            proposal = {
+              kind: r.kind ?? 'program_update',
+              updatedProgram: r.updatedProgram,
+              summary,
+              changedDays: Array.isArray(r.changedDays) ? r.changedDays : [],
+            };
           }
         }
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) });

@@ -92,26 +92,32 @@ function ProposalCard({ proposal, state, onApply, onDismiss }: ProposalCardProps
   // tapping Apply. For program_update, the agent already wrote a summary
   // and a list of changedDays we can render verbatim.
   const swapWeek = isSwap ? (proposal as any).proposedWeek as Array<any> | undefined : undefined;
+  // Coerce summary to a string — rendering an undefined/object child trips the
+  // Coach ErrorBoundary. Backend now defaults this, but guard the client too.
+  const summaryText =
+    typeof proposal.summary === 'string' && proposal.summary
+      ? proposal.summary
+      : isSwap ? 'Proposed workout swap' : 'Proposed change';
   return (
     <View style={styles.proposalCard}>
       <View style={styles.proposalHeader}>
         <Ionicons name={icon as any} size={16} color={colors.primary} />
         <Text style={styles.proposalEyebrow}>{eyebrow}</Text>
       </View>
-      <Text style={styles.proposalSummary}>{proposal.summary}</Text>
-      {isSwap && (proposal as any).rationale ? (
+      <Text style={styles.proposalSummary}>{summaryText}</Text>
+      {isSwap && typeof (proposal as any).rationale === 'string' && (proposal as any).rationale ? (
         <Text style={styles.proposalDays}>{(proposal as any).rationale}</Text>
       ) : null}
       {isSwap && swapWeek && swapWeek.length > 0 ? (
         <View style={{ gap: 2, marginTop: 4 }}>
-          {swapWeek.map((d: any) => (
-            <Text key={d.date} style={styles.proposalDays}>
-              {d.dayLabel ?? d.date.slice(5)}: {d.session?.day ?? 'Rest'}{d.isSwapped ? ' ←' : ''}
+          {swapWeek.map((d: any, idx: number) => (
+            <Text key={d?.date ?? idx} style={styles.proposalDays}>
+              {d?.dayLabel ?? (typeof d?.date === 'string' ? d.date.slice(5) : '')}: {d?.session?.day ?? 'Rest'}{d?.isSwapped ? ' ←' : ''}
             </Text>
           ))}
         </View>
       ) : null}
-      {!isSwap && (proposal as any).changedDays && (proposal as any).changedDays.length > 0 ? (
+      {!isSwap && Array.isArray((proposal as any).changedDays) && (proposal as any).changedDays.length > 0 ? (
         <Text style={styles.proposalDays}>
           Affects: {(proposal as any).changedDays.join(', ')}
         </Text>

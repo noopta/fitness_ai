@@ -13,6 +13,7 @@ import {
   rebalanceWeekAfterSwap,
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
+import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/weekRebalance.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
@@ -1173,13 +1174,16 @@ export async function buildSwapProposal(
       goal: user.coachGoal,
       trainingAge: user.trainingAge,
       lockedDays: [
-        { date, dayLabel: targetDay.dayLabel, sessionName: chosenSession.day, focus: chosenSession.focus, note: 'swapped in for today' },
+        { date, dayLabel: targetDay.dayLabel, sessionName: chosenSession.day, focus: muscleBucketLabel(chosenSession.day), note: 'swapped in for today' },
         ...weekDays
           .filter(d => d.date < date || loggedDates.has(d.date))
-          .map(d => ({ date: d.date, dayLabel: d.dayLabel, sessionName: d.session?.day ?? null, focus: d.session?.focus ?? null, note: loggedDates.has(d.date) ? 'already logged' : 'past' })),
+          .map(d => ({ date: d.date, dayLabel: d.dayLabel, sessionName: d.session?.day ?? null, focus: d.session?.day ? muscleBucketLabel(d.session.day) : null, note: loggedDates.has(d.date) ? 'already logged' : 'past' })),
       ],
       openSlots: openSlots.map(d => ({ date: d.date, dayLabel: d.dayLabel })),
-      pool: pool.map(s => ({ name: s.day, focus: s.focus })),
+      // Pass the coarse muscle bucket (derived from the session NAME) as the
+      // focus hint — the program's own `focus` field is the phase intent
+      // ("Corrective strength"), which carries no muscle-spacing signal.
+      pool: pool.map(s => ({ name: s.day, focus: muscleBucketLabel(s.day) })),
     });
     assignments = result.assignments;
     rationale = result.rationale;
@@ -1187,21 +1191,48 @@ export async function buildSwapProposal(
     console.error('[swap-day] LLM rebalance failed, using deterministic fallback:', e);
   }
 
-  const usedNames = new Set<string>();
-  const proposedOpen = new Map<string, any | null>();
+  // The LLM's `assignments` are only a hint. Enforce muscle spacing in code:
+  // place the pool into the open slots so no two adjacent calendar days share a
+  // muscle region, using the LLM order as a preference. This is what actually
+  // prevents the "two Upper days back-to-back" bug — the prompt rule alone does
+  // not, because the model treats "Horizontal Push/Pull" and "Vertical
+  // Push/Pull" as different focuses. The same routine runs whether the LLM
+  // succeeded, returned a bad order, or failed entirely (assignments == []).
+  const preference: string[] = [];
   if (assignments.length > 0) {
-    for (const a of assignments) {
-      if (!openSlots.some(s => s.date === a.date)) continue;
+    // Honor LLM order only for slots/sessions that actually exist.
+    const ordered = openSlots
+      .map(slot => assignments.find(a => a.date === slot.date))
+      .filter((a): a is { date: string; sessionName: string | null } => !!a);
+    for (const a of ordered) {
       const s = a.sessionName ? sessionByName.get(normalizeName(a.sessionName)) : null;
-      if (s && !usedNames.has(s.day)) { proposedOpen.set(a.date, s); usedNames.add(s.day); }
+      if (s?.day) preference.push(s.day);
     }
   }
-  const leftovers = pool.filter(s => !usedNames.has(s.day));
+
+  const lockedByDate = new Set(
+    weekDays.filter(d => d.date < date || loggedDates.has(d.date)).map(d => d.date),
+  );
+  const placementDays = weekDays.map(d => ({
+    date: d.date,
+    locked: d.date === date || lockedByDate.has(d.date),
+    session: d.date === date ? chosenSession : d.session ?? null,
+  }));
+  const { placement } = placeSessionsAvoidingConflicts({
+    days: placementDays,
+    pool,
+    preference,
+  });
+
+  // Did our spacing guard have to override what the LLM proposed? If so, the
+  // LLM's rationale describes a schedule we did not ship, so we replace it with
+  // an accurate deterministic one rather than show contradictory copy.
+  let overrodeLLM = false;
   for (const slot of openSlots) {
-    if (proposedOpen.get(slot.date) != null) continue;
-    const next = leftovers.shift();
-    if (next) { proposedOpen.set(slot.date, next); usedNames.add(next.day); }
-    else proposedOpen.set(slot.date, null);
+    const llmName = assignments.find(a => a.date === slot.date)?.sessionName ?? null;
+    const placed = placement.has(slot.date) ? placement.get(slot.date) : slot.session;
+    const placedName = placed?.day ?? null;
+    if (normalizeName(llmName ?? '') !== normalizeName(placedName ?? '')) { overrodeLLM = true; break; }
   }
 
   const proposedWeek = weekDays.map(d => {
@@ -1211,14 +1242,17 @@ export async function buildSwapProposal(
     if (d.date < date || loggedDates.has(d.date)) {
       return { ...d, locked: true };
     }
-    const s = proposedOpen.has(d.date) ? proposedOpen.get(d.date) : d.session;
+    const s = placement.has(d.date) ? placement.get(d.date) : d.session;
     const changed = (s?.day ?? null) !== (d.session?.day ?? null);
     return { ...d, session: s ?? null, isTrainingDay: !!s, isSwapped: changed, locked: false };
   });
 
+  const deterministicRationale = `Moved ${chosenSession.day} to today and re-spaced the rest of your week so no two similar sessions land back-to-back — each muscle group gets about 48 hours to recover.`;
+  const finalRationale = (!overrodeLLM && rationale) ? rationale : deterministicRationale;
+
   return {
     proposedWeek,
-    rationale: rationale || `Moved ${chosenSession.day} to today and re-spaced the rest of your week for recovery.`,
+    rationale: finalRationale,
     chosenSessionName: chosenSession.day,
   };
 }

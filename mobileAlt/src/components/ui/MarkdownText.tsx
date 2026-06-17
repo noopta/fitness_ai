@@ -200,7 +200,10 @@ function parseBlocks(markdown: string): Block[] {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function MarkdownText({ text, style }: { text: string; style?: any }) {
-  const raw = parseBlocks(text);
+  // Defensive: parseBlocks calls .split('\n'), which throws on a non-string and
+  // would trip the surrounding ErrorBoundary. Coerce anything unexpected.
+  const safeText = typeof text === 'string' ? text : String(text ?? '');
+  const raw = parseBlocks(safeText);
 
   // Collapse consecutive blanks → single blank; strip leading/trailing blanks
   const blocks: Block[] = [];
