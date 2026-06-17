@@ -22,6 +22,9 @@
       "autoIncrement": true,
       "env": {
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      },
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-16.4"
       }
     },
     "preview-android": {
@@ -40,6 +43,9 @@
       "channel": "production",
       "env": {
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      },
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-16.4"
       }
     }
   },
