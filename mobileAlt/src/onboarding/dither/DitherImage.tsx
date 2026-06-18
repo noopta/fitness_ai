@@ -3,7 +3,7 @@ import { Image, PixelRatio, useWindowDimensions, View } from 'react-native';
 import {
   Canvas, Fill, Shader, Skia, useImage, ImageShader, fitbox, rect,
 } from '@shopify/react-native-skia';
-import { useSharedValue, withTiming, Easing } from 'react-native-reanimated';
+import { useSharedValue, useDerivedValue, withTiming, Easing } from 'react-native-reanimated';
 import { WASHES, pickInks, GRAIN, type WashName, type SchemeName, type GrainName } from '../theme';
 import { DITHER_SKSL } from './dither.sksl';
 import { BAYER8_NORM } from './bayer';
@@ -60,6 +60,19 @@ export function DitherImage({
 
   const { darkInk, lightInk } = pickInks(wash, scheme);
 
+  // Uniforms as a derived value so Skia reads the animated 'cell' on the UI
+  // thread. Passing the SharedValue inside a plain uniforms object made Skia see
+  // NaN, so the shader sampled nothing and the screen went solid dark (read as
+  // "background image doesn't load"). Per spec §5.4.
+  const uniforms = useDerivedValue(() => ({
+    res: [W * dpr, H * dpr],
+    cell: cell.value,
+    darkInk,
+    lightInk,
+    vignette,
+    bayer: BAYER8_NORM,
+  }), [W, H, dpr, darkInk, lightInk, vignette]);
+
   // If the dither shader didn't compile on this Skia version, render the source
   // photo plainly so onboarding still works. Aesthetic-only degradation — no
   // dither texture, but no crash. (Restore the effect by fixing DITHER_SKSL to
@@ -82,17 +95,7 @@ export function DitherImage({
   return (
     <Canvas style={{ flex: 1 }}>
       <Fill>
-        <Shader
-          source={effect}
-          uniforms={{
-            res: [W * dpr, H * dpr],
-            cell: cell as unknown as number,
-            darkInk: darkInk as unknown as number[],
-            lightInk: lightInk as unknown as number[],
-            vignette,
-            bayer: BAYER8_NORM,
-          }}
-        >
+        <Shader source={effect} uniforms={uniforms}>
           <ImageShader image={img} tx="clamp" ty="clamp" fit="cover" rect={dst} transform={m} />
         </Shader>
       </Fill>

@@ -47,7 +47,13 @@ export function Poster({
   children,
 }: PosterProps) {
   const insets = useSafeAreaInsets();
-  const contentBottom = Math.max(insets.bottom + s(24), s(96));
+  // The pager's bottom bar is a column: dots row (4) + gap (14) + button row (44)
+  // = ~62pt, plus its own paddingBottom which grows with the home-indicator
+  // inset. The content block must clear all of it or the source-note text
+  // overlaps the progress dots (esp. on home-indicator devices, where the bar
+  // grows past a flat 96pt). Anchor content above the measured bar height.
+  const bottomBarHeight = Math.max(insets.bottom + s(8), s(26)) + s(62);
+  const contentBottom = bottomBarHeight + s(18);
 
   const w = WASHES[wash];
   const accent = w.accent;
