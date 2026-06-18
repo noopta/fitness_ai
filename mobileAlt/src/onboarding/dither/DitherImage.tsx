@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Image, PixelRatio, useWindowDimensions, View } from 'react-native';
+import { Image, useWindowDimensions, View } from 'react-native';
 import {
   Canvas, Fill, Shader, Skia, useImage, ImageShader, fitbox, rect,
 } from '@shopify/react-native-skia';
@@ -42,11 +42,17 @@ export function DitherImage({
 }: DitherImageProps) {
   const img = useImage(source);
   const { width: W, height: H } = useWindowDimensions();
-  const dpr = PixelRatio.get();
-  const targetCell = GRAIN[grain] * dpr;
+  // Skia's Fill shader receives fragcoords in LOGICAL points (the canvas's RN
+  // coordinate space), not device pixels — so the grain cell, the resolution
+  // uniform, and the image dst rect must all be in points too. The earlier *dpr
+  // (the spec assumed a pixel-space fragcoord) made the grain ~2× too coarse AND
+  // sampled only the left ~half of each photo, which read as "too zoomed in".
+  const targetCell = GRAIN[grain];
 
-  // Animated cell size. Start at 7× target (coarse) and resolve to target.
-  const cell = useSharedValue(reducedMotion ? targetCell : targetCell * 7);
+  // Animated cell size — a brief coarse "develop" that resolves to the target.
+  // Modest multiplier so the entry never obscures the photo (was 7×, far too
+  // chunky — the coarse phase made the images unrecognizable).
+  const cell = useSharedValue(reducedMotion ? targetCell : targetCell * 3);
   useEffect(() => {
     if (reducedMotion) {
       cell.value = targetCell;
@@ -65,13 +71,13 @@ export function DitherImage({
   // NaN, so the shader sampled nothing and the screen went solid dark (read as
   // "background image doesn't load"). Per spec §5.4.
   const uniforms = useDerivedValue(() => ({
-    res: [W * dpr, H * dpr],
+    res: [W, H],
     cell: cell.value,
     darkInk,
     lightInk,
     vignette,
     bayer: BAYER8_NORM,
-  }), [W, H, dpr, darkInk, lightInk, vignette]);
+  }), [W, H, darkInk, lightInk, vignette]);
 
   // If the dither shader didn't compile on this Skia version, render the source
   // photo plainly so onboarding still works. Aesthetic-only degradation — no
@@ -89,7 +95,7 @@ export function DitherImage({
 
   // Cover-fit the source image into the screen rect.
   const src = rect(0, 0, img.width(), img.height());
-  const dst = rect(0, 0, W * dpr, H * dpr);
+  const dst = rect(0, 0, W, H);
   const m = fitbox('cover', src, dst);
 
   return (
