@@ -92,10 +92,14 @@ function RootNavigator() {
     if (!cacheReady || loading || !user?.id || needsDobCheck) return;
     if (prefetchedFor.current === user.id) return;
     prefetchedFor.current = user.id;
-    void runBootPrefetch(user.id, (user as any).savedProgram);
+    // TEMP (SDK-55 launch-crash isolation): boot prefetch disabled.
+    // void runBootPrefetch(user.id, (user as any).savedProgram);
   }, [cacheReady, loading, user?.id, needsDobCheck]);
 
-  usePushNotifications(!!user);
+  // TEMP (SDK-55 launch-crash isolation): push-token registration disabled —
+  // registerForRemoteNotifications was on the blocked main thread in the crash.
+  // Passing false makes the hook a no-op (no getExpoPushTokenAsync at startup).
+  usePushNotifications(false);
 
   // Schedule the daily training reminder when the user signs in (or boots
   // already-signed-in). Cancel when they log out so we don't keep nagging
@@ -103,8 +107,11 @@ function RootNavigator() {
   // 6% week-1 retention finding from the user-psychology audit.
   useEffect(() => {
     if (loading) return;
-    if (user?.id) void ensureDailyReminderScheduled();
-    else void cancelDailyReminder();
+    // TEMP (SDK-55 launch-crash isolation): expo-notifications scheduling
+    // disabled (the SchedulableTrigger API changed in SDK 55 and notifications
+    // are implicated in the startup crash). Re-enable once launch is verified.
+    // if (user?.id) void ensureDailyReminderScheduled();
+    // else void cancelDailyReminder();
   }, [loading, user?.id]);
 
   // First launch of this build version → show the What's New modal once.
