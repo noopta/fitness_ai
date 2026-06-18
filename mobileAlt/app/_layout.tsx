@@ -161,7 +161,10 @@ function RootNavigator() {
     const inAgeCheck = (segments[0] as string) === 'age-check';
     const inCinematic = (segments[0] as string) === 'onboarding-cinematic';
     if (!user && !inAuthGroup && !inCinematic) {
-      router.replace(seenCinematic ? '/(auth)/welcome' : ('/onboarding-cinematic' as any));
+      // TEMP (onboarding QA): always show the cinematic flow to signed-out users,
+      // ignoring the "seen" flag, so it can be reviewed on every launch. Restore
+      // `seenCinematic ? '/(auth)/welcome' : '/onboarding-cinematic'` before ship.
+      router.replace('/onboarding-cinematic' as any);
     } else if (user && needsDobCheck && !inAgeCheck) {
       router.replace('/age-check' as any);
     } else if (user && !needsDobCheck && (inAuthGroup || inCinematic)) {
