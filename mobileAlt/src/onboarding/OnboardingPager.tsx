@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Platform, Pressable, StatusBar,
 } from 'react-native';
@@ -17,6 +17,8 @@ import { Scene05Results } from './scenes/Scene05Results';
 import { Scene06Agent } from './scenes/Scene06Agent';
 import { Scene07SignIn } from './scenes/Scene07SignIn';
 import { s } from './theme';
+import { PHOTOS } from './assets/photos/manifest';
+import { preloadPhotos } from './dither/photoCache';
 
 const SCENE_COUNT = 7;
 const SWIPE_THRESHOLD = 45;
@@ -40,6 +42,12 @@ export function OnboardingPager({ onSignedIn }: Props) {
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const fade = useSharedValue(1);
+
+  // Decode every scene photo once, up front, so navigating to a scene paints the
+  // dithered image on its first frame instead of flashing the deep wash + bloom.
+  useEffect(() => {
+    void preloadPhotos(Object.values(PHOTOS) as unknown as number[]);
+  }, []);
 
   const advance = useCallback((delta: 1 | -1) => {
     setIndex((current) => {

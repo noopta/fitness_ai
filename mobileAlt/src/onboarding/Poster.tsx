@@ -93,13 +93,13 @@ export function Poster({
       <LinearGradient
         pointerEvents="none"
         colors={[
-          `${deep}52`,            // 0%   ~0.32 alpha
-          'transparent',          // 24%
-          'transparent',          // 40%
-          `${deep}${alphaHex(scrim)}`,  // 74%
+          `${deep}52`,            // 0%   ~0.32 alpha (seats the top chrome)
+          'transparent',          // 20%  image reads clean through the upper half
+          `${deep}33`,            // 42%  gentle lift under tall stat numbers
+          `${deep}${alphaHex(scrim)}`,  // 64%  full content scrim
           `${deep}fa`,            // 100% ~0.98 alpha
         ]}
-        locations={[0, 0.24, 0.4, 0.74, 1]}
+        locations={[0, 0.2, 0.42, 0.64, 1]}
         style={StyleSheet.absoluteFill}
       />
 
