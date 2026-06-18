@@ -23,6 +23,7 @@ import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/components/WhatsNewModal';
 import { hydrateCacheFromStorage } from '../src/lib/cache';
 import { runBootPrefetch } from '../src/lib/prefetch';
+import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
 
 const queryClient = new QueryClient();
 
@@ -127,21 +128,30 @@ function RootNavigator() {
     }
   }, [user?.id, loading]);
 
+  // First-launch gate: have they seen the cinematic onboarding? `null` = still
+  // checking (treat as "seen" to avoid a flash). First-time unauthed users go to
+  // the cinematic flow; returning unauthed users see the existing welcome/login.
+  const [seenCinematic, setSeenCinematic] = useState<boolean | null>(null);
   useEffect(() => {
-    if (loading) return;
+    void hasSeenCinematicOnboarding().then(setSeenCinematic);
+  }, []);
+
+  useEffect(() => {
+    if (loading || seenCinematic === null) return;
     const inAuthGroup = segments[0] === '(auth)';
     const inAgeCheck = (segments[0] as string) === 'age-check';
-    if (!user && !inAuthGroup) {
-      router.replace('/(auth)/welcome');
+    const inCinematic = (segments[0] as string) === 'onboarding-cinematic';
+    if (!user && !inAuthGroup && !inCinematic) {
+      router.replace(seenCinematic ? '/(auth)/welcome' : ('/onboarding-cinematic' as any));
     } else if (user && needsDobCheck && !inAgeCheck) {
       router.replace('/age-check' as any);
-    } else if (user && !needsDobCheck && inAuthGroup) {
+    } else if (user && !needsDobCheck && (inAuthGroup || inCinematic)) {
       // Funnel: users who haven't completed coach onboarding go straight into
       // it (intake → plan → paywall) rather than the Home tab. Onboarded users
       // land on Home as before.
       router.replace((user.coachOnboardingDone ? '/(tabs)' : '/(tabs)/coach') as any);
     }
-  }, [user, loading, needsDobCheck, segments]);
+  }, [user, loading, needsDobCheck, segments, seenCinematic]);
 
   if (loading || !cacheReady) {
     return (

@@ -11,18 +11,12 @@ export const posthog = new PostHog(
     flushInterval: 30000,
     // Capture native lifecycle events (Application Opened / Became Active / etc.)
     captureAppLifecycleEvents: true,
-    // Record native in-app sessions. Project-side "Record user sessions" must
-    // also be enabled in PostHog → Project Settings → Session replay for these
-    // to actually persist. The session-replay native module is auto-detected
-    // when posthog-react-native-session-replay is installed.
-    enableSessionReplay: true,
-    sessionReplayConfig: {
-      // Text inputs (emails, search, message composers) are masked by default
-      // and we want that. Images stay visible so PRs, profile photos, and
-      // workout screenshots are inspectable in replays.
-      maskAllTextInputs: true,
-      maskAllImages: false,
-    },
+    // Session replay DISABLED + its native pod stripped (scripts/strip-posthog-
+    // session-replay-ios.js): the Swift layer crashes every Xcode 26 build on
+    // launch (NSClassFromString -> swift_getTypeByMangledNode Data Abort). The
+    // module ships in 2.2.1 and is fine under Xcode 16, but Apple now mandates
+    // Xcode 26. Product analytics (events/identify) are unaffected.
+    enableSessionReplay: false,
   }
 );
 
