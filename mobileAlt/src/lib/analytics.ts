@@ -1,4 +1,5 @@
 import PostHog from 'posthog-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── PostHog client (singleton) ───────────────────────────────────────────────
 
@@ -6,6 +7,13 @@ export const posthog = new PostHog(
   'phc_BWbwuvj6GpMqbzPFUkVYdJSji3BFwjX72qjBjUwiw8oh',
   {
     host: 'https://us.i.posthog.com',
+    // Force AsyncStorage for persistence. Without this, posthog-react-native
+    // auto-detects expo-file-system and uses its NEW (SDK 55) `File.write()` API
+    // in setItem() WITHOUT a try/catch — which throws on first launch under
+    // Expo SDK 55 and crashes the app (RCTFatal) before anything renders. This
+    // was THE launch crash on builds 127-131. AsyncStorage satisfies
+    // PostHogCustomStorage ({getItem,setItem}) and avoids that path entirely.
+    customStorage: AsyncStorage,
     // Flush events every 30 s or when 20 events are queued
     flushAt: 20,
     flushInterval: 30000,
