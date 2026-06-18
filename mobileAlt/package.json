@@ -7,6 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "eas-build-pre-install": "brew install cmake ninja",
     "postinstall": "node scripts/strip-posthog-session-replay-ios.js",
     "eas-build-post-install": "node scripts/strip-posthog-session-replay-ios.js"
   },
