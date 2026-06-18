@@ -21,8 +21,7 @@
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
-        "RCT_BUILD_HERMES_FROM_SOURCE": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "preview-android": {
@@ -40,8 +39,7 @@
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
-        "RCT_BUILD_HERMES_FROM_SOURCE": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }
   },

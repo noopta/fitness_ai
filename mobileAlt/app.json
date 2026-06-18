@@ -27,20 +27,6 @@
       "expo-secure-store",
       "expo-asset",
       "expo-font",
-      "@react-native-firebase/app",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static",
-            "buildReactNativeFromSource": true,
-            "forceStaticLinking": [
-              "RNFBApp",
-              "RNFBAnalytics"
-            ]
-          }
-        }
-      ],
       [
         "expo-image-picker",
         {
@@ -73,7 +59,6 @@
       "supportsTablet": false,
       "bundleIdentifier": "io.axiomtraining.app",
       "buildNumber": "100",
-      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
@@ -87,7 +72,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "googleServicesFile": "./google-services.json",
       "package": "io.axiomtraining.app",
       "intentFilters": [
         {

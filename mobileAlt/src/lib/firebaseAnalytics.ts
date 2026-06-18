@@ -1,92 +1,35 @@
-// Firebase Analytics — exists ONLY to feed Google Ads conversion tracking.
-// Product analytics still go through PostHog. This file is a thin mirror
-// of the events Google needs to see (sign_up, login, tutorial_complete,
-// level_up, purchase, etc.) — Google's conversion bidding can't optimize
-// against PostHog events directly.
+// Firebase Analytics — TEMPORARILY DISABLED (no-op stub).
 //
-// IMPORTANT — same pattern as expo-camera + vision-camera + Sentry:
-// @react-native-firebase/analytics is a NATIVE module. An OTA-delivered
-// JS bundle that references it on a binary that wasn't built with the
-// Firebase plugin will crash at module load. We lazy-load via require()
-// inside try/catch so the analytics calls become no-ops on old binaries.
+// @react-native-firebase was removed in 2.2.2 because it requires
+// useFrameworks:"static", which under the mandatory Xcode 26 toolchain caused a
+// libc++ ABI collision between the prebuilt Hermes (LLVM 18) and from-source
+// reanimated (LLVM 20) — corrupting Hermes' heap and crashing every build on
+// launch. Dropping Firebase returns the app to the standard Expo SDK-54 config
+// (dynamic linking, shared system libc++) that launches cleanly under Xcode 26.
+//
+// Product analytics are unaffected — they go through PostHog. These functions
+// keep their original signatures so every call site (analytics.ts) stays intact;
+// they're just no-ops now. Re-introduce Firebase (for Google Ads conversion
+// tracking) via Expo SDK 55+ precompiled modules, which fix the ABI issue.
 
 import { Platform } from 'react-native';
 
-type FirebaseAnalyticsModule = {
-  default: () => {
-    logEvent: (name: string, params?: Record<string, unknown>) => Promise<void>;
-    setUserId: (id: string | null) => Promise<void>;
-    setUserProperty: (name: string, value: string | null) => Promise<void>;
-    setAnalyticsCollectionEnabled: (enabled: boolean) => Promise<void>;
-  };
-};
+// ─── Public surface (no-op) ──────────────────────────────────────────────────
 
-let _analytics: ReturnType<FirebaseAnalyticsModule['default']> | null = null;
-let _probed = false;
+/** No-op: Firebase Analytics removed. Product analytics go through PostHog. */
+export function logFirebaseEvent(_name: string, _params?: Record<string, unknown>): void {}
 
-function getAnalytics() {
-  if (_probed) return _analytics;
-  _probed = true;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
-    const mod = require('@react-native-firebase/analytics') as FirebaseAnalyticsModule;
-    _analytics = mod.default();
-    return _analytics;
-  } catch {
-    _analytics = null;
-    return null;
-  }
-}
+/** No-op: Firebase Analytics removed. */
+export function setFirebaseUserId(_userId: string | null): void {}
 
-// ─── Public surface ────────────────────────────────────────────────────────
+/** No-op: Firebase Analytics removed. */
+export function setFirebaseUserProperty(_name: string, _value: string | null): void {}
 
-/**
- * Fire-and-forget Firebase Analytics event. Safe to call on any binary —
- * silently no-ops when the native module isn't present (OTA-on-old-binary
- * case) or when the runtime is web (no Firebase RN SDK there).
- *
- * Use Firebase's recommended event names for conversion tracking
- * (https://support.google.com/firebase/answer/9267735):
- *   - sign_up       — user account created (any method)
- *   - login         — returning user authenticated
- *   - tutorial_complete — onboarding finished (= coach onboarding done)
- *   - level_up      — milestone reached (= first plan generated)
- *   - purchase      — paid conversion (Pro upgrade via any payment method)
- *   - generate_lead — free signup → some commitment step
- *   - app_open      — auto-fired on cold start (no need to call manually)
- */
-export function logFirebaseEvent(name: string, params?: Record<string, unknown>): void {
-  if (Platform.OS === 'web') return;
-  const a = getAnalytics();
-  if (!a) return;
-  a.logEvent(name, params as any).catch(() => {});
-}
+/** No-op: Firebase Analytics removed. */
+export function setFirebaseAnalyticsEnabled(_enabled: boolean): void {}
 
-/** Associate the current Firebase distinct id with our user id. */
-export function setFirebaseUserId(userId: string | null): void {
-  if (Platform.OS === 'web') return;
-  const a = getAnalytics();
-  if (!a) return;
-  a.setUserId(userId).catch(() => {});
-}
-
-/** Free-form user property for cohort analysis. */
-export function setFirebaseUserProperty(name: string, value: string | null): void {
-  if (Platform.OS === 'web') return;
-  const a = getAnalytics();
-  if (!a) return;
-  a.setUserProperty(name, value).catch(() => {});
-}
-
-/** Master kill switch (e.g. if user opts out of analytics in settings). */
-export function setFirebaseAnalyticsEnabled(enabled: boolean): void {
-  if (Platform.OS === 'web') return;
-  const a = getAnalytics();
-  if (!a) return;
-  a.setAnalyticsCollectionEnabled(enabled).catch(() => {});
-}
-
-/** Cheap availability probe (used in tests / debug screens). */
+/** Firebase Analytics is not available (removed). */
 export function isFirebaseAnalyticsAvailable(): boolean {
-  return getAnalytics() !== null;
+  // Referenced to keep the RN import meaningful for web/native parity checks.
+  return Platform.OS === 'web' ? false : false;
 }

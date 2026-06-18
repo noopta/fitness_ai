@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "649738136065",
+    "firebase_url": "https://reactnativedatabase-fdb4a.firebaseio.com",
+    "project_id": "reactnativedatabase-fdb4a",
+    "storage_bucket": "reactnativedatabase-fdb4a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:649738136065:android:814ca4b25582967f7d6e00",
+        "android_client_info": {
+          "package_name": "io.axiomtraining.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaW8XDST6UfDFFj8bCKl3tSp6rP7v4VnI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
