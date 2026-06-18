@@ -33,7 +33,6 @@
         {
           "ios": {
             "useFrameworks": "static",
-            "buildReactNativeFromSource": true,
             "forceStaticLinking": [
               "RNFBApp",
               "RNFBAnalytics"
