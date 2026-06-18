@@ -30,10 +30,9 @@ half4 main(float2 fc) {
     int   bx = int(mod(floor(fc.x / cell), 8.0));
     int   by = int(mod(floor(fc.y / cell), 8.0));
     int   idx = by * 8 + bx;
-    // Skia 2.4 (Expo SDK 55) enforces SkSL/ES2: an array may NOT be indexed by
-    // a non-constant expression (`bayer[idx]` is illegal). A constant-bound
-    // loop's induction variable IS a legal index, so scan to select the value.
-    // 64 iterations/pixel — trivial on the GPU.
+    // Skia 2.4 (Expo SDK 55) enforces SkSL/ES2: an array may NOT be indexed by a
+    // non-constant expression. A constant-bound loop's induction variable IS a
+    // legal index, so scan to select the value. 64 iters/pixel, trivial on GPU.
     float th = 0.5;
     for (int i = 0; i < 64; i++) {
         if (i == idx) { th = bayer[i]; break; }
