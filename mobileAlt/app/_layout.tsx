@@ -25,16 +25,8 @@ import { hydrateCacheFromStorage } from '../src/lib/cache';
 import { runBootPrefetch } from '../src/lib/prefetch';
 import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
 import * as Sentry from '@sentry/react-native';
-
-// Re-enabled in 2.2.2 (SDK 55). This build includes the Sentry native module
-// (app.json plugin + dep), so the import no longer throws on launch. Sentry
-// captures fatal JS errors natively (survives RCTFatal) and uploads on next
-// launch — the reliable channel for diagnosing startup crashes.
-Sentry.init({
-  dsn: 'https://e3d5d2d971a53361b904ffc7eafe97d3@o4511583169609728.ingest.us.sentry.io/4511583170658304',
-  tracesSampleRate: 0.1,
-  enableAutoSessionTracking: true,
-});
+// Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
+// it captures module-load startup errors. Here we only wrap the root component.
 
 const queryClient = new QueryClient();
 
