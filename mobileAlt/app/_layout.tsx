@@ -56,6 +56,9 @@ function RootNavigator() {
     if (!g) return;
     const prev = g.getGlobalHandler?.();
     g.setGlobalHandler?.((error: Error, isFatal?: boolean) => {
+      // Report to Sentry explicitly — reliable upload even mid-startup, unlike
+      // PostHog's batched queue.
+      try { Sentry.captureException(error); } catch { /* noop */ }
       try {
         posthog.capture('$exception', {
           $exception_message: error?.message ?? String(error),
@@ -64,7 +67,13 @@ function RootNavigator() {
           is_fatal: !!isFatal,
         });
       } catch { /* never let our reporter mask the real error */ }
-      prev?.(error, isFatal);
+      // Do NOT escalate fatals to React Native's RCTFatal — that hard-crashes
+      // the app at startup before the report can upload, and lets a single bad
+      // async startup call take the whole app down. Swallow fatals (app stays
+      // alive, possibly degraded) so we can both capture the error AND keep
+      // running. Non-fatals pass through unchanged. Hardening for the SDK-55
+      // launch crashes; revisit escalation once startup is verified clean.
+      if (!isFatal) prev?.(error, isFatal);
     });
     return () => { if (prev) g.setGlobalHandler?.(prev); };
   }, []);
