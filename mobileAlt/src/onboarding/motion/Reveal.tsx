@@ -25,19 +25,18 @@ export function Reveal({ index = 0, motion = DEFAULT_MOTION, children, style }: 
   const p = useSharedValue(0);
 
   useEffect(() => {
-    let cancelled = false;
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (cancelled) return;
-      if (reduced) {
-        p.value = 1;                                       // appear at rest
-      } else {
-        p.value = withDelay(
-          index * m.stagger,
-          withTiming(1, { duration: m.dur, easing: m.ease }),
-        );
-      }
-    });
-    return () => { cancelled = true; };
+    // Animate in immediately so content is NEVER stuck invisible. Previously the
+    // tween only ran inside AccessibilityInfo.isReduceMotionEnabled().then(),
+    // with no .catch — if that promise hung/rejected, opacity stayed 0 and the
+    // whole text block vanished. Now we start the reveal up front and only snap
+    // to the final state if reduce-motion turns out to be on.
+    p.value = withDelay(
+      index * m.stagger,
+      withTiming(1, { duration: m.dur, easing: m.ease }),
+    );
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((reduced) => { if (reduced) p.value = 1; })
+      .catch(() => {});
   }, [index]);
 
   const a = useAnimatedStyle(() => ({
