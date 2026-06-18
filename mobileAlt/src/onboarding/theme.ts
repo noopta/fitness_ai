@@ -1,4 +1,9 @@
-import { Dimensions, Easing } from 'react-native';
+import { Dimensions } from 'react-native';
+// Easing MUST come from reanimated (not react-native): MOTION presets feed
+// `ease` into withTiming, which runs on the UI thread and requires a worklet
+// easing. React Native's Easing is a plain JS fn → "easing function is not a
+// worklet" crash in every Reveal. (Spec §07 calls this out explicitly.)
+import { Easing } from 'react-native-reanimated';
 
 // ─── Canvas baseline + scale (spec §03) ──────────────────────────────────────
 // Reference frame is 393×852 (iPhone 15 logical). Derive a single scale factor
