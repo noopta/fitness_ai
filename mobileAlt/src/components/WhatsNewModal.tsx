@@ -116,6 +116,14 @@ export function WhatsNewModal({ visible, onClose }: Props) {
 export async function shouldShowWhatsNew(): Promise<boolean> {
   try {
     const seen = await AsyncStorage.getItem(STORAGE_KEY);
+    // Fresh install (no version ever recorded) = a brand-new user in the initial
+    // download/onboarding flow. Don't show What's New to them — silently record
+    // the current version so the modal only appears for RETURNING users who
+    // update from an earlier build.
+    if (seen == null) {
+      await markWhatsNewSeen();
+      return false;
+    }
     return seen !== WHATS_NEW_VERSION;
   } catch {
     return false;
