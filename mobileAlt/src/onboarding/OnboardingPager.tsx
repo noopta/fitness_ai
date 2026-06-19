@@ -17,8 +17,8 @@ import { Scene05Results } from './scenes/Scene05Results';
 import { Scene06Agent } from './scenes/Scene06Agent';
 import { Scene07SignIn } from './scenes/Scene07SignIn';
 import { s } from './theme';
-import { PHOTOS } from './assets/photos/manifest';
-import { preloadPhotos } from './dither/photoCache';
+import { Asset } from 'expo-asset';
+import { DITHERED } from './assets/dithered/manifest';
 
 const SCENE_COUNT = 7;
 const SWIPE_THRESHOLD = 45;
@@ -43,10 +43,10 @@ export function OnboardingPager({ onSignedIn }: Props) {
   const [index, setIndex] = useState(0);
   const fade = useSharedValue(1);
 
-  // Decode every scene photo once, up front, so navigating to a scene paints the
-  // dithered image on its first frame instead of flashing the deep wash + bloom.
+  // Preload the baked dither images so a scene paints instantly on arrival
+  // (no flash of the deep wash before the photo appears).
   useEffect(() => {
-    void preloadPhotos(Object.values(PHOTOS) as unknown as number[]);
+    void Asset.loadAsync(Object.values(DITHERED));
   }, []);
 
   const advance = useCallback((delta: 1 | -1) => {
