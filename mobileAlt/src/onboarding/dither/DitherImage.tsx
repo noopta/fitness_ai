@@ -1,11 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Image, useWindowDimensions, View } from 'react-native';
 import {
   Canvas, Fill, Shader, Skia, useImage, ImageShader, rect,
 } from '@shopify/react-native-skia';
-import Animated, {
-  useSharedValue, useDerivedValue, useAnimatedStyle, withTiming, Easing,
-} from 'react-native-reanimated';
+import { useDerivedValue } from 'react-native-reanimated';
 import { WASHES, pickInks, GRAIN, type WashName, type SchemeName, type GrainName } from '../theme';
 import { DITHER_SKSL } from './dither.sksl';
 import { BAYER8_NORM } from './bayer';
@@ -57,21 +55,13 @@ export function DitherImage({
   // ~half of each photo, which read as "too zoomed in".
   const targetCell = GRAIN[grain];
 
-  // Smooth, fast fade-in instead of the old coarse→fine "develop" of the grain
-  // cell, which re-resolved the whole dither on screen and read as a choppy load.
-  // The grain now stays fixed-fine; only opacity animates.
-  const fade = useSharedValue(reducedMotion ? 1 : 0);
-  useEffect(() => {
-    if (reducedMotion || !img) return;
-    fade.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
-  }, [reducedMotion, img]);
-  const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
-
   const { darkInk, lightInk } = pickInks(wash, scheme);
 
-  // Uniforms as a derived value (Skia reads it on the UI thread). The grain cell
-  // is fixed now (fade handles the entrance), but keeping the derived value lets
-  // the shader pick up resolution/ink changes without re-creating the object.
+  // Uniforms as a derived value (Skia reads it on the UI thread). Keeping the
+  // derived value lets the shader pick up resolution/ink changes without
+  // re-creating the object. The image itself is preloaded (photoCache) and the
+  // pager owns the scene fade, so DitherImage paints at full opacity instantly —
+  // no self-fade (a second competing fade read as a double "blink" on transition).
   const uniforms = useDerivedValue(() => ({
     res: [W, H],
     cell: targetCell,
@@ -101,14 +91,12 @@ export function DitherImage({
   const dst = rect(0, 0, W, H);
 
   return (
-    <Animated.View style={[{ flex: 1 }, fadeStyle]}>
-      <Canvas style={{ flex: 1 }}>
-        <Fill>
-          <Shader source={effect} uniforms={uniforms}>
-            <ImageShader image={img} tx="clamp" ty="clamp" fit="cover" rect={dst} />
-          </Shader>
-        </Fill>
-      </Canvas>
-    </Animated.View>
+    <Canvas style={{ flex: 1 }}>
+      <Fill>
+        <Shader source={effect} uniforms={uniforms}>
+          <ImageShader image={img} tx="clamp" ty="clamp" fit="cover" rect={dst} />
+        </Shader>
+      </Fill>
+    </Canvas>
   );
 }

@@ -49,25 +49,22 @@ export function OnboardingPager({ onSignedIn }: Props) {
     void preloadPhotos(Object.values(PHOTOS) as unknown as number[]);
   }, []);
 
-  // Swap to the next scene while the screen is dark, then fade it back in. The
-  // remount (Skia canvas + reanimated nodes) is the source of the jank, so doing
-  // it at opacity 0 hides the hitch. Single-scene (no dual-mount), so CountUp and
-  // navigation keep working.
-  const commitAdvance = useCallback((delta: 1 | -1) => {
+  const advance = useCallback((delta: 1 | -1) => {
     setIndex((current) => {
       const next = Math.max(0, Math.min(SCENE_COUNT - 1, current + delta));
-      if (next !== current) void AsyncStorage.setItem('cinematicOnboardingIndex.v1', String(next));
+      if (next !== current) {
+        // Snap the scene to invisible BEFORE the remount commits, so the mount
+        // hitch (new Skia canvas + reanimated nodes) happens at opacity 0 and is
+        // hidden, then fade the finished scene in. DitherImage no longer self-
+        // fades and photos are preloaded, so this is the ONLY fade on a scene
+        // change — no double "blink".
+        fade.value = 0;
+        fade.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) });
+        void AsyncStorage.setItem('cinematicOnboardingIndex.v1', String(next));
+      }
       return next;
     });
-    fade.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.quad) });
   }, []);
-
-  const advance = useCallback((delta: 1 | -1) => {
-    // Fade out, then commit + fade in once dark.
-    fade.value = withTiming(0, { duration: 140, easing: Easing.in(Easing.quad) }, (finished) => {
-      if (finished) runOnJS(commitAdvance)(delta);
-    });
-  }, [commitAdvance]);
 
   const isLast = index === SCENE_COUNT - 1;
 
