@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Platform, Pressable, StatusBar,
 } from 'react-native';
@@ -41,7 +41,12 @@ interface Props {
 export function OnboardingPager({ onSignedIn }: Props) {
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
-  const fade = useSharedValue(1);
+  // The scene leaving during a crossfade. Both the incoming (new index) and the
+  // outgoing (prevIndex) scenes stay mounted for the transition, each keyed by
+  // its own index so neither remounts (no reveal-replay flicker).
+  const [prevIndex, setPrevIndex] = useState<number | null>(null);
+  const indexRef = useRef(0);
+  const progress = useSharedValue(1);   // 0 at transition start → 1 settled
 
   // Decode every scene photo once, up front, so navigating to a scene paints the
   // dithered image on its first frame instead of flashing the deep wash + bloom.
@@ -50,16 +55,20 @@ export function OnboardingPager({ onSignedIn }: Props) {
   }, []);
 
   const advance = useCallback((delta: 1 | -1) => {
-    setIndex((current) => {
-      const next = Math.max(0, Math.min(SCENE_COUNT - 1, current + delta));
-      if (next !== current) {
-        fade.value = 0;
-        fade.value = withTiming(1, { duration: 540, easing: Easing.bezier(0.16, 1, 0.3, 1) });
-        // Persist async, don't await (no need to gate UI)
-        void AsyncStorage.setItem('cinematicOnboardingIndex.v1', String(next));
-      }
-      return next;
+    const current = indexRef.current;
+    const next = Math.max(0, Math.min(SCENE_COUNT - 1, current + delta));
+    if (next === current) return;
+    indexRef.current = next;
+    setPrevIndex(current);
+    setIndex(next);
+    // Crossfade: hold the outgoing scene on top and fade it out to reveal the
+    // incoming scene (which plays its own staggered reveals underneath) — no
+    // blank frame, no hard cut.
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: 460, easing: Easing.out(Easing.cubic) }, (fin) => {
+      if (fin) runOnJS(setPrevIndex)(null);
     });
+    void AsyncStorage.setItem('cinematicOnboardingIndex.v1', String(next));
   }, []);
 
   const isLast = index === SCENE_COUNT - 1;
@@ -87,28 +96,42 @@ export function OnboardingPager({ onSignedIn }: Props) {
   const composed = Gesture.Simultaneous(pan, tap);
 
   // ─── Scene render ──────────────────────────────────────────────────────
-  // Keyed so Reveal/CountUp animations replay every time we arrive on a scene.
-  const sceneKey = `scene-${index}`;
-  let SceneNode: React.ReactNode;
-  switch (index) {
-    case 0: SceneNode = <Scene01Problem      key={sceneKey} />; break;
-    case 1: SceneNode = <Scene02FalseChoice  key={sceneKey} />; break;
-    case 2: SceneNode = <Scene03Evidence     key={sceneKey} />; break;
-    case 3: SceneNode = <Scene04Moat         key={sceneKey} />; break;
-    case 4: SceneNode = <Scene05Results      key={sceneKey} />; break;
-    case 5: SceneNode = <Scene06Agent        key={sceneKey} />; break;
-    case 6: SceneNode = <Scene07SignIn       key={sceneKey} onSignedIn={onSignedIn} />; break;
-  }
+  // Each scene keyed by its index so it mounts fresh (reveals replay) on arrival
+  // and is preserved (not remounted) while it fades out as the previous scene.
+  const renderScene = (i: number): React.ReactNode => {
+    switch (i) {
+      case 0: return <Scene01Problem      key={`scene-${i}`} />;
+      case 1: return <Scene02FalseChoice  key={`scene-${i}`} />;
+      case 2: return <Scene03Evidence     key={`scene-${i}`} />;
+      case 3: return <Scene04Moat         key={`scene-${i}`} />;
+      case 4: return <Scene05Results      key={`scene-${i}`} />;
+      case 5: return <Scene06Agent        key={`scene-${i}`} />;
+      case 6: return <Scene07SignIn       key={`scene-${i}`} onSignedIn={onSignedIn} />;
+      default: return null;
+    }
+  };
 
-  const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value, transform: [{ translateY: (1 - fade.value) * 13 }] }));
+  // Incoming scene sits at full opacity (its own reveals animate it in); the
+  // outgoing scene fades out on top of it. incoming (index) under, outgoing over.
+  const incomingStyle = useAnimatedStyle(() => ({ opacity: 1 }));
+  const outgoingStyle = useAnimatedStyle(() => ({ opacity: 1 - progress.value }));
+  const layers = prevIndex === null ? [index] : [index, prevIndex];
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" />
       <GestureDetector gesture={composed}>
-        <Animated.View style={[StyleSheet.absoluteFill, fadeStyle]}>
-          {SceneNode}
-        </Animated.View>
+        <View style={StyleSheet.absoluteFill}>
+          {layers.map((i) => (
+            <Animated.View
+              key={`layer-${i}`}
+              style={[StyleSheet.absoluteFill, i === index ? incomingStyle : outgoingStyle]}
+              pointerEvents={i === index ? 'auto' : 'none'}
+            >
+              {renderScene(i)}
+            </Animated.View>
+          ))}
+        </View>
       </GestureDetector>
 
       {/* Bottom bar — progress dots + buttons */}

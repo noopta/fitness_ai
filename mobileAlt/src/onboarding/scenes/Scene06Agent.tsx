@@ -31,7 +31,7 @@ export function Scene06Agent({ stepLabel }: { stepLabel?: string }) {
       </Reveal>
       <Reveal index={2}>
         <Text style={[scene.body, { fontSize: 13.5, marginTop: s(13) }]}>
-          Your food logs become mood, sleep, focus, and output. Every rep, set, and pound becomes a living strength profile — so a weak link gets caught{' '}
+          Your food logs become mood, sleep, focus, and output. Every rep, set, and pound becomes a living strength profile, so a weak link gets caught{' '}
           <Text style={{ color: '#fff', fontWeight: '700' }}>before it ever becomes a plateau.</Text>
         </Text>
       </Reveal>
@@ -60,7 +60,7 @@ export function Scene06Agent({ stepLabel }: { stepLabel?: string }) {
             <View style={scene.alertRow}>
               <View style={scene.amberDot} />
               <Text style={scene.alertText}>
-                Posterior chain lagging — <Text style={{ color: '#fff', fontWeight: '700' }}>3 targeted sessions queued.</Text>
+                Posterior chain lagging: <Text style={{ color: '#fff', fontWeight: '700' }}>3 targeted sessions queued.</Text>
               </Text>
             </View>
           </View>

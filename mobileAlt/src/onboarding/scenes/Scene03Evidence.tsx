@@ -32,12 +32,12 @@ export function Scene03Evidence({ stepLabel }: { stepLabel?: string }) {
       </Reveal>
       <Reveal index={2}>
         <Text style={[scene.headline, { fontSize: s(30), lineHeight: s(30) * 1.06, marginTop: s(14) }]}>
-          more strength under coaching — and the muscle survives the cut.
+          more strength under coaching, and the muscle survives the cut.
         </Text>
       </Reveal>
       <Reveal index={3}>
         <Text style={[scene.body, { fontSize: 13.5 }]}>
-          Same effort, same twelve weeks. Supervised lifters gain a third more strength — and resistance training is what keeps muscle on while you're losing fat.
+          Same effort, same twelve weeks. Supervised lifters gain a third more strength, and resistance training is what keeps muscle on while you're losing fat.
         </Text>
       </Reveal>
       <Reveal index={4}>

@@ -58,7 +58,7 @@ export function Scene02FalseChoice({ stepLabel }: { stepLabel?: string }) {
       </Reveal>
       <Reveal index={4}>
         <Text style={scene.sourceNote}>
-          Longland et al. · Am. J. Clinical Nutrition, 2016 — one 4-week protocol.
+          Longland et al. · Am. J. Clinical Nutrition, 2016. One 4-week protocol.
         </Text>
       </Reveal>
     </Poster>

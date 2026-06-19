@@ -42,7 +42,14 @@ export async function apiFetch(path: string, options?: RequestInit, requiresAuth
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     } else {
-      console.warn(`[API] No auth token for ${path}`);
+      // No token for an auth-required endpoint: short-circuit instead of firing a
+      // request that is guaranteed to 401. This silences the social-feed 401
+      // spam on the signed-out onboarding screen without masking real failures
+      // (getToken reads storage fresh each call, so authed users never hit this).
+      const error = new Error('Authentication required');
+      (error as any).status = 401;
+      (error as any).skippedNoToken = true;
+      throw error;
     }
   }
 
@@ -58,7 +65,13 @@ export async function apiFetch(path: string, options?: RequestInit, requiresAuth
       let parsed: any = {};
       try { parsed = JSON.parse(errBody); } catch {}
       const message = parsed.error || parsed.message || `API error: ${res.status}`;
-      console.error(`[API] Error ${res.status} on ${path}: ${message}`);
+      // 401 is an expected auth state (signed out / expired), not a code error —
+      // log it quietly so it doesn't read as a red error in the console.
+      if (res.status === 401) {
+        console.log(`[API] ${path} -> 401 (auth required)`);
+      } else {
+        console.error(`[API] Error ${res.status} on ${path}: ${message}`);
+      }
       const error = new Error(message);
       (error as any).status = res.status;
       throw error;

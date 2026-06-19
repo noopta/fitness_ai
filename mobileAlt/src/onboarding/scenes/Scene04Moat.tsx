@@ -24,7 +24,7 @@ export function Scene04Moat({ stepLabel }: { stepLabel?: string }) {
       </Reveal>
       <Reveal index={1}>
         <Text style={[scene.headline, { fontSize: s(40), lineHeight: s(40) * 0.98 }]}>
-          An AI coach that adapts to your goal — and watches every rep.
+          An AI coach that adapts to your goal, and watches every rep.
         </Text>
       </Reveal>
       <Reveal index={2}>

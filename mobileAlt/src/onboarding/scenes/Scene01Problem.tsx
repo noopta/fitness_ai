@@ -28,7 +28,7 @@ export function Scene01Problem({ stepLabel }: { stepLabel?: string }) {
       </Reveal>
       <Reveal index={2}>
         <Text style={scene.body}>
-          Came to lose fat. Came to get strong. It doesn't matter — <Text style={{ color: '#fff', fontWeight: '700' }}>67% are gone in six months.</Text> The plan was never built for them.
+          Came to lose fat. Came to get strong. It doesn't matter: <Text style={{ color: '#fff', fontWeight: '700' }}>67% are gone in six months.</Text> The plan was never built for them.
         </Text>
       </Reveal>
       <Reveal index={3}>

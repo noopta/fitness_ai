@@ -121,7 +121,7 @@ export function Scene07SignIn({ stepLabel, onSignedIn }: Props) {
           <View style={signin.successPill}>
             <View style={signin.successDot} />
             <Text style={signin.successText}>
-              Next — your 2-minute intake, then your program.
+              Next: your 2-minute intake, then your program.
             </Text>
           </View>
         ) : (

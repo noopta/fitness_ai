@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DitherImage } from './dither/DitherImage';
@@ -109,7 +109,11 @@ export function Poster({
       <View style={[styles.chrome, { top: chromeTop }]}>
         <View style={styles.chromeLeft}>
           <View style={styles.logoChip}>
-            <Text style={styles.logoLetter}>A</Text>
+            <Image
+              source={require('../../assets/axiom-logo-dark-transparent.png')}
+              style={styles.logoMark}
+              resizeMode="contain"
+            />
           </View>
           {kicker ? <Text style={[styles.kicker, { color: chromeText }]}>{kicker}</Text> : null}
         </View>
@@ -152,6 +156,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   logoLetter: { color: '#09090b', fontSize: 12, fontWeight: '900' as const, lineHeight: 14 },
+  logoMark: { width: '62%', height: '62%' },
   kicker: { fontSize: 14.5, fontWeight: '700' as const },
   stepLabel: {
     fontFamily: Platform.select({ ios: TYPE.mono, default: 'monospace' }),
