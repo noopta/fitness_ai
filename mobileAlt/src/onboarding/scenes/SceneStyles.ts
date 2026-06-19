@@ -45,9 +45,11 @@ export const scene = StyleSheet.create({
     marginTop: s(14),
   },
   // Hero-number row (scene 3)
-  heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: s(2) },
+  heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: s(6), marginBottom: s(2) },
   heroPlus: { color: 'rgba(255,255,255,0.55)', fontSize: 30, fontWeight: '700' },
-  heroDigits: { color: '#ffffff', fontSize: s(96), fontWeight: '800', letterSpacing: -4.8, lineHeight: s(96) * 0.82 },
+  // lineHeight must be >= fontSize or iOS clips the tops/bottoms of these big
+  // digits (the reported "+32% cut off"). 0.82x was clipping; pin to 1.0x.
+  heroDigits: { color: '#ffffff', fontSize: s(96), fontWeight: '800', letterSpacing: -4.8, lineHeight: s(96), includeFontPadding: false },
   heroPct: { color: 'rgba(255,255,255,0.55)', fontSize: 40, fontWeight: '800' },
   // Stat pair (scene 2)
   statPair: { flexDirection: 'row', alignItems: 'flex-start', gap: s(16), marginTop: s(18) },

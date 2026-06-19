@@ -109,8 +109,8 @@ export function Scene07SignIn({ stepLabel, onSignedIn }: Props) {
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <View style={signin.gTile}><GoogleLogo size={16} /></View>
-                <Text style={signin.gmailLabel}>Continue with Gmail</Text>
+                <View style={signin.gTile}><GoogleLogo size={20} /></View>
+                <Text style={signin.gmailLabel}>Continue with Google</Text>
               </>
             )}
           </TouchableOpacity>
@@ -148,7 +148,8 @@ const signin = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.24)',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
   },
-  gTile: { width: 22, height: 22, borderRadius: 4, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  // Transparent — the colored Google "G" sits directly on the button, no white tile.
+  gTile: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
   gmailLabel: { color: '#fff', fontSize: 15.5, fontWeight: '600' },
   footer: {
     marginTop: 14, textAlign: 'center', fontSize: 11,

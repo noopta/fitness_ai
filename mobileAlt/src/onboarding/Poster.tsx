@@ -70,23 +70,10 @@ export function Poster({
         </View>
       ) : null}
 
-      {/* Layer 3 — accent bloom (radial-ish; approximation with a positioned
-         soft-edge circle. screen blend isn't available in RN but on Dark
-         dithered art it reads the same.) */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.bloom,
-          {
-            left:   `${(lx * 100) - 23}%`,
-            top:    `${(ly * 100) - 18}%`,
-            width:  '46%',
-            height: '36%',
-            backgroundColor: accent,
-            opacity: 0.16,
-          },
-        ]}
-      />
+      {/* Layer 3 — accent bloom REMOVED. A solid-fill ellipse can't fake a
+         screen-blended radial in RN; on the dithered art it just read as a hard
+         oval floating in the center of the screen, so it's dropped entirely.
+         (Re-add later as a soft glow baked into the dither shader if wanted.) */}
 
       {/* Layer 4 — legibility scrim (vertical, biases the lower 60% so the
          content block always lifts off the image) */}
