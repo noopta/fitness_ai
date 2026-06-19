@@ -42,6 +42,14 @@
           "enableFrameProcessors": false
         }
       ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Axiom needs photo access to save your workout cards.",
+          "savePhotosPermission": "Axiom saves your workout cards to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       "expo-apple-authentication",
       [
         "expo-notifications",
@@ -62,6 +70,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
+        "NSPhotoLibraryAddUsageDescription": "Axiom saves your shareable workout cards to your photo library.",
         "NSMicrophoneUsageDescription": "Axiom uses your microphone to transcribe voice notes about meals you ate.",
         "NSLocationWhenInUseUsageDescription": "Axiom does not use your location. This purpose string is required only because one of our SDKs (react-native-vision-camera) references location APIs.",
         "ITSAppUsesNonExemptEncryption": false

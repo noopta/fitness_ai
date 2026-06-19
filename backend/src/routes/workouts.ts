@@ -13,7 +13,9 @@ import {
   notifySurpriseReward,
 } from '../services/notificationService.js';
 import { recordActivity } from '../services/streakService.js';
-import { detectAndNotifyStrengthPRs } from '../services/progressService.js';
+import { detectStrengthPRs } from '../services/progressService.js';
+import { notifyNewPR } from '../services/notificationService.js';
+import { buildShareableWorkout } from '../services/shareableWorkout.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
 import { estimateWorkoutCalories } from '../services/workoutCalories.js';
@@ -176,10 +178,29 @@ router.post('/workouts', requireAuth, async (req, res) => {
     // ── Streak tracking ───────────────────────────────────────────────────────
     updateStreakInBackground(req.user!.id, parsed.data.date);
 
-    // ── Strength PR detection (fire-and-forget) ───────────────────────────────
-    detectAndNotifyStrengthPRs(prisma, req.user!.id, log.id, exercises).catch(err =>
-      console.error('[workouts] PR detection error:', err)
-    );
+    // ── Strength PR detection + shareable payload ─────────────────────────────
+    // Detected inline (not fire-and-forget) so the celebration sheet gets an
+    // accurate PR object in the response — `pr` drives PR-led vs. fallback card
+    // rendering. PR push notifications still fire in the background. If anything
+    // here throws, the workout is already saved; we hand back a no-PR card so
+    // the client can still celebrate.
+    let shareable;
+    try {
+      const prs = await detectStrengthPRs(prisma, req.user!.id, log.id, exercises);
+      for (const pr of prs) {
+        notifyNewPR(req.user!.id, pr.displayName, pr.e1RMLbs, 'lbs').catch(() => {});
+      }
+      shareable = buildShareableWorkout(
+        { title, exercises, durationMin: duration, loggedAt: log.createdAt },
+        prs,
+      );
+    } catch (err) {
+      console.error('[workouts] shareable build error:', err);
+      shareable = buildShareableWorkout(
+        { title, exercises, durationMin: duration, loggedAt: log.createdAt },
+        [],
+      );
+    }
 
     // ── Proactive agent: post-workout drop-in (fire-and-forget) ───────────────
     // Per the user-psychology audit's "AI coach: opened but barely messaged"
@@ -209,7 +230,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
       },
     });
 
-    res.status(201).json({ ...log, exercises });
+    res.status(201).json({ ...log, exercises, shareable });
   } catch (err) {
     posthog.captureException(err, req.user?.id);
     console.error('Create workout error:', err);

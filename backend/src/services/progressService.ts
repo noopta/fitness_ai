@@ -94,19 +94,35 @@ export function bestE1RMByLift(exercises: LoggedExercise[]): Map<string, { displ
   return out;
 }
 
+/** One detected strength PR for the just-logged workout. */
+export interface DetectedPR {
+  /** Normalized lift key (for dedup). */
+  key: string;
+  /** Display name as the user typed it. */
+  displayName: string;
+  /** New estimated 1RM, lbs. */
+  e1RMLbs: number;
+  /** Prior lifetime best e1RM, lbs (> 0 for a real PR). */
+  prevLbs: number;
+  /** Improvement over the prior best, lbs (rounded). */
+  deltaLbs: number;
+}
+
 /**
- * Detect PRs vs the user's prior history and fire `notifyNewPR` for each.
+ * Detect PRs vs the user's prior history and return them (most-improved first).
  * Filters out trivially-light lifts (< 50 lbs) and tiny improvements (< 2.5 lbs)
- * so the user isn't pinged on every warmup or noise-level rerack.
+ * so we don't celebrate every warmup or noise-level rerack. A first-ever entry
+ * for a lift (no baseline) is intentionally NOT a PR — reinforcement only kicks
+ * in once there's something to beat.
  */
-export async function detectAndNotifyStrengthPRs(
+export async function detectStrengthPRs(
   prisma: PrismaClient,
   userId: string,
   newWorkoutId: string,
   newExercises: LoggedExercise[],
-): Promise<void> {
+): Promise<DetectedPR[]> {
   const newBests = bestE1RMByLift(newExercises);
-  if (newBests.size === 0) return;
+  if (newBests.size === 0) return [];
 
   // Pull prior logs (excluding this one) — keep this bounded; 200 most recent
   // workouts is enough to establish a lifetime PR baseline for typical users.
@@ -129,16 +145,31 @@ export async function detectAndNotifyStrengthPRs(
     }
   }
 
+  const prs: DetectedPR[] = [];
   for (const [key, { displayName, e1RMLbs }] of newBests) {
     if (e1RMLbs < 50) continue; // ignore body-weight / warm-up territory
     const prev = lifetimeBest.get(key) ?? 0;
-    if (e1RMLbs >= prev + 2.5 && prev > 0) {
-      // Real PR — they had a baseline and beat it by a meaningful margin.
-      await notifyNewPR(userId, displayName, e1RMLbs, 'lbs').catch(() => {});
+    if (prev > 0 && e1RMLbs >= prev + 2.5) {
+      prs.push({ key, displayName, e1RMLbs, prevLbs: prev, deltaLbs: Math.round(e1RMLbs - prev) });
     }
-    // First-ever entry for a lift (prev === 0) is not announced as a PR — too
-    // noisy when a user is just exploring exercises. Reinforcement only kicks
-    // in once we have a baseline to beat.
+  }
+  prs.sort((a, b) => b.deltaLbs - a.deltaLbs);
+  return prs;
+}
+
+/**
+ * Detect PRs and fire a `notifyNewPR` push for each. Thin wrapper over
+ * {@link detectStrengthPRs} kept for callers that only want the side effect.
+ */
+export async function detectAndNotifyStrengthPRs(
+  prisma: PrismaClient,
+  userId: string,
+  newWorkoutId: string,
+  newExercises: LoggedExercise[],
+): Promise<void> {
+  const prs = await detectStrengthPRs(prisma, userId, newWorkoutId, newExercises);
+  for (const pr of prs) {
+    await notifyNewPR(userId, pr.displayName, pr.e1RMLbs, 'lbs').catch(() => {});
   }
 }
 

@@ -25,6 +25,12 @@ export const colors = {
   success: '#22c55e',
   warning: '#f59e0b',
 
+  // PR / "new personal record" accent for the shareable workout cards.
+  // successInk reads on light surfaces; successOnDark on dark/glass cards.
+  // (Shareable Workout Log spec §5 — used only on the share cards.)
+  successInk: '#15803d',
+  successOnDark: '#4ade80',
+
   /**
    * Macro accents (Nutrition v17b).
    *

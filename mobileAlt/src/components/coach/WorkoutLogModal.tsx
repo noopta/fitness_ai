@@ -21,6 +21,8 @@ import { workoutsApi, socialApi } from '../../lib/api';
 import { invalidateCache } from '../../lib/cache';
 import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
+import { WorkoutCelebrationSheet } from '../share/workout/WorkoutCelebrationSheet';
+import { ShareableWorkout } from '../share/workout/types';
 
 
 // ─── Exercise suggestions ──────────────────────────────────────────────────────
@@ -137,6 +139,10 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [shareToFeed, setShareToFeed] = useState(false);
   const [shareCaption, setShareCaption] = useState('');
+  // After a successful save we surface the celebration / share builder. Held in
+  // local state so it survives this sheet closing (it's a separate full-screen
+  // modal rendered as a sibling).
+  const [celebration, setCelebration] = useState<ShareableWorkout | null>(null);
 
   // Reset state every time modal opens
   useEffect(() => {
@@ -328,13 +334,13 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
         };
       });
 
-      await workoutsApi.logWorkout({
+      const saveRes = (await workoutsApi.logWorkout({
         date: (date ?? todayDateStr()).slice(0, 10),
         title: workoutTitle || undefined,
         exercises: mappedExercises,
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
-      });
+      })) as { shareable?: ShareableWorkout };
       // Logged workout changes today's session, schedule (logged-flag), and the
       // social feed (auto-share + friends' shares). Drop those caches so the
       // next render fetches fresh.
@@ -368,6 +374,14 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
 
       onClose();
       onSaved();
+
+      // Celebrate + offer the shareable card. Delayed so the log sheet finishes
+      // sliding away before the full-screen celebration presents (avoids two
+      // modals transitioning at once on iOS).
+      if (saveRes?.shareable) {
+        const shareable = saveRes.shareable;
+        setTimeout(() => setCelebration(shareable), 320);
+      }
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to save workout. Please try again.');
     } finally {
@@ -376,6 +390,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   }
 
   return (
+    <>
     <BottomSheet visible={visible} onClose={onClose} height={SHEET_HEIGHT} style={{ paddingBottom: 34 }}>
       <KeyboardDoneBar />
       <View style={styles.handle} />
@@ -691,6 +706,13 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             </TouchableOpacity>
           </ScrollView>
     </BottomSheet>
+
+    <WorkoutCelebrationSheet
+      visible={!!celebration}
+      shareable={celebration}
+      onClose={() => setCelebration(null)}
+    />
+    </>
   );
 }
 
