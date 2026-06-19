@@ -110,7 +110,7 @@ export function Poster({
         <View style={styles.chromeLeft}>
           <View style={styles.logoChip}>
             <Image
-              source={require('../../assets/axiom-logo-dark-transparent.png')}
+              source={require('../../assets/axiom-logo-light-transparent.png')}
               style={styles.logoMark}
               resizeMode="contain"
             />
