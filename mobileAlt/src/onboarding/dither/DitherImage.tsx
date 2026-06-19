@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image } from 'react-native';
 import type { WashName, SchemeName, GrainName } from '../theme';
 import { DITHERED } from '../assets/dithered/manifest';
 
@@ -28,5 +28,14 @@ export interface DitherImageProps {
  */
 export function DitherImage({ source }: DitherImageProps) {
   const baked = DITHERED[source as unknown as number] ?? source;
-  return <Image source={baked} style={StyleSheet.absoluteFill} resizeMode="cover" />;
+  // Explicit full-size (not absoluteFill) — an absolutely-positioned <Image> can
+  // fall back to its intrinsic size (1080x2337) and overflow, showing only the
+  // top-left = "extremely zoomed in". flex+100% constrains it to the screen.
+  return (
+    <Image
+      source={baked}
+      style={{ flex: 1, width: '100%', height: '100%' }}
+      resizeMode="cover"
+    />
+  );
 }
