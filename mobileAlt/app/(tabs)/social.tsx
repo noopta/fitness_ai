@@ -19,6 +19,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constan
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { PostCard } from '../../src/components/social/PostCard';
 import { FeedItemCard, type FeedItem } from '../../src/components/social/FeedItemCard';
+import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { FunRefreshIndicator } from '../../src/components/social/FunRefreshIndicator';
 import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
 
@@ -543,7 +544,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
-export default function SocialScreen() {
+function SocialScreenInner() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'friends'>('feed');
@@ -1022,28 +1023,37 @@ export default function SocialScreen() {
               </View>
             ) : (
               feed.map((item: any, index: number) => {
+                // Isolate each item: a single malformed post/article can no longer
+                // crash the whole feed tab. The boundary also reports the exact
+                // error to PostHog (boundary_label social:feed-item) so we can
+                // pinpoint the offending field.
                 if (item.kind === 'research') {
                   const fi = item.data as FeedItem;
                   return (
-                    <FeedItemCard
-                      key={fi.id}
-                      item={fi}
-                      isSaved={savedIds.has(fi.id)}
-                      onToggleSave={() => handleToggleSave(fi.id)}
-                      friends={friends}
-                      onShareToFriend={async (friendId, note) => {
-                        try {
-                          await socialApi.forwardArticle(fi.id, friendId, note);
-                          Analytics.articleShared(fi.id);
-                        } catch (e: any) {
-                          Alert.alert('Could not share', e?.message ?? 'Please try again.');
-                        }
-                      }}
-                    />
+                    <ErrorBoundary key={fi?.id ?? `r${index}`} label="social:feed-item" message="This post couldn't be displayed.">
+                      <FeedItemCard
+                        item={fi}
+                        isSaved={savedIds.has(fi?.id)}
+                        onToggleSave={() => handleToggleSave(fi.id)}
+                        friends={friends}
+                        onShareToFriend={async (friendId, note) => {
+                          try {
+                            await socialApi.forwardArticle(fi.id, friendId, note);
+                            Analytics.articleShared(fi.id);
+                          } catch (e: any) {
+                            Alert.alert('Could not share', e?.message ?? 'Please try again.');
+                          }
+                        }}
+                      />
+                    </ErrorBoundary>
                   );
                 }
                 const postData = item.kind === 'post' ? item.data : item;
-                return <PostCard key={postData.id ?? index} item={postData} currentUserId={user?.id} friends={friends} />;
+                return (
+                  <ErrorBoundary key={postData?.id ?? `p${index}`} label="social:feed-item" message="This post couldn't be displayed.">
+                    <PostCard item={postData} currentUserId={user?.id} friends={friends} />
+                  </ErrorBoundary>
+                );
               })
             )}
             {!loadingFeed && exhausted && feed.length > 0 && (
@@ -1120,6 +1130,18 @@ export default function SocialScreen() {
         }}
       />
     </SafeAreaView>
+  );
+}
+
+// Screen-level guard: any render crash on the social tab (a malformed feed item
+// that slips past the per-item boundary, bad hook state, a native view with a
+// NaN prop, etc.) shows a recoverable fallback instead of taking the whole app
+// down, and reports the exact error to PostHog (boundary_label social-screen).
+export default function SocialScreen() {
+  return (
+    <ErrorBoundary label="social-screen" message="The feed hit a snag. Pull to refresh or try again.">
+      <SocialScreenInner />
+    </ErrorBoundary>
   );
 }
 
