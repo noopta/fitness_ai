@@ -30,6 +30,11 @@ import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
+import growthRoutes from './routes/growth.js';
+import instagramWebhookRoutes from './routes/instagramWebhook.js';
+import { runDailyDigest } from './services/growth/dailyDigestRunner.js';
+import { runAutoShipSweep } from './services/growth/autoShipPipeline.js';
+import { runImpactSweep } from './services/growth/impactMeasurement.js';
 import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
@@ -83,7 +88,7 @@ app.use(cors({
 app.use(express.json({
   limit: '10mb',
   verify: (req: any, _res, buf) => {
-    if (req.url === '/api/payments/webhook') {
+    if (req.url === '/api/payments/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
       req.rawBody = buf;
     }
   },
@@ -118,8 +123,10 @@ app.use('/api', groupsRoutes);
 // Workout form-video analysis (Gemini 3.1 Pro via Vertex AI). Multipart
 // uploads; free tier rate-limited via featureUsageService.
 app.use('/api', formAnalysisRoutes);
+app.use('/api', growthRoutes);
 app.use('/api', institutionsRoutes);
 app.use('/api', activityRoutes);
+app.use('/api', instagramWebhookRoutes);
 
 // Sentry error handler — MUST come before our own error middleware, but
 // after all routes. The SDK marks the response as handled even though
@@ -264,6 +271,19 @@ scheduleAt(6,  null, () => runDailyFeedFetch().catch(err => console.error('[sche
 // morning at 8am with a check-in. runAnakinGroupCheckin gates on
 // anakinDailyEnabled and only posts when there's something worth saying.
 scheduleAt(8,  null, () => runAnakinGroupSweep().catch(err => console.error('[scheduler] anakin group sweep error:', err)));
+
+// Growth digest — 13:00 UTC = 8am EST. Idempotent per day (the runner
+// upserts on date, no-op if today's digest is already sent).
+scheduleAt(13, null, () => runDailyDigest().catch(err => console.error('[scheduler] growth digest error:', err)));
+
+// Auto-ship sweep — 14:00 UTC, after the digest has been read and any
+// approvals have come in via Telegram. Reads approved recs and either
+// opens an auto-ship PR or drafts a spec PR. Always non-merging.
+scheduleAt(14, null, () => runAutoShipSweep().catch(err => console.error('[scheduler] auto-ship sweep error:', err)));
+
+// Impact measurement — 15:00 UTC. Snapshots shipped recs at 7d / 30d so
+// the next digest can compare predicted vs actual delta and adjust.
+scheduleAt(15, null, () => runImpactSweep().catch(err => console.error('[scheduler] impact sweep error:', err)));
 // Run once on startup to seed the feed if empty
 runDailyFeedFetch().catch(err => console.error('[feedService] initial fetch error:', err));
 console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 7pm/9pm streak-at-risk + 6am feed fetch + 8am Anakin group check-in)');
