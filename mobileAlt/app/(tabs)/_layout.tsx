@@ -86,6 +86,13 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Candidate fix for "tab bar taps dead on first landing, works after one
+        // navigation" under react-native-screens 4.23 + New Architecture: the
+        // tabs mount via an imperative router.replace after the async auth gate,
+        // and a frozen initial screen can leave the bar's press handlers
+        // unattached until a second commit. Keeping screens unfrozen avoids that
+        // initial frozen state. Verify on device; revert if it doesn't help.
+        freezeOnBlur: false,
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,
