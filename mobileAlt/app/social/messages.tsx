@@ -157,7 +157,7 @@ export default function MessagesScreen() {
     const displayName = conv.otherUser.username
       ? `@${conv.otherUser.username}`
       : (conv.otherUser.name ?? conv.otherUser.email ?? 'User');
-    const initials = (conv.otherUser.username ?? conv.otherUser.name ?? conv.otherUser.email ?? '?')[0].toUpperCase();
+    const initials = ((conv.otherUser.username || conv.otherUser.name || conv.otherUser.email || '?')[0] ?? '?').toUpperCase();
     const avatarUri = avatarUriFrom(conv.otherUser.avatarBase64);
     return (
       <TouchableOpacity

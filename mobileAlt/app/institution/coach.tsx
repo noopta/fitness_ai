@@ -111,7 +111,7 @@ export default function CoachDashboardScreen() {
                 <View style={styles.cardRow}>
                   <View style={styles.avatarCircle}>
                     <Text style={styles.avatarText}>
-                      {((athlete.name ?? athlete.email ?? 'A')[0]).toUpperCase()}
+                      {((athlete.name || athlete.email || 'A')[0] ?? 'A').toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.cardContent}>

@@ -155,7 +155,7 @@ export default function LeaderboardScreen() {
               ) : (
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarText}>
-                    {(entry.username ?? entry.name ?? '?')[0].toUpperCase()}
+                    {((entry.username || entry.name || '?')[0] ?? '?').toUpperCase()}
                   </Text>
                 </View>
               )}
@@ -185,7 +185,7 @@ function PodiumSlot({ entry, height }: { entry: LeaderboardEntry; height: number
       ) : (
         <View style={[styles.avatarCircle, styles.podiumAvatarCircle]}>
           <Text style={styles.podiumAvatarText}>
-            {(entry.username ?? entry.name ?? '?')[0].toUpperCase()}
+            {((entry.username || entry.name || '?')[0] ?? '?').toUpperCase()}
           </Text>
         </View>
       )}

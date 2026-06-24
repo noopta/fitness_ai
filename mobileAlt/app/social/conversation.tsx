@@ -350,7 +350,7 @@ export default function ConversationScreen() {
           <Ionicons name="arrow-back" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{(otherName ?? 'U')[0].toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{((otherName || 'U')[0] ?? 'U').toUpperCase()}</Text>
         </View>
         <Text style={styles.screenTitle} numberOfLines={1}>{otherName ?? 'Conversation'}</Text>
       </View>

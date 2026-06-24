@@ -120,7 +120,7 @@ export default function AthleteInstitutionScreen() {
                 <View style={styles.cardRow}>
                   <View style={styles.avatarCircle}>
                     <Text style={styles.avatarText}>
-                      {((coach.name ?? coach.email ?? 'C')[0]).toUpperCase()}
+                      {((coach.name || coach.email || 'C')[0] ?? 'C').toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.cardContent}>

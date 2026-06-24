@@ -75,7 +75,9 @@ function relativeTime(dateStr: string): string {
 }
 
 function getInitials(sharer: FeedItem['sharer']): string {
-  const name = sharer?.username ?? sharer?.name ?? '?';
+  // Use || not ?? so empty-string names also fall back to '?' — an empty
+  // username slips past ?? and ''[0] is undefined, which used to crash the card.
+  const name = sharer?.username || sharer?.name || '?';
   return name.slice(0, 2).toUpperCase();
 }
 
@@ -450,7 +452,7 @@ function CommentSheet({
                     {avatarUri
                       ? <Image source={{ uri: avatarUri }} style={{ width: 32, height: 32, borderRadius: 16 }} />
                       : <Text style={cs.commentAvatarText}>
-                          {(c.author.username ?? c.author.name ?? '?')[0].toUpperCase()}
+                          {((c.author?.username || c.author?.name || '?')[0] ?? '?').toUpperCase()}
                         </Text>
                     }
                   </View>
@@ -792,7 +794,7 @@ function PostCardInner({
                 >
                   <View style={cs.forwardAvatar}>
                     <Text style={cs.forwardAvatarText}>
-                      {((f.username ?? f.name ?? '?')[0]).toUpperCase()}
+                      {((f.username || f.name || '?')[0] ?? '?').toUpperCase()}
                     </Text>
                   </View>
                   <Text style={cs.forwardName}>

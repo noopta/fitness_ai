@@ -90,7 +90,7 @@ function FriendRow({ friend, onMessage }: { friend: Friend; onMessage: () => voi
         <View style={styles.avatarCircle}>
           {avatarUri
             ? <Image source={{ uri: avatarUri }} style={{ width: 40, height: 40, borderRadius: 20 }} />
-            : <Text style={styles.avatarText}>{((friend.username ?? friend.name ?? '?')[0]).toUpperCase()}</Text>
+            : <Text style={styles.avatarText}>{((friend.username || friend.name || '?')[0] ?? '?').toUpperCase()}</Text>
           }
         </View>
         <View style={styles.cardContent}>

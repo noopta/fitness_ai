@@ -167,7 +167,7 @@ export default function SocialSearchScreen() {
                 <View style={styles.cardRow}>
                   <View style={styles.avatarCircle}>
                     <Text style={styles.avatarText}>
-                      {((req.requester.username ?? req.requester.name ?? '?')[0]).toUpperCase()}
+                      {((req.requester.username || req.requester.name || '?')[0] ?? '?').toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.cardContent}>
@@ -211,7 +211,7 @@ export default function SocialSearchScreen() {
                   ) : (
                     <View style={styles.avatarCircle}>
                       <Text style={styles.avatarText}>
-                        {((user.username ?? user.name ?? '?')[0]).toUpperCase()}
+                        {((user.username || user.name || '?')[0] ?? '?').toUpperCase()}
                       </Text>
                     </View>
                   )}

@@ -178,7 +178,7 @@ export default function AthleteDetailScreen() {
         <View style={styles.profileCard}>
           <View style={styles.avatarCircleLarge}>
             <Text style={styles.avatarTextLarge}>
-              {((athlete?.name ?? athlete?.email ?? 'A')[0]).toUpperCase()}
+              {((athlete?.name || athlete?.email || 'A')[0] ?? 'A').toUpperCase()}
             </Text>
           </View>
           <View style={styles.profileInfo}>
