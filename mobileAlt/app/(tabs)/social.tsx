@@ -591,6 +591,21 @@ function SocialScreenInner() {
   const latestPostAtRef = useRef<string | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
 
+  // Virtualization-lite: render the feed in growing windows so opening the tab
+  // never synchronously mounts every PostCard at once. Each card is heavy
+  // (Reanimated hearts + a lazy per-card image fetch); mounting a whole feed in
+  // one commit was freezing the JS thread — all touch dead — for tens of
+  // seconds. Render FEED_WINDOW cards first, then grow as the user nears the
+  // bottom. Kept on the existing ScrollView (a FlatList migration is the
+  // eventual path) so card taps stay reliable.
+  const FEED_WINDOW = 6;
+  const [visibleCount, setVisibleCount] = useState(FEED_WINDOW);
+  // Reset to the first window whenever a freshly-loaded feed replaces the list.
+  useEffect(() => { setVisibleCount(FEED_WINDOW); }, [feed]);
+  const growFeedWindow = useCallback(() => {
+    setVisibleCount((c) => c + FEED_WINDOW);
+  }, []);
+
   // Helper to keep latestPostAtRef in sync with what's currently in the feed.
   const updateLatestPostAt = useCallback((items: FeedItem[]) => {
     const firstPost = items.find((it: any) => it.kind === 'post')?.data;
@@ -971,6 +986,15 @@ function SocialScreenInner() {
         // proper perf path is a FlatList virtualization migration — until then
         // keep the cards reliably tappable. scrollEventThrottle is harmless.
         scrollEventThrottle={16}
+        onScroll={(e) => {
+          // Grow the feed render window as the user nears the bottom, so cards
+          // mount in small batches instead of all at once on first paint.
+          if (activeTab !== 'feed' || visibleCount >= feed.length) return;
+          const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+          if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 800) {
+            growFeedWindow();
+          }
+        }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1022,7 +1046,7 @@ function SocialScreenInner() {
                 <Text style={styles.emptySubtitle}>Add friends to see their shared workouts and plans here.</Text>
               </View>
             ) : (
-              feed.map((item: any, index: number) => {
+              feed.slice(0, visibleCount).map((item: any, index: number) => {
                 // Isolate each item: a single malformed post/article can no longer
                 // crash the whole feed tab. The boundary also reports the exact
                 // error to PostHog (boundary_label social:feed-item) so we can
@@ -1056,7 +1080,12 @@ function SocialScreenInner() {
                 );
               })
             )}
-            {!loadingFeed && exhausted && feed.length > 0 && (
+            {!loadingFeed && visibleCount < feed.length && (
+              <View style={styles.center}>
+                <ActivityIndicator size="small" color={colors.mutedForeground} />
+              </View>
+            )}
+            {!loadingFeed && exhausted && feed.length > 0 && visibleCount >= feed.length && (
               <View style={styles.center}>
                 <Text style={styles.mutedText}>You're all caught up. Tap "Research" above for new articles.</Text>
               </View>

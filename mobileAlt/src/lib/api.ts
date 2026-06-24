@@ -32,10 +32,18 @@ export async function clearToken(): Promise<void> {
   return SecureStore!.deleteItemAsync(TOKEN_KEY);
 }
 
-export async function apiFetch(path: string, options?: RequestInit, requiresAuth = true): Promise<any> {
+export async function apiFetch(
+  path: string,
+  options?: RequestInit & { timeoutMs?: number },
+  requiresAuth = true,
+): Promise<any> {
+  // timeoutMs is opt-in per call (RN's fetch has no default timeout, so a stuck
+  // endpoint blocks the caller indefinitely / until ~60s and then errors). We
+  // strip it before it reaches fetch().
+  const { timeoutMs, ...fetchOptions } = options ?? {};
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options?.headers as Record<string, string>),
+    ...(fetchOptions.headers as Record<string, string>),
   };
   if (requiresAuth) {
     const token = await getToken();
@@ -54,10 +62,19 @@ export async function apiFetch(path: string, options?: RequestInit, requiresAuth
   }
 
   const url = `${API_BASE}${path}`;
-  console.log(`[API] ${options?.method || 'GET'} ${url}`);
+  console.log(`[API] ${fetchOptions.method || 'GET'} ${url}`);
+
+  // Abort the request if it exceeds timeoutMs so a slow/stuck endpoint fails
+  // fast with a clean error instead of hanging the screen.
+  const controller = timeoutMs ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
 
   try {
-    const res = await fetch(url, { ...options, headers });
+    const res = await fetch(url, {
+      ...fetchOptions,
+      headers,
+      signal: controller?.signal ?? fetchOptions.signal,
+    });
     console.log(`[API] ${path} -> ${res.status}`);
 
     if (!res.ok) {
@@ -87,8 +104,17 @@ export async function apiFetch(path: string, options?: RequestInit, requiresAuth
     }
   } catch (err: any) {
     if (err?.status) throw err;
+    if (err?.name === 'AbortError') {
+      console.warn(`[API] ${path} timed out after ${timeoutMs}ms`);
+      const e: any = new Error('Request timed out. Please try again.');
+      e.status = 0;
+      e.timedOut = true;
+      throw e;
+    }
     console.error(`[API] Network error on ${path}:`, err?.message || err);
     throw new Error(`Network error: ${err?.message || 'Could not connect to server'}`);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -636,7 +662,9 @@ export const socialApi = {
     params.set('slim', '1');
     if (opts?.fresh) params.set('fresh', '1');
     if (opts?.includeResearch === false) params.set('include_research', '0');
-    return apiFetch(`/social/feed?${params.toString()}`);
+    // 15s cap: the default (cached) feed returns in well under a second; if the
+    // server is stuck, fail fast with a clean error instead of hanging the tab.
+    return apiFetch(`/social/feed?${params.toString()}`, { timeoutMs: 15000 });
   },
   // Articles-only endpoint. Called when the user explicitly taps "Get fresh
   // research" — slower fetches are acceptable since the user opted in.
