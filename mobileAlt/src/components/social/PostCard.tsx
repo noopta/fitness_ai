@@ -132,6 +132,10 @@ function FloatingHearts({ isAnimating }: { isAnimating: boolean }) {
 // ─── Card Header ─────────────────────────────────────────────────────────────
 
 function CardHeader({ sharer, time, isPublic }: { sharer: FeedItem['sharer']; time: string; isPublic?: boolean }) {
+  // Fall back to initials if the avatar fails to decode/render. Some stored
+  // avatars are truncated/corrupt base64 (a casualty of the DB corruption) and
+  // would otherwise show a broken-image box; onError catches that gracefully.
+  const [imgFailed, setImgFailed] = useState(false);
   const displayName = sharer?.username ? `@${sharer.username}` : (sharer?.name ?? 'Unknown');
   const initials = getInitials(sharer);
   const raw = sharer?.avatarBase64;
@@ -140,8 +144,8 @@ function CardHeader({ sharer, time, isPublic }: { sharer: FeedItem['sharer']; ti
   return (
     <View style={cs.header}>
       <View style={cs.avatarContainer}>
-        {avatarUri
-          ? <Image source={{ uri: avatarUri }} style={cs.avatarImage} />
+        {avatarUri && !imgFailed
+          ? <Image source={{ uri: avatarUri }} style={cs.avatarImage} onError={() => setImgFailed(true)} />
           : <Text style={cs.avatarInitials}>{initials}</Text>
         }
       </View>
