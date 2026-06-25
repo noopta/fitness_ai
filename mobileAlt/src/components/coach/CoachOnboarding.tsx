@@ -622,6 +622,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="—"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
                 <TextInput
                   style={s.strengthInput}
@@ -630,6 +631,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="—"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
                 <TextInput
                   style={s.strengthInput}
@@ -638,6 +640,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="—"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
             ))}
@@ -750,6 +753,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="5"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
               <View style={s.statsCell}>
@@ -761,6 +765,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="10"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
               <View style={s.statsCell}>
@@ -772,6 +777,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="175"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
               <View style={s.statsCell}>
@@ -783,6 +789,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                   placeholder="18"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType="numeric"
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                 />
               </View>
             </View>
@@ -864,7 +871,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
 const s = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, paddingBottom: 120 },
+  content: { padding: spacing.md, paddingBottom: 40 },
   stepWrap: { gap: spacing.md },
 
   // Progress

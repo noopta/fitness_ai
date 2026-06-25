@@ -235,7 +235,11 @@ function PaymentSheetContent({
     }
   }, [onClose]);
 
-  const displayPrice = (product as any)?.displayPrice ?? (product as any)?.localizedPrice ?? PRO_PRICE_FALLBACK;
+  // Show the canonical price, NOT StoreKit's localizedPrice. After an App Store
+  // Connect price change the product metadata lagged and reported a stale $9.99
+  // while Apple actually charged $12.99 at the sheet — under-stating the price
+  // to the user. PRO_PRICE_FALLBACK is the real price; keep them in sync with ASC.
+  const displayPrice = PRO_PRICE_FALLBACK;
 
   // ── Stripe (card) section ──
   // Offered on both platforms. On Android it renders *after* the Google Play
