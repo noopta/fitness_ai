@@ -316,15 +316,15 @@ function PaymentSheetContent({
         ))}
       </View>
 
-      {/* AXIOMTRIAL promo callout — shown on every paywall surface (this sheet
-          is reused by all value-moment paywalls + the regular upgrade flow).
-          Stripe checkout has allow_promotion_codes enabled, so users just
-          paste the code on the Stripe page. Apple/Google IAP can't accept
-          promo codes — see the per-section copy below. */}
+      {/* Risk-free trial callout — shown on every paywall surface. Apple now has
+          a native introductory offer (1 month free) that StoreKit applies
+          automatically at the sheet for eligible Apple IDs — no code. Stripe
+          checkout has allow_promotion_codes enabled, so card payers paste the
+          AXIOMTRIAL code on the Stripe page. */}
       <View style={styles.promoBanner}>
         <Ionicons name="gift-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
         <Text style={styles.promoText}>
-          Use code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> at Stripe checkout for <Text style={{ fontWeight: fontWeight.bold }}>1 month free</Text>.
+          <Text style={{ fontWeight: fontWeight.bold }}>Start with 1 month free</Text> — risk-free, no commitment. Applied automatically with Apple; paying by card, enter code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> at checkout.
         </Text>
       </View>
 
