@@ -91,7 +91,19 @@ export async function fetchProProduct(): Promise<{ product: ProductSubscription 
     const subs = products as ProductSubscription[];
     const match = subs.find(p => p.id === PRO_MONTHLY_ID) ?? subs[0] ?? null;
     if (match) {
-      iapLog('product found:', match.id, 'price:', (match as any).displayPrice ?? (match as any).localizedPrice);
+      const m = match as any;
+      // Confirm whether the StoreKit introductory offer (1-month free trial) is
+      // live + propagating. react-native-iap's exact field name varies across
+      // versions, so discover any offer/intro/trial field dynamically and log it.
+      // "NONE" means the product has no trial (not configured/propagated, or the
+      // Apple ID is ineligible); a populated object means the trial is present.
+      const offerKeys = Object.keys(m).filter(k => /offer|intro|trial|promo/i.test(k));
+      iapLog(
+        'intro offer:',
+        offerKeys.length ? offerKeys.join(', ') : 'NONE — no trial on product',
+        offerKeys.length ? JSON.stringify(offerKeys.reduce((o, k) => ((o[k] = m[k]), o), {} as Record<string, any>)) : '',
+      );
+      iapLog('product found:', match.id, 'price:', m.displayPrice ?? m.localizedPrice);
       return { product: match, error: null };
     }
     // No product came back. Surface an error so the paywall shows a Retry
