@@ -1437,8 +1437,8 @@ function CTASection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" variant="secondary" className="rounded-xl text-base font-semibold px-8" asChild>
-              <Link href={user ? "/snapshot" : "/register"}>
-                {user ? "Start a Diagnostic" : "Get Started Free"}
+              <Link href={user ? "/coach" : "/register"}>
+                {user ? "Start your intake" : "Get Started Free"}
                 <ArrowRight className="ml-2 h-4.5 w-4.5" />
               </Link>
             </Button>
@@ -1493,8 +1493,8 @@ function HeroSection() {
             className="flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button size="lg" className="rounded-xl text-base font-semibold px-8" asChild>
-              <Link href={user ? "/snapshot" : "/register"}>
-                {user ? "Start a Diagnostic" : "Try It Free"}
+              <Link href={user ? "/coach" : "/register"}>
+                {user ? "Start your intake" : "Try It Free"}
                 <ChevronRight className="ml-1 h-4.5 w-4.5" />
               </Link>
             </Button>
