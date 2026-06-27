@@ -67,7 +67,7 @@ export default function Login() {
                 const saved = sessionStorage.getItem('liftoff_redirect');
                 const redirect = (saved && saved !== '/login' && saved !== '/register')
                   ? saved
-                  : '/';
+                  : '/coach';
                 sessionStorage.removeItem('liftoff_redirect');
                 setLocation(redirect);
                 return;
@@ -91,7 +91,7 @@ export default function Login() {
       const saved = sessionStorage.getItem('liftoff_redirect');
       const redirect = (saved && saved !== '/login' && saved !== '/register')
         ? saved
-        : '/';
+        : '/coach';
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     }
@@ -107,7 +107,7 @@ export default function Login() {
       redirected.current = true; // prevent the useEffect from also firing
       const saved = sessionStorage.getItem('liftoff_redirect');
       // If org mode, redirect to institution page after login
-      let redirect = (saved && saved !== '/login' && saved !== '/register') ? saved : '/';
+      let redirect = (saved && saved !== '/login' && saved !== '/register') ? saved : '/coach';
       if (orgMode && orgSlug.trim()) {
         redirect = `/institution/${orgSlug.trim()}`;
       }
