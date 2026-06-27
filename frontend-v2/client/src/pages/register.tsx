@@ -27,7 +27,7 @@ export default function Register() {
   useEffect(() => {
     if (!loading && user && !redirected.current) {
       redirected.current = true;
-      setLocation('/onboarding');
+      setLocation('/coach');
     }
     // Capture ?ref= or stored referral code
     const urlRef = new URLSearchParams(window.location.search).get('ref');
@@ -44,7 +44,7 @@ export default function Register() {
       if (referralCode.current) localStorage.removeItem('axiom_referral');
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
-      setLocation('/onboarding');
+      setLocation('/coach');
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');
     } finally {

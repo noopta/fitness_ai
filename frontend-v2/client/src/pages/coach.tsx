@@ -65,6 +65,10 @@ export default function CoachPage() {
   const [stageOverride, setStageOverride] = useState<CoachStage | null>(null);
   // Generated program (in memory before saving)
   const [generatedProgram, setGeneratedProgram] = useState<TrainingProgram | null>(null);
+  // Free users run the full intake + see their generated plan, THEN hit the
+  // paywall at save (mirrors mobile: show the value, then gate). Set when a free
+  // user reaches the save step.
+  const [paywalled, setPaywalled] = useState(false);
 
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
@@ -99,6 +103,13 @@ export default function CoachPage() {
   }
 
   function handleProgramSaved() {
+    // Free users have completed the intake AND seen their generated plan — gate
+    // saving/unlocking behind Pro here (this is the "your plan is ready" moment).
+    if (!isPro) {
+      WebAnalytics.upgradeTapped('coach_post_plan');
+      setPaywalled(true);
+      return;
+    }
     // Refresh user so savedProgram is populated
     refreshUser().then(() => {
       setStageOverride('dashboard');
@@ -162,23 +173,24 @@ export default function CoachPage() {
         }
       />
 
-      {!isPro ? (
-        /* Upgrade wall */
+      {(paywalled || (!isPro && stage === 'dashboard')) ? (
+        /* Post-plan paywall — shown AFTER a free user finishes the intake and
+           sees their generated program (or a downgraded user with a saved one). */
         <div className="flex-1 flex items-center justify-center p-6">
           <Card className="max-w-md w-full p-8 text-center space-y-5">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 mx-auto">
               <Lock className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">AI Coach is a Pro feature</h2>
+              <h2 className="text-xl font-bold">Your program is ready</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Upgrade to Pro to unlock Anakin, your personal AI strength coach with personalized programs, nutrition tracking, and unlimited coaching conversations.
+                We built your personalized program from your intake. Upgrade to Pro to unlock and save it — plus nutrition tracking, progress analytics, and unlimited coaching with Anakin.
               </p>
             </div>
             <div className="space-y-2 text-left text-sm text-muted-foreground">
               {[
-                'Guided coaching intake — tell us your goals',
-                'Personalized program design from your data',
+                'Your personalized program — ready to unlock',
+                'Periodized program design from your data',
                 'Nutrition tracking & AI macro recommendations',
                 'Progress analytics & trend charts',
                 'Unlimited coaching conversations',
@@ -189,7 +201,7 @@ export default function CoachPage() {
                 </div>
               ))}
             </div>
-            <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold" asChild onClick={() => WebAnalytics.upgradeTapped('coach_wall')}>
+            <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold" asChild onClick={() => WebAnalytics.upgradeTapped('coach_post_plan')}>
               <Link href="/pricing">
                 Upgrade to Pro
                 <ChevronRight className="ml-1 h-4 w-4" />

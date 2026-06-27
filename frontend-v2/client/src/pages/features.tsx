@@ -1399,9 +1399,9 @@ function CTASection() {
             Run your first diagnostic free, no credit card, no commitment. See your weakness identified in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" variant="secondary" className="rounded-xl text-base font-semibold px-8" asChild onClick={() => WebAnalytics.ctaClicked(user ? 'Start a Diagnostic' : 'Get Started Free', 'cta_section')}>
-              <Link href={user ? "/snapshot" : "/register"}>
-                {user ? "Start a Diagnostic" : "Get Started Free"}
+            <Button size="lg" variant="secondary" className="rounded-xl text-base font-semibold px-8" asChild onClick={() => WebAnalytics.ctaClicked(user ? 'Start your intake' : 'Get Started Free', 'cta_section')}>
+              <Link href={user ? "/coach" : "/register"}>
+                {user ? "Start your intake" : "Get Started Free"}
                 <ArrowRight className="ml-2 h-4.5 w-4.5" />
               </Link>
             </Button>

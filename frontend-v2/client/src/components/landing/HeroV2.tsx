@@ -162,10 +162,10 @@ export function HeroV2({ statsRow }: Props) {
                   size="lg"
                   className="rounded-xl text-base font-semibold px-7"
                   asChild
-                  onClick={() => WebAnalytics.ctaClicked(user ? "Start a Diagnostic" : "Try It Free", "hero")}
+                  onClick={() => WebAnalytics.ctaClicked(user ? "Start your intake" : "Try It Free", "hero")}
                 >
-                  <Link href={user ? "/snapshot" : "/register"}>
-                    {user ? "Start a Diagnostic" : "Try It Free"}
+                  <Link href={user ? "/coach" : "/register"}>
+                    {user ? "Start your intake" : "Try It Free"}
                     <ChevronRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
