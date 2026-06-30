@@ -735,3 +735,33 @@ model GroupMessage {
 
   @@index([groupId, createdAt])
 }
+
+// ─── Podcast knowledge base (Huberman Lab transcripts → RAG) ──────────────────
+// One row per retrievable chunk of a podcast episode. Embeddings are produced
+// with Vertex `text-embedding-005` (768-dim) and stored as a JSON string, the
+// same brute-force-cosine pattern as KnowledgeChunk (see ragService). Kept in a
+// separate table because podcasts use a different embedding space (Gemini/Vertex)
+// than the OpenAI textbook KnowledgeChunk index, and carry richer attribution
+// metadata so the coach can cite *which speaker* said it.
+model PodcastChunk {
+  id               String   @id @default(uuid())
+  source           String   @default("HubermanLab")
+  subtopic         String   // the subtopic page this episode came from (topic)
+  episodeSlug      String   // hubermanlab.com /episode/<slug> (stable id)
+  episodeTitle     String
+  youtubeId        String?  // for citation deep-links (?t=startSeconds)
+  guestName        String?  // null for solo (Huberman-only) episodes
+  guestCredentials String?
+  chapterTitle     String?  // episode chapter the chunk falls in (subtopic)
+  startSeconds     Int?     // approximate; interpolated (page has no per-line ts)
+  speaker          String?  // dominant speaker of the chunk (attribution)
+  content          String   // cleaned, speaker-tagged chunk text
+  contextHeader    String?  // situating prefix embedded with the chunk
+  embedding        String   // JSON number[] (Vertex text-embedding-005, 768-d)
+  embeddingModel   String   @default("text-embedding-005")
+  tokenCount       Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  @@index([episodeSlug])
+  @@index([subtopic])
+}

@@ -5,7 +5,7 @@ import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
 import { runDiagnosticEngine, type DiagnosticSignals, type SnapshotInput, type SessionFlags } from '../engine/diagnosticEngine.js';
 import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
-import { buildRAGContext } from './ragService.js';
+import { buildRAGContext, retrieveProgramSources, type ProgramSource } from './ragService.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -1184,6 +1184,9 @@ export interface TrainingProgram {
   phases: ProgramPhase[];
   autoregulationRules: string[];  // RPE/RIR auto-regulation guidance
   trackingMetrics: string[];      // What to track each session
+  // Real, attributable science sources that actually informed this plan.
+  // Surfaced on the Program Reveal screen; count must reflect what was retrieved.
+  sources?: ProgramSource[];
   // Legacy fields kept for backwards compatibility
   weeks?: Array<{
     weekNumber: number;
@@ -1334,8 +1337,11 @@ OUTPUT FORMAT — Return valid JSON only:
   "trackingMetrics": ["Log weight, sets, reps, RPE per set", "Note sticking point on primary lift"]
 }`;
 
-  const ragQuery = `periodization training program ${params.goal || 'strength'} phases ${params.primaryLimiter || ''} ${params.selectedLift || ''} RPE progression`;
-  const ragContext = await buildRAGContext(ragQuery, 4);
+  // Broaden the retrieval query to span all four construction sections
+  // (periodization · exercise selection · volume/intensity · nutrition) so the
+  // surfaced bibliography genuinely reflects every block on the reveal screen.
+  const ragQuery = `periodization phases and progressive overload; exercise selection and technique; training volume intensity RPE and rep ranges; protein and nutrition for ${params.goal || 'strength'} ${params.primaryLimiter || ''} ${params.selectedLift || ''}`;
+  const { ragContext, sources } = await retrieveProgramSources(ragQuery, 8);
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
   const response = await openai.chat.completions.create({
@@ -1347,6 +1353,10 @@ OUTPUT FORMAT — Return valid JSON only:
 
   const content = response.choices[0].message.content || '{}';
   const parsed = JSON.parse(content) as TrainingProgram;
+
+  // Attach the real sources that informed this plan (may be empty if the
+  // knowledge base is unseeded — the reveal screen omits the block in that case).
+  parsed.sources = sources;
 
   // Backwards-compatibility: if old UI still reads .weeks, synthesize it
   if (!parsed.weeks && parsed.phases && parsed.phases.length > 0) {

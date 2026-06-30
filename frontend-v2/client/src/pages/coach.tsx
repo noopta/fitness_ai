@@ -15,6 +15,7 @@ import { NutritionTab } from '@/components/coach/NutritionTab';
 import { ProgramTab } from '@/components/coach/ProgramTab';
 import { ChatTab } from '@/components/coach/ChatTab';
 import { ProgramSetup, type TrainingProgram } from '@/components/coach/ProgramSetup';
+import { ProgramReveal } from '@/components/coach/ProgramReveal';
 import { ProgramWalkthrough } from '@/components/coach/ProgramWalkthrough';
 import { authFetch } from '@/lib/api';
 import { WebAnalytics, trackPageTime } from '@/lib/analytics';
@@ -40,7 +41,7 @@ interface CoachData {
   tier: string;
 }
 
-type CoachStage = 'onboarding' | 'program_setup' | 'program_walkthrough' | 'dashboard';
+type CoachStage = 'onboarding' | 'program_setup' | 'program_reveal' | 'program_walkthrough' | 'dashboard';
 
 const TABS = [
   { value: 'overview', label: 'Overview', mobileLabel: 'Home', icon: Sparkles },
@@ -99,7 +100,9 @@ export default function CoachPage() {
 
   function handleProgramGenerated(program: TrainingProgram) {
     setGeneratedProgram(program);
-    setStageOverride('program_walkthrough');
+    // Conviction screen first (the "your plan was built around you" reveal),
+    // then the existing animated walkthrough, then save → paywall.
+    setStageOverride('program_reveal');
   }
 
   function handleProgramSaved() {
@@ -222,6 +225,15 @@ export default function CoachPage() {
           coachProfile={coachProfile}
           onGenerated={handleProgramGenerated}
           onUpdateIntake={handleRestartOnboarding}
+        />
+      ) : stage === 'program_reveal' && generatedProgram ? (
+        /* Conviction screen — the plan, framed on real science, before the paywall */
+        <ProgramReveal
+          program={generatedProgram}
+          userName={user?.name || null}
+          stepLabel="Step 4 of 4"
+          onNext={() => setStageOverride('program_walkthrough')}
+          onBack={() => setStageOverride('program_setup')}
         />
       ) : stage === 'program_walkthrough' && generatedProgram ? (
         /* Animated program walkthrough */

@@ -26,11 +26,31 @@ interface StoredChunk {
 }
 
 interface RetrievedChunk {
+  id: string;
   source: string;
   chapter: string | null;
   content: string;
   score: number;
 }
+
+/**
+ * A real, attributable source that actually informed a generated program.
+ * Surfaced to the client for the Program Reveal "Sources cited" block — the
+ * count and the list must reflect the chunks genuinely retrieved (never faked).
+ */
+export interface ProgramSource {
+  id: string;                // stable per-program id, e.g. "src-1"
+  source: string;            // e.g. "NASM Essentials of Personal Fitness Training"
+  chapter: string | null;    // e.g. "Chapter 14: Resistance Training Concepts"
+  sections: ProgramSourceSection[]; // which construction sections this supports
+  snippet?: string;          // short excerpt for an optional source sheet
+}
+
+export type ProgramSourceSection =
+  | 'periodization'
+  | 'exercise'
+  | 'volume'
+  | 'nutrition';
 
 // ── In-memory cache ────────────────────────────────────────────────────────────
 
@@ -95,6 +115,7 @@ export async function retrieveRelevantChunks(
 
     // Score all chunks
     const scored = chunks.map(chunk => ({
+      id: chunk.id,
       source: chunk.source,
       chapter: chunk.chapter,
       content: chunk.content,
@@ -142,6 +163,76 @@ export async function buildRAGContext(
 ): Promise<string> {
   const chunks = await retrieveRelevantChunks(query, topK);
   return formatRAGContext(chunks);
+}
+
+// ── Program-source surfacing (for Program Reveal) ───────────────────────────────
+
+const SECTION_KEYWORDS: Record<ProgramSourceSection, string[]> = {
+  periodization: ['periodiz', 'phase', 'mesocycle', 'macrocycle', 'microcycle', 'block', 'deload', 'progressive overload'],
+  exercise: ['exercise selection', 'technique', 'movement pattern', 'biomechan', 'muscle activation', 'range of motion', 'accessory', 'compound'],
+  volume: ['volume', 'sets per', 'set per', 'training frequency', 'intensity', 'rpe', '1rm', 'rep range', 'load', 'effort'],
+  nutrition: ['protein', 'nutrition', 'diet', 'calorie', 'caloric', 'macronutrient', 'macro', 'carbohydrate', 'hydration', 'energy balance'],
+};
+
+/**
+ * Classify which construction sections a retrieved chunk supports, by scanning
+ * its chapter + content for section-specific keywords. A chunk may support
+ * several sections (or none — in which case it still appears in the bibliography
+ * but anchors no inline ref chip).
+ */
+export function classifyChunkSections(chunk: { chapter: string | null; content: string }): ProgramSourceSection[] {
+  const haystack = `${chunk.chapter ?? ''} ${chunk.content}`.toLowerCase();
+  const matched: ProgramSourceSection[] = [];
+  for (const section of Object.keys(SECTION_KEYWORDS) as ProgramSourceSection[]) {
+    if (SECTION_KEYWORDS[section].some(kw => haystack.includes(kw))) matched.push(section);
+  }
+  return matched;
+}
+
+/**
+ * Turn retrieved chunks into a deduped, ordered list of ProgramSource entries.
+ * Dedupe is by `source + chapter` so the same chapter retrieved twice counts once.
+ * Order is preserved from retrieval (most relevant first), giving stable src-N ids.
+ */
+export function buildProgramSources(chunks: RetrievedChunk[], maxSnippet = 240): ProgramSource[] {
+  const byKey = new Map<string, ProgramSource>();
+  for (const chunk of chunks) {
+    const key = `${chunk.source}||${chunk.chapter ?? ''}`;
+    const sections = classifyChunkSections(chunk);
+    const existing = byKey.get(key);
+    if (existing) {
+      // Merge sections from the duplicate chapter.
+      for (const s of sections) if (!existing.sections.includes(s)) existing.sections.push(s);
+      continue;
+    }
+    byKey.set(key, {
+      id: `src-${byKey.size + 1}`,
+      source: chunk.source,
+      chapter: chunk.chapter,
+      sections,
+      snippet: chunk.content.length > maxSnippet
+        ? chunk.content.slice(0, maxSnippet).trimEnd() + '…'
+        : chunk.content,
+    });
+  }
+  return Array.from(byKey.values());
+}
+
+/**
+ * Retrieve + structure the real sources behind a generated program in one call.
+ * Returns both the prompt context string (to augment the LLM call) and the
+ * structured ProgramSource list (to surface on the Program Reveal screen).
+ * Degrades to empty source list when RAG is unavailable.
+ */
+export async function retrieveProgramSources(
+  query: string,
+  topK: number = 8,
+): Promise<{ ragContext: string; sources: ProgramSource[] }> {
+  const chunks = await retrieveRelevantChunks(query, topK);
+  return {
+    ragContext: formatRAGContext(chunks),
+    sources: buildProgramSources(chunks),
+  };
 }
 
 /** Invalidate the in-memory cache (useful after re-ingestion). */
