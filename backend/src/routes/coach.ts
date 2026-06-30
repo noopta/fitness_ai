@@ -13,6 +13,7 @@ import {
   rebalanceWeekAfterSwap,
 } from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
+import { buildPodcastContext } from '../services/podcast/podcastRagService.js';
 import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/weekRebalance.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
@@ -399,19 +400,23 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     };
     if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
 
-    // Build full user context (cached, DB hit only on cold cache) + RAG in parallel
-    const [userContext, ragContext] = await Promise.all([
+    // Build full user context (cached, DB hit only on cold cache) + both RAG
+    // sources (certified textbooks + expert podcast transcripts) in parallel.
+    const [userContext, ragContext, podcast] = await Promise.all([
       buildFullUserContext(req.user!.id),
       buildRAGContext(message, 3),
+      buildPodcastContext(message, 3),
     ]);
 
     const systemPrompt = [
       `You are Anakin, an expert AI strength and fitness coach with expertise equivalent to NSCA-CSCS, ACE, and ISSN certifications.`,
       `You have full access to this athlete's complete profile, training history, nutrition data, wellness check-ins, and active program below.`,
       `Reference specific data from their profile when relevant. Be direct, evidence-based, practical, and encouraging.`,
+      `When you draw on the Expert Podcast Reference, attribute the claim to the speaker by name (e.g. "Dr. Layne Norton notes…").`,
       `Use markdown formatting for structured responses. All weights are in lbs.`,
       userContext,
       ragContext || '',
+      podcast.context || '',
     ].filter(Boolean).join('\n\n');
 
     const messages: OpenAI.ChatCompletionMessageParam[] = [
@@ -437,6 +442,18 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
       if (text) {
         res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
       }
+    }
+    // Surface podcast citations (speaker + episode + deep-link) so the client
+    // can render "Sources". Sent before [DONE]; clients that don't read it ignore it.
+    if (podcast.references.length > 0) {
+      const citations = podcast.references.map((r) => ({
+        speaker: r.speaker,
+        guest: r.guestName,
+        episode: r.episodeTitle,
+        chapter: r.chapterTitle,
+        url: r.youtubeUrl,
+      }));
+      res.write(`data: ${JSON.stringify({ references: citations })}\n\n`);
     }
     res.write('data: [DONE]\n\n');
     res.end();
