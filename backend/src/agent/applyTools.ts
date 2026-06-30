@@ -310,7 +310,7 @@ export async function applyExerciseSwap(
       occurrences: 0,
       candidates,
       reason: candidates.length
-        ? `"${fromName}" didn't resolve to one exercise${where}. Stored names to choose from: ${candidates.join(', ')}. Re-call swap_exercise_in_program with the exact stored name.`
+        ? `"${fromName}" didn't resolve to one exercise${where}. Stored names to choose from: ${candidates.join(', ')}. Re-call with the exact stored name.`
         : `No exercises found${where}.`,
     };
   }

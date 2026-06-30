@@ -34,6 +34,7 @@ import { AnakinsRead } from '../../src/components/strength/AnakinsRead';
 import { StrengthBalance } from '../../src/components/strength/StrengthBalance';
 import { PatternCoverage } from '../../src/components/strength/PatternCoverage';
 import { RelativeStrength } from '../../src/components/strength/RelativeStrength';
+import { useUnits } from '../../src/context/UnitsContext';
 import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
@@ -219,6 +220,13 @@ function MovementRadar({ scores }: { scores: Record<string, number> }) {
 function LiftCard({ lift }: { lift: LiftSummary }) {
   const [expanded, setExpanded] = useState(false);
   const color = CATEGORY_COLOR[lift.category] ?? '#6366f1';
+  // Respect the user's unit preference: show the est. 1RM in their unit as the
+  // hero number, with the other unit as the secondary line. (Both values are
+  // precomputed on the lift; we just pick which leads.)
+  const { unit } = useUnits();
+  const primary1RM = unit === 'kg' ? lift.current1RMkg : lift.current1RMLbs;
+  const secondary1RM = unit === 'kg' ? lift.current1RMLbs : lift.current1RMkg;
+  const secondaryUnit = unit === 'kg' ? 'lbs' : 'kg';
   return (
     <TouchableOpacity onPress={() => setExpanded(e => !e)} activeOpacity={0.85}>
       <View style={[liftStyles.card, { borderLeftColor: color, borderLeftWidth: 3 }]}>
@@ -234,10 +242,10 @@ function LiftCard({ lift }: { lift: LiftSummary }) {
           </View>
           <View style={liftStyles.right}>
             <View style={liftStyles.rmRow}>
-              <Text style={liftStyles.rm1}>{lift.current1RMLbs}</Text>
-              <Text style={liftStyles.rmUnit}> lbs</Text>
+              <Text style={liftStyles.rm1}>{primary1RM}</Text>
+              <Text style={liftStyles.rmUnit}> {unit}</Text>
             </View>
-            <Text style={liftStyles.rmKg}>{lift.current1RMkg} kg · est. 1RM</Text>
+            <Text style={liftStyles.rmKg}>{secondary1RM} {secondaryUnit} · est. 1RM</Text>
             <GainBadge pct={lift.monthlyGainPct} />
           </View>
         </View>

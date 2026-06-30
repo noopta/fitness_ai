@@ -616,7 +616,10 @@ export const AGENT_TOOLS: AgentTool[] = [
   proposeProgramUpdateTool,
   proposeWorkoutSwap,
   proposeExerciseSwap,
-  swapExerciseInProgram,
+  // NOTE: swapExerciseInProgram (direct-apply) is intentionally NOT exposed to the
+  // agent — exercise swaps must go through propose_exercise_swap (reviewable Plan
+  // Patch card). The apply happens when the user taps Apply → confirm-proposal →
+  // applyExerciseSwap. Leaving it callable made the agent apply silently with no card.
   remember,
 ];
 
