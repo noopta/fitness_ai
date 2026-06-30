@@ -14,6 +14,7 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constan
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
 import { ProgramSetup } from '../../src/components/coach/ProgramSetup';
+import { ProgramReveal } from '../../src/components/coach/ProgramReveal';
 import { ProgramWalkthrough } from '../../src/components/coach/ProgramWalkthrough';
 import { OverviewTab } from '../../src/components/coach/OverviewTab';
 import { ProgramTab } from '../../src/components/coach/ProgramTab';
@@ -29,7 +30,7 @@ import { maybeShowPostPlanPaywall } from '../../src/lib/paywallTriggers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Stage = 'loading' | 'onboarding' | 'setup' | 'walkthrough' | 'dashboard';
+type Stage = 'loading' | 'onboarding' | 'setup' | 'reveal' | 'walkthrough' | 'dashboard';
 type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
 const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
@@ -294,13 +295,29 @@ function CoachScreenInner() {
         <ProgramSetup
           onGenerate={(prog) => {
             setGeneratedProgram(prog);
-            setStage('walkthrough');
+            setStage('reveal');
           }}
           onBack={() => {
             if (setupReturnStage === 'onboarding') setOnboardingKey(k => k + 1);
             setStage(setupReturnStage);
           }}
           onStartFromScratch={handleStartFromScratch}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (stage === 'reveal') {
+    // The conviction screen: the plan is built, framed on real science, right
+    // before the paywall. It owns its own header (Block A) and pinned CTA, so
+    // it renders full-bleed without the shared stageHeader.
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ProgramReveal
+          program={generatedProgram}
+          stepLabel="Step 4 of 4"
+          onNext={() => setStage('walkthrough')}
+          onBack={() => setStage('setup')}
         />
       </SafeAreaView>
     );

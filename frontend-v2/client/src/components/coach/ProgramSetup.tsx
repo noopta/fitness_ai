@@ -64,6 +64,16 @@ export interface MealSuggestion {
   keyIngredients: string[];
 }
 
+export type ProgramSourceSection = 'periodization' | 'exercise' | 'volume' | 'nutrition';
+
+export interface ProgramSource {
+  id: string;
+  source: string;
+  chapter: string | null;
+  sections: ProgramSourceSection[];
+  snippet?: string;
+}
+
 export interface TrainingProgram {
   goal: string;
   daysPerWeek: number;
@@ -72,6 +82,8 @@ export interface TrainingProgram {
   autoregulationRules: string[];
   trackingMetrics: string[];
   nutritionPlan?: NutritionPlanResult;
+  // Real, attributable science sources that informed this plan (Program Reveal).
+  sources?: ProgramSource[];
 }
 
 interface Props {
