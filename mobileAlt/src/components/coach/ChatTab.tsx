@@ -40,7 +40,8 @@ const API_BASE = 'https://api.airthreads.ai:4009/api';
 // them). Mirrors backend/src/agent/types.ts AgentProposal.
 type AgentProposal =
   | { kind: 'program_update'; summary: string; updatedProgram: any; changedDays?: string[] }
-  | { kind: 'workout_swap'; summary: string; rationale: string; proposedWeek: any[]; sourceDate: string; chosenSessionName: string };
+  | { kind: 'workout_swap'; summary: string; rationale: string; proposedWeek: any[]; sourceDate: string; chosenSessionName: string }
+  | { kind: 'plan_patch'; summary: string; day: string | null; scope: 'day' | 'program'; from: { name: string; sets?: number | string; reps?: number | string }; to: { name: string; sets?: number | string; reps?: number | string }; meta: { primaryTarget?: string[]; equipment?: string; stimulusDelta?: string; shoulderLoad?: string }; rationale: string };
 
 interface ChatTabProps {
   coachData: any;
@@ -105,6 +106,19 @@ function ProposalCard({ proposal, state, onApply, onDismiss }: ProposalCardProps
         <Text style={styles.proposalEyebrow}>{eyebrow}</Text>
       </View>
       <Text style={styles.proposalSummary}>{summaryText}</Text>
+      {proposal.kind === 'plan_patch' ? (
+        <View style={{ gap: 2, marginTop: 4 }}>
+          <Text style={[styles.proposalDays, { color: colors.destructive }]}>
+            {'− '}{(proposal as any).from?.name}{(proposal as any).from?.sets ? `  ${(proposal as any).from.sets}×${(proposal as any).from.reps ?? ''}` : ''}
+          </Text>
+          <Text style={[styles.proposalDays, { color: colors.successInk }]}>
+            {'+ '}{(proposal as any).to?.name}{(proposal as any).to?.sets ? `  ${(proposal as any).to.sets}×${(proposal as any).to.reps ?? ''}` : ''}
+          </Text>
+          {typeof (proposal as any).rationale === 'string' && (proposal as any).rationale ? (
+            <Text style={styles.proposalDays}>{(proposal as any).rationale}</Text>
+          ) : null}
+        </View>
+      ) : null}
       {isSwap && typeof (proposal as any).rationale === 'string' && (proposal as any).rationale ? (
         <Text style={styles.proposalDays}>{(proposal as any).rationale}</Text>
       ) : null}
@@ -318,6 +332,9 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
       invalidateCache('coach:');
       if (proposal.kind === 'workout_swap') {
         await coachApi.confirmProposal({ proposedWeek: (proposal as any).proposedWeek, reason: 'Agent swap' });
+      } else if (proposal.kind === 'plan_patch') {
+        const p = proposal as any;
+        await coachApi.confirmProposal({ planPatch: { from: { name: p.from?.name }, to: { name: p.to?.name }, day: p.day ?? null, scope: p.scope ?? 'day' } });
       } else {
         await coachApi.confirmProposal({ updatedProgram: (proposal as any).updatedProgram });
       }
