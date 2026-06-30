@@ -70,3 +70,21 @@ describe('resolveExerciseTarget', () => {
     expect(resolveExerciseTarget({}, 'bench')).toEqual({ resolvedKey: null, resolvedName: null, candidates: [] });
   });
 });
+
+describe('day-scoped resolution (default = that day, not the whole plan)', () => {
+  it('collectExerciseNames filters to a single training day', () => {
+    expect(collectExerciseNames(program, 'Day 1').sort()).toEqual(['Barbell Bench Press', 'Incline Dumbbell Press']);
+    expect(collectExerciseNames(program, 'Day 2').sort()).toEqual(['Back Squat', 'Romanian Deadlift']);
+  });
+
+  it('resolves within the named day', () => {
+    expect(resolveExerciseTarget(program, 'bench', 'Day 1').resolvedName).toBe('Barbell Bench Press');
+    expect(resolveExerciseTarget(program, 'squat', 'Day 2').resolvedName).toBe('Back Squat');
+  });
+
+  it('does NOT resolve an exercise that lives on a different day', () => {
+    const r = resolveExerciseTarget(program, 'bench', 'Day 2'); // bench is on Day 1
+    expect(r.resolvedKey).toBeNull();
+    expect(r.candidates).toEqual(expect.arrayContaining(['Back Squat', 'Romanian Deadlift']));
+  });
+});

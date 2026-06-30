@@ -558,13 +558,15 @@ const proposeExerciseSwap: AgentTool = {
 const swapExerciseInProgram: AgentTool = {
   name: 'swap_exercise_in_program',
   description:
-    "Replace one exercise in the user's saved training program with another, EVERYWHERE it appears, AND PERSIST. Use this the moment the user agrees to a swap (any agreement: 'yes', 'sure', 'ok', 'go with X', 'let's do it'). The backend does the surgery from just the names — no full program object needed. IMPORTANT: call read_schedule_week FIRST to get the exact stored exercise names for the relevant day (read_program is truncated on long plans and will give you the wrong names). The backend resolves fromExerciseName against the names that ACTUALLY exist in the program: a clear match returns applied:true with occurrences + daysAffected; an ambiguous or missing name returns applied:false with a `candidates` list. ONLY tell the user the swap is done when applied:true — on applied:false, ask which of the candidates they meant and call again with that exact name. NEVER claim success on applied:false. Inputs: fromExerciseName = the exercise to replace (use the exact stored name); toExerciseName = the replacement; reason = one short string for audit (e.g. 'no bench available').",
+    "Replace one exercise in the user's saved training program with another, EVERYWHERE it appears, AND PERSIST. Use this the moment the user agrees to a swap (any agreement: 'yes', 'sure', 'ok', 'go with X', 'let's do it'). The backend does the surgery from just the names — no full program object needed. IMPORTANT: call read_schedule_week FIRST to get the exact stored exercise names for the relevant day (read_program is truncated on long plans and will give you the wrong names). The backend resolves fromExerciseName against the names that ACTUALLY exist in the program: a clear match returns applied:true with occurrences + daysAffected; an ambiguous or missing name returns applied:false with a `candidates` list. ONLY tell the user the swap is done when applied:true — on applied:false, ask which of the candidates they meant and call again with that exact name. NEVER claim success on applied:false. SCOPE: by DEFAULT a swap changes ONLY that one day's workout (scope='day') — pass the day from read_schedule_week (today's day unless the user names another). Only pass scope='program' when the user clearly wants it changed everywhere across their whole regiment. Inputs: fromExerciseName = the exercise to replace (exact stored name); toExerciseName = the replacement; reason = one short audit string; scope = 'day' (default) | 'program'; day = training-day label for scope='day' (default = today's day).",
   input_schema: {
     type: 'object',
     properties: {
       fromExerciseName: { type: 'string', description: 'Exact name as stored, e.g. "Bulgarian Split Squat".' },
       toExerciseName:   { type: 'string', description: 'Replacement, e.g. "Reverse Lunge".' },
       reason:           { type: 'string', description: 'One short sentence for audit/log.' },
+      scope:            { type: 'string', enum: ['day', 'program'], description: "DEFAULT 'day' — change only one day's workout. 'program' = change it everywhere it appears. Only use 'program' if the user clearly wants their whole regiment changed." },
+      day:              { type: 'string', description: "Training-day label to scope to when scope='day' (e.g. 'Day 4' or 'Push'). From read_schedule_week — default to TODAY's day unless the user names another. Ignored when scope='program'." },
     },
     required: ['fromExerciseName', 'toExerciseName'],
   },
@@ -572,7 +574,9 @@ const swapExerciseInProgram: AgentTool = {
     const from = String(input.fromExerciseName ?? '');
     const to   = String(input.toExerciseName ?? '');
     const reason = input.reason != null ? String(input.reason) : undefined;
-    return applyExerciseSwap(userId, from, to, reason);
+    const scope: 'day' | 'program' = input.scope === 'program' ? 'program' : 'day';
+    const day = input.day != null ? String(input.day) : undefined;
+    return applyExerciseSwap(userId, from, to, reason, { scope, day });
   },
 };
 

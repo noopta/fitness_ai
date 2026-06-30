@@ -117,13 +117,25 @@ function normExercise(s: string): string {
   return s.toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim();
 }
 
-/** Every distinct exercise display-name actually present in the program. */
-export function collectExerciseNames(program: any): string[] {
+/** Normalize a training-day label ("Day 1", "Push") for matching. */
+function normDay(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Every distinct exercise display-name present in the program. When dayFilter is
+ * given, only exercises on training days whose label matches it are returned —
+ * this scopes a swap to one day ("today's workout") instead of the whole plan.
+ */
+export function collectExerciseNames(program: any, dayFilter?: string | null): string[] {
+  const wantDay = dayFilter ? normDay(dayFilter) : null;
   const names = new Set<string>();
   for (const phase of program?.phases ?? [])
-    for (const day of phase?.trainingDays ?? [])
+    for (const day of phase?.trainingDays ?? []) {
+      if (wantDay && normDay(String(day?.day ?? '')) !== wantDay) continue;
       for (const ex of day?.exercises ?? [])
         names.add(String(ex?.exercise ?? ex?.name ?? '').trim());
+    }
   names.delete('');
   return [...names];
 }
@@ -141,9 +153,10 @@ export function collectExerciseNames(program: any): string[] {
 export function resolveExerciseTarget(
   program: any,
   fromName: string,
+  dayFilter?: string | null,
 ): { resolvedKey: string | null; resolvedName: string | null; candidates: string[] } {
   const fromKey = normExercise(fromName);
-  const all = collectExerciseNames(program);
+  const all = collectExerciseNames(program, dayFilter);
   if (!fromKey || all.length === 0) return { resolvedKey: null, resolvedName: null, candidates: all };
 
   // 1. Exact normalized match.
@@ -172,7 +185,13 @@ export function resolveExerciseTarget(
   return { resolvedKey: null, resolvedName: null, candidates: all.slice(0, 12) };
 }
 
-export async function applyExerciseSwap(userId: string, fromName: string, toName: string, reason?: string) {
+export async function applyExerciseSwap(
+  userId: string,
+  fromName: string,
+  toName: string,
+  reason?: string,
+  opts?: { scope?: 'day' | 'program'; day?: string },
+) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
   const program = JSON.parse(user.savedProgram);
@@ -180,50 +199,60 @@ export async function applyExerciseSwap(userId: string, fromName: string, toName
   const toLabel = toName.trim();
   if (!fromName.trim() || !toLabel) throw new Error('fromExerciseName and toExerciseName are both required.');
 
-  // Resolve the from-name against the names that ACTUALLY exist in the program.
-  // If it doesn't resolve to exactly one stored exercise, return candidates so
-  // the agent re-calls with the exact name — never silently change nothing while
-  // reporting success.
-  const { resolvedKey, resolvedName, candidates } = resolveExerciseTarget(program, fromName);
+  // Scope: 'day' (DEFAULT) changes only the named day's workout — today's day by
+  // default; 'program' changes the exercise everywhere it appears in the plan.
+  const scope = opts?.scope === 'program' ? 'program' : 'day';
+  const day = opts?.day?.trim() || null;
+  if (scope === 'day' && !day) {
+    return {
+      applied: false,
+      occurrences: 0,
+      reason: "Scope 'day' needs a day label — call read_schedule_week to get today's day (or the day the user means), or pass scope:'program' to change it across the whole plan.",
+    };
+  }
+  const dayFilter = scope === 'program' ? null : day;
+
+  // Resolve the from-name against names that ACTUALLY exist in the scoped set.
+  // Ambiguous/missing -> candidates, so the agent re-calls with the exact name
+  // instead of silently changing nothing while reporting success.
+  const { resolvedKey, resolvedName, candidates } = resolveExerciseTarget(program, fromName, dayFilter);
   if (!resolvedKey) {
+    const where = dayFilter ? ` on ${day}` : ' in the program';
     return {
       applied: false,
       occurrences: 0,
       candidates,
       reason: candidates.length
-        ? `"${fromName}" didn't resolve to one exercise in the program. Stored names to choose from: ${candidates.join(', ')}. Re-call swap_exercise_in_program with the exact stored name.`
-        : 'No exercises found in the saved program.',
+        ? `"${fromName}" didn't resolve to one exercise${where}. Stored names to choose from: ${candidates.join(', ')}. Re-call swap_exercise_in_program with the exact stored name.`
+        : `No exercises found${where}.`,
     };
   }
 
+  const wantDay = dayFilter ? normDay(dayFilter) : null;
   let touched = 0;
   const daysAffected: string[] = [];
   for (const phase of program.phases ?? []) {
-    for (const day of phase.trainingDays ?? []) {
-      for (const ex of day.exercises ?? []) {
+    for (const d of phase.trainingDays ?? []) {
+      if (wantDay && normDay(String(d.day ?? '')) !== wantDay) continue;
+      for (const ex of d.exercises ?? []) {
         const nameField = (ex.exercise ?? ex.name ?? '').toString();
         if (normExercise(nameField) === resolvedKey) {
-          // Preserve the original field name so the program shape stays
-          // consistent (`exercise` vs `name` is mixed across phases).
+          // Preserve the original field name (`exercise` vs `name` is mixed).
           if ('exercise' in ex) ex.exercise = toLabel;
           if ('name' in ex) ex.name = toLabel;
           if (!('exercise' in ex) && !('name' in ex)) ex.name = toLabel;
           touched += 1;
-          if (day.day && !daysAffected.includes(day.day)) daysAffected.push(day.day);
+          if (d.day && !daysAffected.includes(d.day)) daysAffected.push(d.day);
         }
       }
     }
   }
 
   if (touched === 0) {
-    // resolvedKey came from the program, so this is defensive — never claim success.
     return { applied: false, occurrences: 0, candidates, reason: `Could not apply the swap for "${resolvedName ?? fromName}".` };
   }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { savedProgram: JSON.stringify(program) },
-  });
+  await prisma.user.update({ where: { id: userId }, data: { savedProgram: JSON.stringify(program) } });
   invalidateProgramCaches(userId);
 
   return {
@@ -231,7 +260,10 @@ export async function applyExerciseSwap(userId: string, fromName: string, toName
     occurrences: touched,
     daysAffected,
     resolvedFrom: resolvedName,
-    summary: `Swapped ${resolvedName} → ${toLabel} across ${touched} occurrence(s)${reason ? ` (${reason})` : ''}.`,
+    scope,
+    summary: dayFilter
+      ? `Swapped ${resolvedName} → ${toLabel} on ${daysAffected.join(', ')}${reason ? ` (${reason})` : ''}.`
+      : `Swapped ${resolvedName} → ${toLabel} across ${touched} occurrence(s) in the program${reason ? ` (${reason})` : ''}.`,
   };
 }
 
