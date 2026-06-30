@@ -13,8 +13,9 @@ import {
   notifySurpriseReward,
 } from '../services/notificationService.js';
 import { recordActivity } from '../services/streakService.js';
-import { detectStrengthPRs } from '../services/progressService.js';
+import { detectStrengthPRs, prDisplay } from '../services/progressService.js';
 import { notifyNewPR } from '../services/notificationService.js';
+import { normalizePreference } from '../services/weightUnits.js';
 import { buildShareableWorkout } from '../services/shareableWorkout.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
@@ -151,8 +152,9 @@ router.post('/workouts', requireAuth, async (req, res) => {
     // across every exercise on every request.
     const userForEstimate = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { weightKg: true },
+      select: { weightKg: true, unitPreference: true },
     });
+    const unitPref = normalizePreference(userForEstimate?.unitPreference);
     const caloriesBurnedKcal = estimateWorkoutCalories(exercises, {
       bodyweightKg: userForEstimate?.weightKg ?? null,
       totalDurationMinutes: duration ?? null,
@@ -188,7 +190,8 @@ router.post('/workouts', requireAuth, async (req, res) => {
     try {
       const prs = await detectStrengthPRs(prisma, req.user!.id, log.id, exercises);
       for (const pr of prs) {
-        notifyNewPR(req.user!.id, pr.displayName, pr.e1RMLbs, 'lbs').catch(() => {});
+        const { value, unit } = prDisplay(pr.e1RMLbs, unitPref);
+        notifyNewPR(req.user!.id, pr.displayName, value, unit).catch(() => {});
       }
       shareable = buildShareableWorkout(
         { title, exercises, durationMin: duration, loggedAt: log.createdAt },

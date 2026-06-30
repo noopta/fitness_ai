@@ -238,6 +238,7 @@ function GainBadge({ pct }: { pct: number | null }) {
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 
 function Sparkline({ data, color }: { data: WeekPoint[]; color: string }) {
+  const { isMetric, label } = useUnits();
   if (data.length < 2) return (
     <div className="h-12 flex items-center justify-center text-[10px] text-muted-foreground">
       Not enough data
@@ -246,10 +247,10 @@ function Sparkline({ data, color }: { data: WeekPoint[]; color: string }) {
   return (
     <ResponsiveContainer width="100%" height={48}>
       <LineChart data={data} margin={{ top: 4, right: 2, left: 2, bottom: 0 }}>
-        <Line type="monotone" dataKey="rmLbs" stroke={color} strokeWidth={1.5} dot={false} />
+        <Line type="monotone" dataKey={isMetric ? 'rm' : 'rmLbs'} stroke={color} strokeWidth={1.5} dot={false} />
         <ChartTooltip
           contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 6, fontSize: 11 }}
-          formatter={(v: any) => [`${v} lbs`, '1RM']}
+          formatter={(v: any) => [`${v} ${label}`, '1RM']}
           labelFormatter={(l) => `Week ${l}`}
         />
       </LineChart>
@@ -265,6 +266,7 @@ function LiftCard({ lift, expanded, onToggle }: {
   onToggle: () => void;
 }) {
   const color = CATEGORY_COLOR[lift.category] ?? '#6366f1';
+  const { isMetric, label, displayWeight } = useUnits();
   return (
     <Card
       className="p-4 cursor-pointer hover:shadow-md transition-shadow select-none"
@@ -284,8 +286,8 @@ function LiftCard({ lift, expanded, onToggle }: {
           <p className="text-[11px] text-muted-foreground capitalize mt-0.5">{lift.primaryMuscle}</p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-lg font-bold leading-none">{lift.current1RMLbs} <span className="text-xs font-normal text-muted-foreground">lbs</span></p>
-          <p className="text-[10px] text-muted-foreground">{lift.current1RMkg} kg est. 1RM</p>
+          <p className="text-lg font-bold leading-none">{isMetric ? lift.current1RMkg : lift.current1RMLbs} <span className="text-xs font-normal text-muted-foreground">{label}</span></p>
+          <p className="text-[10px] text-muted-foreground">{isMetric ? `${lift.current1RMLbs} lbs` : `${lift.current1RMkg} kg`} est. 1RM</p>
         </div>
       </div>
 
@@ -305,17 +307,17 @@ function LiftCard({ lift, expanded, onToggle }: {
             <LineChart data={lift.weekSeries} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="week" tickFormatter={formatWeekLabel} tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} width={40} unit=" lbs" />
+              <YAxis tick={{ fontSize: 10 }} width={40} unit={` ${label}`} />
               <ChartTooltip
                 contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                formatter={(v: any) => [`${v} lbs`, 'Est. 1RM']}
+                formatter={(v: any) => [`${v} ${label}`, 'Est. 1RM']}
                 labelFormatter={formatWeekLabel}
               />
-              <Line type="monotone" dataKey="rmLbs" stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} />
+              <Line type="monotone" dataKey={isMetric ? 'rm' : 'rmLbs'} stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} />
             </LineChart>
           </ResponsiveContainer>
           <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-            <span>Total tonnage: <strong className="text-foreground">{lift.totalTonnageKg.toLocaleString()} kg</strong></span>
+            <span>Total tonnage: <strong className="text-foreground">{displayWeight(lift.totalTonnageKg).toLocaleString()} {label}</strong></span>
             <span>{lift.isCompound ? 'Compound' : 'Isolation'}</span>
           </div>
         </div>
@@ -1030,6 +1032,7 @@ function NutritionProfileSection() {
 type ProfileTab = 'strength' | 'nutrition';
 
 export default function StrengthProfilePage() {
+  const { isMetric, label } = useUnits();
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedLift, setExpandedLift] = useState<string | null>(null);
@@ -1267,7 +1270,7 @@ export default function StrengthProfilePage() {
                           const row: Record<string, any> = { week };
                           compounds.forEach(l => {
                             const pt = l.weekSeries.find(p => p.week === week);
-                            row[l.canonicalName] = pt?.rmLbs ?? null;
+                            row[l.canonicalName] = (isMetric ? pt?.rm : pt?.rmLbs) ?? null;
                           });
                           return row;
                         });
@@ -1286,10 +1289,10 @@ export default function StrengthProfilePage() {
                               <LineChart data={merged} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                 <XAxis dataKey="week" tickFormatter={formatWeekLabel} tick={{ fontSize: 10 }} />
-                                <YAxis tick={{ fontSize: 10 }} width={40} unit=" lbs" />
+                                <YAxis tick={{ fontSize: 10 }} width={40} unit={` ${label}`} />
                                 <ChartTooltip
                                   contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }}
-                                  formatter={(v: any, name: string) => [`${v} lbs`, name]}
+                                  formatter={(v: any, name: string) => [`${v} ${label}`, name]}
                                   labelFormatter={formatWeekLabel}
                                 />
                                 {compounds.map((l) => (

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/context/AuthContext';
+import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi, authApi } from '../../src/lib/api';
 import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
 import {
@@ -54,6 +55,7 @@ export default function CoachScreen() {
 
 function CoachScreenInner() {
   const { user, refreshUser } = useAuth();
+  const { toKg } = useUnits();
 
   // Hydrate from in-memory cache synchronously so a tab switch with a hot
   // cache renders the dashboard on the first frame — no LoadingSpinner flash.
@@ -186,7 +188,9 @@ function CoachScreenInner() {
       const heightFt = parseFloat(profile.heightFt) || 0;
       const heightIn = parseFloat(profile.heightIn) || 0;
       const heightCm = heightFt > 0 ? (heightFt * 12 + heightIn) * 2.54 : undefined;
-      const weightKg = profile.weightLbs ? parseFloat(profile.weightLbs) * 0.453592 : undefined;
+      // The body-comp weight field holds the value in the user's display unit;
+      // toKg converts based on their current preference (kg passes through).
+      const weightKg = profile.weightLbs ? toKg(parseFloat(profile.weightLbs)) : undefined;
 
       await authApi.updateProfile({
         coachOnboardingDone: true,

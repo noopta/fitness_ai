@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { lbToKg, normalizePreference, type UnitPreference } from './weightUnits.js';
 
 const prisma = new PrismaClient();
 
@@ -288,7 +289,7 @@ export async function notifyNewPR(
   await sendPushToUser(
     userId,
     `New PR on ${liftName} 🏆`,
-    `Anakin just detected a new estimated 1RM of ${newRM}${unit}. Open your Strength Profile to see the full picture.`,
+    `Anakin just detected a new estimated 1RM of ${newRM} ${unit}. Open your Strength Profile to see the full picture.`,
     { screen: 'strength-profile' }
   );
 }
@@ -432,21 +433,28 @@ export async function notifyWeightProgress(
   userId: string,
   deltaLbs: number,
   direction: 'lose' | 'gain',
+  pref: UnitPreference = 'imperial',
 ): Promise<void> {
   const verb = direction === 'lose' ? 'down' : 'up';
   const titleEmoji = direction === 'lose' ? '📉' : '📈';
+  // The milestone cadence stays lbs-based (see progressService); we only render
+  // the delta in the user's unit so the copy reads natively for metric users.
+  // `deltaLbs` keys the copy variant; `disp` is what we show.
+  const disp = normalizePreference(pref) === 'metric'
+    ? `${Math.round(lbToKg(deltaLbs))} kg`
+    : `${deltaLbs} lbs`;
   const bodyByMilestone: Record<number, string> = {
-    5:  `${deltaLbs} lbs ${verb}. The first milestone is the hardest — and you're past it.`,
-    10: `${deltaLbs} lbs ${verb}. Compounding work is paying off. Anakin sees it.`,
-    15: `${deltaLbs} lbs ${verb}. Most people quit before this. You didn't.`,
-    20: `${deltaLbs} lbs ${verb}. That's a different body composition. Keep going.`,
-    25: `${deltaLbs} lbs ${verb}. You've changed your trajectory.`,
-    30: `${deltaLbs} lbs ${verb}. Take the win. Then keep stacking.`,
+    5:  `${disp} ${verb}. The first milestone is the hardest — and you're past it.`,
+    10: `${disp} ${verb}. Compounding work is paying off. Anakin sees it.`,
+    15: `${disp} ${verb}. Most people quit before this. You didn't.`,
+    20: `${disp} ${verb}. That's a different body composition. Keep going.`,
+    25: `${disp} ${verb}. You've changed your trajectory.`,
+    30: `${disp} ${verb}. Take the win. Then keep stacking.`,
   };
-  const body = bodyByMilestone[deltaLbs] ?? `${deltaLbs} lbs ${verb}. Real, measurable progress.`;
+  const body = bodyByMilestone[deltaLbs] ?? `${disp} ${verb}. Real, measurable progress.`;
   await sendPushToUser(
     userId,
-    `${deltaLbs} lbs ${verb} ${titleEmoji}`,
+    `${disp} ${verb} ${titleEmoji}`,
     body,
     { screen: 'coach', tab: 'analytics' },
   );

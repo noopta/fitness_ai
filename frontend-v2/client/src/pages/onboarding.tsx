@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { liftCoachApi, authApi } from "@/lib/api";
 import { LucideIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useUnits } from "@/lib/units";
 import { Navbar } from "@/components/Navbar";
 
 const lifts: Array<{ id: string; label: string; hint: string; icon: LucideIcon }> = [
@@ -37,6 +38,7 @@ function lbToKg(lb: number) {
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { label, displayWeight, toKg } = useUnits();
   const [selectedLift, setSelectedLift] = useState<string>("flat_bench_press");
   const [loading, setLoading] = useState(false);
 
@@ -88,7 +90,7 @@ export default function Onboarding() {
         setHeightInches(Math.round(totalInches % 12));
       }
       if (user.weightKg) {
-        setWeightLbs(Math.round(user.weightKg / 0.453592));
+        setWeightLbs(displayWeight(user.weightKg));
       }
     }
   }, [user]);
@@ -151,7 +153,8 @@ export default function Onboarding() {
       }
 
       if (weightLbs !== undefined) {
-        profile.weightKg = lbToKg(weightLbs);
+        const kg = toKg(weightLbs);
+        if (kg !== null) profile.weightKg = kg;
         // Store raw lbs so engine can use bodyweightLbs directly
         localStorage.setItem("liftoff_cached_weight_lbs", weightLbs.toString());
       }
@@ -266,7 +269,7 @@ export default function Onboarding() {
             
             <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Working Weight (lbs)</Label>
+                <Label>Working Weight ({label})</Label>
                 <Input
                   type="number"
                   placeholder="185"
@@ -362,7 +365,7 @@ export default function Onboarding() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Weight (lbs)</Label>
+                  <Label>Weight ({label})</Label>
                   <Input
                     type="number"
                     placeholder="175"

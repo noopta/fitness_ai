@@ -22,6 +22,7 @@ import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/Keybo
 import { Card } from '../../src/components/ui/Card';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 import { useAuth } from '../../src/context/AuthContext';
+import { useUnits } from '../../src/context/UnitsContext';
 
 const LIFTS = [
   { id: 'flat_bench_press', name: 'Flat Bench Press', icon: 'barbell-outline' },
@@ -41,6 +42,7 @@ type Equipment = 'commercial_gym' | 'limited_equipment' | 'home_gym';
 export default function OnboardingScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { unitLabel, fromKg, toKg } = useUnits();
 
   const [selectedLift, setSelectedLift] = useState('');
   const [currentWeight, setCurrentWeight] = useState('');
@@ -100,7 +102,7 @@ export default function OnboardingScreen() {
           setHeightIn(String(inches));
         }
         if (user.weightKg && !savedWtLbs) {
-          setWeightLbs(String(Math.round(user.weightKg * 2.20462)));
+          setWeightLbs(String(Math.round(fromKg(user.weightKg))));
         }
         if (user.constraintsText && !savedConstraints) setConstraints(user.constraintsText);
       }
@@ -137,7 +139,7 @@ export default function OnboardingScreen() {
 
       let weightKg: number | undefined;
       if (weightLbs) {
-        weightKg = parseFloat(weightLbs) / 2.20462;
+        weightKg = toKg(parseFloat(weightLbs));
       }
 
       // Fire-and-forget profile update
@@ -220,7 +222,7 @@ export default function OnboardingScreen() {
           <Text style={styles.sectionTitle}>Current Performance</Text>
           <View style={styles.perfRow}>
             <Input
-              label="Weight (lbs)"
+              label={`Weight (${unitLabel})`}
               placeholder="225"
               value={currentWeight}
               onChangeText={setCurrentWeight}
@@ -340,7 +342,7 @@ export default function OnboardingScreen() {
 
           {/* Body Weight */}
           <Input
-            label="Body Weight (lbs)"
+            label={`Body Weight (${unitLabel})`}
             placeholder="185"
             value={weightLbs}
             onChangeText={setWeightLbs}

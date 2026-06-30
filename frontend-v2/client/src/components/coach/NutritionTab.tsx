@@ -10,6 +10,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { NutritionPlanResult, MealSuggestion } from './ProgramSetup';
 import { authFetch } from '@/lib/api';
+import { useUnits, lbToKg, kgToLb } from '@/lib/units';
 import { ProteinCelebration } from './ProteinCelebration';
 import { ProgressShareModal } from './ProgressShareModal';
 import { Share2 } from 'lucide-react';
@@ -107,6 +108,8 @@ interface NutritionPlanCardProps {
 }
 
 function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, currentWeightLbs }: NutritionPlanCardProps) {
+  const { label, isMetric } = useUnits();
+  const dispLb = (v: number) => isMetric ? Math.round(lbToKg(v) * 10) / 10 : v;
   const [showFoods, setShowFoods] = useState(false);
   const [outcomeView, setOutcomeView] = useState<'week' | 'month'>('week');
   const [calorieAdjust, setCalorieAdjust] = useState(0);
@@ -265,7 +268,7 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
                 const sign = change >= 0 ? '+' : '';
                 return (
                   <p className="text-xl font-black">
-                    {sign}{change.toFixed(1)} <span className="text-sm font-semibold text-muted-foreground">lb</span>
+                    {sign}{dispLb(change).toFixed(1)} <span className="text-sm font-semibold text-muted-foreground">{label}</span>
                   </p>
                 );
               })()}
@@ -278,7 +281,7 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
                 <div>
                   <p className="text-[10px] font-bold text-primary uppercase tracking-wide">Target Weight at Program End</p>
                   <p className="text-xs font-semibold mt-0.5">
-                    {targetWeightLbs.toFixed(1)} lbs <span className="text-muted-foreground font-normal">by {programEndDate}</span>
+                    {dispLb(targetWeightLbs).toFixed(1)} {label} <span className="text-muted-foreground font-normal">by {programEndDate}</span>
                   </p>
                 </div>
               </div>
@@ -343,7 +346,7 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
                 : `Surplus: ${adjustedDeficitSurplus} kcal/day`}
               {adjustedWeeklyChange !== null && (
                 <span className="ml-1 font-semibold">
-                  → ~{Math.abs(adjustedWeeklyChange).toFixed(2)} lb/week {adjustedWeeklyChange <= 0 ? 'loss' : 'gain'}
+                  → ~{Math.abs(dispLb(adjustedWeeklyChange)).toFixed(2)} {label}/week {adjustedWeeklyChange <= 0 ? 'loss' : 'gain'}
                 </span>
               )}
             </div>
@@ -484,6 +487,8 @@ export function NutritionTab({
   programStartDate,
   coachProfile,
 }: Props) {
+  const { label, isMetric } = useUnits();
+  const dispLb = (v: number) => isMetric ? Math.round(lbToKg(v) * 10) / 10 : v;
   const [logs, setLogs] = useState<NutritionLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [form, setForm] = useState({ date: todayStr(), proteinG: '', carbsG: '', fatG: '', notes: '' });
@@ -608,7 +613,7 @@ export function NutritionTab({
         method: 'POST',
         body: JSON.stringify({
           date: bwForm.date,
-          weightLbs: Number(bwForm.weightLbs),
+          weightLbs: isMetric ? kgToLb(Number(bwForm.weightLbs)) : Number(bwForm.weightLbs),
           notes: bwForm.notes || undefined,
         }),
       });
@@ -884,7 +889,11 @@ export function NutritionTab({
       }
     }
 
-    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => ({
+      ...v,
+      actual: v.actual !== null ? dispLb(v.actual) : null,
+      projected: v.projected !== null ? dispLb(v.projected) : null,
+    }));
   })();
 
   const hasProjection = bwCombinedChart.some(p => p.projected !== null);
@@ -1071,7 +1080,7 @@ export function NutritionTab({
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Body Weight</p>
                 {todayBwLog && (
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Today: <span className="font-bold text-foreground">{todayBwLog.weightLbs} lbs</span>
+                    Today: <span className="font-bold text-foreground">{dispLb(todayBwLog.weightLbs)} {label}</span>
                   </p>
                 )}
               </div>
@@ -1092,7 +1101,7 @@ export function NutritionTab({
               step="0.1"
               value={bwForm.weightLbs}
               onChange={e => setBwForm(f => ({ ...f, weightLbs: e.target.value }))}
-              placeholder="Weight (lbs)"
+              placeholder={`Weight (${label})`}
               className="rounded-lg border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-32"
             />
             <input
@@ -1158,7 +1167,7 @@ export function NutritionTab({
                       fontSize: 11,
                     }}
                     formatter={(value: number, name: string) => [
-                      `${value} lbs`,
+                      `${value} ${label}`,
                       name === 'actual' ? 'Logged' : 'Projected',
                     ]}
                   />
@@ -1202,7 +1211,7 @@ export function NutritionTab({
                     <div key={entry.id} className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
                       <span className="text-xs text-muted-foreground">{entry.date}</span>
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="font-semibold text-foreground">{entry.weightLbs} lbs</span>
+                        <span className="font-semibold text-foreground">{dispLb(entry.weightLbs)} {label}</span>
                         {entry.notes && (
                           <span className="text-muted-foreground truncate max-w-[120px]">{entry.notes}</span>
                         )}

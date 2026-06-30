@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
 import { WebAnalytics, trackPageTime } from '@/lib/analytics';
+import { useUnits, kgToLb } from '@/lib/units';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -81,6 +82,7 @@ function ExerciseRow({
   onRemove: () => void;
 }) {
   const [showNotes, setShowNotes] = useState(false);
+  const { label } = useUnits();
 
   function update(field: keyof WorkoutExercise, value: any) {
     onChange({ ...ex, [field]: value });
@@ -125,7 +127,9 @@ function ExerciseRow({
           />
         </div>
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Weight (lbs)</label>
+          {/* The form field holds the value in the user's DISPLAY unit; it's
+              converted to canonical kg at save time (see WorkoutForm.save). */}
+          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Weight ({label})</label>
           <input
             type="number"
             min="0"
@@ -181,6 +185,7 @@ function WorkoutForm({ onSaved }: { onSaved: (log: WorkoutLog) => void }) {
   const [duration, setDuration] = useState('');
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(true);
+  const { toKg } = useUnits();
 
   function addExercise() {
     setExercises(prev => [...prev, { ...EMPTY_EXERCISE }]);
@@ -203,12 +208,19 @@ function WorkoutForm({ onSaved }: { onSaved: (log: WorkoutLog) => void }) {
 
     setSaving(true);
     try {
+      // Convert each weight from the user's display unit to canonical kg before
+      // sending — the backend stores + computes e1RM in kg. (This is also the
+      // fix for the historical web bug where lbs were stored in the kg field.)
+      const exercisesKg = validExercises.map(ex => ({
+        ...ex,
+        weightKg: ex.weightKg == null ? null : toKg(ex.weightKg),
+      }));
       const res = await authFetch(`${API_BASE}/workouts`, {
         method: 'POST',
         body: JSON.stringify({
           date,
           title: title.trim() || null,
-          exercises: validExercises,
+          exercises: exercisesKg,
           notes: notes.trim() || null,
           duration: duration ? parseInt(duration) : null,
         }),
@@ -393,9 +405,10 @@ function ShareWorkoutModal({
               name: ex.name,
               sets: ex.sets,
               reps: ex.reps,
-              // schema label is weightKg but the field actually stores lbs in the
-              // current API — see WorkoutCard render for the same assumption.
-              weightLbs: ex.weightKg,
+              // log.exercises store canonical kg; the social payload carries lbs,
+              // so convert. (Also send kg so consumers can pick.)
+              weightLbs: ex.weightKg == null ? null : Math.round(kgToLb(ex.weightKg) * 10) / 10,
+              weightKg: ex.weightKg,
               rpe: ex.rpe,
               notes: ex.notes,
             })),
@@ -474,6 +487,7 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
   const [expanded, setExpanded] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const { formatWeight } = useUnits();
 
   async function handleDelete() {
     if (!confirm('Delete this workout log?')) return;
@@ -539,7 +553,7 @@ function WorkoutCard({ log, onDelete }: { log: WorkoutLog; onDelete: (id: string
                   <div className="flex flex-wrap gap-1 shrink-0 justify-end">
                     <Badge variant="secondary" className="text-[10px]">{ex.sets}×{ex.reps}</Badge>
                     {ex.weightKg != null && (
-                      <Badge variant="outline" className="text-[10px]">{ex.weightKg} lbs</Badge>
+                      <Badge variant="outline" className="text-[10px]">{formatWeight(ex.weightKg)}</Badge>
                     )}
                     {ex.rpe != null && (
                       <Badge variant="outline" className="text-[10px]">RPE {ex.rpe}</Badge>

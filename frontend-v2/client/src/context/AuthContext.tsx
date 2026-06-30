@@ -21,6 +21,7 @@ export interface AuthUser {
   tier: string;
   heightCm?: number | null;
   weightKg?: number | null;
+  unitPreference?: 'metric' | 'imperial' | null;
   trainingAge?: string | null;
   equipment?: string | null;
   constraintsText?: string | null;

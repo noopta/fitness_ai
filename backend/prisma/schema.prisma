@@ -11,6 +11,12 @@ model User {
   id                  String            @id @default(uuid())
   heightCm            Float?
   weightKg            Float?
+  // Display-unit preference for body/lift weights: "imperial" (lbs) or
+  // "metric" (kg). Storage is ALWAYS canonical kg regardless of this; clients
+  // convert at the edges and the server formats LLM/notification copy with it.
+  // Defaults to imperial (US-first); set to metric at signup when we detect an
+  // EU/metric locale, and user-overridable in Settings.
+  unitPreference      String            @default("imperial")
   bodyCompTag         String?
   trainingAge         String?
   equipment           String?

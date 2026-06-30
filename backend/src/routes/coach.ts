@@ -239,6 +239,11 @@ async function buildFullUserContext(userId: string): Promise<string> {
 
   const lines: string[] = [];
   lines.push('=== ATHLETE PROFILE ===');
+  // Unit directive — the model receives weights in kg (often with an lbs aside),
+  // but must SPEAK in the athlete's preferred unit. Storage stays kg; this only
+  // controls the unit the coach uses in replies.
+  const prefUnit = user.unitPreference === 'metric' ? 'kilograms (kg)' : 'pounds (lbs)';
+  lines.push(`Preferred weight unit: ${prefUnit}. Always express body weight and lifted loads in ${prefUnit} when talking to this athlete; convert as needed.`);
   if (user.name) lines.push(`Name: ${user.name}`);
   if (user.email) lines.push(`Email: ${user.email}`);
   if (user.trainingAge) lines.push(`Training age: ${user.trainingAge}`);

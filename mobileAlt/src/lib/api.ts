@@ -180,6 +180,7 @@ export const authApi = {
     coachOnboardingDone?: boolean;
     coachProfile?: string;
     subtractWorkoutBurnFromCalories?: boolean;
+    unitPreference?: 'metric' | 'imperial';
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),
 
   registerPushToken: (token: string) =>

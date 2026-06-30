@@ -7,6 +7,7 @@ import {
   Moon, Settings, User, Apple, Shield,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
+import { useUnits, kgToLb } from '@/lib/units';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -470,6 +471,7 @@ function BodyStatsInput({
   onSkip: () => void;
   optional?: boolean;
 }) {
+  const { label } = useUnits();
   const [state, setState] = useState<BodyStatsState>({
     heightFt: '',
     heightIn: '',
@@ -546,7 +548,7 @@ function BodyStatsInput({
             placeholder="195"
             className="flex-1 rounded-xl border bg-muted/30 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 text-center"
           />
-          <span className="text-sm text-muted-foreground shrink-0">lbs</span>
+          <span className="text-sm text-muted-foreground shrink-0">{label}</span>
         </div>
       </div>
 
@@ -609,6 +611,7 @@ function StrengthTableInput({
   onSkip: () => void;
   optional?: boolean;
 }) {
+  const { label, isMetric } = useUnits();
   const [rows, setRows] = useState<Record<string, StrengthRow>>(
     Object.fromEntries(STRENGTH_LIFTS.map(l => [l, { weightLbs: '', sets: '', reps: '' }]))
   );
@@ -622,7 +625,7 @@ function StrengthTableInput({
       .filter(l => rows[l].weightLbs.trim() !== '')
       .map(l => {
         const r = rows[l];
-        const entry: Record<string, unknown> = { lift: l, weightLbs: parseFloat(r.weightLbs) };
+        const entry: Record<string, unknown> = { lift: l, weightLbs: isMetric ? kgToLb(parseFloat(r.weightLbs)) : parseFloat(r.weightLbs) };
         if (r.sets.trim()) entry.sets = parseInt(r.sets, 10);
         if (r.reps.trim()) entry.reps = parseInt(r.reps, 10);
         return entry;
@@ -638,7 +641,7 @@ function StrengthTableInput({
         {/* Header */}
         <div className="grid grid-cols-[1fr_80px_56px_56px] gap-2 px-3 py-2 bg-muted/50 border-b">
           <span className="text-xs font-medium text-muted-foreground">Lift</span>
-          <span className="text-xs font-medium text-muted-foreground text-center">Weight (lbs)</span>
+          <span className="text-xs font-medium text-muted-foreground text-center">Weight ({label})</span>
           <span className="text-xs font-medium text-muted-foreground text-center">Sets</span>
           <span className="text-xs font-medium text-muted-foreground text-center">Reps</span>
         </div>
@@ -1085,6 +1088,7 @@ interface Props {
 }
 
 export function CoachOnboarding({ userName, onComplete }: Props) {
+  const { toKg } = useUnits();
   const [stepIdx, setStepIdx] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [currentInput, setCurrentInput] = useState('');
@@ -1151,7 +1155,10 @@ export function CoachOnboarding({ userName, onComplete }: Props) {
       let heightCm: number | undefined;
       try {
         const bs = JSON.parse(final.bodyStats || '{}');
-        if (bs.weightLbs) weightKg = Math.round(bs.weightLbs / 2.20462 * 10) / 10;
+        if (bs.weightLbs) {
+          const kg = toKg(parseFloat(bs.weightLbs));
+          if (kg != null) weightKg = Math.round(kg * 10) / 10;
+        }
         if (bs.heightFt !== undefined && bs.heightIn !== undefined) {
           heightCm = Math.round((bs.heightFt * 12 + bs.heightIn) * 2.54 * 10) / 10;
         }
