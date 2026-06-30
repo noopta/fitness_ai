@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
 import { runAgentTurn, streamAgentTurn, type AgentStreamEvent } from '../agent/loop.js';
-import { applyProposedWeek } from './coach.js';
+import { applyProposedWeek, getCurrentWeekSchedule } from './coach.js';
 import { readMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
@@ -235,10 +235,13 @@ router.post('/coach/agent/confirm-proposal', requireAuth, requireAgentAccess, as
       return res.json({ success: true, kind: 'plan_patch', ...result, inverse });
     }
 
-    // workout_swap path — proposedWeek is present.
+    // workout_swap path — proposedWeek is present. Capture the current week
+    // BEFORE applying so the client can Undo (restore the prior schedule).
     if (parsed.proposedWeek && Array.isArray(parsed.proposedWeek)) {
+      const prior = await getCurrentWeekSchedule(req.user!.id);
+      const priorWeek = (prior?.weekDays ?? []).map((d: any) => ({ date: d.date, session: d.session ?? null }));
       const result = await applyProposedWeek(req.user!.id, parsed.proposedWeek as any, parsed.reason ?? null);
-      return res.json({ success: true, kind: 'workout_swap', ...result });
+      return res.json({ success: true, kind: 'workout_swap', ...result, inverse: { proposedWeek: priorWeek } });
     }
 
     // program_update path — updatedProgram is present (existing behavior).
