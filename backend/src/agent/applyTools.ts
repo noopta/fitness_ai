@@ -196,6 +196,11 @@ export interface PlanPatchProposal {
   meta: { primaryTarget?: string[]; equipment?: string; stimulusDelta?: string; shoulderLoad?: string };
   rationale: string;
   summary: string;
+  /** Full program snapshot with the swap applied. Lets the proposal be applied
+   *  via the legacy `updatedProgram` confirm path (and the backward-compat path
+   *  for older app builds that POST updatedProgram instead of planPatch). The
+   *  planPatch confirm path ignores this and re-derives from names. */
+  updatedProgram?: any;
 }
 
 /** Current sets/reps of the resolved exercise (first match within scope). */
@@ -252,6 +257,30 @@ export function buildPlanPatchProposal(
   }
 
   const fromScheme = findExerciseScheme(program, resolvedKey, dayFilter);
+
+  // Build a full updated-program snapshot (swap applied to the scoped day(s)) so
+  // the proposal is self-contained. The mobile may apply via either path —
+  // { planPatch } (re-derives from names) OR { updatedProgram } (older builds /
+  // backward-compat) — and the latter needs a real, valid program here, or the
+  // confirm route rejects it ("phases must be a non-empty array").
+  const updatedProgram = JSON.parse(JSON.stringify(program));
+  const wantDay = dayFilter ? normDay(dayFilter) : null;
+  for (const phase of updatedProgram.phases ?? []) {
+    for (const d of phase.trainingDays ?? []) {
+      if (wantDay && normDay(String(d.day ?? '')) !== wantDay) continue;
+      for (const ex of d.exercises ?? []) {
+        const nameField = (ex.exercise ?? ex.name ?? '').toString();
+        if (normExercise(nameField) === resolvedKey) {
+          if ('exercise' in ex) ex.exercise = toName;
+          if ('name' in ex) ex.name = toName;
+          if (!('exercise' in ex) && !('name' in ex)) ex.name = toName;
+          if (args.toSets != null) ex.sets = args.toSets;
+          if (args.toReps != null) ex.reps = args.toReps;
+        }
+      }
+    }
+  }
+
   return {
     ok: true,
     proposal: {
@@ -268,6 +297,7 @@ export function buildPlanPatchProposal(
       },
       rationale: args.rationale ?? '',
       summary: `Swap ${resolvedName} → ${toName} on ${dayFilter ? day : 'the whole plan'}.`,
+      updatedProgram,
     },
   };
 }

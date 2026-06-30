@@ -109,6 +109,27 @@ describe('buildPlanPatchProposal (Flow A — propose, never mutate)', () => {
     expect(r.proposal.rationale).toMatch(/shoulder/);
   });
 
+  it('carries a valid full updatedProgram (swap applied, scoped, goal preserved) for the legacy/backward-compat apply path', () => {
+    const r = buildPlanPatchProposal(program, { fromName: 'bench', toName: 'Flat Dumbbell Press', day: 'Day 1' });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const up = r.proposal.updatedProgram;
+    // Must be a structurally valid program or applyProgramUpdate/validateProgram rejects it
+    // ("updatedProgram.phases must be a non-empty array") — the exact bug this guards against.
+    expect(Array.isArray(up?.phases) && up.phases.length > 0).toBe(true);
+    expect(up.goal).toBe((program as any).goal);
+    // The swap is applied on the scoped day...
+    const day1 = up.phases.flatMap((p: any) => p.trainingDays).find((d: any) => d.day === 'Day 1');
+    const names1 = day1.exercises.map((e: any) => e.exercise ?? e.name);
+    expect(names1).toContain('Flat Dumbbell Press');
+    expect(names1).not.toContain('Barbell Bench Press');
+    // ...and other days are untouched (scope='day').
+    const otherDays = up.phases.flatMap((p: any) => p.trainingDays).filter((d: any) => d.day !== 'Day 1');
+    for (const d of otherDays) {
+      expect(d.exercises.map((e: any) => e.exercise ?? e.name)).not.toContain('Flat Dumbbell Press');
+    }
+  });
+
   it('lets the agent override the to-scheme (e.g. 4x5 -> 4x8 reps)', () => {
     const r = buildPlanPatchProposal(program, { fromName: 'Back Squat', toName: 'Hack Squat', day: 'Day 2', toReps: 8 });
     expect(r.ok).toBe(true);
