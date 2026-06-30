@@ -192,6 +192,17 @@ export async function runAgentTurn(
               sourceDate: r.sourceDate ?? '',
               chosenSessionName: r.chosenSessionName ?? '',
             };
+          } else if (r.kind === 'plan_patch') {
+            proposal = {
+              kind: 'plan_patch',
+              day: r.day ?? null,
+              scope: r.scope === 'program' ? 'program' : 'day',
+              from: r.from ?? { name: '' },
+              to: r.to ?? { name: '' },
+              meta: r.meta ?? {},
+              rationale: typeof r.rationale === 'string' ? r.rationale : '',
+              summary: typeof r.summary === 'string' && r.summary.trim() ? r.summary : 'Proposed exercise swap',
+            };
           } else {
             // Coerce summary to a non-empty string: the client renders it
             // directly as a <Text> child, and an object/undefined here trips the
@@ -326,6 +337,17 @@ export async function streamAgentTurn(
               summary: r.summary ?? 'Proposed workout swap',
               sourceDate: r.sourceDate ?? '',
               chosenSessionName: r.chosenSessionName ?? '',
+            };
+          } else if (r.kind === 'plan_patch') {
+            proposal = {
+              kind: 'plan_patch',
+              day: r.day ?? null,
+              scope: r.scope === 'program' ? 'program' : 'day',
+              from: r.from ?? { name: '' },
+              to: r.to ?? { name: '' },
+              meta: r.meta ?? {},
+              rationale: typeof r.rationale === 'string' ? r.rationale : '',
+              summary: typeof r.summary === 'string' && r.summary.trim() ? r.summary : 'Proposed exercise swap',
             };
           } else {
             // Coerce summary to a non-empty string: the client renders it

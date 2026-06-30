@@ -16,7 +16,7 @@ import { readMemory } from '../agent/memory.js';
 import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
 import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
-import { applyProgramUpdate } from '../agent/applyTools.js';
+import { applyProgramUpdate, applyExerciseSwap } from '../agent/applyTools.js';
 import type Anthropic from '@anthropic-ai/sdk';
 
 const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
@@ -197,6 +197,14 @@ const confirmProposalSchema = z.object({
   // updatedProgram — the kind is inferred from which field is present.
   proposedWeek: z.array(z.any()).optional(),
   reason: z.string().max(300).optional(),
+  // plan_patch path (Flow A): the proposed swap. from.name is the exact resolved
+  // stored name; applied via the scoped applyExerciseSwap.
+  planPatch: z.object({
+    from: z.object({ name: z.string() }).passthrough(),
+    to: z.object({ name: z.string() }).passthrough(),
+    day: z.string().nullable().optional(),
+    scope: z.enum(['day', 'program']).optional(),
+  }).optional(),
 });
 
 // POST /api/coach/agent/confirm-proposal — second half of the
@@ -209,6 +217,23 @@ const confirmProposalSchema = z.object({
 router.post('/coach/agent/confirm-proposal', requireAuth, requireAgentAccess, async (req, res) => {
   try {
     const parsed = confirmProposalSchema.parse(req.body);
+
+    // plan_patch path (Flow A) — apply the scoped exercise swap and return the
+    // inverse so the client can Undo (swap back). Reuses applyExerciseSwap, which
+    // resolves the exact stored name and scopes to the day (or whole program).
+    if (parsed.planPatch) {
+      const pp = parsed.planPatch;
+      const scope = pp.scope === 'program' ? 'program' : 'day';
+      const result: any = await applyExerciseSwap(
+        req.user!.id, pp.from.name, pp.to.name, parsed.reason ?? undefined,
+        { scope, day: pp.day ?? undefined },
+      );
+      if (!result?.applied) {
+        return res.status(409).json({ error: result?.reason ?? 'Could not apply the swap', candidates: result?.candidates ?? [] });
+      }
+      const inverse = { planPatch: { from: { name: pp.to.name }, to: { name: pp.from.name }, day: pp.day ?? null, scope } };
+      return res.json({ success: true, kind: 'plan_patch', ...result, inverse });
+    }
 
     // workout_swap path — proposedWeek is present.
     if (parsed.proposedWeek && Array.isArray(parsed.proposedWeek)) {

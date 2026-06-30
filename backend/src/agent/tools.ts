@@ -10,7 +10,7 @@
 import { PrismaClient } from '@prisma/client';
 import { parseMealMacros } from '../services/llmService.js';
 import { appendMemory } from './memory.js';
-import { applyMacroChange, applyProgramUpdate, applyExerciseSwap } from './applyTools.js';
+import { applyMacroChange, applyProgramUpdate, applyExerciseSwap, buildPlanPatchProposal } from './applyTools.js';
 import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '../routes/coach.js';
 import type { AgentTool } from './types.js';
 
@@ -527,31 +527,44 @@ const proposeWorkoutSwap: AgentTool = {
 const proposeExerciseSwap: AgentTool = {
   name: 'propose_exercise_swap',
   description:
-    "CALL THIS when the user agrees to swap one exercise for another in their program — even casually (\"yes\", \"sure\", \"ok do it\"). This is the ONLY way to make the swap actually take effect; text-only confirmation does NOT modify the program. Returns a proposal card the user taps to apply (goal-preserving validation runs server-side at that moment, not now). REQUIRED steps before calling: (1) call read_program to get the exact stored exercise name and which day(s) it appears on; (2) construct the FULL updatedProgram object with the exercise replaced everywhere it appears, reps/sets/RPE mapped sensibly to the new movement, all other days untouched. Inputs: fromExerciseName = exact name as stored; toExerciseName = the replacement; reason = one short sentence for the proposal summary; updatedProgram = complete updated program object.",
+    "Propose swapping ONE exercise for another as a reviewable Plan Patch card — nothing changes until the user taps Apply. Use the moment the user wants a swap. FIRST call read_schedule_week to get the exact stored exercise names plus today's day. The backend resolves fromExerciseName against names that ACTUALLY exist: if it is ambiguous or missing the tool returns { error, candidates } (NOT a proposal) — re-call with the exact stored name. By default the swap is scoped to ONE day (scope='day' plus the day label); pass scope='program' only when the user wants it everywhere. Provide meta so the card is informative: primaryTarget, equipment, stimulusDelta, shoulderLoad, and a one-line rationale.",
   input_schema: {
     type: 'object',
     properties: {
-      fromExerciseName: { type: 'string', description: 'Exact name of the exercise to replace, e.g. "Back Squat".' },
-      toExerciseName:   { type: 'string', description: 'Exact name of the replacement, e.g. "Bulgarian Split Squat".' },
-      reason:           { type: 'string', description: 'One short sentence explaining the swap (e.g. equipment, injury, preference).' },
-      updatedProgram:   {
-        type: 'object',
-        description: 'The COMPLETE updated training program object (same shape as read_program returns), with fromExerciseName replaced by toExerciseName everywhere it appears. Reps/sets/RPE should map sensibly to the new movement.',
-      },
+      fromExerciseName: { type: 'string', description: 'Exercise to replace (resolved against stored names).' },
+      toExerciseName:   { type: 'string', description: 'Replacement exercise.' },
+      scope:            { type: 'string', enum: ['day', 'program'], description: "DEFAULT 'day' (one day's workout). 'program' = everywhere it appears." },
+      day:              { type: 'string', description: "Training-day label for scope='day' (from read_schedule_week; default today's day)." },
+      toSets:           { type: 'string', description: 'Sets for the new exercise. Omit to keep the original scheme.' },
+      toReps:           { type: 'string', description: 'Reps for the new exercise. Omit to keep the original scheme.' },
+      primaryTarget:    { type: 'array', items: { type: 'string' }, description: 'Muscles the new exercise targets, e.g. ["chest","front_delt"].' },
+      equipment:        { type: 'string', description: 'Equipment for the new exercise, e.g. "dumbbell".' },
+      stimulusDelta:    { type: 'string', description: 'How training stimulus changes, e.g. "held" or "slightly lower".' },
+      shoulderLoad:     { type: 'string', description: 'Relevant joint/load delta if any, e.g. "lower".' },
+      rationale:        { type: 'string', description: 'One evidence-led sentence shown on the card.' },
     },
-    required: ['fromExerciseName', 'toExerciseName', 'updatedProgram'],
+    required: ['fromExerciseName', 'toExerciseName'],
   },
-  execute: async (input) => {
-    const from = String(input.fromExerciseName ?? '');
-    const to   = String(input.toExerciseName ?? '');
-    const reason = String(input.reason ?? '');
-    return {
-      _proposal: true,
-      kind: 'program_update', // shares the confirm-proposal path with propose_program_update
-      updatedProgram: input.updatedProgram,
-      summary: `Swap ${from} → ${to}${reason ? ` (${reason})` : ''}`,
-      changedDays: [],
-    };
+  execute: async (input, userId) => {
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+    if (!u?.savedProgram) return { error: 'No saved program yet — generate a program first.' };
+    let program: any;
+    try { program = JSON.parse(u.savedProgram); } catch { return { error: 'Saved program is unreadable.' }; }
+    const built = buildPlanPatchProposal(program, {
+      fromName: String(input.fromExerciseName ?? ''),
+      toName: String(input.toExerciseName ?? ''),
+      scope: input.scope === 'program' ? 'program' : 'day',
+      day: input.day != null ? String(input.day) : undefined,
+      toSets: input.toSets != null ? String(input.toSets) : undefined,
+      toReps: input.toReps != null ? String(input.toReps) : undefined,
+      primaryTarget: Array.isArray(input.primaryTarget) ? (input.primaryTarget as any[]).map(String) : undefined,
+      equipment: input.equipment != null ? String(input.equipment) : undefined,
+      stimulusDelta: input.stimulusDelta != null ? String(input.stimulusDelta) : undefined,
+      shoulderLoad: input.shoulderLoad != null ? String(input.shoulderLoad) : undefined,
+      rationale: input.rationale != null ? String(input.rationale) : undefined,
+    });
+    if (!built.ok) return { error: built.reason, candidates: built.candidates };
+    return { _proposal: true, ...built.proposal };
   },
 };
 

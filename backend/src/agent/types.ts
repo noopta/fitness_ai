@@ -84,6 +84,16 @@ export type AgentProposal =
       summary: string;
       sourceDate: string;
       chosenSessionName: string;
+    }
+  | {
+      kind: 'plan_patch';
+      day: string | null;
+      scope: 'day' | 'program';
+      from: { name: string; sets?: number | string; reps?: number | string };
+      to: { name: string; sets?: number | string; reps?: number | string };
+      meta: { primaryTarget?: string[]; equipment?: string; stimulusDelta?: string; shoulderLoad?: string };
+      rationale: string;
+      summary: string;
     };
 
 /** Result of one agent turn. */

@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest';
 // under test are pure and never touch prisma.
 vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) {}) }));
 
-import { resolveExerciseTarget, collectExerciseNames } from '../agent/applyTools.js';
+import { resolveExerciseTarget, collectExerciseNames, buildPlanPatchProposal } from '../agent/applyTools.js';
 
 const program = {
   phases: [
@@ -86,5 +86,49 @@ describe('day-scoped resolution (default = that day, not the whole plan)', () =>
     const r = resolveExerciseTarget(program, 'bench', 'Day 2'); // bench is on Day 1
     expect(r.resolvedKey).toBeNull();
     expect(r.candidates).toEqual(expect.arrayContaining(['Back Squat', 'Romanian Deadlift']));
+  });
+});
+
+
+describe('buildPlanPatchProposal (Flow A — propose, never mutate)', () => {
+  it('builds a proposal for a resolvable exercise on a day, carrying the current scheme + meta', () => {
+    const r = buildPlanPatchProposal(program, {
+      fromName: 'bench', toName: 'Flat Dumbbell Press', day: 'Day 1',
+      primaryTarget: ['chest'], equipment: 'dumbbell', stimulusDelta: 'held', shoulderLoad: 'lower',
+      rationale: 'Same press pattern; DBs reduce anterior shoulder stress.',
+    });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.proposal.kind).toBe('plan_patch');
+    expect(r.proposal.from.name).toBe('Barbell Bench Press');
+    expect(r.proposal.from.sets).toBe(4);                 // pulled from the stored exercise
+    expect(r.proposal.to.name).toBe('Flat Dumbbell Press');
+    expect(r.proposal.to.sets).toBe(4);                   // inherits when not overridden
+    expect(r.proposal.scope).toBe('day');
+    expect(r.proposal.meta.equipment).toBe('dumbbell');
+    expect(r.proposal.rationale).toMatch(/shoulder/);
+  });
+
+  it('lets the agent override the to-scheme (e.g. 4x5 -> 4x8 reps)', () => {
+    const r = buildPlanPatchProposal(program, { fromName: 'Back Squat', toName: 'Hack Squat', day: 'Day 2', toReps: 8 });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.proposal.to.reps).toBe(8);
+  });
+
+  it('returns ok:false + candidates when the from-name is ambiguous (never a silent wrong swap)', () => {
+    const r = buildPlanPatchProposal(program, { fromName: 'press', toName: 'X', scope: 'program' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.candidates.length).toBeGreaterThan(0);
+  });
+
+  it("requires a day label for scope 'day'", () => {
+    const r = buildPlanPatchProposal(program, { fromName: 'bench', toName: 'X' }); // no day
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toMatch(/day label/);
+  });
+
+  it('does not resolve an exercise that lives on a different day', () => {
+    const r = buildPlanPatchProposal(program, { fromName: 'squat', toName: 'X', day: 'Day 1' }); // squat is Day 2
+    expect(r.ok).toBe(false);
   });
 });

@@ -185,6 +185,93 @@ export function resolveExerciseTarget(
   return { resolvedKey: null, resolvedName: null, candidates: all.slice(0, 12) };
 }
 
+// ─── Plan Patch proposal (Flow A — propose, do NOT mutate) ───────────────────
+
+export interface PlanPatchProposal {
+  kind: 'plan_patch';
+  day: string | null;
+  scope: 'day' | 'program';
+  from: { name: string; sets?: number | string; reps?: number | string };
+  to: { name: string; sets?: number | string; reps?: number | string };
+  meta: { primaryTarget?: string[]; equipment?: string; stimulusDelta?: string; shoulderLoad?: string };
+  rationale: string;
+  summary: string;
+}
+
+/** Current sets/reps of the resolved exercise (first match within scope). */
+function findExerciseScheme(program: any, resolvedKey: string, dayFilter: string | null): { sets?: any; reps?: any } {
+  const wantDay = dayFilter ? normDay(dayFilter) : null;
+  for (const phase of program?.phases ?? [])
+    for (const d of phase?.trainingDays ?? []) {
+      if (wantDay && normDay(String(d?.day ?? '')) !== wantDay) continue;
+      for (const ex of d?.exercises ?? []) {
+        const nameField = (ex?.exercise ?? ex?.name ?? '').toString();
+        if (normExercise(nameField) === resolvedKey) return { sets: ex?.sets, reps: ex?.reps };
+      }
+    }
+  return {};
+}
+
+/**
+ * Build a Plan Patch proposal WITHOUT mutating (the assistant proposes; the user
+ * disposes). Resolves the from-name against actually-stored names (scoped to the
+ * day by default); ambiguous/missing -> candidates so the agent re-proposes with
+ * the exact one. Carries the diff-card payload (from/to scheme + meta + rationale).
+ */
+export function buildPlanPatchProposal(
+  program: any,
+  args: {
+    fromName: string; toName: string;
+    toSets?: number | string; toReps?: number | string;
+    scope?: 'day' | 'program'; day?: string;
+    primaryTarget?: string[]; equipment?: string;
+    stimulusDelta?: string; shoulderLoad?: string;
+    rationale?: string;
+  },
+): { ok: true; proposal: PlanPatchProposal } | { ok: false; candidates: string[]; reason: string } {
+  const toName = (args.toName ?? '').trim();
+  if (!args.fromName?.trim() || !toName) {
+    return { ok: false, candidates: [], reason: 'fromName and toName are both required.' };
+  }
+  const scope: 'day' | 'program' = args.scope === 'program' ? 'program' : 'day';
+  const day = args.day?.trim() || null;
+  if (scope === 'day' && !day) {
+    return { ok: false, candidates: [], reason: "scope 'day' needs a day label (from read_schedule_week), or pass scope:'program'." };
+  }
+  const dayFilter = scope === 'program' ? null : day;
+
+  const { resolvedKey, resolvedName, candidates } = resolveExerciseTarget(program, args.fromName, dayFilter);
+  if (!resolvedKey || !resolvedName) {
+    return {
+      ok: false,
+      candidates,
+      reason: candidates.length
+        ? `"${args.fromName}" didn't resolve to one exercise${dayFilter ? ` on ${day}` : ''}. Choose from: ${candidates.join(', ')}.`
+        : `No exercises found${dayFilter ? ` on ${day}` : ' in the program'}.`,
+    };
+  }
+
+  const fromScheme = findExerciseScheme(program, resolvedKey, dayFilter);
+  return {
+    ok: true,
+    proposal: {
+      kind: 'plan_patch',
+      day,
+      scope,
+      from: { name: resolvedName, sets: fromScheme.sets, reps: fromScheme.reps },
+      to: { name: toName, sets: args.toSets ?? fromScheme.sets, reps: args.toReps ?? fromScheme.reps },
+      meta: {
+        primaryTarget: args.primaryTarget,
+        equipment: args.equipment,
+        stimulusDelta: args.stimulusDelta,
+        shoulderLoad: args.shoulderLoad,
+      },
+      rationale: args.rationale ?? '',
+      summary: `Swap ${resolvedName} → ${toName} on ${dayFilter ? day : 'the whole plan'}.`,
+    },
+  };
+}
+
 export async function applyExerciseSwap(
   userId: string,
   fromName: string,
