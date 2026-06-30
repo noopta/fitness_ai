@@ -117,14 +117,84 @@ function normExercise(s: string): string {
   return s.toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim();
 }
 
+/** Every distinct exercise display-name actually present in the program. */
+export function collectExerciseNames(program: any): string[] {
+  const names = new Set<string>();
+  for (const phase of program?.phases ?? [])
+    for (const day of phase?.trainingDays ?? [])
+      for (const ex of day?.exercises ?? [])
+        names.add(String(ex?.exercise ?? ex?.name ?? '').trim());
+  names.delete('');
+  return [...names];
+}
+
+/**
+ * Resolve a free-text exercise name to a SINGLE exercise that actually exists in
+ * the program — never invent or accept a name that isn't stored. This is what
+ * makes "use the already-stored names" real: the agent can only act on entries
+ * the program contains, and ambiguity becomes a clarifying question instead of a
+ * silent no-op or a wrong swap.
+ *   1. exact normalized match            -> resolve
+ *   2. exactly one substring match        -> resolve (e.g. "bench" -> "Barbell Bench Press")
+ *   3. multiple / none                    -> candidates (closest stored names, else the list)
+ */
+export function resolveExerciseTarget(
+  program: any,
+  fromName: string,
+): { resolvedKey: string | null; resolvedName: string | null; candidates: string[] } {
+  const fromKey = normExercise(fromName);
+  const all = collectExerciseNames(program);
+  if (!fromKey || all.length === 0) return { resolvedKey: null, resolvedName: null, candidates: all };
+
+  // 1. Exact normalized match.
+  const exact = all.find(n => normExercise(n) === fromKey);
+  if (exact) return { resolvedKey: fromKey, resolvedName: exact, candidates: [] };
+
+  // 2. Substring either direction; resolve only if it points to ONE stored exercise.
+  const subs = all.filter(n => {
+    const k = normExercise(n);
+    return k.includes(fromKey) || fromKey.includes(k);
+  });
+  const distinct = [...new Set(subs.map(normExercise))];
+  if (distinct.length === 1) {
+    const name = subs.find(n => normExercise(n) === distinct[0])!;
+    return { resolvedKey: distinct[0], resolvedName: name, candidates: [] };
+  }
+  if (subs.length > 0) return { resolvedKey: null, resolvedName: null, candidates: [...new Set(subs)] };
+
+  // 3. Token overlap as a hint; otherwise surface the actual list to choose from.
+  const fromTokens = new Set(fromKey.split(' ').filter(Boolean));
+  const scored = all
+    .map(n => ({ n, score: normExercise(n).split(' ').filter(t => fromTokens.has(t)).length }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+  if (scored.length) return { resolvedKey: null, resolvedName: null, candidates: scored.slice(0, 6).map(x => x.n) };
+  return { resolvedKey: null, resolvedName: null, candidates: all.slice(0, 12) };
+}
+
 export async function applyExerciseSwap(userId: string, fromName: string, toName: string, reason?: string) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
   const program = JSON.parse(user.savedProgram);
 
-  const fromKey = normExercise(fromName);
   const toLabel = toName.trim();
-  if (!fromKey || !toLabel) throw new Error('fromExerciseName and toExerciseName are both required.');
+  if (!fromName.trim() || !toLabel) throw new Error('fromExerciseName and toExerciseName are both required.');
+
+  // Resolve the from-name against the names that ACTUALLY exist in the program.
+  // If it doesn't resolve to exactly one stored exercise, return candidates so
+  // the agent re-calls with the exact name — never silently change nothing while
+  // reporting success.
+  const { resolvedKey, resolvedName, candidates } = resolveExerciseTarget(program, fromName);
+  if (!resolvedKey) {
+    return {
+      applied: false,
+      occurrences: 0,
+      candidates,
+      reason: candidates.length
+        ? `"${fromName}" didn't resolve to one exercise in the program. Stored names to choose from: ${candidates.join(', ')}. Re-call swap_exercise_in_program with the exact stored name.`
+        : 'No exercises found in the saved program.',
+    };
+  }
 
   let touched = 0;
   const daysAffected: string[] = [];
@@ -132,7 +202,7 @@ export async function applyExerciseSwap(userId: string, fromName: string, toName
     for (const day of phase.trainingDays ?? []) {
       for (const ex of day.exercises ?? []) {
         const nameField = (ex.exercise ?? ex.name ?? '').toString();
-        if (normExercise(nameField) === fromKey) {
+        if (normExercise(nameField) === resolvedKey) {
           // Preserve the original field name so the program shape stays
           // consistent (`exercise` vs `name` is mixed across phases).
           if ('exercise' in ex) ex.exercise = toLabel;
@@ -146,11 +216,8 @@ export async function applyExerciseSwap(userId: string, fromName: string, toName
   }
 
   if (touched === 0) {
-    return {
-      applied: false,
-      reason: `Could not find "${fromName}" in your program. Try the exact name as listed in today's workout.`,
-      occurrences: 0,
-    };
+    // resolvedKey came from the program, so this is defensive — never claim success.
+    return { applied: false, occurrences: 0, candidates, reason: `Could not apply the swap for "${resolvedName ?? fromName}".` };
   }
 
   await prisma.user.update({
@@ -163,7 +230,8 @@ export async function applyExerciseSwap(userId: string, fromName: string, toName
     applied: true,
     occurrences: touched,
     daysAffected,
-    summary: `Swapped ${fromName} → ${toLabel} across ${touched} occurrence(s)${reason ? ` (${reason})` : ''}.`,
+    resolvedFrom: resolvedName,
+    summary: `Swapped ${resolvedName} → ${toLabel} across ${touched} occurrence(s)${reason ? ` (${reason})` : ''}.`,
   };
 }
 
