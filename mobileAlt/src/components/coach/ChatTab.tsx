@@ -18,6 +18,8 @@ import { invalidateCache } from '../../lib/cache';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { MarkdownText } from '../ui/MarkdownText';
 import { ThinkingDots, useThinkingLabel } from './ThinkingLabel';
+import { PlanPatchCard } from './PlanPatchCard';
+import { MoveSessionCard } from './MoveSessionCard';
 
 // Tool names that mutate program / nutrition / wellness state on the server.
 // After the agent uses any of these, the mobile-side coach cache must be
@@ -65,6 +67,8 @@ interface ChatMessage {
   proposal?: AgentProposal;
   /** Set after a proposal has been applied or dismissed by the user. */
   proposalState?: 'applied' | 'dismissed' | 'applying' | 'failed';
+  /** Undo payload from confirm-proposal — re-POST to revert. */
+  proposalInverse?: any;
 }
 
 interface ProposalCardProps {
@@ -169,10 +173,12 @@ function MessageBubble({
   msg,
   onApplyProposal,
   onDismissProposal,
+  onUndoProposal,
 }: {
   msg: ChatMessage;
   onApplyProposal: (msgId: string) => void;
   onDismissProposal: (msgId: string) => void;
+  onUndoProposal: (msgId: string) => void;
 }) {
   const isUser = msg.role === 'user';
   return (
@@ -192,12 +198,30 @@ function MessageBubble({
         </View>
       </View>
       {msg.proposal && msg.id ? (
-        <ProposalCard
-          proposal={msg.proposal}
-          state={msg.proposalState}
-          onApply={() => onApplyProposal(msg.id!)}
-          onDismiss={() => onDismissProposal(msg.id!)}
-        />
+        msg.proposal.kind === 'plan_patch' ? (
+          <PlanPatchCard
+            proposal={msg.proposal as any}
+            state={msg.proposalState}
+            onApply={() => onApplyProposal(msg.id!)}
+            onDismiss={() => onDismissProposal(msg.id!)}
+            onUndo={msg.proposalInverse ? () => onUndoProposal(msg.id!) : undefined}
+          />
+        ) : msg.proposal.kind === 'workout_swap' ? (
+          <MoveSessionCard
+            proposal={msg.proposal as any}
+            state={msg.proposalState}
+            onApply={() => onApplyProposal(msg.id!)}
+            onDismiss={() => onDismissProposal(msg.id!)}
+            onUndo={msg.proposalInverse ? () => onUndoProposal(msg.id!) : undefined}
+          />
+        ) : (
+          <ProposalCard
+            proposal={msg.proposal}
+            state={msg.proposalState}
+            onApply={() => onApplyProposal(msg.id!)}
+            onDismiss={() => onDismissProposal(msg.id!)}
+          />
+        )
       ) : null}
     </View>
   );
@@ -330,15 +354,16 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
       // Either kind mutates the user's program — drop the mobile cache so
       // Overview/Program re-fetch fresh on next focus.
       invalidateCache('coach:');
+      let resp: any;
       if (proposal.kind === 'workout_swap') {
-        await coachApi.confirmProposal({ proposedWeek: (proposal as any).proposedWeek, reason: 'Agent swap' });
+        resp = await coachApi.confirmProposal({ proposedWeek: (proposal as any).proposedWeek, reason: 'Agent swap' });
       } else if (proposal.kind === 'plan_patch') {
         const p = proposal as any;
-        await coachApi.confirmProposal({ planPatch: { from: { name: p.from?.name }, to: { name: p.to?.name }, day: p.day ?? null, scope: p.scope ?? 'day' } });
+        resp = await coachApi.confirmProposal({ planPatch: { from: { name: p.from?.name }, to: { name: p.to?.name }, day: p.day ?? null, scope: p.scope ?? 'day' } });
       } else {
-        await coachApi.confirmProposal({ updatedProgram: (proposal as any).updatedProgram });
+        resp = await coachApi.confirmProposal({ updatedProgram: (proposal as any).updatedProgram });
       }
-      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applied' } : m)));
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applied', proposalInverse: resp?.inverse } : m)));
     } catch {
       setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'failed' } : m)));
     }
@@ -346,6 +371,20 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
 
   function handleDismissProposal(msgId: string) {
     setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'dismissed' } : m)));
+  }
+
+  async function handleUndoProposal(msgId: string) {
+    const target = messages.find((m) => m.id === msgId);
+    const inv = (target as any)?.proposalInverse;
+    if (!inv) return;
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applying' } : m)));
+    invalidateCache('coach:');
+    try {
+      await coachApi.confirmProposal(inv);
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'dismissed', proposalInverse: undefined } : m)));
+    } catch {
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, proposalState: 'applied' } : m)));
+    }
   }
 
   const canSend = inputText.trim().length > 0 && !sending;
@@ -371,6 +410,7 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
               key={msg.id ?? `msg-${idx}`}
               msg={msg}
               onApplyProposal={handleApplyProposal}
+              onUndoProposal={handleUndoProposal}
               onDismissProposal={handleDismissProposal}
             />
           )
