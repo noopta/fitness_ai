@@ -21,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
+import { useUnits } from '../../../context/UnitsContext';
 import { Analytics } from '../../../lib/analytics';
 import { colors } from '../../../constants/theme';
 import { StickyHeader } from './StickyHeader';
@@ -114,6 +115,7 @@ function macroCoachNote(key: MacroKey, used: number, target: number): string {
 
 export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   const { user } = useAuth();
+  const { unit } = useUnits();
 
   // ── Selection state ──────────────────────────────────────────────────────
   const [selectedMacro, setSelectedMacro] = useState<MacroKey | null>(null);
@@ -542,6 +544,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         weight={
           <WeightInspector
             weight={weight}
+            unit={unit === 'kg' ? 'kg' : 'lb'}
             onLog={handleLogWeight}
             onPressBody={() => setWeightDetailOpen(true)}
           />

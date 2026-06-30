@@ -8,18 +8,34 @@ import { toast } from 'sonner';
 import { ContributionGraph } from '@/components/ContributionGraph';
 import {
   User, CreditCard, Shield, Loader2, ExternalLink,
-  Check, Crown, Zap, Calendar, ChevronRight,
+  Check, Crown, Zap, Calendar, ChevronRight, Scale,
 } from 'lucide-react';
 import { Link } from 'wouter';
 
 import { startProCheckout } from '@/lib/checkout';
 import { authFetch } from '@/lib/api';
+import { useUnits, type UnitPreference } from '@/lib/units';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const [portalLoading, setPortalLoading] = useState(false);
+  const { unit, setUnit } = useUnits();
+  const [unitSaving, setUnitSaving] = useState(false);
+
+  async function changeUnit(next: UnitPreference) {
+    if (next === unit) return;
+    setUnitSaving(true);
+    try {
+      await setUnit(next);
+      toast.success(`Weights now shown in ${next === 'metric' ? 'kilograms' : 'pounds'}.`);
+    } catch {
+      toast.error('Could not update unit preference.');
+    } finally {
+      setUnitSaving(false);
+    }
+  }
 
   async function openStripePortal() {
     setPortalLoading(true);
@@ -105,6 +121,39 @@ export default function SettingsPage() {
                   )}
                   <span className={`text-sm font-semibold ${isPro ? 'text-primary' : 'text-foreground'}`}>{tierLabel}</span>
                 </div>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Preferences — units */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <Card className="p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 border border-primary/20">
+                <Scale className="h-4 w-4 text-primary" />
+              </div>
+              <h2 className="text-sm font-semibold">Preferences</h2>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Weight units</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Used across workouts, your strength profile, and coaching.</p>
+              </div>
+              <div className="inline-flex rounded-xl border bg-muted/30 p-0.5 shrink-0">
+                {(['imperial', 'metric'] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => changeUnit(opt)}
+                    disabled={unitSaving}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                      unit === opt ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {opt === 'imperial' ? 'lbs' : 'kg'}
+                  </button>
+                ))}
               </div>
             </div>
           </Card>

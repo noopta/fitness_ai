@@ -10,6 +10,14 @@ import {
   notifyNewPR,
   notifyWeightProgress,
 } from './notificationService.js';
+import { lbToKg, normalizePreference, type UnitPreference } from './weightUnits.js';
+
+/** Render a canonical-lbs e1RM as the user's preferred (value, unit) for a PR push. */
+export function prDisplay(e1RMLbs: number, pref: UnitPreference): { value: number; unit: 'lbs' | 'kg' } {
+  return normalizePreference(pref) === 'metric'
+    ? { value: Math.round(lbToKg(e1RMLbs)), unit: 'kg' }
+    : { value: Math.round(e1RMLbs), unit: 'lbs' };
+}
 
 // ─── Strength PR detection ────────────────────────────────────────────────────
 
@@ -168,8 +176,12 @@ export async function detectAndNotifyStrengthPRs(
   newExercises: LoggedExercise[],
 ): Promise<void> {
   const prs = await detectStrengthPRs(prisma, userId, newWorkoutId, newExercises);
+  if (prs.length === 0) return;
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
+  const pref = normalizePreference(user?.unitPreference);
   for (const pr of prs) {
-    await notifyNewPR(userId, pr.displayName, pr.e1RMLbs, 'lbs').catch(() => {});
+    const { value, unit } = prDisplay(pr.e1RMLbs, pref);
+    await notifyNewPR(userId, pr.displayName, value, unit).catch(() => {});
   }
 }
 
@@ -219,10 +231,11 @@ export async function detectAndNotifyWeightMilestone(
 ): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { coachGoal: true },
+    select: { coachGoal: true, unitPreference: true },
   });
   const direction = inferGoalDirection(user?.coachGoal);
   if (direction === 'maintain') return;
+  const pref = normalizePreference(user?.unitPreference);
 
   // Need a starting baseline + the prior log just before today.
   const [first, prior] = await Promise.all([
@@ -247,7 +260,7 @@ export async function detectAndNotifyWeightMilestone(
   );
 
   for (const m of milestones) {
-    await notifyWeightProgress(userId, m, direction).catch(() => {});
+    await notifyWeightProgress(userId, m, direction, pref).catch(() => {});
   }
 }
 

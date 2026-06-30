@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
+import { useUnits } from '../../context/UnitsContext';
 import { Button } from '../ui/Button';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 
@@ -395,6 +396,7 @@ const SECTION_TITLES = [
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
+  const { unitLabel } = useUnits();
   const [step, setStep] = useState(1);
   const [p, setP] = useState<OnboardingProfile>(EMPTY);
 
@@ -602,7 +604,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
             <Text style={s.fieldSub}>Approximate 1RMs or working weights. Skip lifts you don't do.</Text>
             <View style={s.strengthHeader}>
               <Text style={[s.strengthCol, { flex: 2 }]}>Exercise</Text>
-              <Text style={s.strengthCol}>Weight (lbs)</Text>
+              <Text style={s.strengthCol}>Weight ({unitLabel})</Text>
               <Text style={s.strengthCol}>Sets</Text>
               <Text style={s.strengthCol}>Reps</Text>
             </View>
@@ -769,7 +771,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
                 />
               </View>
               <View style={s.statsCell}>
-                <Text style={s.statsLabel}>Weight (lbs)</Text>
+                <Text style={s.statsLabel}>Weight ({unitLabel})</Text>
                 <TextInput
                   style={s.statsInput}
                   value={p.weightLbs}

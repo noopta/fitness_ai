@@ -19,7 +19,14 @@ import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { coachApi } from '../../../lib/api';
 import { colors, fontWeight } from '../../../constants/theme';
 import { useAuth } from '../../../context/AuthContext';
+import { useUnits } from '../../../context/UnitsContext';
 import { WeightShareModal } from '../../share/WeightShareModal';
+
+// BodyWeightLog values are stored in POUNDS, so convert FROM lbs to the
+// user's display unit (NOT via fromKg, which expects kg).
+const LB_PER_KG = 1 / 0.45359237;
+const displayFromLbs = (lbs: number, unit: 'kg' | 'lbs') =>
+  unit === 'kg' ? Math.round((lbs / LB_PER_KG) * 10) / 10 : Math.round(lbs * 10) / 10;
 
 interface Props {
   /** Pushed via the inspector body-press; the parent passes a back handler. */
@@ -36,6 +43,7 @@ const RANGES = [
 
 export function WeightDetailScreen({ onClose }: Props) {
   const { user } = useAuth();
+  const { unit, unitLabel } = useUnits();
   const [logs, setLogs] = useState<BodyWeightEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<typeof RANGES[number]['key']>(30);
@@ -107,12 +115,12 @@ export function WeightDetailScreen({ onClose }: Props) {
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>CURRENT</Text>
               <View style={styles.currentRow}>
-                <Text style={styles.currentNum}>{current != null ? current.toFixed(1) : '—'}</Text>
-                <Text style={styles.currentUnit}>lb</Text>
+                <Text style={styles.currentNum}>{current != null ? displayFromLbs(current, unit).toFixed(1) : '—'}</Text>
+                <Text style={styles.currentUnit}>{unitLabel}</Text>
               </View>
               {weeklyDelta != null ? (
                 <Text style={[styles.delta, weeklyDelta < 0 && { color: colors.success }, weeklyDelta > 0 && { color: colors.warning }]}>
-                  {weeklyDelta > 0 ? '+' : ''}{weeklyDelta.toFixed(2)} lb/wk
+                  {weeklyDelta > 0 ? '+' : ''}{displayFromLbs(weeklyDelta, unit).toFixed(2)} {unitLabel}/wk
                 </Text>
               ) : null}
             </View>
@@ -134,7 +142,7 @@ export function WeightDetailScreen({ onClose }: Props) {
           <BigChart entries={filtered} />
 
           {/* ─── Projection (the old WeeklyProjection block) ─────────── */}
-          <ProjectionBlock series={filtered} subtractWorkoutBurn={user?.subtractWorkoutBurnFromCalories !== false} />
+          <ProjectionBlock series={filtered} subtractWorkoutBurn={user?.subtractWorkoutBurnFromCalories !== false} unit={unit} unitLabel={unitLabel} />
 
           {/* ─── Recent entries ──────────────────────────────────────── */}
           <Text style={styles.sectionEyebrow}>RECENT ENTRIES</Text>
@@ -145,7 +153,7 @@ export function WeightDetailScreen({ onClose }: Props) {
               {[...filtered].reverse().slice(0, 14).map((e, i) => (
                 <View key={`${e.date}-${i}`} style={[styles.entryRow, i > 0 && styles.entryRowDivider]}>
                   <Text style={styles.entryDate}>{formatEntryDate(e.date)}</Text>
-                  <Text style={styles.entryValue}>{e.weightLbs.toFixed(1)} lb</Text>
+                  <Text style={styles.entryValue}>{displayFromLbs(e.weightLbs, unit).toFixed(1)} {unitLabel}</Text>
                 </View>
               ))}
             </View>
@@ -274,9 +282,9 @@ function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
 }
 
 function ProjectionBlock({
-  series, subtractWorkoutBurn,
+  series, subtractWorkoutBurn, unit, unitLabel,
 }: {
-  series: BodyWeightEntry[]; subtractWorkoutBurn: boolean;
+  series: BodyWeightEntry[]; subtractWorkoutBurn: boolean; unit: 'kg' | 'lbs'; unitLabel: 'kg' | 'lbs';
 }) {
   // Estimate weekly change from the last 14 entries (linear regression
   // slope × 7 days). This is the same heuristic the old WeeklyProjection
@@ -290,7 +298,7 @@ function ProjectionBlock({
       <Text style={styles.projectionLine}>
         {Math.abs(weeklyChange) < 0.05
           ? 'Trend is flat at your current intake.'
-          : `Trending ${weeklyChange > 0 ? 'up' : 'down'} ${Math.abs(weeklyChange).toFixed(2)} lb/wk.`}
+          : `Trending ${weeklyChange > 0 ? 'up' : 'down'} ${displayFromLbs(Math.abs(weeklyChange), unit).toFixed(2)} ${unitLabel}/wk.`}
       </Text>
       <Text style={styles.projectionSubtle}>
         Tweak your daily calorie target in the Coach nutrition plan to bend this.

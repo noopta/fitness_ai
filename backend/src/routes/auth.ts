@@ -8,6 +8,7 @@ import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
 import posthog from '../services/posthogClient.js';
+import { detectUnitPreferenceFromAcceptLanguage, normalizePreference } from '../services/weightUnits.js';
 import {
   requestCode as requestEmailVerification,
   verifyCode as verifyEmailCode,
@@ -89,6 +90,10 @@ const registerSchema = z.object({
   password: z.string().min(8),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   referralCode: z.string().optional(),
+  // Optional explicit unit preference from the client (e.g. mobile passing its
+  // device locale's choice). When omitted we infer from the Accept-Language
+  // header. 'metric' | 'imperial'.
+  unitPreference: z.enum(['metric', 'imperial']).optional(),
 });
 
 // GET /api/auth/user-count — total registered users, used as social proof on
@@ -134,6 +139,12 @@ router.post('/auth/register', async (req, res) => {
       });
     }
 
+    // Default the display unit: explicit client choice wins, else infer from the
+    // signup locale (EU/metric regions → metric, US/unknown → imperial). Storage
+    // stays canonical kg regardless; this only sets what the user sees first.
+    const unitPreference = data.unitPreference
+      ?? detectUnitPreferenceFromAcceptLanguage(req.headers['accept-language']);
+
     const hashedPassword = await bcrypt.hash(data.password, 12);
     const user = await prisma.user.create({
       data: {
@@ -141,6 +152,7 @@ router.post('/auth/register', async (req, res) => {
         email: data.email,
         hashedPassword,
         dateOfBirth: new Date(data.dateOfBirth),
+        unitPreference,
         tier: tierForEmail(data.email),
         // When the flag is OFF (default), treat new signups as verified so
         // they pass the login gate later — preserves the original behavior
@@ -451,6 +463,7 @@ router.get('/auth/google/callback', async (req, res) => {
         data: {
           googleId, email, name,
           tier: tierForEmail(email),
+          unitPreference: detectUnitPreferenceFromAcceptLanguage(req.headers['accept-language']),
           emailVerified: true,
           emailVerifiedAt: new Date(),
         },
@@ -543,6 +556,7 @@ router.post('/auth/apple', async (req, res) => {
         data: {
           appleId, email, name,
           tier: tierForEmail(email),
+          unitPreference: detectUnitPreferenceFromAcceptLanguage(req.headers['accept-language']),
           emailVerified: true,
           emailVerifiedAt: new Date(),
         },
@@ -610,6 +624,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         tier: true,
         heightCm: true,
         weightKg: true,
+        unitPreference: true,
         trainingAge: true,
         equipment: true,
         constraintsText: true,
@@ -659,6 +674,7 @@ const profileSchema = z.object({
   name: z.string().optional(),
   heightCm: z.number().optional(),
   weightKg: z.number().optional(),
+  unitPreference: z.enum(['metric', 'imperial']).optional(),
   trainingAge: z.string().optional(),
   equipment: z.string().optional(),
   constraintsText: z.string().optional(),
@@ -684,7 +700,7 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
       },
       select: {
         id: true, name: true, email: true, tier: true,
-        heightCm: true, weightKg: true, trainingAge: true,
+        heightCm: true, weightKg: true, unitPreference: true, trainingAge: true,
         equipment: true, constraintsText: true,
         coachGoal: true, coachBudget: true, coachOnboardingDone: true, coachProfile: true, savedProgram: true,
         subtractWorkoutBurnFromCalories: true,
