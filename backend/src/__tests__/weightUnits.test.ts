@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   kgToLb, lbToKg, normalizePreference, unitLabel, displayWeight, formatWeight,
-  parseToKg, isMetricRegion, detectUnitPreferenceFromAcceptLanguage,
+  parseToKg, isMetricRegion, detectUnitPreferenceFromAcceptLanguage, bodyWeightKg,
 } from '../services/weightUnits.js';
 import { prDisplay } from '../services/progressService.js';
 
@@ -81,5 +81,19 @@ describe('prDisplay (PR push value+unit)', () => {
   it('imperial keeps lbs; metric converts to kg', () => {
     expect(prDisplay(225, 'imperial')).toEqual({ value: 225, unit: 'lbs' });
     expect(prDisplay(225, 'metric')).toEqual({ value: 102, unit: 'kg' });
+  });
+});
+
+describe('bodyWeightKg (weightLbs→weightKg transition)', () => {
+  it('prefers canonical weightKg when present', () => {
+    expect(bodyWeightKg({ weightKg: 84, weightLbs: 999 })).toBe(84);
+  });
+  it('falls back to converting legacy pounds when weightKg is null', () => {
+    expect(bodyWeightKg({ weightKg: null, weightLbs: 185 })).toBeCloseTo(83.91, 2);
+  });
+  it('returns null when neither is a finite number', () => {
+    expect(bodyWeightKg({ weightKg: null, weightLbs: null })).toBeNull();
+    expect(bodyWeightKg(null)).toBeNull();
+    expect(bodyWeightKg({})).toBeNull();
   });
 });

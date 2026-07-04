@@ -10,7 +10,7 @@ import {
   notifyNewPR,
   notifyWeightProgress,
 } from './notificationService.js';
-import { lbToKg, normalizePreference, type UnitPreference } from './weightUnits.js';
+import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, type UnitPreference } from './weightUnits.js';
 
 /** Render a canonical-lbs e1RM as the user's preferred (value, unit) for a PR push. */
 export function prDisplay(e1RMLbs: number, pref: UnitPreference): { value: number; unit: 'lbs' | 'kg' } {
@@ -227,7 +227,7 @@ export async function detectAndNotifyWeightMilestone(
   prisma: PrismaClient,
   userId: string,
   newDate: string,
-  newWeightLbs: number,
+  newWeightKg: number,
 ): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -237,25 +237,31 @@ export async function detectAndNotifyWeightMilestone(
   if (direction === 'maintain') return;
   const pref = normalizePreference(user?.unitPreference);
 
-  // Need a starting baseline + the prior log just before today.
+  // Need a starting baseline + the prior log just before today. Rows may still
+  // hold legacy pounds until the backfill runs, so normalise to canonical kg.
   const [first, prior] = await Promise.all([
     prisma.bodyWeightLog.findFirst({
       where: { userId },
       orderBy: { date: 'asc' },
-      select: { weightLbs: true, date: true },
+      select: { weightKg: true, weightLbs: true, date: true },
     }),
     prisma.bodyWeightLog.findFirst({
       where: { userId, date: { lt: newDate } },
       orderBy: { date: 'desc' },
-      select: { weightLbs: true },
+      select: { weightKg: true, weightLbs: true },
     }),
   ]);
 
-  if (!first || first.date === newDate) return; // need at least one prior anchor
+  const firstKg = bodyWeightKg(first);
+  if (!first || first.date === newDate || firstKg == null) return; // need a prior anchor
+  const priorKg = bodyWeightKg(prior);
+
+  // Compare in the user's display unit so milestones are unit-native: the same
+  // round numbers (5/10/15…) mean kg for metric users and lbs for imperial.
   const milestones = crossedWeightMilestones(
-    first.weightLbs,
-    prior?.weightLbs ?? null,
-    newWeightLbs,
+    displayWeight(firstKg, pref, 1),
+    priorKg != null ? displayWeight(priorKg, pref, 1) : null,
+    displayWeight(newWeightKg, pref, 1),
     direction,
   );
 

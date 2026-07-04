@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { bodyWeightKg, kgToLb } from '../services/weightUnits.js';
 import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
@@ -255,7 +256,7 @@ export async function computeStrengthProfile(userId: string) {
       return d.toISOString().split('T')[0];
     })();
     const [bwLogs, nutritionLogs, wellnessLogs] = await Promise.all([
-      prisma.bodyWeightLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
+      prisma.bodyWeightLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' }, select: { date: true, weightKg: true, weightLbs: true } }),
       prisma.nutritionLog.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
       prisma.wellnessCheckin.findMany({ where: { userId, date: { gte: recoveryWindowKey } }, orderBy: { date: 'asc' } }),
     ]);
@@ -264,7 +265,10 @@ export async function computeStrengthProfile(userId: string) {
       workouts: ledgerWorkouts,
       liftE1rms: lifts.map((l) => ({ canonicalName: l.canonicalName, e1rmKg: l.current1RMkg })),
       bodyweightKg,
-      bodyWeight: bwLogs.map((b) => ({ date: b.date, weightLbs: b.weightLbs })),
+      bodyWeight: bwLogs
+        .map((b) => ({ date: b.date, kg: bodyWeightKg(b) }))
+        .filter((b): b is { date: string; kg: number } => b.kg != null)
+        .map((b) => ({ date: b.date, weightLbs: Math.round(kgToLb(b.kg) * 10) / 10 })),
       nutrition: nutritionLogs.map((n) => ({ date: n.date, calories: n.calories, proteinG: n.proteinG })),
       wellness: wellnessLogs.map((w) => ({ date: w.date, sleepHours: w.sleepHours, stress: w.stress, energy: w.energy })),
     });

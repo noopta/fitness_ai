@@ -31,6 +31,8 @@ export interface UserContext {
     tier: string;
     heightCm: number | null;
     weightKg: number | null;
+    /** User's display-unit preference — drives how weights are rendered to them. */
+    unitPreference: 'metric' | 'imperial';
     trainingAge: string | null;
     equipment: string | null;
     constraints: string | null;
@@ -48,10 +50,11 @@ export interface UserContext {
     fatG: number;
     mealCount: number;
   } | null;
+  // Canonical kilograms — rendered into the user's unit at display time.
   bodyWeight: {
-    latestLbs: number | null;
-    sevenDayAvgLbs: number | null;
-    trendLbsPerWeek: number | null;
+    latestKg: number | null;
+    sevenDayAvgKg: number | null;
+    trendKgPerWeek: number | null;
   } | null;
   lastWellness: {
     date: string;

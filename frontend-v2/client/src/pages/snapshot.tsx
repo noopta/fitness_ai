@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { liftCoachApi } from "@/lib/api";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
+import { useUnits, kgToLb } from "@/lib/units";
 
 type SnapshotRow = {
   id: string;
@@ -145,6 +146,8 @@ const defaultExercises = [
 
 export default function Snapshot() {
   const [, setLocation] = useLocation();
+  // Safe pre-auth: useUnits() defaults to imperial when there is no logged-in user.
+  const units = useUnits();
   const [selectedLift, setSelectedLift] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<SnapshotRow[]>([
@@ -277,7 +280,8 @@ export default function Snapshot() {
 
       const snapshots = validRows.map(row => ({
         exerciseId: row.exercise.toLowerCase().replace(/\s+/g, "_"),
-        weight: toNum(row.weight),
+        // The diagnostic engine works in lbs; a metric user types kg, so convert here.
+        weight: units.isMetric ? kgToLb(toNum(row.weight)) : toNum(row.weight),
         weightUnit: "lbs" as const,
         sets: toInt(row.sets),
         reps: toInt(row.reps),
@@ -357,7 +361,7 @@ export default function Snapshot() {
                     Exercise
                   </div>
                   <div className="text-xs font-semibold text-muted-foreground" data-testid="label-weight">
-                    Weight (lbs)
+                    Weight ({units.label})
                   </div>
                   <div className="text-xs font-semibold text-muted-foreground" data-testid="label-sets">
                     Sets
@@ -422,7 +426,7 @@ export default function Snapshot() {
 
                       <Input
                         className="h-11"
-                        placeholder="lbs"
+                        placeholder={units.label}
                         inputMode="decimal"
                         value={row.weight}
                         onChange={(e) => {

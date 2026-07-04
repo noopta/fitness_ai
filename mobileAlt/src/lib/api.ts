@@ -410,10 +410,13 @@ export const coachApi = {
 
   // Analytics / body weight
   getAnalytics: () => apiFetch('/coach/analytics'),
-  logBodyWeight: (weightLbs: number, date?: string) =>
+  // Body weight is stored canonically in kilograms. Callers convert the user's
+  // typed value via useUnits().toKg() before calling this. (Legacy weightLbs is
+  // still accepted by the backend, but new code sends weightKg.)
+  logBodyWeight: (weightKg: number, date?: string) =>
     apiFetch('/coach/body-weight', {
       method: 'POST',
-      body: JSON.stringify({ weightLbs, date: date || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() }),
+      body: JSON.stringify({ weightKg, date: date || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() }),
     }),
   getBodyWeight: () => apiFetch('/coach/body-weight'),
 

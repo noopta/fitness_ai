@@ -138,7 +138,10 @@ export function RadarAxisDrillSheet({
  */
 export function deriveFeedingLifts(
   axisLabel: string,
-  lifts: Array<{ name: string; category: string; current1RMLbs: number }>,
+  lifts: Array<{ name: string; category: string; current1RMLbs: number; current1RMkg?: number }>,
+  /** Unit context so the e1RM reads in the user's unit. Pass
+   *  { fromKg, unitLabel } from useUnits(); omitted → legacy lb display. */
+  units?: { fromKg: (kg: number) => number; unitLabel: string },
 ): AxisLift[] {
   const bucket = axisToCategoryBucket[axisLabel];
   if (!bucket) return [];
@@ -164,7 +167,9 @@ export function deriveFeedingLifts(
   const total = top.reduce((sum, l) => sum + l.current1RMLbs, 0) || 1;
   return top.map(l => ({
     name: l.name,
-    e1rmDisplay: `${l.current1RMLbs} lb`,
+    e1rmDisplay: units && l.current1RMkg != null
+      ? `${units.fromKg(l.current1RMkg)} ${units.unitLabel}`
+      : `${l.current1RMLbs} lb`,
     contribPct: Math.round((l.current1RMLbs / total) * 100),
   }));
 }

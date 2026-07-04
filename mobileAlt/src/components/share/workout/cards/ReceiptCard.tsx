@@ -69,7 +69,7 @@ export function ReceiptCard({ p, width, height, data }: Props) {
 
         <Dash w={contentW} p={p} />
 
-        <Row label="TOTAL VOLUME" value={`${formatVolume(data.volumeLb)} LB`} />
+        <Row label="TOTAL VOLUME" value={`${formatVolume(data.volumeLb)} ${(data.volumeUnit ?? 'lb').toUpperCase()}`} />
         <Row label="SETS" value={String(data.sets)} />
         <Row label="DURATION" value={formatDuration(data.durationMin).toUpperCase()} />
 

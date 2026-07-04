@@ -64,6 +64,21 @@ export function parseToKg(value: number | null | undefined, pref: UnitPreference
   return pref === 'metric' ? value : lbToKg(value);
 }
 
+/**
+ * Canonical kg for a BodyWeightLog-shaped row during the weightLbs→weightKg
+ * transition: prefer the new `weightKg`, fall back to converting the legacy
+ * `weightLbs` for rows not yet touched by scripts/backfillBodyWeightKg.ts.
+ * Returns null when neither is a finite number.
+ */
+export function bodyWeightKg(
+  row: { weightKg?: number | null; weightLbs?: number | null } | null | undefined,
+): number | null {
+  if (!row) return null;
+  if (row.weightKg != null && Number.isFinite(row.weightKg)) return row.weightKg;
+  if (row.weightLbs != null && Number.isFinite(row.weightLbs)) return lbToKg(row.weightLbs);
+  return null;
+}
+
 // ── Locale-based default detection ──────────────────────────────────────────────
 // The product is US-first, so imperial is the default. We flip to metric only
 // when a signup's locale clearly comes from a metric region — chiefly the EU/EEA

@@ -75,9 +75,10 @@ describe('buildShareableWorkout', () => {
       [],
     );
     expect(s.sets).toBe(3);
-    // (100×5 + 90×6 + 90×6) kg → lb
-    const expected = Math.round((100 * 5 + 90 * 6 + 90 * 6) * 2.20462);
-    expect(s.volumeLb).toBe(expected);
+    const volKg = 100 * 5 + 90 * 6 + 90 * 6; // 1580 kg
+    expect(s.volumeKg).toBe(volKg);
+    // (100×5 + 90×6 + 90×6) kg → lb, exact avoirdupois
+    expect(s.volumeLb).toBe(Math.round(volKg * 2.2046226218));
   });
 
   it('maps the top PR into the pr field', () => {
@@ -88,7 +89,10 @@ describe('buildShareableWorkout', () => {
       { title: 'Push Day', durationMin: 58, loggedAt: LOGGED_AT, exercises: [{ name: 'Bench Press', sets: 5, reps: '3', weightKg: 90 }] },
       prs,
     );
-    expect(s.pr).toEqual({ lift: 'Bench Press', metric: 'e1RM', value: '215', unit: 'lb', delta: '+5 lb' });
+    expect(s.pr).toEqual({
+      lift: 'Bench Press', metric: 'e1RM', value: '215', unit: 'lb', delta: '+5 lb',
+      valueKg: 98, deltaKg: 2, // 215 lb → 98 kg, +5 lb → +2 kg
+    });
   });
 
   it('falls back to a default title and zero duration', () => {

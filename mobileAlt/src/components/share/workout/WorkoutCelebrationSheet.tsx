@@ -5,7 +5,7 @@
 // picker, photo + theme controls, and a primary Share + secondary Save to Photos.
 // Sharing is always optional and never blocks — logging is already complete.
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
   useWindowDimensions, AccessibilityInfo, Alert, ScrollView,
@@ -20,6 +20,8 @@ import {
   DEFAULT_CROP, NO_PHOTO_TEMPLATES, PHOTO_TEMPLATES, PHOTO_REQUIRED, HAS_THEME_TOGGLE,
 } from './types';
 import { refFor, EXPORT_WIDTH } from './tokens';
+import { displayShareable } from './format';
+import { useUnits } from '../../../context/UnitsContext';
 import { ShareCard } from './ShareCard';
 import { ThemeToggle, TemplatePicker } from './controls';
 import { captureCard, shareCardImage, saveToPhotos } from './captureAndExport';
@@ -47,7 +49,14 @@ function fitFrame(availW: number, availH: number, template: ShareTemplate) {
 export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) {
   const { width: screenW, height: screenH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const { unit } = useUnits();
   const captureRefView = useRef<View>(null);
+
+  // The backend builds `shareable` in lb; render it in the sharer's unit.
+  const display = useMemo(
+    () => (shareable ? displayShareable(shareable, unit) : null),
+    [shareable, unit],
+  );
 
   const [draft, setDraft] = useState<ShareDraft>({ template: 'hero', theme: 'dark', photo: null });
   const [busy, setBusy] = useState<null | 'share' | 'save'>(null);
@@ -66,7 +75,7 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
     AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
   }, [visible]);
 
-  if (!shareable) return null;
+  if (!shareable || !display) return null;
 
   const hasPhoto = !!draft.photo;
   const branchTemplates = hasPhoto ? PHOTO_TEMPLATES : NO_PHOTO_TEMPLATES;
@@ -75,11 +84,11 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
   const shareDisabled = PHOTO_REQUIRED[draft.template] && !draft.photo;
 
   // Header copy — clipped, second person, no exclamation marks.
-  const pr = shareable.pr;
+  const pr = display.pr;
   const headline = pr ? 'New PR.' : 'Session logged.';
   const subline = pr
     ? `${pr.lift} ${pr.metric} ${pr.value} ${pr.unit}`
-    : shareable.title;
+    : display.title;
 
   // Preview frame — leave room for header + controls.
   const availW = Math.min(screenW - spacing.lg * 2, 360);
@@ -184,7 +193,7 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
           {/* Live preview */}
           <View style={[styles.previewWrap, { width: frame.w, height: frame.h }]}>
             <ShareCard
-              data={shareable}
+              data={display}
               draft={draft}
               frameW={frame.w}
               interactive={isPhotoTemplate && hasPhoto}
@@ -277,7 +286,7 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
         <View style={styles.offscreen} pointerEvents="none">
           <ShareCard
             ref={captureRefView}
-            data={shareable}
+            data={display}
             draft={draft}
             frameW={EXPORT_WIDTH}
             captureMode

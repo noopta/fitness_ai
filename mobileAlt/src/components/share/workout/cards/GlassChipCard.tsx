@@ -77,7 +77,7 @@ export function GlassChipCard({ p, width, height, data, uri, crop, interactive, 
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
               <Text style={{ color: white, fontSize: p(40), fontWeight: '700', letterSpacing: -p(40) * 0.04, fontVariant: ['tabular-nums'], lineHeight: p(40) }}>{formatVolume(data.volumeLb)}</Text>
-              <Text style={{ color: white, fontSize: p(18), fontWeight: '700', marginLeft: p(4), marginBottom: p(4) }}>lb</Text>
+              <Text style={{ color: white, fontSize: p(18), fontWeight: '700', marginLeft: p(4), marginBottom: p(4) }}>{data.volumeUnit ?? 'lb'}</Text>
             </View>
             <Text style={{ color: muted, fontSize: p(12), fontWeight: '500', marginTop: p(4) }} numberOfLines={1}>
               {data.title} · {formatDateEyebrow(data.loggedAt)}

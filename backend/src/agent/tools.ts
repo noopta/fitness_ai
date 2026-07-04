@@ -12,7 +12,14 @@ import { parseMealMacros } from '../services/llmService.js';
 import { appendMemory } from './memory.js';
 import { applyMacroChange, applyProgramUpdate, applyExerciseSwap, buildPlanPatchProposal } from './applyTools.js';
 import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '../routes/coach.js';
+import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 import type { AgentTool } from './types.js';
+
+/** Look up a user's display-unit preference (defaults imperial). */
+async function userUnitPref(userId: string): Promise<'metric' | 'imperial'> {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
+  return normalizePreference(u?.unitPreference);
+}
 
 const prisma = new PrismaClient();
 
@@ -89,26 +96,40 @@ const readBodyWeightTrend: AgentTool = {
     const days = Math.max(1, Math.min(365, Number(input.days) || 30));
     const since = new Date();
     since.setDate(since.getDate() - days);
+    const pref = await userUnitPref(userId);
+    const unit = unitLabel(pref);
     const logs = await prisma.bodyWeightLog.findMany({
       where: { userId },
       orderBy: { date: 'asc' },
-      select: { date: true, weightLbs: true },
+      select: { date: true, weightKg: true, weightLbs: true },
     });
-    const windowed = logs.filter((l) => new Date(l.date) >= since);
-    const latest = windowed.length ? windowed[windowed.length - 1].weightLbs : null;
+    // Canonical kg (legacy rows may still hold lbs), then trend in kg.
+    const windowed = logs
+      .filter((l) => new Date(l.date) >= since)
+      .map((l) => ({ date: l.date, kg: bodyWeightKg(l) }))
+      .filter((l): l is { date: string; kg: number } => l.kg != null);
+    const latestKg = windowed.length ? windowed[windowed.length - 1].kg : null;
     // Linear slope over index ≈ per-entry change; ×7 for a rough per-week.
-    let trendPerWeek: number | null = null;
+    let trendKgPerWeek: number | null = null;
     if (windowed.length >= 2) {
       const n = windowed.length;
       const xs = windowed.map((_, i) => i);
-      const ys = windowed.map((l) => l.weightLbs);
+      const ys = windowed.map((l) => l.kg);
       const mx = xs.reduce((s, v) => s + v, 0) / n;
       const my = ys.reduce((s, v) => s + v, 0) / n;
       let num = 0, den = 0;
       for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
-      trendPerWeek = den === 0 ? 0 : (num / den) * 7;
+      trendKgPerWeek = den === 0 ? 0 : (num / den) * 7;
     }
-    return { days, count: windowed.length, latestLbs: latest, trendLbsPerWeek: trendPerWeek, series: windowed };
+    // Present in the user's unit so the model speaks their language.
+    return {
+      days,
+      count: windowed.length,
+      unit,
+      latest: latestKg != null ? displayWeight(latestKg, pref, 1) : null,
+      trendPerWeek: trendKgPerWeek != null ? displayWeight(trendKgPerWeek, pref, 2) : null,
+      series: windowed.map((l) => ({ date: l.date, weight: displayWeight(l.kg, pref, 1) })),
+    };
   },
 };
 
@@ -208,24 +229,35 @@ const logMeal: AgentTool = {
 const logBodyWeight: AgentTool = {
   name: 'log_body_weight',
   description:
-    "Log the user's body weight for a day (lbs). Use when they tell you their current weight. Confirm what you logged.",
+    "Log the user's body weight for a day, in THEIR preferred unit (the profile shows whether they use kg or lbs — pass the number they said, in that unit). Use when they tell you their current weight. Confirm what you logged.",
   input_schema: {
     type: 'object',
     properties: {
-      weightLbs: { type: 'number', description: 'Body weight in pounds.' },
+      weight: { type: 'number', description: "Body weight in the user's preferred unit (kg or lbs)." },
       date: { type: 'string', description: 'YYYY-MM-DD. Omit for today.' },
     },
-    required: ['weightLbs'],
+    required: ['weight'],
   },
   execute: async (input, userId) => {
-    const weightLbs = Number(input.weightLbs);
-    if (!Number.isFinite(weightLbs) || weightLbs <= 0) throw new Error('weightLbs must be a positive number');
+    // Back-compat: accept legacy `weightLbs` from older tool-call shapes.
+    const raw = Number(input.weight ?? input.weightLbs);
+    if (!Number.isFinite(raw) || raw <= 0) throw new Error('weight must be a positive number');
+    const pref = await userUnitPref(userId);
+    // If the caller used the legacy `weightLbs` field, it's pounds regardless of pref.
+    const weightKg = input.weight != null ? parseToKg(raw, pref)! : parseToKg(raw, 'imperial')!;
     const date = (input.date as string) || todayStr();
     const entry = await prisma.bodyWeightLog.create({
-      data: { userId, date, weightLbs },
-      select: { id: true, date: true, weightLbs: true },
+      data: { userId, date, weightKg },
+      select: { id: true, date: true, weightKg: true },
     });
-    return { logged: entry };
+    return {
+      logged: {
+        id: entry.id,
+        date: entry.date,
+        weight: displayWeight(weightKg, pref, 1),
+        unit: unitLabel(pref),
+      },
+    };
   },
 };
 

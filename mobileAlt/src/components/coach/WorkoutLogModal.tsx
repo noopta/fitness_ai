@@ -358,6 +358,9 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
           name: ex.name.trim(),
           sets: Math.max(parseInt(ex.sets, 10) || 1, 1),
           reps: ex.reps.trim() || '1',
+          // Canonical kg so viewers see the load in THEIR unit; weight/unit kept
+          // as a legacy fallback for older clients.
+          weightKg: ex.bodyweight ? null : (ex.weight.trim() ? weightVal(ex.weight) : null),
           weight: ex.weight.trim() ? parseFloat(ex.weight) : 0,
           unit,
         }));

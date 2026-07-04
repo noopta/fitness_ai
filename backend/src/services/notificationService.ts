@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { lbToKg, normalizePreference, type UnitPreference } from './weightUnits.js';
+import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, unitLabel, type UnitPreference } from './weightUnits.js';
 
 const prisma = new PrismaClient();
 
@@ -227,7 +227,7 @@ export async function runWeeklySummary(): Promise<void> {
 
   const users = await prisma.user.findMany({
     where: { expoPushToken: { not: null }, coachOnboardingDone: true },
-    select: { id: true, name: true, expoPushToken: true, currentStreak: true },
+    select: { id: true, name: true, expoPushToken: true, currentStreak: true, unitPreference: true },
   });
 
   for (const user of users) {
@@ -246,7 +246,7 @@ export async function runWeeklySummary(): Promise<void> {
       prisma.bodyWeightLog.findMany({
         where: { userId: user.id, date: { gte: weekStart } },
         orderBy: { date: 'asc' },
-        select: { weightLbs: true },
+        select: { weightKg: true, weightLbs: true },
       }),
     ]);
 
@@ -257,14 +257,17 @@ export async function runWeeklySummary(): Promise<void> {
       ? Math.round(nutritionLogs.reduce((s, l) => s + l.proteinG, 0) / nutritionLogs.length)
       : null;
 
-    const bwDelta = bwLogs.length >= 2
-      ? (bwLogs[bwLogs.length - 1].weightLbs - bwLogs[0].weightLbs).toFixed(1)
+    const pref = normalizePreference(user.unitPreference);
+    const bwFirstKg = bodyWeightKg(bwLogs[0]);
+    const bwLastKg = bodyWeightKg(bwLogs[bwLogs.length - 1]);
+    const bwDelta = bwLogs.length >= 2 && bwFirstKg != null && bwLastKg != null
+      ? displayWeight(bwLastKg - bwFirstKg, pref, 1)
       : null;
 
     const first = user.name?.split(' ')[0] || 'there';
     const parts: string[] = [`${sessions} workout${sessions > 1 ? 's' : ''} logged`];
     if (avgProtein) parts.push(`avg ${avgProtein}g protein`);
-    if (bwDelta) parts.push(`weight ${Number(bwDelta) >= 0 ? '+' : ''}${bwDelta} lbs`);
+    if (bwDelta != null) parts.push(`weight ${bwDelta >= 0 ? '+' : ''}${bwDelta} ${unitLabel(pref)}`);
     if (user.currentStreak > 0) parts.push(`${user.currentStreak}-day streak`);
 
     await sendPushNotification({
@@ -431,18 +434,16 @@ export async function notifyPersonalBest(
  */
 export async function notifyWeightProgress(
   userId: string,
-  deltaLbs: number,
+  milestone: number,
   direction: 'lose' | 'gain',
   pref: UnitPreference = 'imperial',
 ): Promise<void> {
   const verb = direction === 'lose' ? 'down' : 'up';
   const titleEmoji = direction === 'lose' ? '📉' : '📈';
-  // The milestone cadence stays lbs-based (see progressService); we only render
-  // the delta in the user's unit so the copy reads natively for metric users.
-  // `deltaLbs` keys the copy variant; `disp` is what we show.
-  const disp = normalizePreference(pref) === 'metric'
-    ? `${Math.round(lbToKg(deltaLbs))} kg`
-    : `${deltaLbs} lbs`;
+  // Milestone cadence is now unit-native: the same round numbers (5/10/15…) are
+  // interpreted in the user's own unit — 5 kg for metric, 5 lbs for imperial.
+  // `milestone` keys the copy variant; `disp` is what we show.
+  const disp = `${milestone} ${unitLabel(pref)}`;
   const bodyByMilestone: Record<number, string> = {
     5:  `${disp} ${verb}. The first milestone is the hardest — and you're past it.`,
     10: `${disp} ${verb}. Compounding work is paying off. Anakin sees it.`,
@@ -451,7 +452,7 @@ export async function notifyWeightProgress(
     25: `${disp} ${verb}. You've changed your trajectory.`,
     30: `${disp} ${verb}. Take the win. Then keep stacking.`,
   };
-  const body = bodyByMilestone[deltaLbs] ?? `${disp} ${verb}. Real, measurable progress.`;
+  const body = bodyByMilestone[milestone] ?? `${disp} ${verb}. Real, measurable progress.`;
   await sendPushToUser(
     userId,
     `${disp} ${verb} ${titleEmoji}`,

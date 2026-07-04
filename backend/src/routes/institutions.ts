@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { bodyWeightKg, displayWeight } from '../services/weightUnits.js';
 import { requireInstitutionRole } from '../middleware/requireInstitutionRole.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { computeStrengthProfile } from './strength.js';
@@ -313,7 +314,11 @@ router.get(
         strengthSummary: strengthProfile,
         wellnessCheckins,
         nutritionLogs,
-        bodyWeightLogs,
+        // Canonical kg + derived lbs so the athlete view can localise to the unit.
+        bodyWeightLogs: bodyWeightLogs.map((l) => {
+          const kg = bodyWeightKg(l);
+          return { ...l, weightKg: kg, weightLbs: kg != null ? displayWeight(kg, 'imperial', 1) : l.weightLbs };
+        }),
       });
     } catch (err) {
       console.error('[institutions] GET /:slug/athletes/:userId', err);

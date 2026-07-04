@@ -7,9 +7,11 @@
 export interface SharePR {
   lift: string;     // "Bench Press"
   metric: string;   // "e1RM"
-  value: string;    // "215"
-  unit: string;     // "lb"
-  delta: string;    // "+5 lb"
+  value: string;    // "215" (legacy lb)
+  unit: string;     // "lb" (legacy)
+  delta: string;    // "+5 lb" (legacy)
+  valueKg?: number; // canonical e1RM in kg (newer backend)
+  deltaKg?: number; // canonical delta in kg (newer backend)
 }
 
 export interface ShareableWorkout {
@@ -17,8 +19,23 @@ export interface ShareableWorkout {
   loggedAt: string;        // ISO; formatted to "Wed · Jun 18 · 7:42 PM"
   durationMin: number;     // 58
   sets: number;            // total working sets
+  // Total volume as a raw number rendered with a thousands separator. The
+  // backend emits both units (`volumeKg` canonical + `volumeLb` legacy);
+  // `displayShareable()` picks the sharer's unit before the cards render.
+  // `volumeUnit` is the matching label ('lb' | 'kg'); cards fall back to 'lb'.
   volumeLb: number;        // 24150 → rendered "24,150"
-  exercises: Array<{ name: string; detail: string }>; // detail: "5 × 5 · 185 lb"
+  volumeKg?: number;       // canonical (newer backend)
+  volumeUnit?: string;     // 'lb' | 'kg'
+  // `detail` stays lb-formatted for older payloads; the structured fields (newer
+  // backend) let displayShareable() reformat cleanly in kg without string parsing.
+  exercises: Array<{
+    name: string;
+    detail: string;        // "5 × 5 · 185 lb"
+    sets?: number;
+    reps?: string;
+    weightKg?: number | null; // null ⇒ bodyweight / unloaded
+    bodyweight?: boolean;
+  }>;
   pr: SharePR | null;      // null ⇒ use volume/title fallback
 }
 

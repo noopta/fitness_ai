@@ -19,6 +19,7 @@ import { computePhaseState, parseSavedProgram } from '../services/programPhaseSe
 import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
 import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trainTogetherService.js';
+import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
@@ -373,18 +374,22 @@ async function buildFullUserContext(userId: string): Promise<string> {
     }
   }
 
-  // Body weight trend
+  // Body weight trend — rendered in the user's preferred unit (canonical kg).
   if (bodyWeightLogs.length > 0) {
+    const pref = normalizePreference(user.unitPreference);
+    const lbl = unitLabel(pref);
     lines.push('\n=== BODY WEIGHT LOG (last 30 days) ===');
     const recent = bodyWeightLogs.slice(0, 5);
     for (const w of recent) {
-      lines.push(`  ${w.date}: ${w.weightLbs} lbs${w.notes ? ` (${w.notes})` : ''}`);
+      const kg = bodyWeightKg(w);
+      if (kg == null) continue;
+      lines.push(`  ${w.date}: ${displayWeight(kg, pref, 1)} ${lbl}${w.notes ? ` (${w.notes})` : ''}`);
     }
-    if (bodyWeightLogs.length > 5) {
-      const oldest = bodyWeightLogs[bodyWeightLogs.length - 1].weightLbs;
-      const newest = bodyWeightLogs[0].weightLbs;
-      const delta = newest - oldest;
-      lines.push(`  Trend: ${delta >= 0 ? '+' : ''}${delta.toFixed(1)} lbs over ${bodyWeightLogs.length} entries`);
+    const oldestKg = bodyWeightKg(bodyWeightLogs[bodyWeightLogs.length - 1]);
+    const newestKg = bodyWeightKg(bodyWeightLogs[0]);
+    if (bodyWeightLogs.length > 5 && oldestKg != null && newestKg != null) {
+      const delta = displayWeight(newestKg - oldestKg, pref, 1);
+      lines.push(`  Trend: ${delta >= 0 ? '+' : ''}${delta} ${lbl} over ${bodyWeightLogs.length} entries`);
     }
   }
 
@@ -1643,17 +1648,24 @@ router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
 
 // ── Body Weight Log ────────────────────────────────────────────────────────────
 
+// Canonical storage is kg. New clients send `weightKg`; older builds send
+// `weightLbs` (pounds). Exactly one is required and we normalise to kg.
 const bodyWeightSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  weightLbs: z.number().positive(),
+  weightKg: z.number().positive().optional(),
+  weightLbs: z.number().positive().optional(),
   notes: z.string().optional(),
+}).refine((v) => v.weightKg != null || v.weightLbs != null, {
+  message: 'weightKg or weightLbs is required',
 });
 
 // POST /api/coach/body-weight - Log a body weight entry
 router.post('/coach/body-weight', requireAuth, async (req, res) => {
   try {
-    const { date, weightLbs, notes } = bodyWeightSchema.parse(req.body);
+    const { date, weightKg: kgIn, weightLbs: lbsIn, notes } = bodyWeightSchema.parse(req.body);
     const userId = req.user!.id;
+    // Prefer explicit kg; else convert legacy pounds. bodyWeightKg handles the math.
+    const weightKg = kgIn != null ? kgIn : bodyWeightKg({ weightLbs: lbsIn })!;
 
     // Upsert: replace existing entry for same date
     const existing = await prisma.bodyWeightLog.findFirst({ where: { userId, date } });
@@ -1661,18 +1673,19 @@ router.post('/coach/body-weight', requireAuth, async (req, res) => {
     if (existing) {
       entry = await prisma.bodyWeightLog.update({
         where: { id: existing.id },
-        data: { weightLbs, notes: notes || null },
+        // Clear any stale legacy pounds so weightKg is the single source of truth.
+        data: { weightKg, weightLbs: null, notes: notes || null },
       });
     } else {
       entry = await prisma.bodyWeightLog.create({
-        data: { userId, date, weightLbs, notes: notes || null },
+        data: { userId, date, weightKg, notes: notes || null },
       });
     }
     cacheDelete(`userctx:${userId}`);
 
     // Fire-and-forget weight-progress milestone detection — neuro-style
-    // reinforcement when the user crosses ±5/10/15+ lbs in their goal direction.
-    detectAndNotifyWeightMilestone(prisma, userId, date, weightLbs).catch(err =>
+    // reinforcement when the user crosses a milestone in their goal direction.
+    detectAndNotifyWeightMilestone(prisma, userId, date, weightKg).catch(err =>
       console.error('[coach] weight milestone detection error:', err)
     );
 
@@ -1691,9 +1704,19 @@ router.get('/coach/body-weight', requireAuth, async (req, res) => {
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
     const startDate = ninetyDaysAgo.toISOString().split('T')[0];
 
-    const logs = await prisma.bodyWeightLog.findMany({
+    const raw = await prisma.bodyWeightLog.findMany({
       where: { userId, date: { gte: startDate } },
       orderBy: { date: 'asc' },
+    });
+    // Emit canonical kg for new clients + a derived weightLbs so older builds
+    // (which read weightLbs) keep working until they're all updated.
+    const logs = raw.map((l) => {
+      const kg = bodyWeightKg(l);
+      return {
+        ...l,
+        weightKg: kg,
+        weightLbs: kg != null ? displayWeight(kg, 'imperial', 1) : l.weightLbs,
+      };
     });
     res.json({ logs });
   } catch (err) {
@@ -1816,7 +1839,10 @@ router.get('/strength-profile', requireAuth, async (req, res) => {
       sessionHistory: sessionHistory.slice(0, 10),
       progressionData,
       weeklyVolumeData,
-      weightLogs: weightLogs.map(w => ({ date: w.date, weightLbs: w.weightLbs })),
+      weightLogs: weightLogs.map(w => {
+        const kg = bodyWeightKg(w);
+        return { date: w.date, weightKg: kg, weightLbs: kg != null ? displayWeight(kg, 'imperial', 1) : w.weightLbs };
+      }),
       totalSessions: sessions.length,
       totalWorkouts: workoutLogs.length,
     });

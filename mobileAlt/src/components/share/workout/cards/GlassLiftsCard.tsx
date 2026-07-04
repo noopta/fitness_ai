@@ -78,7 +78,7 @@ export function GlassLiftsCard({ p, width, height, data, uri, crop, interactive,
             <Eyebrow p={p} color={muted}>Session logged</Eyebrow>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
               <Text style={{ color: white, fontSize: p(58), fontWeight: '700', letterSpacing: -p(58) * 0.04, fontVariant: ['tabular-nums'], lineHeight: p(58) }}>{formatVolume(data.volumeLb)}</Text>
-              <Text style={{ color: white, fontSize: p(22), fontWeight: '700', marginLeft: p(5), marginBottom: p(6) }}>lb</Text>
+              <Text style={{ color: white, fontSize: p(22), fontWeight: '700', marginLeft: p(5), marginBottom: p(6) }}>{data.volumeUnit ?? 'lb'}</Text>
             </View>
             <Eyebrow p={p} color={muted}>Total volume lifted</Eyebrow>
           </View>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
+import { useUnits, lbToKg } from '@/lib/units';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -54,12 +55,17 @@ function parseSharedWorkout(body: string): SharedWorkout | null {
   return null;
 }
 
-function workoutExerciseSummary(ex: SharedWorkout['exercises'][number]): string {
+function workoutExerciseSummary(
+  ex: SharedWorkout['exercises'][number],
+  units: ReturnType<typeof useUnits>,
+): string {
   const parts: string[] = [];
   if (ex.sets != null && ex.reps != null) parts.push(`${ex.sets}×${ex.reps}`);
   else if (ex.sets != null) parts.push(`${ex.sets} sets`);
-  const weight = ex.weightLbs != null ? `${Math.round(ex.weightLbs)} lb`
-    : ex.weightKg != null ? `${Math.round(ex.weightKg)} kg` : null;
+  // Canonical kg is authoritative; fall back to legacy lbs only if kg is absent.
+  const kg = ex.weightKg != null ? ex.weightKg
+    : ex.weightLbs != null ? lbToKg(ex.weightLbs) : null;
+  const weight = kg != null ? units.formatWeight(kg) : null;
   if (weight) parts.push(weight);
   if (ex.rpe != null) parts.push(`RPE ${ex.rpe}`);
   else if (ex.intensity) parts.push(ex.intensity);
@@ -129,6 +135,7 @@ function relativeTime(iso: string): string {
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const units = useUnits();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [convsLoading, setConvsLoading] = useState(true);
@@ -667,7 +674,7 @@ export default function MessagesPage() {
                               <ul className="mt-1.5 space-y-0.5">
                                 {wo.exercises.slice(0, 5).map((ex, i) => (
                                   <li key={i} className="text-xs truncate">
-                                    • {ex.name}{workoutExerciseSummary(ex) ? ` — ${workoutExerciseSummary(ex)}` : ''}
+                                    • {ex.name}{workoutExerciseSummary(ex, units) ? ` — ${workoutExerciseSummary(ex, units)}` : ''}
                                   </li>
                                 ))}
                                 {wo.exercises.length > 5 && (

@@ -10,6 +10,7 @@
 import { PrismaClient } from '@prisma/client';
 import Anthropic from '@anthropic-ai/sdk';
 import { sendPushToUsers } from './notificationService.js';
+import { bodyWeightKg, kgToLb } from './weightUnits.js';
 
 const prisma = new PrismaClient();
 
@@ -38,16 +39,17 @@ async function summarizeMember(userId: string, memberGoal: string | null): Promi
     prisma.user.findUnique({ where: { id: userId }, select: { username: true, name: true } }),
     prisma.workoutLog.count({ where: { userId, createdAt: { gte: since7 } } }),
     prisma.mealEntry.count({ where: { userId, createdAt: { gte: since3 } } }),
-    prisma.bodyWeightLog.findFirst({ where: { userId }, orderBy: { date: 'desc' }, select: { weightLbs: true } }),
+    prisma.bodyWeightLog.findFirst({ where: { userId }, orderBy: { date: 'desc' }, select: { weightKg: true, weightLbs: true } }),
     prisma.workoutLog.count({ where: { userId, date: todayStr } }),
   ]);
+  const latestBwKg = bodyWeightKg(latestBw);
   return {
     username: user?.username ?? null,
     name: user?.name ?? null,
     goal: memberGoal,
     workoutsLast7: workouts,
     mealsLoggedLast3Days: meals,
-    latestWeightLbs: latestBw?.weightLbs ?? null,
+    latestWeightLbs: latestBwKg != null ? Math.round(kgToLb(latestBwKg) * 10) / 10 : null,
     loggedToday: todayWorkouts > 0,
   };
 }

@@ -7,14 +7,15 @@ import Svg, { Polyline, Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../constants/theme';
 import { captureAndShare } from './shareCapture';
+import { useUnits } from '../../context/UnitsContext';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
   rangeLabel: string;
-  current: number | null;
-  totalChange: number | null; // lb over the range (negative = lost)
-  series: number[];
+  current: number | null;      // canonical kg
+  totalChange: number | null;  // canonical kg over the range (negative = lost)
+  series: number[];            // canonical kg
 }
 
 function MiniTrend({ values }: { values: number[] }) {
@@ -42,7 +43,12 @@ function MiniTrend({ values }: { values: number[] }) {
 
 export function WeightShareModal({ visible, onClose, rangeLabel, current, totalChange, series }: Props) {
   const cardRef = useRef<View>(null);
+  const { fromKg, unitLabel } = useUnits();
   const changeColor = totalChange == null ? '#a1a1aa' : totalChange <= 0 ? '#22c55e' : '#f59e0b';
+  // fromKg is linear, so it converts a kg *delta* to the display unit too.
+  const currentDisp = current != null ? fromKg(current) : null;
+  const changeDisp = totalChange != null ? fromKg(totalChange) : null;
+  const seriesDisp = series.map(fromKg);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -56,17 +62,17 @@ export function WeightShareModal({ visible, onClose, rangeLabel, current, totalC
 
             <Text style={styles.eyebrow}>BODY WEIGHT</Text>
             <View style={styles.currentRow}>
-              <Text style={styles.currentNum}>{current != null ? current.toFixed(1) : '—'}</Text>
-              <Text style={styles.unit}>lb</Text>
+              <Text style={styles.currentNum}>{currentDisp != null ? currentDisp.toFixed(1) : '—'}</Text>
+              <Text style={styles.unit}>{unitLabel}</Text>
             </View>
-            {totalChange != null && (
+            {changeDisp != null && (
               <Text style={[styles.change, { color: changeColor }]}>
-                {totalChange > 0 ? '+' : ''}{totalChange.toFixed(1)} lb this {rangeLabel.toLowerCase()}
+                {changeDisp > 0 ? '+' : ''}{changeDisp.toFixed(1)} {unitLabel} this {rangeLabel.toLowerCase()}
               </Text>
             )}
 
             <View style={styles.chartWrap}>
-              <MiniTrend values={series} />
+              <MiniTrend values={seriesDisp} />
             </View>
 
             <Text style={styles.tagline}>Progress with Axiom 💪</Text>

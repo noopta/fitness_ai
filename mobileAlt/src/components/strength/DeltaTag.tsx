@@ -5,6 +5,8 @@ import { colors } from '../../constants/theme';
 interface Props {
   /** Numeric delta. null → renders an em-dash placeholder per the handoff. */
   value: number | null;
+  /** Unit/label appended after the value (e.g. ' kg', ' lbs'). The caller owns
+   *  the unit — pass useUnits().unitLabel for weight deltas. Defaults to none. */
   suffix?: string;
   size?: number;
   /** When true, positive deltas use the muted color (used inside dark cards). */
@@ -15,7 +17,7 @@ interface Props {
 /**
  * Monospace +/- delta. Color codes positive-green / negative-red. null → em-dash.
  */
-export function DeltaTag({ value, suffix = ' lb', size = 11, invert = false, style }: Props) {
+export function DeltaTag({ value, suffix = '', size = 11, invert = false, style }: Props) {
   if (value == null) {
     return (
       <Text

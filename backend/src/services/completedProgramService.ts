@@ -4,6 +4,7 @@
 // explicit "finish program" flow once we add it.
 
 import { PrismaClient } from '@prisma/client';
+import { bodyWeightKg, kgToLb } from './weightUnits.js';
 
 const prisma = new PrismaClient();
 
@@ -70,16 +71,20 @@ export async function computeProgramStats(
     prisma.bodyWeightLog.findFirst({
       where: { userId, date: { gte: startIso, lte: endIso } },
       orderBy: { date: 'asc' },
-      select: { weightLbs: true },
+      select: { weightKg: true, weightLbs: true },
     }),
     prisma.bodyWeightLog.findFirst({
       where: { userId, date: { gte: startIso, lte: endIso } },
       orderBy: { date: 'desc' },
-      select: { weightLbs: true },
+      select: { weightKg: true, weightLbs: true },
     }),
   ]);
-  const bodyWeightStartLb = first?.weightLbs ?? null;
-  const bodyWeightEndLb = last?.weightLbs ?? null;
+  // Stored canonically in kg; this archive stat stays lb-named (converted at
+  // read) — display surfaces localise it to the viewer's unit.
+  const firstKg = bodyWeightKg(first);
+  const lastKg = bodyWeightKg(last);
+  const bodyWeightStartLb = firstKg != null ? Math.round(kgToLb(firstKg) * 10) / 10 : null;
+  const bodyWeightEndLb = lastKg != null ? Math.round(kgToLb(lastKg) * 10) / 10 : null;
   const bodyWeightChangeLb = (bodyWeightStartLb != null && bodyWeightEndLb != null)
     ? Math.round((bodyWeightEndLb - bodyWeightStartLb) * 10) / 10
     : null;
