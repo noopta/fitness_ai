@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { coachApi, socialApi } from '../../lib/api';
+import { coachApi, socialApi, trainTogetherApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { getCached, setCached, invalidateCache } from '../../lib/cache';
 import { LifeHappenedModal } from './LifeHappenedModal';
@@ -333,6 +333,32 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(cachedSnapshot?.schedule ?? null);
   const [loading, setLoading] = useState(cachedSnapshot === null);
 
+  // Train Together: names of today's partner-workout companions, if a pin
+  // exists for today. Fetched independently of loadData so a failure here
+  // never affects the workout card.
+  const [todayPartner, setTodayPartner] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pins: any = await trainTogetherApi.getPins();
+        const todayEST = todayESTString();
+        const pin = (Array.isArray(pins) ? pins : []).find(
+          (p: any) => p.date === todayEST && (p.status === 'confirmed' || p.status === 'pending'),
+        );
+        if (!pin || cancelled) return;
+        const names = (pin.members ?? [])
+          .filter((m: any) => m.userId !== user?.id && m.response !== 'declined')
+          .map((m: any) => m.user?.name || m.user?.username)
+          .filter(Boolean);
+        if (names.length) setTodayPartner(names.join(', '));
+      } catch {
+        // Signed-out / endpoint unavailable: no chip.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   const [lifeHappenedVisible, setLifeHappenedVisible] = useState(false);
   const [swapVisible, setSwapVisible] = useState(false);
   const [logWorkoutVisible, setLogWorkoutVisible] = useState(false);
@@ -562,6 +588,11 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
             </View>
             <Text style={dark.title}>Rest Day</Text>
             <Text style={dark.subtitle}>Recovery is where gains are made</Text>
+            {todayPartner && (
+              <View style={dark.partnerChip}>
+                <Text style={dark.partnerChipText}>🤝 Joining {todayPartner}'s workout today</Text>
+              </View>
+            )}
             <View style={dark.tipsBox}>
               <Text style={dark.tipsLabel}>RECOVERY FOCUS</Text>
               {[
@@ -605,6 +636,11 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
             </Text>
             {todayData?.todaySession?.focus && todayData.todaySession.day && (
               <Text style={dark.subtitle}>{todayData.todaySession.focus}</Text>
+            )}
+            {todayPartner && (
+              <View style={dark.partnerChip}>
+                <Text style={dark.partnerChipText}>🤝 Training with {todayPartner}</Text>
+              </View>
             )}
 
             {/* exercise list */}
@@ -1022,6 +1058,17 @@ const dark = StyleSheet.create({
   },
   subtitle: {
     fontSize: 13, color: '#a1a1aa', marginTop: -8,
+  },
+  // Train Together companion chip — "🤝 Training with Alex"
+  partnerChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  partnerChipText: {
+    fontSize: 12, color: '#fff', fontWeight: '600',
   },
   exList: {
     backgroundColor: '#27272a',

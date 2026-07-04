@@ -727,6 +727,31 @@ export const socialApi = {
     apiFetch('/social/report', { method: 'POST', body: JSON.stringify({ itemId, reason }) }),
 };
 
+// ─── Train Together API ───────────────────────────────────────────────────────
+// Overlap finder + partner-workout pins. Schedules are only visible when both
+// sides opted in (scheduleSharing) and the friendship is accepted.
+
+export const trainTogetherApi = {
+  getSharing: () => apiFetch('/train-together/sharing'),
+  setSharing: (enabled: boolean) =>
+    apiFetch('/train-together/sharing', { method: 'PUT', body: JSON.stringify({ enabled }) }),
+
+  // Accepted friends annotated with selectability (sharing + has a program)
+  getFriends: () => apiFetch('/train-together/friends'),
+
+  // The overlap matrix for me + selected friends over the next N weeks
+  getOverlap: (friendIds: string[], weeks: number = 2) =>
+    apiFetch(`/train-together/overlap?friendIds=${friendIds.map(encodeURIComponent).join(',')}&weeks=${weeks}`),
+
+  // Pins (planned shared workouts)
+  createPin: (date: string, memberIds: string[], note?: string) =>
+    apiFetch('/train-together/pins', { method: 'POST', body: JSON.stringify({ date, memberIds, note }) }),
+  getPins: () => apiFetch('/train-together/pins'),
+  respondToPin: (pinId: string, response: 'accepted' | 'declined') =>
+    apiFetch(`/train-together/pins/${pinId}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
+  deletePin: (pinId: string) => apiFetch(`/train-together/pins/${pinId}`, { method: 'DELETE' }),
+};
+
 // ─── Institution API ──────────────────────────────────────────────────────────
 
 export const institutionApi = {

@@ -137,6 +137,53 @@ model User {
   referredByCode           String?
   // Institution
   institutionMemberships   InstitutionMember[]
+  // Train Together: consent flag — friends can see this user's training
+  // calendar (session types + rest days only) in the overlap finder. Off by
+  // default; the finder returns nothing for users who haven't opted in.
+  scheduleSharing          Boolean           @default(false)
+  // Short split label derived from savedProgram at save time (PPL, UL, FB,
+  // Arnold, Bro, ...). Display-only context for the overlap calendar header.
+  splitLabel               String?
+  partnerWorkoutsCreated   PartnerWorkout[]       @relation("PartnerWorkoutsCreated")
+  partnerWorkoutMembers    PartnerWorkoutMember[] @relation("PartnerWorkoutMemberships")
+}
+
+// ─── Train Together ───────────────────────────────────────────────────────────
+// A "pin": a planned shared workout on a specific date between friends. Purely
+// a social annotation — it never mutates anyone's program. status lifecycle:
+// pending (awaiting member responses) → confirmed (all accepted) → changed
+// (a member's schedule for that date drifted after pinning; members re-confirm
+// or cancel) / cancelled. Past pins are resolved by date at read time.
+model PartnerWorkout {
+  id          String                 @id @default(uuid())
+  date        String                 // YYYY-MM-DD (EST), matches ScheduleOverride convention
+  creatorId   String
+  note        String?                // free text: time/place ("6pm at Crunch")
+  status      String                 @default("pending")
+  // Match tier at pin time (exact|strong|flexible|none) — the premise the pin
+  // was made on; the pin-break watcher compares the recomputed tier to this.
+  pinnedTier  String
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now()) @updatedAt
+  creator     User                   @relation("PartnerWorkoutsCreated", fields: [creatorId], references: [id])
+  members     PartnerWorkoutMember[]
+
+  @@index([date])
+  @@index([creatorId])
+}
+
+model PartnerWorkoutMember {
+  id        String         @id @default(uuid())
+  workoutId String
+  userId    String
+  // pending | accepted | declined. The creator's row is auto-accepted.
+  response  String         @default("pending")
+  createdAt DateTime       @default(now())
+  workout   PartnerWorkout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  user      User           @relation("PartnerWorkoutMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutId, userId])
+  @@index([userId])
 }
 
 model NutritionLog {

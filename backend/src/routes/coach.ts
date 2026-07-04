@@ -18,6 +18,7 @@ import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/w
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
+import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trainTogetherService.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
@@ -790,10 +791,17 @@ router.put('/coach/program', requireAuth, async (req, res) => {
         // date so the new program's week 1 starts today. Otherwise replacing
         // a finished program would land the user mid-way through the new one.
         programStartDate: new Date(),
+        // Train Together: split badge (PPL, UL, ...) shown next to this user
+        // in the overlap calendar header. Derived once at save time.
+        splitLabel: deriveSplitLabel(program),
         ...nutritionUpdate,
       },
       select: { name: true, email: true, tier: true },
     });
+
+    // A replaced program rewrites the whole calendar — re-score any Train
+    // Together pins this user is part of. Fire-and-forget.
+    void checkPinsAfterScheduleChange(req.user!.id);
 
     if (isNewProgram) {
       const goalLabel = program.goal || 'unknown';
@@ -1299,6 +1307,9 @@ export async function applyProposedWeek(
   cacheClearByPrefix(`schedule:${userId}:`);
   cacheClearByPrefix(`dashboard:${userId}:`);
   cacheDelete(`userctx:${userId}`);
+  // Fire-and-forget: a schedule change may break a planned partner workout
+  // (Train Together pin) on one of these dates — re-score and notify if so.
+  void checkPinsAfterScheduleChange(userId, writable.map(d => d.date));
   return { applied: writable.length };
 }
 
@@ -1351,6 +1362,9 @@ router.post('/coach/apply-week-plan', requireAuth, async (req, res) => {
     cacheClearByPrefix(`schedule:${userId}:`);
     cacheClearByPrefix(`dashboard:${userId}:`);
     cacheDelete(`userctx:${userId}`);
+
+    // Fire-and-forget: re-score any Train Together pins on the changed dates.
+    void checkPinsAfterScheduleChange(userId, writable.map(d => d.date));
 
     res.json({ success: true, applied: writable.length });
   } catch (err: any) {

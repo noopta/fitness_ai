@@ -924,6 +924,10 @@ function SocialScreenInner() {
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/groups')}>
             <Ionicons name="people-circle-outline" size={22} color={colors.foreground} />
           </TouchableOpacity>
+          {/* Train Together — overlap finder + partner-workout pins */}
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/train-together')}>
+            <Ionicons name="barbell-outline" size={22} color={colors.foreground} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={handleInvite}>
             <Ionicons name="person-add-outline" size={22} color={colors.foreground} />
           </TouchableOpacity>

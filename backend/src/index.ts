@@ -32,6 +32,8 @@ import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
 import growthRoutes from './routes/growth.js';
 import instagramWebhookRoutes from './routes/instagramWebhook.js';
+import trainTogetherRoutes from './routes/trainTogether.js';
+import { runPartnerWorkoutMorningReminders } from './services/trainTogetherService.js';
 import { runDailyDigest } from './services/growth/dailyDigestRunner.js';
 import { runAutoShipSweep } from './services/growth/autoShipPipeline.js';
 import { runImpactSweep } from './services/growth/impactMeasurement.js';
@@ -127,6 +129,7 @@ app.use('/api', growthRoutes);
 app.use('/api', institutionsRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', instagramWebhookRoutes);
+app.use('/api', trainTogetherRoutes);
 
 // Sentry error handler — MUST come before our own error middleware, but
 // after all routes. The SDK marks the response as handled even though
@@ -271,6 +274,8 @@ scheduleAt(6,  null, () => runDailyFeedFetch().catch(err => console.error('[sche
 // morning at 8am with a check-in. runAnakinGroupCheckin gates on
 // anakinDailyEnabled and only posts when there's something worth saying.
 scheduleAt(8,  null, () => runAnakinGroupSweep().catch(err => console.error('[scheduler] anakin group sweep error:', err)));
+// Train Together — morning-of reminder for confirmed partner workouts today.
+scheduleAt(8,  null, () => runPartnerWorkoutMorningReminders().catch(err => console.error('[scheduler] partner workout reminders error:', err)));
 
 // Growth digest — 13:00 UTC = 8am EST. Idempotent per day (the runner
 // upserts on date, no-op if today's digest is already sent).
