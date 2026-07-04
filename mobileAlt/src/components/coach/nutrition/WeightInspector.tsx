@@ -48,7 +48,10 @@ export function WeightInspector({ weight, unit = 'lb', onLog, onPressBody }: Pro
 
   const submit = async () => {
     const v = parseFloat(draft);
-    if (!Number.isFinite(v) || v < 50 || v > 700) {
+    // Sanity bounds in the active unit (≈ 23–320 kg / 50–700 lb).
+    const lo = unit === 'kg' ? 23 : 50;
+    const hi = unit === 'kg' ? 320 : 700;
+    if (!Number.isFinite(v) || v < lo || v > hi) {
       // Warning feedback — short single buzz. expo-haptics intentionally not
       // a dep in this app (TierHeroCard takes the same approach).
       Vibration.vibrate(40);

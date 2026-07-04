@@ -144,26 +144,56 @@ describe('tool registry', () => {
     expect(out.logged.proteinG).toBe(30);
   });
 
-  it('read_body_weight_trend computes a weekly slope', async () => {
+  it('read_body_weight_trend computes a weekly slope in the user\'s unit', async () => {
+    // Default user is imperial — legacy rows carry weightLbs; the tool renders lbs.
     const today = new Date();
     const series = Array.from({ length: 10 }, (_, i) => {
       const d = new Date(today); d.setDate(d.getDate() - (9 - i));
-      return { date: d.toISOString().slice(0, 10), weightLbs: 200 - i }; // losing 1lb/entry
+      return { date: d.toISOString().slice(0, 10), weightKg: null, weightLbs: 200 - i }; // losing 1lb/entry
     });
     mocks.bodyWeightLog.findMany.mockResolvedValue(series);
     const out: any = await TOOLS_BY_NAME.read_body_weight_trend.execute({ days: 30 }, USER);
-    expect(out.latestLbs).toBe(191);
-    expect(out.trendLbsPerWeek).toBeLessThan(0); // trending down
+    expect(out.unit).toBe('lbs');
+    expect(out.latest).toBe(191);
+    expect(out.trendPerWeek).toBeLessThan(0); // trending down
+  });
+
+  it('read_body_weight_trend renders kg for a metric user', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ unitPreference: 'metric' });
+    const today = new Date();
+    // Canonical kg rows (new-style).
+    const series = Array.from({ length: 3 }, (_, i) => {
+      const d = new Date(today); d.setDate(d.getDate() - (2 - i));
+      return { date: d.toISOString().slice(0, 10), weightKg: 80 + i, weightLbs: null };
+    });
+    mocks.bodyWeightLog.findMany.mockResolvedValue(series);
+    const out: any = await TOOLS_BY_NAME.read_body_weight_trend.execute({ days: 30 }, USER);
+    expect(out.unit).toBe('kg');
+    expect(out.latest).toBe(82);
   });
 
   it('log_body_weight rejects non-positive weight', async () => {
-    await expect(TOOLS_BY_NAME.log_body_weight.execute({ weightLbs: 0 }, USER)).rejects.toThrow();
+    await expect(TOOLS_BY_NAME.log_body_weight.execute({ weight: 0 }, USER)).rejects.toThrow();
   });
 
-  it('log_body_weight creates a row', async () => {
+  it('log_body_weight stores canonical kg and echoes the user\'s unit', async () => {
+    // Imperial user logs 185.5 (lbs) → stored as ~84.14 kg, echoed back as lbs.
     mocks.bodyWeightLog.create.mockImplementation(async ({ data }: any) => ({ id: 'bw1', ...data }));
-    const out: any = await TOOLS_BY_NAME.log_body_weight.execute({ weightLbs: 185.5 }, USER);
-    expect(out.logged.weightLbs).toBe(185.5);
+    const out: any = await TOOLS_BY_NAME.log_body_weight.execute({ weight: 185.5 }, USER);
+    const created = mocks.bodyWeightLog.create.mock.calls.at(-1)![0].data;
+    expect(created.weightKg).toBeCloseTo(84.14, 1);
+    expect(created.weightLbs).toBeUndefined();
+    expect(out.logged.weight).toBe(185.5);
+    expect(out.logged.unit).toBe('lbs');
+  });
+
+  it('log_body_weight treats a metric user\'s number as kg', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ unitPreference: 'metric' });
+    mocks.bodyWeightLog.create.mockImplementation(async ({ data }: any) => ({ id: 'bw2', ...data }));
+    const out: any = await TOOLS_BY_NAME.log_body_weight.execute({ weight: 80 }, USER);
+    const created = mocks.bodyWeightLog.create.mock.calls.at(-1)![0].data;
+    expect(created.weightKg).toBe(80);
+    expect(out.logged.unit).toBe('kg');
   });
 
   it('log_wellness clamps 1-5 fields', async () => {

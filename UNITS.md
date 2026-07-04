@@ -34,7 +34,7 @@ canonical unit and clients convert at the edges.
 |---|---|---|
 | `User.weightKg` | **kg** | ✓ clean |
 | workout exercise `weightKg` (WorkoutLog JSON) | **kg** | Backend e1RM assumes kg. Web now converts on send (was a bug — see below). Mobile always sent kg. |
-| `BodyWeightLog.weightLbs` | **lbs** | Consistent. Display layer converts lbs→preference. Left lbs-canonical (no migration needed); could move to kg later. |
+| `BodyWeightLog.weightKg` | **kg** | ✓ Migrated (2026-07). Canonical kg; legacy `weightLbs` retained nullable until the prod backfill is confirmed, then droppable. Readers use `bodyWeightKg(row)` (weightKg ?? lb→kg fallback). See "BodyWeightLog migration" below. |
 | coachProfile strength-table lift weights | **lbs** | Sent to the program LLM as lbs. Clients convert metric input→lbs. |
 | `ExerciseSnapshot.weight` | **ambiguous** | Legacy diagnostic flow; `weightUnit` was accepted but ignored. Web historically sent lbs. |
 | `CompletedProgram.stats.totalVolumeLb` | **lbs** | Display-time aggregate. |
@@ -50,12 +50,38 @@ canonical unit and clients convert at the edges.
   Use the read-only audit (`backend/scripts/auditWeightUnits.ts`) to size the impact;
   re-logging or a per-user, human-reviewed fix is the only safe correction.
 
+## BodyWeightLog migration (weightLbs → weightKg), 2026-07
+
+Body weight was the last lbs-canonical field. It is now canonical **kg**, matching
+everything else. Because Prisma + SQLite treats a column rename as drop+add (data
+loss), the migration is **additive + backfill**, not a rename:
+
+1. Schema adds `weightKg Float?` and makes `weightLbs Float?` nullable (legacy).
+2. **Deploy order on prod (do NOT split generate/push):**
+   ```
+   cd backend
+   npx prisma generate && npx prisma db push        # adds weightKg column
+   npx tsx scripts/backfillBodyWeightKg.ts           # DRY RUN — prints row count
+   npx tsx scripts/backfillBodyWeightKg.ts --apply    # writes weightKg = weightLbs × 0.45359237
+   npm run build && sudo systemctl restart fitness-ai.service
+   ```
+   The backfill is idempotent (skips rows that already have weightKg) and safe:
+   body weight was unambiguously entered on a scale in pounds (unlike the workout
+   ambiguity above), so ×0.45359237 is exact. Take a DB snapshot first regardless.
+3. All readers use `bodyWeightKg(row)` (weightKg, else lb→kg fallback), so the app
+   is correct **before** the backfill too — the backfill just clears the legacy column.
+4. API responses emit `weightKg` (canonical) **and** a derived `weightLbs` so older
+   mobile builds keep working; `POST /coach/body-weight` accepts either.
+5. Once every client ships the weightKg-aware build and the backfill is confirmed,
+   `weightLbs` can be dropped from the schema.
+
+Milestone cadence is now **unit-native**: the same round numbers (5/10/15…) mean kg
+for metric users and lbs for imperial (was: lbs-only thresholds rendered in kg).
+
 ## Deferred / out of scope (documented, low traffic)
 
-- Legacy web `snapshot.tsx` + diagnostic `onboarding.tsx` weight inputs.
-- Social/shared-workout display unit (shows the poster's unit, not the viewer's).
-- `messages.tsx`, `institution-athlete-detail.tsx` display labels.
-- Weight-progress notification milestone *cadence* is still lbs-based (5/10/15…);
-  the displayed number is unit-correct, only the thresholds are imperial.
+- Legacy diagnostic `onboarding.tsx` bodyweight → engine still passes lbs (engine is
+  unit-neutral internally; input converted at the boundary via `kgToLb`).
 - Deeper diagnostic/plan-generation LLM prompts (structured data the client renders).
-- Marketing pages (illustrative example weights — intentionally left).
+- Marketing pages, blog posts, and standalone SEO calculator tools (own unit toggles) —
+  intentionally left.

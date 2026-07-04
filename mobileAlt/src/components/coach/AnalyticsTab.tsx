@@ -13,7 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { coachApi } from '../../lib/api';
-import { useUnits } from '../../context/UnitsContext';
+import { useUnits, LB_PER_KG } from '../../context/UnitsContext';
 
 interface AnalyticsTabProps {
   coachData: any;
@@ -27,9 +27,17 @@ interface BodyWeightEntry {
   createdAt?: string;
 }
 
+// Canonical kg for an entry: prefer weightKg, fall back to legacy weightLbs.
+function entryKg(e: BodyWeightEntry): number | null {
+  if (e.weightKg != null) return e.weightKg;
+  if (e.weightLbs != null) return e.weightLbs / LB_PER_KG;
+  return null;
+}
+
 // ─── Weight Sparkline Chart ───────────────────────────────────────────────────
 
 function WeightChart({ entries }: { entries: BodyWeightEntry[] }) {
+  const { fromKg } = useUnits();
   if (entries.length < 2) return null;
 
   const WIDTH = 300;
@@ -39,7 +47,8 @@ function WeightChart({ entries }: { entries: BodyWeightEntry[] }) {
 
   // Chronological order for chart (entries are descending, reverse for chart)
   const sorted = [...entries].reverse();
-  const weights = sorted.map((e) => e.weightLbs ?? e.weightKg ?? 0);
+  const disp = (e: BodyWeightEntry) => { const k = entryKg(e); return k != null ? fromKg(k) : 0; };
+  const weights = sorted.map(disp);
   const minW = Math.min(...weights);
   const maxW = Math.max(...weights);
   const range = maxW - minW || 1;
@@ -50,7 +59,7 @@ function WeightChart({ entries }: { entries: BodyWeightEntry[] }) {
     PAD_V + (1 - (w - minW) / range) * (HEIGHT - PAD_V * 2);
 
   const points = sorted
-    .map((e, i) => `${toX(i).toFixed(1)},${toY(e.weightLbs ?? e.weightKg ?? 0).toFixed(1)}`)
+    .map((e, i) => `${toX(i).toFixed(1)},${toY(disp(e)).toFixed(1)}`)
     .join(' ');
 
   const trend = weights[weights.length - 1] - weights[0];
@@ -111,6 +120,10 @@ function WeightProjectionChart({
   totalWeeks: number;
   currentWeek: number;
 }) {
+  const { fromKg, unitLabel } = useUnits();
+  // Actuals + projection all render in the user's display unit.
+  const dispKg = (e: BodyWeightEntry) => { const k = entryKg(e); return k != null ? fromKg(k) : null; };
+  const weeklyChangeDisp = fromKg(weeklyChangeLbs / LB_PER_KG); // lb/wk → display/wk
   const WIDTH = Dimensions.get('window').width - 80;
   const HEIGHT = 110;
   const PAD_H = 36;
@@ -135,21 +148,21 @@ function WeightProjectionChart({
     });
     points.push({
       label: `W${w === 0 ? 'Now' : w}`,
-      actual: entry ? (entry.weightLbs ?? entry.weightKg ?? null) : null,
+      actual: entry ? dispKg(entry) : null,
       projected: null,
     });
   }
 
   // Future projection: remaining weeks from now to program end
   const weeksRemaining = Math.max(0, totalWeeks - currentWeek);
-  const latestActual = entries.length > 0 ? (entries[0].weightLbs ?? entries[0].weightKg ?? null) : null;
+  const latestActual = entries.length > 0 ? dispKg(entries[0]) : null;
   if (latestActual !== null && weeksRemaining > 0) {
     const projWeeks = Math.min(weeksRemaining, 8);
     for (let w = 1; w <= projWeeks; w++) {
       points.push({
         label: `+${w}w`,
         actual: null,
-        projected: latestActual + weeklyChangeLbs * w,
+        projected: latestActual + weeklyChangeDisp * w,
       });
     }
   }
@@ -230,7 +243,7 @@ function WeightProjectionChart({
           <Text style={projStyles.legendText}>Projected</Text>
         </View>
         <Text style={projStyles.legendChange}>
-          {weeklyChangeLbs > 0 ? '+' : ''}{weeklyChangeLbs.toFixed(1)} lbs/week
+          {weeklyChangeDisp > 0 ? '+' : ''}{weeklyChangeDisp.toFixed(1)} {unitLabel}/week
         </Text>
       </View>
     </View>
@@ -249,7 +262,7 @@ const projStyles = StyleSheet.create({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
-  const { unit, unitLabel } = useUnits();
+  const { fromKg, toKg } = useUnits();
   const [bodyWeightEntries, setBodyWeightEntries] = useState<BodyWeightEntry[]>([]);
   const [bwLoading, setBwLoading] = useState(true);
   const [logWeight, setLogWeight] = useState('');
@@ -289,10 +302,9 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
     }
     setLogError('');
     setLogging(true);
-    // Backend always stores lbs; convert if user is in kg mode
-    const weightLbs = unit === 'kg' ? weight * 2.2046 : weight;
     try {
-      await coachApi.logBodyWeight(weightLbs);
+      // User typed in their unit; store canonically in kg.
+      await coachApi.logBodyWeight(toKg(weight));
       setLogWeight('');
       await loadBodyWeight();
     } catch (err: any) {
@@ -316,13 +328,10 @@ export function AnalyticsTab({ coachData }: AnalyticsTabProps) {
     }
   }
 
-  function getWeightLbs(entry: BodyWeightEntry): number {
-    return entry.weightLbs ?? (entry.weightKg != null ? entry.weightKg * 2.2046 : 0);
-  }
-
+  // Body weight in the user's display unit (prefers canonical weightKg).
   function getWeight(entry: BodyWeightEntry): number {
-    const lbs = getWeightLbs(entry);
-    return unit === 'kg' ? Math.round((lbs / 2.2046) * 10) / 10 : lbs;
+    const kg = entryKg(entry);
+    return kg != null ? fromKg(kg) : 0;
   }
 
   function getDelta(entries: BodyWeightEntry[], idx: number): string {

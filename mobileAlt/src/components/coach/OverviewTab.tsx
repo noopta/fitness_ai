@@ -18,6 +18,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { coachApi, socialApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { useUnits } from '../../context/UnitsContext';
 import { getCached, setCached, invalidateCache } from '../../lib/cache';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
@@ -322,6 +323,11 @@ const OVERVIEW_TTL_MS = 30 * 60 * 1000;
 
 export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }: OverviewTabProps) {
   const { user } = useAuth();
+  const { unit } = useUnits();
+  // Protein guidance is unit-aware: ~0.8–1 g/lb ≈ 1.6–2.2 g/kg of bodyweight.
+  const proteinTip = unit === 'kg'
+    ? 'Prioritize protein: 1.6–2.2g per kg of bodyweight'
+    : 'Prioritize protein: 0.8–1g per lb of bodyweight';
   const cacheKey = user?.id ? `coach:overview:${user.id}:${todayESTString()}` : null;
 
   // Hydrate from in-memory cache synchronously so tab switches don't flicker
@@ -566,7 +572,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
               <Text style={dark.tipsLabel}>RECOVERY FOCUS</Text>
               {[
                 'Aim for 8+ hours of sleep tonight',
-                'Prioritize protein: 0.8–1g per lb of bodyweight',
+                proteinTip,
                 'Light walking or stretching is fine',
               ].map((tip, i) => (
                 <View key={i} style={dark.tipRow}>

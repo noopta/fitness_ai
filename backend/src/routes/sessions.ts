@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { kgToLb } from '../services/weightUnits.js';
 import twilio from 'twilio';
 import { generateDiagnosticQuestion, generateWorkoutPlan, generateInitialAnalysis, createChatThread, sendChatMessage } from '../services/llmService.js';
 import { getExerciseById } from '../data/exercises.js';
@@ -305,7 +306,7 @@ router.post('/sessions/:id/messages', async (req, res) => {
     }));
 
     const bodyweightLbs = session.user?.weightKg
-      ? session.user.weightKg * 2.20462
+      ? kgToLb(session.user.weightKg)
       : undefined;
 
     const sessionFlags = parseSessionFlags(conversationHistory.map(m => m.message).join(' '));
@@ -435,7 +436,7 @@ router.post('/sessions/:id/generate', optionalAuth, checkAnalysisRateLimit, asyn
     }));
 
     const bodyweightLbs = session.user?.weightKg
-      ? session.user.weightKg * 2.20462
+      ? kgToLb(session.user.weightKg)
       : undefined;
 
     const sessionFlags = parseSessionFlags(conversationHistory.map(m => m.message).join(' '));

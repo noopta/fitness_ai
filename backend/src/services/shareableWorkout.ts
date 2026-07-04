@@ -7,8 +7,7 @@
 // number is carried raw and the client formats the thousands separator.
 
 import type { DetectedPR } from './progressService.js';
-
-const KG_TO_LB = 2.20462;
+import { kgToLb, lbToKg } from './weightUnits.js';
 
 interface LoggedSetEntry {
   weightKg?: number | null;
@@ -32,19 +31,31 @@ export interface ShareableWorkout {
   loggedAt: string;        // ISO 8601
   durationMin: number;
   sets: number;            // total working sets
-  volumeLb: number;        // total load × reps, lbs (raw number)
-  exercises: { name: string; detail: string }[];
+  volumeLb: number;        // total load × reps, lbs (raw number, legacy)
+  volumeKg: number;        // total load × reps, kg (raw, canonical)
+  // `detail` stays lb-formatted for older clients; the structured fields let
+  // newer clients format cleanly in the sharer's unit (no string re-parsing).
+  exercises: {
+    name: string;
+    detail: string;
+    sets: number;
+    reps: string;
+    weightKg: number | null; // null for bodyweight / unloaded
+    bodyweight: boolean;
+  }[];
   pr: null | {
     lift: string;
     metric: string;        // e.g. "e1RM"
-    value: string;         // e.g. "215"
-    unit: string;          // e.g. "lb"
-    delta: string;         // e.g. "+5 lb"
+    value: string;         // e.g. "215" (legacy, lb)
+    unit: string;          // e.g. "lb" (legacy)
+    delta: string;         // e.g. "+5 lb" (legacy)
+    valueKg: number;       // canonical e1RM in kg
+    deltaKg: number;       // canonical delta in kg
   };
 }
 
 function toLb(kg: number): number {
-  return Math.round(kg * KG_TO_LB);
+  return Math.round(kgToLb(kg));
 }
 
 /** First integer in a rep string ("6-8" → 6, "8" → 8). */
@@ -69,22 +80,25 @@ function formatDetail(ex: LoggedExercise): string {
   return `${sets} × ${reps} · ${toLb(ex.weightKg)} lb`;
 }
 
-/** Total external-load volume in lb (bodyweight movements contribute 0). */
-function totalVolumeLb(exercises: LoggedExercise[]): number {
+/**
+ * Total external-load volume in canonical kg (bodyweight movements contribute 0).
+ * Callers derive the lb figure via kgToLb so both units come from one computation.
+ */
+function totalVolumeKg(exercises: LoggedExercise[]): number {
   let vol = 0;
   for (const ex of exercises) {
     if (ex.setEntries && ex.setEntries.length > 0) {
       for (const s of ex.setEntries) {
-        if (s.weightKg && s.weightKg > 0 && s.reps > 0) vol += s.weightKg * KG_TO_LB * s.reps;
+        if (s.weightKg && s.weightKg > 0 && s.reps > 0) vol += s.weightKg * s.reps;
       }
       continue;
     }
     if (ex.bodyweight || !ex.weightKg || ex.weightKg <= 0) continue;
     const reps = lowerRep(ex.reps) ?? 0;
     const sets = Math.max(Number(ex.sets) || 1, 1);
-    if (reps > 0) vol += ex.weightKg * KG_TO_LB * reps * sets;
+    if (reps > 0) vol += ex.weightKg * reps * sets;
   }
-  return Math.round(vol);
+  return vol;
 }
 
 /**
@@ -106,13 +120,26 @@ export function buildShareableWorkout(
   const loggedAt =
     typeof input.loggedAt === 'string' ? input.loggedAt : input.loggedAt.toISOString();
 
+  const volumeKg = totalVolumeKg(exercises);
+
   return {
     title: (input.title || '').trim() || 'Workout',
     loggedAt,
     durationMin: Math.max(Math.round(Number(input.durationMin) || 0), 0),
     sets: exercises.reduce((n, ex) => n + setsOf(ex), 0),
-    volumeLb: totalVolumeLb(exercises),
-    exercises: exercises.map((ex) => ({ name: ex.name.trim(), detail: formatDetail(ex) })),
+    volumeKg: Math.round(volumeKg),
+    volumeLb: Math.round(kgToLb(volumeKg)),
+    exercises: exercises.map((ex) => {
+      const loaded = !ex.bodyweight && ex.weightKg != null && ex.weightKg > 0;
+      return {
+        name: ex.name.trim(),
+        detail: formatDetail(ex),
+        sets: setsOf(ex),
+        reps: String(ex.reps ?? '').trim() || '—',
+        weightKg: loaded ? ex.weightKg! : null,
+        bodyweight: !loaded,
+      };
+    }),
     pr: top
       ? {
           lift: top.displayName,
@@ -120,6 +147,8 @@ export function buildShareableWorkout(
           value: String(top.e1RMLbs),
           unit: 'lb',
           delta: `+${top.deltaLbs} lb`,
+          valueKg: Math.round(lbToKg(top.e1RMLbs)),
+          deltaKg: Math.round(lbToKg(top.deltaLbs)),
         }
       : null,
   };

@@ -28,6 +28,7 @@ import Animated, {
 import { Heart, MessageCircle, Send, Dumbbell, ChevronUp, X, Globe } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { socialApi } from '../../lib/api';
+import { useUnits } from '../../context/UnitsContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,9 @@ interface WorkoutExercise {
   sets: number;
   reps: number | string;
   weight: string | number;
+  // Canonical kilograms (authoritative). Preferred over `weight`/`unit` so the
+  // viewer sees the load in THEIR unit regardless of the sharer's preference.
+  weightKg?: number | null;
   unit?: string;
   isPR?: boolean;
 }
@@ -192,7 +196,15 @@ function CardBody({
 
 function WorkoutSection({ exercises, title }: { exercises: WorkoutExercise[]; title?: string }) {
   const [expanded, setExpanded] = useState(true);
+  const { fromKg, unitLabel } = useUnits();
   const chevronRot = useSharedValue(0);
+
+  // Prefer the canonical kg (rendered in the viewer's unit); fall back to any
+  // pre-formatted weight+unit the payload carries. null → no weight pill.
+  const weightText = (ex: WorkoutExercise): string | null => {
+    if (ex.weightKg != null && ex.weightKg > 0) return `${fromKg(ex.weightKg)} ${unitLabel}`;
+    return Number(ex.weight) > 0 ? `${ex.weight} ${ex.unit || 'lbs'}` : null;
+  };
 
   const chevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${interpolate(chevronRot.value, [0, 1], [0, 180])}deg` }],
@@ -237,9 +249,9 @@ function WorkoutSection({ exercises, title }: { exercises: WorkoutExercise[]; ti
               </View>
               <View style={cs.exerciseLine2}>
                 <Text style={cs.exerciseSetsReps}>{ex.sets} sets × {ex.reps} reps</Text>
-                {Number(ex.weight) > 0 && (
+                {weightText(ex) && (
                   <View style={cs.weightPill}>
-                    <Text style={cs.weightPillText}>{ex.weight} {ex.unit || 'lbs'}</Text>
+                    <Text style={cs.weightPillText}>{weightText(ex)}</Text>
                   </View>
                 )}
               </View>

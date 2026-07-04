@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
+import { useUnits, lbToKg } from '@/lib/units';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -25,6 +26,7 @@ interface WorkoutLog {
 interface TopLift {
   canonicalName: string;
   current1RMLbs: number;
+  current1RMkg?: number | null;
   strengthTier?: string;
 }
 
@@ -40,6 +42,7 @@ interface BodyWeightLog {
   id: string;
   date: string;
   weightLbs: number;
+  weightKg?: number | null;
 }
 
 interface AthleteData {
@@ -80,6 +83,7 @@ function tierColor(tier: string): string {
 export default function InstitutionAthleteDetailPage() {
   const [match, params] = useRoute('/institution/:slug/athlete/:userId');
   const [, navigate] = useLocation();
+  const units = useUnits();
 
   const slug = params?.slug ?? '';
   const userId = params?.userId ?? '';
@@ -226,7 +230,16 @@ export default function InstitutionAthleteDetailPage() {
                 {topLifts.map(lift => (
                   <Card key={lift.canonicalName} className="p-3 space-y-1">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground truncate">{lift.canonicalName}</p>
-                    <p className="text-xl font-bold">{lift.current1RMLbs} <span className="text-sm font-normal text-muted-foreground">lbs</span></p>
+                    {(() => {
+                      const kg = lift.current1RMkg != null ? lift.current1RMkg
+                        : lift.current1RMLbs != null ? lbToKg(lift.current1RMLbs) : null;
+                      return (
+                        <p className="text-xl font-bold">
+                          {kg != null ? units.displayWeight(kg) : '—'}{' '}
+                          <span className="text-sm font-normal text-muted-foreground">{units.label}</span>
+                        </p>
+                      );
+                    })()}
                     <p className="text-[10px] text-muted-foreground">Estimated 1RM</p>
                   </Card>
                 ))}
@@ -323,7 +336,16 @@ export default function InstitutionAthleteDetailPage() {
                     <Weight className="h-4 w-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">{formatDate(log.date)}</span>
                   </div>
-                  <span className="text-sm font-semibold">{log.weightLbs} <span className="text-xs font-normal text-muted-foreground">lbs</span></span>
+                  {(() => {
+                    const kg = log.weightKg != null ? log.weightKg
+                      : log.weightLbs != null ? lbToKg(log.weightLbs) : null;
+                    return (
+                      <span className="text-sm font-semibold">
+                        {kg != null ? units.displayWeight(kg) : '—'}{' '}
+                        <span className="text-xs font-normal text-muted-foreground">{units.label}</span>
+                      </span>
+                    );
+                  })()}
                 </div>
               ))}
             </Card>

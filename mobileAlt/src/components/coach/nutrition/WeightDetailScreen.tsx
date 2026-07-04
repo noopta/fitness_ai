@@ -19,21 +19,17 @@ import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { coachApi } from '../../../lib/api';
 import { colors, fontWeight } from '../../../constants/theme';
 import { useAuth } from '../../../context/AuthContext';
-import { useUnits } from '../../../context/UnitsContext';
+import { useUnits, LB_PER_KG } from '../../../context/UnitsContext';
 import { WeightShareModal } from '../../share/WeightShareModal';
-
-// BodyWeightLog values are stored in POUNDS, so convert FROM lbs to the
-// user's display unit (NOT via fromKg, which expects kg).
-const LB_PER_KG = 1 / 0.45359237;
-const displayFromLbs = (lbs: number, unit: 'kg' | 'lbs') =>
-  unit === 'kg' ? Math.round((lbs / LB_PER_KG) * 10) / 10 : Math.round(lbs * 10) / 10;
 
 interface Props {
   /** Pushed via the inspector body-press; the parent passes a back handler. */
   onClose: () => void;
 }
 
-interface BodyWeightEntry { date: string; weightLbs: number; createdAt?: string }
+// Values are normalized to canonical kg on load (weightKg is authoritative;
+// legacy rows fall back to weightLbs → kg via the single-source constant).
+interface BodyWeightEntry { date: string; weightKg: number; createdAt?: string }
 
 const RANGES = [
   { key: 30, label: '30D' },
@@ -43,7 +39,7 @@ const RANGES = [
 
 export function WeightDetailScreen({ onClose }: Props) {
   const { user } = useAuth();
-  const { unit, unitLabel } = useUnits();
+  const { fromKg, unitLabel } = useUnits();
   const [logs, setLogs] = useState<BodyWeightEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<typeof RANGES[number]['key']>(30);
@@ -55,12 +51,18 @@ export function WeightDetailScreen({ onClose }: Props) {
       setLoading(true);
       try {
         const res = await coachApi.getBodyWeight();
-        const list: BodyWeightEntry[] = Array.isArray(res)
+        const list: any[] = Array.isArray(res)
           ? (res as any)
           : ((res as any)?.logs ?? (res as any)?.entries ?? []);
+        // Normalize to canonical kg: prefer weightKg, fall back to legacy lbs.
+        const normalized: BodyWeightEntry[] = list.map((r) => ({
+          date: r.date,
+          createdAt: r.createdAt,
+          weightKg: r.weightKg != null ? r.weightKg : (r.weightLbs != null ? r.weightLbs / LB_PER_KG : 0),
+        }));
         if (!cancelled) {
           setLogs(
-            [...list].sort((a, b) =>
+            normalized.sort((a, b) =>
               new Date(a.date || a.createdAt || 0).getTime() -
               new Date(b.date || b.createdAt || 0).getTime(),
             ),
@@ -74,15 +76,15 @@ export function WeightDetailScreen({ onClose }: Props) {
   }, []);
 
   const filtered = useMemo(() => logs.slice(-range), [logs, range]);
-  const current = filtered[filtered.length - 1]?.weightLbs ?? null;
+  const current = filtered[filtered.length - 1]?.weightKg ?? null;
 
-  // Weekly delta = (avg of last 7) - (avg of prior 7).
+  // Weekly delta = (avg of last 7) - (avg of prior 7), in canonical kg.
   const weeklyDelta = useMemo(() => {
     if (filtered.length < 7) return null;
     const lastWeek = filtered.slice(-7);
     const prior = filtered.slice(-14, -7);
-    const lastAvg = avg(lastWeek.map((e) => e.weightLbs));
-    const priorAvg = prior.length ? avg(prior.map((e) => e.weightLbs)) : lastAvg;
+    const lastAvg = avg(lastWeek.map((e) => e.weightKg));
+    const priorAvg = prior.length ? avg(prior.map((e) => e.weightKg)) : lastAvg;
     return lastAvg - priorAvg;
   }, [filtered]);
 
@@ -115,12 +117,12 @@ export function WeightDetailScreen({ onClose }: Props) {
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>CURRENT</Text>
               <View style={styles.currentRow}>
-                <Text style={styles.currentNum}>{current != null ? displayFromLbs(current, unit).toFixed(1) : '—'}</Text>
+                <Text style={styles.currentNum}>{current != null ? fromKg(current).toFixed(1) : '—'}</Text>
                 <Text style={styles.currentUnit}>{unitLabel}</Text>
               </View>
               {weeklyDelta != null ? (
                 <Text style={[styles.delta, weeklyDelta < 0 && { color: colors.success }, weeklyDelta > 0 && { color: colors.warning }]}>
-                  {weeklyDelta > 0 ? '+' : ''}{displayFromLbs(weeklyDelta, unit).toFixed(2)} {unitLabel}/wk
+                  {weeklyDelta > 0 ? '+' : ''}{fromKg(weeklyDelta).toFixed(2)} {unitLabel}/wk
                 </Text>
               ) : null}
             </View>
@@ -142,7 +144,7 @@ export function WeightDetailScreen({ onClose }: Props) {
           <BigChart entries={filtered} />
 
           {/* ─── Projection (the old WeeklyProjection block) ─────────── */}
-          <ProjectionBlock series={filtered} subtractWorkoutBurn={user?.subtractWorkoutBurnFromCalories !== false} unit={unit} unitLabel={unitLabel} />
+          <ProjectionBlock series={filtered} subtractWorkoutBurn={user?.subtractWorkoutBurnFromCalories !== false} />
 
           {/* ─── Recent entries ──────────────────────────────────────── */}
           <Text style={styles.sectionEyebrow}>RECENT ENTRIES</Text>
@@ -153,7 +155,7 @@ export function WeightDetailScreen({ onClose }: Props) {
               {[...filtered].reverse().slice(0, 14).map((e, i) => (
                 <View key={`${e.date}-${i}`} style={[styles.entryRow, i > 0 && styles.entryRowDivider]}>
                   <Text style={styles.entryDate}>{formatEntryDate(e.date)}</Text>
-                  <Text style={styles.entryValue}>{displayFromLbs(e.weightLbs, unit).toFixed(1)} {unitLabel}</Text>
+                  <Text style={styles.entryValue}>{fromKg(e.weightKg).toFixed(1)} {unitLabel}</Text>
                 </View>
               ))}
             </View>
@@ -168,10 +170,10 @@ export function WeightDetailScreen({ onClose }: Props) {
         current={current}
         totalChange={
           filtered.length >= 2
-            ? filtered[filtered.length - 1].weightLbs - filtered[0].weightLbs
+            ? filtered[filtered.length - 1].weightKg - filtered[0].weightKg
             : null
         }
-        series={filtered.map((e) => e.weightLbs)}
+        series={filtered.map((e) => e.weightKg)}
       />
     </SafeAreaView>
   );
@@ -181,6 +183,7 @@ export function WeightDetailScreen({ onClose }: Props) {
 
 function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
   const { width } = useWindowDimensions();
+  const { fromKg } = useUnits();
   const W = width - 32;
   const H = 160;
   // Asymmetric padding: leave room on the left for y-axis labels and on the
@@ -195,7 +198,7 @@ function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
       <Text style={styles.emptyText}>Log a few entries to see your trend.</Text>
     </View>;
   }
-  const values = entries.map((e) => e.weightLbs);
+  const values = entries.map((e) => fromKg(e.weightKg));
   const min = Math.min(...values) - 1;
   const max = Math.max(...values) + 1;
   const range = max - min || 1;
@@ -282,10 +285,11 @@ function BigChart({ entries }: { entries: BodyWeightEntry[] }) {
 }
 
 function ProjectionBlock({
-  series, subtractWorkoutBurn, unit, unitLabel,
+  series, subtractWorkoutBurn,
 }: {
-  series: BodyWeightEntry[]; subtractWorkoutBurn: boolean; unit: 'kg' | 'lbs'; unitLabel: 'kg' | 'lbs';
+  series: BodyWeightEntry[]; subtractWorkoutBurn: boolean;
 }) {
+  const { fromKg, unitLabel } = useUnits();
   // Estimate weekly change from the last 14 entries (linear regression
   // slope × 7 days). This is the same heuristic the old WeeklyProjection
   // card used. When we have fewer than 7 entries, fall back to a flat 0.
@@ -298,7 +302,7 @@ function ProjectionBlock({
       <Text style={styles.projectionLine}>
         {Math.abs(weeklyChange) < 0.05
           ? 'Trend is flat at your current intake.'
-          : `Trending ${weeklyChange > 0 ? 'up' : 'down'} ${displayFromLbs(Math.abs(weeklyChange), unit).toFixed(2)} ${unitLabel}/wk.`}
+          : `Trending ${weeklyChange > 0 ? 'up' : 'down'} ${fromKg(Math.abs(weeklyChange)).toFixed(2)} ${unitLabel}/wk.`}
       </Text>
       <Text style={styles.projectionSubtle}>
         Tweak your daily calorie target in the Coach nutrition plan to bend this.
@@ -320,7 +324,7 @@ function linearSlope(series: BodyWeightEntry[]): number {
   const n = series.length;
   if (n < 2) return 0;
   const xs = series.map((_, i) => i);
-  const ys = series.map((e) => e.weightLbs);
+  const ys = series.map((e) => e.weightKg);
   const mx = avg(xs);
   const my = avg(ys);
   let num = 0, den = 0;

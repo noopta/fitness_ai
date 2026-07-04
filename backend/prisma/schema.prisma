@@ -203,7 +203,12 @@ model BodyWeightLog {
   id        String   @id @default(uuid())
   userId    String
   date      String
-  weightLbs Float
+  // Canonical storage is kilograms, like every other weight in the app. The
+  // legacy `weightLbs` column is retained (nullable) only until the prod
+  // backfill (scripts/backfillBodyWeightKg.ts) is confirmed, then it can be
+  // dropped. Readers use weightKg, falling back to lb→kg on un-backfilled rows.
+  weightKg  Float?
+  weightLbs Float?
   notes     String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])

@@ -21,7 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
-import { useUnits } from '../../../context/UnitsContext';
+import { useUnits, LB_PER_KG } from '../../../context/UnitsContext';
 import { Analytics } from '../../../lib/analytics';
 import { colors } from '../../../constants/theme';
 import { StickyHeader } from './StickyHeader';
@@ -115,7 +115,7 @@ function macroCoachNote(key: MacroKey, used: number, target: number): string {
 
 export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   const { user } = useAuth();
-  const { unit } = useUnits();
+  const { unit, fromKg, toKg, unitLabel } = useUnits();
 
   // ── Selection state ──────────────────────────────────────────────────────
   const [selectedMacro, setSelectedMacro] = useState<MacroKey | null>(null);
@@ -123,7 +123,8 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // ── Data state ───────────────────────────────────────────────────────────
   const [todayMeals, setTodayMeals] = useState<any[]>([]);
   const [workoutBurnKcal, setWorkoutBurnKcal] = useState(0);
-  const [bwLogs, setBwLogs] = useState<Array<{ date: string; weightLbs: number }>>([]);
+  // Canonical kg (weightKg authoritative; legacy rows fall back to weightLbs).
+  const [bwLogs, setBwLogs] = useState<Array<{ date: string; weightKg: number }>>([]);
 
   // Dock visibility — hidden when the timeline is scrolled down past 240pt
   // and the user is still scrolling further down, or when the keyboard is up
@@ -218,12 +219,19 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       const list = Array.isArray(bwRes)
         ? (bwRes as any[])
         : (bwRes as any)?.logs ?? (bwRes as any)?.entries ?? [];
-      // Oldest → newest, so the sparkline reads left-to-right.
+      // Normalize to canonical kg, then oldest → newest so the sparkline reads
+      // left-to-right.
       setBwLogs(
-        [...list].sort((a: any, b: any) =>
-          new Date(a.date || a.createdAt || 0).getTime() -
-          new Date(b.date || b.createdAt || 0).getTime(),
-        ),
+        list
+          .map((l: any) => ({
+            date: l.date,
+            createdAt: l.createdAt,
+            weightKg: l.weightKg != null ? l.weightKg : (l.weightLbs != null ? l.weightLbs / LB_PER_KG : 0),
+          }))
+          .sort((a: any, b: any) =>
+            new Date(a.date || a.createdAt || 0).getTime() -
+            new Date(b.date || b.createdAt || 0).getTime(),
+          ),
       );
     } catch {
       // Component remains usable with empty state — no need to surface.
@@ -331,14 +339,18 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
 
   // ── Weight state ─────────────────────────────────────────────────────────
   const weight: WeightState = useMemo(() => {
-    const last30 = bwLogs.slice(-30).map((l) => l.weightLbs);
+    // Series/current are rendered as-is by WeightInspector, so convert the
+    // canonical kg logs into the user's display unit here.
+    const last30Kg = bwLogs.slice(-30).map((l) => l.weightKg);
+    const last30 = last30Kg.map(fromKg);
     const current = last30[last30.length - 1] ?? null;
     let weeklyDelta: string | null = null;
-    if (last30.length >= 7) {
-      const lastWeekAvg = avg(last30.slice(-7));
-      const priorAvg = avg(last30.slice(-14, -7));
-      const delta = lastWeekAvg - (priorAvg || lastWeekAvg);
-      weeklyDelta = `${delta > 0 ? '+' : ''}${delta.toFixed(2)} lb`;
+    if (last30Kg.length >= 7) {
+      const lastWeekAvg = avg(last30Kg.slice(-7));
+      const priorAvg = avg(last30Kg.slice(-14, -7));
+      const deltaKg = lastWeekAvg - (priorAvg || lastWeekAvg);
+      const delta = fromKg(deltaKg); // fromKg is linear → converts the kg delta
+      weeklyDelta = `${delta > 0 ? '+' : ''}${delta.toFixed(2)} ${unitLabel}`;
     }
     // Coach note: tied to delta direction relative to plan goal.
     let coachNote: string | null = null;
@@ -360,7 +372,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       loggedToday,
       loggedTodayLabel: loggedToday ? 'Logged today' : undefined,
     };
-  }, [bwLogs]);
+  }, [bwLogs, fromKg, unitLabel]);
 
   // ── Ghost slots ──────────────────────────────────────────────────────────
   const meals: LoggedMeal[] = useMemo(() => {
@@ -513,15 +525,16 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // the ghost row; tapping just opens a clean manual form.
   const handleGhostPress = useCallback(() => setOpenSheet('manual'), []);
 
-  const handleLogWeight = useCallback(async (lb: number) => {
+  const handleLogWeight = useCallback(async (value: number) => {
     try {
-      await coachApi.logBodyWeight(lb, todayStr());
+      // `value` is in the user's display unit; store canonically in kg.
+      await coachApi.logBodyWeight(toKg(value), todayStr());
       Analytics.bodyWeightLogged();
       await loadAll();
     } catch (err: any) {
       Alert.alert('Could not log weight', err?.message ?? 'Please try again.');
     }
-  }, [loadAll]);
+  }, [loadAll, toKg]);
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (

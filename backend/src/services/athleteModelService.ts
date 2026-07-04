@@ -23,6 +23,7 @@ import {
   type RecoveryFactor, type BodyWeightPoint, type NutritionPoint, type WellnessPoint,
 } from './recoveryFactorsService.js';
 import { e1rmWithRpe, parseRPE } from '../engine/e1rm.js';
+import { kgToLb } from './weightUnits.js';
 import { movementPatternFor, PATTERN_LABEL, type MovementPattern } from '../data/liftMechanics.js';
 
 export interface AthleteModelInput {
@@ -149,7 +150,7 @@ export function buildAthleteModel(input: AthleteModelInput): AthleteModel {
     bodyWeight: input.bodyWeight,
     nutrition: input.nutrition,
     wellness: input.wellness,
-    bodyWeightLbs: input.bodyweightKg != null ? input.bodyweightKg * 2.2046 : null,
+    bodyWeightLbs: input.bodyweightKg != null ? kgToLb(input.bodyweightKg) : null,
   });
 
   let insights = generateInsights({

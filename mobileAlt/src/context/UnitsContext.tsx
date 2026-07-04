@@ -6,7 +6,10 @@ import { authApi } from '../lib/api';
 type Unit = 'kg' | 'lbs';
 
 // Exact international avoirdupois pound — single source of truth for conversion.
-const LB_PER_KG = 1 / 0.45359237;
+// Exported so surfaces that must normalize a legacy pounds-only value (or a
+// backend payload still expressed in lb) into canonical kg reuse this exact
+// constant rather than hardcoding a factor. Prefer fromKg/toKg where possible.
+export const LB_PER_KG = 1 / 0.45359237;
 
 interface UnitsContextValue {
   unit: Unit;
