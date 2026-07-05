@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { trainTogetherApi } from '../../../src/lib/api';
@@ -47,6 +47,7 @@ function agoLabel(iso: string | null): string {
 
 export default function SharedSessionReviewScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -176,8 +177,8 @@ export default function SharedSessionReviewScreen() {
             )}
           </ScrollView>
 
-          {/* Footer */}
-          <View style={s.footer}>
+          {/* Footer — bottom padding clears the home indicator */}
+          <View style={[s.footer, { paddingBottom: Math.max(16, insets.bottom + 8) }]}>
             <PrimaryButton
               label={busy ? 'Saving…' : `Accept for ${dowLong} only`}
               disabled={busy || me?.sharedResponse === 'accepted'}

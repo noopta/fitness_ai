@@ -5,12 +5,13 @@
 
 import React, { useEffect } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, Modal, Dimensions,
+  View, Text, StyleSheet, Pressable, Modal,
+  Animated as RNAnimated, Easing as RNEasing,
   AccessibilityInfo, type ViewStyle, type TextStyle,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withDelay, withRepeat,
-  withSequence, Easing, runOnJS,
+  withSequence, Easing,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 
@@ -219,44 +220,56 @@ export function MicroLabel({ children, style }: { children: string; style?: Text
 // ─── 6 · BottomSheet ──────────────────────────────────────────────────────────
 // radius top 24, grabber 36×4 #e4e4e7 centered marginBottom 16, padding
 // 10 top / 20 sides / 34 bottom; scrim rgba(0,0,0,0.5).
-// enter: translateY 46→0 + fade, 450ms, Easing.bezier(0.16,1,0.3,1).
+// enter: translateY 46→0 + fade, 450ms, bezier(0.16,1,0.3,1).
+//
+// Implemented on CORE RN Animated, not Reanimated: Reanimated animations can
+// stall inside a RN <Modal> (new-arch quirk), which left the sheet invisible
+// at opacity 0 with a transparent overlay eating every touch — an
+// unmissable "app froze" bug. Core Animated timing callbacks always fire.
 
 export function TTSheet({ visible, onClose, children }: {
   visible: boolean; onClose: () => void; children: React.ReactNode;
 }) {
   const [mounted, setMounted] = React.useState(visible);
-  const prog = useSharedValue(0);
-  const scrim = useSharedValue(0);
+  const prog = React.useRef(new RNAnimated.Value(0)).current;
+  const scrim = React.useRef(new RNAnimated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       setMounted(true);
-      prog.value = withTiming(1, { duration: 450, easing: tt.ease });
-      scrim.value = withTiming(1, { duration: 300 });
-      AccessibilityInfo.isReduceMotionEnabled().then(r => { if (r) prog.value = withTiming(1, { duration: 180 }); }).catch(() => {});
+      RNAnimated.parallel([
+        RNAnimated.timing(prog, {
+          toValue: 1, duration: 450,
+          easing: RNEasing.bezier(0.16, 1, 0.3, 1),
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(scrim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      ]).start();
     } else if (mounted) {
-      prog.value = withTiming(0, { duration: 260, easing: Easing.in(Easing.ease) }, (done) => {
-        if (done) runOnJS(setMounted)(false);
-      });
-      scrim.value = withTiming(0, { duration: 260 });
+      RNAnimated.parallel([
+        RNAnimated.timing(prog, { toValue: 0, duration: 260, useNativeDriver: true }),
+        RNAnimated.timing(scrim, { toValue: 0, duration: 260, useNativeDriver: true }),
+      ]).start(() => setMounted(false));
     }
   }, [visible]);
 
-  const sheetA = useAnimatedStyle(() => ({
-    opacity: prog.value,
-    transform: [{ translateY: (1 - prog.value) * 46 }],
-  }));
-  const scrimA = useAnimatedStyle(() => ({ opacity: scrim.value }));
-
   if (!mounted) return null;
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: tt.scrim }, scrimA]} pointerEvents="none" />
-      <Pressable style={{ flex: 1 }} onPress={onClose} />
-      <Animated.View style={[p.sheet, sheetA]}>
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+      <RNAnimated.View
+        style={[StyleSheet.absoluteFill, { backgroundColor: tt.scrim, opacity: scrim }]}
+        pointerEvents="none"
+      />
+      <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close sheet" />
+      <RNAnimated.View
+        style={[p.sheet, {
+          opacity: prog,
+          transform: [{ translateY: prog.interpolate({ inputRange: [0, 1], outputRange: [46, 0] }) }],
+        }]}
+      >
         <View style={p.grabber} />
         {children}
-      </Animated.View>
+      </RNAnimated.View>
     </Modal>
   );
 }

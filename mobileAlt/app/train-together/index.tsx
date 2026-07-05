@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
@@ -44,6 +44,7 @@ const CheckIcon = ({ size = 10, color = tt.white, stroke = 3 }: { size?: number;
 
 export default function WhosLiftingScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [friends, setFriends] = useState<TTFriend[]>([]);
   const [crews, setCrews] = useState<Crew[]>([]);
@@ -216,8 +217,8 @@ export default function WhosLiftingScreen() {
             </View>
           </ScrollView>
 
-          {/* Sticky footer */}
-          <View style={s.footer}>
+          {/* Sticky footer — bottom padding clears the home indicator */}
+          <View style={[s.footer, { paddingBottom: Math.max(12, insets.bottom + 8) }]}>
             {selectedFriends.length > 0 && (
               <TTAvatarStack size={28} people={[{ name: 'You', self: true },
                 ...selectedFriends.map(f => ({ name: displayName(f), uri: avatarUri(f.avatarBase64) }))]} />
