@@ -706,6 +706,16 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
         subtractWorkoutBurnFromCalories: true,
       }
     });
+    // The cached strength profile bakes the unit into its server-rendered
+    // text (AI insights, recovery notes) — rebuild it when the unit flips
+    // so the Strength page doesn't serve lbs strings to a kg user.
+    // Dynamic import: strength.ts transitively constructs an OpenAI client
+    // at module load, which auth's test suite (and any keyless env) can't.
+    if (data.unitPreference !== undefined) {
+      import('./strength.js')
+        .then(({ recomputeStrengthProfileInBackground }) => recomputeStrengthProfileInBackground(req.user!.id))
+        .catch((err) => console.error('[auth] strength recompute after unit change failed:', err));
+    }
     res.json({ user });
   } catch (err: any) {
     console.error('Profile update error:', err);

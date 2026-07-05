@@ -38,6 +38,39 @@ describe('analyzeRecoveryFactors', () => {
     expect(factors.some((f) => f.id === 'calorie-deficit')).toBe(true);
   });
 
+  it('renders the deficit note in lb by default (imperial/legacy)', () => {
+    const factors = analyzeRecoveryFactors({
+      bodyWeight: [
+        { date: '2026-01-01', weightLbs: 190 },
+        { date: '2026-01-20', weightLbs: 186 },
+        { date: '2026-02-10', weightLbs: 185 },
+      ],
+      nutrition: [],
+      wellness: [],
+      bodyWeightLbs: 185,
+    });
+    const deficit = factors.find((f) => f.id === 'calorie-deficit');
+    expect(deficit?.note).toContain('down 5.0 lb');
+  });
+
+  it('renders the deficit note in kg for metric users', () => {
+    const factors = analyzeRecoveryFactors({
+      bodyWeight: [
+        { date: '2026-01-01', weightLbs: 190 },
+        { date: '2026-01-20', weightLbs: 186 },
+        { date: '2026-02-10', weightLbs: 185 },
+      ],
+      nutrition: [],
+      wellness: [],
+      bodyWeightLbs: 185,
+      unitPreference: 'metric',
+    });
+    const deficit = factors.find((f) => f.id === 'calorie-deficit');
+    // 5 lb ≈ 2.268 kg → "2.3 kg"; the note must never say lb for metric users
+    expect(deficit?.note).toContain('down 2.3 kg');
+    expect(deficit?.note).not.toContain(' lb ');
+  });
+
   it('flags low protein vs the bodyweight target', () => {
     const factors = analyzeRecoveryFactors({
       bodyWeight: [],
