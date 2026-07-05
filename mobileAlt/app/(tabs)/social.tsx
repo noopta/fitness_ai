@@ -22,6 +22,17 @@ import { FeedItemCard, type FeedItem } from '../../src/components/social/FeedIte
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { FunRefreshIndicator } from '../../src/components/social/FunRefreshIndicator';
 import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
+import { OverlapMark } from '../../src/components/trainTogether/primitives';
+
+// Train Together entry-card glyph (feature mark in a muted tile)
+const TTFeatureMark = () => (
+  <View style={{
+    width: 40, height: 40, borderRadius: 12, backgroundColor: colors.muted,
+    alignItems: 'center', justifyContent: 'center',
+  }}>
+    <OverlapMark width={24} height={16} color={colors.foreground} variant="solid" />
+  </View>
+);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -924,10 +935,6 @@ function SocialScreenInner() {
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/groups')}>
             <Ionicons name="people-circle-outline" size={22} color={colors.foreground} />
           </TouchableOpacity>
-          {/* Train Together — overlap finder + partner-workout pins */}
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={() => router.push('/train-together')}>
-            <Ionicons name="barbell-outline" size={22} color={colors.foreground} />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} onPress={handleInvite}>
             <Ionicons name="person-add-outline" size={22} color={colors.foreground} />
           </TouchableOpacity>
@@ -1108,6 +1115,20 @@ function SocialScreenInner() {
                 <Text style={styles.actionButtonTextSecondary}>Invite</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Train Together feature card (spec §00 flow map entry point) */}
+            <TouchableOpacity
+              style={styles.ttFeatureCard}
+              activeOpacity={0.82}
+              onPress={() => router.push('/train-together')}
+            >
+              <TTFeatureMark />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.ttFeatureTitle}>Train together</Text>
+                <Text style={styles.ttFeatureSub}>Find the days your schedules line up — nobody changes their program</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
 
             {/* Leaderboard CTA */}
             {SHOW_LEADERBOARD_ENTRY && (
@@ -1397,6 +1418,24 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     backgroundColor: colors.card,
   },
+  // Train Together entry card
+  ttFeatureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    marginBottom: spacing.sm,
+  },
+  ttFeatureMark: {
+    width: 40, height: 40, borderRadius: 12, backgroundColor: colors.muted,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  ttFeatureTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
+  ttFeatureSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 1 },
   leaderboardBannerEmoji: { fontSize: 22 },
   leaderboardBannerTitle: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
   leaderboardBannerSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },

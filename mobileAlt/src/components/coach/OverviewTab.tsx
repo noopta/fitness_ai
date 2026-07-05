@@ -16,7 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { useRouter } from 'expo-router';
 import { coachApi, socialApi, trainTogetherApi } from '../../lib/api';
+import { OverlapMark } from '../trainTogether/primitives';
 import { useAuth } from '../../context/AuthContext';
 import { useUnits } from '../../context/UnitsContext';
 import { getCached, setCached, invalidateCache } from '../../lib/cache';
@@ -323,6 +325,7 @@ const OVERVIEW_TTL_MS = 30 * 60 * 1000;
 
 export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }: OverviewTabProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const { unit } = useUnits();
   // Protein guidance is unit-aware: ~0.8–1 g/lb ≈ 1.6–2.2 g/kg of bodyweight.
   const proteinTip = unit === 'kg'
@@ -339,31 +342,50 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(cachedSnapshot?.schedule ?? null);
   const [loading, setLoading] = useState(cachedSnapshot === null);
 
-  // Train Together: names of today's partner-workout companions, if a pin
-  // exists for today. Fetched independently of loadData so a failure here
+  // Train Together (spec §09): pins drive the Today hero copy and the
+  // schedule-strip marks. Fetched independently of loadData so a failure here
   // never affects the workout card.
-  const [todayPartner, setTodayPartner] = useState<string | null>(null);
+  interface TTPinLite {
+    id: string; date: string; status: string;
+    names: string[]; note: string | null;
+    avatars: Array<{ name: string; uri: string | null }>;
+  }
+  const [ttPins, setTtPins] = useState<Map<string, TTPinLite>>(new Map());
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const pins: any = await trainTogetherApi.getPins();
-        const todayEST = todayESTString();
-        const pin = (Array.isArray(pins) ? pins : []).find(
-          (p: any) => p.date === todayEST && (p.status === 'confirmed' || p.status === 'pending'),
-        );
-        if (!pin || cancelled) return;
-        const names = (pin.members ?? [])
-          .filter((m: any) => m.userId !== user?.id && m.response !== 'declined')
-          .map((m: any) => m.user?.name || m.user?.username)
-          .filter(Boolean);
-        if (names.length) setTodayPartner(names.join(', '));
+        if (cancelled || !Array.isArray(pins)) return;
+        const map = new Map<string, TTPinLite>();
+        for (const p of pins) {
+          if (p.status === 'cancelled') continue;
+          const otherMembers = (p.members ?? []).filter(
+            (m: any) => m.userId !== user?.id && m.response !== 'declined',
+          );
+          const names = otherMembers
+            .map((m: any) => (m.user?.name || m.user?.username || '').split(' ')[0])
+            .filter(Boolean);
+          if (!names.length) continue;
+          map.set(p.date, {
+            id: p.id, date: p.date, status: p.status, names, note: p.note ?? null,
+            avatars: otherMembers.map((m: any) => ({
+              name: m.user?.name || m.user?.username || '?',
+              uri: m.user?.avatarBase64
+                ? (m.user.avatarBase64.startsWith('data:') ? m.user.avatarBase64 : `data:image/jpeg;base64,${m.user.avatarBase64}`)
+                : null,
+            })),
+          });
+        }
+        setTtPins(map);
       } catch {
-        // Signed-out / endpoint unavailable: no chip.
+        // Signed-out / endpoint unavailable: no marks.
       }
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
+  const todayPin = ttPins.get(todayESTString()) ?? null;
+  const todayPinActive = todayPin && (todayPin.status === 'confirmed' || todayPin.status === 'pending');
 
   const [lifeHappenedVisible, setLifeHappenedVisible] = useState(false);
   const [swapVisible, setSwapVisible] = useState(false);
@@ -592,12 +614,19 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                 </View>
               )}
             </View>
-            <Text style={dark.title}>Rest Day</Text>
-            <Text style={dark.subtitle}>Recovery is where gains are made</Text>
-            {todayPartner && (
-              <View style={dark.partnerChip}>
-                <Text style={dark.partnerChipText}>🤝 Joining {todayPartner}'s workout today</Text>
-              </View>
+            {todayPinActive ? (
+              <Pressable onPress={() => router.push(`/train-together/pin/${todayPin!.id}`)}
+                style={({ pressed }) => pressed && { opacity: 0.82 }}>
+                <Text style={dark.titleTwoLine} numberOfLines={2}>
+                  Rest day —{'\n'}training with {todayPin!.names.join(' + ')}.
+                </Text>
+                {!!todayPin!.note && <Text style={dark.subtitle}>{todayPin!.note}</Text>}
+              </Pressable>
+            ) : (
+              <>
+                <Text style={dark.title}>Rest Day</Text>
+                <Text style={dark.subtitle}>Recovery is where gains are made</Text>
+              </>
             )}
             <View style={dark.tipsBox}>
               <Text style={dark.tipsLabel}>RECOVERY FOCUS</Text>
@@ -636,17 +665,47 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
               )}
             </View>
 
-            {/* title + focus */}
-            <Text style={dark.title} numberOfLines={2} ellipsizeMode="tail">
-              {todayData?.todaySession?.day || todayData?.todaySession?.focus || 'Training Day'}
-            </Text>
-            {todayData?.todaySession?.focus && todayData.todaySession.day && (
-              <Text style={dark.subtitle}>{todayData.todaySession.focus}</Text>
-            )}
-            {todayPartner && (
-              <View style={dark.partnerChip}>
-                <Text style={dark.partnerChipText}>🤝 Training with {todayPartner}</Text>
-              </View>
+            {/* title + focus — on a pinned date the headline becomes the
+                Train Together hero copy (spec §09: the copy IS the chip). */}
+            {todayPinActive ? (
+              <Pressable onPress={() => router.push(`/train-together/pin/${todayPin!.id}`)}
+                style={({ pressed }) => pressed && { opacity: 0.82 }}>
+                <Text style={dark.titleTwoLine} numberOfLines={2}>
+                  {(() => {
+                    const label = todayData?.todaySession?.day || todayData?.todaySession?.focus || 'Training';
+                    return /day/i.test(label) ? `${label} —` : `${label} day —`;
+                  })()}
+                  {'\n'}training with {todayPin!.names.join(' + ')}.
+                </Text>
+                <View style={dark.pinMetaRow}>
+                  <View style={{ flexDirection: 'row' }}>
+                    <View style={[dark.pinAvatar, dark.pinAvatarSelf]}>
+                      <Text style={dark.pinAvatarSelfText}>{(user?.name || 'Y')[0].toUpperCase()}</Text>
+                    </View>
+                    {todayPin!.avatars.slice(0, 2).map((a, i) => (
+                      <View key={i} style={[dark.pinAvatar, dark.pinAvatarOther, { marginLeft: -6 }]}>
+                        <Text style={dark.pinAvatarOtherText}>{a.name[0]?.toUpperCase()}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={dark.pinMetaText} numberOfLines={1}>
+                    {[
+                      todayExercises.length ? `${todayExercises.length} exercises` : null,
+                      todayExercises.length ? `~${todayExercises.length * 8 + 10} min` : null,
+                      todayPin!.note,
+                    ].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+              </Pressable>
+            ) : (
+              <>
+                <Text style={dark.title} numberOfLines={2} ellipsizeMode="tail">
+                  {todayData?.todaySession?.day || todayData?.todaySession?.focus || 'Training Day'}
+                </Text>
+                {todayData?.todaySession?.focus && todayData.todaySession.day && (
+                  <Text style={dark.subtitle}>{todayData.todaySession.focus}</Text>
+                )}
+              </>
             )}
 
             {/* exercise list */}
@@ -723,16 +782,23 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.scheduleScroll}
               >
-                {scheduleData!.weekDays.map((day, i) => (
+                {scheduleData!.weekDays.map((day, i) => {
+                  const cellPin = ttPins.get(day.date);
+                  return (
                   <TouchableOpacity
                     key={i}
                     activeOpacity={0.7}
-                    onPress={() => { setSelectedDay(day); setPastLogVisible(true); }}
+                    onPress={() => {
+                      // Pinned day routes to the pin, not the log sheet (§09).
+                      if (cellPin) { router.push(`/train-together/pin/${cellPin.id}`); return; }
+                      setSelectedDay(day); setPastLogVisible(true);
+                    }}
                     style={[
                       styles.dayCell,
                       day.isToday && styles.dayCellToday,
                       day.isTrainingDay && !day.isToday && styles.dayCellTraining,
                       day.isLogged && !day.isToday && styles.dayCellLogged,
+                      cellPin && (cellPin.status === 'changed' ? styles.dayCellPinChanged : styles.dayCellPinned),
                     ]}
                   >
                     <Text style={[styles.dayLabel, day.isToday && styles.dayLabelToday]}>
@@ -767,9 +833,24 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                     ) : !day.isTrainingDay ? (
                       <Text style={[styles.dayFocus, { color: colors.mutedForeground }]}>Rest</Text>
                     ) : null}
+                    {cellPin && (
+                      <View style={[styles.pinMark, cellPin.status === 'changed' && { opacity: 0.5 }]}>
+                        <OverlapMark
+                          width={15} height={10}
+                          color={day.isToday ? '#ffffff' : '#09090b'}
+                          variant={cellPin.status === 'changed' ? 'broken' : 'solid'}
+                        />
+                      </View>
+                    )}
                   </TouchableOpacity>
-                ))}
+                  );
+                })}
               </ScrollView>
+              {[...ttPins.keys()].some(d => scheduleData!.weekDays.some(w => w.date === d)) && (
+                <Text style={styles.pinFootnote}>
+                  Pins ride your existing schedule — nothing about your program changed.
+                </Text>
+              )}
             </CardContent>
           </Card>
         )}
@@ -1065,17 +1146,23 @@ const dark = StyleSheet.create({
   subtitle: {
     fontSize: 13, color: '#a1a1aa', marginTop: -8,
   },
-  // Train Together companion chip — "🤝 Training with Alex"
-  partnerChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  // Train Together pinned-day hero copy (spec §09 — the copy IS the chip).
+  titleTwoLine: {
+    fontSize: 24, fontWeight: '700', color: '#fff', lineHeight: 28.8,
   },
-  partnerChipText: {
-    fontSize: 12, color: '#fff', fontWeight: '600',
+  pinMetaRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 8,
   },
+  pinAvatar: {
+    width: 20, height: 20, borderRadius: 10,
+    borderWidth: 1.5, borderColor: '#09090b',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  pinAvatarSelf: { backgroundColor: '#fff' },
+  pinAvatarSelfText: { fontSize: 8, fontWeight: '700', color: '#09090b' },
+  pinAvatarOther: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  pinAvatarOtherText: { fontSize: 8, fontWeight: '700', color: '#fff' },
+  pinMetaText: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   exList: {
     backgroundColor: '#27272a',
     borderRadius: 14,
@@ -1488,6 +1575,23 @@ const styles = StyleSheet.create({
   dayCellLogged: {
     backgroundColor: '#22c55e10',
     borderColor: '#22c55e40',
+  },
+  // Train Together (§09): pinned day upgrades to ink border + soft shadow;
+  // a changed pin goes dashed. The OverlapMark sits on the cell's top-right.
+  dayCellPinned: {
+    borderColor: '#09090b',
+    shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 20,
+    shadowOffset: { width: 0, height: 6 }, elevation: 3,
+    overflow: 'visible',
+  },
+  dayCellPinChanged: {
+    borderColor: '#a1a1aa',
+    borderStyle: 'dashed',
+    overflow: 'visible',
+  },
+  pinMark: { position: 'absolute', top: -6, right: -7 },
+  pinFootnote: {
+    fontSize: 11, color: colors.mutedForeground, marginTop: spacing.sm,
   },
   dayFocusLogged: { color: '#22c55e' },
   dayLabel: {

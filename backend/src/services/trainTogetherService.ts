@@ -104,6 +104,7 @@ export interface ResolvedDay {
   label: string | null;      // display label ("Push", "Upper A") — null when rest
   focusKey: string | null;
   muscles: string[];         // sorted, for stable payloads
+  raw?: any;                 // the underlying session object (server-side only)
 }
 
 function getESTDateString(date: Date): string {
@@ -165,6 +166,7 @@ export function resolveCalendar(
       label,
       focusKey: normalized.key,
       muscles: [...normalized.muscles].sort(),
+      raw: session,
     };
   });
 }
@@ -213,7 +215,7 @@ export function groupTier(days: ResolvedDay[]): MatchTier {
   return weakest;
 }
 
-const MUSCLE_DISPLAY: Record<string, string> = {
+export const MUSCLE_DISPLAY: Record<string, string> = {
   chest: 'chest', front_delts: 'shoulders', side_delts: 'shoulders',
   rear_delts: 'shoulders', triceps: 'triceps', biceps: 'biceps',
   lats: 'back', upper_back: 'back', traps: 'traps', lower_back: 'lower back',
@@ -274,11 +276,16 @@ export interface ParticipantCalendar {
   days: ResolvedDay[]; // same date ordering for every participant
 }
 
+/** Deduped, display-ready muscle names for a session ("chest, shoulders, triceps"). */
+export function prettyMuscles(muscles: string[]): string[] {
+  return [...new Set(muscles.map((m) => MUSCLE_DISPLAY[m] ?? m))];
+}
+
 export interface OverlapDay {
   date: string;
   tier: MatchTier;
   reason: string | null;
-  sessions: Array<{ userId: string; rest: boolean; label: string | null }>;
+  sessions: Array<{ userId: string; rest: boolean; label: string | null; muscles: string[] }>;
 }
 
 export function computeOverlap(participants: ParticipantCalendar[], dates: string[]): OverlapDay[] {
@@ -293,9 +300,117 @@ export function computeOverlap(participants: ParticipantCalendar[], dates: strin
         userId: p.userId,
         rest: p.days[i].rest,
         label: p.days[i].label,
+        muscles: prettyMuscles(p.days[i].muscles),
       })),
     };
   });
+}
+
+// ─── Shared session ("One session, two fits" — spec §10) ─────────────────────
+// Deterministic builder: one workout both members can run side by side,
+// assembled from THEIR OWN programmed exercises for that day. Common movements
+// first, then alternating picks. Per-member "fit cards" explain the delta.
+
+export interface SharedFitCard { heading: string; body: string }
+
+export interface SharedSessionMemberInput {
+  userId: string;
+  name: string;
+  day: ResolvedDay;
+}
+
+function exercisesOf(day: ResolvedDay): Array<{ name: string; sets?: number; reps?: any; raw: any }> {
+  const list: any[] = day.raw?.exercises ?? [];
+  return list
+    .map((e) => ({ name: (e.exercise ?? e.name ?? '').toString(), sets: e.sets, reps: e.reps, raw: e }))
+    .filter((e) => e.name);
+}
+
+const normName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export function buildSharedSession(members: SharedSessionMemberInput[]): {
+  session: { day: string; focus: string; exercises: any[] };
+  fits: Record<string, SharedFitCard[]>;
+} | null {
+  const training = members.filter((m) => !m.day.rest && exercisesOf(m.day).length > 0);
+  if (training.length === 0) return null;
+
+  const perMember = training.map((m) => ({ m, ex: exercisesOf(m.day) }));
+
+  // Common movements (by normalized name) lead the session.
+  const counts = new Map<string, { ex: any; n: number }>();
+  for (const { ex } of perMember) {
+    for (const e of ex) {
+      const k = normName(e.name);
+      const cur = counts.get(k);
+      if (cur) cur.n += 1;
+      else counts.set(k, { ex: e.raw, n: 1 });
+    }
+  }
+  const common = [...counts.values()].filter((c) => c.n > 1).map((c) => c.ex);
+
+  // Then alternate through each member's remaining list until we hit the cap.
+  const cap = Math.max(4, Math.min(7, Math.max(...perMember.map((p) => p.ex.length))));
+  const chosen: any[] = [...common];
+  const seen = new Set(common.map((e) => normName(e.exercise ?? e.name ?? '')));
+  let idx = 0;
+  while (chosen.length < cap) {
+    let added = false;
+    for (const { ex } of perMember) {
+      const next = ex[idx];
+      if (next && !seen.has(normName(next.name))) {
+        chosen.push(next.raw);
+        seen.add(normName(next.name));
+        added = true;
+        if (chosen.length >= cap) break;
+      }
+    }
+    idx++;
+    if (!added && idx > 12) break;
+  }
+
+  const sharedMuscles = prettyMuscles(
+    training.map((m) => new Set(m.day.muscles)).reduce<string[]>((acc, set, i) =>
+      i === 0 ? [...set] : acc.filter((x) => set.has(x)),
+    [] as string[]),
+  );
+  const focus = sharedMuscles.length
+    ? sharedMuscles.slice(0, 3).join(', ')
+    : training[0].day.label ?? 'Shared session';
+
+  const estMin = Math.round(chosen.length * 8 + 10);
+
+  const fits: Record<string, SharedFitCard[]> = {};
+  for (const member of members) {
+    const own = new Set(exercisesOf(member.day).map((e) => normName(e.name)));
+    const kept = chosen.filter((e) => own.has(normName(e.exercise ?? e.name ?? ''))).length;
+    const swaps = chosen.length - kept;
+    const others = members.filter((x) => x.userId !== member.userId).map((x) => x.name.split(' ')[0]);
+    const dayLabel = member.day.label ?? 'training';
+    fits[member.userId] = [
+      {
+        heading: 'Keeps your progression',
+        body: member.day.rest
+          ? `You were resting — this is a bonus session, nothing in your program moves.`
+          : `${kept} of ${chosen.length} exercises come straight from your ${dayLabel} day — same movements, same loads.`,
+      },
+      {
+        heading: swaps === 0 ? 'No swaps' : swaps === 1 ? 'One swap' : `${swaps} swaps`,
+        body: swaps === 0
+          ? `Every movement is already in your day.`
+          : `${swaps} slot${swaps === 1 ? 's' : ''} in from ${others.join(' and ')}'s day — same ${sharedMuscles.slice(0, 2).join(' and ') || 'muscle'} emphasis.`,
+      },
+      {
+        heading: 'Same finish time',
+        body: `~${estMin} min for ${chosen.length} exercises at your usual pace.`,
+      },
+    ];
+  }
+
+  return {
+    session: { day: 'Shared session', focus, exercises: chosen },
+    fits,
+  };
 }
 
 // ─── DB helpers ───────────────────────────────────────────────────────────────
@@ -404,7 +519,7 @@ export async function runPartnerWorkoutMorningReminders(): Promise<{ sent: numbe
       const session = day?.[0] && !day[0].rest && day[0].label ? `${day[0].label} day — ` : '';
       await sendPushToUser(
         member.userId,
-        'Training together today 🤝',
+        'Training together today',
         `${session}you're lifting with ${names}${pin.note ? ` (${pin.note})` : ''}`,
         { type: 'partner_workout_today', partnerWorkoutId: pin.id },
       );

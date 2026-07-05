@@ -750,9 +750,20 @@ export const trainTogetherApi = {
   createPin: (date: string, memberIds: string[], note?: string) =>
     apiFetch('/train-together/pins', { method: 'POST', body: JSON.stringify({ date, memberIds, note }) }),
   getPins: () => apiFetch('/train-together/pins'),
+  getPin: (pinId: string) => apiFetch(`/train-together/pins/${pinId}`),
   respondToPin: (pinId: string, response: 'accepted' | 'declined') =>
     apiFetch(`/train-together/pins/${pinId}/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
   deletePin: (pinId: string) => apiFetch(`/train-together/pins/${pinId}`, { method: 'DELETE' }),
+
+  // "Ask" pill — nudge a friend who hasn't turned on sharing
+  nudge: (friendId: string) =>
+    apiFetch('/train-together/nudge', { method: 'POST', body: JSON.stringify({ friendId }) }),
+
+  // Shared session ("Build us a shared workout", spec §10)
+  buildSharedSession: (pinId: string) =>
+    apiFetch(`/train-together/pins/${pinId}/shared-session`, { method: 'POST' }),
+  respondSharedSession: (pinId: string, response: 'accepted' | 'declined') =>
+    apiFetch(`/train-together/pins/${pinId}/shared-session/respond`, { method: 'POST', body: JSON.stringify({ response }) }),
 };
 
 // ─── Institution API ──────────────────────────────────────────────────────────

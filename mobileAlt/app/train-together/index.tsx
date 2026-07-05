@@ -1,392 +1,318 @@
-// Train Together — entry screen. Three jobs:
-//   1. First-run consent: schedule sharing is off by default; explain the
-//      scope (session types + rest days only) and let the user opt in.
-//   2. Friend picker: choose 1+ friends to find overlapping training days
-//      with. Friends who aren't sharing (or have no program) render disabled
-//      with the reason and a nudge.
-//   3. Upcoming plans: pins I'm part of, with accept/decline for invites and
-//      a "changed" treatment when a member's schedule drifted after pinning.
+// Train Together — friend picker ("Who's lifting?") + first-run consent
+// sheet. Recreated from the RN implementation spec v1.1 §05 (picker) and §06
+// (consent). The consent sheet shows once, before the picker is usable, and
+// "Not now" still proceeds — the user just isn't visible to friends.
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
-  ActivityIndicator, Alert, Image, Switch,
+  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { trainTogetherApi } from '../../src/lib/api';
-import { useAuth } from '../../src/context/AuthContext';
-import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Svg, { Path } from 'react-native-svg';
+import { trainTogetherApi, groupsApi } from '../../src/lib/api';
+import {
+  tt, shadowSm, OverlapMark, TTAvatar, TTAvatarStack, SplitBadge,
+  PrimaryButton, GhostAction, MicroLabel, TTSheet,
+} from '../../src/components/trainTogether/primitives';
+
+const CONSENT_SEEN_KEY = '@tt_consent_seen';
 
 interface TTFriend {
-  id: string;
-  name: string | null;
-  username: string | null;
-  avatarBase64: string | null;
-  splitLabel: string | null;
-  sharing: boolean;
-  hasProgram: boolean;
-  selectable: boolean;
+  id: string; name: string | null; username: string | null;
+  avatarBase64: string | null; splitLabel: string | null;
+  sharing: boolean; hasProgram: boolean; selectable: boolean;
 }
+interface Crew { id: string; name: string; memberIds: string[]; sharingIds: string[] }
 
-interface PinMember {
-  id: string;
-  userId: string;
-  response: 'pending' | 'accepted' | 'declined';
-  user: { id: string; name: string | null; username: string | null; avatarBase64: string | null };
-}
+const avatarUri = (b64: string | null) =>
+  b64 ? (b64.startsWith('data:') ? b64 : `data:image/jpeg;base64,${b64}`) : null;
+const displayName = (f: TTFriend) => f.name || f.username || 'Friend';
+const firstName = (f: TTFriend) => displayName(f).split(' ')[0];
 
-interface Pin {
-  id: string;
-  date: string;
-  creatorId: string;
-  note: string | null;
-  status: 'pending' | 'confirmed' | 'changed' | 'cancelled';
-  members: PinMember[];
-}
+const BackChevron = () => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+    <Path d="M15 18l-6-6 6-6" stroke={tt.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+const CheckIcon = ({ size = 10, color = tt.white, stroke = 3 }: { size?: number; color?: string; stroke?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M4 12l6 6L20 6" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
 
-const memberName = (m: PinMember) => m.user.name || m.user.username || 'Friend';
-
-function prettyDate(date: string): string {
-  return new Date(date + 'T12:00:00Z').toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-  });
-}
-
-const STATUS_META: Record<string, { label: string; icon: keyof typeof Ionicons.glyphMap }> = {
-  pending: { label: 'Awaiting replies', icon: 'time-outline' },
-  confirmed: { label: 'Confirmed', icon: 'checkmark-circle' },
-  changed: { label: 'Schedule changed', icon: 'alert-circle-outline' },
-};
-
-export default function TrainTogetherScreen() {
+export default function WhosLiftingScreen() {
   const router = useRouter();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [sharing, setSharing] = useState<boolean | null>(null);
-  const [sharingBusy, setSharingBusy] = useState(false);
   const [friends, setFriends] = useState<TTFriend[]>([]);
-  const [pins, setPins] = useState<Pin[]>([]);
+  const [crews, setCrews] = useState<Crew[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [consentVisible, setConsentVisible] = useState(false);
+  const [asked, setAsked] = useState<Set<string>>(new Set());
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
+  const load = useCallback(async () => {
     try {
-      const [sharingRes, friendsRes, pinsRes] = await Promise.all([
-        trainTogetherApi.getSharing(),
+      const [friendsRes, sharingRes, groupsRes, seen] = await Promise.all([
         trainTogetherApi.getFriends(),
-        trainTogetherApi.getPins(),
+        trainTogetherApi.getSharing(),
+        groupsApi.list().catch(() => null),
+        AsyncStorage.getItem(CONSENT_SEEN_KEY),
       ]);
-      setSharing(!!(sharingRes as any)?.scheduleSharing);
-      setFriends(Array.isArray(friendsRes) ? friendsRes : []);
-      setPins(Array.isArray(pinsRes) ? pinsRes : []);
-    } catch {
-      // Keep whatever we had; pull-to-refresh retries.
+      const list: TTFriend[] = Array.isArray(friendsRes) ? friendsRes : [];
+      setFriends(list);
+
+      const selectableIds = new Set(list.filter(f => f.selectable).map(f => f.id));
+      const groups: any[] = (groupsRes as any)?.groups ?? [];
+      setCrews(groups
+        .map(g => {
+          const memberIds: string[] = (g.members ?? []).map((m: any) => m.user?.id ?? m.userId).filter(Boolean);
+          return {
+            id: g.id, name: g.name,
+            memberIds,
+            sharingIds: memberIds.filter(id => selectableIds.has(id)),
+          };
+        })
+        .filter(c => c.memberIds.length > 0));
+
+      // Consent: once, on first entry, before the picker — unless already sharing.
+      if (!seen && !(sharingRes as any)?.scheduleSharing) setConsentVisible(true);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const toggleSharing = useCallback(async (enabled: boolean) => {
-    setSharingBusy(true);
-    setSharing(enabled); // optimistic
-    try {
-      await trainTogetherApi.setSharing(enabled);
-    } catch {
-      setSharing(!enabled);
-      Alert.alert('Could not update', 'Please try again.');
-    } finally {
-      setSharingBusy(false);
-    }
-  }, []);
+  const toggle = (id: string) => setSelected(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
-  const toggleFriend = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+  const selectCrew = (crew: Crew) => {
+    const allSelected = crew.sharingIds.length > 0 && crew.sharingIds.every(id => selected.has(id));
+    setSelected(allSelected ? new Set() : new Set(crew.sharingIds));
   };
+
+  const ask = async (f: TTFriend) => {
+    setAsked(prev => new Set(prev).add(f.id));
+    try { await trainTogetherApi.nudge(f.id); } catch { /* one-shot, quiet */ }
+  };
+
+  async function consentChoice(turnOn: boolean) {
+    setConsentVisible(false);
+    AsyncStorage.setItem(CONSENT_SEEN_KEY, '1').catch(() => {});
+    if (turnOn) {
+      try { await trainTogetherApi.setSharing(true); } catch { Alert.alert("Couldn't turn on sharing", 'You can enable it any time from Settings.'); }
+    }
+  }
+
+  const selectedFriends = useMemo(() => friends.filter(f => selected.has(f.id)), [friends, selected]);
+  const footerNames = selectedFriends.length
+    ? `You + ${selectedFriends.map(firstName).join(' + ')}`
+    : 'Pick at least one friend';
 
   const findDays = () => {
-    if (selected.size === 0) return;
-    router.push({
-      pathname: '/train-together/calendar',
-      params: { friendIds: [...selected].join(',') },
-    });
-  };
-
-  const respond = async (pin: Pin, response: 'accepted' | 'declined') => {
-    try {
-      await trainTogetherApi.respondToPin(pin.id, response);
-      load();
-    } catch (err: any) {
-      Alert.alert('Could not respond', err?.message ?? 'Please try again.');
-    }
-  };
-
-  const cancelOrLeave = (pin: Pin) => {
-    const mine = pin.creatorId === user?.id;
-    Alert.alert(
-      mine ? 'Cancel this plan?' : 'Leave this plan?',
-      prettyDate(pin.date),
-      [
-        { text: 'Keep it', style: 'cancel' },
-        {
-          text: mine ? 'Cancel plan' : 'Leave',
-          style: 'destructive',
-          onPress: async () => {
-            try { await trainTogetherApi.deletePin(pin.id); load(); }
-            catch (err: any) { Alert.alert('Failed', err?.message ?? 'Please try again.'); }
-          },
-        },
-      ],
-    );
-  };
-
-  const upcomingPins = useMemo(
-    () => pins.filter(p => p.status !== 'cancelled'),
-    [pins],
-  );
-
-  const renderPin = (pin: Pin) => {
-    const meta = STATUS_META[pin.status] ?? STATUS_META.pending;
-    const others = pin.members.filter(m => m.userId !== user?.id && m.response !== 'declined');
-    const myMembership = pin.members.find(m => m.userId === user?.id);
-    const needsMyReply = myMembership?.response === 'pending' || pin.status === 'changed';
-    return (
-      <View key={pin.id} style={[styles.pinCard, pin.status === 'changed' && styles.pinCardChanged]}>
-        <View style={styles.pinHeader}>
-          <Text style={styles.pinDate}>{prettyDate(pin.date)}</Text>
-          <View style={styles.pinStatus}>
-            <Ionicons name={meta.icon} size={13} color={colors.mutedForeground} />
-            <Text style={styles.pinStatusText}>{meta.label}</Text>
-          </View>
-        </View>
-        <Text style={styles.pinWith}>
-          🤝 With {others.map(memberName).join(', ') || '—'}
-          {pin.note ? `  ·  ${pin.note}` : ''}
-        </Text>
-        {pin.status === 'changed' && (
-          <Text style={styles.pinChangedNote}>
-            A training partner's schedule changed for this day. Still on?
-          </Text>
-        )}
-        <View style={styles.pinActions}>
-          {needsMyReply && (
-            <>
-              <TouchableOpacity style={styles.pinPrimaryBtn} onPress={() => respond(pin, 'accepted')}>
-                <Text style={styles.pinPrimaryBtnText}>{pin.status === 'changed' ? 'Keep it' : 'Accept'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.pinGhostBtn} onPress={() => respond(pin, 'declined')}>
-                <Text style={styles.pinGhostBtnText}>Decline</Text>
-              </TouchableOpacity>
-            </>
-          )}
-          <TouchableOpacity style={styles.pinGhostBtn} onPress={() => cancelOrLeave(pin)}>
-            <Text style={styles.pinGhostBtnText}>{pin.creatorId === user?.id ? 'Cancel' : 'Leave'}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  const renderFriend = (f: TTFriend) => {
-    const isSelected = selected.has(f.id);
-    const reason = !f.sharing ? 'Not sharing their schedule' : !f.hasProgram ? 'No active program' : null;
-    // avatarBase64 is stored WITH the data: prefix (see PostCard); handle both.
-    const avatarUri = f.avatarBase64
-      ? (f.avatarBase64.startsWith('data:') ? f.avatarBase64 : `data:image/jpeg;base64,${f.avatarBase64}`)
-      : null;
-    return (
-      <TouchableOpacity
-        key={f.id}
-        style={[styles.friendRow, isSelected && styles.friendRowSelected, !f.selectable && styles.friendRowDisabled]}
-        activeOpacity={0.8}
-        disabled={!f.selectable}
-        onPress={() => toggleFriend(f.id)}
-      >
-        {avatarUri ? (
-          <Image source={{ uri: avatarUri }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarFallback]}>
-            <Text style={styles.avatarInitial}>{(f.name || f.username || '?')[0]?.toUpperCase()}</Text>
-          </View>
-        )}
-        <View style={styles.friendInfo}>
-          <Text style={styles.friendName}>{f.name || f.username || 'Friend'}</Text>
-          {reason ? <Text style={styles.friendReason}>{reason}</Text> : null}
-        </View>
-        {f.splitLabel ? (
-          <View style={styles.splitBadge}>
-            <Text style={styles.splitBadgeText}>{f.splitLabel}</Text>
-          </View>
-        ) : null}
-        <Ionicons
-          name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
-          size={22}
-          color={isSelected ? colors.foreground : colors.border}
-        />
-      </TouchableOpacity>
-    );
+    if (!selected.size) return;
+    router.push({ pathname: '/train-together/calendar', params: { friendIds: [...selected].join(',') } });
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
-          <Ionicons name="chevron-back" size={24} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Train Together</Text>
-        <View style={{ width: 24 }} />
+    <SafeAreaView style={s.root} edges={['top']}>
+      {/* Header */}
+      <View style={s.header}>
+        <Pressable onPress={() => router.back()} hitSlop={12} style={({ pressed }) => pressed && { opacity: 0.82 }}>
+          <BackChevron />
+        </Pressable>
+        <Text style={s.title}>Who's lifting?</Text>
+        <View style={{ width: 20 }} />
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={colors.foreground} /></View>
+        <View style={s.center}><ActivityIndicator color={tt.ink} /></View>
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
-        >
-          {/* Consent */}
-          <View style={styles.consentCard}>
-            <View style={styles.consentTextWrap}>
-              <Text style={styles.consentTitle}>Share my schedule with friends</Text>
-              <Text style={styles.consentBody}>
-                Friends you've accepted can see your session types and rest days — never your
-                lifts, weights, or logs. Both of you must share to see overlap.
-              </Text>
+        <>
+          <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+            {/* YOUR CREWS */}
+            {crews.length > 0 && (
+              <>
+                <MicroLabel style={{ marginTop: 16 }}>Your crews</MicroLabel>
+                <View style={s.crewRow}>
+                  {crews.map(crew => {
+                    const sel = crew.sharingIds.length > 0 && crew.sharingIds.every(id => selected.has(id))
+                      && selected.size === crew.sharingIds.length;
+                    const members = crew.memberIds
+                      .map(id => friends.find(f => f.id === id))
+                      .filter(Boolean) as TTFriend[];
+                    return (
+                      <Pressable key={crew.id} onPress={() => selectCrew(crew)}
+                        style={({ pressed }) => [
+                          s.crewCard, sel ? [{ borderColor: tt.ink }, shadowSm] : { borderColor: tt.hairline },
+                          pressed && { opacity: 0.82 },
+                        ]}>
+                        <View style={{ flexDirection: 'row' }}>
+                          {members.slice(0, 4).map((m, i) => (
+                            <TTAvatar key={m.id} name={displayName(m)} size={22} uri={avatarUri(m.avatarBase64)}
+                              style={{ marginLeft: i === 0 ? 0 : -7, borderWidth: 1.5, borderColor: tt.white }} />
+                          ))}
+                        </View>
+                        <Text style={s.crewName} numberOfLines={1}>{crew.name}</Text>
+                        <Text style={s.crewMeta}>
+                          {crew.sharingIds.length
+                            ? `${crew.sharingIds.length} sharing`
+                            : 'Nobody sharing yet'}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            )}
+
+            {/* OR PICK FRIENDS */}
+            <MicroLabel style={{ marginTop: 20 }}>{crews.length ? 'Or pick friends' : 'Pick friends'}</MicroLabel>
+            <View style={{ marginTop: 4 }}>
+              {friends.map(f => {
+                const sel = selected.has(f.id);
+                const status = f.selectable
+                  ? 'Sharing their schedule'
+                  : !f.sharing ? "Hasn't shared their schedule" : 'No active program';
+                return (
+                  <Pressable
+                    key={f.id}
+                    disabled={!f.selectable}
+                    onPress={() => toggle(f.id)}
+                    style={({ pressed }) => [s.friendRow, pressed && f.selectable && { opacity: 0.82 }]}
+                  >
+                    <View style={[s.friendRowInner, !f.selectable && { opacity: 0.55 }]}>
+                      <TTAvatar name={displayName(f)} size={32} uri={avatarUri(f.avatarBase64)} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.friendName}>{displayName(f)}</Text>
+                        <Text style={s.friendStatus}>{status}</Text>
+                      </View>
+                      <SplitBadge label={f.splitLabel} />
+                    </View>
+                    {f.selectable ? (
+                      <View style={[s.checkCircle, sel ? s.checkCircleSel : s.checkCircleIdle]}>
+                        {sel && <CheckIcon />}
+                      </View>
+                    ) : !f.sharing ? (
+                      <Pressable onPress={() => ask(f)} disabled={asked.has(f.id)}
+                        style={({ pressed }) => [s.askPill, pressed && { opacity: 0.82 }, asked.has(f.id) && { opacity: 0.5 }]}>
+                        <Text style={s.askText}>{asked.has(f.id) ? 'Asked' : 'Ask'}</Text>
+                      </Pressable>
+                    ) : (
+                      <View style={{ width: 20 }} />
+                    )}
+                  </Pressable>
+                );
+              })}
+              {friends.length === 0 && (
+                <Text style={s.emptyText}>
+                  Add friends on Axiom first — then find the days your training lines up.
+                </Text>
+              )}
             </View>
-            <Switch
-              value={!!sharing}
-              disabled={sharingBusy}
-              onValueChange={toggleSharing}
-              trackColor={{ true: colors.foreground, false: colors.border }}
-              thumbColor="#ffffff"
-            />
+          </ScrollView>
+
+          {/* Sticky footer */}
+          <View style={s.footer}>
+            {selectedFriends.length > 0 && (
+              <TTAvatarStack size={28} people={[{ name: 'You', self: true },
+                ...selectedFriends.map(f => ({ name: displayName(f), uri: avatarUri(f.avatarBase64) }))]} />
+            )}
+            <Text style={s.footerNames} numberOfLines={1}>{footerNames}</Text>
+            <Pressable
+              disabled={selected.size === 0}
+              onPress={findDays}
+              style={({ pressed }) => [s.cta, selected.size === 0 && { opacity: 0.4 }, pressed && { opacity: 0.82 }]}
+            >
+              <Text style={s.ctaText}>Find our days</Text>
+            </Pressable>
           </View>
-
-          {/* Upcoming plans */}
-          {upcomingPins.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Upcoming plans</Text>
-              {upcomingPins.map(renderPin)}
-            </>
-          )}
-
-          {/* Friend picker */}
-          <Text style={styles.sectionTitle}>Find days together</Text>
-          {!sharing ? (
-            <Text style={styles.emptyText}>Turn on schedule sharing above to find overlapping days.</Text>
-          ) : friends.length === 0 ? (
-            <Text style={styles.emptyText}>
-              Add friends on Axiom first — then find the days your training lines up.
-            </Text>
-          ) : (
-            <>
-              <Text style={styles.sectionHint}>
-                Pick friends and we'll find the days your training naturally lines up — nobody
-                changes their program.
-              </Text>
-              {friends.map(renderFriend)}
-            </>
-          )}
-        </ScrollView>
+        </>
       )}
 
-      {sharing && selected.size > 0 && (
-        <View style={styles.ctaWrap}>
-          <TouchableOpacity style={styles.cta} activeOpacity={0.85} onPress={findDays}>
-            <Ionicons name="calendar-outline" size={18} color={colors.primaryForeground} />
-            <Text style={styles.ctaText}>
-              Find days with {selected.size} {selected.size === 1 ? 'friend' : 'friends'}
-            </Text>
-          </TouchableOpacity>
+      {/* ── Consent sheet — first run (§06) ────────────────────────────────── */}
+      <TTSheet visible={consentVisible} onClose={() => consentChoice(false)}>
+        <View style={{ alignItems: 'center' }}>
+          <OverlapMark width={52} height={36} color={tt.ink} variant="solid" />
+          <Text style={s.consentTitle}>First — share your schedule?</Text>
+          <Text style={s.consentBody}>
+            Train Together works by comparing calendars. Friends you've accepted will see which
+            days are 'Push', 'Upper' or 'Rest'.
+          </Text>
         </View>
-      )}
+
+        {/* Scope ledger — this exact table, do not paraphrase */}
+        <View style={s.ledger}>
+          {([
+            ['Session types', 'Visible'],
+            ['Rest days', 'Visible'],
+            ['Lifts, weights, logs', 'Never'],
+            ['Body data', 'Never'],
+          ] as const).map(([k, v]) => (
+            <View key={k} style={s.ledgerRow}>
+              <Text style={s.ledgerKey}>{k}</Text>
+              <Text style={[s.ledgerVal, { color: v === 'Visible' ? tt.ink : tt.muted }]}>{v}</Text>
+            </View>
+          ))}
+        </View>
+
+        <PrimaryButton label="Turn on sharing" onPress={() => consentChoice(true)} style={{ marginTop: 16 }} />
+        <GhostAction label="Not now" onPress={() => consentChoice(false)} style={{ marginTop: 12 }} />
+      </TTSheet>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: tt.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    paddingHorizontal: 20, paddingTop: 8,
   },
-  title: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: spacing.md, paddingBottom: 120 },
+  title: { fontSize: 16, fontWeight: '600', letterSpacing: -0.32, color: tt.ink },
+  scroll: { paddingHorizontal: 20, paddingBottom: 24 },
 
-  consentCard: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
-    padding: spacing.md, backgroundColor: colors.card,
-  },
-  consentTextWrap: { flex: 1 },
-  consentTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
-  consentBody: { fontSize: fontSize.sm, color: colors.mutedForeground, marginTop: 4, lineHeight: 18 },
-
-  sectionTitle: {
-    fontSize: fontSize.base, fontWeight: fontWeight.bold, color: colors.foreground,
-    marginTop: spacing.lg, marginBottom: spacing.sm,
-  },
-  sectionHint: { fontSize: fontSize.sm, color: colors.mutedForeground, marginBottom: spacing.sm, lineHeight: 18 },
-  emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 18 },
+  crewRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  crewCard: { flex: 1, borderWidth: 1, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 12, backgroundColor: tt.white },
+  crewName: { fontSize: 12.5, fontWeight: '700', color: tt.ink, marginTop: 8 },
+  crewMeta: { fontSize: 10.5, color: tt.muted, marginTop: 1 },
 
   friendRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
-    padding: spacing.sm, marginBottom: spacing.xs, backgroundColor: colors.card,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingVertical: 10, paddingHorizontal: 4,
+    borderBottomWidth: 1, borderBottomColor: tt.surface,
   },
-  friendRowSelected: { borderColor: colors.foreground },
-  friendRowDisabled: { opacity: 0.5 },
-  avatar: { width: 36, height: 36, borderRadius: 18 },
-  avatarFallback: { backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.mutedForeground },
-  friendInfo: { flex: 1 },
-  friendName: { fontSize: fontSize.base, fontWeight: fontWeight.medium, color: colors.foreground },
-  friendReason: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
-  splitBadge: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
-    paddingHorizontal: 6, paddingVertical: 2,
+  friendRowInner: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  friendName: { fontSize: 13, fontWeight: '600', color: tt.ink },
+  friendStatus: { fontSize: 10.5, color: tt.muted, marginTop: 1 },
+  checkCircle: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  checkCircleSel: { backgroundColor: tt.ink },
+  checkCircleIdle: { borderWidth: 1.5, borderColor: '#d4d4d8' },
+  askPill: {
+    borderWidth: 1, borderColor: tt.hairline, borderRadius: 9999,
+    paddingVertical: 5, paddingHorizontal: 10,
   },
-  splitBadgeText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.mutedForeground },
+  askText: { fontSize: 11, fontWeight: '600', color: tt.ink },
+  emptyText: { fontSize: 12.5, color: tt.muted, marginTop: 12, lineHeight: 18 },
 
-  pinCard: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.md,
-    padding: spacing.md, marginBottom: spacing.sm, backgroundColor: colors.card,
+  footer: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderTopWidth: 1, borderTopColor: tt.hairline,
+    paddingVertical: 12, paddingHorizontal: 20,
   },
-  pinCardChanged: { borderColor: colors.warning },
-  pinHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pinDate: { fontSize: fontSize.base, fontWeight: fontWeight.bold, color: colors.foreground },
-  pinStatus: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  pinStatusText: { fontSize: fontSize.xs, color: colors.mutedForeground },
-  pinWith: { fontSize: fontSize.sm, color: colors.foreground, marginTop: spacing.xs },
-  pinChangedNote: { fontSize: fontSize.sm, color: colors.warning, marginTop: spacing.xs },
-  pinActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  pinPrimaryBtn: {
-    backgroundColor: colors.primary, borderRadius: radius.sm,
-    paddingHorizontal: spacing.md, paddingVertical: 6,
-  },
-  pinPrimaryBtnText: { color: colors.primaryForeground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  pinGhostBtn: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
-    paddingHorizontal: spacing.md, paddingVertical: 6,
-  },
-  pinGhostBtnText: { color: colors.foreground, fontSize: fontSize.sm },
+  footerNames: { flex: 1, fontSize: 11.5, color: tt.muted },
+  cta: { backgroundColor: tt.ink, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 18 },
+  ctaText: { fontSize: 13, fontWeight: '600', color: tt.white },
 
-  ctaWrap: {
-    position: 'absolute', left: spacing.md, right: spacing.md, bottom: spacing.lg,
-  },
-  cta: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs,
-    backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 14,
-  },
-  ctaText: { color: colors.primaryForeground, fontSize: fontSize.base, fontWeight: fontWeight.semibold },
+  consentTitle: { fontSize: 20, fontWeight: '700', letterSpacing: -0.4, color: tt.ink, marginTop: 14, textAlign: 'center' },
+  consentBody: { fontSize: 12.5, color: tt.muted, lineHeight: 20, marginTop: 8, textAlign: 'center' },
+  ledger: { marginTop: 16, backgroundColor: tt.surface, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 15 },
+  ledgerRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
+  ledgerKey: { fontSize: 12, color: tt.ink },
+  ledgerVal: { fontSize: 12, fontWeight: '600' },
 });

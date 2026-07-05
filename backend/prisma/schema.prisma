@@ -163,6 +163,10 @@ model PartnerWorkout {
   // Match tier at pin time (exact|strong|flexible|none) — the premise the pin
   // was made on; the pin-break watcher compares the recomputed tier to this.
   pinnedTier  String
+  // "Build us a shared workout" (spec §10): one generated session that fits
+  // every member, plus per-member fit explanations. Generated once on demand.
+  sharedSessionJson String?
+  sharedFitJson     String?          // { [userId]: [{heading, body} x3] }
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @default(now()) @updatedAt
   creator     User                   @relation("PartnerWorkoutsCreated", fields: [creatorId], references: [id])
@@ -178,6 +182,11 @@ model PartnerWorkoutMember {
   userId    String
   // pending | accepted | declined. The creator's row is auto-accepted.
   response  String         @default("pending")
+  // Shared-session response: none | accepted | declined. Accepting writes a
+  // ScheduleOverride for THIS member on the pin date only; declining changes
+  // nothing — the pin stands.
+  sharedResponse    String    @default("none")
+  sharedRespondedAt DateTime?
   createdAt DateTime       @default(now())
   workout   PartnerWorkout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   user      User           @relation("PartnerWorkoutMemberships", fields: [userId], references: [id], onDelete: Cascade)

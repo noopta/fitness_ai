@@ -31,6 +31,7 @@ import {
   resolveCalendar,
   deriveSplitLabel,
   computeOverlap,
+  buildSharedSession,
   upcomingDates,
   checkPinsAfterScheduleChange,
   runPartnerWorkoutMorningReminders,
@@ -183,17 +184,62 @@ describe('deriveSplitLabel', () => {
 // ─── Overlap payload ──────────────────────────────────────────────────────────
 
 describe('computeOverlap', () => {
-  it('produces per-date tiers with per-participant sessions', () => {
+  it('produces per-date tiers with per-participant sessions (incl. display muscles)', () => {
     const dates = ['2099-01-04', '2099-01-05'];
     const a = { userId: 'u1', days: [fromLabel('Push'), fromLabel('Pull')] };
     const b = { userId: 'u2', days: [fromLabel('Upper'), fromLabel(null)] };
     const out = computeOverlap([a, b], dates);
     expect(out[0]).toMatchObject({ date: dates[0], tier: 'strong' });
-    expect(out[0].sessions).toEqual([
-      { userId: 'u1', rest: false, label: 'Push' },
-      { userId: 'u2', rest: false, label: 'Upper' },
-    ]);
+    expect(out[0].sessions[0]).toMatchObject({ userId: 'u1', rest: false, label: 'Push' });
+    expect(out[0].sessions[0].muscles).toContain('chest');
+    expect(out[0].sessions[0].muscles).toContain('shoulders'); // display name, deduped
+    expect(out[0].sessions[1]).toMatchObject({ userId: 'u2', rest: false, label: 'Upper' });
     expect(out[1].tier).toBe('flexible');
+    expect(out[1].sessions[1]).toMatchObject({ rest: true, muscles: [] });
+  });
+});
+
+describe('buildSharedSession', () => {
+  const dayWith = (label: string, exercises: Array<{ exercise: string; sets?: number }>) => {
+    const d = fromLabel(label);
+    return { ...d, raw: { day: label, focus: label, exercises } };
+  };
+
+  it('leads with common movements, alternates the rest, and writes 3 fit cards per member', () => {
+    const alex = {
+      userId: 'u1', name: 'Alex Test',
+      day: dayWith('Push', [
+        { exercise: 'Bench Press', sets: 4 }, { exercise: 'Overhead Press', sets: 3 }, { exercise: 'Cable Fly', sets: 3 },
+      ]),
+    };
+    const sam = {
+      userId: 'u2', name: 'Sam Test',
+      day: dayWith('Upper', [
+        { exercise: 'Bench Press', sets: 4 }, { exercise: 'Weighted Pull-up', sets: 4 },
+      ]),
+    };
+    const out = buildSharedSession([alex, sam])!;
+    expect(out).not.toBeNull();
+    // Common movement first
+    expect((out.session.exercises[0].exercise ?? out.session.exercises[0].name)).toBe('Bench Press');
+    // Fit cards: 3 per member, progression card counts kept exercises
+    expect(out.fits.u1).toHaveLength(3);
+    expect(out.fits.u2).toHaveLength(3);
+    expect(out.fits.u1[0].heading).toMatch(/progression/i);
+    expect(out.fits.u1[2].body).toMatch(/min/);
+  });
+
+  it('handles a resting member (bonus-session copy) and returns null when nobody has exercises', () => {
+    const lifter = {
+      userId: 'u1', name: 'Alex',
+      day: dayWith('Legs', [{ exercise: 'Squat' }, { exercise: 'Leg Press' }]),
+    };
+    const rester = { userId: 'u2', name: 'Sam', day: fromLabel(null) };
+    const out = buildSharedSession([lifter, rester])!;
+    expect(out).not.toBeNull();
+    expect(out.fits.u2[0].body).toMatch(/bonus session/i);
+
+    expect(buildSharedSession([{ userId: 'u1', name: 'A', day: fromLabel(null) }])).toBeNull();
   });
 });
 

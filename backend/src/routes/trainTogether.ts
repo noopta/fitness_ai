@@ -11,11 +11,15 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser, sendPushToUsers } from '../services/notificationService.js';
+import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import {
   upcomingDates,
   loadUserCalendar,
   computeOverlap,
   groupTier,
+  matchReason,
+  prettyMuscles,
+  buildSharedSession,
   type ParticipantCalendar,
   type ResolvedDay,
 } from '../services/trainTogetherService.js';
@@ -173,6 +177,28 @@ router.get('/train-together/overlap', wrap(async (req, res) => {
   });
 }));
 
+// ─── Nudge ("Ask" pill in the picker) ─────────────────────────────────────────
+
+// POST /api/train-together/nudge { friendId } — one share request push to a
+// friend who hasn't turned on schedule sharing.
+router.post('/train-together/nudge', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const schema = z.object({ friendId: z.string().min(1) });
+  const { friendId } = schema.parse(req.body);
+
+  const friendSet = await acceptedFriendIds(userId);
+  if (!friendSet.has(friendId)) return res.status(403).json({ error: 'Not an accepted friend' });
+
+  const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } });
+  await sendPushToUser(
+    friendId,
+    'Train together?',
+    `${displayName(me!)} wants to compare training schedules — turn on sharing to see your overlap`,
+    { type: 'train_together_nudge' },
+  );
+  res.json({ sent: true });
+}));
+
 // ─── Pins ─────────────────────────────────────────────────────────────────────
 
 const createPinSchema = z.object({
@@ -251,6 +277,131 @@ router.get('/train-together/pins', wrap(async (req, res) => {
   res.json(pins);
 }));
 
+// GET /api/train-together/pins/:id — full pin detail: members (+users), each
+// member's session for the pin date, current tier + reason, shared session.
+router.get('/train-together/pins/:id', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const pin = await prisma.partnerWorkout.findUnique({
+    where: { id: req.params.id },
+    include: {
+      members: {
+        include: { user: { select: { id: true, name: true, username: true, avatarBase64: true, splitLabel: true } } },
+      },
+    },
+  });
+  if (!pin) return res.status(404).json({ error: 'Not found' });
+  if (!pin.members.some((m) => m.userId === userId)) {
+    return res.status(403).json({ error: 'Not a member of this plan' });
+  }
+
+  const calendars = await Promise.all(pin.members.map((m) => loadUserCalendar(m.userId, [pin.date])));
+  const days = calendars.map((c, i) =>
+    c?.[0] ?? { date: pin.date, rest: true, label: null, focusKey: null, muscles: [] as string[] },
+  );
+  const tier = groupTier(days);
+
+  res.json({
+    id: pin.id,
+    date: pin.date,
+    creatorId: pin.creatorId,
+    note: pin.note,
+    status: pin.status,
+    pinnedTier: pin.pinnedTier,
+    tier,
+    reason: matchReason(days, tier),
+    sharedSession: pin.sharedSessionJson ? JSON.parse(pin.sharedSessionJson) : null,
+    sharedFits: pin.sharedFitJson ? JSON.parse(pin.sharedFitJson) : null,
+    members: pin.members.map((m, i) => ({
+      userId: m.userId,
+      response: m.response,
+      sharedResponse: m.sharedResponse,
+      sharedRespondedAt: m.sharedRespondedAt,
+      user: m.user,
+      session: { rest: days[i].rest, label: days[i].label, muscles: prettyMuscles(days[i].muscles) },
+    })),
+    createdAt: pin.createdAt,
+  });
+}));
+
+// POST /api/train-together/pins/:id/shared-session — "Build us a shared
+// workout" (spec §10). Generates once (deterministic, from the members' OWN
+// programmed exercises for that date) and stores it on the pin.
+router.post('/train-together/pins/:id/shared-session', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const pin = await prisma.partnerWorkout.findUnique({
+    where: { id: req.params.id },
+    include: { members: { include: { user: { select: { id: true, name: true, username: true } } } } },
+  });
+  if (!pin) return res.status(404).json({ error: 'Not found' });
+  if (!pin.members.some((m) => m.userId === userId)) {
+    return res.status(403).json({ error: 'Not a member of this plan' });
+  }
+
+  if (pin.sharedSessionJson) {
+    return res.json({
+      session: JSON.parse(pin.sharedSessionJson),
+      fits: pin.sharedFitJson ? JSON.parse(pin.sharedFitJson) : {},
+    });
+  }
+
+  const calendars = await Promise.all(pin.members.map((m) => loadUserCalendar(m.userId, [pin.date])));
+  const inputs = pin.members.map((m, i) => ({
+    userId: m.userId,
+    name: m.user.name || m.user.username || 'Friend',
+    day: calendars[i]?.[0] ?? { date: pin.date, rest: true, label: null, focusKey: null, muscles: [] as string[] },
+  }));
+  const built = buildSharedSession(inputs);
+  if (!built) return res.status(400).json({ error: 'No programmed exercises to build from that day' });
+
+  await prisma.partnerWorkout.update({
+    where: { id: pin.id },
+    data: {
+      sharedSessionJson: JSON.stringify(built.session),
+      sharedFitJson: JSON.stringify(built.fits),
+    },
+  });
+  res.json(built);
+}));
+
+// POST /api/train-together/pins/:id/shared-session/respond
+// { response: 'accepted' | 'declined' } — accepting writes a ScheduleOverride
+// for THIS member on the pin date only. Declining changes nothing; the pin
+// stands.
+router.post('/train-together/pins/:id/shared-session/respond', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const schema = z.object({ response: z.enum(['accepted', 'declined']) });
+  const { response } = schema.parse(req.body);
+
+  const pin = await prisma.partnerWorkout.findUnique({
+    where: { id: req.params.id },
+    include: { members: true },
+  });
+  if (!pin) return res.status(404).json({ error: 'Not found' });
+  const membership = pin.members.find((m) => m.userId === userId);
+  if (!membership) return res.status(403).json({ error: 'Not a member of this plan' });
+  if (!pin.sharedSessionJson) return res.status(400).json({ error: 'No shared session generated yet' });
+
+  await prisma.partnerWorkoutMember.update({
+    where: { id: membership.id },
+    data: { sharedResponse: response, sharedRespondedAt: new Date() },
+  });
+
+  if (response === 'accepted') {
+    await prisma.scheduleOverride.upsert({
+      where: { userId_date: { userId, date: pin.date } },
+      create: { userId, date: pin.date, sessionJson: pin.sharedSessionJson, reason: 'Shared session (Train Together)' },
+      update: { sessionJson: pin.sharedSessionJson, reason: 'Shared session (Train Together)' },
+    });
+    // Same cache busts as any schedule mutation, so Today reflects it.
+    cacheClearByPrefix(`today:${userId}:`);
+    cacheClearByPrefix(`schedule:${userId}:`);
+    cacheClearByPrefix(`dashboard:${userId}:`);
+    cacheDelete(`userctx:${userId}`);
+  }
+
+  res.json({ sharedResponse: response });
+}));
+
 // POST /api/train-together/pins/:id/respond { response: 'accepted' | 'declined' }
 router.post('/train-together/pins/:id/respond', wrap(async (req, res) => {
   const userId = req.user!.id;
@@ -294,7 +445,7 @@ router.post('/train-together/pins/:id/respond', wrap(async (req, res) => {
     await sendPushToUsers(
       others.map((m) => m.userId),
       'Training plan confirmed',
-      `${displayName(responder!)} is in for ${prettyDate(pin.date)} 🤝`,
+      `${displayName(responder!)} is in for ${prettyDate(pin.date)}`,
       { type: 'partner_workout_confirmed', partnerWorkoutId: pin.id },
     );
   } else if (response === 'declined') {
