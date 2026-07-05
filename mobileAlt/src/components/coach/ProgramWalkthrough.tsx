@@ -34,7 +34,9 @@ export function ProgramWalkthrough({ program, onSave, onBack }: ProgramWalkthrou
     }
   }
 
-  const firstPhaseFirstDay = program?.phases?.[0]?.days?.[0];
+  // Generated programs use `trainingDays` (and older shapes `days`) — accept both.
+  const firstPhase = program?.phases?.[0];
+  const firstPhaseFirstDay = (firstPhase?.trainingDays ?? firstPhase?.days)?.[0];
 
   return (
     <ScrollView
@@ -90,32 +92,40 @@ export function ProgramWalkthrough({ program, onSave, onBack }: ProgramWalkthrou
       {program?.phases && program.phases.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Program Phases</Text>
-          {program.phases.map((phase: any, phaseIdx: number) => (
-            <Card key={phaseIdx} style={styles.phaseCard}>
-              <CardHeader>
-                <View style={styles.phaseHeaderRow}>
-                  <View style={styles.phaseNumBadge}>
-                    <Text style={styles.phaseNumText}>{phaseIdx + 1}</Text>
+          {program.phases.map((phase: any, phaseIdx: number) => {
+            // Generated programs use phaseName/durationWeeks/trainingDays;
+            // accept the older name/weeks/days shapes too so real phase names
+            // render instead of the "Phase N" fallback.
+            const phaseName = phase.phaseName || phase.name;
+            const weeks = phase.durationWeeks ?? phase.weeks;
+            const daysPerWeek = phase.daysPerWeek ?? (phase.trainingDays ?? phase.days)?.length;
+            return (
+              <Card key={phaseIdx} style={styles.phaseCard}>
+                <CardHeader>
+                  <View style={styles.phaseHeaderRow}>
+                    <View style={styles.phaseNumBadge}>
+                      <Text style={styles.phaseNumText}>{phaseIdx + 1}</Text>
+                    </View>
+                    <View style={styles.phaseInfo}>
+                      <CardTitle style={styles.phaseName}>
+                        {phaseName || `Phase ${phaseIdx + 1}`}
+                      </CardTitle>
+                      <Text style={styles.phaseMeta}>
+                        {weeks ? `${weeks} weeks` : ''}
+                        {weeks && daysPerWeek ? ' · ' : ''}
+                        {daysPerWeek ? `${daysPerWeek} days/week` : ''}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.phaseInfo}>
-                    <CardTitle style={styles.phaseName}>
-                      {phase.name || `Phase ${phaseIdx + 1}`}
-                    </CardTitle>
-                    <Text style={styles.phaseMeta}>
-                      {phase.weeks ? `${phase.weeks} weeks` : ''}
-                      {phase.weeks && phase.daysPerWeek ? ' · ' : ''}
-                      {phase.daysPerWeek ? `${phase.daysPerWeek} days/week` : ''}
-                    </Text>
-                  </View>
-                </View>
-              </CardHeader>
-              {phase.description ? (
-                <CardContent>
-                  <Text style={styles.phaseDesc}>{phase.description}</Text>
-                </CardContent>
-              ) : null}
-            </Card>
-          ))}
+                </CardHeader>
+                {(phase.description || phase.focus) ? (
+                  <CardContent>
+                    <Text style={styles.phaseDesc}>{phase.description || phase.focus}</Text>
+                  </CardContent>
+                ) : null}
+              </Card>
+            );
+          })}
         </View>
       )}
 
@@ -126,7 +136,7 @@ export function ProgramWalkthrough({ program, onSave, onBack }: ProgramWalkthrou
           <Card style={styles.card}>
             <CardHeader>
               <CardTitle style={styles.dayTitle}>
-                {firstPhaseFirstDay.name || 'Day 1'}
+                {firstPhaseFirstDay.day || firstPhaseFirstDay.name || firstPhaseFirstDay.focus || 'Day 1'}
               </CardTitle>
             </CardHeader>
             <CardContent style={styles.exerciseListContent}>
