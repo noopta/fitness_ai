@@ -199,6 +199,10 @@ export default function TrainTogetherScreen() {
   const renderFriend = (f: TTFriend) => {
     const isSelected = selected.has(f.id);
     const reason = !f.sharing ? 'Not sharing their schedule' : !f.hasProgram ? 'No active program' : null;
+    // avatarBase64 is stored WITH the data: prefix (see PostCard); handle both.
+    const avatarUri = f.avatarBase64
+      ? (f.avatarBase64.startsWith('data:') ? f.avatarBase64 : `data:image/jpeg;base64,${f.avatarBase64}`)
+      : null;
     return (
       <TouchableOpacity
         key={f.id}
@@ -207,8 +211,8 @@ export default function TrainTogetherScreen() {
         disabled={!f.selectable}
         onPress={() => toggleFriend(f.id)}
       >
-        {f.avatarBase64 ? (
-          <Image source={{ uri: `data:image/jpeg;base64,${f.avatarBase64}` }} style={styles.avatar} />
+        {avatarUri ? (
+          <Image source={{ uri: avatarUri }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
             <Text style={styles.avatarInitial}>{(f.name || f.username || '?')[0]?.toUpperCase()}</Text>
