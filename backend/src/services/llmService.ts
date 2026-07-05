@@ -6,6 +6,7 @@ import { getApprovedAccessories, getStabilityExercises, generateIntensityRecomme
 import { runDiagnosticEngine, type DiagnosticSignals, type SnapshotInput, type SessionFlags } from '../engine/diagnosticEngine.js';
 import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
 import { buildRAGContext, retrieveProgramSources, type ProgramSource } from './ragService.js';
+import { kgToLb, type UnitPreference } from './weightUnits.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -2193,13 +2194,19 @@ export interface StrengthProfileInsightsParams {
   radarScores: Record<string, number>;
   recentDiagnoses: string[];
   totalLogs: number;
+  /** Unit the insight text should quote weights in. Omitted → imperial. */
+  unitPreference?: UnitPreference;
 }
 
 export async function generateStrengthProfileInsights(
   params: StrengthProfileInsightsParams
 ): Promise<string[]> {
+  // Quote every weight in the athlete's own unit — these strings render
+  // verbatim on the Strength page, so a kg user must never read lbs here.
+  const unit = params.unitPreference === 'metric' ? 'kg' : 'lbs';
+  const wt = (kg: number) => `${Math.round(unit === 'kg' ? kg : kgToLb(kg))}${unit}`;
   const liftSummary = params.lifts.map(l =>
-    `${l.name}: est. 1RM ${l.current1RMkg}kg, ${l.monthlyGainPct != null ? l.monthlyGainPct + '% this month' : 'no monthly data'}, ${l.sessionCount} logged sessions`
+    `${l.name}: est. 1RM ${wt(l.current1RMkg)}, ${l.monthlyGainPct != null ? l.monthlyGainPct + '% this month' : 'no monthly data'}, ${l.sessionCount} logged sessions`
   ).join('\n');
 
   const radarSummary = Object.entries(params.radarScores)
@@ -2214,7 +2221,7 @@ export async function generateStrengthProfileInsights(
 
 ATHLETE DATA:
 - Overall Strength Index: ${params.overallStrengthIndex ?? 'N/A'}/100 (${params.strengthTier})
-- Bodyweight: ${params.bodyweightKg}kg
+- Bodyweight: ${wt(params.bodyweightKg)}
 - Total logged sessions: ${params.totalLogs}
 - Movement balance (0-10): ${radarSummary}
 
@@ -2226,6 +2233,7 @@ ${diagSummary}
 
 Generate exactly 4 bullet insights. Rules:
 - Be specific and reference actual numbers from the data
+- Quote all weights in ${unit} — never the other unit
 - Mix: 1 strength ratio insight, 1 imbalance/balance insight, 1 progress insight, 1 actionable recommendation
 - Keep each under 25 words
 - Do NOT use generic advice — every insight must reference actual data points

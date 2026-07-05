@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { bodyWeightKg, kgToLb } from '../services/weightUnits.js';
+import { bodyWeightKg, kgToLb, normalizePreference } from '../services/weightUnits.js';
 import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
@@ -28,7 +28,7 @@ function toWeekKey(dateStr: string): string {
 }
 
 function kgToLbs(kg: number): number {
-  return Math.round(kg * 2.2046);
+  return Math.round(kgToLb(kg));
 }
 
 function strengthTier(score: number | null): string {
@@ -45,6 +45,9 @@ function strengthTier(score: number | null): string {
 
 export async function computeStrengthProfile(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
+  // Server-rendered text (AI insights, recovery-factor notes) bakes the unit
+  // into strings, so it must follow the user's preference, not a fixed unit.
+  const unitPreference = normalizePreference(user?.unitPreference);
 
   const logs = await prisma.workoutLog.findMany({
     where: { userId },
@@ -214,6 +217,7 @@ export async function computeStrengthProfile(userId: string) {
       radarScores,
       recentDiagnoses,
       totalLogs,
+      unitPreference,
     });
   } catch (err) {
     console.error('[strength] insights error:', err);
@@ -271,6 +275,7 @@ export async function computeStrengthProfile(userId: string) {
         .map((b) => ({ date: b.date, weightLbs: Math.round(kgToLb(b.kg) * 10) / 10 })),
       nutrition: nutritionLogs.map((n) => ({ date: n.date, calories: n.calories, proteinG: n.proteinG })),
       wellness: wellnessLogs.map((w) => ({ date: w.date, sleepHours: w.sleepHours, stress: w.stress, energy: w.energy })),
+      unitPreference,
     });
   } catch (err) {
     console.error('[strength] athlete model build failed:', err);

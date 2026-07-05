@@ -168,7 +168,7 @@ export function deriveFeedingLifts(
   return top.map(l => ({
     name: l.name,
     e1rmDisplay: units && l.current1RMkg != null
-      ? `${units.fromKg(l.current1RMkg)} ${units.unitLabel}`
+      ? `${Math.round(units.fromKg(l.current1RMkg))} ${units.unitLabel}`
       : `${l.current1RMLbs} lb`,
     contribPct: Math.round((l.current1RMLbs / total) * 100),
   }));

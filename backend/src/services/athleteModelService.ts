@@ -23,7 +23,7 @@ import {
   type RecoveryFactor, type BodyWeightPoint, type NutritionPoint, type WellnessPoint,
 } from './recoveryFactorsService.js';
 import { e1rmWithRpe, parseRPE } from '../engine/e1rm.js';
-import { kgToLb } from './weightUnits.js';
+import { kgToLb, type UnitPreference } from './weightUnits.js';
 import { movementPatternFor, PATTERN_LABEL, type MovementPattern } from '../data/liftMechanics.js';
 
 export interface AthleteModelInput {
@@ -35,6 +35,8 @@ export interface AthleteModelInput {
   bodyWeight: BodyWeightPoint[];
   nutrition: NutritionPoint[];
   wellness: WellnessPoint[];
+  /** Unit user-facing insight/factor text renders in. Omitted → imperial. */
+  unitPreference?: UnitPreference;
 }
 
 export interface PatternCoverage {
@@ -151,6 +153,7 @@ export function buildAthleteModel(input: AthleteModelInput): AthleteModel {
     nutrition: input.nutrition,
     wellness: input.wellness,
     bodyWeightLbs: input.bodyweightKg != null ? kgToLb(input.bodyweightKg) : null,
+    unitPreference: input.unitPreference,
   });
 
   let insights = generateInsights({

@@ -9,6 +9,8 @@
 //
 // Pure + deterministic. Caller loads the logs; this does the analysis.
 
+import { lbToKg, type UnitPreference } from './weightUnits.js';
+
 export interface BodyWeightPoint { date: string; weightLbs: number }
 export interface NutritionPoint { date: string; calories: number; proteinG: number }
 export interface WellnessPoint { date: string; sleepHours: number; stress: number; energy: number }
@@ -31,6 +33,9 @@ export interface RecoveryFactorsInput {
   nutrition: NutritionPoint[];
   wellness: WellnessPoint[];
   bodyWeightLbs: number | null;       // current bodyweight for protein-target math
+  /** Unit the notes should read in. The math stays lbs-internal; only the
+   *  user-facing note text follows this. Omitted → imperial (legacy). */
+  unitPreference?: UnitPreference;
 }
 
 function mean(xs: number[]): number {
@@ -56,10 +61,13 @@ export function analyzeRecoveryFactors(input: RecoveryFactorsInput): RecoveryFac
     const dropLbs = first - last;
     if (dropLbs >= 2 && first > 0) {
       const pctDrop = dropLbs / first;
+      const dropDisplay = input.unitPreference === 'metric'
+        ? `${lbToKg(dropLbs).toFixed(1)} kg`
+        : `${dropLbs.toFixed(1)} lb`;
       factors.push({
         id: 'calorie-deficit',
         severity: Math.min(1, pctDrop / 0.06), // ~6% drop → max severity
-        note: `Bodyweight is down ${dropLbs.toFixed(1)} lb — you've been in a calorie deficit. Strength gains are hard while losing weight.`,
+        note: `Bodyweight is down ${dropDisplay} — you've been in a calorie deficit. Strength gains are hard while losing weight.`,
       });
     }
   }

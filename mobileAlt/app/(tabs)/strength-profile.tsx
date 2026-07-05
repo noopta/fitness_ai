@@ -224,8 +224,10 @@ function LiftCard({ lift }: { lift: LiftSummary }) {
   // hero number, with the other unit as the secondary line. (Both values are
   // precomputed on the lift; we just pick which leads.)
   const { unit } = useUnits();
-  const primary1RM = unit === 'kg' ? lift.current1RMkg : lift.current1RMLbs;
-  const secondary1RM = unit === 'kg' ? lift.current1RMLbs : lift.current1RMkg;
+  // current1RMkg arrives unrounded from the backend (lbs are pre-rounded) —
+  // round both so a kg hero never renders as 104.32891.
+  const primary1RM = Math.round(unit === 'kg' ? lift.current1RMkg : lift.current1RMLbs);
+  const secondary1RM = Math.round(unit === 'kg' ? lift.current1RMLbs : lift.current1RMkg);
   const secondaryUnit = unit === 'kg' ? 'lbs' : 'kg';
   return (
     <TouchableOpacity onPress={() => setExpanded(e => !e)} activeOpacity={0.85}>
@@ -299,9 +301,14 @@ const liftStyles = StyleSheet.create({
 // ─── 1RM Trend Chart (multi-line) ─────────────────────────────────────────────
 
 function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
+  // Plot in the user's unit — the y-axis labels are visible weights, so the
+  // whole chart reads off the same series the E1RM rows use.
+  const { unit } = useUnits();
+  const rmOf = (p: WeekPoint | null | undefined) =>
+    p == null ? NaN : unit === 'kg' ? p.rm : p.rmLbs;
   const compound = (Array.isArray(lifts) ? lifts : []).filter(
     l => l?.isCompound && Array.isArray(l.weekSeries) &&
-      l.weekSeries.filter(p => p != null && Number.isFinite(p.rmLbs)).length >= 2,
+      l.weekSeries.filter(p => Number.isFinite(rmOf(p))).length >= 2,
   ).slice(0, 5);
   if (compound.length === 0) return null;
   const W = CARD_W - spacing.md * 2; const H = 140; const PH = 40; const PV = 16;
@@ -312,7 +319,7 @@ function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
   if (weeks.length < 2) return null;
   // Filter to finite values only — a NaN here flows into SVG coords and
   // crashes Android. If nothing finite remains, bail rather than render NaN.
-  const allVals = compound.flatMap(l => l.weekSeries.map(p => p?.rmLbs)).filter((v): v is number => Number.isFinite(v));
+  const allVals = compound.flatMap(l => l.weekSeries.map(p => rmOf(p))).filter((v): v is number => Number.isFinite(v));
   if (allVals.length === 0) return null;
   const minV = Math.min(...allVals); const maxV = Math.max(...allVals); const range = maxV - minV || 1;
   const toX = (i: number) => PH + (i / (weeks.length - 1)) * (W - PH * 2);
@@ -325,8 +332,8 @@ function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
           const color = CATEGORY_COLOR[lift.category] ?? '#6366f1';
           const pts = weeks.map((wk, i) => {
             const pt = lift.weekSeries.find(p => p?.week === wk);
-            return pt && Number.isFinite(pt.rmLbs)
-              ? `${toX(i).toFixed(1)},${toY(pt.rmLbs).toFixed(1)}`
+            return pt && Number.isFinite(rmOf(pt))
+              ? `${toX(i).toFixed(1)},${toY(rmOf(pt)).toFixed(1)}`
               : null;
           }).filter(Boolean) as string[];
           if (pts.length < 2) return null;
@@ -341,8 +348,8 @@ function TrendChart({ lifts }: { lifts: LiftSummary[] }) {
           </SvgText>
         ) : null)}
         {/* Y axis labels */}
-        <SvgText x={2} y={PV + 4} fontSize="8" fill={colors.mutedForeground}>{Math.round(maxV)}</SvgText>
-        <SvgText x={2} y={H - PV} fontSize="8" fill={colors.mutedForeground}>{Math.round(minV)}</SvgText>
+        <SvgText x={2} y={PV + 4} fontSize="8" fill={colors.mutedForeground}>{`${Math.round(maxV)} ${unit}`}</SvgText>
+        <SvgText x={2} y={H - PV} fontSize="8" fill={colors.mutedForeground}>{`${Math.round(minV)} ${unit}`}</SvgText>
       </Svg>
       {/* Legend */}
       <View style={trendStyles.legend}>
@@ -383,23 +390,28 @@ const TIER_INDEX: Record<string, number> = {
   Elite:        6,
 };
 
-function mapLiftToRow(lift: LiftSummary): LiftRowData {
+function mapLiftToRow(lift: LiftSummary, unit: 'kg' | 'lbs'): LiftRowData {
   const series = lift.weekSeries ?? [];
+  // Read every number off the same unit the user chose — weekSeries carries
+  // both rm (kg) and rmLbs, so this is a pick, not a conversion.
+  const metric = unit === 'kg';
+  const rmOf = (p: WeekPoint) => (metric ? p.rm : p.rmLbs);
+  const current = metric ? lift.current1RMkg : lift.current1RMLbs;
   // 30D delta: difference between latest e1RM and ~4 weeks back. Falls back
-  // to monthlyGainPct expressed in lbs if the series is shorter than 4 weeks
+  // to monthlyGainPct expressed off the current 1RM if the series is shorter
   // (we'd rather show a working number than em-dash a row a user has logged).
   let delta30d: number | null = null;
   if (series.length >= 5) {
-    delta30d = Math.round((series[series.length - 1].rmLbs - series[series.length - 5].rmLbs));
+    delta30d = Math.round(rmOf(series[series.length - 1]) - rmOf(series[series.length - 5]));
   } else if (series.length >= 2 && lift.monthlyGainPct != null) {
-    delta30d = Math.round(lift.current1RMLbs * (lift.monthlyGainPct / 100));
+    delta30d = Math.round(current * (lift.monthlyGainPct / 100));
   }
   return {
     name: lift.canonicalName,
-    e1rm: lift.current1RMLbs ?? null,
-    unit: 'lb',
+    e1rm: current != null ? Math.round(current) : null,
+    unit: metric ? 'kg' : 'lb',
     delta30d,
-    spark: series.map(p => p.rmLbs).filter(n => Number.isFinite(n)),
+    spark: series.map(rmOf).filter(n => Number.isFinite(n)),
   };
 }
 
@@ -434,6 +446,7 @@ type ProfileTab = 'strength' | 'nutrition';
 
 function StrengthProfileScreenInner() {
   const router = useRouter();
+  const { unit, fromKg, unitLabel } = useUnits();
   const [activeTab, setActiveTab] = useState<ProfileTab>('strength');
   const [data, setData] = useState<StrengthProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -672,7 +685,9 @@ function StrengthProfileScreenInner() {
                   name: l.canonicalName,
                   category: l.category,
                   current1RMLbs: l.current1RMLbs,
+                  current1RMkg: l.current1RMkg,
                 })),
+                { fromKg, unitLabel },
               )
             : []
         }
@@ -796,7 +811,7 @@ function StrengthProfileScreenInner() {
                     .map((lift, i) => (
                       <LiftRow
                         key={lift.canonicalName}
-                        lift={mapLiftToRow(lift)}
+                        lift={mapLiftToRow(lift, unit)}
                         rowIndex={i}
                         onPress={(l) => setLiftSheet(l)}
                         onLongPress={handleLongPressLift}
