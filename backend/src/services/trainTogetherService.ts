@@ -63,7 +63,11 @@ const KEYWORD_GROUPS: Array<{ key: string; muscles: readonly string[]; patterns:
   { key: 'chest', muscles: MUSCLES.chest, patterns: /\bchest\b|\bbench\b/ },
   { key: 'back', muscles: MUSCLES.back, patterns: /\bback\b|\brow(s)?\b|\blat(s)?\b/ },
   { key: 'shoulders', muscles: MUSCLES.shoulders, patterns: /\bshoulder(s)?\b|\bdelt(s)?\b|\boverhead\b|\bohp\b/ },
-  { key: 'arms', muscles: MUSCLES.arms, patterns: /\barm(s)?\b|\bbicep(s)?\b|\btricep(s)?\b|\bcurl(s)?\b/ },
+  { key: 'arms', muscles: MUSCLES.arms, patterns: /\barm(s)?\b|\bcurl(s)?\b/ },
+  // Specific arm halves get ONLY their muscle — "Back and biceps" must not
+  // pull triceps in via the combined arms group.
+  { key: 'biceps', muscles: ['biceps'], patterns: /\bbicep(s)?\b/ },
+  { key: 'triceps', muscles: ['triceps'], patterns: /\btricep(s)?\b/ },
   { key: 'posterior', muscles: MUSCLES.posterior, patterns: /\bdeadlift\b|\bposterior\b|\bhinge\b/ },
   { key: 'core', muscles: MUSCLES.core, patterns: /\bcore\b|\babs\b|\babdominal(s)?\b/ },
   { key: 'cardio', muscles: MUSCLES.cardio, patterns: /\bcardio\b|\bconditioning\b|\brun(ning)?\b|\bhiit\b|\bzone\s*2\b/ },
