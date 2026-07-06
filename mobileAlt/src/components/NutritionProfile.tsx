@@ -377,7 +377,7 @@ function RecommendationList({ items }: { items: string[] }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function NutritionProfile() {
+function NutritionProfileInner() {
   const { user } = useAuth();
 
   // Key namespace — `invalidateCache('nutrition:profile:')` from the meal-log
@@ -1180,3 +1180,9 @@ const styles = StyleSheet.create({
   domainHeadline: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground, marginBottom: 4 },
   domainDetail: { fontSize: fontSize.xs, color: colors.mutedForeground, lineHeight: 17 },
 });
+
+// Memoized with no props: the parent Strength Profile screen re-renders on
+// every sheet/radar state change, and this whole tab (rings, timelines) was
+// re-rendering with it. With memo + zero props it never re-renders from the
+// parent at all.
+export const NutritionProfile = React.memo(NutritionProfileInner);

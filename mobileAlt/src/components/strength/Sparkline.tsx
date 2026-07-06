@@ -24,7 +24,7 @@ interface Props {
  * (per the handoff edge case spec — "One lift logged → sparkline shows a
  * single dot, no line").
  */
-export function Sparkline({ values, width = 60, height = 20, stroke = '#09090B', rowIndex = 0 }: Props) {
+function SparklineInner({ values, width = 60, height = 20, stroke = '#09090B', rowIndex = 0 }: Props) {
   const reducedMotion = useReducedMotion();
 
   const { d, pathLength, hasLine } = useMemo(() => {
@@ -98,3 +98,8 @@ export function Sparkline({ values, width = 60, height = 20, stroke = '#09090B',
     </Svg>
   );
 }
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const Sparkline = React.memo(SparklineInner);

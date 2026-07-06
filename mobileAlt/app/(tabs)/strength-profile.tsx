@@ -530,20 +530,29 @@ function StrengthProfileScreenInner() {
   }
 
   // Two-finger long press on the radar — toggles dashed target polygon.
-  // Constructed at the top level (gestures must be stable across renders).
-  // Reanimated `runOnJS` flips the React state from the worklet thread.
-  const radarToggleGesture = Gesture.LongPress()
+  // Constructed at the top level (gestures must be stable across renders —
+  // hence useMemo: a fresh gesture object every render forces the
+  // GestureDetector to re-attach and re-renders the radar subtree).
+  const radarToggleGesture = React.useMemo(() => Gesture.LongPress()
     .numberOfPointers(2)
     .minDuration(450)
     .onStart(() => {
       'worklet';
       runOnJS(setShowRadarTarget)(prev => !prev);
-    });
+    }), []);
+
+  // The radar axes to render right now — recomputed when level or data
+  // changes. Also stabilizes the prop identity for the memoized RadarChart.
+  const currentRadarAxes = React.useMemo(() => {
+    return buildAxesForLevel(radarLevel, data?.radarScores, data?.muscleScores);
+  }, [radarLevel, data?.radarScores, data?.muscleScores]);
 
   // Tap a radar axis. Behavior depends on the current drill level:
   //   - overview: tap → morph the radar into the muscles for that bucket.
   //   - bucket:   tap → open RadarAxisDrillSheet for that muscle.
-  function handleAxisPress(axisLabel: string) {
+  // useCallback: RadarChart is memoized — an unstable handler identity would
+  // re-render its 400-line animated SVG on every parent state change.
+  const handleAxisPress = React.useCallback((axisLabel: string) => {
     if (radarLevel.kind === 'overview') {
       // Only drill if the tapped axis maps to a known bucket with at least 3
       // muscle scores available — otherwise fall through to the sheet (matches
@@ -574,32 +583,29 @@ function StrengthProfileScreenInner() {
     // bucket level — terminal tap opens the muscle sheet.
     const ax = currentRadarAxes.find(a => a.axis === axisLabel);
     if (ax) setAxisSheet(ax);
-  }
+  }, [radarLevel, data?.radarScores, data?.muscleScores, currentRadarAxes]);
 
   // Long-press a radar axis at any level → open the sheet immediately. Lets
   // power users skip the drill animation and jump straight to the details.
-  function handleAxisLongPress(axisLabel: string) {
+  const handleAxisLongPress = React.useCallback((axisLabel: string) => {
     const ax = currentRadarAxes.find(a => a.axis === axisLabel);
     if (ax) setAxisSheet(ax);
-  }
+  }, [currentRadarAxes]);
+
+  // Stable identity so the memoized AnakinsRead card list doesn't re-render
+  // on unrelated screen state changes.
+  const handleInsightPress = React.useCallback(() => router.push('/(tabs)/coach'), []);
 
   // Swipe-down inside the radar area → back out one drill level. Combined
   // with breadcrumb tap, gives users three ways to escape from level 2.
-  const swipeBackGesture = Gesture.Pan()
+  // Stable identity for the same reason as radarToggleGesture above.
+  const swipeBackGesture = React.useMemo(() => Gesture.Pan()
     .activeOffsetY(20)
     .failOffsetY(-10)
     .onEnd(() => {
       'worklet';
       runOnJS(setRadarLevel)({ kind: 'overview' });
-    });
-
-  // The radar axes to render right now — recomputed when level or data
-  // changes. `useMemo` not strictly necessary since buildAxesForLevel is
-  // cheap, but it stabilizes the prop identity for RadarChart's deep-eq
-  // dep check.
-  const currentRadarAxes = React.useMemo(() => {
-    return buildAxesForLevel(radarLevel, data?.radarScores, data?.muscleScores);
-  }, [radarLevel, data?.radarScores, data?.muscleScores]);
+    }), []);
 
   if (loading) {
     return (
@@ -775,7 +781,7 @@ function StrengthProfileScreenInner() {
                 insights={data!.athleteModel.insights}
                 ratios={data!.athleteModel.ratios}
                 confidence={data!.athleteModel.confidence ?? 0}
-                onInsightPress={() => router.push('/(tabs)/coach')}
+                onInsightPress={handleInsightPress}
               />
             )}
 

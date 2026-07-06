@@ -30,7 +30,7 @@ function ratioFor(insight: Insight, ratios: RatioResult[]): RatioResult | null {
   return ratios.find((r) => r.id === ratioId) ?? null;
 }
 
-export function AnakinsRead({ insights, ratios, confidence, onInsightPress }: Props) {
+function AnakinsReadInner({ insights, ratios, confidence, onInsightPress }: Props) {
   const reducedMotion = useReducedMotion();
   const newUser = confidence < NEW_USER_CONFIDENCE;
   const nonWin = insights.filter((i) => i.kind !== 'win');
@@ -161,3 +161,8 @@ const styles = StyleSheet.create({
   clearTitle: { fontSize: 14, fontWeight: '700', color: '#09090B' },
   clearBody: { fontSize: 12.5, color: '#15803D', lineHeight: 18, marginTop: 3 },
 });
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const AnakinsRead = React.memo(AnakinsReadInner);

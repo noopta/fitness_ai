@@ -101,7 +101,7 @@ function InsightViz({ insight, ratio }: { insight: Insight; ratio?: RatioResult 
   }
 }
 
-export function InsightCard({ insight, ratio, onPress }: Props) {
+function InsightCardInner({ insight, ratio, onPress }: Props) {
   const ks = KIND_STYLE[insight.kind];
   const isHigh = insight.priority === 'high';
 
@@ -200,3 +200,8 @@ const vizStyles = StyleSheet.create({
     borderRadius: 2, backgroundColor: '#A1A1AA',
   },
 });
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const InsightCard = React.memo(InsightCardInner);

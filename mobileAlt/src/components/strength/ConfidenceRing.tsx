@@ -31,7 +31,7 @@ interface Props {
  *
  * Per the design handoff §6 / §11. Honors reduced motion (snaps to final).
  */
-export function ConfidenceRing({
+function ConfidenceRingInner({
   value,
   size = 56,
   stroke = 3.5,
@@ -117,3 +117,8 @@ export function ConfidenceRing({
 const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
 });
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const ConfidenceRing = React.memo(ConfidenceRingInner);

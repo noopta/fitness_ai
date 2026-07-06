@@ -16,7 +16,7 @@ interface Props {
  * lift's e1RM history (flat for a stall, rising for a win). Static; the
  * card's mount animation carries the motion.
  */
-export function MiniSparkline({
+function MiniSparklineInner({
   values, width = 66, height = 24, color = '#71717A', endDot = true,
 }: Props) {
   const geo = useMemo(() => {
@@ -53,3 +53,8 @@ export function MiniSparkline({
     </Svg>
   );
 }
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const MiniSparkline = React.memo(MiniSparklineInner);

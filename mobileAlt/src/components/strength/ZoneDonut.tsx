@@ -25,7 +25,7 @@ interface Props {
   stroke?: number;
 }
 
-export function ZoneDonut({ distribution, size = 76, stroke = 13 }: Props) {
+function ZoneDonutInner({ distribution, size = 76, stroke = 13 }: Props) {
   const r = (size - stroke) / 2;
   const cir = 2 * Math.PI * r;
 
@@ -77,3 +77,8 @@ export function ZoneDonut({ distribution, size = 76, stroke = 13 }: Props) {
     </Svg>
   );
 }
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const ZoneDonut = React.memo(ZoneDonutInner);

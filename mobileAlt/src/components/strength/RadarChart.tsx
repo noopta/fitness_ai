@@ -83,7 +83,7 @@ function clampPct(v: unknown): number {
   return Math.max(0, Math.min(100, n));
 }
 
-export function RadarChart({
+function RadarChartInner({
   axes, size = 310, showTarget = true, onAxisPress, onAxisLongPress,
 }: Props) {
   const reducedMotion = useReducedMotion();
@@ -404,3 +404,8 @@ export function RadarChart({
     </Svg>
   );
 }
+
+// Memoized: pure presentational chart — parent screens re-render on every
+// sheet open / drill state change, and re-rendering this SVG each time is
+// what made the Strength page scroll and tap feel heavy.
+export const RadarChart = React.memo(RadarChartInner);
