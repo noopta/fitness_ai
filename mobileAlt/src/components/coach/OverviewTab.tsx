@@ -113,6 +113,8 @@ function DayWorkoutSheet({
   onLogged,
   onLogWorkout,
   onShareDay,
+  pin,
+  onOpenPin,
 }: {
   day: WeekDay;
   visible: boolean;
@@ -120,6 +122,9 @@ function DayWorkoutSheet({
   onLogged: () => void;
   onLogWorkout: (exercises: Exercise[], date: string, title?: string) => void;
   onShareDay: (day: WeekDay) => void;
+  /** Train Together pin on this date, if any — renders a banner to the pin. */
+  pin?: { id: string; names: string[]; status: string } | null;
+  onOpenPin?: (pinId: string) => void;
 }) {
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [sheetVideo, setSheetVideo] = useState<{ videoId: string; title: string } | null>(null);
@@ -169,6 +174,29 @@ function DayWorkoutSheet({
             contentContainerStyle={sheet.bodyContent}
             showsVerticalScrollIndicator={false}
           >
+            {/* Train Together banner — the pin lives one tap away, but never
+                replaces the workout view or logging. */}
+            {pin && onOpenPin && (
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={() => {
+                  // Close first — a route push mid-Modal wedges iOS.
+                  onClose();
+                  setTimeout(() => onOpenPin(pin.id), 350);
+                }}
+                style={sheet.pinBanner}
+              >
+                <OverlapMark
+                  width={16} height={11} color="#09090b"
+                  variant={pin.status === 'changed' ? 'broken' : 'solid'}
+                />
+                <Text style={sheet.pinBannerText} numberOfLines={1}>
+                  Training with {pin.names.join(' + ')}
+                  {pin.status === 'changed' ? ' · schedule changed' : pin.status === 'pending' ? ' · awaiting reply' : ''}
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
             {isRestDay ? (
               <View style={sheet.restBox}>
                 <Ionicons name="moon-outline" size={32} color="#8b5cf6" />
@@ -292,6 +320,13 @@ const sheet = StyleSheet.create({
   exSets: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.primary },
   exIntensity: { fontSize: fontSize.xs, color: colors.mutedForeground },
   restBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+  // Train Together banner inside the day sheet
+  pinBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    borderWidth: 1, borderColor: colors.border, borderRadius: 12,
+    paddingVertical: 10, paddingHorizontal: 12, marginBottom: spacing.md,
+  },
+  pinBannerText: { flex: 1, fontSize: 12.5, fontWeight: '600', color: colors.foreground },
   restText: { fontSize: fontSize.base, color: '#8b5cf6', fontWeight: fontWeight.medium },
   emptyText: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', paddingVertical: spacing.lg },
   videoWrap: { marginTop: spacing.sm, borderRadius: radius.md, overflow: 'hidden', backgroundColor: '#000' },
@@ -789,8 +824,9 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                     key={i}
                     activeOpacity={0.7}
                     onPress={() => {
-                      // Pinned day routes to the pin, not the log sheet (§09).
-                      if (cellPin) { router.push(`/train-together/pin/${cellPin.id}`); return; }
+                      // Always open the workout sheet — logging must stay one
+                      // tap away even on pinned days. The sheet itself carries
+                      // a "Training with …" banner that links to the pin.
                       setSelectedDay(day); setPastLogVisible(true);
                     }}
                     style={[
@@ -836,7 +872,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                     {cellPin && (
                       <View style={[styles.pinMark, cellPin.status === 'changed' && { opacity: 0.5 }]}>
                         <OverlapMark
-                          width={15} height={10}
+                          width={12} height={8}
                           color={day.isToday ? '#ffffff' : '#09090b'}
                           variant={cellPin.status === 'changed' ? 'broken' : 'solid'}
                         />
@@ -980,6 +1016,8 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
         <DayWorkoutSheet
           day={selectedDay}
           visible={pastLogVisible}
+          pin={ttPins.get(selectedDay.date) ?? null}
+          onOpenPin={(pinId) => router.push(`/train-together/pin/${pinId}`)}
           onClose={() => {
             setPastLogVisible(false);
             setTimeout(() => setSelectedDay(null), 400);
@@ -1576,20 +1614,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#22c55e10',
     borderColor: '#22c55e40',
   },
-  // Train Together (§09): pinned day upgrades to ink border + soft shadow;
-  // a changed pin goes dashed. The OverlapMark sits on the cell's top-right.
+  // Train Together (§09): pinned day upgrades to an ink border; a changed
+  // pin goes dashed. No shadow — on these small strip cells it rendered as a
+  // grey smudge around rest days. The OverlapMark sits INSIDE the cell's
+  // top-right corner (outside the bounds the ScrollView clipped it in half).
   dayCellPinned: {
     borderColor: '#09090b',
-    shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 }, elevation: 3,
-    overflow: 'visible',
   },
   dayCellPinChanged: {
     borderColor: '#a1a1aa',
     borderStyle: 'dashed',
-    overflow: 'visible',
   },
-  pinMark: { position: 'absolute', top: -6, right: -7 },
+  pinMark: { position: 'absolute', top: 3, right: 4 },
   pinFootnote: {
     fontSize: 11, color: colors.mutedForeground, marginTop: spacing.sm,
   },

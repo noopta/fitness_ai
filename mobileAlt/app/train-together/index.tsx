@@ -136,9 +136,15 @@ export default function WhosLiftingScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      {/* Header */}
+      {/* Header — back always returns to the feature's entry point (Social ›
+          Friends tab), never to whatever screen happens to be behind us in
+          the stack (post-pin flows leave calendar/pin-detail there). */}
       <View style={s.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={({ pressed }) => pressed && { opacity: 0.82 }}>
+        <Pressable
+          onPress={() => router.navigate({ pathname: '/(tabs)/social', params: { tab: 'friends' } })}
+          hitSlop={12}
+          style={({ pressed }) => pressed && { opacity: 0.82 }}
+        >
           <BackChevron />
         </Pressable>
         <Text style={s.title}>Who's lifting?</Text>

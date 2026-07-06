@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
@@ -559,6 +559,13 @@ function SocialScreenInner() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'friends'>('feed');
+
+  // Deep-link segment selection (?tab=friends) — used by Train Together's
+  // back button so it always lands on its entry point, the Friends tab.
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  useEffect(() => {
+    if (tabParam === 'friends' || tabParam === 'feed') setActiveTab(tabParam);
+  }, [tabParam]);
 
   // Hide ghost surfaces. PostHog showed 3 Leaderboard and 1 SavedArticles
   // views in 30 days — not worth the nav real estate. The screens are still
