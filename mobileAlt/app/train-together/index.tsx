@@ -8,10 +8,11 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
 import { trainTogetherApi, groupsApi } from '../../src/lib/api';
+import { useAuth } from '../../src/context/AuthContext';
 import {
   tt, shadowSm, OverlapMark, TTAvatar, TTAvatarStack, SplitBadge,
   PrimaryButton, GhostAction, MicroLabel, TTSheet,
@@ -25,6 +26,10 @@ interface TTFriend {
   sharing: boolean; hasProgram: boolean; selectable: boolean;
 }
 interface Crew { id: string; name: string; memberIds: string[]; sharingIds: string[] }
+interface PinRow {
+  id: string; date: string; status: string; note: string | null;
+  members: Array<{ userId: string; response: string; user: { id: string; name: string | null; username: string | null } }>;
+}
 
 const avatarUri = (b64: string | null) =>
   b64 ? (b64.startsWith('data:') ? b64 : `data:image/jpeg;base64,${b64}`) : null;
@@ -45,21 +50,25 @@ const CheckIcon = ({ size = 10, color = tt.white, stroke = 3 }: { size?: number;
 export default function WhosLiftingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [friends, setFriends] = useState<TTFriend[]>([]);
   const [crews, setCrews] = useState<Crew[]>([]);
+  const [pins, setPins] = useState<PinRow[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [consentVisible, setConsentVisible] = useState(false);
   const [asked, setAsked] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     try {
-      const [friendsRes, sharingRes, groupsRes, seen] = await Promise.all([
+      const [friendsRes, sharingRes, groupsRes, pinsRes, seen] = await Promise.all([
         trainTogetherApi.getFriends(),
         trainTogetherApi.getSharing(),
         groupsApi.list().catch(() => null),
+        trainTogetherApi.getPins().catch(() => []),
         AsyncStorage.getItem(CONSENT_SEEN_KEY),
       ]);
+      setPins((Array.isArray(pinsRes) ? pinsRes : []).filter((p: any) => p.status !== 'cancelled'));
       const list: TTFriend[] = Array.isArray(friendsRes) ? friendsRes : [];
       setFriends(list);
 
@@ -84,6 +93,12 @@ export default function WhosLiftingScreen() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Refresh pins when the user lands back here from a pin detail / calendar.
+  useFocusEffect(useCallback(() => {
+    trainTogetherApi.getPins()
+      .then((r: any) => setPins((Array.isArray(r) ? r : []).filter((p: any) => p.status !== 'cancelled')))
+      .catch(() => {});
+  }, []));
 
   const toggle = (id: string) => setSelected(prev => {
     const next = new Set(prev);
@@ -135,6 +150,49 @@ export default function WhosLiftingScreen() {
       ) : (
         <>
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+            {/* UPCOMING PINS — the hub the pin flow returns to */}
+            {pins.length > 0 && (
+              <>
+                <MicroLabel style={{ marginTop: 16 }}>Upcoming pins</MicroLabel>
+                <View style={{ marginTop: 8, gap: 6 }}>
+                  {pins.map(pin => {
+                    const withNames = pin.members
+                      .filter(m => m.userId !== user?.id && m.response !== 'declined')
+                      .map(m => (m.user.name || m.user.username || 'Friend').split(' ')[0]);
+                    const d = new Date(pin.date + 'T12:00:00Z');
+                    const dow = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }).toUpperCase();
+                    return (
+                      <Pressable
+                        key={pin.id}
+                        onPress={() => router.push(`/train-together/pin/${pin.id}`)}
+                        style={({ pressed }) => [
+                          s.pinRow,
+                          pin.status === 'changed' && s.pinRowChanged,
+                          pressed && { opacity: 0.82 },
+                        ]}
+                      >
+                        <View style={s.pinDateCol}>
+                          <Text style={s.pinDow}>{dow}</Text>
+                          <Text style={s.pinDateNum}>{d.getUTCDate()}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.pinWith} numberOfLines={1}>With {withNames.join(' + ') || '—'}</Text>
+                          {!!pin.note && <Text style={s.pinNote} numberOfLines={1}>{pin.note}</Text>}
+                        </View>
+                        {pin.status === 'confirmed' ? (
+                          <View style={s.pinStatusInk}><Text style={s.pinStatusInkText}>Confirmed</Text></View>
+                        ) : pin.status === 'changed' ? (
+                          <View style={s.pinStatusWarn}><Text style={s.pinStatusWarnText}>Schedule changed</Text></View>
+                        ) : (
+                          <View style={s.pinStatusDashed}><Text style={s.pinStatusDashedText}>Awaiting</Text></View>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            )}
+
             {/* YOUR CREWS */}
             {crews.length > 0 && (
               <>
@@ -277,6 +335,27 @@ const s = StyleSheet.create({
   },
   title: { fontSize: 16, fontWeight: '600', letterSpacing: -0.32, color: tt.ink },
   scroll: { paddingHorizontal: 20, paddingBottom: 24 },
+
+  pinRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderWidth: 1, borderColor: tt.hairline, borderRadius: 14,
+    paddingVertical: 10, paddingHorizontal: 12, backgroundColor: tt.white,
+  },
+  pinRowChanged: { borderStyle: 'dashed', borderColor: tt.dim },
+  pinDateCol: { width: 34 },
+  pinDow: { fontSize: 9, fontWeight: '700', letterSpacing: 1, color: tt.ink },
+  pinDateNum: { fontSize: 15, fontWeight: '700', color: tt.ink },
+  pinWith: { fontSize: 12.5, fontWeight: '600', color: tt.ink },
+  pinNote: { fontSize: 10.5, color: tt.muted, marginTop: 1 },
+  pinStatusInk: { backgroundColor: tt.ink, borderRadius: 9999, paddingVertical: 3, paddingHorizontal: 9 },
+  pinStatusInkText: { fontSize: 10, fontWeight: '600', color: tt.white },
+  pinStatusDashed: {
+    borderWidth: 1, borderStyle: 'dashed', borderColor: tt.dim,
+    borderRadius: 9999, paddingVertical: 3, paddingHorizontal: 9,
+  },
+  pinStatusDashedText: { fontSize: 10, fontWeight: '600', color: tt.muted },
+  pinStatusWarn: { backgroundColor: tt.warnSoft, borderRadius: 9999, paddingVertical: 3, paddingHorizontal: 9 },
+  pinStatusWarnText: { fontSize: 10, fontWeight: '700', color: tt.warnInk },
 
   crewRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   crewCard: { flex: 1, borderWidth: 1, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 12, backgroundColor: tt.white },

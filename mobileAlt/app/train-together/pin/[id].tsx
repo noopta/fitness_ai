@@ -84,6 +84,11 @@ export default function PinDetailScreen() {
     : pin.status === 'pending' ? 'awaiting'
     : (pin.status as any);
 
+  // The flow's exit: back to the Train Together hub, which lists all pins.
+  // navigate() pops to the existing picker when it's already in the stack
+  // (invite flow) and pushes it fresh when it isn't (arrived from Today).
+  const goToPins = () => router.navigate('/train-together');
+
   async function keepIt() {
     try { await trainTogetherApi.respondToPin(pin!.id, 'accepted'); load(); }
     catch (err: any) { Alert.alert("Couldn't update", err?.message ?? 'Please try again.'); }
@@ -95,7 +100,7 @@ export default function PinDetailScreen() {
       {
         text: mine ? 'Cancel the pin' : 'Leave pin', style: 'destructive',
         onPress: async () => {
-          try { await trainTogetherApi.deletePin(pin!.id); router.back(); }
+          try { await trainTogetherApi.deletePin(pin!.id); goToPins(); }
           catch (err: any) { Alert.alert('Failed', err?.message ?? 'Please try again.'); }
         },
       },
@@ -153,8 +158,10 @@ export default function PinDetailScreen() {
                 </View>
               </View>
               <Text style={s.caption}>We'll nudge no one — invites expire quietly if ignored.</Text>
-              {me && me.response === 'pending' && (
+              {me && me.response === 'pending' ? (
                 <PrimaryButton label="I'm in" onPress={keepIt} style={{ marginTop: 16 }} />
+              ) : (
+                <PrimaryButton label="Done" onPress={goToPins} style={{ marginTop: 16 }} />
               )}
               <GhostAction label={pin.creatorId === user?.id ? 'Cancel the pin' : 'Leave pin'} onPress={cancelPin} style={{ marginTop: 8 }} />
             </>
@@ -212,7 +219,7 @@ export default function PinDetailScreen() {
               </Pressable>
 
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-                <PrimaryButton label="Done" onPress={() => router.back()} style={{ flex: 1 }} />
+                <PrimaryButton label="Done" onPress={goToPins} style={{ flex: 1 }} />
                 <OutlinedButton label="Leave pin" muted onPress={cancelPin} style={{ width: 104 }} />
               </View>
             </>
