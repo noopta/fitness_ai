@@ -50,10 +50,23 @@ export default function OverlapCalendarScreen() {
   const [pins, setPins] = useState<PinRef[]>([]);
   const [filter, setFilter] = useState<Filter>('strong'); // spec: default Strong & up
   const [week, setWeek] = useState(0);                    // horizon: current + 3 weeks
+  // ONE sheet, two contents. iOS cannot present a second <Modal> while
+  // another is up/dismissing (it swallows the presentation and wedges the
+  // UI), so the day-detail and pin-create sheets share a single Modal and
+  // swap content inside it.
   const [detail, setDetail] = useState<OverlapDayDTO | null>(null);
-  const [pinSheet, setPinSheet] = useState(false);
+  const [sheetMode, setSheetMode] = useState<'day' | 'pin'>('day');
   const [note, setNote] = useState('');
   const [sending, setSending] = useState(false);
+
+  const openDay = (day: OverlapDayDTO) => { setSheetMode('day'); setDetail(day); };
+  const closeSheet = () => { setDetail(null); setNote(''); };
+  // Navigate only after the Modal has fully dismissed — pushing a route while
+  // a modal is mid-dismissal is the same iOS wedge in a different costume.
+  const closeThenPush = (path: string) => {
+    closeSheet();
+    setTimeout(() => router.push(path as any), 320);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,11 +118,9 @@ export default function OverlapCalendarScreen() {
     setSending(true);
     try {
       const pin: any = await trainTogetherApi.createPin(detail.date, ids, note.trim() || undefined);
-      setPinSheet(false);
-      setDetail(null);
-      setNote('');
       load();
-      if (pin?.id) router.push(`/train-together/pin/${pin.id}`);
+      if (pin?.id) closeThenPush(`/train-together/pin/${pin.id}`);
+      else closeSheet();
     } catch (err: any) {
       Alert.alert("Couldn't send the invite", err?.message ?? 'Please try again.');
     } finally {
@@ -126,7 +137,7 @@ export default function OverlapCalendarScreen() {
       <RowReveal key={day.date} index={i}>
         <Pressable
           disabled={st.rest}
-          onPress={() => setDetail(day)}
+          onPress={() => openDay(day)}
           style={({ pressed }) => [
             s.dayRow,
             st.hi ? [s.dayRowMatched, shadowSm] : st.dim ? s.dayRowDimmed : s.dayRowHairline,
@@ -278,9 +289,9 @@ export default function OverlapCalendarScreen() {
         </ScrollView>
       )}
 
-      {/* ── Day detail sheet (§04) ─────────────────────────────────────────── */}
-      <TTSheet visible={!!detail && !pinSheet} onClose={() => setDetail(null)}>
-        {detail && (
+      {/* ── Single sheet: day detail (§04) or pin create (§07) ─────────────── */}
+      <TTSheet visible={!!detail} onClose={closeSheet}>
+        {detail && sheetMode === 'day' && (
           <View>
             <View style={s.sheetTitleRow}>
               <View style={{ flex: 1 }}>
@@ -330,12 +341,12 @@ export default function OverlapCalendarScreen() {
             <View style={{ marginTop: 16 }}>
               {detailPin ? (
                 <OutlinedButton label="Manage this pin"
-                  onPress={() => { const id = detailPin.id; setDetail(null); router.push(`/train-together/pin/${id}`); }} />
+                  onPress={() => closeThenPush(`/train-together/pin/${detailPin.id}`)} />
               ) : detailMatched ? (
                 <PrimaryButton
                   label="Plan to train together"
                   icon={<OverlapMark width={16} height={11} color={tt.white} variant="solid" />}
-                  onPress={() => setPinSheet(true)}
+                  onPress={() => setSheetMode('pin')}
                 />
               ) : (
                 <View style={s.noMatchRow}>
@@ -347,11 +358,9 @@ export default function OverlapCalendarScreen() {
             </View>
           </View>
         )}
-      </TTSheet>
 
-      {/* ── Pin create sheet (§07) ─────────────────────────────────────────── */}
-      <TTSheet visible={pinSheet} onClose={() => setPinSheet(false)}>
-        {detail && (
+        {/* Pin create content (§07) — same Modal, swapped content */}
+        {detail && sheetMode === 'pin' && (
           <View>
             <View style={s.pinTitleRow}>
               <OverlapMark width={26} height={18} color={tt.ink} variant="solid" />
