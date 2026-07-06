@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
 import { trainTogetherApi, groupsApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { usePinsRefresh } from '../../src/lib/ttEvents';
 import {
   tt, shadowSm, OverlapMark, TTAvatar, TTAvatarStack, SplitBadge,
   PrimaryButton, GhostAction, MicroLabel, TTSheet,
@@ -93,12 +94,15 @@ export default function WhosLiftingScreen() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  // Refresh pins when the user lands back here from a pin detail / calendar.
-  useFocusEffect(useCallback(() => {
+  // Refresh pins when landing back here from pin detail / calendar, when a
+  // partner-workout push arrives, and on a slow fallback interval.
+  const reloadPins = useCallback(() => {
     trainTogetherApi.getPins()
       .then((r: any) => setPins((Array.isArray(r) ? r : []).filter((p: any) => p.status !== 'cancelled')))
       .catch(() => {});
-  }, []));
+  }, []);
+  useFocusEffect(reloadPins);
+  usePinsRefresh(reloadPins);
 
   const toggle = (id: string) => setSelected(prev => {
     const next = new Set(prev);

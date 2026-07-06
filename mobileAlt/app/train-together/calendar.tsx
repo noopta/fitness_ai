@@ -20,6 +20,7 @@ import {
   type Filter, type OverlapDayDTO, rowState, rowTier, insightLine,
   weekLabel, longDate, weekdayShort, RANK,
 } from '../../src/lib/trainTogetherMatch';
+import { usePinsRefresh } from '../../src/lib/ttEvents';
 
 interface Participant { userId: string; isMe: boolean; name: string; splitLabel: string | null }
 interface PinRef { id: string; date: string; status: string }
@@ -85,6 +86,19 @@ export default function OverlapCalendarScreen() {
   }, [ids]);
 
   useEffect(() => { load(); }, [load]);
+  // Keep pin pills current when a partner responds while this screen is up.
+  // Refreshes pins only — no loading spinner, no full-screen churn.
+  const refreshPins = useCallback(() => {
+    trainTogetherApi.getPins()
+      .then((r: any) => {
+        if (!Array.isArray(r)) return;
+        setPins(r
+          .filter((p: any) => p.status !== 'cancelled')
+          .map((p: any) => ({ id: p.id, date: p.date, status: p.status })));
+      })
+      .catch(() => {});
+  }, []);
+  usePinsRefresh(refreshPins);
 
   const others = useMemo(() => participants.filter(p => !p.isMe), [participants]);
   const otherNames = useMemo(() => others.map(o => firstName(o.name)), [others]);

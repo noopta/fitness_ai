@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { router } from 'expo-router';
 import { authApi } from './api';
+import { emitPinsChanged } from './ttEvents';
 
 // Configure how notifications appear when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -86,9 +87,16 @@ export function usePushNotifications(isAuthenticated: boolean) {
       }
     });
 
-    // Listen for notifications received while app is foregrounded (just log)
+    // Listen for notifications received while app is foregrounded. Train
+    // Together pushes signal server-side pin-state changes (partner accepted,
+    // schedule changed) — broadcast so mounted surfaces refetch live.
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('[push] Notification received:', notification.request.content.title);
+      const data = notification.request.content.data as Record<string, unknown> | undefined;
+      const type = String(data?.type ?? '');
+      if (type.startsWith('partner_workout') || type.startsWith('train_together')) {
+        emitPinsChanged();
+      }
     });
 
     // Listen for user tapping a notification — deep link into the app
@@ -101,9 +109,16 @@ export function usePushNotifications(isAuthenticated: boolean) {
       }
     });
 
+    // Pushes received while backgrounded don't fire the foreground listener,
+    // so also broadcast a refresh whenever the app comes back to the front.
+    const appStateSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') emitPinsChanged();
+    });
+
     return () => {
       notificationListener.current?.remove();
       responseListener.current?.remove();
+      appStateSub.remove();
     };
   }, [isAuthenticated]);
 }

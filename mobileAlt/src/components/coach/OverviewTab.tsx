@@ -19,6 +19,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { useRouter } from 'expo-router';
 import { coachApi, socialApi, trainTogetherApi } from '../../lib/api';
 import { OverlapMark } from '../trainTogether/primitives';
+import { usePinsRefresh } from '../../lib/ttEvents';
 import { useAuth } from '../../context/AuthContext';
 import { useUnits } from '../../context/UnitsContext';
 import { getCached, setCached, invalidateCache } from '../../lib/cache';
@@ -386,39 +387,39 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
     avatars: Array<{ name: string; uri: string | null }>;
   }
   const [ttPins, setTtPins] = useState<Map<string, TTPinLite>>(new Map());
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const pins: any = await trainTogetherApi.getPins();
-        if (cancelled || !Array.isArray(pins)) return;
-        const map = new Map<string, TTPinLite>();
-        for (const p of pins) {
-          if (p.status === 'cancelled') continue;
-          const otherMembers = (p.members ?? []).filter(
-            (m: any) => m.userId !== user?.id && m.response !== 'declined',
-          );
-          const names = otherMembers
-            .map((m: any) => (m.user?.name || m.user?.username || '').split(' ')[0])
-            .filter(Boolean);
-          if (!names.length) continue;
-          map.set(p.date, {
-            id: p.id, date: p.date, status: p.status, names, note: p.note ?? null,
-            avatars: otherMembers.map((m: any) => ({
-              name: m.user?.name || m.user?.username || '?',
-              uri: m.user?.avatarBase64
-                ? (m.user.avatarBase64.startsWith('data:') ? m.user.avatarBase64 : `data:image/jpeg;base64,${m.user.avatarBase64}`)
-                : null,
-            })),
-          });
-        }
-        setTtPins(map);
-      } catch {
-        // Signed-out / endpoint unavailable: no marks.
+  const loadTtPins = useCallback(async () => {
+    try {
+      const pins: any = await trainTogetherApi.getPins();
+      if (!Array.isArray(pins)) return;
+      const map = new Map<string, TTPinLite>();
+      for (const p of pins) {
+        if (p.status === 'cancelled') continue;
+        const otherMembers = (p.members ?? []).filter(
+          (m: any) => m.userId !== user?.id && m.response !== 'declined',
+        );
+        const names = otherMembers
+          .map((m: any) => (m.user?.name || m.user?.username || '').split(' ')[0])
+          .filter(Boolean);
+        if (!names.length) continue;
+        map.set(p.date, {
+          id: p.id, date: p.date, status: p.status, names, note: p.note ?? null,
+          avatars: otherMembers.map((m: any) => ({
+            name: m.user?.name || m.user?.username || '?',
+            uri: m.user?.avatarBase64
+              ? (m.user.avatarBase64.startsWith('data:') ? m.user.avatarBase64 : `data:image/jpeg;base64,${m.user.avatarBase64}`)
+              : null,
+          })),
+        });
       }
-    })();
-    return () => { cancelled = true; };
+      setTtPins(map);
+    } catch {
+      // Signed-out / endpoint unavailable: no marks.
+    }
   }, [user?.id]);
+  useEffect(() => { loadTtPins(); }, [loadTtPins]);
+  // Live updates: refetch on partner-workout pushes, app foregrounding, and a
+  // slow fallback interval — acceptances appear without an app restart.
+  usePinsRefresh(loadTtPins);
   const todayPin = ttPins.get(todayESTString()) ?? null;
   const todayPinActive = todayPin && (todayPin.status === 'confirmed' || todayPin.status === 'pending');
 

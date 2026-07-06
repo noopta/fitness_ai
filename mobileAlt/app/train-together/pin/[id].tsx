@@ -15,6 +15,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { trainTogetherApi } from '../../../src/lib/api';
 import { useAuth } from '../../../src/context/AuthContext';
+import { usePinsRefresh } from '../../../src/lib/ttEvents';
 import {
   tt, OverlapMark, TTAvatar, PrimaryButton, SecondaryButton, OutlinedButton,
   GhostAction, MicroLabel, Pulse,
@@ -74,6 +75,8 @@ export default function PinDetailScreen() {
     }
   }, [id]);
   useEffect(() => { load(); }, [load]);
+  // Awaiting -> Confirmed flips live when the partner's acceptance push lands.
+  usePinsRefresh(load, 20_000);
 
   const me = useMemo(() => pin?.members.find(m => m.userId === user?.id) ?? null, [pin, user?.id]);
   const others = useMemo(() => (pin?.members ?? []).filter(m => m.userId !== user?.id), [pin, user?.id]);
