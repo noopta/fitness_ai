@@ -448,6 +448,16 @@ router.post('/train-together/pins/:id/respond', wrap(async (req, res) => {
       `${displayName(responder!)} is in for ${prettyDate(pin.date)}`,
       { type: 'partner_workout_confirmed', partnerWorkoutId: pin.id },
     );
+  } else if (response === 'accepted' && userId !== pin.creatorId) {
+    // Group pin, not yet fully confirmed — the host still hears about every
+    // acceptance as it lands.
+    const waiting = updatedMembers.filter((m) => m.response === 'pending').length;
+    await sendPushToUser(
+      pin.creatorId,
+      'Training plan update',
+      `${displayName(responder!)} is in for ${prettyDate(pin.date)}${waiting ? ` — waiting on ${waiting} more` : ''}`,
+      { type: 'partner_workout_accepted', partnerWorkoutId: pin.id },
+    );
   } else if (response === 'declined') {
     await sendPushToUser(
       pin.creatorId,

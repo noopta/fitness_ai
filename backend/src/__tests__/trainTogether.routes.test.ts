@@ -228,6 +228,30 @@ describe('pins', () => {
     expect(mockSendPushToUsers).toHaveBeenCalled(); // "X is in" to the others
   });
 
+  it('a group-pin acceptance that does not yet confirm still notifies the host', async () => {
+    wireUsers();
+    mocks.partnerWorkout.findUnique.mockResolvedValue({
+      id: 'pin1', date: '2099-01-08', status: 'pending', creatorId: FRIEND,
+      members: [
+        { id: 'm1', userId: FRIEND, response: 'accepted' },
+        { id: 'm2', userId: ME, response: 'pending' },
+        { id: 'm3', userId: 'u-3', response: 'pending' }, // still outstanding
+      ],
+    });
+    mocks.partnerWorkoutMember.update.mockResolvedValue({});
+    const app = await buildApp();
+    const res = await request(app)
+      .post('/api/train-together/pins/pin1/respond')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ response: 'accepted' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('pending'); // u-3 hasn't answered
+    expect(mocks.partnerWorkout.update).not.toHaveBeenCalled();
+    expect(mockSendPushToUser).toHaveBeenCalledWith(
+      FRIEND, expect.any(String), expect.stringContaining('waiting on 1 more'), expect.anything(),
+    );
+  });
+
   it('the only invitee declining cancels the pin and tells the creator', async () => {
     wireUsers();
     mocks.partnerWorkout.findUnique.mockResolvedValue({
