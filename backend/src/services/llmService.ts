@@ -2169,13 +2169,77 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
   try {
     return coerceParsedMealDetail(JSON.parse(text));
   } catch (err: any) {
-    // Log the tail (200 chars max) so future malformed responses can be
+    // Gemini sometimes truncates mid-object (seen in prod: response ends at
+    // `"calciumMg": 35,`). The schema puts name/macros/calories FIRST, so a
+    // truncated payload usually still contains everything the user needs —
+    // salvage it rather than failing the whole scan. Only trailing
+    // micronutrients are lost, and coerceParsedMealDetail defaults those.
+    const repaired = repairTruncatedJson(text);
+    if (repaired) {
+      try {
+        const parsed = coerceParsedMealDetail(JSON.parse(repaired));
+        console.warn(
+          '[meal-photo] response was truncated; salvaged core fields.',
+          `finishReason=${(result as any).candidates?.[0]?.finishReason ?? 'unknown'}`,
+        );
+        return parsed;
+      } catch { /* fall through to the hard error */ }
+    }
+    // Log the tail (300 chars max) so future malformed responses can be
     // diagnosed without dumping the full payload (which can be megabytes
     // if Gemini gets verbose).
     const tail = text.length > 300 ? '…' + text.slice(-300) : text;
-    console.error('[meal-photo] JSON parse failed, response tail:', tail);
+    console.error(
+      '[meal-photo] JSON parse failed, response tail:', tail,
+      `finishReason=${(result as any).candidates?.[0]?.finishReason ?? 'unknown'}`,
+    );
     throw new Error(`Meal photo response was malformed: ${err?.message ?? 'unknown'}`);
   }
+}
+
+/**
+ * Best-effort repair for a JSON object truncated mid-stream: trims a dangling
+ * partial key/value, then closes any unclosed strings/brackets. Returns null
+ * when the input doesn't look like a truncated object (so genuine garbage
+ * still fails loudly).
+ */
+export function repairTruncatedJson(text: string): string | null {
+  if (!text.startsWith('{')) return null;
+
+  // Walk the string tracking string/escape state and the open-bracket stack.
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\') { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') stack.pop();
+  }
+  if (stack.length === 0 && !inString) return null; // balanced — not a truncation
+
+  let t = text;
+  // Unterminated string: close it.
+  if (inString) t += '"';
+  // Inside an OBJECT, a dangling fragment may be a key without a value
+  // ("dangl / "ironMg": 2.) — invalid JSON, so drop back to the last complete
+  // member. Inside an ARRAY the fragment is an element; keep it.
+  if (stack[stack.length - 1] === '{') {
+    const afterCommaDrop = t.replace(/,\s*"[^"]*"\s*(:\s*[^,{}\[\]]*)?$/, ''); // , "key"(: partial)?
+    t = afterCommaDrop !== t
+      ? afterCommaDrop
+      // No comma-led fragment — the dangling piece is the object's FIRST
+      // member ({ "key": 2.) — drop it back to the opening brace.
+      : t.replace(/({)\s*"[^"]*"\s*(:\s*[^,{}\[\]]*)?$/, '$1');
+    t = t.replace(/,\s*$/, '');
+  }
+  // Close whatever is still open, innermost first.
+  for (const open of [...stack].reverse()) {
+    t += open === '{' ? '}' : ']';
+  }
+  return t;
 }
 
 // ─── Strength Profile Insights ────────────────────────────────────────────────

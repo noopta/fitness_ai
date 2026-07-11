@@ -29,7 +29,7 @@ vi.mock('openai', () => ({
 // mocking. Just make sure GEMINI env vars aren't required.
 delete process.env.GEMINI_API_KEY;
 
-import { analyzeMealPhoto } from '../services/llmService.js';
+import { analyzeMealPhoto, repairTruncatedJson } from '../services/llmService.js';
 
 const RICH_RESPONSE = {
   name: 'Single Banana',
@@ -108,5 +108,56 @@ describe('analyzeMealPhoto (Gemini 3.1 Pro via Vertex AI)', () => {
     mockGenerateContent.mockResolvedValue({ text: JSON.stringify(RICH_RESPONSE) });
     await analyzeMealPhoto('x', 'image/png');
     expect(mockGenerateContent.mock.calls[0][0].contents[0].parts[1].inlineData.mimeType).toBe('image/png');
+  });
+});
+
+describe('truncated-response salvage (prod incident 2026-07-11)', () => {
+  // Gemini cut off mid-nutrients: `…"calciumMg": 35,`. The schema puts
+  // name/macros first, so the core fields survive truncation — the scan must
+  // succeed with defaulted micronutrients instead of failing outright.
+  const TRUNCATED =
+    '{"name": "Chicken bowl", "proteinG": 42, "carbsG": 55, "fatG": 12, ' +
+    '"calories": 496, "mealType": "lunch", "confidence": "high", ' +
+    '"notes": "estimate", "ingredients": ["chicken", "rice"], "tags": ["high-protein"], ' +
+    '"nutrients": {"fiberG": 5, "sugarG": 3, "calciumMg": 35,';
+
+  it('salvages a mid-object truncation and keeps the core macros', async () => {
+    mockGenerateContent.mockResolvedValue({ text: TRUNCATED });
+    const result = await analyzeMealPhoto('x', 'image/jpeg');
+    expect(result.name).toBe('Chicken bowl');
+    expect(result.proteinG).toBe(42);
+    expect(result.calories).toBe(496);
+  });
+
+  it('still fails loudly on outright garbage', async () => {
+    mockGenerateContent.mockResolvedValue({ text: 'not json at all' });
+    await expect(analyzeMealPhoto('x', 'image/jpeg')).rejects.toThrow(/malformed/i);
+  });
+
+  describe('repairTruncatedJson', () => {
+    it('closes unbalanced braces after dropping a trailing comma', () => {
+      const out = repairTruncatedJson('{"a": 1, "b": {"c": 2,');
+      expect(JSON.parse(out!)).toEqual({ a: 1, b: { c: 2 } });
+    });
+
+    it('drops a dangling partial key and closes an open string', () => {
+      const out = repairTruncatedJson('{"a": 1, "b": {"c": 2, "dangl');
+      expect(JSON.parse(out!)).toEqual({ a: 1, b: { c: 2 } });
+    });
+
+    it('drops a dangling key with partial value', () => {
+      const out = repairTruncatedJson('{"a": 1, "nutrients": {"ironMg": 2.');
+      expect(JSON.parse(out!)).toEqual({ a: 1, nutrients: {} });
+    });
+
+    it('handles truncation inside an array', () => {
+      const out = repairTruncatedJson('{"a": 1, "tags": ["x", "y')
+      expect(JSON.parse(out!)).toEqual({ a: 1, tags: ['x', 'y'] });
+    });
+
+    it('returns null for balanced JSON and for non-objects', () => {
+      expect(repairTruncatedJson('{"a": 1}')).toBeNull();
+      expect(repairTruncatedJson('plain text')).toBeNull();
+    });
   });
 });
