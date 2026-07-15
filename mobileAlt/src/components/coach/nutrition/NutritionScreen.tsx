@@ -35,6 +35,7 @@ import { DescribeSheet } from './sheets/DescribeSheet';
 import { SnapSheet } from './sheets/SnapSheet';
 import { VoiceSheet } from './sheets/VoiceSheet';
 import { ManualEntrySheet } from './sheets/ManualEntrySheet';
+import { RecipeSheet } from './sheets/RecipeSheet';
 import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
 import { WeightDetailScreen } from './WeightDetailScreen';
 import { ProteinCelebration } from './ProteinCelebration';
@@ -163,7 +164,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // Spec §10 calls for one-sheet-at-a-time. We collapse all five into a
   // single union state so opening a new sheet automatically dismisses the
   // others.
-  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode';
+  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode' | 'recipe';
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
@@ -613,6 +614,15 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         visible={openSheet === 'manual'}
         onClose={() => setOpenSheet(null)}
         onLogged={handleMealLogged}
+        onCreateRecipe={() => setOpenSheet('recipe')}
+      />
+      {/* Recipe builder — reached from the Manual sheet's "New recipe" chip.
+          After saving we drop back into Manual so the fresh recipe is right
+          there in the library strip, one tap from logged. */}
+      <RecipeSheet
+        visible={openSheet === 'recipe'}
+        onClose={() => setOpenSheet('manual')}
+        onSaved={() => setOpenSheet('manual')}
       />
       <MealEditSheet
         visible={openSheet === 'edit'}

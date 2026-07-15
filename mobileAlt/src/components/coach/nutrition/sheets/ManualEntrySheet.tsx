@@ -12,7 +12,7 @@ import {
   Keyboard, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { nutritionApi, type SavedFoodItem } from '../../../../lib/api';
+import { nutritionApi, type SavedFoodItem, type RecipeSummary } from '../../../../lib/api';
 import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
@@ -23,6 +23,8 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onLogged: () => void | Promise<void>;
+  /** Open the RecipeSheet builder (parent swaps sheets). */
+  onCreateRecipe?: () => void;
 }
 
 interface FormState {
@@ -44,7 +46,7 @@ const SLOTS: Array<{ key: MealSlotApi; label: string }> = [
   { key: 'snack',     label: 'Snack' },
 ];
 
-export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
+export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [slot, setSlot] = useState<MealSlotApi>(slotForNow());
   const [saving, setSaving] = useState(false);
@@ -56,7 +58,14 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
   // by normalized-name match server-side. Debounced so we don't spam the
   // endpoint on every keystroke.
   const [suggestions, setSuggestions] = useState<SavedFoodItem[]>([]);
+  const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [suggestQuery, setSuggestQuery] = useState('');
+
+  // Recipe quick-log mode: picking a recipe chip swaps the macro grid for a
+  // servings stepper — the backend multiplies per-serving macros and
+  // snapshots the result into a MealEntry (source 'recipe').
+  const [selectedRecipe, setSelectedRecipe] = useState<RecipeSummary | null>(null);
+  const [servings, setServings] = useState(1);
 
   const nameRef = useRef<TextInput>(null);
   // Fresh state every time the sheet reopens. Focus the first field after
@@ -70,6 +79,8 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
       setError(null);
       setSaving(false);
       setSuggestQuery('');
+      setSelectedRecipe(null);
+      setServings(1);
       const t = setTimeout(() => nameRef.current?.focus(), 320);
       return () => clearTimeout(t);
     }
@@ -81,8 +92,12 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
     if (!visible) return;
     let cancelled = false;
     nutritionApi.searchFoods('', 12)
-      .then((r) => { if (!cancelled) setSuggestions(r?.foods ?? []); })
-      .catch(() => { if (!cancelled) setSuggestions([]); });
+      .then((r) => {
+        if (cancelled) return;
+        setSuggestions(r?.foods ?? []);
+        setRecipes(r?.recipes ?? []);
+      })
+      .catch(() => { if (!cancelled) { setSuggestions([]); setRecipes([]); } });
     return () => { cancelled = true; };
   }, [visible]);
 
@@ -94,7 +109,11 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
     let cancelled = false;
     const t = setTimeout(() => {
       nutritionApi.searchFoods(q, 12)
-        .then((r) => { if (!cancelled) setSuggestions(r?.foods ?? []); })
+        .then((r) => {
+          if (cancelled) return;
+          setSuggestions(r?.foods ?? []);
+          setRecipes(r?.recipes ?? []);
+        })
         .catch(() => {});
     }, 220);
     return () => { cancelled = true; clearTimeout(t); };
@@ -103,7 +122,14 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
   // When the user taps a suggestion, autofill the form with its macros so
   // they can just hit Save (or tweak the kcal first if the portion's
   // different today). Name carries over so the log row reads sensibly.
+  const pickRecipe = (recipe: RecipeSummary) => {
+    setSelectedRecipe(recipe);
+    setServings(1);
+    Keyboard.dismiss();
+  };
+
   const pickSuggestion = (food: SavedFoodItem) => {
+    setSelectedRecipe(null);
     setForm({
       name:     food.name,
       calories: String(food.calories ?? ''),
@@ -122,8 +148,9 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
 
   // Kcal is the only strictly-required field — protein / carbs / fat default
   // to 0 if the user only knows the calorie count (e.g. a vague restaurant
-  // dish). Name falls back to "Meal" so the timeline isn't empty.
-  const canSave = !saving && Number(form.calories) > 0;
+  // dish). Name falls back to "Meal" so the timeline isn't empty. In recipe
+  // mode the macros come from the recipe, so servings is all that matters.
+  const canSave = !saving && (selectedRecipe ? servings > 0 : Number(form.calories) > 0);
 
   const save = async () => {
     if (!canSave) return;
@@ -131,6 +158,17 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
     setSaving(true);
     setError(null);
     try {
+      if (selectedRecipe) {
+        await nutritionApi.logRecipe(selectedRecipe.id, {
+          date: todayStr(),
+          mealType: slot,
+          servings,
+        });
+        Analytics.recipeLogged({ servings, calories: Math.round(selectedRecipe.calories * servings) });
+        await Promise.resolve(onLogged());
+        onClose();
+        return;
+      }
       await nutritionApi.logMeal({
         date: todayStr(),
         name: form.name.trim() || 'Meal',
@@ -172,10 +210,10 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
       {/* SavedFood autocomplete strip. Always shows recent picks when the
           input's empty, filters as the user types. Tap to autofill the
           macro grid — they can save right away or tweak first. */}
-      {suggestions.length > 0 && (
+      {(suggestions.length > 0 || recipes.length > 0 || onCreateRecipe) && (
         <View style={styles.suggestWrap}>
           <Text style={styles.suggestLabel}>
-            {suggestQuery.trim() ? 'Matches from your history' : 'Recent foods'}
+            {suggestQuery.trim() ? 'Matches from your library' : 'Recipes & recent foods'}
           </Text>
           <ScrollView
             horizontal
@@ -183,6 +221,22 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.suggestRow}
           >
+            {recipes.map((r) => (
+              <TouchableOpacity
+                key={`recipe-${r.id}`}
+                style={[styles.suggestChip, styles.recipeChip]}
+                onPress={() => pickRecipe(r)}
+                activeOpacity={0.82}
+              >
+                <View style={styles.recipeChipTitleRow}>
+                  <Ionicons name="book-outline" size={11} color={colors.foreground} />
+                  <Text numberOfLines={1} style={styles.suggestChipName}>{r.name}</Text>
+                </View>
+                <Text style={styles.suggestChipMeta}>
+                  {Math.round(r.calories)}kcal · {Math.round(r.proteinG)}p / serving
+                </Text>
+              </TouchableOpacity>
+            ))}
             {suggestions.map((s) => (
               <TouchableOpacity
                 key={s.id}
@@ -196,33 +250,94 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
                 </Text>
               </TouchableOpacity>
             ))}
+            {onCreateRecipe ? (
+              <TouchableOpacity
+                key="new-recipe"
+                style={[styles.suggestChip, styles.newRecipeChip]}
+                onPress={onCreateRecipe}
+                activeOpacity={0.82}
+                accessibilityRole="button"
+                accessibilityLabel="Create a new recipe"
+              >
+                <View style={styles.recipeChipTitleRow}>
+                  <Ionicons name="add" size={12} color={colors.foreground} />
+                  <Text style={styles.suggestChipName}>New recipe</Text>
+                </View>
+                <Text style={styles.suggestChipMeta}>save once, log forever</Text>
+              </TouchableOpacity>
+            ) : null}
           </ScrollView>
         </View>
       )}
 
-      <View style={styles.macroGrid}>
-        <Cell
-          label="Kcal"
-          value={form.calories}
-          onChange={(v) => setForm({ ...form, calories: v })}
-          required
-        />
-        <Cell
-          label="Protein"
-          value={form.proteinG}
-          onChange={(v) => setForm({ ...form, proteinG: v })}
-        />
-        <Cell
-          label="Carbs"
-          value={form.carbsG}
-          onChange={(v) => setForm({ ...form, carbsG: v })}
-        />
-        <Cell
-          label="Fat"
-          value={form.fatG}
-          onChange={(v) => setForm({ ...form, fatG: v })}
-        />
-      </View>
+      {selectedRecipe ? (
+        /* Recipe quick-log card — macros come from the saved recipe, the
+           user only chooses how many servings they ate. */
+        <View style={styles.recipeCard}>
+          <View style={styles.recipeCardHeader}>
+            <Ionicons name="book-outline" size={14} color={colors.foreground} />
+            <Text numberOfLines={1} style={styles.recipeCardName}>{selectedRecipe.name}</Text>
+            <TouchableOpacity
+              onPress={() => setSelectedRecipe(null)}
+              accessibilityRole="button"
+              accessibilityLabel="Clear selected recipe"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="close-circle" size={18} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.fieldLabel}>SERVINGS</Text>
+          <View style={styles.servingsRow}>
+            <TouchableOpacity
+              style={styles.stepBtn}
+              onPress={() => setServings((v) => Math.max(0.5, v - 0.5))}
+              accessibilityRole="button"
+              accessibilityLabel="Fewer servings"
+            >
+              <Ionicons name="remove" size={18} color={colors.foreground} />
+            </TouchableOpacity>
+            <Text style={styles.servingsValue}>{servings}</Text>
+            <TouchableOpacity
+              style={styles.stepBtn}
+              onPress={() => setServings((v) => Math.min(20, v + 0.5))}
+              accessibilityRole="button"
+              accessibilityLabel="More servings"
+            >
+              <Ionicons name="add" size={18} color={colors.foreground} />
+            </TouchableOpacity>
+            <Text style={styles.recipeCardTotals}>
+              = {Math.round(selectedRecipe.calories * servings)}kcal
+              {' · '}{Math.round(selectedRecipe.proteinG * servings)}p
+              {' · '}{Math.round(selectedRecipe.carbsG * servings)}c
+              {' · '}{Math.round(selectedRecipe.fatG * servings)}f
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.macroGrid}>
+          <Cell
+            label="Kcal"
+            value={form.calories}
+            onChange={(v) => setForm({ ...form, calories: v })}
+            required
+          />
+          <Cell
+            label="Protein"
+            value={form.proteinG}
+            onChange={(v) => setForm({ ...form, proteinG: v })}
+          />
+          <Cell
+            label="Carbs"
+            value={form.carbsG}
+            onChange={(v) => setForm({ ...form, carbsG: v })}
+          />
+          <Cell
+            label="Fat"
+            value={form.fatG}
+            onChange={(v) => setForm({ ...form, fatG: v })}
+          />
+        </View>
+      )}
 
       <Text style={styles.fieldLabel}>SLOT</Text>
       <View style={styles.slotRow}>
@@ -249,13 +364,13 @@ export function ManualEntrySheet({ visible, onClose, onLogged }: Props) {
         onPress={save}
         disabled={!canSave}
         accessibilityRole="button"
-        accessibilityLabel="Log meal"
+        accessibilityLabel={selectedRecipe ? 'Log recipe' : 'Log meal'}
       >
         {saving ? (
           <ActivityIndicator color={colors.primaryForeground} />
         ) : (
           <View style={styles.primaryInner}>
-            <Text style={styles.primaryText}>Log meal</Text>
+            <Text style={styles.primaryText}>{selectedRecipe ? 'Log recipe' : 'Log meal'}</Text>
             <Ionicons name="checkmark" size={16} color={colors.primaryForeground} />
           </View>
         )}
@@ -316,6 +431,34 @@ const styles = StyleSheet.create({
   },
   suggestChipName: { fontSize: 13, color: colors.foreground, fontWeight: fontWeight.semibold },
   suggestChipMeta: { fontSize: 11, color: colors.mutedForeground },
+  recipeChip: {
+    borderWidth: 1, borderColor: colors.foreground,
+    backgroundColor: colors.background,
+  },
+  recipeChipTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  newRecipeChip: {
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.mutedForeground,
+    backgroundColor: colors.background,
+  },
+
+  // Recipe quick-log card (replaces the macro grid in recipe mode)
+  recipeCard: {
+    backgroundColor: colors.muted, borderRadius: 12,
+    padding: 12, marginTop: 12,
+  },
+  recipeCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  recipeCardName: { flex: 1, fontSize: 14, color: colors.foreground, fontWeight: fontWeight.semibold },
+  servingsRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
+  stepBtn: {
+    backgroundColor: colors.background, borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 6,
+  },
+  servingsValue: {
+    minWidth: 40, textAlign: 'center',
+    fontSize: 15, color: colors.foreground, fontWeight: fontWeight.bold,
+    fontVariant: ['tabular-nums'],
+  },
+  recipeCardTotals: { fontSize: 12, color: colors.mutedForeground, marginLeft: 8, flexShrink: 1 },
 
   macroGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   macroCell: { flexBasis: '47%', flexGrow: 1 },

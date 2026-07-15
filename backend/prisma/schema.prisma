@@ -93,6 +93,7 @@ model User {
   bodyWeightLogs           BodyWeightLog[]
   mealEntries              MealEntry[]
   savedFoods               SavedFood[]
+  recipes                  Recipe[]
   nutritionLogs            NutritionLog[]
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
@@ -227,10 +228,44 @@ model MealEntry {
   source          String   @default("manual")
   parseConfidence String?
   notes     String?
+  // Provenance link when this entry was logged from a saved recipe. SetNull so
+  // deleting a recipe never erases log history (entries are snapshots).
+  recipeId  String?
+  servings  Float?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
+}
+
+// User-authored recipe: a named dish built from N ingredients plus a servings
+// count (MyFitnessPal-style). Macro columns are denormalized PER-SERVING
+// totals (sum of ingredients ÷ servings) so search and quick-log never
+// re-sum itemsJson. Logging a recipe snapshots macros into MealEntry, so
+// editing a recipe never rewrites past logs.
+model Recipe {
+  id            String   @id @default(uuid())
+  userId        String
+  name          String
+  servings      Float    @default(1)
+  // [{ name, quantity?, calories, proteinG, carbsG, fatG }] — quantities are
+  // free text ("2 lbs", "1 can"); macros are per-ingredient whole-recipe totals.
+  itemsJson     String
+  // Per-serving denormalized totals:
+  calories      Float    @default(0)
+  proteinG      Float    @default(0)
+  carbsG        Float    @default(0)
+  fatG          Float    @default(0)
+  nutrientsJson String?
+  useCount      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealEntries   MealEntry[]
+
+  @@index([userId, useCount])
+  @@index([userId, name])
 }
 
 model SavedFood {

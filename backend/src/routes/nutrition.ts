@@ -6,19 +6,18 @@ import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import posthog from '../services/posthogClient.js';
 
 const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
-const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
+import {
+  nutritionProfileCacheKey,
+  normalizeFoodName,
+  parseJsonArray,
+  parseJsonObject,
+  consumeMealLoggingQuota,
+  updateNutritionStreakInBackground,
+} from '../services/nutritionShared.js';
 import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
-import { recordActivity } from '../services/streakService.js';
 import { detectAndNotifyProteinHit } from '../services/progressService.js';
-import {
-  notifyStreakMilestone,
-  notifyComeback,
-  notifyPersonalBest,
-  notifyStreakFreezeUsed,
-  notifySurpriseReward,
-} from '../services/notificationService.js';
 import { sendJunkFoodEncouragement, isJunkFood } from '../services/reengagementService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
@@ -32,38 +31,6 @@ const LLM_MODEL = 'gpt-5.4-mini-2026-03-17';
 
 const router = Router();
 const prisma = new PrismaClient();
-
-// Update the user's nutrition streak in the background and fire reinforcement
-// pushes. Mirrors workouts.ts:updateStreakInBackground.
-function updateNutritionStreakInBackground(userId: string, dateStr: string): void {
-  (async () => {
-    try {
-      const result = await recordActivity(prisma, userId, 'nutrition', dateStr);
-      if (!result || result.newStreak === result.prevStreak) return;
-      if (result.isMilestone) {
-        notifyStreakMilestone(userId, result.newStreak).catch(() => {});
-      } else if (result.fireSurpriseReward) {
-        notifySurpriseReward(userId, 'nutrition', result.newStreak).catch(() => {});
-      }
-      if (result.freezeUsed) {
-        notifyStreakFreezeUsed(userId, 'nutrition', result.newStreak).catch(() => {});
-      }
-      if (result.isPersonalBest && !result.isMilestone) {
-        notifyPersonalBest(userId, 'nutrition', result.newStreak).catch(() => {});
-      }
-      if (result.isComeback && result.newStreak === 1) {
-        const u = await prisma.user.findUnique({
-          where: { id: userId }, select: { longestNutritionStreak: true },
-        });
-        if (u && u.longestNutritionStreak >= 3) {
-          notifyComeback(userId, 'nutrition', u.longestNutritionStreak).catch(() => {});
-        }
-      }
-    } catch (err) {
-      console.error('[nutrition-streak] update error:', err);
-    }
-  })();
-}
 
 const logSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -93,7 +60,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
       cacheDelete(`userctx:${userId}`);
       cacheDelete(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
-      updateNutritionStreakInBackground(userId, data.date);
+      updateNutritionStreakInBackground(prisma, userId, data.date);
       detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
         console.error('[nutrition] protein hit detection error:', err)
       );
@@ -119,7 +86,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
     // server-side until the 30-day TTL expires.
     cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
-    updateNutritionStreakInBackground(userId, data.date);
+    updateNutritionStreakInBackground(prisma, userId, data.date);
     detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
       console.error('[nutrition] protein hit detection error:', err)
     );
@@ -189,34 +156,10 @@ const mealEntrySchema = z.object({
     omega6G: z.number().min(0).max(300).optional(),
     glycemicIndex: z.number().min(0).max(150).nullable().optional(),
   }).optional(),
-  source: z.enum(['manual', 'text', 'photo', 'saved_food']).optional().default('manual'),
+  source: z.enum(['manual', 'text', 'photo', 'saved_food', 'recipe']).optional().default('manual'),
   parseConfidence: z.enum(['high', 'medium', 'low']).optional(),
   notes: z.string().max(500).optional(),
 });
-
-function parseJsonArray(value: string | null): string[] {
-  if (!value) return [];
-  try {
-    const arr = JSON.parse(value);
-    if (!Array.isArray(arr)) return [];
-    return arr.map(v => String(v)).filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-function parseJsonObject<T>(value: string | null): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-function normalizeFoodName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ');
-}
 
 // POST /api/nutrition/meals - Log a meal entry
 router.post('/nutrition/meals', requireAuth, async (req, res) => {
@@ -246,7 +189,16 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
       },
     });
 
-    // Auto-upsert into saved foods library for quick re-use and richer future analysis.
+    // Auto-upsert into saved foods library for quick re-use and richer future
+    // analysis. Skipped for recipe-sourced entries: recipes live in their own
+    // library, and a per-serving shadow copy here could clobber a same-named
+    // saved food (or vice versa) on the normalizedName unique key.
+    if (data.source === 'recipe') {
+      cacheDelete(nutritionProfileCacheKey(userId));
+      logActivity(userId, 'nutrition').catch(() => {});
+      updateNutritionStreakInBackground(prisma, userId, data.date);
+      return res.status(201).json({ ...entry, ingredients, tags, nutrients });
+    }
     const normalizedName = normalizeFoodName(data.name);
     const existingFood = await prisma.savedFood.findUnique({
       where: { userId_normalizedName: { userId, normalizedName } },
@@ -287,7 +239,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
 
     cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
-    updateNutritionStreakInBackground(userId, data.date);
+    updateNutritionStreakInBackground(prisma, userId, data.date);
     res.status(201).json({
       ...entry,
       ingredients,
@@ -391,21 +343,30 @@ router.get('/nutrition/foods', requireAuth, async (req, res) => {
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
     const limit = Math.min(Math.max(parseInt(String(req.query.limit ?? '50'), 10) || 50, 1), 200);
 
-    const foods = await prisma.savedFood.findMany({
-      where: {
-        userId,
-        ...(q
-          ? {
-              OR: [
-                { name: { contains: q } },
-                { normalizedName: { contains: normalizeFoodName(q) } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: [{ useCount: 'desc' }, { updatedAt: 'desc' }],
-      take: limit,
-    });
+    // Recipes ride along in the same search so the mobile quick-log sheet
+    // shows one unified library. Additive key — older clients ignore it.
+    const [foods, recipes] = await Promise.all([
+      prisma.savedFood.findMany({
+        where: {
+          userId,
+          ...(q
+            ? {
+                OR: [
+                  { name: { contains: q } },
+                  { normalizedName: { contains: normalizeFoodName(q) } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [{ useCount: 'desc' }, { updatedAt: 'desc' }],
+        take: limit,
+      }),
+      prisma.recipe.findMany({
+        where: { userId, ...(q ? { name: { contains: q } } : {}) },
+        orderBy: [{ useCount: 'desc' }, { updatedAt: 'desc' }],
+        take: limit,
+      }),
+    ]);
 
     res.json({
       foods: foods.map((f) => ({
@@ -413,6 +374,11 @@ router.get('/nutrition/foods', requireAuth, async (req, res) => {
         ingredients: parseJsonArray(f.ingredientsJson),
         tags: parseJsonArray(f.tagsJson),
         nutrients: normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(f.nutrientsJson)),
+      })),
+      recipes: recipes.map((r) => ({
+        ...r,
+        items: parseJsonObject<unknown[]>(r.itemsJson) ?? [],
+        nutrients: normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(r.nutrientsJson)),
       })),
     });
   } catch (err: any) {
@@ -594,7 +560,7 @@ router.post('/nutrition/parse-meal', requireAuth, async (req, res) => {
     // Jun 2026 Go-http-client incident (2700 calls / day from one /24).
     const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { tier: true } });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    const ok = await consumeMealLoggingQuota(req.user!.id, user.tier, res);
+    const ok = await consumeMealLoggingQuota(prisma, req.user!.id, user.tier, res);
     if (!ok) return;
     const parsed = await parseMealMacros(description.trim());
     const { detail, meta } = await enrichMealDetailHybrid(parsed);
@@ -719,44 +685,6 @@ const photoSchema = z.object({
   mimeType: z.string().regex(/^image\/(jpeg|png|webp|heic)$/),
 });
 
-// Free-tier cap on AI meal-logging calls (photo analyze + text parse share
-// this counter). Dropped from 10 → 7 in response to a scripted-abuse incident
-// (~2700 parse-meal calls from a single /24 across 14 fake accounts) — real
-// users log 3-5 meals/day, so 7 is a comfortable ceiling that still kills
-// industrial-scale burn. Pro tier is unmetered.
-const FREE_DAILY_PHOTO_LIMIT = 7;
-
-/**
- * Enforce + count one AI meal-logging call against the daily quota. Returns
- * `true` when the call should proceed, `false` when the user is over the
- * limit (in which case `res` has already been sent a 429). Shared between
- * /analyze-photo and /parse-meal so the limit is global across both —
- * otherwise an attacker could just bounce between endpoints to double their
- * effective quota.
- */
-async function consumeMealLoggingQuota(userId: string, tier: string, res: import('express').Response): Promise<boolean> {
-  if (tier !== 'free') return true; // pro/enterprise unmetered
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { dailyPhotoScanCount: true, dailyPhotoScanDate: true },
-  });
-  if (!user) { res.status(404).json({ error: 'User not found' }); return false; }
-  const today = new Date().toISOString().slice(0, 10);
-  const isNewDay = user.dailyPhotoScanDate !== today;
-  const count = isNewDay ? 0 : user.dailyPhotoScanCount;
-  if (count >= FREE_DAILY_PHOTO_LIMIT) {
-    res.status(429).json({
-      error: `Free tier is capped at ${FREE_DAILY_PHOTO_LIMIT} AI meal logs per day. Upgrade to Pro for unlimited.`,
-    });
-    return false;
-  }
-  await prisma.user.update({
-    where: { id: userId },
-    data: { dailyPhotoScanCount: count + 1, dailyPhotoScanDate: today },
-  });
-  return true;
-}
-
 router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
   try {
     const { imageBase64, mimeType } = photoSchema.parse(req.body);
@@ -767,7 +695,7 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
 
     // Shared daily quota with /parse-meal so an attacker can't double the
     // limit by bouncing between endpoints.
-    const ok = await consumeMealLoggingQuota(userId, user.tier, res);
+    const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
     if (!ok) return;
 
     const parsed = await analyzeMealPhoto(imageBase64, mimeType);

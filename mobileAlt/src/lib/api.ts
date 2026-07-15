@@ -472,6 +472,38 @@ export interface SavedFoodItem {
   useCount?: number;
 }
 
+export interface RecipeItemInput {
+  name: string;
+  quantity?: string;
+  // Whole-recipe macro contribution of this ingredient (NOT per serving) —
+  // the backend sums these and divides by servings.
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+}
+
+export interface RecipeSummary {
+  id: string;
+  name: string;
+  servings: number;
+  // Per-serving totals, denormalized server-side.
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  items: RecipeItemInput[];
+  useCount: number;
+}
+
+export interface ParsedRecipeResult {
+  name: string;
+  servings: number;
+  items: Array<Required<RecipeItemInput>>;
+  confidence: 'high' | 'medium' | 'low';
+  notes: string;
+}
+
 export interface BarcodeLookupResult {
   code: string;
   name: string;
@@ -502,8 +534,33 @@ export const nutritionApi = {
   // user's full log history of food names + macros + use counts. Used by
   // the Manual-entry autocomplete and other quick-log surfaces.
   // `q` filters by normalized name match; empty = recent-by-useCount.
-  searchFoods: (q: string, limit = 20): Promise<{ foods: SavedFoodItem[] }> =>
+  // `recipes` rides along in the same response (additive key) so quick-log
+  // surfaces can show one unified library of foods + saved recipes.
+  searchFoods: (q: string, limit = 20): Promise<{ foods: SavedFoodItem[]; recipes?: RecipeSummary[] }> =>
     apiFetch(`/nutrition/foods?q=${encodeURIComponent(q)}&limit=${limit}`),
+
+  // ── Recipes — MyFitnessPal-style saved dishes ──────────────────────────
+  // A recipe = name + servings + ingredient list; backend stores per-serving
+  // macros. Logging snapshots servings × per-serving into a normal MealEntry,
+  // so editing a recipe never rewrites past logs.
+  getRecipes: (q = '', limit = 50): Promise<{ recipes: RecipeSummary[] }> =>
+    apiFetch(`/nutrition/recipes?q=${encodeURIComponent(q)}&limit=${limit}`),
+  createRecipe: (data: { name: string; servings: number; items: RecipeItemInput[]; nutrients?: Record<string, number> }): Promise<RecipeSummary> =>
+    apiFetch('/nutrition/recipes', { method: 'POST', body: JSON.stringify(data) }),
+  updateRecipe: (id: string, data: { name: string; servings: number; items: RecipeItemInput[]; nutrients?: Record<string, number> }): Promise<RecipeSummary> =>
+    apiFetch(`/nutrition/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteRecipe: (id: string) =>
+    apiFetch(`/nutrition/recipes/${id}`, { method: 'DELETE' }),
+  logRecipe: (id: string, data: { date: string; mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal'; servings: number }) =>
+    apiFetch(`/nutrition/recipes/${id}/log`, { method: 'POST', body: JSON.stringify(data) }),
+  // AI recipe parser — paste/dictate a whole recipe, get structured
+  // per-ingredient macros back for review in the builder. Shares the
+  // free-tier daily AI quota with parseMeal/analyzePhoto.
+  parseRecipe: (description: string, servings?: number): Promise<ParsedRecipeResult> =>
+    apiFetch('/nutrition/recipes/parse', {
+      method: 'POST',
+      body: JSON.stringify({ description, ...(servings ? { servings } : {}) }),
+    }),
 
   // Individual meal entries
   getMeals: (date?: string) =>

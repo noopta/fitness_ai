@@ -1921,6 +1921,89 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
   return coerceParsedMealDetail(JSON.parse(raw));
 }
 
+// ─── Recipe Parser ─────────────────────────────────────────────────────────────
+// Turns a free-text recipe ("2 lbs ground beef, a can of black beans, one
+// onion... makes 6 servings") into a structured ingredient list with
+// per-ingredient WHOLE-RECIPE macros. The recipes route divides by servings.
+
+export interface ParsedRecipeItem {
+  name: string;
+  quantity: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+}
+
+export interface ParsedRecipe {
+  name: string;
+  servings: number;
+  items: ParsedRecipeItem[];
+  confidence: 'high' | 'medium' | 'low';
+  notes: string;
+}
+
+function coerceParsedRecipe(raw: any, fallbackServings: number): ParsedRecipe {
+  const servingsRaw = toNumber(raw?.servings, fallbackServings);
+  const items: ParsedRecipeItem[] = (Array.isArray(raw?.items) ? raw.items : [])
+    .map((item: any) => ({
+      name: typeof item?.name === 'string' ? item.name.trim() : '',
+      quantity: typeof item?.quantity === 'string' ? item.quantity.trim().slice(0, 60) : '',
+      calories: toNumber(item?.calories),
+      proteinG: toNumber(item?.proteinG),
+      carbsG: toNumber(item?.carbsG),
+      fatG: toNumber(item?.fatG),
+    }))
+    .filter((item: ParsedRecipeItem) => item.name)
+    .slice(0, 40);
+  return {
+    name: typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim().slice(0, 200) : 'Recipe',
+    servings: Math.min(Math.max(servingsRaw, 0.5), 100),
+    items,
+    confidence:
+      raw?.confidence === 'high' || raw?.confidence === 'medium' || raw?.confidence === 'low'
+        ? raw.confidence
+        : 'medium',
+    notes: typeof raw?.notes === 'string' ? raw.notes : '',
+  };
+}
+
+export async function parseRecipeIngredients(description: string, servingsHint?: number): Promise<ParsedRecipe> {
+  const prompt = `You are a nutrition expert. A user pasted or dictated a recipe — break it into ingredients and estimate the macros of EACH ingredient for the WHOLE recipe (not per serving).
+
+RECIPE: "${description}"
+${servingsHint ? `The user says this makes ${servingsHint} servings — use that.` : 'If the text states how many servings it makes, use that; otherwise estimate a sensible servings count for the total quantity.'}
+
+INSTRUCTIONS:
+- One entry per ingredient, with the stated quantity echoed back (e.g. "2 lbs", "1 can (400g)"); use standard amounts when unstated
+- Macros are for the ingredient's full quantity in the recipe, NOT per serving
+- Ignore non-food instructions (cook times, equipment)
+- Round to nearest gram/calorie; zero-calorie items (water, spices) get 0 macros but stay in the list
+- If confidence is low (ambiguous quantities, unusual items), note why in "notes"
+
+OUTPUT FORMAT (JSON only, no explanation):
+{
+  "name": "Short recipe name",
+  "servings": 6,
+  "confidence": "high",
+  "notes": "",
+  "items": [
+    { "name": "ground beef (90/10)", "quantity": "2 lbs", "calories": 1584, "proteinG": 181, "carbsG": 0, "fatG": 91 },
+    { "name": "black beans", "quantity": "1 can (400g)", "calories": 368, "proteinG": 24, "carbsG": 66, "fatG": 1 }
+  ]
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-5.4-mini',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 2000,
+    response_format: { type: 'json_object' },
+  });
+
+  const raw = response.choices[0].message.content || '{}';
+  return coerceParsedRecipe(JSON.parse(raw), servingsHint ?? 1);
+}
+
 
 // ─── Meal Suggestions ────────────────────────────────────────────────────────
 // Produces 3-5 meal candidates ranked by how well they'd close the user's
