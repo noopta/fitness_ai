@@ -42,15 +42,46 @@ import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
 import { runAnakinGroupSweep } from './services/groupAccountability.js';
 import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
+import { journalError } from './services/errorJournal.js';
+import { instrumentLLMClients } from './services/llmInstrumentation.js';
 import OpenAI from 'openai';
 
 dotenv.config();
+
+// Self-healing capture layer 1: retry + journal every outbound LLM call.
+// Prototype-level, so it covers every OpenAI/GoogleGenAI instance in the
+// codebase regardless of which module created it.
+void instrumentLLMClients();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cookieParser());
+
+// Self-healing capture: journal every client-visible 5xx, including the
+// many routes that catch their own errors and respond with
+// res.status(500).json(...) directly (those never reach the error
+// middleware below). The middleware sets _errJournaled before responding so
+// the same error isn't recorded twice.
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const origJson = res.json.bind(res);
+  (res as any).json = (body: any) => {
+    if (res.statusCode >= 500 && !(res as any)._errJournaled) {
+      (res as any)._errJournaled = true;
+      journalError({
+        source: 'http',
+        message: typeof body?.error === 'string' ? body.error : `HTTP ${res.statusCode}`,
+        route: req.path,
+        method: req.method,
+        status: res.statusCode,
+        userId: (req as any).user?.id,
+      });
+    }
+    return origJson(body);
+  };
+  next();
+});
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'https://axiomtraining.io',
   'https://liftoffmvp.io',
@@ -148,6 +179,17 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     posthog.captureException(err, userId);
     console.error('Error:', err);
     alertServerError(err, req.path, req.method, status).catch(() => {});
+    // Journal with the full error object (stack + classification) and mark
+    // the response so the res.json hook doesn't double-record it.
+    (res as any)._errJournaled = true;
+    journalError({
+      source: 'http',
+      error: err,
+      route: req.path,
+      method: req.method,
+      status,
+      userId,
+    });
   }
 
   res.status(status).json({ error: err?.message ?? 'Internal server error' });
@@ -156,11 +198,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Uncaught exceptions and unhandled rejections
 process.on('uncaughtException', (err) => {
   console.error('[uncaughtException]', err);
+  journalError({ source: 'process', error: err, op: 'uncaughtException' });
   alertUncaughtException('uncaughtException', err).finally(() => process.exit(1));
 });
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
+  journalError({ source: 'process', error: reason, op: 'unhandledRejection' });
   alertUncaughtException('unhandledRejection', reason).catch(() => {});
 });
 
