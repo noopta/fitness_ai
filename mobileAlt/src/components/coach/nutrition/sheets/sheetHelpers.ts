@@ -23,3 +23,38 @@ export function slotForNow(): MealSlotApi {
   if (h < 21) return 'dinner';
   return 'snack';
 }
+
+/**
+ * Pull the rich nutrient fields out of a parse/photo response so they can be
+ * forwarded on logMeal. Without this the app logs only name + 4 macros and the
+ * Nutrition Profile effects engine has nothing to read. Everything here is
+ * optional on the backend, so a sparse response degrades gracefully.
+ */
+export function richLogFields(
+  raw: any,
+  source: 'text' | 'photo' | 'manual' | 'saved_food',
+): {
+  ingredients?: string[];
+  tags?: string[];
+  nutrients?: Record<string, unknown>;
+  nutrientMap?: Record<string, number>;
+  ingredientNutrients?: Array<{ name: string; nutrients: Record<string, number> }>;
+  source: 'text' | 'photo' | 'manual' | 'saved_food';
+  parseConfidence?: 'high' | 'medium' | 'low';
+} {
+  const meal = raw?.meal ?? raw ?? {};
+  const out: any = { source };
+  if (Array.isArray(meal.ingredients)) out.ingredients = meal.ingredients;
+  if (Array.isArray(meal.tags)) out.tags = meal.tags;
+  if (meal.nutrients && typeof meal.nutrients === 'object') out.nutrients = meal.nutrients;
+  if (meal.nutrientMap && typeof meal.nutrientMap === 'object') out.nutrientMap = meal.nutrientMap;
+  if (Array.isArray(meal.ingredientDetails)) {
+    out.ingredientNutrients = meal.ingredientDetails
+      .filter((d: any) => d?.name && d?.nutrients)
+      .map((d: any) => ({ name: String(d.name), nutrients: d.nutrients }));
+  }
+  if (meal.confidence === 'high' || meal.confidence === 'medium' || meal.confidence === 'low') {
+    out.parseConfidence = meal.confidence;
+  }
+  return out;
+}

@@ -200,6 +200,11 @@ export const Analytics = {
   recipeLogged: (props: { servings: number; calories: number }) =>
     posthog.capture('recipe_logged', props),
 
+  // Nutrition Profile (effects-first) — recommendation "Add" deep-link into
+  // the Coach log.
+  nutritionRecommendationAdded: (props: { food: string; nutrient: string }) =>
+    posthog.capture('nutrition_recommendation_added', props),
+
   bodyWeightLogged: () =>
     posthog.capture('body_weight_logged'),
 

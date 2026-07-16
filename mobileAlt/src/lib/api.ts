@@ -574,6 +574,16 @@ export const nutritionApi = {
     carbsG: number;
     fatG: number;
     notes?: string;
+    // Rich fields — forward these from the parse response so the Nutrition
+    // Profile effects engine has the full nutrient vector to read. All
+    // optional; omitting them logs a bare macro entry as before.
+    ingredients?: string[];
+    tags?: string[];
+    nutrients?: Record<string, unknown>;
+    source?: 'manual' | 'text' | 'photo' | 'saved_food' | 'recipe';
+    parseConfidence?: 'high' | 'medium' | 'low';
+    nutrientMap?: Record<string, number>;
+    ingredientNutrients?: Array<{ name: string; nutrients: Record<string, number> }>;
   }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }),
   deleteMeal: (id: string) =>
     apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
@@ -631,6 +641,88 @@ export const nutritionApi = {
 
   // AI-generated nutrition profile (aggregates 90 days + LLM insights)
   getProfile: () => apiFetch('/nutrition/profile'),
+};
+
+// ─── Nutrition Profile (effects-first, Strength → Nutrition) ──────────────────
+// Read-only companion to the Strength Profile. Consumes the deterministic
+// body-system engine; logging still lives in Coach → Nutrition.
+
+export type NpStatus = 'ok' | 'warn' | 'low';
+
+export interface NpSystem {
+  id: 'recovery' | 'cognition' | 'energy' | 'sleep' | 'mood';
+  name: string;
+  status: NpStatus;
+  score: number;
+  driver: string;
+  chips: string[];
+}
+
+export interface NpDayProfile {
+  date: string;
+  hasData: boolean;
+  mealsLogged: number;
+  kcalLogged?: number;
+  microCoveragePct?: number;
+  profileScore?: number;
+  profileScoreProvisional?: boolean;
+  headline?: string;
+  systems?: NpSystem[];
+  topMove?: { title: string; mechanism: string; gain: string } | null;
+  meals?: Array<{ id: string; name: string; mealType: string; calories: number }>;
+  extras?: Array<{ key: string; amount: number }>;
+}
+
+export interface NpDriverLine {
+  key: string; label: string; unit: string;
+  amount: number; target: number; pct: number; status: NpStatus; tracked: boolean;
+}
+
+export interface NpEffectDetail {
+  systemId: string; name: string; status: NpStatus; score: number;
+  summary: string; drivers: NpDriverLine[]; mechanisms: string[]; watchFor: string | null;
+}
+
+export interface NpNutrientDetail {
+  key: string; label: string; tag: string | null; unit: string;
+  current: string; target: string; pct: number; status: NpStatus; ceiling: boolean;
+  chain: Array<{ title: string; body: string }>;
+  why: string;
+  sources: Array<{ food: string; amount: string }>;
+  recommendation: string;
+  watchFor: string | null;
+}
+
+export interface NpMealBreakdown {
+  id: string; name: string; mealType: string; kcal: number; loggedAt: string;
+  macros: { proteinG: number; carbsG: number; fatG: number };
+  ingredients: Array<{ name: string; resolved: boolean; chips: string[] }>;
+}
+
+export interface NpTrend {
+  range: string;
+  series: Array<{ date: string; coveragePct: number; profileScore: number }>;
+  consistency: Array<{ key: string; label: string; pctDaysOnTarget: number }>;
+}
+
+export interface NpRecommendation {
+  name: string; serving: string; category: string; gain: string; mechanism: string;
+  prefill: { name: string; source: string };
+}
+
+export const nutritionProfileApi = {
+  getDay: (date?: string): Promise<NpDayProfile> =>
+    apiFetch(`/nutrition-profile${date ? `?date=${date}` : ''}`),
+  getEffect: (systemId: string, date?: string): Promise<NpEffectDetail> =>
+    apiFetch(`/nutrition-profile/effect/${systemId}${date ? `?date=${date}` : ''}`),
+  getNutrient: (key: string, date?: string): Promise<NpNutrientDetail> =>
+    apiFetch(`/nutrition-profile/nutrient/${key}${date ? `?date=${date}` : ''}`),
+  getMeal: (mealId: string): Promise<NpMealBreakdown> =>
+    apiFetch(`/nutrition-profile/meal/${mealId}`),
+  getTrend: (range: '7d' | '30d' = '7d'): Promise<NpTrend> =>
+    apiFetch(`/nutrition-profile/trend?range=${range}`),
+  getRecommendations: (date?: string): Promise<{ date: string; recommendations: NpRecommendation[] }> =>
+    apiFetch(`/nutrition-profile/recommendations${date ? `?date=${date}` : ''}`),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────
