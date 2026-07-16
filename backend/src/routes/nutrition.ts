@@ -159,7 +159,31 @@ const mealEntrySchema = z.object({
   source: z.enum(['manual', 'text', 'photo', 'saved_food', 'recipe']).optional().default('manual'),
   parseConfidence: z.enum(['high', 'medium', 'low']).optional(),
   notes: z.string().max(500).optional(),
+  // OPEN nutrient channel — any nutrient keys the parser produced. Not capped
+  // to a fixed set; the effects engine reads this. Values must be finite.
+  nutrientMap: z.record(z.string(), z.number().finite()).optional(),
+  ingredientNutrients: z.array(z.object({
+    name: z.string().min(1).max(120),
+    nutrients: z.record(z.string(), z.number().finite()),
+  })).max(40).optional(),
 });
+
+// Build an open nutrient map from the structured micros + top-line macros, for
+// entries whose client didn't forward an explicit nutrientMap. Non-numeric
+// descriptors (digestiveSpeed, biochemicalEffects) and zeros are skipped.
+function deriveNutrientMap(
+  nutrients: Micronutrients,
+  macros: { proteinG: number; carbsG: number; fatG: number },
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (macros.proteinG > 0) out.proteinG = macros.proteinG;
+  if (macros.carbsG > 0) out.carbsG = macros.carbsG;
+  if (macros.fatG > 0) out.fatG = macros.fatG;
+  for (const [key, value] of Object.entries(nutrients)) {
+    if (typeof value === 'number' && Number.isFinite(value) && value !== 0) out[key] = value;
+  }
+  return out;
+}
 
 // POST /api/nutrition/meals - Log a meal entry
 router.post('/nutrition/meals', requireAuth, async (req, res) => {
@@ -169,6 +193,14 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     const nutrients = normalizeMicronutrients(data.nutrients);
     const ingredients = data.ingredients.map(v => v.trim()).filter(Boolean);
     const tags = data.tags.map(v => v.trim().toLowerCase()).filter(Boolean);
+    // Open nutrient channel: prefer what the client forwarded; otherwise
+    // derive it from the structured micros so entries logged by older clients
+    // (which don't send nutrientMap) still feed the effects engine.
+    const nutrientMap = data.nutrientMap && Object.keys(data.nutrientMap).length > 0
+      ? data.nutrientMap
+      : deriveNutrientMap(nutrients, data);
+    const ingredientNutrients = (data.ingredientNutrients ?? [])
+      .filter(i => i.name.trim() && Object.keys(i.nutrients).length > 0);
 
     const entry = await prisma.mealEntry.create({
       data: {
@@ -183,6 +215,8 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
         ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
         tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
         nutrientsJson: JSON.stringify(nutrients),
+        nutrientMapJson: Object.keys(nutrientMap).length > 0 ? JSON.stringify(nutrientMap) : null,
+        ingredientNutrientsJson: ingredientNutrients.length > 0 ? JSON.stringify(ingredientNutrients) : null,
         source: data.source,
         parseConfidence: data.parseConfidence ?? null,
         notes: data.notes,

@@ -225,6 +225,12 @@ model MealEntry {
   ingredientsJson String?
   tagsJson        String?
   nutrientsJson   String?
+  // OPEN nutrient vector: { [nutrientKey]: amount } with no fixed key set — the
+  // Nutrition Profile effects engine reads this, not the legacy nutrientsJson.
+  nutrientMapJson String?
+  // Per-ingredient open nutrient vectors: [{ name, nutrients:{key:amt} }].
+  // Powers the Meal Breakdown "what each ingredient carries" subscreen.
+  ingredientNutrientsJson String?
   source          String   @default("manual")
   parseConfidence String?
   notes     String?

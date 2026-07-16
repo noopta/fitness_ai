@@ -200,6 +200,16 @@ router.post('/nutrition/recipes/:id/log', requireAuth, async (req, res) => {
       }
     }
 
+    // Open nutrient map so recipe-logged meals feed the Nutrition Profile
+    // effects engine: scaled macros + scaled micros.
+    const nutrientMap: Record<string, number> = { ...scaledMicros };
+    const scaledProtein = round1(recipe.proteinG * data.servings);
+    const scaledCarbs = round1(recipe.carbsG * data.servings);
+    const scaledFat = round1(recipe.fatG * data.servings);
+    if (scaledProtein > 0) nutrientMap.proteinG = scaledProtein;
+    if (scaledCarbs > 0) nutrientMap.carbsG = scaledCarbs;
+    if (scaledFat > 0) nutrientMap.fatG = scaledFat;
+
     const [entry] = await prisma.$transaction([
       prisma.mealEntry.create({
         data: {
@@ -208,11 +218,12 @@ router.post('/nutrition/recipes/:id/log', requireAuth, async (req, res) => {
           name: recipe.name,
           mealType: data.mealType,
           calories: round1(recipe.calories * data.servings),
-          proteinG: round1(recipe.proteinG * data.servings),
-          carbsG: round1(recipe.carbsG * data.servings),
-          fatG: round1(recipe.fatG * data.servings),
+          proteinG: scaledProtein,
+          carbsG: scaledCarbs,
+          fatG: scaledFat,
           ingredientsJson: items.length > 0 ? JSON.stringify(items.map((i) => i.name)) : null,
           nutrientsJson: Object.keys(scaledMicros).length > 0 ? JSON.stringify(scaledMicros) : null,
+          nutrientMapJson: Object.keys(nutrientMap).length > 0 ? JSON.stringify(nutrientMap) : null,
           source: 'recipe',
           recipeId: recipe.id,
           servings: data.servings,

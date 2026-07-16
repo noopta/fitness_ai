@@ -1781,6 +1781,30 @@ export interface ParsedMealDetail extends ParsedMealMacros {
   ingredients: string[];
   tags: string[];
   nutrients: Micronutrients;
+  // OPEN nutrient channel — every numeric nutrient the model reports for the
+  // whole meal, keyed by registry key (or any key the model volunteers). NOT
+  // capped to the 19 fields of Micronutrients; this is what the Nutrition
+  // Profile engine reads. Legacy code keeps using `nutrients`.
+  nutrientMap: Record<string, number>;
+  // Per-ingredient open nutrient vectors, when the model breaks the meal down.
+  // Powers the Meal Breakdown subscreen ("what each ingredient carries").
+  ingredientDetails?: Array<{ name: string; nutrients: Record<string, number> }>;
+}
+
+// Pull every finite numeric value out of a raw nutrients object into an open
+// map, skipping the non-numeric descriptors (digestiveSpeed, biochemical
+// effects). Keys are preserved verbatim so nutrients without a Micronutrients
+// slot (choline, leucine, tryptophan, …) survive.
+function toNutrientMap(raw: any): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [key, value] of Object.entries(raw)) {
+    if (key === 'digestiveSpeed' || key === 'biochemicalEffects') continue;
+    if (typeof value === 'number' && Number.isFinite(value) && value !== 0) {
+      out[key] = Math.round(value * 100) / 100;
+    }
+  }
+  return out;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -1850,6 +1874,16 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
       ? raw.tags.map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean).slice(0, 20)
       : [],
     nutrients,
+    nutrientMap: toNutrientMap(raw?.nutrients),
+    ingredientDetails: Array.isArray(raw?.ingredientDetails)
+      ? raw.ingredientDetails
+          .map((d: any) => ({
+            name: typeof d?.name === 'string' ? d.name.trim() : '',
+            nutrients: toNutrientMap(d?.nutrients),
+          }))
+          .filter((d: { name: string }) => d.name)
+          .slice(0, 30)
+      : undefined,
   };
 }
 
@@ -1900,12 +1934,20 @@ OUTPUT FORMAT (JSON only, no explanation):
     "potassiumMg": 760,
     "omega3G": 0.2,
     "omega6G": 2.0,
+    "cholineMg": 180,
     "glycemicIndex": 63,
     "glycemicLoad": 18,
     "digestiveSpeed": "medium",
     "biochemicalEffects": ["anti-inflammatory", "sustained energy", "high-cortisol-buffer"]
-  }
+  },
+  "ingredientDetails": [
+    { "name": "chicken shawarma", "nutrients": { "proteinG": 34, "cholineMg": 95, "zincMg": 2.1, "ironMg": 1.2 } },
+    { "name": "rice", "nutrients": { "carbsG": 45, "magnesiumMg": 19, "fiberG": 1 } }
+  ]
 }
+
+- The "nutrients" object is OPEN: include every nutrient you can reasonably estimate for the full meal. Beyond the keys shown, ADD keys when the food is notably rich in them — e.g. cholineMg, leucineG, tryptophanG, seleniumMcg, iodineMcg, vitaminKMcg, vitaminB6Mg, addedSugarG. Use the same "<name><Unit>" key style (e.g. mg → Mg, mcg → Mcg, g → G). Do NOT force a value where you have no basis; omit rather than guess wildly.
+- "ingredientDetails": break the meal into its component foods and, for each, give the nutrients THAT ingredient contributes (same open key style). This is what lets us show what each food carries. Keep it to the meaningful ingredients.
 
 digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
 biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
@@ -1913,12 +1955,80 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
   const response = await openai.chat.completions.create({
     model: 'gpt-5.4-mini',
     messages: [{ role: 'user', content: prompt }],
-    max_completion_tokens: 1200,
+    max_completion_tokens: 2000,
     response_format: { type: 'json_object' },
   });
 
   const raw = response.choices[0].message.content || '{}';
   return coerceParsedMealDetail(JSON.parse(raw));
+}
+
+// ─── Nutrition Profile narration ────────────────────────────────────────────
+// The effects engine computes all numbers; these helpers only PHRASE them.
+// Both must stay quantified and mechanism-grounded (spec §8/§9) — the callers
+// pass pre-computed figures and hold a deterministic fallback, so narration is
+// best-effort: if the model is unavailable the screen still renders numbers.
+
+export interface ProfileNarrationInput {
+  headlineFacts: string;   // e.g. "kcal 1850, coverage 62%, score 71"
+  systems: Array<{ name: string; status: string; score: number; topDriver: string }>;
+}
+
+export interface ProfileNarration {
+  headline: string;
+  drivers: Record<string, string>; // system name → one-line driver sentence
+}
+
+export async function generateProfileNarration(input: ProfileNarrationInput): Promise<ProfileNarration> {
+  const prompt = `You write for a strength app's Nutrition Profile. Given pre-computed figures, write a plain-language verdict and one driver sentence per body system. Rules: second person, verbed, EVERY sentence carries a number from the data, no emoji, no exclamation marks, no weight-loss framing. Keep each sentence under 16 words.
+
+DATA
+Day: ${input.headlineFacts}
+Systems:
+${input.systems.map(s => `- ${s.name}: status ${s.status}, score ${s.score}/100, weakest driver ${s.topDriver}`).join('\n')}
+
+OUTPUT (JSON only):
+{ "headline": "one sentence verdict citing the score or coverage", "drivers": { ${input.systems.map(s => `"${s.name}": "one sentence citing that system's number"`).join(', ')} } }`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-5.4-mini',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 700,
+    response_format: { type: 'json_object' },
+  });
+  const raw = JSON.parse(response.choices[0].message.content || '{}');
+  const drivers: Record<string, string> = {};
+  if (raw?.drivers && typeof raw.drivers === 'object') {
+    for (const [k, v] of Object.entries(raw.drivers)) if (typeof v === 'string') drivers[k] = v;
+  }
+  return { headline: typeof raw?.headline === 'string' ? raw.headline : '', drivers };
+}
+
+// Personalized "why it matters for you" paragraph for the Nutrient Detail
+// flagship — ties the nutrient to the user's logged training signals. Grounded
+// by a RAG context string the caller passes in.
+export async function generateNutrientWhy(params: {
+  nutrientLabel: string;
+  pct: number;
+  amount: string;
+  target: string;
+  trainingContext: string;
+  ragContext: string;
+}): Promise<string> {
+  const prompt = `Write ONE short paragraph (2-3 sentences) on why ${params.nutrientLabel} matters for THIS lifter. Second person, verbed, carry a number, no emoji, no hype. Tie it to their training where relevant.
+
+Their ${params.nutrientLabel}: ${params.amount} of ${params.target} target (${params.pct}% of target).
+Training signals: ${params.trainingContext}
+Evidence (ground claims here, do not cite):
+${params.ragContext || '(none)'}
+
+Paragraph:`;
+  const response = await openai.chat.completions.create({
+    model: 'gpt-5.4-mini',
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 260,
+  });
+  return (response.choices[0].message.content || '').trim();
 }
 
 // ─── Recipe Parser ─────────────────────────────────────────────────────────────
