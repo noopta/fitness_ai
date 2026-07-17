@@ -187,18 +187,62 @@ describe('GET /nutrition-profile/meal/:mealId', () => {
 });
 
 describe('GET /nutrition-profile/trend', () => {
-  it('returns a per-day series and per-nutrient consistency', async () => {
+  it('returns the FULL calendar window, marking unlogged days as gaps', async () => {
     const app = await buildApp();
+    // Only 2 of the 7 days have meals.
     mocks.mealEntry.findMany.mockResolvedValue([
       meal({ date: '2026-07-15' }),
       meal({ id: 'm-2', date: '2026-07-16' }),
     ]);
-    const res = await request(app).get('/api/nutrition-profile/trend?range=7d').set('Authorization', `Bearer ${token}`);
+    const res = await request(app)
+      .get('/api/nutrition-profile/trend?range=7d&date=2026-07-16')
+      .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.range).toBe('7d');
-    expect(res.body.series.length).toBe(2);
-    expect(res.body.consistency.length).toBeGreaterThan(0);
+    // 7 entries, not 2 — unlogged days must not collapse out of the series.
+    expect(res.body.series).toHaveLength(7);
+    expect(res.body.series[0].date).toBe('2026-07-10');
+    expect(res.body.series[6].date).toBe('2026-07-16');
+    expect(res.body.loggedDays).toBe(2);
+    const logged = res.body.series.filter((p: any) => p.logged);
+    expect(logged.map((p: any) => p.date)).toEqual(['2026-07-15', '2026-07-16']);
+    // A gap day is logged:false — NOT a real 0% coverage reading.
+    expect(res.body.series[0].logged).toBe(false);
     expect(res.body.consistency[0]).toHaveProperty('pctDaysOnTarget');
+  });
+
+  it('supports a 30-day window anchored on the caller local date', async () => {
+    const app = await buildApp();
+    mocks.mealEntry.findMany.mockResolvedValue([meal({ date: '2026-07-16' })]);
+    const res = await request(app)
+      .get('/api/nutrition-profile/trend?range=30d&date=2026-07-16')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.range).toBe('30d');
+    expect(res.body.series).toHaveLength(30);
+    expect(res.body.series[0].date).toBe('2026-06-17'); // 29 days back
+    expect(res.body.series[29].date).toBe('2026-07-16');
+    expect(res.body.loggedDays).toBe(1);
+    // the query window is bounded by the anchor, not the server's UTC day
+    expect(mocks.mealEntry.findMany.mock.calls[0][0].where.date)
+      .toEqual({ gte: '2026-06-17', lte: '2026-07-16' });
+  });
+
+  it('bases consistency on logged days only (the 29 gap days are not misses)', async () => {
+    const app = await buildApp();
+    // One logged day in a 30-day window, and it clears the choline target
+    // (600 >= 550). Denominator must be the 1 logged day, not 30.
+    mocks.mealEntry.findMany.mockResolvedValue([meal({
+      date: '2026-07-16',
+      nutrientMapJson: JSON.stringify({ cholineMg: 600 }),
+    })]);
+    const res = await request(app)
+      .get('/api/nutrition-profile/trend?range=30d&date=2026-07-16')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.body.series).toHaveLength(30);
+    expect(res.body.loggedDays).toBe(1);
+    const choline = res.body.consistency.find((c: any) => c.key === 'cholineMg');
+    expect(choline.pctDaysOnTarget).toBe(100); // 1/1 logged, not 1/30
   });
 });
 

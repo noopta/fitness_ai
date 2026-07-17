@@ -701,8 +701,11 @@ export interface NpMealBreakdown {
 
 export interface NpTrend {
   range: string;
-  series: Array<{ date: string; coveragePct: number; profileScore: number }>;
+  // One entry per calendar day in the window. `logged: false` = nothing logged
+  // that day (render a gap, not a 0% bar — they mean different things).
+  series: Array<{ date: string; coveragePct: number; profileScore: number; logged: boolean }>;
   consistency: Array<{ key: string; label: string; pctDaysOnTarget: number }>;
+  loggedDays: number;
 }
 
 export interface NpRecommendation {
@@ -719,8 +722,9 @@ export const nutritionProfileApi = {
     apiFetch(`/nutrition-profile/nutrient/${key}${date ? `?date=${date}` : ''}`),
   getMeal: (mealId: string): Promise<NpMealBreakdown> =>
     apiFetch(`/nutrition-profile/meal/${mealId}`),
-  getTrend: (range: '7d' | '30d' = '7d'): Promise<NpTrend> =>
-    apiFetch(`/nutrition-profile/trend?range=${range}`),
+  // `date` anchors the window to the caller's LOCAL day (see localDate.ts).
+  getTrend: (range: '7d' | '30d' = '7d', date?: string): Promise<NpTrend> =>
+    apiFetch(`/nutrition-profile/trend?range=${range}${date ? `&date=${date}` : ''}`),
   getRecommendations: (date?: string): Promise<{ date: string; recommendations: NpRecommendation[] }> =>
     apiFetch(`/nutrition-profile/recommendations${date ? `?date=${date}` : ''}`),
 };

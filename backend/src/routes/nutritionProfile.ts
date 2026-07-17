@@ -33,6 +33,18 @@ const router = Router();
 const prisma = new PrismaClient();
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
+
+// Date-string arithmetic anchored at UTC noon so no offset/DST shift can roll
+// the calendar day over.
+function addDaysStr(dateStr: string, delta: number): string {
+  const d = new Date(`${dateStr}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d.toISOString().slice(0, 10);
+}
+
+function dateRange(startStr: string, days: number): string[] {
+  return Array.from({ length: days }, (_, i) => addDaysStr(startStr, i));
+}
 const isBodySystem = (s: string): s is BodySystemId => BODY_SYSTEMS.some(b => b.id === s);
 
 // Load a day's meals + the user's bodyweight, and roll them into day totals via
@@ -326,15 +338,20 @@ router.get('/nutrition-profile/meal/:mealId', requireAuth, async (req, res) => {
   }
 });
 
-// GET /nutrition-profile/trend?range=7d
+// GET /nutrition-profile/trend?range=7d|30d&date=YYYY-MM-DD
+// `date` anchors the window to the CALLER's local day (same reason the day
+// profile takes one) — anchoring to the server's UTC day would shift the whole
+// chart for anyone whose local date differs.
 router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const days = req.query.range === '30d' ? 30 : 7;
-    const since = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
+    const end = typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date)
+      ? req.query.date : todayStr();
+    const since = addDaysStr(end, -(days - 1));
 
     const meals = await prisma.mealEntry.findMany({
-      where: { userId, date: { gte: since } },
+      where: { userId, date: { gte: since, lte: end } },
       select: { date: true, calories: true, nutrientMapJson: true, nutrientsJson: true, proteinG: true, carbsG: true, fatG: true },
       orderBy: { date: 'asc' },
     });
@@ -347,14 +364,23 @@ router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
       byDate.set(m.date, arr);
     }
 
-    const series: Array<{ date: string; coveragePct: number; profileScore: number }> = [];
+    const series: Array<{ date: string; coveragePct: number; profileScore: number; logged: boolean }> = [];
     const perNutrientDays = new Map<string, { onTarget: number; total: number }>();
     for (const n of NUTRIENTS) perNutrientDays.set(n.key, { onTarget: 0, total: 0 });
 
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true } });
     const bw = user?.weightKg ?? null;
 
-    for (const [date, dayMeals] of [...byDate.entries()].sort()) {
+    // Walk the FULL calendar window, not just days that happen to have meals —
+    // otherwise unlogged days collapse out and two weeks apart render adjacent,
+    // which reads as a continuous trend. Unlogged days come back logged:false
+    // so the chart can leave a real gap.
+    for (const date of dateRange(since, days)) {
+      const dayMeals = byDate.get(date);
+      if (!dayMeals || dayMeals.length === 0) {
+        series.push({ date, coveragePct: 0, profileScore: 0, logged: false });
+        continue;
+      }
       const maps = dayMeals.map(m => {
         const open = parseJsonObject<Record<string, number>>(m.nutrientMapJson);
         if (open && Object.keys(open).length) return open;
@@ -368,7 +394,7 @@ router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
       });
       const totals = sumNutrientMaps(maps, dayMeals.map(m => m.calories));
       const eng = runNutritionProfileEngine({ totals, bodyweightKg: bw, mealsLogged: dayMeals.length });
-      series.push({ date, coveragePct: eng.microCoveragePct, profileScore: eng.profileScore });
+      series.push({ date, coveragePct: eng.microCoveragePct, profileScore: eng.profileScore, logged: true });
       for (const cov of eng.coverage) {
         if (cov.ceiling) continue;
         const rec = perNutrientDays.get(cov.key)!;
@@ -385,7 +411,9 @@ router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
       }))
       .sort((a, b) => a.pctDaysOnTarget - b.pctDaysOnTarget);
 
-    res.json({ range: `${days}d`, series, consistency });
+    // loggedDays lets the client caption the window honestly ("3 of 30 days logged").
+    const loggedDays = series.filter(p => p.logged).length;
+    res.json({ range: `${days}d`, series, consistency, loggedDays });
   } catch (err) {
     console.error('Trend error:', err);
     res.status(500).json({ error: 'Failed to load trend' });
