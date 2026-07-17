@@ -14,6 +14,8 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { nutritionProfileApi, type NpDayProfile, type NpSystem } from '../../../lib/api';
+import { todayStr } from '../../../lib/localDate';
+import { requestNutritionTab } from '../../../lib/nutritionPrefill';
 import { fontWeight } from '../../../constants/theme';
 import { STATUS_STYLE, NP } from './npTokens';
 
@@ -31,7 +33,9 @@ export function NutritionProfileV2() {
   const load = useCallback(async (isSync = false) => {
     if (isSync) setSyncing(true); else setLoading(true);
     try {
-      const d = await nutritionProfileApi.getDay();
+      // Always ask for the user's LOCAL day. The endpoint would otherwise
+      // default to the server's UTC date and hide meals logged this evening.
+      const d = await nutritionProfileApi.getDay(todayStr());
       setData(d);
     } catch {
       setData(prev => prev ?? { date: '', hasData: false, mealsLogged: 0 });
@@ -69,16 +73,13 @@ export function NutritionProfileV2() {
       {loading ? (
         <LoadingSkeleton />
       ) : !data?.hasData ? (
-        <EmptyState onGoToCoach={() => router.push('/(tabs)/coach')} />
+        <EmptyState onGoToCoach={() => { requestNutritionTab(); router.push('/(tabs)/coach'); }} />
       ) : (
         <>
           <HeroCard data={data} syncing={syncing} />
 
-          <Text style={styles.sectionHeaderRow}>
+          <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionLabel}>HOW YOUR FOOD IS ACTING</Text>
-          </Text>
-          <View style={styles.trendLinkRow}>
-            <View style={{ flex: 1 }} />
             <TouchableOpacity onPress={() => router.push('/nutrition-profile/trend' as never)} accessibilityRole="button">
               <Text style={styles.trendLink}>7-day trend ›</Text>
             </TouchableOpacity>
@@ -219,8 +220,10 @@ function TopMoveCard({ move, onPress }: { move: NonNullable<NpDayProfile['topMov
 
 // ─── Empty (§7) ───────────────────────────────────────────────────────────────
 function EmptyState({ onGoToCoach }: { onGoToCoach: () => void }) {
+  // Fragment (not a View) so the parent ScrollView's `gap` applies between the
+  // hero and the card — wrapping them made them one child and flush together.
   return (
-    <View>
+    <>
       <View style={styles.hero}>
         <Text style={styles.heroMicro}>TODAY · BY BODY SYSTEM</Text>
         <View style={styles.statRail}>
@@ -237,19 +240,19 @@ function EmptyState({ onGoToCoach }: { onGoToCoach: () => void }) {
           <Text style={styles.emptyLink}>Go to Coach → Nutrition</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </>
   );
 }
 
 // ─── Loading (§7) ─────────────────────────────────────────────────────────────
 function LoadingSkeleton() {
   return (
-    <View>
+    <>
       <View style={[styles.hero, styles.skeletonHero]}>
         <ActivityIndicator color="#FFFFFF" />
       </View>
       {[0, 1, 2, 3, 4].map(i => <View key={i} style={styles.skeletonCard} />)}
-    </View>
+    </>
   );
 }
 
@@ -271,9 +274,8 @@ const styles = StyleSheet.create({
   statRule: { width: 1, backgroundColor: NP.heroRule, marginHorizontal: 12 },
   provisional: { fontSize: 10, color: NP.heroMicro },
 
-  sectionHeaderRow: { marginTop: 2 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionLabel: { fontSize: 10, fontWeight: fontWeight.bold, letterSpacing: 1.2, color: NP.mutedInk },
-  trendLinkRow: { flexDirection: 'row', alignItems: 'center', marginTop: -10 },
   trendLink: { fontSize: 12, fontWeight: fontWeight.semibold, color: NP.ink },
 
   sysCard: { backgroundColor: NP.cardBg, borderRadius: 16, borderWidth: 1, borderColor: NP.border, padding: 15, gap: 10, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } },
@@ -309,9 +311,9 @@ const styles = StyleSheet.create({
   footerSecondary: { backgroundColor: NP.cardBg, borderWidth: 1, borderColor: NP.border },
   footerSecondaryText: { color: NP.ink, fontSize: 13, fontWeight: fontWeight.bold },
 
-  emptyCard: { alignItems: 'center', gap: 12, padding: 22, borderWidth: 1, borderColor: NP.border, borderRadius: 16 },
+  emptyCard: { alignItems: 'center', gap: 14, paddingVertical: 28, paddingHorizontal: 22, borderWidth: 1, borderColor: NP.border, borderRadius: 16 },
   emptyText: { fontSize: 13, color: NP.mutedInk, textAlign: 'center', lineHeight: 19 },
   emptyLink: { fontSize: 13, fontWeight: fontWeight.bold, color: NP.ink },
 
-  skeletonCard: { height: 92, borderRadius: 16, backgroundColor: NP.muted, marginTop: 4 },
+  skeletonCard: { height: 92, borderRadius: 16, backgroundColor: NP.muted },
 });

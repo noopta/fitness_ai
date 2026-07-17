@@ -12,6 +12,7 @@ import { fontWeight } from '../../src/constants/theme';
 import { NpScreen } from '../../src/components/coach/nutritionProfile/NpScreen';
 import { NP } from '../../src/components/coach/nutritionProfile/npTokens';
 import { setNutritionPrefill } from '../../src/lib/nutritionPrefill';
+import { todayStr } from '../../src/lib/localDate';
 
 export default function RecommendationsScreen() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function RecommendationsScreen() {
 
   useEffect(() => {
     let alive = true;
-    nutritionProfileApi.getRecommendations()
+    nutritionProfileApi.getRecommendations(todayStr())
       .then(r => { if (alive) setRecs(r.recommendations); })
       .catch(() => { if (alive) setRecs([]); })
       .finally(() => { if (alive) setLoading(false); });

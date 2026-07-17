@@ -23,3 +23,18 @@ export function consumeNutritionPrefill(): string | null {
   pending = null;
   return v;
 }
+
+// Separate from the prefill: the empty state's "Go to Coach → Nutrition" link
+// wants to land on the Nutrition sub-tab WITHOUT opening the log sheet, so it
+// can't reuse the prefill slot (a set prefill opens Describe).
+let tabRequested = false;
+
+export function requestNutritionTab(): void {
+  tabRequested = true;
+}
+
+export function consumeNutritionTabRequest(): boolean {
+  const v = tabRequested;
+  tabRequested = false;
+  return v;
+}

@@ -3,11 +3,13 @@
 
 export type MealSlotApi = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal';
 
-/** YYYY-MM-DD local date string (matches the backend's expectation). */
-export function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+/**
+ * YYYY-MM-DD local date string (matches the backend's expectation).
+ * Re-exported from lib/localDate so the sheets and the Nutrition Profile
+ * screens share ONE definition of "today" — they must agree or logged meals
+ * won't show up in the profile.
+ */
+export { todayStr } from '../../../../lib/localDate';
 
 /**
  * Pick a sensible default meal slot for "right now". Backend's enum is

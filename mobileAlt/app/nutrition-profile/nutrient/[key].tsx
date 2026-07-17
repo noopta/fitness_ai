@@ -11,6 +11,7 @@ import { fontWeight } from '../../../src/constants/theme';
 import { NpScreen } from '../../../src/components/coach/nutritionProfile/NpScreen';
 import { StatusPill, CoverageBar } from '../../../src/components/coach/nutritionProfile/StatusPill';
 import { NP } from '../../../src/components/coach/nutritionProfile/npTokens';
+import { todayStr } from '../../../src/lib/localDate';
 
 export default function NutrientDetailScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
@@ -19,7 +20,7 @@ export default function NutrientDetailScreen() {
 
   useEffect(() => {
     let alive = true;
-    nutritionProfileApi.getNutrient(String(key))
+    nutritionProfileApi.getNutrient(String(key), todayStr())
       .then(d => { if (alive) setData(d); })
       .catch(() => {})
       .finally(() => { if (alive) setLoading(false); });
