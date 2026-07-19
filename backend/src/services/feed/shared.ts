@@ -12,11 +12,10 @@
  *     has to produce a draft, not duplicate the dedupe/insert logic.
  */
 
-import OpenAI from 'openai';
+import { chatComplete } from '../chatClient.js';
 import { PrismaClient } from '@prisma/client';
 
 export const prisma = new PrismaClient();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // ─── Tag taxonomy ─────────────────────────────────────────────────────────────
 
@@ -56,13 +55,11 @@ export async function summarize(
     ? 'This is a peer-reviewed research abstract.'
     : 'This is a health/fitness article from a reputable source.';
 
-  const response = await (openai as any).responses.create({
-    model: 'gpt-5.4-mini',
-    input: `${context} Write a 2-3 sentence plain-English summary a fitness enthusiast would find useful. Be specific about the finding or key takeaway. Do not start with "This study" or "This article".\n\nTitle: ${title}\n\nContent: ${rawText.slice(0, 1500)}`,
-    reasoning: { effort: 'low' },
-    text: { verbosity: 'low' },
+  const response = await chatComplete({
+    messages: [{ role: 'user', content: `${context} Write a 2-3 sentence plain-English summary a fitness enthusiast would find useful. Be specific about the finding or key takeaway. Do not start with "This study" or "This article".\n\nTitle: ${title}\n\nContent: ${rawText.slice(0, 1500)}` }],
+    max_completion_tokens: 300,
   });
-  return (response.output_text as string).trim();
+  return (response.choices[0].message.content ?? '').trim();
 }
 
 /**

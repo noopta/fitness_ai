@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import OpenAI from 'openai';
+import { chatComplete } from './chatClient.js';
 
 const prisma = new PrismaClient();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -243,8 +242,7 @@ Rules:
 - core = abs and trunk stability
 - isCompound = true if it trains multiple major muscle groups simultaneously`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-5.4-mini',
+  const response = await chatComplete({
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
     temperature: 0,

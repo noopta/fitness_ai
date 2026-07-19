@@ -12,6 +12,7 @@ import {
   generateTodayCoachingTips, generateProgramAdjustment, extractBodyCompositionGoal, generateWelcomeMessage,
   rebalanceWeekAfterSwap,
 } from '../services/llmService.js';
+import { chatStream } from '../services/chatClient.js';
 import { buildRAGContext } from '../services/ragService.js';
 import { buildPodcastContext } from '../services/podcast/podcastRagService.js';
 import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/weekRebalance.js';
@@ -21,7 +22,6 @@ import { archiveProgram } from '../services/completedProgramService.js';
 import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trainTogetherService.js';
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { getExerciseVideo } from '../services/youtubeService.js';
 
 const router = Router();
@@ -441,8 +441,7 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-5.4-mini',
+    const stream = await chatStream({
       messages,
       stream: true,
       max_completion_tokens: 800,

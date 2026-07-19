@@ -24,11 +24,9 @@ import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
 import { runNutritionRules } from '../engine/nutritionRulesEngine.js';
 import { buildRAGContext } from '../services/ragService.js';
-import OpenAI from 'openai';
+import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const LLM_MODEL = 'gpt-5.4-mini-2026-03-17';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -1351,8 +1349,7 @@ Ensure every recommendation is consistent with the user's primary goal stated ab
   }
 }`;
 
-    const completion = await openai.chat.completions.create({
-      model: LLM_MODEL,
+    const completion = await chatComplete({
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: 0.2,

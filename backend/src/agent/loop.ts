@@ -16,7 +16,7 @@ import type { AgentTool, AgentTurnResult, AgentProposal } from './types.js';
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
 // the id so a model alias change doesn't silently shift behaviour.
-const MODEL = process.env.AGENT_MODEL || 'claude-sonnet-4-6';
+const MODEL = process.env.AGENT_MODEL || 'claude-sonnet-5';
 const MAX_TOKENS = 1024;
 // Hard ceiling on tool round-trips so a misbehaving loop can't run up an
 // unbounded API bill or hang a request. 8 is generous — most turns need 1-3.
