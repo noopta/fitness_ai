@@ -22,7 +22,7 @@ import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constan
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
-import { NutritionProfile } from '../../src/components/NutritionProfile';
+import { NutritionProfileV2 } from '../../src/components/coach/nutritionProfile/NutritionProfileV2';
 import { ApplyPlanButton } from '../../src/components/coach/ApplyPlanButton';
 import { TierHeroCard } from '../../src/components/strength/TierHeroCard';
 import { RadarChart, type RadarAxis } from '../../src/components/strength/RadarChart';
@@ -658,8 +658,8 @@ function StrengthProfileScreenInner() {
         ))}
       </View>
 
-      {/* ── Nutrition tab ────────────────────────────────────────────────── */}
-      {activeTab === 'nutrition' && <NutritionProfile />}
+      {/* ── Nutrition tab — effects-first Nutrition Profile (redesign) ────── */}
+      {activeTab === 'nutrition' && <NutritionProfileV2 />}
 
       {/* ── Strength tab ─────────────────────────────────────────────────── */}
       {/* ── Sheets — rendered at SafeAreaView level so they stack correctly

@@ -23,7 +23,7 @@ import {
 import {
   scoreGutWeek, distinctPlants, PLANT_TARGET,
 } from '../services/gutHealthScoreService.js';
-import { consumeMealLoggingQuota, nutritionProfileCacheKey } from './nutrition.js';
+import { consumeMealLoggingQuota, nutritionProfileCacheKey } from '../services/nutritionShared.js';
 import { cacheDelete } from '../services/cacheService.js';
 
 const prisma = new PrismaClient();
@@ -281,7 +281,7 @@ router.post('/nutrition/order-scan', requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Shares the daily meal-logging quota with parse-meal / analyze-photo.
-    const ok = await consumeMealLoggingQuota(userId, user.tier, res);
+    const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
     if (!ok) return;
 
     // PRIVACY: imageBase64 lives only in this request's memory. It is not

@@ -38,7 +38,7 @@ import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../../ui/KeyboardDoneBar';
-import { slotForNow, todayStr, type MealSlotApi } from './sheetHelpers';
+import { slotForNow, todayStr, richLogFields, type MealSlotApi } from './sheetHelpers';
 
 interface Props {
   visible: boolean;
@@ -53,6 +53,7 @@ interface ParsedMeal {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  raw?: any;
 }
 
 type Stage =
@@ -210,6 +211,7 @@ export function VoiceSheet({ visible, onClose, onLogged }: Props) {
         proteinG: Number(meal?.proteinG) || 0,
         carbsG:   Number(meal?.carbsG)   || 0,
         fatG:     Number(meal?.fatG)     || 0,
+        raw: res,
       });
       setStage('review');
     } catch (err: any) {
@@ -231,6 +233,7 @@ export function VoiceSheet({ visible, onClose, onLogged }: Props) {
         proteinG: parsed.proteinG,
         carbsG: parsed.carbsG,
         fatG: parsed.fatG,
+        ...richLogFields(parsed.raw, 'text'),
       });
       Analytics.foodTypedLogged({ calories: parsed.calories });
       await Promise.resolve(onLogged());

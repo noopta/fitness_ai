@@ -28,6 +28,7 @@ import { CoachMarkTooltip } from '../../src/components/CoachMarkTooltip';
 import { TOURS } from '../../src/lib/coachMarks';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { maybeShowPostPlanPaywall } from '../../src/lib/paywallTriggers';
+import { peekNutritionPrefill, consumeNutritionTabRequest } from '../../src/lib/nutritionPrefill';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -152,6 +153,10 @@ function CoachScreenInner() {
   const lastBgRefreshAt = useRef<number>(0);
   useFocusEffect(
     useCallback(() => {
+      // Land on the Nutrition sub-tab when the Nutrition Profile sent us here:
+      // either a queued recommendation (its surface then opens Describe
+      // prefilled) or a plain "go to Coach → Nutrition" link.
+      if (peekNutritionPrefill() || consumeNutritionTabRequest()) setActiveTab('Nutrition');
       if (!user?.id) return;
       const key = coachInitCacheKey(user.id);
       const cached = getCached<CoachInitCacheShape>(key, COACH_INIT_TTL_MS);

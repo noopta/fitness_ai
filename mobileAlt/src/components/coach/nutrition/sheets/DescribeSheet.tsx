@@ -19,13 +19,15 @@ import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../../ui/KeyboardDoneBar';
-import { slotForNow, todayStr, type MealSlotApi } from './sheetHelpers';
+import { slotForNow, todayStr, richLogFields, type MealSlotApi } from './sheetHelpers';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
   /** Refresh the timeline after a successful log. */
   onLogged: () => void | Promise<void>;
+  /** Seed the prompt (e.g. a Nutrition Profile recommendation deep-link). */
+  initialText?: string;
 }
 
 interface ParsedMeal {
@@ -34,11 +36,15 @@ interface ParsedMeal {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  // Full parse response kept verbatim so the rich nutrient vector reaches the
+  // log (and thus the Nutrition Profile effects engine) instead of being
+  // dropped. The review UI still only edits the four macros.
+  raw?: any;
 }
 
 type Stage = 'prompt' | 'review' | 'saving';
 
-export function DescribeSheet({ visible, onClose, onLogged }: Props) {
+export function DescribeSheet({ visible, onClose, onLogged, initialText }: Props) {
   const [stage, setStage] = useState<Stage>('prompt');
   const [text, setText] = useState('');
   const [parsing, setParsing] = useState(false);
@@ -54,6 +60,11 @@ export function DescribeSheet({ visible, onClose, onLogged }: Props) {
     setParsedDetail(null);
     setSlot(slotForNow());
   };
+
+  // Seed the prompt when opened from a deep-link (recommendation "Add").
+  useEffect(() => {
+    if (visible && initialText) setText(initialText);
+  }, [visible, initialText]);
 
   const handleClose = () => {
     if (parsing || stage === 'saving') return; // don't kill in-flight requests
@@ -78,6 +89,7 @@ export function DescribeSheet({ visible, onClose, onLogged }: Props) {
         proteinG: Number(meal?.proteinG) || 0,
         carbsG:   Number(meal?.carbsG)   || 0,
         fatG:     Number(meal?.fatG)     || 0,
+        raw: res,
       };
       setParsed(next);
       setStage('review');
@@ -101,15 +113,7 @@ export function DescribeSheet({ visible, onClose, onLogged }: Props) {
         proteinG: parsed.proteinG,
         carbsG: parsed.carbsG,
         fatG: parsed.fatG,
-        // Gut-health enrichment (handoff §7.5 "enriched log") — pass through
-        // whatever the parser found; server tolerates absence.
-        ingredients: parsedDetail?.ingredients ?? [],
-        tags: parsedDetail?.tags ?? [],
-        nutrients: parsedDetail?.nutrients ?? undefined,
-        plants: parsedDetail?.plants ?? [],
-        fermentedFoods: parsedDetail?.fermentedFoods ?? [],
-        ultraProcessed: parsedDetail?.ultraProcessed ?? false,
-        source: 'text',
+        ...richLogFields(parsed.raw, 'text'),
       });
       Analytics.foodTypedLogged({ calories: parsed.calories });
       await Promise.resolve(onLogged());

@@ -193,6 +193,18 @@ export const Analytics = {
   foodBarcodeLookupFailed: (props: { code: string; reason: 'not_found' | 'error' }) =>
     posthog.capture('food_barcode_lookup_failed', props),
 
+  // Recipe library (MFP-style saved dishes). Created-via distinguishes the
+  // AI paste-parse path from hand-built recipes.
+  recipeCreated: (props: { ingredient_count: number; servings: number; via: 'ai_parse' | 'manual' }) =>
+    posthog.capture('recipe_created', props),
+  recipeLogged: (props: { servings: number; calories: number }) =>
+    posthog.capture('recipe_logged', props),
+
+  // Nutrition Profile (effects-first) — recommendation "Add" deep-link into
+  // the Coach log.
+  nutritionRecommendationAdded: (props: { food: string; nutrient: string }) =>
+    posthog.capture('nutrition_recommendation_added', props),
+
   bodyWeightLogged: () =>
     posthog.capture('body_weight_logged'),
 

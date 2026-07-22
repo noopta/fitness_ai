@@ -228,9 +228,9 @@ model MealEntry {
   nutrientsJson   String?
   // OPEN nutrient vector: { [nutrientKey]: amount } with no fixed key set — the
   // Nutrition Profile effects engine reads this, not the legacy nutrientsJson.
-  // (Ported from prod schema — recipes/nutrition-profile lineage.)
   nutrientMapJson String?
   // Per-ingredient open nutrient vectors: [{ name, nutrients:{key:amt} }].
+  // Powers the Meal Breakdown "what each ingredient carries" subscreen.
   ingredientNutrientsJson String?
   // Gut-pillar fields (gut-health feature) — parse-time estimates.
   plantsJson      String?
@@ -250,6 +250,11 @@ model MealEntry {
   @@index([userId, date])
 }
 
+// User-authored recipe: a named dish built from N ingredients plus a servings
+// count (MyFitnessPal-style). Macro columns are denormalized PER-SERVING
+// totals (sum of ingredients ÷ servings) so search and quick-log never
+// re-sum itemsJson. Logging a recipe snapshots macros into MealEntry, so
+// editing a recipe never rewrites past logs.
 model Recipe {
   id            String   @id @default(uuid())
   userId        String

@@ -23,6 +23,7 @@ import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useUnits, LB_PER_KG } from '../../../context/UnitsContext';
 import { Analytics } from '../../../lib/analytics';
+import { consumeNutritionPrefill } from '../../../lib/nutritionPrefill';
 import { colors } from '../../../constants/theme';
 import { StickyHeader } from './StickyHeader';
 import { Inspector } from './Inspector';
@@ -37,6 +38,7 @@ import { DescribeSheet } from './sheets/DescribeSheet';
 import { SnapSheet } from './sheets/SnapSheet';
 import { VoiceSheet } from './sheets/VoiceSheet';
 import { ManualEntrySheet } from './sheets/ManualEntrySheet';
+import { RecipeSheet } from './sheets/RecipeSheet';
 import { MealEditSheet, type EditingMeal } from './sheets/MealEditSheet';
 import { WeightDetailScreen } from './WeightDetailScreen';
 import { ProteinCelebration } from './ProteinCelebration';
@@ -165,10 +167,13 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // Spec §10 calls for one-sheet-at-a-time. We collapse all five into a
   // single union state so opening a new sheet automatically dismisses the
   // others.
-  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode' | 'order';
+  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode' | 'recipe' | 'order';
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
+  // Prefill text for the Describe sheet when opened via a recommendation
+  // deep-link (see the focus effect + consumeNutritionPrefill).
+  const [describePrefill, setDescribePrefill] = useState<string | undefined>(undefined);
 
   // ── Targets from the saved program ───────────────────────────────────────
   const nutritionPlan = useMemo(() => {
@@ -251,6 +256,13 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // it for every subsequent focus.
   useFocusEffect(useCallback(() => {
     void loadAll();
+    // Nutrition Profile "Add" deep-link: if a recommended food is pending,
+    // open the Describe sheet prefilled with it.
+    const pending = consumeNutritionPrefill();
+    if (pending) {
+      setDescribePrefill(pending);
+      setOpenSheet('describe');
+    }
   }, [loadAll]));
 
   // When the parent coach screen pings us to refresh, just re-pull the
@@ -607,8 +619,9 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
           so setting a new value automatically dismisses the others. */}
       <DescribeSheet
         visible={openSheet === 'describe'}
-        onClose={() => setOpenSheet(null)}
+        onClose={() => { setOpenSheet(null); setDescribePrefill(undefined); }}
         onLogged={handleMealLogged}
+        initialText={describePrefill}
       />
       <SnapSheet
         visible={openSheet === 'snap'}
@@ -624,6 +637,15 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         visible={openSheet === 'manual'}
         onClose={() => setOpenSheet(null)}
         onLogged={handleMealLogged}
+        onCreateRecipe={() => setOpenSheet('recipe')}
+      />
+      {/* Recipe builder — reached from the Manual sheet's "New recipe" chip.
+          After saving we drop back into Manual so the fresh recipe is right
+          there in the library strip, one tap from logged. */}
+      <RecipeSheet
+        visible={openSheet === 'recipe'}
+        onClose={() => setOpenSheet('manual')}
+        onSaved={() => setOpenSheet('manual')}
       />
       <MealEditSheet
         visible={openSheet === 'edit'}

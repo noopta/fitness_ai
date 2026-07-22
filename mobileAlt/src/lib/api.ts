@@ -478,6 +478,38 @@ export interface SavedFoodItem {
   useCount?: number;
 }
 
+export interface RecipeItemInput {
+  name: string;
+  quantity?: string;
+  // Whole-recipe macro contribution of this ingredient (NOT per serving) —
+  // the backend sums these and divides by servings.
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+}
+
+export interface RecipeSummary {
+  id: string;
+  name: string;
+  servings: number;
+  // Per-serving totals, denormalized server-side.
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  items: RecipeItemInput[];
+  useCount: number;
+}
+
+export interface ParsedRecipeResult {
+  name: string;
+  servings: number;
+  items: Array<Required<RecipeItemInput>>;
+  confidence: 'high' | 'medium' | 'low';
+  notes: string;
+}
+
 export interface BarcodeLookupResult {
   code: string;
   name: string;
@@ -508,8 +540,33 @@ export const nutritionApi = {
   // user's full log history of food names + macros + use counts. Used by
   // the Manual-entry autocomplete and other quick-log surfaces.
   // `q` filters by normalized name match; empty = recent-by-useCount.
-  searchFoods: (q: string, limit = 20): Promise<{ foods: SavedFoodItem[] }> =>
+  // `recipes` rides along in the same response (additive key) so quick-log
+  // surfaces can show one unified library of foods + saved recipes.
+  searchFoods: (q: string, limit = 20): Promise<{ foods: SavedFoodItem[]; recipes?: RecipeSummary[] }> =>
     apiFetch(`/nutrition/foods?q=${encodeURIComponent(q)}&limit=${limit}`),
+
+  // ── Recipes — MyFitnessPal-style saved dishes ──────────────────────────
+  // A recipe = name + servings + ingredient list; backend stores per-serving
+  // macros. Logging snapshots servings × per-serving into a normal MealEntry,
+  // so editing a recipe never rewrites past logs.
+  getRecipes: (q = '', limit = 50): Promise<{ recipes: RecipeSummary[] }> =>
+    apiFetch(`/nutrition/recipes?q=${encodeURIComponent(q)}&limit=${limit}`),
+  createRecipe: (data: { name: string; servings: number; items: RecipeItemInput[]; nutrients?: Record<string, number> }): Promise<RecipeSummary> =>
+    apiFetch('/nutrition/recipes', { method: 'POST', body: JSON.stringify(data) }),
+  updateRecipe: (id: string, data: { name: string; servings: number; items: RecipeItemInput[]; nutrients?: Record<string, number> }): Promise<RecipeSummary> =>
+    apiFetch(`/nutrition/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteRecipe: (id: string) =>
+    apiFetch(`/nutrition/recipes/${id}`, { method: 'DELETE' }),
+  logRecipe: (id: string, data: { date: string; mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal'; servings: number }) =>
+    apiFetch(`/nutrition/recipes/${id}/log`, { method: 'POST', body: JSON.stringify(data) }),
+  // AI recipe parser — paste/dictate a whole recipe, get structured
+  // per-ingredient macros back for review in the builder. Shares the
+  // free-tier daily AI quota with parseMeal/analyzePhoto.
+  parseRecipe: (description: string, servings?: number): Promise<ParsedRecipeResult> =>
+    apiFetch('/nutrition/recipes/parse', {
+      method: 'POST',
+      body: JSON.stringify({ description, ...(servings ? { servings } : {}) }),
+    }),
 
   // Individual meal entries
   getMeals: (date?: string) =>
@@ -523,14 +580,20 @@ export const nutritionApi = {
     carbsG: number;
     fatG: number;
     notes?: string;
-    // Gut-health enrichment (optional — server defaults all of these)
+    // Rich fields — forward these from the parse response so the Nutrition
+    // Profile effects engine has the full nutrient vector to read. All
+    // optional; omitting them logs a bare macro entry as before.
     ingredients?: string[];
     tags?: string[];
     nutrients?: Record<string, unknown>;
+    source?: 'manual' | 'text' | 'photo' | 'saved_food' | 'recipe';
+    parseConfidence?: 'high' | 'medium' | 'low';
+    nutrientMap?: Record<string, number>;
+    ingredientNutrients?: Array<{ name: string; nutrients: Record<string, number> }>;
+    // Gut-health enrichment (gut-health feature; server defaults all)
     plants?: string[];
     fermentedFoods?: string[];
     ultraProcessed?: boolean;
-    source?: string;
   }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }),
   deleteMeal: (id: string) =>
     apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
@@ -606,6 +669,92 @@ export const nutritionApi = {
     date?: string; mealType?: string; vendor?: string | null;
     items: Array<Record<string, unknown>>;
   }) => apiFetch('/nutrition/order-log', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// ─── Nutrition Profile (effects-first, Strength → Nutrition) ──────────────────
+// Read-only companion to the Strength Profile. Consumes the deterministic
+// body-system engine; logging still lives in Coach → Nutrition.
+
+export type NpStatus = 'ok' | 'warn' | 'low';
+
+export interface NpSystem {
+  id: 'recovery' | 'cognition' | 'energy' | 'sleep' | 'mood';
+  name: string;
+  status: NpStatus;
+  score: number;
+  driver: string;
+  chips: string[];
+}
+
+export interface NpDayProfile {
+  date: string;
+  hasData: boolean;
+  mealsLogged: number;
+  kcalLogged?: number;
+  microCoveragePct?: number;
+  profileScore?: number;
+  profileScoreProvisional?: boolean;
+  headline?: string;
+  systems?: NpSystem[];
+  topMove?: { title: string; mechanism: string; gain: string } | null;
+  meals?: Array<{ id: string; name: string; mealType: string; calories: number }>;
+  extras?: Array<{ key: string; amount: number }>;
+}
+
+export interface NpDriverLine {
+  key: string; label: string; unit: string;
+  amount: number; target: number; pct: number; status: NpStatus; tracked: boolean;
+}
+
+export interface NpEffectDetail {
+  systemId: string; name: string; status: NpStatus; score: number;
+  summary: string; drivers: NpDriverLine[]; mechanisms: string[]; watchFor: string | null;
+}
+
+export interface NpNutrientDetail {
+  key: string; label: string; tag: string | null; unit: string;
+  current: string; target: string; pct: number; status: NpStatus; ceiling: boolean;
+  chain: Array<{ title: string; body: string }>;
+  why: string;
+  sources: Array<{ food: string; amount: string }>;
+  recommendation: string;
+  watchFor: string | null;
+}
+
+export interface NpMealBreakdown {
+  id: string; name: string; mealType: string; kcal: number; loggedAt: string;
+  macros: { proteinG: number; carbsG: number; fatG: number };
+  ingredients: Array<{ name: string; resolved: boolean; chips: string[] }>;
+}
+
+export interface NpTrend {
+  range: string;
+  // One entry per calendar day in the window. `logged: false` = nothing logged
+  // that day (render a gap, not a 0% bar — they mean different things).
+  series: Array<{ date: string; coveragePct: number; profileScore: number; logged: boolean }>;
+  consistency: Array<{ key: string; label: string; pctDaysOnTarget: number }>;
+  loggedDays: number;
+}
+
+export interface NpRecommendation {
+  name: string; serving: string; category: string; gain: string; mechanism: string;
+  prefill: { name: string; source: string };
+}
+
+export const nutritionProfileApi = {
+  getDay: (date?: string): Promise<NpDayProfile> =>
+    apiFetch(`/nutrition-profile${date ? `?date=${date}` : ''}`),
+  getEffect: (systemId: string, date?: string): Promise<NpEffectDetail> =>
+    apiFetch(`/nutrition-profile/effect/${systemId}${date ? `?date=${date}` : ''}`),
+  getNutrient: (key: string, date?: string): Promise<NpNutrientDetail> =>
+    apiFetch(`/nutrition-profile/nutrient/${key}${date ? `?date=${date}` : ''}`),
+  getMeal: (mealId: string): Promise<NpMealBreakdown> =>
+    apiFetch(`/nutrition-profile/meal/${mealId}`),
+  // `date` anchors the window to the caller's LOCAL day (see localDate.ts).
+  getTrend: (range: '7d' | '30d' = '7d', date?: string): Promise<NpTrend> =>
+    apiFetch(`/nutrition-profile/trend?range=${range}${date ? `&date=${date}` : ''}`),
+  getRecommendations: (date?: string): Promise<{ date: string; recommendations: NpRecommendation[] }> =>
+    apiFetch(`/nutrition-profile/recommendations${date ? `?date=${date}` : ''}`),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────

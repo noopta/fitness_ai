@@ -19,7 +19,7 @@ import { nutritionApi } from '../../../../lib/api';
 import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
-import { slotForNow, todayStr, type MealSlotApi } from './sheetHelpers';
+import { slotForNow, todayStr, type MealSlotApi, richLogFields } from './sheetHelpers';
 
 interface Props {
   visible: boolean;
@@ -33,6 +33,7 @@ interface ParsedMeal {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  raw?: any;
 }
 
 type Stage = 'capture' | 'analyzing' | 'review' | 'saving';
@@ -110,6 +111,7 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
         proteinG: Number(meal?.proteinG) || 0,
         carbsG:   Number(meal?.carbsG)   || 0,
         fatG:     Number(meal?.fatG)     || 0,
+        raw: res,
       };
       setParsed(next);
       setStage('review');
@@ -131,13 +133,7 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
         proteinG: parsed.proteinG,
         carbsG: parsed.carbsG,
         fatG: parsed.fatG,
-        ingredients: parsedDetail?.ingredients ?? [],
-        tags: parsedDetail?.tags ?? [],
-        nutrients: parsedDetail?.nutrients ?? undefined,
-        plants: parsedDetail?.plants ?? [],
-        fermentedFoods: parsedDetail?.fermentedFoods ?? [],
-        ultraProcessed: parsedDetail?.ultraProcessed ?? false,
-        source: 'photo',
+        ...richLogFields(parsed.raw, 'photo'),
       });
       Analytics.foodScannedLogged({ calories: parsed.calories });
       await Promise.resolve(onLogged());

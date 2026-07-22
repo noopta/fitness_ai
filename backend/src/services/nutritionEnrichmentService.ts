@@ -226,6 +226,17 @@ function inferIngredientCalories(totalCalories: number, idx: number, count: numb
  * - LLM provides meal decomposition + baseline micros.
  * - USDA, when available, enriches ingredient micronutrients and blends the result.
  */
+// Overlay the (possibly USDA-blended) structured micros back onto the open
+// nutrientMap so shared keys reflect the correction, while nutrients that only
+// live in the open channel (choline, leucine, …) are preserved untouched.
+function mergeMicrosIntoMap(map: Record<string, number> | undefined, micros: Micronutrients): Record<string, number> {
+  const out: Record<string, number> = { ...(map ?? {}) };
+  for (const [key, value] of Object.entries(micros)) {
+    if (typeof value === 'number' && Number.isFinite(value) && value !== 0) out[key] = safeRound(value, 2);
+  }
+  return out;
+}
+
 export async function enrichMealDetailHybrid(
   detail: ParsedMealDetail,
 ): Promise<{ detail: ParsedMealDetail; meta: HybridEnrichmentMeta }> {
@@ -233,7 +244,7 @@ export async function enrichMealDetailHybrid(
   const ingredients = (detail.ingredients || []).map(i => i.trim()).filter(Boolean).slice(0, 10);
   if (!USDA_API_KEY || ingredients.length === 0) {
     return {
-      detail: { ...detail, nutrients: llmMicros },
+      detail: { ...detail, nutrients: llmMicros, nutrientMap: mergeMicrosIntoMap(detail.nutrientMap, llmMicros) },
       meta: {
         provider: 'hybrid_llm_usda',
         matchedIngredients: 0,
@@ -265,7 +276,7 @@ export async function enrichMealDetailHybrid(
   const blended = matched > 0 ? blendMicros(llmMicros, usdaMicros, usdaWeight) : llmMicros;
 
   return {
-    detail: { ...detail, nutrients: blended },
+    detail: { ...detail, nutrients: blended, nutrientMap: mergeMicrosIntoMap(detail.nutrientMap, blended) },
     meta: {
       provider: 'hybrid_llm_usda',
       matchedIngredients: matched,

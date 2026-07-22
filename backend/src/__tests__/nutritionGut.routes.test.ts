@@ -42,7 +42,7 @@ vi.mock('../services/nutritionEnrichmentService.js', () => ({
 }));
 
 const mockQuota = vi.fn();
-vi.mock('../routes/nutrition.js', () => ({
+vi.mock('../services/nutritionShared.js', () => ({
   consumeMealLoggingQuota: (...a: unknown[]) => mockQuota(...a),
   nutritionProfileCacheKey: (id: string) => `nutrition_profile:${id}`,
 }));
@@ -222,7 +222,7 @@ describe('POST /nutrition/order-scan', () => {
   });
 
   it('respects quota denial', async () => {
-    mockQuota.mockImplementation(async (_u: string, _t: string, res: any) => {
+    mockQuota.mockImplementation(async (_p: unknown, _u: string, _t: string, res: any) => {
       res.status(429).json({ error: 'quota' });
       return false;
     });
