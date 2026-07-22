@@ -43,11 +43,14 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMime, setImageMime] = useState<string>('image/jpeg');
   const [parsed, setParsed] = useState<ParsedMeal | null>(null);
+  // Full parse response (micros + gut fields) — forwarded on log.
+  const [parsedDetail, setParsedDetail] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [slot, setSlot] = useState<MealSlotApi>(slotForNow());
 
   const reset = () => {
     setStage('capture'); setImageUri(null); setImageBase64(null); setParsed(null);
+    setParsedDetail(null);
     setError(null); setSlot(slotForNow());
   };
 
@@ -100,6 +103,7 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
     try {
       const res = await nutritionApi.analyzePhoto(base64, mimeType);
       const meal = (res as any)?.meal ?? res;
+      setParsedDetail(meal);
       const next: ParsedMeal = {
         name: String(meal?.name ?? 'Meal'),
         calories: Number(meal?.calories) || 0,
@@ -127,6 +131,13 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
         proteinG: parsed.proteinG,
         carbsG: parsed.carbsG,
         fatG: parsed.fatG,
+        ingredients: parsedDetail?.ingredients ?? [],
+        tags: parsedDetail?.tags ?? [],
+        nutrients: parsedDetail?.nutrients ?? undefined,
+        plants: parsedDetail?.plants ?? [],
+        fermentedFoods: parsedDetail?.fermentedFoods ?? [],
+        ultraProcessed: parsedDetail?.ultraProcessed ?? false,
+        source: 'photo',
       });
       Analytics.foodScannedLogged({ calories: parsed.calories });
       await Promise.resolve(onLogged());

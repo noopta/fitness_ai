@@ -26,7 +26,12 @@ const FALLBACK_CHAT_MODEL = process.env.OPENAI_FALLBACK_MODEL || 'gpt-5.4-mini';
 type NonStreamingParams = Omit<
   OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
   'model'
->;
+> & {
+  // Optional per-call OpenRouter model override for prompts that warrant a
+  // stronger model than the default (e.g. nutrition-plan generation). The
+  // OpenAI fallback model is unchanged.
+  modelOverride?: string;
+};
 type StreamingParams = Omit<
   OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming,
   'model'
@@ -35,13 +40,13 @@ type StreamingParams = Omit<
 // DeepSeek's OpenRouter endpoint takes max_tokens (not OpenAI's
 // max_completion_tokens), and V4 Flash defaults to reasoning effort "high" —
 // disable it so short JSON prompts don't pay thinking-token latency/cost.
-function toOpenRouterParams<T extends { max_completion_tokens?: number | null }>(
-  params: T,
-) {
-  const { max_completion_tokens, ...rest } = params;
+function toOpenRouterParams<
+  T extends { max_completion_tokens?: number | null; modelOverride?: string },
+>(params: T) {
+  const { max_completion_tokens, modelOverride, ...rest } = params;
   return {
     ...rest,
-    model: PRIMARY_CHAT_MODEL,
+    model: modelOverride || PRIMARY_CHAT_MODEL,
     ...(max_completion_tokens != null ? { max_tokens: max_completion_tokens } : {}),
     reasoning: { enabled: false },
   };
@@ -59,8 +64,9 @@ export async function chatComplete(
       '[chatClient] OpenRouter primary failed, falling back to OpenAI:',
       (err as Error)?.message,
     );
+    const { modelOverride: _ignored, ...fallbackParams } = params;
     return openaiDirect.chat.completions.create({
-      ...params,
+      ...fallbackParams,
       model: FALLBACK_CHAT_MODEL,
     });
   }

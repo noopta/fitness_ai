@@ -21,6 +21,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 
 const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
   'nightly_review', 'streak_at_risk', 'post_workout', 'wellness_flag', 'nutrition_gap',
+  'micro_gap',
 ];
 
 const router = Router();

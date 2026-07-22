@@ -31,6 +31,17 @@ export const colors = {
   successInk: '#15803d',
   successOnDark: '#4ade80',
 
+  // Gut-health feature (design handoff v1.0 §2/§9.1). Status soft fills +
+  // inks for StatusPill; citation trio; nutrition-feature macro hues.
+  successSoft: '#dcfce7',
+  warningSoft: '#fef3c7',
+  warningInk: '#b45309',
+  destructiveSoft: '#fee2e2',
+  destructiveInk: '#b91c1c',
+  citation: '#3f6ea5',
+  citationSoft: '#f0f5fb',
+  citationBorder: '#dbe7f4',
+
   /**
    * Macro accents (Nutrition v17b).
    *
@@ -43,6 +54,17 @@ export const colors = {
     carbs:   '#f59e0b',
     fat:     '#ec4899',
     fiber:   '#22c55e',
+  },
+
+  /**
+   * Gut-health feature macro hues (handoff §2 "sanctioned extension") —
+   * the new nutrition surfaces use these; legacy v17b surfaces keep `macro`
+   * until they're migrated.
+   */
+  gutMacro: {
+    protein: '#2a78d6',
+    carbs:   '#f59e0b',
+    fat:     '#7c5cff',
   },
 };
 

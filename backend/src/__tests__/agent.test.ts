@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // vi.hoisted so the mock object exists when the hoisted vi.mock factory runs.
 const mocks = vi.hoisted(() => ({
   user: { findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() },
-  mealEntry: { findMany: vi.fn(), create: vi.fn() },
+  mealEntry: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
   bodyWeightLog: { findMany: vi.fn(), create: vi.fn() },
   wellnessCheckin: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn() },
   workoutLog: { findMany: vi.fn(), create: vi.fn() },
@@ -30,7 +30,15 @@ vi.mock('../services/llmService.js', () => ({
   parseMealMacros: vi.fn(async (desc: string) => ({
     name: desc.slice(0, 40),
     calories: 500, proteinG: 40, carbsG: 50, fatG: 15,
+    ingredients: ['chicken', 'rice'], tags: ['high-protein'],
+    plants: ['rice'], fermentedFoods: [], ultraProcessed: false,
+    nutrients: { fiberG: 4, ironMg: 2 },
   })),
+}));
+
+// Gut-health plan service pulls in RAG + chat clients — stub it.
+vi.mock('../services/nutritionPlanService.js', () => ({
+  latestNutritionPlan: vi.fn(async () => null),
 }));
 
 // Cache helpers used by applyTools — no-op in tests.

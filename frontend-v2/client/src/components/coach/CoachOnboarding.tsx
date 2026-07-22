@@ -279,6 +279,72 @@ const STEPS: Step[] = [
     unit: 'g / day',
     optional: true,
   },
+  {
+    id: 'typicalDay',
+    type: 'textarea',
+    question: 'Walk me through a typical day of eating.',
+    subtext: 'Real days, not ideal days — this is the single most useful answer in the whole intake. No judgment.',
+    placeholder: 'Coffee at 7, usually skip breakfast, lunch is a chicken bowl…',
+  },
+  {
+    id: 'gutDigestion',
+    type: 'choice',
+    question: 'How does your gut usually feel after meals?',
+    subtext: 'Bloating, discomfort, irregularity — all fair game here.',
+    choices: [
+      { value: 'fine', label: 'Fine', desc: 'Rarely think about it' },
+      { value: 'sometimes', label: 'Sometimes off', desc: 'Occasional bloating or discomfort' },
+      { value: 'often', label: 'Often uncomfortable', desc: 'Bloating or irregularity most weeks' },
+    ],
+  },
+  {
+    id: 'gutFermented',
+    type: 'choice',
+    question: 'Fermented foods — yogurt, kefir, kimchi, sauerkraut?',
+    choices: [
+      { value: '0', label: 'Basically never', desc: 'Not part of my diet' },
+      { value: '2', label: 'A couple times a week' },
+      { value: '5', label: 'Most days' },
+      { value: '7', label: 'Every day', desc: 'At least one serving daily' },
+    ],
+  },
+  {
+    id: 'gutEnergy',
+    type: 'choice',
+    question: 'Do you crash in the afternoon?',
+    choices: [
+      { value: 'yes', label: 'Most days', desc: 'The 2-4pm slump is real' },
+      { value: 'sometimes', label: 'Some days' },
+      { value: 'no', label: 'Not really' },
+    ],
+  },
+  {
+    id: 'nutritionGoals',
+    type: 'multiselect',
+    question: 'What should your nutrition do for you?',
+    subtext: 'Pick up to three — selection order sets priority.',
+    choices: [
+      { value: 'energy', label: 'Steadier energy' },
+      { value: 'gut_comfort', label: 'Gut comfort' },
+      { value: 'recovery', label: 'Faster recovery' },
+      { value: 'sleep', label: 'Better sleep' },
+      { value: 'cognition', label: 'Sharper focus' },
+      { value: 'body_comp', label: 'Body composition' },
+    ],
+  },
+  {
+    id: 'gutMedical',
+    type: 'multiselect',
+    question: 'Any diagnosed digestive conditions?',
+    subtext: 'If yes, your plan stays general on these and your coach will point you to a professional for specifics.',
+    choices: [
+      { value: 'ibs', label: 'IBS' },
+      { value: 'ibd', label: 'IBD', desc: "Crohn's / colitis" },
+      { value: 'celiac', label: 'Celiac disease' },
+      { value: 'gerd', label: 'GERD / chronic reflux' },
+    ],
+    optional: true,
+  },
 
   // ── Section: Lifestyle ────────────────────────────────────────────────────
   {
@@ -1183,6 +1249,31 @@ export function CoachOnboarding({ userName, onComplete }: Props) {
           coachProfile: JSON.stringify(final),
         }),
       });
+      // Gut-health assessment (handoff §8) — structured save so the plan
+      // generator reads coachProfile.nutrition. Best-effort: intake completes
+      // even if this call fails; the mobile/tab assessment can backfill.
+      try {
+        const multi = (v?: string) => (v ? v.split(',').map((x) => x.trim()).filter(Boolean) : []);
+        const restrictions = multi(final.dietaryRestrictions);
+        const dietaryStyle = restrictions.includes('vegan') ? 'vegan'
+          : restrictions.includes('vegetarian') ? 'vegetarian' : 'omnivore';
+        await authFetch(`${API_BASE}/nutrition/assessment`, {
+          method: 'POST',
+          body: JSON.stringify({
+            typicalDay: final.typicalDay || undefined,
+            digestion: {
+              bloating: final.gutDigestion === 'often' ? 'often'
+                : final.gutDigestion === 'sometimes' ? 'sometimes' : 'never',
+              intolerances: restrictions.filter((r) => r !== 'none'),
+            },
+            energy: { afternoonCrashes: final.gutEnergy === 'yes' },
+            fermentedPerWeek: Number(final.gutFermented) || 0,
+            dietaryStyle,
+            goals: multi(final.nutritionGoals).slice(0, 3),
+            medicalFlags: multi(final.gutMedical),
+          }),
+        });
+      } catch { /* non-blocking */ }
       onComplete(final);
     } catch {
       onComplete(final);

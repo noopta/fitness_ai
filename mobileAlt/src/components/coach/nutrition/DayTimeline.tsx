@@ -56,6 +56,9 @@ interface Props {
   onDeleteMeal?: (m: LoggedMeal) => void;
   onLongPressMeal?: (m: LoggedMeal) => void;
   onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /** Optional header rendered above the timeline, scrolling with it
+   *  (gut-health cards — handoff §7.3). */
+  header?: React.ReactNode;
 }
 
 // Maximum delay we'll spend staggering rows on mount — cap at 6 rows ×
@@ -175,7 +178,7 @@ function GhostSlotRow({ slot, onPress }: { slot: GhostSlot; onPress?: () => void
 }
 
 export function DayTimeline({
-  meals, ghosts, onMealPress, onGhostPress, onDeleteMeal, onLongPressMeal, onScroll,
+  meals, ghosts, onMealPress, onGhostPress, onDeleteMeal, onLongPressMeal, onScroll, header,
 }: Props) {
   const reducedMotion = useReducedMotion();
 
@@ -187,6 +190,8 @@ export function DayTimeline({
       onScroll={onScroll}
       scrollEventThrottle={16}
     >
+      {header ? <View style={{ marginBottom: 16 }}>{header}</View> : null}
+
       {/* Vertical spine — one element behind every dot. */}
       <View style={styles.spine} pointerEvents="none" />
 

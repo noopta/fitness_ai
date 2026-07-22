@@ -30,6 +30,8 @@ import { WeightInspector, type WeightState } from './WeightInspector';
 import { MacroInspector } from './MacroInspector';
 import { DayTimeline, type LoggedMeal, type GhostSlot } from './DayTimeline';
 import { ActionDock, type DockAction } from './ActionDock';
+import { GutSection } from './gut/GutSection';
+import { OrderScanFlow } from './gut/OrderScanFlow';
 import type { MacroKey, MacroState } from './MacroRing';
 import { DescribeSheet } from './sheets/DescribeSheet';
 import { SnapSheet } from './sheets/SnapSheet';
@@ -163,7 +165,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // Spec §10 calls for one-sheet-at-a-time. We collapse all five into a
   // single union state so opening a new sheet automatically dismisses the
   // others.
-  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode';
+  type OpenSheet = null | 'describe' | 'snap' | 'voice' | 'manual' | 'edit' | 'barcode' | 'order';
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [editingMeal, setEditingMeal] = useState<EditingMeal | null>(null);
   const [weightDetailOpen, setWeightDetailOpen] = useState(false);
@@ -579,6 +581,8 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
       {/* DayTimeline owns its own scroll surface; pull-to-refresh + scroll
           events live there so the dock can react to scroll velocity. */}
       <View style={styles.timelineWrap}>
+        {/* Gut-health cards (handoff §7.3) render as the timeline header so
+            they scroll with the day rather than pinning above it. */}
         <DayTimeline
           meals={meals}
           ghosts={ghosts}
@@ -587,10 +591,17 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
           onDeleteMeal={handleDeleteMeal}
           onLongPressMeal={handleLongPressMeal}
           onScroll={handleTimelineScroll}
+          header={<GutSection refreshKey={meals.length} />}
         />
       </View>
 
       <ActionDock onAction={handleDockAction} hidden={dockHidden || keyboardUp} />
+
+      <OrderScanFlow
+        visible={openSheet === 'order'}
+        onClose={() => setOpenSheet(null)}
+        onLogged={handleMealLogged}
+      />
 
       {/* Sheets — spec §10 sheet-stack discipline lives in `openSheet`,
           so setting a new value automatically dismisses the others. */}

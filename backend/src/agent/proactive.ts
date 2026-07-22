@@ -20,7 +20,8 @@ export type ProactiveTrigger =
   | 'streak_at_risk'
   | 'post_workout'
   | 'wellness_flag'
-  | 'nutrition_gap';
+  | 'nutrition_gap'
+  | 'micro_gap';
 
 export interface ProactiveDecision {
   trigger: ProactiveTrigger;
@@ -42,6 +43,8 @@ const TRIGGER_FRAMING: Record<ProactiveTrigger, string> = {
     "The user's recent wellness check-in shows low energy/sleep or high stress. Decide if you should proactively adjust expectations or suggest a lighter session.",
   nutrition_gap:
     "The user is well behind on a macro target with little of the day left. Decide if a specific, actionable suggestion is worth sending.",
+  micro_gap:
+    "A micronutrient or gut pillar the user's plan focuses on has been persistently low (check read_micro_status: persistentGaps and gut pillars). Decide if ONE specific, food-first suggestion is worth sending — name real foods that close the gap, frame it as an opportunity ('11 plants to go this week'), never as failure. Values are ±30% estimates, so speak in bands, not milligrams.",
 };
 
 const PROACTIVE_SYSTEM = `You are Anakin, deciding whether to PROACTIVELY message the user. You are not in a conversation — you were woken by a trigger to evaluate their current state.

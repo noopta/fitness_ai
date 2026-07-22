@@ -93,6 +93,7 @@ model User {
   bodyWeightLogs           BodyWeightLog[]
   mealEntries              MealEntry[]
   savedFoods               SavedFood[]
+  nutritionPlans           NutritionPlan[]
   nutritionLogs            NutritionLog[]
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
@@ -224,6 +225,10 @@ model MealEntry {
   ingredientsJson String?
   tagsJson        String?
   nutrientsJson   String?
+  // Gut-pillar fields (gut-health feature) — parse-time estimates.
+  plantsJson      String?
+  fermentedJson   String?
+  ultraProcessed  Boolean  @default(false)
   source          String   @default("manual")
   parseConfidence String?
   notes     String?
@@ -831,4 +836,22 @@ model PodcastChunk {
 
   @@index([episodeSlug])
   @@index([subtopic])
+}
+
+// Generated nutrition & gut-health plan (gut-health feature, 2026-07).
+// Versioned by generatedAt — latest row wins; history kept for "living
+// document" diffing. planJson holds the full plan (focus nutrients, foods,
+// supplements, gut protocol, citations); microTargetsJson the deterministic
+// per-nutrient targets; gutScoreJson the assessment-time pillar baseline.
+model NutritionPlan {
+  id               String   @id @default(uuid())
+  userId           String
+  planJson         String
+  microTargetsJson String
+  gutScoreJson     String?
+  sourcesJson      String?
+  generatedAt      DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt])
 }

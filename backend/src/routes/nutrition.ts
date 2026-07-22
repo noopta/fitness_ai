@@ -6,7 +6,7 @@ import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import posthog from '../services/posthogClient.js';
 
 const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
-const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
+export const nutritionProfileCacheKey = (userId: string) => `nutrition_profile:${userId}`;
 import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
@@ -166,6 +166,9 @@ const mealEntrySchema = z.object({
   fatG: z.number().min(0).max(500).optional().default(0),
   ingredients: z.array(z.string().min(1).max(120)).max(30).optional().default([]),
   tags: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
+  plants: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
+  fermentedFoods: z.array(z.string().min(1).max(60)).max(20).optional().default([]),
+  ultraProcessed: z.boolean().optional().default(false),
   nutrients: z.object({
     fiberG: z.number().min(0).max(500).optional(),
     sugarG: z.number().min(0).max(500).optional(),
@@ -238,6 +241,9 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
         ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
         tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
         nutrientsJson: JSON.stringify(nutrients),
+        plantsJson: data.plants.length > 0 ? JSON.stringify(data.plants) : null,
+        fermentedJson: data.fermentedFoods.length > 0 ? JSON.stringify(data.fermentedFoods) : null,
+        ultraProcessed: data.ultraProcessed,
         source: data.source,
         parseConfidence: data.parseConfidence ?? null,
         notes: data.notes,
@@ -312,6 +318,8 @@ router.get('/nutrition/meals', requireAuth, async (req, res) => {
         ...e,
         ingredients: parseJsonArray(e.ingredientsJson),
         tags: parseJsonArray(e.tagsJson),
+        plants: parseJsonArray(e.plantsJson),
+        fermentedFoods: parseJsonArray(e.fermentedJson),
         nutrients: normalizeMicronutrients(parseJsonObject<Partial<Micronutrients>>(e.nutrientsJson)),
       })),
     });
@@ -732,7 +740,7 @@ const FREE_DAILY_PHOTO_LIMIT = 7;
  * otherwise an attacker could just bounce between endpoints to double their
  * effective quota.
  */
-async function consumeMealLoggingQuota(userId: string, tier: string, res: import('express').Response): Promise<boolean> {
+export async function consumeMealLoggingQuota(userId: string, tier: string, res: import('express').Response): Promise<boolean> {
   if (tier !== 'free') return true; // pro/enterprise unmetered
   const user = await prisma.user.findUnique({
     where: { id: userId },

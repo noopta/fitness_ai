@@ -20,6 +20,7 @@ import appleIapRoutes from './routes/appleIap.js';
 import googleIapRoutes from './routes/googleIap.js';
 import coachRoutes from './routes/coach.js';
 import nutritionRoutes from './routes/nutrition.js';
+import nutritionGutRoutes from './routes/nutritionGut.js';
 import wellnessRoutes from './routes/wellness.js';
 import workoutsRoutes from './routes/workouts.js';
 import strengthRoutes from './routes/strength.js';
@@ -30,13 +31,33 @@ import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
-import growthRoutes from './routes/growth.js';
+
 import instagramWebhookRoutes from './routes/instagramWebhook.js';
 import trainTogetherRoutes from './routes/trainTogether.js';
 import { runPartnerWorkoutMorningReminders } from './services/trainTogetherService.js';
-import { runDailyDigest } from './services/growth/dailyDigestRunner.js';
-import { runAutoShipSweep } from './services/growth/autoShipPipeline.js';
-import { runImpactSweep } from './services/growth/impactMeasurement.js';
+// Growth pipeline modules are untracked in some checkouts (see
+// project docs: growth source lives outside this branch). Load them
+// dynamically so a clean-tree build boots without them — routes and
+// schedulers below no-op when absent.
+const growth = await (async () => {
+  try {
+    const [routes, digest, autoShip, impact] = await Promise.all([
+      import('./routes/growth.js'),
+      import('./services/growth/dailyDigestRunner.js'),
+      import('./services/growth/autoShipPipeline.js'),
+      import('./services/growth/impactMeasurement.js'),
+    ]);
+    return {
+      routes: routes.default,
+      runDailyDigest: digest.runDailyDigest,
+      runAutoShipSweep: autoShip.runAutoShipSweep,
+      runImpactSweep: impact.runImpactSweep,
+    };
+  } catch {
+    console.warn('[growth] modules not present in this build — growth surface disabled.');
+    return null;
+  }
+})();
 import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
@@ -108,6 +129,7 @@ app.use('/api', appleIapRoutes);
 app.use('/api', googleIapRoutes);
 app.use('/api', coachRoutes);
 app.use('/api', nutritionRoutes);
+app.use('/api', nutritionGutRoutes);
 app.use('/api', wellnessRoutes);
 app.use('/api', workoutsRoutes);
 app.use('/api', strengthRoutes);
@@ -125,7 +147,7 @@ app.use('/api', groupsRoutes);
 // Workout form-video analysis (Gemini 3.1 Pro via Vertex AI). Multipart
 // uploads; free tier rate-limited via featureUsageService.
 app.use('/api', formAnalysisRoutes);
-app.use('/api', growthRoutes);
+if (growth) app.use('/api', growth.routes);
 app.use('/api', institutionsRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', instagramWebhookRoutes);
@@ -279,7 +301,7 @@ scheduleAt(8,  null, () => runPartnerWorkoutMorningReminders().catch(err => cons
 
 // Growth digest — 13:00 UTC = 8am EST. Idempotent per day (the runner
 // upserts on date, no-op if today's digest is already sent).
-scheduleAt(13, null, () => runDailyDigest().catch(err => console.error('[scheduler] growth digest error:', err)));
+if (growth) scheduleAt(13, null, () => growth.runDailyDigest().catch(err => console.error('[scheduler] growth digest error:', err)));
 
 // Auto-ship sweep — 14:00 UTC, after the digest has been read and any
 // approvals have come in via Telegram. Reads approved recs and either

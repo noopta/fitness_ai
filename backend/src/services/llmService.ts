@@ -1771,6 +1771,12 @@ export interface ParsedMealDetail extends ParsedMealMacros {
   ingredients: string[];
   tags: string[];
   nutrients: Micronutrients;
+  // Gut-pillar fields (gut-health feature): distinct plant species in the
+  // meal, fermented foods present, and whether the meal is predominantly
+  // ultra-processed. Estimated at parse time by the same LLM call.
+  plants: string[];
+  fermentedFoods: string[];
+  ultraProcessed: boolean;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -1840,6 +1846,13 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
       ? raw.tags.map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean).slice(0, 20)
       : [],
     nutrients,
+    plants: Array.isArray(raw?.plants)
+      ? raw.plants.map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean).slice(0, 20)
+      : [],
+    fermentedFoods: Array.isArray(raw?.fermentedFoods)
+      ? raw.fermentedFoods.map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean).slice(0, 10)
+      : [],
+    ultraProcessed: raw?.ultraProcessed === true,
   };
 }
 
@@ -1871,6 +1884,9 @@ OUTPUT FORMAT (JSON only, no explanation):
   "notes": "Based on Osmow's standard oz box portion sizes",
   "ingredients": ["chicken shawarma", "rice", "garlic sauce", "vegetables"],
   "tags": ["high-protein", "moderate-carb", "high-sodium"],
+  "plants": ["rice", "tomato", "lettuce", "garlic"],
+  "fermentedFoods": [],
+  "ultraProcessed": false,
   "nutrients": {
     "fiberG": 7,
     "sugarG": 5,
@@ -1898,7 +1914,12 @@ OUTPUT FORMAT (JSON only, no explanation):
 }
 
 digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
-biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
+biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.
+
+GUT-HEALTH FIELDS (required):
+- "plants": distinct plant species in the meal (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs, spices) as singular lowercase names, e.g. ["tomato","spinach","oat"]. Refined flour/sugar/oils do NOT count.
+- "fermentedFoods": live-culture fermented items present, e.g. ["kefir","kimchi","greek yogurt"], else [].
+- "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).`;
 
   const response = await chatComplete({
     messages: [{ role: 'user', content: prompt }],
@@ -2098,6 +2119,9 @@ OUTPUT FORMAT (JSON only, no explanation):
   "notes": "Estimated based on standard dinner plate portion. Chicken appears to be ~6oz grilled breast.",
   "ingredients": ["grilled chicken breast", "white rice", "broccoli", "olive oil"],
   "tags": ["high-protein", "balanced-meal"],
+  "plants": ["rice", "broccoli", "olive"],
+  "fermentedFoods": [],
+  "ultraProcessed": false,
   "nutrients": {
     "fiberG": 5,
     "sugarG": 3,
@@ -2125,7 +2149,12 @@ OUTPUT FORMAT (JSON only, no explanation):
 }
 
 digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
-biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.`;
+biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-sugar-spike, sustained-energy, muscle-protein-synthesis, cortisol-buffer, dopamine-precursor, serotonin-precursor, gut-microbiome-support, immune-support, bone-density, testosterone-support, estrogen-balance, thyroid-support, liver-detox, oxidative-stress, cognitive-boost, sleep-quality, fatigue-risk, high-cortisol-buffer. Include 1-5 most relevant.
+
+GUT-HEALTH FIELDS (required):
+- "plants": distinct plant species in the meal (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs, spices) as singular lowercase names, e.g. ["tomato","spinach","oat"]. Refined flour/sugar/oils do NOT count.
+- "fermentedFoods": live-culture fermented items present, e.g. ["kefir","kimchi","greek yogurt"], else [].
+- "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).`;
 
   const result = await gemini.models.generateContent({
     model: GEMINI_VISION_MODEL,
@@ -2183,6 +2212,110 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
     );
     throw new Error(`Meal photo response was malformed: ${err?.message ?? 'unknown'}`);
   }
+}
+
+// ── Order-screenshot scan (gut-health feature) ────────────────────────────
+// Extracts line items from a delivery-app screenshot or receipt. PRIVACY
+// CONTRACT: the image is processed in memory and never persisted; only food
+// items are extracted — names, addresses, and payment details are explicitly
+// excluded by the prompt and never stored (routes/nutritionGut.ts holds up
+// the storage side of this contract).
+export interface ParsedOrderItem extends ParsedMealDetail {
+  quantity: number;
+  modifiers: string[];
+}
+
+export interface OrderScanResult {
+  kind: 'order' | 'food_photo' | 'unreadable';
+  vendor: string | null;   // restaurant/app name, e.g. "UberEats · Chipotle"
+  items: ParsedOrderItem[];
+}
+
+export async function analyzeOrderScreenshot(
+  imageBase64: string,
+  mimeType: string,
+): Promise<OrderScanResult> {
+  const prompt = `You are a nutrition expert reading a screenshot of a food-delivery order (UberEats/DoorDash/etc.), a restaurant receipt, or possibly a photo of actual food.
+
+CLASSIFY first:
+- "order": a delivery-app order summary or printed receipt with line items
+- "food_photo": an actual photo of plated food (not a screen/receipt)
+- "unreadable": neither is discernible
+
+FOR "order": extract EVERY food line item. For each, use your knowledge of the specific restaurant's menu to estimate nutrition per single quantity of the item as ordered (respect modifiers like "no rice", "double chicken").
+STRICT PRIVACY RULE: extract food items and restaurant name ONLY. NEVER output customer names, addresses, phone numbers, prices, totals, or payment details.
+
+OUTPUT (JSON only):
+{
+  "kind": "order",
+  "vendor": "UberEats · Chipotle",
+  "items": [
+    {
+      "name": "Burrito bowl — double chicken, no rice",
+      "quantity": 1,
+      "modifiers": ["double chicken", "no rice", "guacamole"],
+      "proteinG": 62, "carbsG": 28, "fatG": 31, "calories": 640,
+      "mealType": "dinner", "confidence": "high", "notes": "",
+      "ingredients": ["chicken", "black beans", "guacamole", "salsa", "cheese"],
+      "tags": ["high-protein"],
+      "plants": ["black bean", "avocado", "tomato", "corn"],
+      "fermentedFoods": [],
+      "ultraProcessed": false,
+      "nutrients": { "fiberG": 12, "sugarG": 4, "sodiumMg": 1350, "saturatedFatG": 9, "cholesterolMg": 180, "vitaminAIU": 800, "vitaminCMg": 22, "vitaminDIU": 10, "vitaminEMg": 2.5, "vitaminB12Mcg": 1.1, "folateMcg": 160, "ironMg": 4.6, "calciumMg": 240, "magnesiumMg": 120, "zincMg": 4.2, "potassiumMg": 1150, "omega3G": 0.2, "omega6G": 3.1, "glycemicIndex": 42, "glycemicLoad": 11, "digestiveSpeed": "slow", "biochemicalEffects": ["muscle-protein-synthesis", "sustained-energy"] }
+    }
+  ]
+}
+"plants": distinct plant species (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs), singular lowercase. "fermentedFoods": live-culture items only. "ultraProcessed": true only for predominantly ultra-processed items.
+FOR "food_photo" or "unreadable": return {"kind":"food_photo","vendor":null,"items":[]} or {"kind":"unreadable","vendor":null,"items":[]}.`;
+
+  const result = await gemini.models.generateContent({
+    model: GEMINI_VISION_MODEL,
+    config: {
+      responseMimeType: 'application/json',
+      thinkingConfig: { thinkingBudget: 1024 },
+      maxOutputTokens: 16384, // orders are multi-item; give items room
+    },
+    contents: [{ role: 'user', parts: [
+      { text: prompt },
+      { inlineData: { mimeType, data: imageBase64 } },
+    ]}],
+  });
+
+  const raw = result.text?.trim();
+  if (!raw) throw new Error('Gemini vision returned an empty response.');
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    const repaired = repairTruncatedJson(text);
+    if (!repaired) throw new Error('Order scan response was malformed.');
+    parsed = JSON.parse(repaired);
+    console.warn('[order-scan] response was truncated; salvaged parse.');
+  }
+
+  const kind =
+    parsed?.kind === 'order' || parsed?.kind === 'food_photo' || parsed?.kind === 'unreadable'
+      ? parsed.kind
+      : 'unreadable';
+  const items: ParsedOrderItem[] = Array.isArray(parsed?.items)
+    ? parsed.items.slice(0, 12).map((it: any) => ({
+        ...coerceParsedMealDetail(it),
+        quantity: Number.isFinite(Number(it?.quantity)) && Number(it.quantity) > 0
+          ? Math.min(10, Math.round(Number(it.quantity)))
+          : 1,
+        modifiers: Array.isArray(it?.modifiers)
+          ? it.modifiers.map((m: unknown) => String(m).trim()).filter(Boolean).slice(0, 10)
+          : [],
+      }))
+    : [];
+
+  return {
+    kind,
+    vendor: typeof parsed?.vendor === 'string' && parsed.vendor.trim() ? parsed.vendor.trim().slice(0, 120) : null,
+    items,
+  };
 }
 
 /**

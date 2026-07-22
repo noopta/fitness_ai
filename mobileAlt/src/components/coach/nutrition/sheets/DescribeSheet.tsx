@@ -44,10 +44,14 @@ export function DescribeSheet({ visible, onClose, onLogged }: Props) {
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsedMeal | null>(null);
+  // Full parse response (micros + gut fields) — forwarded on log so chat,
+  // photo, text and order paths all persist the same enrichment.
+  const [parsedDetail, setParsedDetail] = useState<any>(null);
   const [slot, setSlot] = useState<MealSlotApi>(slotForNow());
 
   const reset = () => {
     setStage('prompt'); setText(''); setParsing(false); setParseError(null); setParsed(null);
+    setParsedDetail(null);
     setSlot(slotForNow());
   };
 
@@ -67,6 +71,7 @@ export function DescribeSheet({ visible, onClose, onLogged }: Props) {
       // Backend returns { name, calories, proteinG, carbsG, fatG, ... } or
       // sometimes nests under .meal — defensive on both.
       const meal = (res as any)?.meal ?? res;
+      setParsedDetail(meal);
       const next: ParsedMeal = {
         name: String(meal?.name ?? value),
         calories: Number(meal?.calories) || 0,
@@ -96,6 +101,15 @@ export function DescribeSheet({ visible, onClose, onLogged }: Props) {
         proteinG: parsed.proteinG,
         carbsG: parsed.carbsG,
         fatG: parsed.fatG,
+        // Gut-health enrichment (handoff §7.5 "enriched log") — pass through
+        // whatever the parser found; server tolerates absence.
+        ingredients: parsedDetail?.ingredients ?? [],
+        tags: parsedDetail?.tags ?? [],
+        nutrients: parsedDetail?.nutrients ?? undefined,
+        plants: parsedDetail?.plants ?? [],
+        fermentedFoods: parsedDetail?.fermentedFoods ?? [],
+        ultraProcessed: parsedDetail?.ultraProcessed ?? false,
+        source: 'text',
       });
       Analytics.foodTypedLogged({ calories: parsed.calories });
       await Promise.resolve(onLogged());

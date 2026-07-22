@@ -517,6 +517,14 @@ export const nutritionApi = {
     carbsG: number;
     fatG: number;
     notes?: string;
+    // Gut-health enrichment (optional — server defaults all of these)
+    ingredients?: string[];
+    tags?: string[];
+    nutrients?: Record<string, unknown>;
+    plants?: string[];
+    fermentedFoods?: string[];
+    ultraProcessed?: boolean;
+    source?: string;
   }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }),
   deleteMeal: (id: string) =>
     apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
@@ -574,6 +582,24 @@ export const nutritionApi = {
 
   // AI-generated nutrition profile (aggregates 90 days + LLM insights)
   getProfile: () => apiFetch('/nutrition/profile'),
+
+  // ── Gut-health feature (2026-07) ──
+  getAssessment: () => apiFetch('/nutrition/assessment'),
+  saveAssessment: (assessment: Record<string, unknown>) =>
+    apiFetch('/nutrition/assessment', { method: 'POST', body: JSON.stringify(assessment) }),
+  generateNutritionPlan: () =>
+    apiFetch('/nutrition/plan/generate', { method: 'POST' }),
+  getNutritionPlan: () => apiFetch('/nutrition/plan'),
+  getMicrosDaily: (date?: string) =>
+    apiFetch(`/nutrition/micros/daily${date ? `?date=${date}` : ''}`),
+  getGutWeek: (end?: string) =>
+    apiFetch(`/nutrition/gut/week${end ? `?end=${end}` : ''}`),
+  scanOrder: (imageBase64: string, mimeType: string) =>
+    apiFetch('/nutrition/order-scan', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
+  logOrder: (data: {
+    date?: string; mealType?: string; vendor?: string | null;
+    items: Array<Record<string, unknown>>;
+  }) => apiFetch('/nutrition/order-log', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────

@@ -13,6 +13,9 @@ import { appendMemory } from './memory.js';
 import { applyMacroChange, applyProgramUpdate, applyExerciseSwap, buildPlanPatchProposal } from './applyTools.js';
 import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '../routes/coach.js';
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
+import { latestNutritionPlan } from '../services/nutritionPlanService.js';
+import { computeMicroTargets, statusFor } from '../services/microTargetsService.js';
+import { scoreGutWeek, distinctPlants } from '../services/gutHealthScoreService.js';
 import type { AgentTool } from './types.js';
 
 /** Look up a user's display-unit preference (defaults imperial). */
@@ -177,6 +180,124 @@ const readWellness: AgentTool = {
   },
 };
 
+
+// ─── Gut-health tools (gut-health feature, 2026-07) ───────────────────────────
+
+const readMicroStatus: AgentTool = {
+  name: 'read_micro_status',
+  description:
+    "Read the user's micronutrient status vs their personal targets over recent days, plus their weekly gut pillars (fiber, plant diversity, fermented foods, ultra-processed share, logging rhythm). Values are ±30% estimates — speak in status bands ('low on magnesium'), never precise milligrams. Call before answering any 'how's my iron/fiber/gut health' question or suggesting micronutrient-driven food changes.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      days: { type: 'number', description: 'Trailing window in days (1–14). Default 7.' },
+    },
+  },
+  execute: async (input, userId) => {
+    const days = Math.max(1, Math.min(14, Number(input.days) || 7));
+    const end = todayStr();
+    const start = (() => {
+      const d = new Date(`${end}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() - (days - 1));
+      return d.toISOString().split('T')[0];
+    })();
+
+    const [entries, firstEver, plan] = await Promise.all([
+      prisma.mealEntry.findMany({
+        where: { userId, date: { gte: start, lte: end } },
+        select: { date: true, nutrientsJson: true, plantsJson: true, fermentedJson: true, ultraProcessed: true },
+      }),
+      prisma.mealEntry.findFirst({ where: { userId }, orderBy: { date: 'asc' }, select: { date: true } }),
+      latestNutritionPlan(userId),
+    ]);
+    const targets = plan?.targets?.targets?.length ? plan.targets : computeMicroTargets({});
+
+    // Per-day totals → day-average per nutrient, then band vs daily target.
+    const dayTotals = new Map<string, Record<string, number>>();
+    const plantLists: string[][] = [];
+    let fermented = 0;
+    let processedMeals = 0;
+    const perDayCount = new Map<string, number>();
+    for (const e of entries) {
+      perDayCount.set(e.date, (perDayCount.get(e.date) ?? 0) + 1);
+      if (e.ultraProcessed) processedMeals += 1;
+      try { if (e.plantsJson) plantLists.push(JSON.parse(e.plantsJson)); } catch { /* skip */ }
+      try { if (e.fermentedJson) fermented += (JSON.parse(e.fermentedJson) as unknown[]).length; } catch { /* skip */ }
+      if (!e.nutrientsJson) continue;
+      try {
+        const n = JSON.parse(e.nutrientsJson);
+        const bucket = dayTotals.get(e.date) ?? {};
+        for (const [k, v] of Object.entries(n)) {
+          if (Number.isFinite(Number(v))) bucket[k] = (bucket[k] ?? 0) + Number(v);
+        }
+        dayTotals.set(e.date, bucket);
+      } catch { /* skip */ }
+    }
+    const observedDays = Math.max(1, dayTotals.size);
+
+    const nutrients = targets.targets.map((t) => {
+      let sum = 0;
+      let daysLow = 0;
+      for (const bucket of dayTotals.values()) {
+        const v = bucket[t.key] ?? 0;
+        sum += v;
+        if (t.direction === 'meet' && statusFor(t, v) !== 'ok') daysLow += 1;
+      }
+      const avg = sum / observedDays;
+      return {
+        key: t.key, label: t.label, unit: t.unit, target: t.target, direction: t.direction,
+        avgPerDay: Math.round(avg * 10) / 10,
+        status: statusFor(t, avg),
+        daysBelowTarget: t.direction === 'meet' ? daysLow : undefined,
+        focus: targets.focus.includes(t.key),
+      };
+    });
+
+    const fiberTarget = targets.targets.find((t) => t.key === 'fiberG')?.target ?? 30;
+    const fiberAvg = nutrients.find((n) => n.key === 'fiberG')?.avgPerDay ?? 0;
+    // Same account-age window scaling as GET /nutrition/gut/week — a 1-day-old
+    // account is scored against a 1-day bar, keeping chat and tab consistent.
+    let gutDays = Math.min(7, days);
+    if (firstEver && firstEver.date > start) {
+      const first = new Date(`${firstEver.date}T00:00:00Z`).getTime();
+      const endMs = new Date(`${end}T00:00:00Z`).getTime();
+      gutDays = Math.max(1, Math.min(gutDays, Math.round((endMs - first) / 86400000) + 1));
+    }
+    const gut = scoreGutWeek({
+      days: gutDays,
+      avgDailyFiberG: fiberAvg,
+      fiberTargetG: fiberTarget,
+      distinctPlants: distinctPlants(plantLists),
+      fermentedServings: fermented,
+      mealsLogged: entries.length,
+      ultraProcessedMeals: processedMeals,
+      daysWithTwoPlusMeals: [...perDayCount.values()].filter((c) => c >= 2).length,
+    });
+
+    return {
+      window: { start, end, observedDays },
+      estimateNote: 'All values are ±30% estimates — use status bands, not precise numbers.',
+      focus: targets.focus,
+      nutrients,
+      gut: { overall: gut.overall, pillars: gut.pillars, plantCount: gut.plantCount, plantTarget: gut.plantTarget },
+      persistentGaps: nutrients.filter((n) => n.focus && n.direction === 'meet' && (n.daysBelowTarget ?? 0) >= 3)
+        .map((n) => ({ key: n.key, label: n.label, daysBelowTarget: n.daysBelowTarget })),
+    };
+  },
+};
+
+const readNutritionPlanTool: AgentTool = {
+  name: 'read_nutrition_plan',
+  description:
+    "Read the user's generated nutrition & gut-protocol plan: focus nutrients with targets, recommended foods, supplement suggestions, and the five gut pillars. Call when advising on diet so your suggestions match their actual plan. If none exists, suggest the 3-minute nutrition assessment in the Nutrition tab.",
+  input_schema: { type: 'object', properties: {} },
+  execute: async (_input, userId) => {
+    const plan = await latestNutritionPlan(userId);
+    if (!plan) return { hasPlan: false, hint: 'No nutrition plan yet — the user can take the assessment in Coach → Nutrition.' };
+    return { hasPlan: true, generatedAt: plan.generatedAt, plan: plan.plan, focus: plan.targets.focus };
+  },
+};
+
 // ─── Write tools ───────────────────────────────────────────────────────────────
 
 const logMeal: AgentTool = {
@@ -206,10 +327,12 @@ const logMeal: AgentTool = {
     // If macros weren't given but a description was, parse it via the same
     // service the Describe sheet uses — single source of truth for parsing.
     const hasMacros = [calories, proteinG, carbsG, fatG].some((v) => typeof v === 'number');
+    let parsedDetail: Awaited<ReturnType<typeof parseMealMacros>> | null = null;
     if (!hasMacros && input.description) {
-      const parsed = await parseMealMacros(String(input.description));
-      name = name ?? parsed.name;
-      calories = parsed.calories; proteinG = parsed.proteinG; carbsG = parsed.carbsG; fatG = parsed.fatG;
+      parsedDetail = await parseMealMacros(String(input.description));
+      name = name ?? parsedDetail.name;
+      calories = parsedDetail.calories; proteinG = parsedDetail.proteinG;
+      carbsG = parsedDetail.carbsG; fatG = parsedDetail.fatG;
       source = 'agent-parsed';
     }
     const entry = await prisma.mealEntry.create({
@@ -218,11 +341,24 @@ const logMeal: AgentTool = {
         mealType,
         calories: Number(calories) || 0, proteinG: Number(proteinG) || 0,
         carbsG: Number(carbsG) || 0, fatG: Number(fatG) || 0,
+        // Chat-logged meals carry the same enrichment as every other path
+        // (gut-health feature): micros + plants/fermented/processed flags.
+        nutrientsJson: parsedDetail ? JSON.stringify(parsedDetail.nutrients) : null,
+        ingredientsJson: parsedDetail && parsedDetail.ingredients.length > 0 ? JSON.stringify(parsedDetail.ingredients) : null,
+        tagsJson: parsedDetail && parsedDetail.tags.length > 0 ? JSON.stringify(parsedDetail.tags) : null,
+        plantsJson: parsedDetail && parsedDetail.plants.length > 0 ? JSON.stringify(parsedDetail.plants) : null,
+        fermentedJson: parsedDetail && parsedDetail.fermentedFoods.length > 0 ? JSON.stringify(parsedDetail.fermentedFoods) : null,
+        ultraProcessed: parsedDetail?.ultraProcessed ?? false,
         source,
       },
       select: { id: true, name: true, mealType: true, calories: true, proteinG: true, carbsG: true, fatG: true, date: true },
     });
-    return { logged: entry };
+    return {
+      logged: entry,
+      gutWins: parsedDetail
+        ? { plants: parsedDetail.plants, fermented: parsedDetail.fermentedFoods.length > 0 }
+        : undefined,
+    };
   },
 };
 
@@ -638,6 +774,8 @@ export const AGENT_TOOLS: AgentTool[] = [
   readScheduleWeek,
   readLatestDiagnostic,
   queryResearch,
+  readMicroStatus,
+  readNutritionPlanTool,
   // Writes
   logMeal,
   logBodyWeight,
