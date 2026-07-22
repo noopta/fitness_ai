@@ -93,6 +93,7 @@ model User {
   bodyWeightLogs           BodyWeightLog[]
   mealEntries              MealEntry[]
   savedFoods               SavedFood[]
+  recipes                  Recipe[]
   nutritionPlans           NutritionPlan[]
   nutritionLogs            NutritionLog[]
   sessions                 Session[]
@@ -225,6 +226,12 @@ model MealEntry {
   ingredientsJson String?
   tagsJson        String?
   nutrientsJson   String?
+  // OPEN nutrient vector: { [nutrientKey]: amount } with no fixed key set — the
+  // Nutrition Profile effects engine reads this, not the legacy nutrientsJson.
+  // (Ported from prod schema — recipes/nutrition-profile lineage.)
+  nutrientMapJson String?
+  // Per-ingredient open nutrient vectors: [{ name, nutrients:{key:amt} }].
+  ingredientNutrientsJson String?
   // Gut-pillar fields (gut-health feature) — parse-time estimates.
   plantsJson      String?
   fermentedJson   String?
@@ -232,10 +239,39 @@ model MealEntry {
   source          String   @default("manual")
   parseConfidence String?
   notes     String?
+  // Provenance link when this entry was logged from a saved recipe. SetNull so
+  // deleting a recipe never erases log history (entries are snapshots).
+  recipeId  String?
+  servings  Float?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
+}
+
+model Recipe {
+  id            String   @id @default(uuid())
+  userId        String
+  name          String
+  servings      Float    @default(1)
+  // [{ name, quantity?, calories, proteinG, carbsG, fatG }] — quantities are
+  // free text ("2 lbs", "1 can"); macros are per-ingredient whole-recipe totals.
+  itemsJson     String
+  // Per-serving denormalized totals:
+  calories      Float    @default(0)
+  proteinG      Float    @default(0)
+  carbsG        Float    @default(0)
+  fatG          Float    @default(0)
+  nutrientsJson String?
+  useCount      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealEntries   MealEntry[]
+
+  @@index([userId, useCount])
+  @@index([userId, name])
 }
 
 model SavedFood {
@@ -854,4 +890,49 @@ model NutritionPlan {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, generatedAt])
+}
+
+// Growth-pipeline models (DailyDigest/Recommendation). They live in prod's DB
+// and hold real rows; the growth SOURCE isn't on this branch (loaded
+// dynamically by index.ts when present). Declared here so `db push` from this
+// branch can never drop them — see the prod-schema-growth landmine.
+model DailyDigest {
+  id               String    @id @default(uuid())
+  date             String    @unique
+  metricsJson      String
+  digestMarkdown   String
+  modelUsed        String
+  promptTokens     Int?
+  completionTokens Int?
+  sentToTelegram   Boolean   @default(false)
+  sentAt           DateTime?
+  createdAt        DateTime  @default(now())
+  recommendations  Recommendation[]
+
+  @@index([date])
+}
+
+model Recommendation {
+  id                 String      @id @default(uuid())
+  digestId           String
+  title              String
+  description        String
+  targetMetric       String
+  mechanism          String
+  effort             String
+  risk               String
+  falsification      String
+  tier               String
+  status             String      @default("pending")
+  approvedAt         DateTime?
+  shippedAt          DateTime?
+  prUrl              String?
+  beforeMetricJson   String?
+  after7dMetricJson  String?
+  after30dMetricJson String?
+  measuredAt         DateTime?
+  digest             DailyDigest @relation(fields: [digestId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([digestId])
 }
