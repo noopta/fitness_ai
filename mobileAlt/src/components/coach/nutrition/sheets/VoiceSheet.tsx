@@ -39,6 +39,7 @@ import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../../ui/KeyboardDoneBar';
 import { slotForNow, todayStr, richLogFields, type MealSlotApi } from './sheetHelpers';
+import { MicroPreview } from './MicroPreview';
 
 interface Props {
   visible: boolean;
@@ -327,6 +328,7 @@ export function VoiceSheet({ visible, onClose, onLogged }: Props) {
             setMeal={setParsed}
             slot={slot}
             setSlot={setSlot}
+            detail={parsed?.raw}
             onLog={log}
             onBack={() => setStage('transcribed')}
           />
@@ -437,8 +439,9 @@ function TranscribedStage({
 }
 
 function ReviewStage({
-  meal, setMeal, slot, setSlot, onLog, onBack,
+  meal, setMeal, slot, setSlot, onLog, onBack, detail,
 }: {
+  detail?: any;
   meal: ParsedMeal;
   setMeal: (m: ParsedMeal) => void;
   slot: MealSlotApi;
@@ -467,6 +470,8 @@ function ReviewStage({
         <MacroCell label="Carbs"   value={meal.carbsG}   onChange={(v) => setNum('carbsG', v)} />
         <MacroCell label="Fat"     value={meal.fatG}     onChange={(v) => setNum('fatG', v)} />
       </View>
+      <MicroPreview raw={detail} />
+
       <Text style={styles.fieldLabel}>SLOT</Text>
       <View style={styles.slotRow}>
         {SLOTS.map((s) => (

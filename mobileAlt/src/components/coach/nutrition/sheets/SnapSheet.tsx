@@ -20,6 +20,7 @@ import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { slotForNow, todayStr, type MealSlotApi, richLogFields } from './sheetHelpers';
+import { MicroPreview } from './MicroPreview';
 
 interface Props {
   visible: boolean;
@@ -199,6 +200,7 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
           slot={slot}
           setSlot={setSlot}
           error={error}
+          detail={parsed?.raw}
           onLog={log}
           onRetake={() => { reset(); }}
         />
@@ -222,8 +224,9 @@ const SLOTS: Array<{ key: MealSlotApi; label: string }> = [
 ];
 
 function ReviewStage({
-  imageUri, meal, setMeal, slot, setSlot, error, onLog, onRetake,
+  imageUri, meal, setMeal, slot, setSlot, error, onLog, onRetake, detail,
 }: {
+  detail?: any;
   imageUri: string | null;
   meal: ParsedMeal;
   setMeal: (m: ParsedMeal) => void;
@@ -254,6 +257,8 @@ function ReviewStage({
         <Cell label="Carbs" value={meal.carbsG} onChange={(v) => setNum('carbsG', v)} />
         <Cell label="Fat" value={meal.fatG} onChange={(v) => setNum('fatG', v)} />
       </View>
+      <MicroPreview raw={detail} />
+
       <Text style={styles.fieldLabel}>SLOT</Text>
       <View style={styles.slotRow}>
         {SLOTS.map((s) => (
