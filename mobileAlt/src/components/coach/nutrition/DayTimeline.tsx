@@ -192,6 +192,10 @@ export function DayTimeline({
     >
       {header ? <View style={{ marginBottom: 16 }}>{header}</View> : null}
 
+      {/* Meals region wrapper so the spine spans ONLY the timeline rows —
+          not the gut-health header cards above it. */}
+      <View style={{ position: 'relative' }}>
+
       {/* Vertical spine — one element behind every dot. */}
       <View style={styles.spine} pointerEvents="none" />
 
@@ -209,6 +213,7 @@ export function DayTimeline({
       {ghosts.map((g) => (
         <GhostSlotRow key={g.id} slot={g} onPress={() => onGhostPress?.(g)} />
       ))}
+      </View>
     </ScrollView>
   );
 }

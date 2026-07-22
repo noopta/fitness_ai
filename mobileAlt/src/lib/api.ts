@@ -87,7 +87,13 @@ export async function apiFetch(
       if (res.status === 401) {
         console.log(`[API] ${path} -> 401 (auth required)`);
       } else {
-        console.error(`[API] Error ${res.status} on ${path}: ${message}`);
+        // 404s on optional resources (e.g. "no nutrition plan yet") are an
+        // expected state, not an error — keep the console clean.
+        if (res.status === 404 && (options as any).silent404) {
+          console.log(`[API] ${path} -> 404 (expected: ${message})`);
+        } else {
+          console.error(`[API] Error ${res.status} on ${path}: ${message}`);
+        }
       }
       const error = new Error(message);
       (error as any).status = res.status;
@@ -589,7 +595,7 @@ export const nutritionApi = {
     apiFetch('/nutrition/assessment', { method: 'POST', body: JSON.stringify(assessment) }),
   generateNutritionPlan: () =>
     apiFetch('/nutrition/plan/generate', { method: 'POST' }),
-  getNutritionPlan: () => apiFetch('/nutrition/plan'),
+  getNutritionPlan: () => apiFetch('/nutrition/plan', { silent404: true } as any),
   getMicrosDaily: (date?: string) =>
     apiFetch(`/nutrition/micros/daily${date ? `?date=${date}` : ''}`),
   getGutWeek: (end?: string) =>

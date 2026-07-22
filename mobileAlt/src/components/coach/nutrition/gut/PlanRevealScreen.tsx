@@ -163,7 +163,7 @@ export function PlanRevealScreen({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Pressable onPress={onClose} style={styles.ghostButton}>
+          <Pressable onPress={onClose} style={[styles.ghostButton, { flex: 1 }]}>
             <Text style={{ color: colors.foreground, fontWeight: '600', fontSize: 14 }}>
               {mode === 'reveal' ? 'Later' : 'Close'}
             </Text>
@@ -229,11 +229,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.border,
   },
   primaryButton: {
-    backgroundColor: '#09090b', borderRadius: 12, paddingVertical: 13, alignItems: 'center', flex: 1,
+    backgroundColor: '#09090b', borderRadius: 12, paddingVertical: 14,
+    alignItems: 'center', justifyContent: 'center', minHeight: 48,
   },
   ghostButton: {
     backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e4e4e7',
-    borderRadius: 12, paddingVertical: 13, alignItems: 'center', flex: 1,
+    borderRadius: 12, paddingVertical: 14, alignItems: 'center',
+    justifyContent: 'center', minHeight: 48,
   },
   sheetBackdrop: {
     position: 'absolute', inset: 0, backgroundColor: 'rgba(9,9,11,0.4)', justifyContent: 'flex-end',

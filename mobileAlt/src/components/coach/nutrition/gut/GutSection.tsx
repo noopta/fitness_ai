@@ -110,23 +110,33 @@ export function GutSection({ refreshKey }: { refreshKey?: unknown }) {
       )}
 
       {/* Weekly gut card (§7.3) */}
-      {gutWeek?.pillars && (
-        <Pressable onPress={() => setWeekOpen(true)} style={styles.card}>
-          <View style={styles.rowBetween}>
-            <Text style={styles.cardTitle}>Gut health · this week</Text>
-            <Text style={{ fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'], color: colors.foreground }}>
-              {gutWeek.plantCount}
-              <Text style={{ fontSize: 11, fontWeight: '400', color: colors.mutedForeground }}> / {gutWeek.plantTarget} plants</Text>
-            </Text>
-          </View>
-          <View style={{ gap: 10, marginTop: 10 }}>
-            {gutWeek.pillars.map((p: any) => (
-              <PillarBar key={p.key} label={p.label} score={p.score} status={p.status} detail={p.detail} />
-            ))}
-          </View>
-          <Text style={{ fontSize: 11, color: colors.mutedForeground, marginTop: 10 }}>Tap for the full week →</Text>
-        </Pressable>
-      )}
+      {gutWeek?.pillars && (() => {
+        const noData = gutWeek.plantCount === 0 &&
+          gutWeek.pillars.every((pl: any) => pl.key === 'avoid' || pl.score === 0);
+        return (
+          <Pressable onPress={() => setWeekOpen(true)} style={styles.card}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.cardTitle}>Gut health · this week</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'], color: colors.foreground }}>
+                {gutWeek.plantCount}
+                <Text style={{ fontSize: 11, fontWeight: '400', color: colors.mutedForeground }}> / {gutWeek.plantTarget} plants</Text>
+              </Text>
+            </View>
+            {noData ? (
+              <Text style={{ fontSize: 12, lineHeight: 18, color: colors.mutedForeground, marginTop: 8 }}>
+                Log your first meal of the week and this lights up — every distinct plant fills a slot.
+              </Text>
+            ) : (
+              <View style={{ gap: 10, marginTop: 10 }}>
+                {gutWeek.pillars.map((p: any) => (
+                  <PillarBar key={p.key} label={p.label} score={p.score} status={p.status} detail={p.detail} />
+                ))}
+              </View>
+            )}
+            <Text style={{ fontSize: 11, color: colors.mutedForeground, marginTop: 10 }}>Tap for the full week →</Text>
+          </Pressable>
+        );
+      })()}
 
       {/* Modals */}
       <AssessmentFlow

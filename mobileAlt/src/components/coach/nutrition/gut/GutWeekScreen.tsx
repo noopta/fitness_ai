@@ -31,6 +31,12 @@ export function GutWeekScreen({ visible, onClose }: { visible: boolean; onClose:
 
   if (!visible) return null;
   const remaining = data ? Math.max(0, data.plantTarget - data.plantCount) : 0;
+  // Nothing logged yet this window: every earn-direction pillar is 0 (the
+  // "avoid" pillar scores 100 on zero meals by design). Red "very low"
+  // everywhere would read as failure before the user has even started —
+  // show an invitation instead (handoff §10 empty states).
+  const noData = !!data && data.plantCount === 0 &&
+    data.pillars.every((pl) => pl.key === 'avoid' || pl.score === 0);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -104,17 +110,36 @@ export function GutWeekScreen({ visible, onClose }: { visible: boolean; onClose:
               <View style={styles.card}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <Text style={styles.cardTitle}>The five pillars</Text>
-                  <Text style={{ fontSize: 10, color: '#a1a1aa' }}>{EST_NOTE}</Text>
+                  {!noData && <Text style={{ fontSize: 10, color: '#a1a1aa' }}>{EST_NOTE}</Text>}
                 </View>
-                <View style={{ gap: 14 }}>
-                  {data.pillars.map((p) => (
-                    <PillarBar key={p.key} label={p.label} score={p.score} status={p.status} detail={p.detail} />
-                  ))}
-                </View>
-                {data.days < 7 && (
-                  <Text style={{ fontSize: 11, color: colors.mutedForeground, marginTop: 12 }}>
-                    Based on {data.days} {data.days === 1 ? 'day' : 'days'} of logs — the picture sharpens as the week fills in.
-                  </Text>
+                {noData ? (
+                  <View style={{ gap: 12 }}>
+                    <Text style={{ fontSize: 13, lineHeight: 19, color: colors.mutedForeground }}>
+                      Nothing logged yet this week. Log your first meal and the five pillars
+                      light up — fiber, plant variety, fermented foods, whole foods, and rhythm.
+                    </Text>
+                    <View style={{ gap: 8 }}>
+                      {data.pillars.map((p) => (
+                        <View key={p.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border }} />
+                          <Text style={{ fontSize: 13, color: colors.mutedForeground }}>{p.label}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : (
+                  <>
+                    <View style={{ gap: 14 }}>
+                      {data.pillars.map((p) => (
+                        <PillarBar key={p.key} label={p.label} score={p.score} status={p.status} detail={p.detail} />
+                      ))}
+                    </View>
+                    {data.days < 7 && (
+                      <Text style={{ fontSize: 11, color: colors.mutedForeground, marginTop: 12 }}>
+                        Based on {data.days} {data.days === 1 ? 'day' : 'days'} of logs — the picture sharpens as the week fills in.
+                      </Text>
+                    )}
+                  </>
                 )}
               </View>
             </>
@@ -135,7 +160,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14,
   },
   slot: {
-    width: '18.4%', aspectRatio: 1.6, borderRadius: 8,
+    width: '18.4%', height: 34, borderRadius: 8,
     borderWidth: 1, borderColor: colors.border, backgroundColor: colors.muted,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4,
   },
