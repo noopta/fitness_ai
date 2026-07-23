@@ -21,7 +21,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { fontWeight } from '../../../constants/theme';
 
-export type DockAction = 'describe' | 'snap' | 'voice' | 'manual' | 'barcode' | 'order';
+export type DockAction = 'describe' | 'snap' | 'voice' | 'manual' | 'barcode' | 'order' | 'recipe';
 
 interface Props {
   onAction: (action: DockAction) => void;
@@ -122,6 +122,7 @@ export function ActionDock({ onAction, hidden }: Props) {
             </Pressable>
             <DockButton label="Order · receipt" icon="receipt-outline" onPress={() => act('order')} />
             <DockButton label="Voice"           icon="mic-outline"     onPress={() => act('voice')} />
+            <DockButton label="Recipe"          icon="book-outline"    onPress={() => act('recipe')} />
           </>
         )}
       </Animated.View>
