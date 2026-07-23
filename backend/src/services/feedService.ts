@@ -393,6 +393,8 @@ export interface FeedItemQueryResult {
   exhausted: boolean; // true when we couldn't fill `limit` with unseen items
 }
 
+type FeedItemRow = { id: string; fetchedAt: Date };
+
 export async function getFeedItemsForTags(
   tags: FeedTag[],
   limit = 10,
@@ -428,25 +430,36 @@ export async function getFeedItemsForTags(
     return { item, overlap };
   });
 
-  scored.sort((a, b) => b.overlap - a.overlap || b.item.fetchedAt.getTime() - a.item.fetchedAt.getTime());
-
-  const unseen = scored.filter(({ item }) => !seenAtById.has(item.id));
-  let chosen = unseen.slice(0, limit);
-  let exhausted = false;
-  if (chosen.length < limit && opts.allowSeenFallback) {
-    exhausted = true;
-    const need = limit - chosen.length;
-    // Take from seen items, but order by least-recently viewed so consecutive
-    // taps cycle through the user's backlog instead of returning the same
-    // article. Items unseen by the user score as fetchedAt-old (-Infinity) but
-    // we filtered those out above.
-    const seenSorted = scored
-      .filter(s => seenAtById.has(s.item.id))
-      .sort((a, b) => (seenAtById.get(a.item.id)! - seenAtById.get(b.item.id)!));
-    chosen = [...chosen, ...seenSorted.slice(0, need)];
-  } else if (chosen.length < limit) {
-    exhausted = true;
+  // RELEVANCE FIRST (product decision 2026-07-24): a seen-but-relevant
+  // article beats an unseen-but-unrelated one — users would rather revisit
+  // material tied to their goals than read fresh noise. Within the same
+  // relevance band: unseen first (newest-fetched leading), then seen ordered
+  // by least-recently viewed so consecutive taps rotate the backlog.
+  const rank = (a: { item: FeedItemRow; overlap: number }, b: { item: FeedItemRow; overlap: number }) => {
+    if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+    const aSeen = seenAtById.has(a.item.id);
+    const bSeen = seenAtById.has(b.item.id);
+    if (aSeen !== bSeen) return aSeen ? 1 : -1;
+    if (aSeen) return seenAtById.get(a.item.id)! - seenAtById.get(b.item.id)!;
+    return b.item.fetchedAt.getTime() - a.item.fetchedAt.getTime();
+  };
+  // When the user has goal tags and ANY relevant items exist, the pool is
+  // relevant-only — zero-overlap items never pad a tagged user's feed. Users
+  // without tags (no goal yet) keep the recency-ranked full pool.
+  const relevant = scored.filter(x => x.overlap > 0);
+  let pool = tagSet.size > 0 && relevant.length > 0 ? relevant : scored;
+  // Strict-unseen mode (allowSeenFallback off): callers that explicitly want
+  // only never-viewed items keep that contract; the production feed passes
+  // allowSeenFallback=true and gets the relevance-first rotation above.
+  if (opts.excludeSeenForUserId && !opts.allowSeenFallback) {
+    pool = pool.filter(x => !seenAtById.has(x.item.id));
   }
+  pool.sort(rank);
+  const chosen = pool.slice(0, limit);
+  // "Exhausted" keeps its original meaning — fewer unseen relevant items
+  // than requested — so the background source fetch kicks in while the user
+  // is running LOW on fresh content, not only once it's fully dry.
+  const exhausted = pool.filter(x => !seenAtById.has(x.item.id)).length < limit;
 
   const items = chosen.map(({ item }) => ({
     id: item.id,
