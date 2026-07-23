@@ -13,10 +13,12 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useDerivedValue,
   withTiming,
   Easing,
   useReducedMotion,
   runOnJS,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { fontWeight } from '../../../constants/theme';
@@ -27,6 +29,9 @@ interface Props {
   onAction: (action: DockAction) => void;
   /** When true, the dock is animated out (e.g. keyboard is open). */
   hidden?: boolean;
+  /** Scroll-driven hide (0 show / 1 hide), written by DayTimeline's
+   *  UI-thread scroll handler — never round-trips through JS state. */
+  scrollHide?: SharedValue<number>;
 }
 
 function DockButton({
@@ -60,7 +65,7 @@ function DockButton({
 /** Approx dock height; used to compute the off-screen translation. */
 const DOCK_HEIGHT = 58;
 
-export function ActionDock({ onAction, hidden }: Props) {
+export function ActionDock({ onAction, hidden, scrollHide }: Props) {
   const reduced = useReducedMotion();
   // Two-level island: the main row keeps the four everyday actions; "More"
   // swaps the island's contents in place (cross-fade) for the secondary
@@ -77,22 +82,30 @@ export function ActionDock({ onAction, hidden }: Props) {
     });
   };
 
-  // Translate the whole dock off-screen by 90% of its height when `hidden`
-  // (e.g. timeline scrolled down past 240pt, or the keyboard is up). Spec §06
-  // calls for an 80% peek when scroll-driven; we go a touch further so the
-  // dock fully leaves the safe-area without grazing the tab bar.
-  const tY = useSharedValue(0);
+  // Keyboard-driven hide still arrives as a prop; scroll-driven hide arrives
+  // as a shared value written on the UI thread. Mixing them in a derived
+  // value keeps the slide fully off the JS thread — the old
+  // scrollEvent→setState→effect chain visibly stuttered in dev builds.
+  const OFFSCREEN = DOCK_HEIGHT * 0.9 + 14; // + the dock's bottom margin
+  const keyboardHidden = useSharedValue(hidden ? 1 : 0);
   useEffect(() => {
-    const target = hidden ? DOCK_HEIGHT * 0.9 + 14 /* + the dock's bottom margin */ : 0;
-    tY.value = reduced
-      ? target
-      : withTiming(target, { duration: 200, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+    keyboardHidden.value = hidden ? 1 : 0;
     // Reset to the main row whenever the dock hides — reappearing on the
     // "More" page would be disorienting.
     if (hidden) setPage('main');
-  }, [hidden, reduced]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hidden]);
 
-  const style = useAnimatedStyle(() => ({ transform: [{ translateY: tY.value }] }));
+  const progress = useDerivedValue(() => {
+    const target = Math.max(keyboardHidden.value, scrollHide?.value ?? 0);
+    return reduced
+      ? target
+      : withTiming(target, { duration: 200, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
+  }, [reduced]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: progress.value * OFFSCREEN }],
+  }));
   const fadeStyle = useAnimatedStyle(() => ({ opacity: pageFade.value }));
 
   // Fire the action, then snap the island back to the main row so it's

@@ -23,6 +23,7 @@ import {
 import Animated, {
   FadeInDown,
   useReducedMotion,
+  useAnimatedScrollHandler, useSharedValue, type SharedValue,
 } from 'react-native-reanimated';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,7 +56,10 @@ interface Props {
   onGhostPress?: (g: GhostSlot) => void;
   onDeleteMeal?: (m: LoggedMeal) => void;
   onLongPressMeal?: (m: LoggedMeal) => void;
-  onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /** UI-thread dock visibility: 0 = show, 1 = hide. Written from the scroll
+   *  handler as a worklet so the dock animation never touches the JS thread
+   *  (the JS state round-trip was visibly choppy in dev builds). */
+  dockScroll?: SharedValue<number>;
   /** Optional header rendered above the timeline, scrolling with it
    *  (gut-health cards — handoff §7.3). */
   header?: React.ReactNode;
@@ -178,16 +182,29 @@ function GhostSlotRow({ slot, onPress }: { slot: GhostSlot; onPress?: () => void
 }
 
 export function DayTimeline({
-  meals, ghosts, onMealPress, onGhostPress, onDeleteMeal, onLongPressMeal, onScroll, header,
+  meals, ghosts, onMealPress, onGhostPress, onDeleteMeal, onLongPressMeal, dockScroll, header,
 }: Props) {
   const reducedMotion = useReducedMotion();
 
+  // Same hysteresis the JS handler used (hide past 240pt going down, show on
+  // any up-scroll or near the top) — but computed entirely on the UI thread.
+  const lastY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    'worklet';
+    const y = e.contentOffset.y;
+    const dy = y - lastY.value;
+    lastY.value = y;
+    if (!dockScroll) return;
+    if (y > 240 && dy > 4) dockScroll.value = 1;
+    else if (dy < -2 || y < 60) dockScroll.value = 0;
+  });
+
   return (
-    <ScrollView
+    <Animated.ScrollView
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
-      onScroll={onScroll}
+      onScroll={scrollHandler}
       scrollEventThrottle={16}
     >
       {header ? <View style={{ marginBottom: 16 }}>{header}</View> : null}
@@ -214,7 +231,7 @@ export function DayTimeline({
         <GhostSlotRow key={g.id} slot={g} onPress={() => onGhostPress?.(g)} />
       ))}
       </View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 

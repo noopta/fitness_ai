@@ -737,6 +737,10 @@ function SocialScreenInner() {
       // set. This is what makes Research-button taps idempotent: tapping it
       // three times leaves you with the same one fresh set, not three copies.
       setFeed(prev => {
+        // Empty refresh result ≠ "remove everything" — keep what's on screen
+        // rather than stripping research down to nothing (seen when the
+        // articles endpoint timed out for users with an exhausted pool).
+        if (articles.length === 0) return prev;
         const postsOnly = prev.filter((item: any) => item.kind !== 'research');
         const merged: FeedItem[] = [];
         let articleIdx = 0;

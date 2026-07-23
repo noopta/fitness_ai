@@ -73,7 +73,19 @@ export function NutritionProfileV2() {
       {loading ? (
         <LoadingSkeleton />
       ) : !data?.hasData ? (
-        <EmptyState onGoToCoach={() => { requestNutritionTab(); router.push('/(tabs)/coach'); }} />
+        <>
+          <EmptyState onGoToCoach={() => { requestNutritionTab(); router.push('/(tabs)/coach'); }} />
+          {/* Nothing logged TODAY ≠ nothing logged ever. The trend screen
+              (7d/30d toggle) reads past days — keep its entry visible so
+              returning users can always reach their history. */}
+          <TouchableOpacity
+            style={styles.emptyTrendLink}
+            onPress={() => router.push('/nutrition-profile/trend' as never)}
+            accessibilityRole="button"
+          >
+            <Text style={styles.trendLink}>View past days · 7d / 30d trend ›</Text>
+          </TouchableOpacity>
+        </>
       ) : (
         <>
           <HeroCard data={data} syncing={syncing} />
@@ -257,6 +269,7 @@ function LoadingSkeleton() {
 }
 
 const styles = StyleSheet.create({
+  emptyTrendLink: { alignItems: 'center', paddingVertical: 14 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 120, gap: 16 },
 

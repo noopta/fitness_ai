@@ -25,6 +25,7 @@ import { useUnits, LB_PER_KG } from '../../../context/UnitsContext';
 import { Analytics } from '../../../lib/analytics';
 import { consumeNutritionPrefill } from '../../../lib/nutritionPrefill';
 import { colors } from '../../../constants/theme';
+import { useSharedValue } from 'react-native-reanimated';
 import { StickyHeader } from './StickyHeader';
 import { Inspector } from './Inspector';
 import { WeightInspector, type WeightState } from './WeightInspector';
@@ -134,9 +135,10 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // and the user is still scrolling further down, or when the keyboard is up
   // (e.g. the weight log input is focused). Restored on scroll-up or near
   // the top of the surface.
-  const [dockHidden, setDockHidden] = useState(false);
   const [keyboardUp, setKeyboardUp] = useState(false);
-  const lastScrollYRef = useRef(0);
+  // Scroll-driven dock hide lives entirely on the UI thread — DayTimeline's
+  // animated scroll handler writes it, ActionDock's derived style reads it.
+  const dockScroll = useSharedValue(0);
 
   // Keyboard listeners — same on both platforms, even though iOS uses Will*
   // and Android uses Did*. We don't care about the difference for this UX.
@@ -146,21 +148,6 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     const show = Keyboard.addListener(showEvent, () => setKeyboardUp(true));
     const hide = Keyboard.addListener(hideEvent, () => setKeyboardUp(false));
     return () => { show.remove(); hide.remove(); };
-  }, []);
-
-  const handleTimelineScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = e.nativeEvent.contentOffset.y;
-    const dy = y - lastScrollYRef.current;
-    lastScrollYRef.current = y;
-    // Hide threshold: scrolled down at least 240pt AND moving further down.
-    if (y > 240 && dy > 4) {
-      setDockHidden((prev) => (prev ? prev : true));
-      return;
-    }
-    // Show again when scrolling back up or close to the top.
-    if (dy < -2 || y < 60) {
-      setDockHidden((prev) => (prev ? false : prev));
-    }
   }, []);
 
   // ── Sheet visibility ─────────────────────────────────────────────────────
@@ -602,12 +589,12 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
           onGhostPress={handleGhostPress}
           onDeleteMeal={handleDeleteMeal}
           onLongPressMeal={handleLongPressMeal}
-          onScroll={handleTimelineScroll}
+          dockScroll={dockScroll}
           header={<GutSection refreshKey={meals.length} />}
         />
       </View>
 
-      <ActionDock onAction={handleDockAction} hidden={dockHidden || keyboardUp} />
+      <ActionDock onAction={handleDockAction} hidden={keyboardUp} scrollHide={dockScroll} />
 
       <OrderScanFlow
         visible={openSheet === 'order'}

@@ -856,14 +856,33 @@ router.get('/social/feed/articles', wrap(async (req, res) => {
   });
 
   // If the unseen pool is empty, pull from PubMed and re-query so the user
-  // gets genuinely new content when it's available. recordFeedViews then
-  // bumps viewedAt on returned rows so the next tap cycles forward.
+  // gets genuinely new content when it's available — but cap the wait at 4s.
+  // The source fetch can take 5-20s; awaiting it unbounded made every
+  // pull-to-refresh crawl for users who had exhausted their unseen pool
+  // (and clients gave up, then rendered zero research items). Past the cap
+  // we return the seen-rotation immediately; the fetch keeps running in the
+  // background and lands in the cache for the next load.
   if (fresh && result.exhausted) {
-    const fetched = await maybeFetchFromSources(userId, tags);
+    const FETCH_BUDGET_MS = 4000;
+    const fetchPromise = maybeFetchFromSources(userId, tags).catch(e => {
+      console.error('[feed/articles] source fetch failed:', e);
+      return false;
+    });
+    const fetched = await Promise.race([
+      fetchPromise,
+      new Promise<false>(resolve => setTimeout(() => resolve(false), FETCH_BUDGET_MS)),
+    ]);
     if (fetched) {
       result = await getCachedFeedItems(userId, tags, 10, {
         forceRefresh: true,
         excludeSeen: true,
+      });
+    } else if (result.items.length === 0) {
+      // Timed out (or nothing fetched) with an empty unseen pool — serve the
+      // least-recently-viewed rotation rather than an empty feed.
+      result = await getCachedFeedItems(userId, tags, 10, {
+        forceRefresh: true,
+        excludeSeen: false,
       });
     }
   }
