@@ -476,6 +476,8 @@ export interface SavedFoodItem {
   fatG: number;
   source?: string;
   useCount?: number;
+  /** Stored micronutrients (server returns them; shown on the confirm sheet). */
+  nutrients?: Record<string, number>;
 }
 
 export interface RecipeItemInput {
@@ -500,6 +502,8 @@ export interface RecipeSummary {
   fatG: number;
   items: RecipeItemInput[];
   useCount: number;
+  /** Per-serving micronutrients, denormalized server-side. */
+  nutrients?: Record<string, number>;
 }
 
 export interface ParsedRecipeResult {

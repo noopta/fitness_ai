@@ -195,8 +195,14 @@ export function DayTimeline({
     const dy = y - lastY.value;
     lastY.value = y;
     if (!dockScroll) return;
-    if (y > 240 && dy > 4) dockScroll.value = 1;
-    else if (dy < -2 || y < 60) dockScroll.value = 0;
+    // Only write on actual transitions — assigning the same value every
+    // scroll frame retriggers the dock's withTiming, restarting the slide
+    // mid-flight (seen as lag/chop on device).
+    if (y > 240 && dy > 4) {
+      if (dockScroll.value !== 1) dockScroll.value = 1;
+    } else if (dy < -2 || y < 60) {
+      if (dockScroll.value !== 0) dockScroll.value = 0;
+    }
   });
 
   return (

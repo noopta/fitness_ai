@@ -18,6 +18,7 @@ import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../../ui/KeyboardDoneBar';
 import { slotForNow, todayStr, type MealSlotApi } from './sheetHelpers';
+import { MicroPreview } from './MicroPreview';
 
 interface Props {
   visible: boolean;
@@ -66,6 +67,9 @@ export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }:
   // snapshots the result into a MealEntry (source 'recipe').
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeSummary | null>(null);
   const [servings, setServings] = useState(1);
+  // Micros of the picked library food — cleared when the user types their own
+  // macros (typed entries have no micro data to preview).
+  const [pickedNutrients, setPickedNutrients] = useState<Record<string, number> | null>(null);
 
   const nameRef = useRef<TextInput>(null);
   // Fresh state every time the sheet reopens. Focus the first field after
@@ -130,6 +134,7 @@ export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }:
 
   const pickSuggestion = (food: SavedFoodItem) => {
     setSelectedRecipe(null);
+    setPickedNutrients(food.nutrients ?? null);
     setForm({
       name:     food.name,
       calories: String(food.calories ?? ''),
@@ -145,6 +150,18 @@ export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }:
     if (saving) return;
     onClose();
   };
+
+  // Recipe micros are per serving — scale for the preview. digestiveSpeed
+  // etc. aren't numeric and are dropped by the preview's Number() filter.
+  const previewNutrients = selectedRecipe
+    ? Object.fromEntries(
+        Object.entries(selectedRecipe.nutrients ?? {}).map(([k, v]) => [
+          k,
+          typeof v === 'number' ? v * servings : v,
+        ]),
+      )
+    : pickedNutrients;
+
 
   // Kcal is the only strictly-required field — protein / carbs / fat default
   // to 0 if the user only knows the calorie count (e.g. a vague restaurant
@@ -200,7 +217,7 @@ export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }:
         ref={nameRef}
         style={styles.nameInput}
         value={form.name}
-        onChangeText={(t) => { setForm({ ...form, name: t }); setSuggestQuery(t); }}
+        onChangeText={(t) => { setForm({ ...form, name: t }); setSuggestQuery(t); setPickedNutrients(null); }}
         placeholder="Meal name — pick from history or type new"
         placeholderTextColor={colors.mutedForeground}
         accessibilityLabel="Meal name"
@@ -338,6 +355,8 @@ export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }:
           />
         </View>
       )}
+
+      {previewNutrients ? <MicroPreview raw={{ nutrients: previewNutrients }} /> : null}
 
       <Text style={styles.fieldLabel}>SLOT</Text>
       <View style={styles.slotRow}>
