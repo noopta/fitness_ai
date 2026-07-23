@@ -44,6 +44,19 @@ export function GutSection({ refreshKey }: { refreshKey?: unknown }) {
   const focus = (daily ?? []).filter((n) => n.focus);
   const rest = (daily ?? []).filter((n) => !n.focus);
 
+  // First load: reserve the cards' space with muted skeletons (handoff §10 —
+  // pulse skeletons on card shapes) so the meal timeline below doesn't
+  // render first and then jump down when these arrive.
+  const initialLoading = hasPlan === null && daily === null && gutWeek === null;
+  if (initialLoading) {
+    return (
+      <View style={{ gap: 12 }}>
+        <View style={[styles.card, styles.skeleton, { height: 148 }]} />
+        <View style={[styles.card, styles.skeleton, { height: 180 }]} />
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: 12 }}>
       {/* Invite card — only until the assessment/plan exists */}
@@ -163,6 +176,10 @@ export function GutSection({ refreshKey }: { refreshKey?: unknown }) {
 }
 
 const styles = StyleSheet.create({
+  skeleton: {
+    backgroundColor: colors.muted,
+    borderColor: colors.muted,
+  },
   card: {
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
     borderRadius: 16, padding: 16,

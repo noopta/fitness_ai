@@ -39,15 +39,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    backgroundColor: '#f1f1f1',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#c7c7cc',
+    // Match the sheet surface, not the iOS system grey — the bar should read
+    // as part of our UI (monochrome zinc system), not a foreign OS strip.
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   doneText: {
     fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
-    color: '#007AFF', // iOS system blue — matches native look
+    fontWeight: fontWeight.bold,
+    // Ink, never a color — handoff §2 (semantic color only).
+    color: colors.foreground,
+    letterSpacing: -0.1,
   },
 });
