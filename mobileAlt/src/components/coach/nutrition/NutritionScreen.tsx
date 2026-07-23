@@ -637,15 +637,27 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         visible={openSheet === 'manual'}
         onClose={() => setOpenSheet(null)}
         onLogged={handleMealLogged}
-        onCreateRecipe={() => setOpenSheet('recipe')}
+        onCreateRecipe={() => {
+          // Close Manual fully before presenting the recipe builder — two RN
+          // Modals trading places in one frame wedges the iOS presentation
+          // stack (screen-wide touch freeze).
+          setOpenSheet(null);
+          setTimeout(() => setOpenSheet('recipe'), 380);
+        }}
       />
       {/* Recipe builder — reached from the Manual sheet's "New recipe" chip.
           After saving we drop back into Manual so the fresh recipe is right
           there in the library strip, one tap from logged. */}
       <RecipeSheet
         visible={openSheet === 'recipe'}
-        onClose={() => setOpenSheet('manual')}
-        onSaved={() => setOpenSheet('manual')}
+        onClose={() => {
+          setOpenSheet(null);
+          setTimeout(() => setOpenSheet('manual'), 380);
+        }}
+        onSaved={() => {
+          setOpenSheet(null);
+          setTimeout(() => setOpenSheet('manual'), 380);
+        }}
       />
       <MealEditSheet
         visible={openSheet === 'edit'}

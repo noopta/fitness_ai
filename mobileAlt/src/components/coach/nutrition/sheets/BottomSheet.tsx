@@ -82,6 +82,13 @@ export function BottomSheet({
           { duration: EXIT_MS, easing: EASE },
           (finished) => { if (finished) runOnJS(setMounted)(false); },
         );
+        // Reanimated drops the completion callback when the exit timing is
+        // interrupted (two sheets trading places, fast re-taps). A stuck
+        // mounted-but-invisible Modal then eats every touch on the screen —
+        // seen as "Nutrition tab freezes after logging". JS failsafe
+        // guarantees the unmount regardless.
+        const failsafe = setTimeout(() => setMounted(false), EXIT_MS + 150);
+        return () => clearTimeout(failsafe);
       }
     }
     // height should change rarely (orientation flip); not part of the
