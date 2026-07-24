@@ -178,25 +178,34 @@ export default function HistoryScreen() {
   // flips to "Tap to view" without the user having to refresh manually.
   const [formAnalyses, setFormAnalyses] = useState<FormAnalysisListItem[]>([]);
 
+  // Pending-status lives in a ref so the poll can consult it WITHOUT being a
+  // dependency of the focus effect. The previous version depended on the
+  // formAnalyses state it was itself setting — every response stored a new
+  // array reference, re-armed the effect, and immediately fetched again:
+  // an unthrottled request loop that kept firing even with the screen off.
+  const hasPendingRef = useRef(false);
+
   const loadFormAnalyses = useCallback(async () => {
     try {
       const data = await formAnalysisApi.list();
-      setFormAnalyses(Array.isArray(data?.analyses) ? data.analyses : []);
+      const list = Array.isArray(data?.analyses) ? data.analyses : [];
+      hasPendingRef.current = list.some((a) => a.status === 'pending');
+      setFormAnalyses(list);
     } catch {
+      hasPendingRef.current = false;
       setFormAnalyses([]);
     }
   }, []);
 
-  useEffect(() => { void loadFormAnalyses(); }, [loadFormAnalyses]);
-
-  // Smart polling: only when there's an unfinished analysis. Idle otherwise.
+  // One fetch per focus; the 4s interval only hits the network while an
+  // analysis is actually pending, and dies with the screen's focus.
   useFocusEffect(useCallback(() => {
     void loadFormAnalyses();
-    const hasPending = formAnalyses.some((a) => a.status === 'pending');
-    if (!hasPending) return;
-    const t = setInterval(() => { void loadFormAnalyses(); }, 4000);
+    const t = setInterval(() => {
+      if (hasPendingRef.current) void loadFormAnalyses();
+    }, 4000);
     return () => clearInterval(t);
-  }, [loadFormAnalyses, formAnalyses]));
+  }, [loadFormAnalyses]));
 
   async function handleDelete(id: string) {
     try {
