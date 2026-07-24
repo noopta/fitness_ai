@@ -10,6 +10,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../../../../constants/theme';
 import { nutritionApi } from '../../../../lib/api';
 import { Eyebrow, SegmentedControl, EST_NOTE } from './GutPrimitives';
+import { MicroPreview } from '../sheets/MicroPreview';
+import { todayStr } from '../../../../lib/localDate';
 
 type Portion = 'all' | 'half' | 'bite';
 const PORTION_FACTOR: Record<Portion, number> = { all: 1, half: 0.5, bite: 0.15 };
@@ -24,6 +26,30 @@ interface ScanItem {
 }
 
 type Stage = 'capture' | 'scanning' | 'confirm' | 'logged' | 'error';
+
+// Count-up numbers on first reveal (handoff §5: 500ms ease-out, once).
+function CountUpText({ value, suffix, color }: { value: number; suffix: string; color: string }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    let raf: number;
+    const tick = () => {
+      const t = Math.min(1, (Date.now() - start) / 500);
+      const eased = 1 - (1 - t) * (1 - t); // ease-out
+      setShown(Math.round(value * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // run once on mount — value is fixed by the time the card shows
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <Text style={{ fontSize: 17, fontWeight: '700', color, fontVariant: ['tabular-nums'] }}>
+      {shown}{suffix}
+    </Text>
+  );
+}
 
 export function OrderScanFlow({
   visible, onClose, onLogged,
@@ -103,6 +129,9 @@ export function OrderScanFlow({
     if (chosen.length === 0) return;
     try {
       const res = await nutritionApi.logOrder({
+        // Explicit LOCAL date — the server defaults to ITS (UTC) date, which
+        // files evening logs under tomorrow and desyncs the day's macros.
+        date: todayStr(),
         vendor,
         mealType: chosen[0].item.mealType || 'meal',
         items: chosen.map(({ item, i }) => ({
@@ -141,6 +170,18 @@ export function OrderScanFlow({
     },
     { kcal: 0, p: 0, c: 0, fat: 0 },
   );
+  // Combined micronutrients of the selection, portion-scaled — same
+  // "Also detected" preview every other logging path shows pre-confirm.
+  const combinedNutrients: Record<string, number> = {};
+  for (const item of chosenItems) {
+    const i = items.indexOf(item);
+    const f = PORTION_FACTOR[portions[i] ?? 'all'] * (item.quantity || 1);
+    for (const [k, v] of Object.entries(item.nutrients ?? {})) {
+      if (typeof v === 'number' && Number.isFinite(v)) {
+        combinedNutrients[k] = (combinedNutrients[k] ?? 0) + v * f;
+      }
+    }
+  }
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -248,6 +289,7 @@ export function OrderScanFlow({
                   </View>
                 );
               })}
+              {selectedCount > 0 && <MicroPreview raw={{ nutrients: combinedNutrients }} />}
             </ScrollView>
             <View style={styles.footer}>
               <View style={{ flex: 1 }}>
@@ -281,15 +323,13 @@ export function OrderScanFlow({
             <View style={styles.itemCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 {[
-                  { label: 'kcal', value: Math.round(totals.kcal), color: colors.foreground },
-                  { label: 'protein', value: `${Math.round(totals.p)}g`, color: colors.gutMacro.protein },
-                  { label: 'carbs', value: `${Math.round(totals.c)}g`, color: colors.gutMacro.carbs },
-                  { label: 'fat', value: `${Math.round(totals.fat)}g`, color: colors.gutMacro.fat },
+                  { label: 'kcal', value: Math.round(totals.kcal), suffix: '', color: colors.foreground },
+                  { label: 'protein', value: Math.round(totals.p), suffix: 'g', color: colors.gutMacro.protein },
+                  { label: 'carbs', value: Math.round(totals.c), suffix: 'g', color: colors.gutMacro.carbs },
+                  { label: 'fat', value: Math.round(totals.fat), suffix: 'g', color: colors.gutMacro.fat },
                 ].map((m) => (
                   <View key={m.label} style={{ alignItems: 'center', gap: 2 }}>
-                    <Text style={{ fontSize: 17, fontWeight: '700', color: m.color, fontVariant: ['tabular-nums'] }}>
-                      {m.value}
-                    </Text>
+                    <CountUpText value={m.value} suffix={m.suffix} color={m.color} />
                     <Text style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#a1a1aa', fontWeight: '700' }}>
                       {m.label}
                     </Text>
@@ -297,6 +337,7 @@ export function OrderScanFlow({
                 ))}
               </View>
             </View>
+            <MicroPreview raw={{ nutrients: combinedNutrients }} />
             {gutWins && (gutWins.plants.length > 0 || gutWins.fermented) && (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {gutWins.plants.length > 0 && (

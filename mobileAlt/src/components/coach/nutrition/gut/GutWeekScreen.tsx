@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { colors } from '../../../../constants/theme';
 import { nutritionApi } from '../../../../lib/api';
+import { todayStr } from '../../../../lib/localDate';
 import { Eyebrow, PillarBar, EST_NOTE, type BandStatus } from './GutPrimitives';
 
 interface GutWeekPayload {
@@ -24,7 +25,7 @@ export function GutWeekScreen({ visible, onClose }: { visible: boolean; onClose:
   useEffect(() => {
     if (!visible) return;
     setError(null);
-    nutritionApi.getGutWeek()
+    nutritionApi.getGutWeek(todayStr())
       .then(setData)
       .catch(() => setError('Couldn’t load your week — pull to retry.'));
   }, [visible]);

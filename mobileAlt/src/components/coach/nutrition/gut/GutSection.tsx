@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { colors } from '../../../../constants/theme';
 import { nutritionApi } from '../../../../lib/api';
+import { todayStr } from '../../../../lib/localDate';
 import {
   Eyebrow, StatusDot, PillarBar, EST_NOTE, statusLabel, type BandStatus,
 } from './GutPrimitives';
@@ -33,10 +34,12 @@ export function GutSection({ refreshKey }: { refreshKey?: unknown }) {
     nutritionApi.getNutritionPlan()
       .then((p: NutritionPlanPayload) => { setPlanPayload(p); setHasPlan(true); })
       .catch(() => setHasPlan(false));
-    nutritionApi.getMicrosDaily()
+    // Always the user's LOCAL day — the server defaults to UTC, which after
+    // ~8pm ET shows tomorrow's (empty) numbers while the timeline shows today.
+    nutritionApi.getMicrosDaily(todayStr())
       .then((d: { nutrients: DailyNutrient[] }) => setDaily(d.nutrients))
       .catch(() => {});
-    nutritionApi.getGutWeek().then(setGutWeek).catch(() => {});
+    nutritionApi.getGutWeek(todayStr()).then(setGutWeek).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [load, refreshKey]);
