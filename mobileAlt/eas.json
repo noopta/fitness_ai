@@ -41,6 +41,14 @@
       "env": {
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
+    },
+    "guthealth": {
+      "distribution": "internal",
+      "channel": "guthealth-beta",
+      "autoIncrement": true,
+      "env": {
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
     }
   },
   "submit": {
