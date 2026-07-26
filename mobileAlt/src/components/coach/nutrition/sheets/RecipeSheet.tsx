@@ -223,11 +223,9 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
 
       {stage === 'review' && (
         <View>
-          <ScrollView
-            style={styles.reviewScroll}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+          {/* Plain View: the shared BottomSheet body scrolls now — a nested
+              vertical ScrollView here would fight it for the gesture. */}
+          <View style={styles.reviewScroll}>
             <Text style={styles.fieldLabel}>RECIPE NAME</Text>
             <TextInput
               style={styles.nameInput}
@@ -307,7 +305,7 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
               <Ionicons name="add" size={16} color={colors.foreground} />
               <Text style={styles.addRowText}>Add ingredient</Text>
             </TouchableOpacity>
-          </ScrollView>
+          </View>
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity
@@ -383,7 +381,7 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     textAlignVertical: 'top',
   },
-  reviewScroll: { maxHeight: 380 },
+  reviewScroll: {},
   nameInput: {
     backgroundColor: colors.muted,
     borderRadius: 10,

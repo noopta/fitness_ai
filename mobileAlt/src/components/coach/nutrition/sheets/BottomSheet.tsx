@@ -13,7 +13,7 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Modal, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
+  Modal, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView,
   KeyboardAvoidingView, Platform, Pressable,
 } from 'react-native';
 import Animated, {
@@ -139,7 +139,20 @@ export function BottomSheet({
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.body}>{children}</View>
+              {/* Scrollable body: content taller than the sheet's maxHeight
+                  (photo review + micro panel + slot picker) previously
+                  CLIPPED — slot chips and the Log button fell off-screen
+                  with no way to reach them. flexShrink lets the scroll area
+                  yield to the fixed header inside the maxHeight bound. */}
+              <ScrollView
+                style={styles.body}
+                contentContainerStyle={styles.bodyContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+              >
+                {children}
+              </ScrollView>
             </SafeAreaView>
           </Animated.View>
         </KeyboardAvoidingView>
@@ -159,7 +172,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 6,
   },
-  safe: { flex: 0 },
+  safe: { flexShrink: 1 },
   handle: {
     width: 36, height: 4, borderRadius: 2,
     backgroundColor: colors.border,
@@ -172,5 +185,6 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: fontWeight.bold, color: colors.foreground, letterSpacing: -0.3 },
   subtitle: { fontSize: 12, color: colors.mutedForeground, marginTop: 2, lineHeight: 16 },
-  body: { paddingTop: 4, paddingBottom: 16 },
+  body: { flexShrink: 1 },
+  bodyContent: { paddingTop: 4, paddingBottom: 16 },
 });
