@@ -111,7 +111,7 @@ export const ContributionGraph = React.memo(function ContributionGraph({ userId 
       try {
         const token = await getToken();
         const url =
-          'https://api.airthreads.ai:4009/api/activity/heatmap' +
+          'https://api.airthreads.ai/api/activity/heatmap' +
           (userId ? `?userId=${encodeURIComponent(userId)}` : '');
 
         const res = await fetch(url, {

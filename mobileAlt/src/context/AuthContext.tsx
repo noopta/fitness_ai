@@ -163,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ): Promise<boolean> {
     await setToken(token);
     try {
-      const res = await fetch('https://api.airthreads.ai:4009/api/auth/me', {
+      const res = await fetch('https://api.airthreads.ai/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json().catch(() => ({}));
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const redirectUri = Linking.createURL('/auth/callback');
       console.log('[Auth] Google OAuth redirect URI:', redirectUri);
-      const authUrl = `https://api.airthreads.ai:4009/api/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const authUrl = `https://api.airthreads.ai/api/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
       console.log('[Auth] OAuth result type:', result.type);
 
@@ -205,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const dobRequired = /[?&]needsDob=1/.test(url);
           // Verify by calling /auth/me with the token directly (avoids SecureStore async race)
           try {
-            const res = await fetch('https://api.airthreads.ai:4009/api/auth/me', {
+            const res = await fetch('https://api.airthreads.ai/api/auth/me', {
               headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json().catch(() => ({}));
@@ -248,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ],
       });
 
-      const res = await fetch('https://api.airthreads.ai:4009/api/auth/apple', {
+      const res = await fetch('https://api.airthreads.ai/api/auth/apple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

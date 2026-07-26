@@ -9,7 +9,7 @@ import { getToken, socialApi } from '../../src/lib/api';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
-const API_BASE = 'https://api.airthreads.ai:4009/api';
+const API_BASE = 'https://api.airthreads.ai/api';
 
 interface ProfileUser {
   id: string;

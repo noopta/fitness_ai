@@ -35,7 +35,7 @@ const MUTATING_AGENT_TOOLS = new Set([
   'log_wellness',
 ]);
 
-const API_BASE = 'https://api.airthreads.ai:4009/api';
+const API_BASE = 'https://api.airthreads.ai/api';
 
 // Shape of the proposal the agent returns. Discriminated union — new kinds
 // added on the backend can be ignored gracefully (we just don't render
