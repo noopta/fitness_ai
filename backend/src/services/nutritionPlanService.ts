@@ -246,7 +246,7 @@ Write JSON only:
   "summary": "3-4 sentences addressed to the user: what this plan optimizes and why, referencing their stated goals and day-to-day reality.",
   "focusNutrients": [{ "key": "<focus key>", "why": "1 sentence tied to THEIR goals/assessment", "foods": ["specific food with rough serving", ...4-6], "citationIds": [1] }],
   "gutProtocol": { "principles": [{ "pillar": "fiber|plants|ferment|avoid|rhythm", "guidance": "1-2 specific, doable sentences tuned to their habits", "citationIds": [] } ...all 5 pillars] },
-  "supplements": [{ "name": "...", "doseRange": "conservative range e.g. '200-400mg'", "rationale": "food-first framing: when diet alone likely falls short for THEM", "citationIds": [] } 0-4 items],
+  "supplements": [{ "name": "...", "doseRange": "DOSE ONLY, short, e.g. '200-400mg' — timing/format goes in rationale, never here", "rationale": "food-first framing: when diet alone likely falls short for THEM", "citationIds": [] } 0-4 items],
   "seeProfessional": ${hasMedicalFlags}
 }
 

@@ -135,13 +135,15 @@ export function PlanRevealScreen({
               <Text style={styles.cardTitle}>Where food alone falls short</Text>
               {plan.supplements.map((s, i) => (
                 <View key={s.name + i} style={{ paddingVertical: 8, gap: 2 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.foreground }}>{s.name}</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.foreground, fontVariant: ['tabular-nums'] }}>
-                      {s.doseRange}
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 12, color: colors.mutedForeground, lineHeight: 17 }}>{s.rationale}</Text>
+                  {/* Stacked, wrapping layout — the old side-by-side row let
+                      long names + verbose dose strings run off-screen. */}
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.foreground, flexShrink: 1 }}>
+                    {s.name}
+                  </Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.foreground, fontVariant: ['tabular-nums'] }}>
+                    {s.doseRange}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.mutedForeground, lineHeight: 17, marginTop: 2 }}>{s.rationale}</Text>
                   {s.citationIds.length > 0 && cite(s.citationIds)}
                 </View>
               ))}
