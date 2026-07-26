@@ -10,7 +10,7 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../constants/them
 // Bump this string when shipping a new round of headline features. Users on
 // any prior version (or fresh installs) see the modal exactly once after
 // updating; users who already saw it for this version don't.
-export const WHATS_NEW_VERSION = '2.0.2';
+export const WHATS_NEW_VERSION = '3.1.0';
 const STORAGE_KEY = 'whatsNew:lastSeenVersion';
 
 interface Feature {
@@ -22,40 +22,40 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    icon: 'swap-horizontal',
-    iconColor: '#6366f1',
-    title: "Swap today's workout",
-    body: "Not feeling today's session? Tap Swap on the Program tab to pull another day's workout into today. Anakin re-sequences the rest of your week so you still get the right recovery between hard sessions.",
+    icon: 'clipboard',
+    iconColor: '#09090b',
+    title: 'Nutrition & gut health',
+    body: "Take the 3-minute assessment — the questions an elite nutritionist would ask — and get a personalized nutrition plan: targets for 18 nutrients, the foods that hit them, and a gut protocol with cited research behind every recommendation.",
   },
   {
-    icon: 'share-social',
+    icon: 'analytics',
+    iconColor: '#2a78d6',
+    title: 'Micronutrients, tracked',
+    body: "Not just macros. Iron, magnesium, fiber, B12 and more fill in automatically as you log — with honest estimates and clear on-track / low status, right on the confirm screen.",
+  },
+  {
+    icon: 'leaf',
     iconColor: '#22c55e',
-    title: 'Share your wins',
-    body: "Hit a protein goal or a new weight milestone? Tap the share icon to export a clean card to your stories. Built-in for both nutrition and weight progress.",
+    title: 'Your Plant Collection',
+    body: "Thirty different plants a week is one of the strongest predictors of gut health in the research. Every distinct plant you eat fills a slot — herbs and spices count.",
   },
   {
-    icon: 'people-circle',
-    iconColor: '#0ea5e9',
-    title: 'Group chats',
-    body: "Train with friends? Start a group in Messages, share progress, and pull Anakin in for a daily check-in. Avatars, push notifications, and a shared coach in one thread.",
+    icon: 'receipt',
+    iconColor: '#7c5cff',
+    title: 'Log takeout from a screenshot',
+    body: "Screenshot an UberEats or DoorDash order and we extract every item. Untick what wasn't yours, set your portion, done — the image is read once and never stored.",
   },
   {
-    icon: 'trophy',
+    icon: 'book',
     iconColor: '#f59e0b',
-    title: 'Protein goal celebration',
-    body: "Hit your daily protein target and we'll celebrate it in-app instead of pinging you with another push notification. The protein push is gone — the moment lives where it belongs, in the Nutrition tab.",
+    title: 'Recipes',
+    body: "Save a recipe once — paste the whole thing and Anakin splits it into ingredients — then log a serving in two taps from the Manual sheet.",
   },
   {
-    icon: 'lock-closed',
-    iconColor: '#a855f7',
-    title: 'Private posts',
-    body: 'Choose who sees each social post — friends only or fully private. The toggle is right next to the post button when you share.',
-  },
-  {
-    icon: 'shield-checkmark',
+    icon: 'pulse',
     iconColor: '#ef4444',
-    title: 'More stable, faster',
-    body: 'Crash protection around the Coach tab, faster social feed loads, and lighter avatars throughout. Less waiting, fewer surprises.',
+    title: 'How your food is acting',
+    body: "The Nutrition Profile under Strength now shows how meals hit your energy, recovery, and focus — with 7-day and 30-day trends and per-ingredient breakdowns.",
   },
 ];
 
@@ -116,14 +116,9 @@ export function WhatsNewModal({ visible, onClose }: Props) {
 export async function shouldShowWhatsNew(): Promise<boolean> {
   try {
     const seen = await AsyncStorage.getItem(STORAGE_KEY);
-    // Fresh install (no version ever recorded) = a brand-new user in the initial
-    // download/onboarding flow. Don't show What's New to them — silently record
-    // the current version so the modal only appears for RETURNING users who
-    // update from an earlier build.
-    if (seen == null) {
-      await markWhatsNewSeen();
-      return false;
-    }
+    // Fresh installs see it too (product decision 2026-07-26): the caller
+    // gates on onboarding completion, so brand-new users get the tour right
+    // after finishing intake rather than mid-signup.
     return seen !== WHATS_NEW_VERSION;
   } catch {
     return false;

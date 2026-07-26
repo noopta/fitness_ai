@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, fontSize, fontWeight } from '../constants/theme';
 import { useCoachMarkGate } from '../lib/coachMarks';
@@ -39,21 +39,27 @@ export function CoachMarkTooltip({ tourId, title, body, icon, iconColor, delayMs
 
   useEffect(() => {
     if (gate.shouldShow !== true) return;
-    const t = setTimeout(() => setDelayedShow(true), delayMs);
+    const t = setTimeout(() => {
+      setDelayedShow(true);
+      // Mark seen the moment it's DISPLAYED — previously only the CTA tap
+      // recorded it, so navigating away (or backgrounding) resurrected the
+      // tooltip on every future visit.
+      void gate.markSeen();
+    }, delayMs);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gate.shouldShow, delayMs]);
 
   if (!delayedShow) return null;
 
-  const dismiss = () => {
-    setDelayedShow(false);
-    void gate.markSeen();
-  };
+  const dismiss = () => setDelayedShow(false);
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={dismiss}>
-      <View style={styles.backdrop}>
-        <View style={styles.card}>
+      {/* Backdrop tap dismisses — the un-tappable backdrop was the other half
+          of the "keeps showing" report. */}
+      <Pressable style={styles.backdrop} onPress={dismiss}>
+        <Pressable style={styles.card} onPress={() => {}}>
           {icon ? (
             <View style={[styles.iconWrap, iconColor ? { backgroundColor: `${iconColor}22` } : null]}>
               <Ionicons name={icon} size={26} color={iconColor ?? colors.foreground} />
@@ -64,8 +70,8 @@ export function CoachMarkTooltip({ tourId, title, body, icon, iconColor, delayMs
           <TouchableOpacity style={styles.cta} onPress={dismiss} activeOpacity={0.9}>
             <Text style={styles.ctaText}>Got it</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

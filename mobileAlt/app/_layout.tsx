@@ -119,13 +119,15 @@ function RootNavigator() {
   // interrupted; once they hit the tabs and the WHATS_NEW_VERSION key
   // doesn't match storage, we open it.
   useEffect(() => {
-    if (loading || !user || needsDobCheck) return;
+    // coachOnboardingDone === false → brand-new user mid-intake; wait until
+    // they finish so the tour lands on the dashboard, not over onboarding.
+    if (loading || !user || needsDobCheck || (user as any).coachOnboardingDone === false) return;
     let cancelled = false;
     void shouldShowWhatsNew().then(should => {
       if (!cancelled && should) setWhatsNewOpen(true);
     });
     return () => { cancelled = true; };
-  }, [user?.id, loading, needsDobCheck]);
+  }, [user?.id, loading, needsDobCheck, (user as any)?.coachOnboardingDone]);
 
   function handleWhatsNewClose() {
     setWhatsNewOpen(false);

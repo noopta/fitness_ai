@@ -352,16 +352,6 @@ function CoachScreenInner() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* First-visit coach mark for the new Swap-workout feature in 2.0.2.
-          Renders once per user, then never again (AsyncStorage-gated). Add
-          more tours by importing TOURS.* + dropping another CoachMarkTooltip. */}
-      <CoachMarkTooltip
-        tourId={TOURS.SWAP_WORKOUT}
-        title="New: swap today's workout"
-        body="Not feeling today's session? On the Program tab, tap Swap to pull another day's workout into today. Anakin re-sequences the rest of your week to keep recovery between hard sessions."
-        icon="swap-horizontal"
-        iconColor="#6366f1"
-      />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerAvatar}>
