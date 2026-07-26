@@ -14,7 +14,7 @@
     "scheme": "axiom",
     "updates": {
       "url": "https://u.expo.dev/f9c4fa25-f804-4a57-abfe-5db4a8bfcf72",
-      "enabled": false,
+      "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
     },
