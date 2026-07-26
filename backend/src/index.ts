@@ -310,11 +310,11 @@ if (growth) scheduleAt(13, null, () => growth.runDailyDigest().catch(err => cons
 // Auto-ship sweep — 14:00 UTC, after the digest has been read and any
 // approvals have come in via Telegram. Reads approved recs and either
 // opens an auto-ship PR or drafts a spec PR. Always non-merging.
-scheduleAt(14, null, () => runAutoShipSweep().catch(err => console.error('[scheduler] auto-ship sweep error:', err)));
+if (growth) scheduleAt(14, null, () => growth.runAutoShipSweep().catch(err => console.error('[scheduler] auto-ship sweep error:', err)));
 
 // Impact measurement — 15:00 UTC. Snapshots shipped recs at 7d / 30d so
 // the next digest can compare predicted vs actual delta and adjust.
-scheduleAt(15, null, () => runImpactSweep().catch(err => console.error('[scheduler] impact sweep error:', err)));
+if (growth) scheduleAt(15, null, () => growth.runImpactSweep().catch(err => console.error('[scheduler] impact sweep error:', err)));
 // Run once on startup to seed the feed if empty
 runDailyFeedFetch().catch(err => console.error('[feedService] initial fetch error:', err));
 console.log('✓ Notification schedulers registered (nightly + Sunday weekly summary + 6pm reengagement + 7pm/9pm streak-at-risk + 6am feed fetch + 8am Anakin group check-in)');
