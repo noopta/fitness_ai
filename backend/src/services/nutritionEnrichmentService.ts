@@ -168,21 +168,26 @@ async function fetchUsdaFoodNutrients(query: string): Promise<UsdaFoodNutrients 
   const q = query.trim();
   if (!q) return null;
 
-  const body = {
-    query: q,
-    pageSize: 1,
-    dataType: ['Foundation', 'Survey (FNDDS)', 'Branded', 'SR Legacy'],
-  };
-
-  try {
+  // Two-pass search: lab-grade datasets first (Foundation/FNDDS/SR Legacy),
+  // Branded only as a fallback. With a mixed single-hit query, "banana"
+  // top-matched a BRANDED product (banana chips, ~440 kcal/100g), which both
+  // poisoned the per-100g profile and shrank the kcal-derived portion —
+  // observed live as 84mg potassium for a whole banana.
+  const search = async (dataType: string[]): Promise<any | null> => {
     const resp = await fetch(`${USDA_SEARCH_URL}?api_key=${encodeURIComponent(USDA_API_KEY)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ query: q, pageSize: 1, dataType }),
     });
     if (!resp.ok) return null;
     const json: any = await resp.json();
-    const food = json?.foods?.[0];
+    return json?.foods?.[0] ?? null;
+  };
+
+  try {
+    const food =
+      (await search(['Foundation', 'Survey (FNDDS)', 'SR Legacy'])) ??
+      (await search(['Branded']));
     if (!food) return null;
 
     const caloriesPer100g = extractNutrient(food, NUTRIENT_IDS.calories) || 0;
