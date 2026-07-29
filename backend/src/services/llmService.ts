@@ -2404,6 +2404,35 @@ GUT-HEALTH FIELDS (required):
   }
 }
 
+// ── Micronutrient backfill ────────────────────────────────────────────────
+// The parse models sometimes omit or zero the nutrients object (observed in
+// prod ~intermittently). This focused retry asks ONLY for the 18-nutrient
+// JSON — a much smaller generation that models get right far more reliably.
+export async function estimateMicronutrientsOnly(
+  mealName: string,
+  ingredients: string[],
+  calories: number,
+): Promise<Micronutrients | null> {
+  try {
+    const response = await chatComplete({
+      messages: [{
+        role: 'user',
+        content: `Estimate micronutrients for this full meal (~${Math.round(calories)} kcal): "${mealName}"${ingredients.length ? ` — ingredients: ${ingredients.join(', ')}` : ''}.
+Return JSON only, all numeric fields required:
+{"fiberG":0,"sugarG":0,"sodiumMg":0,"saturatedFatG":0,"cholesterolMg":0,"vitaminAIU":0,"vitaminCMg":0,"vitaminDIU":0,"vitaminEMg":0,"vitaminB12Mcg":0,"folateMcg":0,"ironMg":0,"calciumMg":0,"magnesiumMg":0,"zincMg":0,"potassiumMg":0,"omega3G":0,"omega6G":0}`,
+      }],
+      response_format: { type: 'json_object' },
+      max_completion_tokens: 400,
+    });
+    const raw = JSON.parse(response.choices[0].message.content || '{}');
+    const detail = coerceParsedMealDetail({ nutrients: raw });
+    return detail.nutrients;
+  } catch (err) {
+    console.warn('[micro-backfill] estimation failed:', (err as Error)?.message);
+    return null;
+  }
+}
+
 // ── Order-screenshot scan (gut-health feature) ────────────────────────────
 // Extracts line items from a delivery-app screenshot or receipt. PRIVACY
 // CONTRACT: the image is processed in memory and never persisted; only food

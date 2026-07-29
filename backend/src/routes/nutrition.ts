@@ -361,6 +361,18 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
         fiberG:   num(nut.fiber_100g) ?? null,
         sugarG:   num(nut.sugars_100g) ?? null,
         sodiumMg: nut.sodium_100g != null ? Math.round(num(nut.sodium_100g)! * 1000) : null,
+        // Full micronutrient set — OFF reports these per 100g in base units
+        // (g for minerals-as-grams, so ×1000 → mg; vitamins vary by field).
+        saturatedFatG: num(nut['saturated-fat_100g']) ?? null,
+        cholesterolMg: nut.cholesterol_100g != null ? Math.round(num(nut.cholesterol_100g)! * 1000) : null,
+        ironMg:      nut.iron_100g != null ? Math.round(num(nut.iron_100g)! * 1000 * 10) / 10 : null,
+        calciumMg:   nut.calcium_100g != null ? Math.round(num(nut.calcium_100g)! * 1000) : null,
+        magnesiumMg: nut.magnesium_100g != null ? Math.round(num(nut.magnesium_100g)! * 1000) : null,
+        potassiumMg: nut.potassium_100g != null ? Math.round(num(nut.potassium_100g)! * 1000) : null,
+        zincMg:      nut.zinc_100g != null ? Math.round(num(nut.zinc_100g)! * 1000 * 10) / 10 : null,
+        vitaminCMg:  nut['vitamin-c_100g'] != null ? Math.round(num(nut['vitamin-c_100g'])! * 1000 * 10) / 10 : null,
+        vitaminB12Mcg: nut['vitamin-b12_100g'] != null ? Math.round(num(nut['vitamin-b12_100g'])! * 1e6 * 10) / 10 : null,
+        folateMcg:   nut['folates_100g'] != null ? Math.round(num(nut['folates_100g'])! * 1e6) : null,
       },
       servingSize,
       servingQuantityG: servingQtyG,

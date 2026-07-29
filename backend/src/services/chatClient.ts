@@ -49,6 +49,10 @@ function toOpenRouterParams<
     model: modelOverride || PRIMARY_CHAT_MODEL,
     ...(max_completion_tokens != null ? { max_tokens: max_completion_tokens } : {}),
     reasoning: { enabled: false },
+    // Route to the fastest provider serving the model. Parse latency showed
+    // 14s+ tails on default routing — user-facing flows (Describe review,
+    // photo review) sit directly on this.
+    provider: { sort: 'throughput' },
   };
 }
 

@@ -1,4 +1,5 @@
 import type { ParsedMealDetail, Micronutrients } from './llmService.js';
+import { estimateMicronutrientsOnly } from './llmService.js';
 
 const USDA_API_KEY = process.env.USDA_API_KEY || '';
 const USDA_SEARCH_URL = 'https://api.nal.usda.gov/fdc/v1/foods/search';
@@ -237,9 +238,32 @@ function mergeMicrosIntoMap(map: Record<string, number> | undefined, micros: Mic
   return out;
 }
 
+// A parse "has micros" when at least 3 of the additive keys are nonzero —
+// one lone sodium figure isn't a usable micro profile.
+function hasUsableMicros(n: Micronutrients | undefined | null): boolean {
+  if (!n) return false;
+  const keys: Array<keyof Micronutrients> = [
+    'fiberG', 'sodiumMg', 'vitaminAIU', 'vitaminCMg', 'vitaminDIU', 'vitaminB12Mcg',
+    'folateMcg', 'ironMg', 'calciumMg', 'magnesiumMg', 'zincMg', 'potassiumMg',
+  ];
+  return keys.filter((k) => Number(n[k]) > 0).length >= 3;
+}
+
 export async function enrichMealDetailHybrid(
   detail: ParsedMealDetail,
 ): Promise<{ detail: ParsedMealDetail; meta: HybridEnrichmentMeta }> {
+  // Backfill net (gut-health feature): the primary parse intermittently
+  // omits/zeroes the nutrients object. With no USDA key configured this
+  // used to pass straight through as an all-zero micro profile — the
+  // "sometimes no micronutrients" bug. One focused re-ask fixes it.
+  if (!hasUsableMicros(detail.nutrients) && (detail.calories ?? 0) > 0) {
+    const backfilled = await estimateMicronutrientsOnly(
+      detail.name, detail.ingredients ?? [], detail.calories,
+    );
+    if (backfilled && hasUsableMicros(backfilled)) {
+      detail = { ...detail, nutrients: backfilled };
+    }
+  }
   const llmMicros = toMicros(detail.nutrients);
   const ingredients = (detail.ingredients || []).map(i => i.trim()).filter(Boolean).slice(0, 10);
   if (!USDA_API_KEY || ingredients.length === 0) {
