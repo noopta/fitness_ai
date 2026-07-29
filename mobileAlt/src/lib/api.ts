@@ -977,6 +977,11 @@ export const paymentsApi = {
   // Returns Stripe publishable key — safe to expose to clients
   getConfig: () => apiFetch('/payments/config', {}, false),
 
+  // Subscription state for rail-aware UI (tier + Stripe subStatus)
+  getPaymentsStatus: () => apiFetch('/payments/status'),
+  // Stripe Customer Portal session — swap card / cancel / invoices
+  getPaymentsPortal: () => apiFetch('/payments/portal', { method: 'POST' }),
+
   // Creates a subscription and returns a PaymentIntent client_secret.
   // Pass promoCode to apply a Stripe Promotion Code discount (validated server-side).
   createSubscriptionIntent: (promoCode?: string) =>

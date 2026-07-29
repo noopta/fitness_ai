@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking,
-  TextInput, Image, ActivityIndicator, Modal,
+  TextInput, Image, ActivityIndicator, Modal, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,7 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/context/AuthContext';
 import { useUnits } from '../../src/context/UnitsContext';
-import { coachApi, authApi } from '../../src/lib/api';
+import { coachApi, authApi, paymentsApi } from '../../src/lib/api';
+import * as WebBrowser from 'expo-web-browser';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
@@ -133,8 +134,30 @@ export default function SettingsScreen() {
     }
   };
 
-  function handleManageSubscription() {
-    // Open iOS Subscriptions settings — Apple requires this for IAP subscribers
+  async function handleManageSubscription() {
+    // Rail-aware: Stripe subscribers get the Stripe Customer Portal (swap
+    // card, cancel, invoices); IAP subscribers get the platform's own
+    // subscription manager. Previously this ALWAYS opened Apple's page —
+    // Stripe subscribers landed on an empty list with no way to manage.
+    try {
+      const status = await paymentsApi.getPaymentsStatus();
+      const stripeActive = ['active', 'trialing', 'past_due'].includes(status?.subStatus);
+      if (stripeActive) {
+        const portal = await paymentsApi.getPaymentsPortal();
+        if (portal?.url) {
+          await WebBrowser.openBrowserAsync(portal.url);
+          return;
+        }
+      }
+    } catch {
+      // Status/portal unavailable — fall through to the store manager rather
+      // than dead-ending the tap.
+    }
+    if (Platform.OS === 'android') {
+      Linking.openURL('https://play.google.com/store/account/subscriptions').catch(() => {});
+      return;
+    }
+    // Apple requires this path for IAP subscribers
     Linking.openURL('https://apps.apple.com/account/subscriptions').catch(() => {
       Linking.openURL('App-prefs:root=APPLE_ACCOUNT&path=SUBSCRIPTIONS');
     });
