@@ -25,6 +25,7 @@ import {
 } from '../services/gutHealthScoreService.js';
 import { consumeMealLoggingQuota, nutritionProfileCacheKey } from '../services/nutritionShared.js';
 import { cacheDelete } from '../services/cacheService.js';
+import { trackValidationFailure } from '../services/errorAlertService.js';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -74,7 +75,10 @@ router.post('/nutrition/assessment', requireAuth, async (req, res) => {
     });
     res.status(201).json({ saved: true, assessment: profile.nutrition });
   } catch (err: any) {
-    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid assessment' });
+    if (err?.name === 'ZodError') {
+      trackValidationFailure('/nutrition/assessment', err.issues?.[0]?.message ?? 'unknown');
+      return res.status(400).json({ error: 'Invalid assessment' });
+    }
     console.error('[nutrition/assessment] save failed:', err);
     res.status(500).json({ error: 'Failed to save assessment' });
   }
@@ -390,7 +394,10 @@ router.post('/nutrition/order-log', requireAuth, async (req, res) => {
       },
     });
   } catch (err: any) {
-    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request' });
+    if (err?.name === 'ZodError') {
+      trackValidationFailure('/nutrition/order-log', err.issues?.[0]?.message ?? 'unknown');
+      return res.status(400).json({ error: 'Invalid request' });
+    }
     console.error('[order-log] failed:', err);
     res.status(500).json({ error: 'Failed to log order' });
   }

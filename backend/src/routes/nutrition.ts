@@ -17,6 +17,7 @@ import {
 import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
+import { trackValidationFailure } from '../services/errorAlertService.js';
 import { detectAndNotifyProteinHit } from '../services/progressService.js';
 import { sendJunkFoodEncouragement, isJunkFood } from '../services/reengagementService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
@@ -290,6 +291,9 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     const friendly = err?.name === 'ZodError'
       ? 'Some meal fields were invalid — try adjusting the values and logging again.'
       : err.message || 'Failed to save meal';
+    if (err?.name === 'ZodError') {
+      trackValidationFailure('/nutrition/meals', err.issues?.[0]?.message ?? 'unknown');
+    }
     res.status(400).json({ error: friendly });
   }
 });

@@ -63,6 +63,29 @@ export async function alertServerError(
   await sendSMS(body);
 }
 
+// ── Validation watchdog ─────────────────────────────────────────────────────
+// 4xx validation failures are usually noise (scanners, bad input) and never
+// alert — but REPEATED failures on a core product flow are a product bug
+// wearing a client-error costume (2026-07-29: a new user failed meal logging
+// twice on a schema bug and nobody was told). Track per-endpoint counts in a
+// rolling hour; alert once past the threshold, then cool down.
+const validationHits = new Map<string, number[]>();
+const VALIDATION_THRESHOLD = 2;      // failures within the window
+const VALIDATION_WINDOW_MS = 60 * 60 * 1000;
+
+export function trackValidationFailure(route: string, detail: string): void {
+  const now = Date.now();
+  const hits = (validationHits.get(route) ?? []).filter((t) => now - t < VALIDATION_WINDOW_MS);
+  hits.push(now);
+  validationHits.set(route, hits);
+  if (hits.length >= VALIDATION_THRESHOLD && shouldSend(fingerprint('validation', route))) {
+    void sendSMS(
+      `⚠️ Axiom validation failures: ${hits.length}x on ${route} in the last hour — ` +
+      `users may be blocked by a schema bug. Latest: ${detail.slice(0, 180)}`,
+    );
+  }
+}
+
 export async function alertUncaughtException(type: string, err: unknown): Promise<void> {
   const message = err instanceof Error ? err.message : String(err);
   const fp = fingerprint(`${type}:${message.slice(0, 60)}`);
