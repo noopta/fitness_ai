@@ -131,7 +131,7 @@ const mealEntrySchema = z.object({
   proteinG: z.number().min(0).max(500).optional().default(0),
   carbsG: z.number().min(0).max(1000).optional().default(0),
   fatG: z.number().min(0).max(500).optional().default(0),
-  ingredients: z.array(z.string().min(1).max(120)).max(30).optional().default([]),
+  ingredients: z.array(z.string().min(1).transform((v) => v.slice(0, 120))).max(30).optional().default([]),
   tags: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
   plants: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
   fermentedFoods: z.array(z.string().min(1).max(60)).max(20).optional().default([]),
@@ -286,7 +286,11 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     });
   } catch (err: any) {
     console.error('Meal entry error:', err);
-    res.status(400).json({ error: err.message || 'Failed to save meal' });
+    // Never surface raw Zod JSON to the sheet — it renders in the UI.
+    const friendly = err?.name === 'ZodError'
+      ? 'Some meal fields were invalid — try adjusting the values and logging again.'
+      : err.message || 'Failed to save meal';
+    res.status(400).json({ error: friendly });
   }
 });
 

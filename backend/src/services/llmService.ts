@@ -1864,7 +1864,9 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
     confidence,
     notes: typeof raw?.notes === 'string' ? raw.notes : '',
     ingredients: Array.isArray(raw?.ingredients)
-      ? raw.ingredients.map((v: unknown) => String(v).trim()).filter(Boolean).slice(0, 20)
+      // Per-string clamp: label scans (protein powders especially) can yield
+      // one giant comma-run "ingredient" — downstream schemas cap at 120.
+      ? raw.ingredients.map((v: unknown) => String(v).trim().slice(0, 120)).filter(Boolean).slice(0, 20)
       : [],
     tags: Array.isArray(raw?.tags)
       ? raw.tags.map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean).slice(0, 20)
