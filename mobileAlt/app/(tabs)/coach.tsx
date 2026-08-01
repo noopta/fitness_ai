@@ -107,6 +107,15 @@ function CoachScreenInner() {
   // (extractProgram + fetchCoachInit live in src/lib/coachData.ts so the
   // boot-time prefetcher can warm the same cache shape this screen reads.)
 
+  // A user with a finished intake but no program resumes at Build Your
+  // Program — NOT at question 1 of the intake. Re-showing the (blank) intake
+  // to returning users was the biggest conversion leak in the funnel: they
+  // completed it once, left before tapping Generate, and every return greeted
+  // them with the full quiz again.
+  function resumeStageForNoProgram(): Stage {
+    return user?.coachOnboardingDone ? 'setup' : 'onboarding';
+  }
+
   async function initCoach() {
     if (!user) {
       setStage('loading');
@@ -121,8 +130,8 @@ function CoachScreenInner() {
     const cached = getCached<CoachInitCacheShape>(key, COACH_INIT_TTL_MS);
     if (cached) {
       setCoachData(cached.coachData);
-      setStage(cached.hasProgram ? 'dashboard' : 'onboarding');
-      if (!cached.hasProgram) setOnboardingKey(k => k + 1);
+      setStage(cached.hasProgram ? 'dashboard' : resumeStageForNoProgram());
+      if (!cached.hasProgram && !user.coachOnboardingDone) setOnboardingKey(k => k + 1);
       setLoading(false);
       return;
     }
@@ -132,13 +141,13 @@ function CoachScreenInner() {
       setCached(key, fresh);
       setCoachData(fresh.coachData);
       if (!fresh.hasProgram) {
-        setOnboardingKey(k => k + 1);
-        setStage('onboarding');
+        if (!user.coachOnboardingDone) setOnboardingKey(k => k + 1);
+        setStage(resumeStageForNoProgram());
       } else {
         setStage('dashboard');
       }
     } catch {
-      setStage('onboarding');
+      setStage(resumeStageForNoProgram());
     } finally {
       setLoading(false);
     }
