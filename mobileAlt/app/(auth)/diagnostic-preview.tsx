@@ -117,7 +117,7 @@ export default function DiagnosticPreviewScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
           style={{ flex: 1 }}
         >
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">

@@ -253,7 +253,7 @@ export default function SnapshotScreen() {
       <KeyboardDoneBar />
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         keyboardVerticalOffset={80}
       >
         <ScrollView

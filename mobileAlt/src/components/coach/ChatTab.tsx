@@ -392,7 +392,7 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 160 : 30}
     >
       <KeyboardDoneBar />

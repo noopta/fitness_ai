@@ -320,7 +320,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
     >
       <KeyboardAvoidingView
         style={{ flex: 1, justifyContent: 'flex-end' }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <Animated.View
           style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.40)' }, backdropStyle]}

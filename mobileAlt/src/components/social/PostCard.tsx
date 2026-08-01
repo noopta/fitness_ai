@@ -424,7 +424,7 @@ function CommentSheet({
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView
         style={{ flex: 1, justifyContent: 'flex-end' }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         {/* Backdrop */}
         <Animated.View

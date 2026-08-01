@@ -185,7 +185,7 @@ export function ProgramSetup({ onGenerate, onBack, onStartFromScratch }: Program
   if (loading) return <GeneratingScreen />;
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={s.flex} behavior="padding">
       <ScrollView
         style={s.container}
         contentContainerStyle={s.content}

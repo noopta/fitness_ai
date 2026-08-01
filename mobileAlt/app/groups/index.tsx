@@ -189,7 +189,7 @@ function CreateGroupSheet({
           <Text style={styles.title}>New group</Text>
           <View style={{ width: 24 }} />
         </View>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           <View style={{ padding: spacing.md, gap: spacing.md }}>
             <Field label="Group name">
               <TextInput style={styles.input} placeholder="Lift Squad" placeholderTextColor={colors.mutedForeground} value={name} onChangeText={setName} />

@@ -304,7 +304,7 @@ export function AssessmentFlow({
           </View>
         </View>
       ) : q ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
+        <KeyboardAvoidingView behavior="padding" style={styles.fill}>
           <View style={[styles.fill, { backgroundColor: colors.background, paddingTop: 56 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20 }}>
               <Pressable onPress={() => (step === 0 ? onClose() : advance(-1))} hitSlop={12}>

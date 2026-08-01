@@ -358,7 +358,7 @@ export default function ConversationScreen() {
       <KeyboardDoneBar />
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         keyboardVerticalOffset={0}
       >
         {loading ? (

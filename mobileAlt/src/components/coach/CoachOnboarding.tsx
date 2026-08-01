@@ -424,7 +424,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
   return (
     <KeyboardAvoidingView
       style={s.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
       // This view reaches the bottom of the screen (the parent SafeAreaView
       // only insets the top), so no vertical offset is needed. The previous
       // 100 over-padded by exactly that much — a ~100pt white band above the

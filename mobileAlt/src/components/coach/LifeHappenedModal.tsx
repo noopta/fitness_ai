@@ -113,7 +113,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
         style={styles.kavWrapper}
       >
       <Pressable style={styles.overlay} onPress={handleClose}>

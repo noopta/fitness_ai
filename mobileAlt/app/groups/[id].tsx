@@ -147,7 +147,7 @@ export default function GroupChatScreen() {
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         keyboardVerticalOffset={0}
       >
         {/* paddingBottom respects the home-indicator inset so the input isn't
