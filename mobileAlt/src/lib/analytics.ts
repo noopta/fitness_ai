@@ -148,6 +148,29 @@ export const Analytics = {
   coachDashboardOpened: (source: 'home_cta' | 'tab' | 'upsell') =>
     posthog.capture('coach_dashboard_opened', { source }),
 
+  // ── Coach intake → program funnel ────────────────────────────────────────
+  // The July funnel had zero events between auth and the dashboard, which
+  // made the intake→program leak invisible. These map its every step.
+  intakeStarted: () => posthog.capture('intake_started'),
+
+  intakeStepViewed: (step: number, total: number) =>
+    posthog.capture('intake_step_viewed', { step, total }),
+
+  intakeCompleted: () => posthog.capture('intake_completed'),
+
+  programGenerateStarted: (auto: boolean) =>
+    posthog.capture('program_generate_started', { auto }),
+
+  programGenerationSucceeded: (durationMs: number, auto: boolean) =>
+    posthog.capture('program_generation_succeeded', { duration_ms: durationMs, auto }),
+
+  programGenerationFailed: (durationMs: number, auto: boolean, reason?: string) =>
+    posthog.capture('program_generation_failed', { duration_ms: durationMs, auto, reason: (reason || '').slice(0, 120) }),
+
+  programRevealViewed: () => posthog.capture('program_reveal_viewed'),
+
+  paywallViewed: (source: string) => posthog.capture('paywall_viewed', { source }),
+
   // ── Diagnostics ───────────────────────────────────────────────────────────
   diagnosticStarted: (lift: string) =>
     posthog.capture('diagnostic_started', { lift }),

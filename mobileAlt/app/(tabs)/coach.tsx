@@ -77,6 +77,9 @@ function CoachScreenInner() {
   const [pendingChatPrompt, setPendingChatPrompt] = useState<string | null>(null);
   const [generatedProgram, setGeneratedProgram] = useState<any>(null);
   const [setupReturnStage, setSetupReturnStage] = useState<Stage>('onboarding');
+  // True only when the user just finished the intake this session — setup then
+  // starts generation immediately instead of waiting for a Generate tap.
+  const [autoStartSetup, setAutoStartSetup] = useState(false);
   const [onboardingKey, setOnboardingKey] = useState(0);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
 
@@ -227,6 +230,7 @@ function CoachScreenInner() {
       // Continue even if save fails
     }
     setSetupReturnStage('onboarding');
+    setAutoStartSetup(true);
     setStage('setup');
   }
 
@@ -277,7 +281,10 @@ function CoachScreenInner() {
     // Value-moment paywall: just generated their first plan = peak excitement.
     // One-shot per user; fires only for free tier and only the first time.
     void maybeShowPostPlanPaywall({ tier: user?.tier }).then((shouldShow) => {
-      if (shouldShow) setUpgradeVisible(true);
+      if (shouldShow) {
+        Analytics.paywallViewed('post_plan');
+        setUpgradeVisible(true);
+      }
     });
   }
 
@@ -311,8 +318,11 @@ function CoachScreenInner() {
           <Text style={styles.stageHeaderSub}>Configure your training plan</Text>
         </View>
         <ProgramSetup
+          autoStart={autoStartSetup}
           onGenerate={(prog) => {
+            setAutoStartSetup(false);
             setGeneratedProgram(prog);
+            Analytics.programRevealViewed();
             setStage('reveal');
           }}
           onBack={() => {

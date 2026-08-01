@@ -64,6 +64,7 @@ import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from 
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
 import { runAnakinGroupSweep } from './services/groupAccountability.js';
+import { runProgramRescueSweep } from './services/programRescueService.js';
 import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
 import OpenAI from 'openai';
 
@@ -263,6 +264,17 @@ sweepStalePendingFormAnalyses().catch((err) => console.error('[form-analysis swe
 setInterval(() => {
   sweepStalePendingFormAnalyses().catch((err) => console.error('[form-analysis sweep] tick:', err));
 }, 2 * 60 * 1000);
+
+// Program rescue: users who finished intake >30m ago but never generated a
+// program get one built server-side + a "your program is ready" push. First
+// pass 3 minutes after boot (picks up anyone stranded during downtime),
+// then every 30 minutes.
+setTimeout(() => {
+  runProgramRescueSweep().catch((err) => console.error('[program-rescue] startup:', err));
+}, 3 * 60 * 1000);
+setInterval(() => {
+  runProgramRescueSweep().catch((err) => console.error('[program-rescue] tick:', err));
+}, 30 * 60 * 1000);
 
 // ── Notification schedulers ────────────────────────────────────────────────
 // Nightly at 8pm ET: contextual push notifications (session reminders, re-engagement, streaks)

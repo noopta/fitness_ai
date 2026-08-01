@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/t
 import { useUnits } from '../../context/UnitsContext';
 import { Button } from '../ui/Button';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
+import { Analytics } from '../../lib/analytics';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -400,6 +401,9 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
   const [step, setStep] = useState(1);
   const [p, setP] = useState<OnboardingProfile>(EMPTY);
 
+  useEffect(() => { Analytics.intakeStarted(); }, []);
+  useEffect(() => { Analytics.intakeStepViewed(step, TOTAL_STEPS); }, [step]);
+
   function set<K extends keyof OnboardingProfile>(key: K, val: OnboardingProfile[K]) {
     setP(prev => ({ ...prev, [key]: val }));
   }
@@ -416,7 +420,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
 
   function handleNext() {
     if (step < TOTAL_STEPS) { setStep(step + 1); }
-    else { onComplete(p); }
+    else { Analytics.intakeCompleted(); onComplete(p); }
   }
 
   const progress = step / TOTAL_STEPS;

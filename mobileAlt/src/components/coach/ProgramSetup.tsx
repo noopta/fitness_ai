@@ -12,6 +12,7 @@ import {
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Button } from '../ui/Button';
 import { coachApi } from '../../lib/api';
+import { Analytics } from '../../lib/analytics';
 
 interface ProgramSetupProps {
   onGenerate: (program: any) => void;
@@ -19,6 +20,11 @@ interface ProgramSetupProps {
   // Bubbles up "redo the whole onboarding" — parent owns the confirm + state
   // reset so this component stays purely about program parameters.
   onStartFromScratch?: () => void;
+  // When true (arriving fresh from a completed intake), generation kicks off
+  // immediately with the profile-derived defaults — the Generate tap was the
+  // single biggest funnel leak, so it must not be a required step. The config
+  // screen still renders for users who resume here later.
+  autoStart?: boolean;
 }
 
 // Explicit goal options so weight-loss is a first-class choice (not inferred
@@ -158,16 +164,19 @@ const gs = StyleSheet.create({
 
 // ── Program Setup ─────────────────────────────────────────────────────────────
 
-export function ProgramSetup({ onGenerate, onBack, onStartFromScratch }: ProgramSetupProps) {
+export function ProgramSetup({ onGenerate, onBack, onStartFromScratch, autoStart }: ProgramSetupProps) {
   const [goalKey, setGoalKey] = useState<string>('strength');
   const [durationWeeks, setDurationWeeks] = useState<number>(8);
   const [daysPerWeek, setDaysPerWeek] = useState<number>(4);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const autoStartedRef = useRef(false);
 
-  async function handleGenerate() {
+  async function handleGenerate(auto = false) {
     setError('');
     setLoading(true);
+    Analytics.programGenerateStarted(auto);
+    const startedAt = Date.now();
     try {
       const g = GOALS.find(x => x.key === goalKey) ?? GOALS[2];
       const result = await coachApi.generateProgram({
@@ -175,12 +184,22 @@ export function ProgramSetup({ onGenerate, onBack, onStartFromScratch }: Program
         goal: g.trainingGoal,
         bodyCompositionGoal: g.bodyComp,
       });
+      Analytics.programGenerationSucceeded(Date.now() - startedAt, auto);
       onGenerate(result);
     } catch (err: any) {
+      Analytics.programGenerationFailed(Date.now() - startedAt, auto, err?.message);
       setError(err?.message || 'Failed to generate program. Please try again.');
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (autoStart && !autoStartedRef.current) {
+      autoStartedRef.current = true;
+      void handleGenerate(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   if (loading) return <GeneratingScreen />;
 
@@ -273,7 +292,7 @@ export function ProgramSetup({ onGenerate, onBack, onStartFromScratch }: Program
 
         <View style={s.navRow}>
           <Button variant="outline" onPress={onBack} style={s.navBtn}>Back</Button>
-          <Button onPress={handleGenerate} style={s.navBtn}>Generate Program</Button>
+          <Button onPress={() => handleGenerate()} style={s.navBtn}>Generate Program</Button>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
