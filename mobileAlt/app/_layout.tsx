@@ -162,7 +162,17 @@ function RootNavigator() {
     const inAuthGroup = segments[0] === '(auth)';
     const inAgeCheck = (segments[0] as string) === 'age-check';
     const inCinematic = (segments[0] as string) === 'onboarding-cinematic';
-    if (!user && !inAuthGroup && !inCinematic) {
+    // The OAuth deep-link target (app/auth/callback.tsx) sits at segment 'auth'
+    // — NOT the '(auth)' group — and legitimately renders with `user` still
+    // null while completeAuthCallback exchanges the token. Without this the
+    // gate below fires on its first render and replaces it with the login
+    // screen ("Welcome back."), killing the sign-in exactly when Google hands
+    // control back. Most visible when Google inserts a "Yes, it's me"
+    // challenge: the extra time backgrounded makes Android far more likely to
+    // cold-start the app on the deep link rather than resume it in place.
+    // The callback screen routes itself out on both success and failure.
+    const inAuthCallback = (segments[0] as string) === 'auth';
+    if (!user && !inAuthGroup && !inCinematic && !inAuthCallback) {
       // Signed-out users: first-timers (downloaded the app, not signed in) get the
       // cinematic onboarding; users who've already seen it go straight to login.
       router.replace(seenCinematic ? '/(auth)/welcome' : ('/onboarding-cinematic' as any));
