@@ -266,7 +266,21 @@ function RadarChartInner({
     >
       {/* Gradient + glow definitions */}
       <Defs>
-        <RadialGradient id="polyFill" cx="50%" cy="50%" r="55%">
+        {/*
+          The animated polygon intentionally collapses to a single point at
+          startup and between drill-down levels.  With the default
+          objectBoundingBox units that gives Android's RadialGradient a zero
+          ending radius and crashes in android.graphics.RadialGradient.
+          Keep the gradient in the SVG viewport instead, where its radius is
+          always positive regardless of the animated path bounds.
+        */}
+        <RadialGradient
+          id="polyFill"
+          gradientUnits="userSpaceOnUse"
+          cx={cx}
+          cy={cy}
+          r={Math.max(r, 1)}
+        >
           <Stop offset="0%" stopColor="#09090B" stopOpacity={0.20} />
           <Stop offset="60%" stopColor="#09090B" stopOpacity={0.10} />
           <Stop offset="100%" stopColor="#09090B" stopOpacity={0.04} />

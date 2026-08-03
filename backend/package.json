@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "backfill:recipe-micros": "tsx scripts/backfillRecipeMicros.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",

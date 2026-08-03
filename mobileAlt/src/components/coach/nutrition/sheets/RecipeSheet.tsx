@@ -23,6 +23,7 @@ import { Analytics } from '../../../../lib/analytics';
 import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../../ui/KeyboardDoneBar';
+import { MicroPreview } from './MicroPreview';
 
 interface Props {
   visible: boolean;
@@ -56,12 +57,15 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
   const [name, setName] = useState('');
   const [servings, setServings] = useState('4');
   const [items, setItems] = useState<ItemRow[]>([EMPTY_ROW]);
+  // Whole-recipe estimates returned by the AI parser. The backend divides
+  // these by servings when it saves the recipe.
+  const [nutrients, setNutrients] = useState<Record<string, number> | null>(null);
 
   const inputRef = useRef<TextInput>(null);
 
   const reset = () => {
     setStage('prompt'); setText(''); setParsing(false); setError(null);
-    setVia('manual'); setName(''); setServings('4'); setItems([EMPTY_ROW]);
+    setVia('manual'); setName(''); setServings('4'); setItems([EMPTY_ROW]); setNutrients(null);
   };
 
   useEffect(() => {
@@ -96,6 +100,7 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
         carbsG:   String(Math.round(i.carbsG)),
         fatG:     String(Math.round(i.fatG)),
       })));
+      setNutrients(parsed.nutrients ?? null);
       setVia('ai_parse');
       setStage('review');
     } catch (err: any) {
@@ -108,6 +113,7 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
   const buildByHand = () => {
     setVia('manual');
     setError(null);
+    setNutrients(null);
     setStage('review');
   };
 
@@ -160,6 +166,7 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
           carbsG:   Number(i.carbsG)   || 0,
           fatG:     Number(i.fatG)     || 0,
         })),
+        ...(nutrients ? { nutrients } : {}),
       });
       Analytics.recipeCreated({ ingredient_count: validItems.length, servings: servingsNum, via });
       await Promise.resolve(onSaved(recipe));
@@ -256,6 +263,19 @@ export function RecipeSheet({ visible, onClose, onSaved }: Props) {
                 ≈ {perServing.kcal}kcal · {perServing.p}p · {perServing.c}c · {perServing.f}f per serving
               </Text>
             </View>
+
+            {nutrients ? (
+              <MicroPreview
+                raw={{
+                  nutrients: Object.fromEntries(
+                    Object.entries(nutrients).map(([key, value]) => [
+                      key,
+                      servingsNum > 0 ? value / servingsNum : value,
+                    ]),
+                  ),
+                }}
+              />
+            ) : null}
 
             <Text style={styles.fieldLabel}>INGREDIENTS — macros are for the full amount used</Text>
             {items.map((row, idx) => (

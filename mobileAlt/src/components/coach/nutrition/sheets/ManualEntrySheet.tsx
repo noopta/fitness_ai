@@ -194,6 +194,7 @@ export function ManualEntrySheet({ visible, onClose, onLogged, onCreateRecipe }:
         proteinG: Number(form.proteinG) || 0,
         carbsG:   Number(form.carbsG)   || 0,
         fatG:     Number(form.fatG)     || 0,
+        ...(pickedNutrients ? { nutrients: pickedNutrients, source: 'saved_food' as const } : {}),
       });
       Analytics.foodTypedLogged({ calories: Number(form.calories) || 0 });
       await Promise.resolve(onLogged());

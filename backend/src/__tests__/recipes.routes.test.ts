@@ -259,6 +259,7 @@ describe('POST /api/nutrition/recipes/parse', () => {
   const PARSED = {
     name: 'Chili', servings: 6, confidence: 'high', notes: '',
     items: CHILI_ITEMS.map(i => ({ ...i })),
+    nutrients: { fiberG: 18, ironMg: 12, vitaminB12Mcg: 8 },
   };
 
   it('parses via LLM and consumes the shared free-tier quota', async () => {
@@ -277,6 +278,7 @@ describe('POST /api/nutrition/recipes/parse', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.items).toHaveLength(3);
+    expect(res.body.nutrients).toEqual(PARSED.nutrients);
     // quota consumed (requireAuth also updates lastActiveAt, so filter)
     const quotaWrites = mocks.user.update.mock.calls.filter(
       (c: any[]) => c[0]?.data?.dailyPhotoScanCount !== undefined,

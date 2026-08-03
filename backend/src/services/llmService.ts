@@ -2059,9 +2059,18 @@ export interface ParsedRecipe {
   name: string;
   servings: number;
   items: ParsedRecipeItem[];
+  /** Estimated totals for the whole recipe; the recipe route stores per-serving values. */
+  nutrients: Record<string, number>;
   confidence: 'high' | 'medium' | 'low';
   notes: string;
 }
+
+const RECIPE_MICRONUTRIENT_KEYS = [
+  'fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'cholesterolMg',
+  'vitaminAIU', 'vitaminCMg', 'vitaminDIU', 'vitaminEMg', 'vitaminB12Mcg',
+  'folateMcg', 'ironMg', 'calciumMg', 'magnesiumMg', 'zincMg',
+  'potassiumMg', 'omega3G', 'omega6G',
+] as const;
 
 function coerceParsedRecipe(raw: any, fallbackServings: number): ParsedRecipe {
   const servingsRaw = toNumber(raw?.servings, fallbackServings);
@@ -2080,6 +2089,9 @@ function coerceParsedRecipe(raw: any, fallbackServings: number): ParsedRecipe {
     name: typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim().slice(0, 200) : 'Recipe',
     servings: Math.min(Math.max(servingsRaw, 0.5), 100),
     items,
+    nutrients: Object.fromEntries(
+      RECIPE_MICRONUTRIENT_KEYS.map((key) => [key, Math.max(0, toNumber(raw?.nutrients?.[key]))]),
+    ),
     confidence:
       raw?.confidence === 'high' || raw?.confidence === 'medium' || raw?.confidence === 'low'
         ? raw.confidence
@@ -2097,6 +2109,7 @@ ${servingsHint ? `The user says this makes ${servingsHint} servings — use that
 INSTRUCTIONS:
 - One entry per ingredient, with the stated quantity echoed back (e.g. "2 lbs", "1 can (400g)"); use standard amounts when unstated
 - Macros are for the ingredient's full quantity in the recipe, NOT per serving
+- Micronutrients are totals for the WHOLE recipe, NOT per serving. Estimate every requested numeric field; use 0 only when genuinely negligible
 - Ignore non-food instructions (cook times, equipment)
 - Round to nearest gram/calorie; zero-calorie items (water, spices) get 0 macros but stay in the list
 - If confidence is low (ambiguous quantities, unusual items), note why in "notes"
@@ -2107,6 +2120,14 @@ OUTPUT FORMAT (JSON only, no explanation):
   "servings": 6,
   "confidence": "high",
   "notes": "",
+  "nutrients": {
+    "fiberG": 18, "sugarG": 20, "sodiumMg": 1800, "saturatedFatG": 28,
+    "cholesterolMg": 520, "vitaminAIU": 900, "vitaminCMg": 35,
+    "vitaminDIU": 0, "vitaminEMg": 5, "vitaminB12Mcg": 9.2,
+    "folateMcg": 330, "ironMg": 20, "calciumMg": 320,
+    "magnesiumMg": 410, "zincMg": 31, "potassiumMg": 4300,
+    "omega3G": 0.7, "omega6G": 6.2
+  },
   "items": [
     { "name": "ground beef (90/10)", "quantity": "2 lbs", "calories": 1584, "proteinG": 181, "carbsG": 0, "fatG": 91 },
     { "name": "black beans", "quantity": "1 can (400g)", "calories": 368, "proteinG": 24, "carbsG": 66, "fatG": 1 }

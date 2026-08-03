@@ -87,6 +87,7 @@ function BarcodeScanScreenInner() {
           proteinG: String(product.per100g.proteinG ?? 0),
           carbsG:   String(product.per100g.carbsG ?? 0),
           fatG:     String(product.per100g.fatG ?? 0),
+          nutrients: JSON.stringify(product.per100g),
           servingSize: product.servingSize ?? '',
           servingQuantityG: product.servingQuantityG != null ? String(product.servingQuantityG) : '',
           imageUrl: product.imageUrl ?? '',

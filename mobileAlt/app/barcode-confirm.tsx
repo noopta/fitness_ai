@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { nutritionApi } from '../src/lib/api';
 import { Analytics } from '../src/lib/analytics';
 import { colors, spacing, radius, fontSize, fontWeight } from '../src/constants/theme';
+import { MicroPreview } from '../src/components/coach/nutrition/sheets/MicroPreview';
 
 function todayDateStr(): string {
   const d = new Date();
@@ -32,6 +33,7 @@ export default function BarcodeConfirmScreen() {
     code?: string; name?: string; brand?: string;
     calories?: string; proteinG?: string; carbsG?: string; fatG?: string;
     servingSize?: string; servingQuantityG?: string; imageUrl?: string;
+    nutrients?: string;
   }>();
 
   const productName = String(params.name ?? 'Unknown product');
@@ -48,6 +50,16 @@ export default function BarcodeConfirmScreen() {
     carbsG: num(params.carbsG),
     fatG: num(params.fatG),
   }), [params.calories, params.proteinG, params.carbsG, params.fatG]);
+  const per100Nutrients = useMemo<Record<string, number>>(() => {
+    try {
+      const parsed = JSON.parse(String(params.nutrients ?? '{}'));
+      return Object.fromEntries(
+        Object.entries(parsed).filter(([, value]) => typeof value === 'number' && Number.isFinite(value)),
+      ) as Record<string, number>;
+    } catch {
+      return {};
+    }
+  }, [params.nutrients]);
 
   const [servingG, setServingG] = useState(String(initialServingG));
   const [logging, setLogging] = useState(false);
@@ -55,13 +67,17 @@ export default function BarcodeConfirmScreen() {
   // Scale macros by (servingG / 100).
   const scaled = useMemo(() => {
     const factor = (num(servingG, 100) || 100) / 100;
+    const nutrients = Object.fromEntries(
+      Object.entries(per100Nutrients).map(([key, value]) => [key, Math.round(value * factor * 100) / 100]),
+    );
     return {
       calories: Math.round(per100.calories * factor),
       proteinG: Math.round(per100.proteinG * factor * 10) / 10,
       carbsG:   Math.round(per100.carbsG   * factor * 10) / 10,
       fatG:     Math.round(per100.fatG     * factor * 10) / 10,
+      nutrients,
     };
-  }, [per100, servingG]);
+  }, [per100, per100Nutrients, servingG]);
 
   async function handleLog() {
     if (!productName.trim()) return;
@@ -75,6 +91,8 @@ export default function BarcodeConfirmScreen() {
         proteinG: scaled.proteinG,
         carbsG:   scaled.carbsG,
         fatG:     scaled.fatG,
+        nutrients: scaled.nutrients,
+        source: 'barcode',
       } as any);
       Analytics.foodBarcodeLogged({ code: String(params.code ?? ''), name: productName, servingsLogged: 1 });
       // Pop back to where the user came from (Nutrition tab inside Coach)
@@ -120,6 +138,8 @@ export default function BarcodeConfirmScreen() {
               <Text style={styles.productSource}>OpenFoodFacts</Text>
             </View>
           </View>
+
+          <MicroPreview raw={{ nutrients: scaled.nutrients }} />
 
           {/* Serving editor */}
           <Text style={styles.sectionLabel}>Serving size</Text>
