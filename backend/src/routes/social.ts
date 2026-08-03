@@ -578,6 +578,50 @@ function serializeFeedItem(item: any, viewerId: string, slim = false) {
   };
 }
 
+/**
+ * Pull every distinct author out of a feed page into a lookup map, and strip
+ * the (large) avatarBase64 from the inline author objects.
+ *
+ * Avatars are ~84 KB each and were serialized once per post AND again for
+ * every comment author. Measured on a real 35-item page for a pro user:
+ * 53 base64 blobs, only 3 distinct — 3.45 MB of a 3.69 MB response was
+ * byte-identical duplicates. Sending each avatar once takes that page to
+ * roughly 250 KB.
+ *
+ * Only avatarBase64 is removed; id/name/username stay inline so anything
+ * reading the author object still renders text without consulting the map.
+ * The client rehydrates avatars from `authors` on arrival, so the in-memory
+ * shape is unchanged — this is purely a wire-format optimization.
+ */
+export function extractAuthors(
+  items: Array<{ kind: string; data: any }>,
+): Record<string, { id: string; name: string | null; username: string | null; avatarBase64: string | null }> {
+  const authors: Record<string, any> = {};
+
+  const take = (person: any) => {
+    if (!person?.id) return;
+    if (!(person.id in authors)) {
+      authors[person.id] = {
+        id: person.id,
+        name: person.name ?? null,
+        username: person.username ?? null,
+        avatarBase64: person.avatarBase64 ?? null,
+      };
+    } else if (authors[person.id].avatarBase64 == null && person.avatarBase64 != null) {
+      // First sighting may have come from a row that didn't select the avatar.
+      authors[person.id].avatarBase64 = person.avatarBase64;
+    }
+    delete person.avatarBase64;
+  };
+
+  for (const item of items) {
+    if (item.kind !== 'post') continue;
+    take(item.data?.sharer);
+    for (const c of item.data?.comments ?? []) take(c?.author);
+  }
+  return authors;
+}
+
 // POST /api/social/share
 router.post('/social/share', async (req, res) => {
   const { recipientId, itemType, itemId, payload, caption, visibility } = req.body;
@@ -712,6 +756,9 @@ router.get('/social/feed', wrap(async (req, res) => {
   // page with embedded photos. Opt-in so old clients without the lazy-load
   // path still get inline images.
   const slim = req.query.slim === '1' || req.query.slim === 'true';
+  // authors=1: return a deduplicated `authors` map instead of repeating each
+  // author's avatarBase64 on every post and every comment. See extractAuthors.
+  const dedupeAuthors = req.query.authors === '1' || req.query.authors === 'true';
   // Page size — `?limit=N` overrides. Default 25 cuts the typical
   // initial-load payload roughly in half compared to the prior `take: 50`
   // without losing anything users actually see (most users scroll < 10
@@ -830,6 +877,15 @@ router.get('/social/feed', wrap(async (req, res) => {
   // latestPostAt lets the client poll /social/feed/new-count for a Twitter-
   // style "N new posts" pill without re-fetching the whole feed body.
   const latestPostAt = friendPosts[0]?.data?.createdAt ?? null;
+
+  // authors=1: hoist duplicate avatars into a lookup map (see extractAuthors).
+  // Opt-in on its OWN flag rather than reusing `slim`, because the currently
+  // deployed client already sends slim=1 and still expects avatarBase64 inline
+  // — folding this into slim would blank every avatar until the OTA landed.
+  if (dedupeAuthors) {
+    const authors = extractAuthors(result);
+    return res.json({ items: result, exhausted, latestPostAt, authors });
+  }
   res.json({ items: result, exhausted, latestPostAt });
 }));
 

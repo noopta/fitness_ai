@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
+import { cacheGet, cacheSet, cacheDelete, cacheGetWithMeta, cacheMarkStale } from '../services/cacheService.js';
 import posthog from '../services/posthogClient.js';
 
 const NUTRITION_PROFILE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days — invalidated on meal entry
@@ -18,6 +18,11 @@ import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio } from
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
+import {
+  descriptiveLabel,
+  KNOWN_MEAL_SOURCES,
+  KNOWN_PARSE_CONFIDENCE,
+} from '../validation/descriptiveLabel.js';
 import { detectAndNotifyProteinHit } from '../services/progressService.js';
 import { sendJunkFoodEncouragement, isJunkFood } from '../services/reengagementService.js';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
@@ -57,7 +62,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
         data,
       });
       cacheDelete(`userctx:${userId}`);
-      cacheDelete(nutritionProfileCacheKey(userId));
+      cacheMarkStale(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
       updateNutritionStreakInBackground(prisma, userId, data.date);
       detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
@@ -83,7 +88,7 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
     // this, but the original create branch only purged userctx. Without this
     // line, a fresh log (first one of the day) leaves a stale profile cached
     // server-side until the 30-day TTL expires.
-    cacheDelete(nutritionProfileCacheKey(userId));
+    cacheMarkStale(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
     updateNutritionStreakInBackground(prisma, userId, data.date);
     detectAndNotifyProteinHit(prisma, userId, data.date, data.proteinG).catch(err =>
@@ -158,8 +163,10 @@ const mealEntrySchema = z.object({
     omega6G: z.number().min(0).max(300).optional(),
     glycemicIndex: z.number().min(0).max(150).nullable().optional(),
   }).optional(),
-  source: z.enum(['manual', 'text', 'photo', 'saved_food', 'recipe']).optional().default('manual'),
-  parseConfidence: z.enum(['high', 'medium', 'low']).optional(),
+  // Descriptive labels, NOT gates — an unrecognised value must never reject the
+  // meal. See src/validation/descriptiveLabel.ts for why (this broke twice).
+  source: descriptiveLabel(KNOWN_MEAL_SOURCES, 'manual'),
+  parseConfidence: descriptiveLabel(KNOWN_PARSE_CONFIDENCE, null),
   notes: z.string().max(500).optional(),
   // OPEN nutrient channel — any nutrient keys the parser produced. Not capped
   // to a fixed set; the effects engine reads this. Values must be finite.
@@ -233,7 +240,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     // library, and a per-serving shadow copy here could clobber a same-named
     // saved food (or vice versa) on the normalizedName unique key.
     if (data.source === 'recipe') {
-      cacheDelete(nutritionProfileCacheKey(userId));
+      cacheMarkStale(nutritionProfileCacheKey(userId));
       logActivity(userId, 'nutrition').catch(() => {});
       updateNutritionStreakInBackground(prisma, userId, data.date);
       return res.status(201).json({ ...entry, ingredients, tags, nutrients });
@@ -243,6 +250,11 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
       where: { userId_normalizedName: { userId, normalizedName } },
     });
     if (existingFood) {
+      // A macro-only manual/barcode log must not erase micronutrients learned
+      // from an earlier rich parse of the same saved food.
+      const incomingHasMicros = Object.values(nutrients)
+        .filter((value) => typeof value === 'number' && Number.isFinite(value) && value > 0)
+        .length >= 3;
       await prisma.savedFood.update({
         where: { id: existingFood.id },
         data: {
@@ -252,7 +264,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
           fatG: data.fatG,
           ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
           tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
-          nutrientsJson: JSON.stringify(nutrients),
+          ...(incomingHasMicros ? { nutrientsJson: JSON.stringify(nutrients) } : {}),
           source: data.source,
           useCount: { increment: 1 },
         },
@@ -276,7 +288,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
       });
     }
 
-    cacheDelete(nutritionProfileCacheKey(userId));
+    cacheMarkStale(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
     updateNutritionStreakInBackground(prisma, userId, data.date);
     res.status(201).json({
@@ -472,7 +484,7 @@ router.put('/nutrition/targets', requireAuth, async (req, res) => {
       data: { dailyCalorieTarget: dailyCalorieTarget ?? null },
     });
     // Bust the nutrition profile cache so next fetch uses the new target
-    cacheDelete(nutritionProfileCacheKey(userId));
+    cacheMarkStale(nutritionProfileCacheKey(userId));
     res.json({ success: true });
   } catch (err: any) {
     console.error('Set nutrition targets error:', err);
@@ -519,7 +531,7 @@ router.put('/nutrition/meals/:id', requireAuth, async (req, res) => {
       },
     });
 
-    cacheDelete(nutritionProfileCacheKey(req.user!.id));
+    cacheMarkStale(nutritionProfileCacheKey(req.user!.id));
     res.json(entry);
   } catch (err: any) {
     console.error('Meal update error:', err);
@@ -536,7 +548,7 @@ router.delete('/nutrition/meals/:id', requireAuth, async (req, res) => {
     });
     if (!entry) return res.status(404).json({ error: 'Entry not found' });
     await prisma.mealEntry.delete({ where: { id } });
-    cacheDelete(nutritionProfileCacheKey(req.user!.id));
+    cacheMarkStale(nutritionProfileCacheKey(req.user!.id));
     res.json({ success: true });
   } catch (err: any) {
     console.error('Meal delete error:', err);
@@ -784,17 +796,14 @@ router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
 //   3. Run NutritionRulesEngine (expert flags grounded in sports science citations)
 //   4. RAG retrieval (evidence chunks matched to this user's goal + lift)
 //   5. GPT-5.4-mini-2026-03-17 receives ONLY the pre-computed context and reasons/explains
-router.get('/nutrition/profile', requireAuth, async (req, res) => {
-  try {
-    const userId = req.user!.id;
-    const forceRefresh = req.query.refresh === '1';
-
-    // ── Cache check: return immediately if fresh data exists ───────────────
-    if (!forceRefresh) {
-      const cached = cacheGet<object>(nutritionProfileCacheKey(userId));
-      if (cached) return res.json(cached);
-    }
-
+/**
+ * Build the nutrition profile from scratch: 90 days of aggregates, a RAG
+ * lookup, and a ~12k-token LLM analysis. Takes tens of seconds — measured at
+ * 56s against prod on 2026-08-03 — which is exactly why it must not sit on the
+ * request path. Callers go through the cache wrapper below.
+ */
+async function buildNutritionProfile(userId: string): Promise<Record<string, any>> {
+  {
     const since90 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
     // ── STEP 1: Load user state in parallel ────────────────────────────────
@@ -839,10 +848,10 @@ router.get('/nutrition/profile', requireAuth, async (req, res) => {
     ]);
 
     if (entries.length === 0) {
-      return res.json({
+      return {
         hasData: false,
         message: 'Log at least a few meals to generate your Nutrition Profile.',
-      });
+      };
     }
 
     // ── Derive age from dateOfBirth ──────────────────────────────────────
@@ -1404,9 +1413,48 @@ Ensure every recommendation is consistent with the user's primary goal stated ab
       analysis: aiAnalysis,
     };
 
-    // Cache for 24h — invalidated automatically when a meal is logged
     cacheSet(nutritionProfileCacheKey(userId), responsePayload, NUTRITION_PROFILE_TTL);
-    res.json(responsePayload);
+    return responsePayload;
+  }
+}
+
+/**
+ * In-flight background rebuilds, keyed by user, so a burst of requests for the
+ * same stale profile triggers exactly one recompute rather than N concurrent
+ * 12k-token LLM calls on a 3.7 GB box.
+ */
+const profileRebuilds = new Set<string>();
+
+function refreshProfileInBackground(userId: string): void {
+  if (profileRebuilds.has(userId)) return;
+  profileRebuilds.add(userId);
+  void buildNutritionProfile(userId)
+    .catch(err => console.error(`[nutrition/profile] background rebuild failed for ${userId}:`, err?.message ?? err))
+    .finally(() => profileRebuilds.delete(userId));
+}
+
+// GET /api/nutrition/profile — stale-while-revalidate.
+//
+// Previously every meal log deleted this cache entry, so the next person to
+// open the Nutrition tab personally waited out a ~56s LLM generation with no
+// client timeout to break it. Now a stale entry is served immediately and
+// refreshed behind the response; only a user with no cached profile at all
+// (genuinely first ever view) waits for a live build.
+router.get('/nutrition/profile', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const forceRefresh = req.query.refresh === '1';
+    const key = nutritionProfileCacheKey(userId);
+
+    if (!forceRefresh) {
+      const cached = cacheGetWithMeta<Record<string, any>>(key);
+      if (cached) {
+        if (cached.stale) refreshProfileInBackground(userId);
+        return res.json({ ...cached.data, stale: cached.stale || undefined });
+      }
+    }
+
+    return res.json(await buildNutritionProfile(userId));
   } catch (err: any) {
     console.error('Nutrition profile error:', err);
     res.status(500).json({ error: err?.message ?? 'Failed to generate nutrition profile' });

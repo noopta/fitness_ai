@@ -9,6 +9,21 @@ if (Platform.OS !== 'web') {
 const API_BASE = 'https://api.airthreads.ai/api';
 const TOKEN_KEY = 'liftoff_auth_token';
 
+/**
+ * Default deadline for every request. Ordinary reads finish in well under a
+ * second; anything past this is a stuck endpoint, and the user is better served
+ * by a visible error than an indefinite spinner.
+ */
+const DEFAULT_TIMEOUT_MS = 30_000;
+
+/**
+ * For endpoints that legitimately run long — LLM generation, vision, audio
+ * transcription. These genuinely take tens of seconds, so the default deadline
+ * would abort real work. Pass `{ timeoutMs: LONG_TIMEOUT_MS }` explicitly
+ * rather than raising the default and losing the protection everywhere else.
+ */
+export const LONG_TIMEOUT_MS = 180_000;
+
 export async function getToken(): Promise<string | null> {
   if (Platform.OS === 'web') {
     return AsyncStorage.getItem(TOKEN_KEY);
@@ -37,10 +52,13 @@ export async function apiFetch(
   options?: RequestInit & { timeoutMs?: number },
   requiresAuth = true,
 ): Promise<any> {
-  // timeoutMs is opt-in per call (RN's fetch has no default timeout, so a stuck
-  // endpoint blocks the caller indefinitely / until ~60s and then errors). We
-  // strip it before it reaches fetch().
-  const { timeoutMs, ...fetchOptions } = options ?? {};
+  // RN's fetch has NO default timeout, so before this every endpoint except
+  // /social/feed could hang a screen forever — no error, no retry, just an
+  // infinite spinner. That is exactly how the 2026-08-03 incident presented:
+  // the coach/nutrition/diagnostics tabs weren't failing, they were waiting.
+  // Every request now gets a deadline; pass timeoutMs explicitly to widen it
+  // for genuinely long operations (uploads, LLM generation).
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchOptions } = options ?? {};
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(fetchOptions.headers as Record<string, string>),
@@ -65,7 +83,8 @@ export async function apiFetch(
   console.log(`[API] ${fetchOptions.method || 'GET'} ${url}`);
 
   // Abort the request if it exceeds timeoutMs so a slow/stuck endpoint fails
-  // fast with a clean error instead of hanging the screen.
+  // fast with a clean error instead of hanging the screen. Pass timeoutMs: 0
+  // to opt out entirely (nothing should, but streaming callers might).
   const controller = timeoutMs ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
 
@@ -89,7 +108,7 @@ export async function apiFetch(
       } else {
         // 404s on optional resources (e.g. "no nutrition plan yet") are an
         // expected state, not an error — keep the console clean.
-        if (res.status === 404 && (options as any).silent404) {
+        if (res.status === 404 && (options as any)?.silent404) {
           console.log(`[API] ${path} -> 404 (expected: ${message})`);
         } else {
           console.error(`[API] Error ${res.status} on ${path}: ${message}`);
@@ -250,6 +269,7 @@ export const liftCoachApi = {
     apiFetch(`/sessions/${sessionId}/messages`, {
       method: 'POST',
       body: JSON.stringify({ message: content }),
+      timeoutMs: LONG_TIMEOUT_MS,
     }),
 
   // Results-page chat (Assistants API thread, separate from diagnostic messages)
@@ -257,6 +277,7 @@ export const liftCoachApi = {
     apiFetch(`/sessions/${sessionId}/chat`, {
       method: 'POST',
       body: JSON.stringify({ message: content }),
+      timeoutMs: LONG_TIMEOUT_MS,
     }),
 
   generatePlan: (sessionId: string) =>
@@ -368,10 +389,10 @@ export const coachApi = {
   // longer (it reads data + reasons), which the existing send spinner covers.
   sendChat: async (content: string) => {
     try {
-      return await apiFetch('/coach/agent', { method: 'POST', body: JSON.stringify({ message: content }) });
+      return await apiFetch('/coach/agent', { method: 'POST', body: JSON.stringify({ message: content }), timeoutMs: LONG_TIMEOUT_MS });
     } catch (err: any) {
       if (err?.status === 404) {
-        return apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ message: content }) });
+        return apiFetch('/coach/chat', { method: 'POST', body: JSON.stringify({ message: content }), timeoutMs: LONG_TIMEOUT_MS });
       }
       throw err;
     }
@@ -387,11 +408,11 @@ export const coachApi = {
   getCompletedPrograms: () => apiFetch('/coach/completed-programs'),
   getCompletedProgram: (id: string) => apiFetch(`/coach/completed-programs/${id}`),
   generateProgram: (data: any) =>
-    apiFetch('/coach/program', { method: 'POST', body: JSON.stringify(data) }),
+    apiFetch('/coach/program', { method: 'POST', body: JSON.stringify(data), timeoutMs: LONG_TIMEOUT_MS }),
   updateProgram: (data: any) =>
     apiFetch('/coach/program', { method: 'PUT', body: JSON.stringify({ program: data }) }),
   adjustProgram: (data: any) =>
-    apiFetch('/coach/adjust', { method: 'POST', body: JSON.stringify(data) }),
+    apiFetch('/coach/adjust', { method: 'POST', body: JSON.stringify(data), timeoutMs: LONG_TIMEOUT_MS }),
   applyAdjustment: (data: any) =>
     apiFetch('/coach/apply-adjustment', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -510,6 +531,8 @@ export interface ParsedRecipeResult {
   name: string;
   servings: number;
   items: Array<Required<RecipeItemInput>>;
+  /** Estimated totals for the whole recipe; divided by servings when saved. */
+  nutrients: Record<string, number>;
   confidence: 'high' | 'medium' | 'low';
   notes: string;
 }
@@ -527,6 +550,16 @@ export interface BarcodeLookupResult {
     fiberG: number | null;
     sugarG: number | null;
     sodiumMg: number | null;
+    saturatedFatG?: number | null;
+    cholesterolMg?: number | null;
+    ironMg?: number | null;
+    calciumMg?: number | null;
+    magnesiumMg?: number | null;
+    potassiumMg?: number | null;
+    zincMg?: number | null;
+    vitaminCMg?: number | null;
+    vitaminB12Mcg?: number | null;
+    folateMcg?: number | null;
   };
   servingSize: string | null;
   servingQuantityG: number | null;
@@ -590,7 +623,7 @@ export const nutritionApi = {
     ingredients?: string[];
     tags?: string[];
     nutrients?: Record<string, unknown>;
-    source?: 'manual' | 'text' | 'photo' | 'saved_food' | 'recipe';
+    source?: 'manual' | 'text' | 'photo' | 'saved_food' | 'recipe' | 'barcode';
     parseConfidence?: 'high' | 'medium' | 'low';
     nutrientMap?: Record<string, number>;
     ingredientNutrients?: Array<{ name: string; nutrients: Record<string, number> }>;
@@ -626,11 +659,11 @@ export const nutritionApi = {
 
   // AI meal parser — describe a meal, get macros back
   parseMeal: (description: string) =>
-    apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description }) }),
+    apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description }), timeoutMs: LONG_TIMEOUT_MS }),
 
   // Gemini vision — analyze a photo of a meal, get macros back
   analyzePhoto: (imageBase64: string, mimeType: string) =>
-    apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
+    apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }), timeoutMs: LONG_TIMEOUT_MS }),
 
   /**
    * Anakin-ranked meal suggestions tailored to today's remaining macros.
@@ -644,6 +677,7 @@ export const nutritionApi = {
   }) => apiFetch('/nutrition/suggest-meals', {
     method: 'POST',
     body: JSON.stringify(input),
+    timeoutMs: LONG_TIMEOUT_MS,
   }),
 
   /** Transcribe a voice recording. Powers the VoiceSheet. */
@@ -651,24 +685,25 @@ export const nutritionApi = {
     apiFetch('/nutrition/transcribe', {
       method: 'POST',
       body: JSON.stringify({ audioBase64, mimeType }),
+      timeoutMs: LONG_TIMEOUT_MS,
     }),
 
   // AI-generated nutrition profile (aggregates 90 days + LLM insights)
-  getProfile: () => apiFetch('/nutrition/profile'),
+  getProfile: () => apiFetch('/nutrition/profile', { timeoutMs: LONG_TIMEOUT_MS }),
 
   // ── Gut-health feature (2026-07) ──
   getAssessment: () => apiFetch('/nutrition/assessment'),
   saveAssessment: (assessment: Record<string, unknown>) =>
     apiFetch('/nutrition/assessment', { method: 'POST', body: JSON.stringify(assessment) }),
   generateNutritionPlan: () =>
-    apiFetch('/nutrition/plan/generate', { method: 'POST' }),
+    apiFetch('/nutrition/plan/generate', { method: 'POST', timeoutMs: LONG_TIMEOUT_MS }),
   getNutritionPlan: () => apiFetch('/nutrition/plan', { silent404: true } as any),
   getMicrosDaily: (date?: string) =>
     apiFetch(`/nutrition/micros/daily${date ? `?date=${date}` : ''}`),
   getGutWeek: (end?: string) =>
     apiFetch(`/nutrition/gut/week${end ? `?end=${end}` : ''}`),
   scanOrder: (imageBase64: string, mimeType: string) =>
-    apiFetch('/nutrition/order-scan', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }),
+    apiFetch('/nutrition/order-scan', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }), timeoutMs: LONG_TIMEOUT_MS }),
   logOrder: (data: {
     date?: string; mealType?: string; vendor?: string | null;
     items: Array<Record<string, unknown>>;
@@ -797,6 +832,37 @@ export const workoutsApi = {
 
 // ─── Social API ───────────────────────────────────────────────────────────────
 
+/**
+ * Put deduplicated avatars back onto the inline author objects.
+ *
+ * The feed sends each distinct author once in an `authors` map rather than
+ * repeating an ~84 KB avatarBase64 on every post and every comment. Restoring
+ * them here means the rest of the app sees exactly the shape it always has,
+ * so the saving is purely on the wire and no component had to change.
+ *
+ * Tolerant by design: an old server that doesn't send `authors` falls straight
+ * through, and an author missing from the map keeps whatever it already had.
+ */
+export function rehydrateAuthors(res: any): any {
+  const authors = res?.authors;
+  if (!authors || !Array.isArray(res?.items)) return res;
+
+  const fill = (person: any) => {
+    if (!person?.id) return;
+    if (person.avatarBase64 == null) {
+      const known = authors[person.id];
+      if (known?.avatarBase64 != null) person.avatarBase64 = known.avatarBase64;
+    }
+  };
+
+  for (const item of res.items) {
+    if (item?.kind !== 'post') continue;
+    fill(item.data?.sharer);
+    for (const c of item.data?.comments ?? []) fill(c?.author);
+  }
+  return res;
+}
+
 export const socialApi = {
   // Notification badge counts (unread DMs + pending friend requests)
   getNotificationCounts: () => apiFetch('/social/notifications/counts'),
@@ -846,14 +912,24 @@ export const socialApi = {
   // includeResearch defaults to TRUE: research items should be in the feed
   // on every load. The Research button stays as a way to force-refresh
   // articles from PubMed, but is no longer the *only* way to see them.
-  getFeed: (opts?: { fresh?: boolean; includeResearch?: boolean }) => {
+  //
+  // Also sends `authors=1`: the server hoists each distinct author into an
+  // `authors` map instead of repeating their ~84 KB avatarBase64 on every post
+  // and every comment. Measured on a real 35-item page: 53 blobs but only 3
+  // distinct, so 3.45 MB of a 3.69 MB response was duplicate bytes.
+  // rehydrateAuthors() puts the avatars back before anything downstream sees
+  // the data, so PostCard and friends keep reading `sharer.avatarBase64` and
+  // need no changes — the dedup exists only on the wire.
+  getFeed: async (opts?: { fresh?: boolean; includeResearch?: boolean }) => {
     const params = new URLSearchParams();
     params.set('slim', '1');
+    params.set('authors', '1');
     if (opts?.fresh) params.set('fresh', '1');
     if (opts?.includeResearch === false) params.set('include_research', '0');
     // 15s cap: the default (cached) feed returns in well under a second; if the
     // server is stuck, fail fast with a clean error instead of hanging the tab.
-    return apiFetch(`/social/feed?${params.toString()}`, { timeoutMs: 15000 });
+    const res = await apiFetch(`/social/feed?${params.toString()}`, { timeoutMs: 15000 });
+    return rehydrateAuthors(res);
   },
   // Articles-only endpoint. Called when the user explicitly taps "Get fresh
   // research" — slower fetches are acceptable since the user opted in.
