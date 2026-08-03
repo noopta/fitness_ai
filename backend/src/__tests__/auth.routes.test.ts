@@ -302,3 +302,64 @@ describe('GET /api/auth/me', () => {
     expect(res.status).toBe(401);
   });
 });
+
+// Chrome on Android will not follow a 302 to a custom scheme, so the OAuth
+// hand-back to the app must be an HTML page with a user-tappable link rather
+// than a redirect. Web (http/https) targets must keep the plain 302.
+describe('redirectToApp — mobile deep-link hand-back', () => {
+  let redirectToApp: (res: any, target: string) => any;
+  let app: express.Express;
+
+  beforeAll(async () => {
+    ({ redirectToApp } = await import('../routes/auth.js'));
+    app = express();
+    app.get('/hand-back', (req, res) => redirectToApp(res, req.query.to as string));
+  });
+
+  it('serves HTML instead of a 302 for a custom scheme', async () => {
+    const res = await request(app)
+      .get('/hand-back')
+      .query({ to: 'axiom://auth/callback?token=abc123' });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/html/);
+    expect(res.headers.location).toBeUndefined();
+  });
+
+  it('includes both an auto-navigate and a tappable fallback link', async () => {
+    const res = await request(app)
+      .get('/hand-back')
+      .query({ to: 'axiom://auth/callback?token=abc123' });
+
+    // The tap is the user gesture Chrome requires for an external scheme.
+    expect(res.text).toContain('href="axiom://auth/callback?token=abc123"');
+    expect(res.text).toContain('window.location.replace("axiom://auth/callback?token=abc123")');
+  });
+
+  it('never lets a URL-borne token be cached', async () => {
+    const res = await request(app)
+      .get('/hand-back')
+      .query({ to: 'axiom://auth/callback?token=abc123' });
+
+    expect(res.headers['cache-control']).toBe('no-store');
+  });
+
+  it('escapes the target so a crafted redirect_uri cannot inject markup', async () => {
+    const res = await request(app)
+      .get('/hand-back')
+      .query({ to: 'axiom://cb?t=1&x="><script>alert(1)</script>' });
+
+    expect(res.text).not.toContain('<script>alert(1)</script>');
+    expect(res.text).toContain('&amp;');
+    expect(res.text).toContain('&quot;');
+  });
+
+  it('still issues a plain 302 for http(s) targets (web flow unchanged)', async () => {
+    const res = await request(app)
+      .get('/hand-back')
+      .query({ to: 'https://axiom.fit/login?auth=success&token=abc123' });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('https://axiom.fit/login?auth=success&token=abc123');
+  });
+});

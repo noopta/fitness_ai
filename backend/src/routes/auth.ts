@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -374,6 +374,65 @@ router.post('/auth/login', async (req, res) => {
   }
 });
 
+/**
+ * Hand the browser back to a mobile app via a custom scheme (axiom://…).
+ *
+ * Chrome on Android refuses to follow a server-issued 302 whose Location is a
+ * non-http(s) scheme — external-protocol navigations require a user gesture on
+ * the page. The Custom Tab is left holding an unresolvable intent, Android
+ * falls back to the Play Store ("Checking for updates…"), and the user is
+ * stranded mid-sign-in with no token.
+ *
+ * iOS never hit this: ASWebAuthenticationSession intercepts the redirect at the
+ * network layer, so the custom scheme is never actually navigated.
+ *
+ * So for custom schemes we serve a real HTML page that both auto-attempts the
+ * deep link on load and renders a tappable link — the tap supplies the gesture
+ * Chrome requires. http(s) targets (the web flow) keep the plain 302.
+ */
+export function redirectToApp(res: Response, target: string) {
+  if (/^https?:\/\//i.test(target)) {
+    return res.redirect(target);
+  }
+
+  // The target embeds a JWT, so it must never be reflected unescaped.
+  const htmlAttr = target.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const jsString = JSON.stringify(target).replace(/</g, '\\u003c');
+
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  // A token in the URL must not be cached by any intermediary.
+  res.set('Cache-Control', 'no-store');
+  return res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signing you in…</title>
+<style>
+  html,body{height:100%;margin:0}
+  body{background:#000;color:#fff;display:flex;align-items:center;justify-content:center;
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:center}
+  .w{padding:24px;max-width:20rem}
+  h1{font-size:1.05rem;font-weight:600;margin:0 0 .5rem}
+  p{font-size:.875rem;color:#a1a1aa;margin:0 0 1.5rem}
+  a{display:inline-block;background:#fff;color:#000;text-decoration:none;font-weight:600;
+    padding:.85rem 1.5rem;border-radius:999px}
+</style>
+</head>
+<body>
+  <div class="w">
+    <h1>Signing you in…</h1>
+    <p>If Axiom doesn't open automatically, tap below.</p>
+    <a id="go" href="${htmlAttr}">Return to Axiom</a>
+  </div>
+  <script>
+    // Auto-attempt first; the button is the fallback when Chrome blocks it.
+    try { window.location.replace(${jsString}); } catch (e) {}
+  </script>
+</body>
+</html>`);
+}
+
 // GET /api/auth/google — redirect to Google OAuth consent
 router.get('/auth/google', (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID!;
@@ -407,7 +466,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
   const code = req.query.code as string;
   if (!code) {
-    return res.redirect(errorRedirect);
+    return redirectToApp(res, errorRedirect);
   }
 
   try {
@@ -488,7 +547,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
     if (mobileRedirect) {
       const needsDob = isNewUser && !user.dateOfBirth ? '&needsDob=1' : '';
-      res.redirect(`${mobileRedirect}?token=${token}${needsDob}`);
+      redirectToApp(res, `${mobileRedirect}?token=${token}${needsDob}`);
     } else {
       // Include token in URL so web frontend can use it as Bearer fallback
       // (cross-domain cookies may be blocked by browser privacy features)
@@ -496,7 +555,7 @@ router.get('/auth/google/callback', async (req, res) => {
     }
   } catch (err) {
     console.error('Google OAuth callback error:', err);
-    res.redirect(errorRedirect);
+    redirectToApp(res, errorRedirect);
   }
 });
 
