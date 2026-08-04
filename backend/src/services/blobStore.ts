@@ -92,6 +92,26 @@ export function stripDataUri(input: string): { base64: string; mimeType: string 
   return { base64: input, mimeType: null };
 }
 
+/**
+ * Identify an image from its magic bytes.
+ *
+ * Never trust a caller-supplied mime here. Post payloads store raw base64 with
+ * no `data:` prefix, so the previous default of "assume JPEG" silently labelled
+ * PNGs as `image/jpeg` — the bytes served fine (decoders sniff), but the
+ * Content-Type and the key's extension were both wrong. The bytes themselves
+ * are the only reliable source.
+ */
+export function sniffImageMime(bytes: Buffer): string | null {
+  if (bytes.length < 12) return null;
+  if (bytes[0] === 0xff && bytes[1] === 0xd8) return 'image/jpeg';
+  if (bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') return 'image/png';
+  if (bytes.subarray(0, 3).toString('ascii') === 'GIF') return 'image/gif';
+  if (bytes.subarray(0, 4).toString('ascii') === 'RIFF' && bytes.subarray(8, 12).toString('ascii') === 'WEBP') {
+    return 'image/webp';
+  }
+  return null;
+}
+
 /** sha256 of the decoded bytes — the content address. */
 export function contentKey(bytes: Buffer, mimeType: string): string {
   const digest = createHash('sha256').update(bytes).digest('hex');
@@ -161,14 +181,16 @@ export async function putImageBase64(
 
   try {
     const { base64, mimeType: fromUri } = stripDataUri(input);
-    const mimeType = (fromUri ?? mimeTypeHint ?? 'image/jpeg').toLowerCase();
-    if (!ALLOWED_MIME.has(mimeType)) {
-      console.warn(`[blobStore] unsupported mime ${mimeType} — leaving inline`);
-      return null;
-    }
-
     const bytes = Buffer.from(base64, 'base64');
     if (bytes.length === 0) return null;
+
+    // Sniff first — a data: prefix or caller hint is a claim, the bytes are
+    // evidence. Falling back to a hint let PNGs get stored as image/jpeg.
+    const mimeType = (sniffImageMime(bytes) ?? fromUri ?? mimeTypeHint ?? '').toLowerCase();
+    if (!ALLOWED_MIME.has(mimeType)) {
+      console.warn(`[blobStore] unrecognised image data (${mimeType || 'unknown'}) — leaving inline`);
+      return null;
+    }
 
     const key = contentKey(bytes, mimeType);
     const file = b.file(key);

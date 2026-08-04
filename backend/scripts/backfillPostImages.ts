@@ -17,6 +17,10 @@
  * upload returns null, and the script exits having changed nothing.
  */
 
+// Load .env from the working directory. Run this from the deploy dir
+// (/home/ubuntu/fitness_ai_repo/backend) so DATABASE_URL's relative
+// `file:./dev.db` and the GCP credentials both resolve to production.
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { putImageBase64, blobStoreEnabled } from '../src/services/blobStore.js';
 

@@ -10,7 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { createHash } from 'node:crypto';
-import { contentKey, stripDataUri, putImageBase64, blobStoreEnabled } from '../services/blobStore.js';
+import { contentKey, stripDataUri, putImageBase64, blobStoreEnabled, sniffImageMime } from '../services/blobStore.js';
 
 const bytesOf = (s: string) => Buffer.from(s, 'utf8');
 
@@ -27,6 +27,34 @@ describe('stripDataUri', () => {
     const { base64, mimeType } = stripDataUri('data:image/jpeg;base64,AA\nAB');
     expect(mimeType).toBe('image/jpeg');
     expect(base64).toBe('AA\nAB');
+  });
+});
+
+describe('sniffImageMime', () => {
+  // Regression: post payloads store raw base64 with no data: prefix, so the
+  // old "assume JPEG" default labelled 4 real PNGs as image/jpeg in GCS.
+  // The bytes are the only trustworthy source.
+  const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.alloc(8)]);
+  const gif = Buffer.concat([Buffer.from('GIF89a'), Buffer.alloc(8)]);
+  const webp = Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBP'), Buffer.alloc(4)]);
+
+  it('identifies each supported format from its magic bytes', () => {
+    expect(sniffImageMime(jpeg)).toBe('image/jpeg');
+    expect(sniffImageMime(png)).toBe('image/png');
+    expect(sniffImageMime(gif)).toBe('image/gif');
+    expect(sniffImageMime(webp)).toBe('image/webp');
+  });
+
+  it('returns null for non-image and too-short input', () => {
+    expect(sniffImageMime(Buffer.from('not an image at all'))).toBeNull();
+    expect(sniffImageMime(Buffer.from([0xff, 0xd8]))).toBeNull();
+    expect(sniffImageMime(Buffer.alloc(0))).toBeNull();
+  });
+
+  it('trusts bytes over a contradicting claim — the actual bug', () => {
+    // A PNG arriving with no prefix previously became image/jpeg.
+    expect(sniffImageMime(png)).not.toBe('image/jpeg');
   });
 });
 

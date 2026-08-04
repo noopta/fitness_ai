@@ -20,6 +20,10 @@
  * effectively a no-op. Rows that fail to decode are left untouched.
  */
 
+// Load .env from the working directory. Run this from the deploy dir
+// (/home/ubuntu/fitness_ai_repo/backend) so DATABASE_URL's relative
+// `file:./dev.db` and the GCP credentials both resolve to production.
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { resizeAvatarBase64 } from '../src/services/avatarImage.js';
 
