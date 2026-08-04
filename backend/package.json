@@ -14,7 +14,8 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "backfill:recipe-micros": "tsx scripts/backfillRecipeMicros.ts",
-    "backfill:post-images": "tsx scripts/backfillPostImages.ts"
+    "backfill:post-images": "tsx scripts/backfillPostImages.ts",
+    "backfill:avatars": "tsx scripts/backfillAvatars.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",
