@@ -7,6 +7,27 @@ import { authApi, getToken, setToken, clearToken, isVerifyPending, type AuthVeri
 
 WebBrowser.maybeCompleteAuthSession();
 
+/**
+ * The last OAuth token we finished processing.
+ *
+ * Module-level rather than a ref because the same token can reach us from
+ * three independent places — the openAuthSessionAsync promise, the global
+ * deep-link listener, and the /auth/callback route on a cold start — and those
+ * can span component remounts.
+ */
+let handledToken: string | null = null;
+
+/** Pull the OAuth result out of an `axiom://auth/callback?...` deep link. */
+export function parseAuthCallbackUrl(url: string): { token?: string; needsDob: boolean; error: boolean } | null {
+  if (!url || !url.includes('auth/callback')) return null;
+  const token = url.match(/[?&]token=([^&#]+)/)?.[1];
+  return {
+    token: token ? decodeURIComponent(token) : undefined,
+    needsDob: /[?&]needsDob=1/.test(url),
+    error: /[?&]auth=error/.test(url),
+  };
+}
+
 export interface InstitutionMembership {
   role: 'coach' | 'athlete';
   joinedAt: string;
@@ -118,6 +139,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init();
   }, []);
 
+  /**
+   * Catch the OAuth deep link wherever it comes from.
+   *
+   * Until now the ONLY thing watching for `axiom://auth/callback?token=…` was
+   * the promise returned by openAuthSessionAsync. That promise is fragile: on
+   * Android, anything that foregrounds another app tears the Custom Tab down
+   * and resolves it as `dismiss`, throwing the token away even though the
+   * sign-in actually succeeded.
+   *
+   * That is not an edge case — Google's "Yes, it's me" 2FA does exactly this,
+   * because the Gmail prompt appears ON THE SAME PHONE and pulls focus. The
+   * user taps yes, comes back, and is still sitting on the login screen.
+   *
+   * So the deep link is now the source of truth and the browser promise is
+   * only an optimisation. completeAuthCallback is idempotent, so it does not
+   * matter which one wins.
+   */
+  useEffect(() => {
+    const handle = async (url: string | null) => {
+      if (!url) return;
+      const parsed = parseAuthCallbackUrl(url);
+      if (!parsed) return;
+
+      if (parsed.token) {
+        // The tab may still be sitting open behind us after a handoff.
+        try { WebBrowser.dismissBrowser(); } catch { /* nothing open */ }
+        const ok = await completeAuthCallback(parsed.token, { needsDob: parsed.needsDob });
+        if (!ok) Alert.alert('Sign In Failed', 'We could not verify your sign-in. Please try again.');
+      } else if (parsed.error) {
+        Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
+      }
+    };
+
+    const sub = Linking.addEventListener('url', e => { void handle(e.url); });
+    // Cold start: the link that launched the app is not delivered as an event.
+    void Linking.getInitialURL().then(handle).catch(() => {});
+    return () => sub.remove();
+  }, []);
+
   async function login(email: string, password: string): Promise<AuthVerifyPending | null> {
     const data = await authApi.login(email, password);
     if (isVerifyPending(data)) return data;
@@ -161,6 +221,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token: string,
     opts?: { needsDob?: boolean },
   ): Promise<boolean> {
+    // The same token can legitimately arrive twice — once from the WebBrowser
+    // promise and once from the global deep-link listener below, or from the
+    // /auth/callback route on a cold start. Verifying it twice would fire two
+    // /auth/me calls and race setUser, so the first success wins.
+    if (token === handledToken) return true;
+    handledToken = token;
+
     await setToken(token);
     try {
       const res = await fetch('https://api.airthreads.ai/api/auth/me', {
@@ -169,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         await clearToken();
+        handledToken = null; // release the guard so a retry can run
         return false;
       }
       setUser(data.user);
@@ -179,6 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // the user lands on the welcome screen and can retry rather than being
       // stuck in a half-authenticated state.
       await clearToken();
+      handledToken = null;
       return false;
     }
   }
@@ -229,7 +298,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           Alert.alert('Sign In Failed', `No token in redirect URL. Please try again.`);
         }
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
-        // User cancelled — no alert needed
+        // NOT necessarily a cancellation. On Android the Custom Tab resolves
+        // as `dismiss` whenever another app steals focus — which is exactly
+        // what Google's "Yes, it's me" 2FA does, since the Gmail prompt opens
+        // on the same phone. The sign-in may well have completed, with the
+        // token arriving via the deep-link listener a moment later.
+        //
+        // So: give the deep link a chance to land, and only report failure if
+        // nothing showed up. Silence here is what left users staring at the
+        // login screen with no idea anything had gone wrong.
+        console.log('[Auth] browser dismissed — waiting briefly for the deep link');
+        await new Promise(r => setTimeout(r, 2500));
+        if (!handledToken) {
+          console.log('[Auth] no deep link arrived after dismiss — treating as cancelled');
+        }
       } else {
         Alert.alert('Sign In Failed', `Unexpected result: ${result.type}. Please try again.`);
       }
