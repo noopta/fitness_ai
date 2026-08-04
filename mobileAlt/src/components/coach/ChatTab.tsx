@@ -6,12 +6,12 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { coachApi, getToken } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
 import { invalidateCache } from '../../lib/cache';
@@ -390,15 +390,7 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
   const canSend = inputText.trim().length > 0 && !sending;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="padding"
-      // Android offset must be 0. SDK 55 forces edge-to-edge so the OS does not
-      // resize the window (see fea343d) — 'padding' already accounts for the
-      // full IME height, and any extra offset pushes the input bar down behind
-      // the keyboard, which is what hid it on the Chat tab.
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 160 : 0}
-    >
+    <KeyboardAvoider style={styles.container} iosOffset={160}>
       <KeyboardDoneBar />
       {/* Messages */}
       <ScrollView
@@ -461,7 +453,7 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
           <Text style={styles.sendIcon}>➤</Text>
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAvoider>
   );
 }
 
