@@ -556,14 +556,25 @@ function PostCardInner({
     if (!needsLazyImage) return;
     let cancelled = false;
     socialApi.getPostImage(item.id)
-      .then((res: any) => { if (!cancelled && res?.imageBase64) setLazyImage(res.imageBase64); })
+      .then((res: any) => {
+        if (cancelled) return;
+        // Posts migrated to object storage answer with a signed URL; ones
+        // still holding bytes in the DB answer with base64. Accept both —
+        // the backfill runs gradually and both shapes coexist meanwhile.
+        if (res?.imageUrl) setLazyImage(res.imageUrl);
+        else if (res?.imageBase64) setLazyImage(res.imageBase64);
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [item.id, needsLazyImage]);
 
-  const rawBase64 = inlineBase64 ?? lazyImage;
-  const imageUri = rawBase64
-    ? (rawBase64.startsWith('data:') ? rawBase64 : `data:image/jpeg;base64,${rawBase64}`)
+  // May be raw base64, a data: URI, or (post-migration) a real https URL —
+  // only the first needs a data: prefix synthesized.
+  const rawImage = inlineBase64 ?? lazyImage;
+  const imageUri = rawImage
+    ? (rawImage.startsWith('data:') || rawImage.startsWith('http')
+        ? rawImage
+        : `data:image/jpeg;base64,${rawImage}`)
     : null;
 
   const postText: string | null = isRepost

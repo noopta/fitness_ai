@@ -29,7 +29,7 @@
  * and podcast/gcsArchive), and GCP credits cover it. The only real argument for
  * Cloudflare R2 is egress (~$0.12/GB on GCS vs $0), which does not bite until
  * far more traffic than this app has. Everything vendor-specific is confined to
- * `putObject`/`publicUrl` below so swapping later is a contained change rather
+ * `bucket()`/`objectUrl()` below so swapping later is a contained change rather
  * than a rewrite.
  *
  * Disabled unless GCP_MEDIA_BUCKET is set — callers must handle a null result
@@ -39,12 +39,32 @@
 
 import { createHash } from 'node:crypto';
 import { Storage } from '@google-cloud/storage';
+import { cacheGet, cacheSet } from './cacheService.js';
 
 const PROJECT = process.env.GCP_PROJECT_ID ?? process.env.GCP_PROJECT;
 const BUCKET = process.env.GCP_MEDIA_BUCKET;
 
-/** Public base for served objects. Set to a CDN origin to front the bucket. */
-const PUBLIC_BASE = process.env.MEDIA_PUBLIC_BASE ?? (BUCKET ? `https://storage.googleapis.com/${BUCKET}` : null);
+/**
+ * Set only if the bucket is made publicly readable and fronted by a CDN. Left
+ * unset the bucket stays private and objects are served via signed URLs, which
+ * is the default because posts carry `visibility: 'friends'` — a public bucket
+ * would quietly downgrade that to "public to anyone with the link", and links
+ * leak via logs, referrers and screenshots.
+ */
+const PUBLIC_BASE = process.env.MEDIA_PUBLIC_BASE ?? null;
+
+/**
+ * Signed URLs are minted for the V4 maximum of 7 days and cached, rather than
+ * per-request with a short expiry.
+ *
+ * This matters: the whole point of moving images out of JSON is that a URL can
+ * be cached by the client and the edge. A URL that rotates every few minutes is
+ * re-downloaded every time and throws that away. Handing every client the SAME
+ * url for days restores ordinary HTTP caching while keeping the object private.
+ */
+const SIGNED_URL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+/** Re-sign a day early so a cached URL is never handed out near expiry. */
+const SIGNED_URL_CACHE_MS = 6 * 24 * 60 * 60 * 1000;
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const EXT_BY_MIME: Record<string, string> = {
@@ -80,8 +100,42 @@ export function contentKey(bytes: Buffer, mimeType: string): string {
   return `img/${digest.slice(0, 2)}/${digest}.${ext}`;
 }
 
-export function publicUrl(key: string): string | null {
-  return PUBLIC_BASE ? `${PUBLIC_BASE}/${key}` : null;
+/**
+ * A durable URL for an object.
+ *
+ * With MEDIA_PUBLIC_BASE set (public bucket + CDN) this is a plain static URL.
+ * Otherwise it mints a 7-day V4 signed URL and caches it, so repeat callers
+ * and every client share one cacheable URL. Returns null if the store is off
+ * or signing fails, and callers fall back to inline base64.
+ *
+ * Signing note: the runtime uses Workload Identity Federation with no private
+ * key, so signing goes through the IAM signBlob API. That requires the service
+ * account to hold roles/iam.serviceAccountTokenCreator ON ITSELF — granted
+ * 2026-08-04. Without it every call fails with
+ * "Permission 'iam.serviceAccounts.signBlob' denied".
+ */
+export async function objectUrl(key: string): Promise<string | null> {
+  if (PUBLIC_BASE) return `${PUBLIC_BASE}/${key}`;
+
+  const b = bucket();
+  if (!b) return null;
+
+  const cacheKey = `blob_url:${key}`;
+  const cached = cacheGet<string>(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const [url] = await b.file(key).getSignedUrl({
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + SIGNED_URL_TTL_MS,
+    });
+    cacheSet(cacheKey, url, SIGNED_URL_CACHE_MS);
+    return url;
+  } catch (err: any) {
+    console.warn(`[blobStore] could not sign ${key}: ${err?.message ?? err}`);
+    return null;
+  }
 }
 
 export interface StoredBlob {
@@ -117,16 +171,16 @@ export async function putImageBase64(
     if (bytes.length === 0) return null;
 
     const key = contentKey(bytes, mimeType);
-    const url = publicUrl(key);
-    if (!url) return null;
-
     const file = b.file(key);
 
     // Content addressing means an existing object is byte-identical, so the
     // upload can be skipped entirely. This is the dedup, and it costs one
     // metadata call instead of re-uploading the payload.
     const [exists] = await file.exists();
-    if (exists) return { key, url, bytes: bytes.length, deduped: true };
+    if (exists) {
+      const existingUrl = await objectUrl(key);
+      return existingUrl ? { key, url: existingUrl, bytes: bytes.length, deduped: true } : null;
+    }
 
     await file.save(bytes, {
       contentType: mimeType,
@@ -135,7 +189,8 @@ export async function putImageBase64(
       metadata: { cacheControl: 'public, max-age=31536000, immutable' },
     });
 
-    return { key, url, bytes: bytes.length, deduped: false };
+    const url = await objectUrl(key);
+    return url ? { key, url, bytes: bytes.length, deduped: false } : null;
   } catch (err: any) {
     console.warn(`[blobStore] upload failed, keeping inline base64: ${err?.message ?? err}`);
     return null;

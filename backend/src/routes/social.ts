@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSources } from '../services/feedService.js';
+import { putImageBase64, objectUrl } from '../services/blobStore.js';
 
 const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
   (req: Request, res: Response, next: NextFunction) =>
@@ -524,6 +525,8 @@ router.get('/social/conversations/:conversationId/poll', wrap(async (req, res) =
 // ─── Sharing ──────────────────────────────────────────────────────────────────
 
 const FEED_INCLUDE = {
+
+
   sharer: { select: { id: true, name: true, username: true, avatarBase64: true } },
   reactions: { select: { userId: true, type: true } },
   comments: {
@@ -544,6 +547,11 @@ function serializeFeedItem(item: any, viewerId: string, slim = false) {
   //     the post scrolls into view. Cuts feed payload from ~11MB to ~4MB
   //     on a typical 25-post page with embedded photos.
   let payload = rawPayload;
+  // A migrated post has imageKey instead of imageBase64 — it still has an
+  // image, so the client's lazy-load path must be told about it.
+  if (rawPayload?.imageKey) {
+    payload = { ...rawPayload, hasImage: true };
+  }
   if (slim && rawPayload?.imageBase64) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { imageBase64, ...rest } = rawPayload;
@@ -646,6 +654,20 @@ router.post('/social/share', async (req, res) => {
   if (recipientId) {
     const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
     if (!canShare) return res.status(403).json({ error: 'Can only share with friends' });
+  }
+
+  // Offload the photo to content-addressed object storage and keep only its
+  // key in the row. Storing image bytes in a JSON column is what produced the
+  // 6 MB of SharedItem payload and the multi-megabyte feed responses.
+  // Best-effort by design: if the blob store is disabled or the upload fails,
+  // putImageBase64 returns null and the image stays inline exactly as before,
+  // so posting can never break on a storage problem.
+  if (payload.imageBase64) {
+    const stored = await putImageBase64(payload.imageBase64);
+    if (stored) {
+      delete payload.imageBase64;
+      payload.imageKey = stored.key;
+    }
   }
 
   const item = await prisma.sharedItem.create({
@@ -1252,6 +1274,15 @@ router.get('/social/posts/:id/image', wrap(async (req, res) => {
   });
   if (!post) return res.status(404).json({ error: 'Not found' });
   const p = typeof post.payload === 'string' ? JSON.parse(post.payload) : post.payload;
+
+  // Migrated posts carry only a key. Hand back a signed URL so the bytes go
+  // straight from GCS to the client and never through this box — proxying them
+  // would pay egress twice and put megabytes through a 3.7 GB server.
+  if (p?.imageKey) {
+    const url = await objectUrl(p.imageKey);
+    if (url) return res.json({ imageUrl: url });
+  }
+
   const imageBase64 = p?.imageBase64 ?? null;
   if (!imageBase64) return res.status(404).json({ error: 'No image' });
   res.json({ imageBase64 });
