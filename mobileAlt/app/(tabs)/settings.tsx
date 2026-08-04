@@ -11,6 +11,8 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi, authApi, paymentsApi } from '../../src/lib/api';
 import * as WebBrowser from 'expo-web-browser';
+import * as Updates from 'expo-updates';
+import Constants from 'expo-constants';
 import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
@@ -40,6 +42,42 @@ export default function SettingsScreen() {
     trackScreen('Settings');
     return trackScreenTime('Settings');
   }, []);
+
+  // Build identity. Until this existed there was no way to tell which JS a
+  // device was running — "did the fix ship?" had to be inferred from server
+  // logs, which cost several debugging rounds and is impossible for testers.
+  //
+  // Updates.updateId is null when running the bundle baked into the binary, so
+  // "embedded" genuinely means "no OTA applied" rather than "unknown".
+  const appVersion = (Constants.expoConfig?.version as string | undefined) ?? '?';
+  const bundleLabel = Updates.updateId
+    ? `update ${Updates.updateId.slice(0, 8)}`
+    : 'embedded build';
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  async function handleCheckUpdates() {
+    if (!Updates.isEnabled) {
+      Alert.alert('Updates unavailable', `Running the ${bundleLabel}. OTA updates are disabled in this build.`);
+      return;
+    }
+    setCheckingUpdate(true);
+    try {
+      const res = await Updates.checkForUpdateAsync();
+      if (!res.isAvailable) {
+        Alert.alert('Up to date', `Axiom ${appVersion} · ${bundleLabel}`);
+        return;
+      }
+      await Updates.fetchUpdateAsync();
+      Alert.alert('Update ready', 'Axiom will restart to apply it.', [
+        { text: 'Later', style: 'cancel' },
+        { text: 'Restart', onPress: () => { void Updates.reloadAsync(); } },
+      ]);
+    } catch (err: any) {
+      Alert.alert('Could not check for updates', err?.message ?? String(err));
+    } finally {
+      setCheckingUpdate(false);
+    }
+  }
 
   function openInApp(url: string, title: string) {
     setBrowserUrl(url);
@@ -489,7 +527,12 @@ export default function SettingsScreen() {
             <Text style={styles.legalLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.versionText}>Axiom v1.0.0 · AI-powered strength training</Text>
+        <TouchableOpacity onPress={handleCheckUpdates} activeOpacity={0.6} disabled={checkingUpdate}>
+          <Text style={styles.versionText}>
+            {checkingUpdate ? 'Checking for updates…' : `Axiom ${appVersion} · ${bundleLabel}`}
+          </Text>
+          <Text style={styles.versionHint}>Tap to check for updates</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <InAppBrowser
@@ -754,6 +797,7 @@ const styles = StyleSheet.create({
   legalLink: { fontSize: fontSize.xs, color: colors.mutedForeground, textDecorationLine: 'underline' },
   legalSep: { fontSize: fontSize.xs, color: colors.mutedForeground },
   versionText: { fontSize: fontSize.xs, color: colors.mutedForeground, textAlign: 'center', marginTop: 4 },
+  versionHint: { fontSize: 10, color: colors.mutedForeground, textAlign: 'center', marginTop: 2, opacity: 0.7 },
 
   unitToggle: {
     flexDirection: 'row',
