@@ -638,6 +638,33 @@ function SocialScreenInner() {
   // research" button. This is the bug fix for the "feed loads slow" report:
   // pulling articles in-line could block the response for 5-12s when the
   // PubMed cache was exhausted.
+  /**
+   * Write a card's local change (like, comment) back into the feed that owns it,
+   * and into the persisted cache.
+   *
+   * PostCard keeps a local copy of its item and used to mutate only that. The
+   * parent array still said likedByMe:false, so any remount of the card — list
+   * virtualisation, switching to Friends and back, revisiting the tab — re-seeded
+   * from the stale copy and the like disappeared. The user would then tap again,
+   * which toggles the server row OFF, losing the like for real. Verified in the
+   * logs: two /react calls per post 30s apart, and zero PostReaction rows left.
+   *
+   * The cache has to be updated too, or the stale value comes back on next mount.
+   */
+  const updateFeedItem = useCallback((updated: any) => {
+    setFeed(prev => {
+      const next = prev.map((entry: any) =>
+        entry.kind === 'post' && entry.data?.id === updated.id
+          ? { ...entry, data: updated }
+          : entry.id === updated.id
+            ? updated
+            : entry,
+      );
+      if (feedCacheKey) setCached(feedCacheKey, { items: next, exhausted });
+      return next;
+    });
+  }, [feedCacheKey, exhausted]);
+
   const loadFeed = useCallback((force = false, opts?: { includeResearch?: boolean }) => {
     // Research articles are part of the default feed shape. Previously the
     // default was false, which meant the initial mount never showed any
@@ -1097,7 +1124,12 @@ function SocialScreenInner() {
                 const postData = item.kind === 'post' ? item.data : item;
                 return (
                   <ErrorBoundary key={postData?.id ?? `p${index}`} label="social:feed-item" message="This post couldn't be displayed.">
-                    <PostCard item={postData} currentUserId={user?.id} friends={friends} />
+                    <PostCard
+                      item={postData}
+                      currentUserId={user?.id}
+                      friends={friends}
+                      onItemChange={updateFeedItem}
+                    />
                   </ErrorBoundary>
                 );
               })

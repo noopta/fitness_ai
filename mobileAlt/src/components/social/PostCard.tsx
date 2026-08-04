@@ -524,10 +524,22 @@ function PostCardInner({
   item: initialItem,
   currentUserId,
   friends,
+  onItemChange,
 }: {
   item: FeedItem;
   currentUserId?: string;
   friends: { id: string; name: string | null; username: string | null }[];
+  /**
+   * Push a locally-mutated item back up to the feed that owns it.
+   *
+   * Without this, a like lived ONLY in this component's state: the parent's
+   * feed array (and its persisted cache) still said likedByMe:false, so the
+   * moment the card remounted — list virtualisation, tab switch, returning to
+   * the screen — `useState(initialItem)` re-seeded from the stale copy and the
+   * like visually disappeared. Users then tapped again, which toggled the
+   * server row OFF, so the like was genuinely lost.
+   */
+  onItemChange?: (item: FeedItem) => void;
 }) {
   const [item, setItem] = useState(initialItem);
   const [commentSheetVisible, setCommentSheetVisible] = useState(false);
@@ -540,7 +552,10 @@ function PostCardInner({
 
   useEffect(() => {
     setItem(initialItem);
-  }, [initialItem.id, initialItem.reactionCount, initialItem.commentCount]);
+    // likedByMe is in the deps deliberately: a like followed by an unlike
+    // returns reactionCount to its original value, so watching the count
+    // alone would miss the change.
+  }, [initialItem.id, initialItem.reactionCount, initialItem.commentCount, initialItem.likedByMe]);
 
   const isRepost  = item.itemType === 'repost';
   const isText    = item.itemType === 'text';
@@ -622,28 +637,36 @@ function PostCardInner({
 
   async function handleReact() {
     const wasLiked = item.likedByMe;
-    setItem(prev => ({
-      ...prev,
+    // Apply optimistically to BOTH the local copy and the owning feed, so the
+    // state survives this card unmounting.
+    const optimistic = {
+      ...item,
       likedByMe: !wasLiked,
-      reactionCount: prev.reactionCount + (wasLiked ? -1 : 1),
-    }));
+      reactionCount: item.reactionCount + (wasLiked ? -1 : 1),
+    };
+    setItem(optimistic);
+    onItemChange?.(optimistic);
     try {
       await socialApi.reactToPost(item.id);
     } catch {
-      setItem(prev => ({
-        ...prev,
+      const reverted = {
+        ...item,
         likedByMe: wasLiked,
-        reactionCount: prev.reactionCount + (wasLiked ? 1 : -1),
-      }));
+        reactionCount: item.reactionCount,
+      };
+      setItem(reverted);
+      onItemChange?.(reverted);
     }
   }
 
   function handleCommentAdded(comment: PostComment) {
-    setItem(prev => ({
-      ...prev,
-      comments: [...prev.comments, comment],
-      commentCount: prev.commentCount + 1,
-    }));
+    const next = {
+      ...item,
+      comments: [...item.comments, comment],
+      commentCount: item.commentCount + 1,
+    };
+    setItem(next);
+    onItemChange?.(next);
   }
 
   async function handleForward(friendId: string) {
