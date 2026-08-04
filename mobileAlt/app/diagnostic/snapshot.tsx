@@ -254,7 +254,7 @@ export default function SnapshotScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior="padding"
-        keyboardVerticalOffset={80}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
         <ScrollView
           style={styles.scroll}

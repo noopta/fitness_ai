@@ -393,7 +393,11 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
     <KeyboardAvoidingView
       style={styles.container}
       behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 160 : 30}
+      // Android offset must be 0. SDK 55 forces edge-to-edge so the OS does not
+      // resize the window (see fea343d) — 'padding' already accounts for the
+      // full IME height, and any extra offset pushes the input bar down behind
+      // the keyboard, which is what hid it on the Chat tab.
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 160 : 0}
     >
       <KeyboardDoneBar />
       {/* Messages */}
@@ -403,6 +407,10 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        // Swipe the transcript to dismiss. A multiline input gives Android a
+        // newline key rather than Done, so without this (and the Done pill)
+        // there is no way out of the keyboard.
+        keyboardDismissMode="on-drag"
       >
         {messages.map((msg, idx) =>
           msg._isTemp && msg.content.length === 0 ? null : (
