@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking,
   TextInput, Image, ActivityIndicator, Modal, Platform,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -555,6 +556,9 @@ export default function SettingsScreen() {
         onRequestClose={() => !deletingAccount && setExitSurveyVisible(false)}
       >
         <SafeAreaView style={styles.exitContainer} edges={['top', 'bottom']}>
+          {/* Modals render in their own native window, so keyboard avoidance
+              from the screen behind does not reach them. */}
+          <KeyboardAvoider style={{ flex: 1 }}>
           <View style={styles.exitHeader}>
             <View style={{ flex: 1 }}>
               <Text style={styles.exitEyebrow}>One last thing</Text>
@@ -611,6 +615,7 @@ export default function SettingsScreen() {
               </View>
             )}
           </ScrollView>
+          </KeyboardAvoider>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

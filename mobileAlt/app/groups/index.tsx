@@ -4,8 +4,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl,
-  Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
+  Modal, TextInput, ActivityIndicator, Alert,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -189,7 +190,7 @@ function CreateGroupSheet({
           <Text style={styles.title}>New group</Text>
           <View style={{ width: 24 }} />
         </View>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <KeyboardAvoider style={{ flex: 1 }}>
           <View style={{ padding: spacing.md, gap: spacing.md }}>
             <Field label="Group name">
               <TextInput style={styles.input} placeholder="Lift Squad" placeholderTextColor={colors.mutedForeground} value={name} onChangeText={setName} />
@@ -255,7 +256,7 @@ function CreateGroupSheet({
               {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryBtnText}>Create group</Text>}
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     </Modal>
   );

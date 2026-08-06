@@ -6,9 +6,8 @@ import {
   Pressable,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -170,11 +169,7 @@ export default function OnboardingScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ title: 'New Analysis' }} />
       <KeyboardDoneBar />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior="padding"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+      <KeyboardAvoider style={{ flex: 1 }} iosOffset={90}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -379,7 +374,7 @@ export default function OnboardingScreen() {
           Continue
         </Button>
       </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

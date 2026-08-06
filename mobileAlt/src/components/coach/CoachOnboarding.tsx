@@ -6,9 +6,8 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { useUnits } from '../../context/UnitsContext';
 import { Button } from '../ui/Button';
@@ -425,16 +424,11 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
 
   const progress = step / TOTAL_STEPS;
 
+  // This view reaches the bottom of the screen (the parent SafeAreaView only
+  // insets the top), so no iOS offset is needed. A previous 100 over-padded by
+  // exactly that much — a ~100pt white band above the keyboard when focused.
   return (
-    <KeyboardAvoidingView
-      style={s.flex}
-      behavior="padding"
-      // This view reaches the bottom of the screen (the parent SafeAreaView
-      // only insets the top), so no vertical offset is needed. The previous
-      // 100 over-padded by exactly that much — a ~100pt white band above the
-      // keyboard whenever an input was focused.
-      keyboardVerticalOffset={0}
-    >
+    <KeyboardAvoider style={s.flex}>
       <KeyboardDoneBar />
       {/* Progress bar */}
       <View style={s.progressWrap}>
@@ -872,7 +866,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
           </Button>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAvoider>
   );
 }
 

@@ -4,8 +4,9 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   Modal, View, Text, Pressable, TextInput, ActivityIndicator,
-  Animated, KeyboardAvoidingView, Platform, StyleSheet,
+  Animated, StyleSheet,
 } from 'react-native';
+import { KeyboardAvoider } from '../../../ui/KeyboardAvoider';
 import { colors } from '../../../../constants/theme';
 import { nutritionApi } from '../../../../lib/api';
 import { Eyebrow, Chip } from './GutPrimitives';
@@ -304,7 +305,7 @@ export function AssessmentFlow({
           </View>
         </View>
       ) : q ? (
-        <KeyboardAvoidingView behavior="padding" style={styles.fill}>
+        <KeyboardAvoider style={styles.fill}>
           <View style={[styles.fill, { backgroundColor: colors.background, paddingTop: 56 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20 }}>
               <Pressable onPress={() => (step === 0 ? onClose() : advance(-1))} hitSlop={12}>
@@ -419,7 +420,7 @@ export function AssessmentFlow({
               </Pressable>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       ) : null}
     </Modal>
   );

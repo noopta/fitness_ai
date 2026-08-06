@@ -8,6 +8,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { institutionApi, socialApi } from '../../src/lib/api';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
 interface LiftEntry {
@@ -263,7 +264,9 @@ export default function AthleteDetailScreen() {
         transparent
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        {/* A Modal renders in its own native window and inherits no keyboard
+            avoidance from the screen behind it, so the overlay does it here. */}
+        <KeyboardAvoider style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Message {athlete?.name ?? 'Athlete'}</Text>
@@ -295,7 +298,7 @@ export default function AthleteDetailScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoider>
       </Modal>
     </SafeAreaView>
   );

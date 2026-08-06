@@ -5,10 +5,9 @@ import {
   Pressable,
   StyleSheet,
   Animated,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/theme';
 import { Button } from '../ui/Button';
 import { coachApi } from '../../lib/api';
@@ -204,7 +203,7 @@ export function ProgramSetup({ onGenerate, onBack, onStartFromScratch, autoStart
   if (loading) return <GeneratingScreen />;
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior="padding">
+    <KeyboardAvoider style={s.flex}>
       <ScrollView
         style={s.container}
         contentContainerStyle={s.content}
@@ -295,7 +294,7 @@ export function ProgramSetup({ onGenerate, onBack, onStartFromScratch, autoStart
           <Button onPress={() => handleGenerate()} style={s.navBtn}>Generate Program</Button>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAvoider>
   );
 }
 

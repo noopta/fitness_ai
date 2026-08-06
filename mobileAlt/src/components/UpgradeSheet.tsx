@@ -4,6 +4,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
   ScrollView, Animated, Dimensions, Alert, TextInput,
 } from 'react-native';
+import { KeyboardAvoider } from './ui/KeyboardAvoider';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -417,7 +418,9 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
 
   return (
     <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
-      <View style={styles.modalRoot}>
+      {/* Modals live in their own native window, so the card input inside
+          PaymentSheetContent needs keyboard avoidance declared here. */}
+      <KeyboardAvoider style={styles.modalRoot}>
         <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={onClose} />
         <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.handle} />
@@ -432,7 +435,7 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
           </View>
           {visible && <PaymentSheetContent onClose={onClose} onSuccess={onSuccess} />}
         </Animated.View>
-      </View>
+      </KeyboardAvoider>
     </Modal>
   );
 }

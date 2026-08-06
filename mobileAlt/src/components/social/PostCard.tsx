@@ -11,9 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -422,10 +421,7 @@ function CommentSheet({
 
   return (
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView
-        style={{ flex: 1, justifyContent: 'flex-end' }}
-        behavior="padding"
-      >
+      <KeyboardAvoider style={{ flex: 1, justifyContent: 'flex-end' }}>
         {/* Backdrop */}
         <Animated.View
           style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.30)' }, backdropStyle]}
@@ -513,7 +509,7 @@ function CommentSheet({
             </View>
           </Pressable>
         </Animated.View>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </Modal>
   );
 }

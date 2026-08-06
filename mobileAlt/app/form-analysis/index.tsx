@@ -10,6 +10,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
   Alert, TextInput,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -159,6 +160,7 @@ export default function FormAnalysisScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <KeyboardAvoider style={{ flex: 1 }}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Back" accessibilityRole="button">
           <Ionicons name="chevron-back" size={26} color={colors.foreground} />
@@ -273,6 +275,7 @@ export default function FormAnalysisScreen() {
           <ResultView analysis={analysis} onAnother={reset} />
         )}
       </ScrollView>
+      </KeyboardAvoider>
 
       <UpgradeSheet
         visible={showUpgrade}
