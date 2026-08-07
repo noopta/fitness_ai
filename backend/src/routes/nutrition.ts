@@ -32,6 +32,7 @@ import { buildRAGContext } from '../services/ragService.js';
 import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
+import { serializeCommunityProduct } from '../services/food/communityProduct.js';
 
 
 const router = Router();
@@ -420,40 +421,6 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
 function num(v: unknown): number | null {
   const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : NaN);
   return Number.isFinite(n) ? n : null;
-}
-
-/**
- * Shape a ProductBarcode row like the OpenFoodFacts branch, so the client
- * (and app/barcode-confirm.tsx) needs no branching. Only `source` differs.
- */
-function serializeCommunityProduct(row: {
-  code: string; name: string; brand: string | null;
-  caloriesPer100g: number; proteinG: number; carbsG: number; fatG: number;
-  nutrientsJson: string | null; servingSize: string | null; servingQuantityG: number | null;
-  verified: boolean;
-}) {
-  let nutrients: Record<string, number | null> = {};
-  try {
-    nutrients = row.nutrientsJson ? JSON.parse(row.nutrientsJson) : {};
-  } catch { nutrients = {}; }
-  return {
-    code: row.code,
-    name: row.name,
-    brand: row.brand,
-    imageUrl: null,
-    per100g: {
-      calories: row.caloriesPer100g,
-      proteinG: row.proteinG,
-      carbsG: row.carbsG,
-      fatG: row.fatG,
-      ...nutrients,
-    },
-    servingSize: row.servingSize,
-    servingQuantityG: row.servingQuantityG,
-    source: 'community',
-    // Surfaced so the client can caption an unreviewed crowd-sourced label.
-    verified: row.verified,
-  };
 }
 
 // POST /api/nutrition/barcode/:code/label — recover from a lookup miss.

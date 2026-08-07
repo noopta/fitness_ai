@@ -9,6 +9,7 @@ import { buildRAGContext, retrieveProgramSources, type ProgramSource } from './r
 import { kgToLb, type UnitPreference } from './weightUnits.js';
 import { chatComplete } from './chatClient.js';
 import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
+import { coerceNutritionLabel } from './food/communityProduct.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -2534,28 +2535,16 @@ If the image is not a nutrition panel, or is too blurred to read, return {"name"
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
     const parsed = JSON.parse(text);
 
-    const n = (v: unknown): number => {
-      const x = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
-      return Number.isFinite(x) && x >= 0 ? x : 0;
-    };
-    const calories = n(parsed?.caloriesPer100g);
-    if (calories <= 0) return null;
+    // Clamping/typing lives in communityProduct.ts so it is unit-testable —
+    // routes/nutrition.ts can't be mounted in a test (OpenAI at import time).
+    const coerced = coerceNutritionLabel(parsed);
+    if (!coerced) return null;
 
-    // Reuse the shared coercion so the micro vector is clamped and typed the
-    // same way every other parse path produces it.
+    // Reuse the shared meal coercion so the micro vector is clamped and typed
+    // the same way every other parse path produces it.
     const detail = coerceParsedMealDetail({ nutrients: parsed?.nutrients ?? {} });
 
-    return {
-      name: String(parsed?.name ?? '').trim().slice(0, 200),
-      brand: parsed?.brand ? String(parsed.brand).trim().slice(0, 100) : null,
-      caloriesPer100g: Math.min(calories, 900), // nothing edible exceeds pure fat
-      proteinG: Math.min(n(parsed?.proteinG), 100),
-      carbsG: Math.min(n(parsed?.carbsG), 100),
-      fatG: Math.min(n(parsed?.fatG), 100),
-      nutrients: detail.nutrients,
-      servingSize: parsed?.servingSize ? String(parsed.servingSize).trim().slice(0, 80) : null,
-      servingQuantityG: n(parsed?.servingQuantityG) > 0 ? n(parsed.servingQuantityG) : null,
-    };
+    return { ...coerced, nutrients: detail.nutrients };
   } catch (err) {
     console.warn('[nutrition-label] parse failed:', (err as Error)?.message);
     return null;
