@@ -15,6 +15,14 @@ import {
   getResendCooldown,
   RESEND_COOLDOWN_SECONDS,
 } from '../services/emailVerificationService.js';
+import {
+  bounded,
+  implausibilityWarning,
+  validateDateOfBirth,
+} from '../validation/physiologicalBounds.js';
+import { moderateText, moderateImageBase64, checkReservedName } from '../services/moderationService.js';
+import { authLimiter, registerLimiter, outboundNotifyLimiter } from '../middleware/rateLimiter.js';
+import { buildUserDataExport } from '../services/dataExportService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -74,14 +82,11 @@ function issueToken(user: { id: string; email: string | null; tier: string }) {
   );
 }
 
-// Helper: validate age >= 13 from a DOB string. Returns error string or null.
-function validateAge(dobStr: string): string | null {
-  const dob = new Date(dobStr);
-  if (isNaN(dob.getTime())) return 'Invalid date of birth.';
-  const ageDays = (Date.now() - dob.getTime()) / 86400000;
-  if (ageDays < 13 * 365.25) return 'You must be at least 13 years old to use this app.';
-  return null;
-}
+// Age gate. Delegates to the shared validator, which additionally rejects
+// future dates and impossible ages — the previous check verified only the 13+
+// floor, so a DOB in the year 1200 or next century passed and then produced a
+// nonsense age everywhere it was consumed.
+const validateAge = validateDateOfBirth;
 
 // POST /api/auth/register
 const registerSchema = z.object({
@@ -116,7 +121,7 @@ router.get('/auth/user-count', async (_req, res) => {
   }
 });
 
-router.post('/auth/register', async (req, res) => {
+router.post('/auth/register', registerLimiter, async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
 
@@ -219,7 +224,7 @@ const verifyEmailSchema = z.object({
   code: z.string().regex(/^\d{6}$/),
 });
 
-router.post('/auth/verify-email', async (req, res) => {
+router.post('/auth/verify-email', authLimiter, async (req, res) => {
   try {
     const { email, code } = verifyEmailSchema.parse(req.body);
 
@@ -276,7 +281,7 @@ router.post('/auth/verify-email', async (req, res) => {
 // show a countdown without us pretending we sent something.
 const resendSchema = z.object({ email: z.string().email() });
 
-router.post('/auth/resend-verification', async (req, res) => {
+router.post('/auth/resend-verification', outboundNotifyLimiter, async (req, res) => {
   try {
     const { email } = resendSchema.parse(req.body);
     // No existence-leak guard: registration already returns 409 on a known
@@ -315,7 +320,7 @@ const loginSchema = z.object({
   password: z.string()
 });
 
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login', authLimiter, async (req, res) => {
   try {
     const data = loginSchema.parse(req.body);
 
@@ -373,6 +378,78 @@ router.post('/auth/login', async (req, res) => {
     res.status(500).json({ error: 'Login failed' });
   }
 });
+
+// ─── OAuth redirect allowlist ────────────────────────────────────────────────
+//
+// `redirect_uri` arrives from the query string on /auth/google, rides through
+// the OAuth round-trip inside `state`, and the callback appends a 30-day JWT to
+// it. Without an allowlist that is a full account takeover in one link:
+//
+//   /api/auth/google?redirect_uri=https://evil.tld
+//
+// The victim sees the genuine Google consent screen for the genuine Axiom app,
+// approves it, and their token is handed to the attacker's host. No phishing
+// page, no credential theft, nothing for the user to notice.
+//
+// So: custom schemes must match one we actually ship, and https targets must be
+// on a host we control. Anything else falls back to the web login page.
+
+/** Custom schemes registered by our own mobile builds. */
+const ALLOWED_APP_SCHEMES = ['axiom://', 'com.clubscentra.app://', 'exp://'];
+
+/** Hosts permitted as https redirect targets. */
+const ALLOWED_REDIRECT_HOSTS = new Set([
+  'axiomtraining.io',
+  'www.axiomtraining.io',
+  'liftoffmvp.io',
+  'www.liftoffmvp.io',
+  'localhost',
+  '127.0.0.1',
+]);
+
+/**
+ * True when `target` is a redirect destination we're willing to attach a token
+ * to. Exported for tests.
+ */
+export function isAllowedRedirectTarget(target: string | null | undefined): boolean {
+  if (!target || typeof target !== 'string') return false;
+
+  // Custom app schemes: prefix match against the schemes we register. Expo dev
+  // clients (exp://) are only honoured outside production.
+  for (const scheme of ALLOWED_APP_SCHEMES) {
+    if (!target.toLowerCase().startsWith(scheme)) continue;
+    if (scheme === 'exp://' && IS_PROD) return false;
+    return true;
+  }
+
+  // Everything else must be a well-formed http(s) URL on an allowlisted host.
+  // Parsing (rather than string matching) is what stops
+  // `https://axiomtraining.io.evil.tld` and `https://evil.tld#axiomtraining.io`.
+  let url: URL;
+  try {
+    url = new URL(target);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && !IS_PROD)) return false;
+  if (ALLOWED_REDIRECT_HOSTS.has(url.hostname)) return true;
+  // Replit preview/deploy domains, matched on the label boundary so
+  // "notreplit.app" can't pass.
+  if (/\.(replit\.dev|repl\.co|replit\.app)$/.test(url.hostname)) return true;
+
+  return false;
+}
+
+/**
+ * Resolve a client-supplied redirect into one that's safe to use, or null.
+ * Rejections are logged — an attempt here is a targeted attack, not a typo, and
+ * it's worth being able to see it in the logs.
+ */
+export function safeRedirectTarget(target: string | null | undefined): string | null {
+  if (isAllowedRedirectTarget(target)) return target as string;
+  if (target) console.warn(`[auth] rejected redirect_uri (not allowlisted): ${String(target).slice(0, 200)}`);
+  return null;
+}
 
 /**
  * Hand the browser back to a mobile app via a custom scheme (axiom://…).
@@ -438,8 +515,10 @@ router.get('/auth/google', (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const callbackUrl = encodeURIComponent(process.env.GOOGLE_CALLBACK_URL!);
   const scope = encodeURIComponent('openid email profile');
-  // Encode mobile redirect_uri in state so it survives the OAuth round-trip
-  const mobileRedirect = req.query.redirect_uri as string | undefined;
+  // Encode mobile redirect_uri in state so it survives the OAuth round-trip.
+  // Validated here as well as on the callback so a bad target fails before the
+  // user is ever sent to Google, rather than after they've approved consent.
+  const mobileRedirect = safeRedirectTarget(req.query.redirect_uri as string | undefined);
   const state = mobileRedirect
     ? encodeURIComponent(Buffer.from(JSON.stringify({ mobileRedirect })).toString('base64'))
     : '';
@@ -456,7 +535,10 @@ router.get('/auth/google/callback', async (req, res) => {
     const rawState = req.query.state as string | undefined;
     if (rawState) {
       const decoded = JSON.parse(Buffer.from(decodeURIComponent(rawState), 'base64').toString());
-      mobileRedirect = decoded.mobileRedirect || null;
+      // Re-validate on the way back out. `state` is attacker-reachable (it round
+      // trips through the browser), so trusting it here would reintroduce the
+      // open redirect even with the check on /auth/google.
+      mobileRedirect = safeRedirectTarget(decoded.mobileRedirect);
     }
   } catch { /* ignore malformed state */ }
 
@@ -560,7 +642,7 @@ router.get('/auth/google/callback', async (req, res) => {
 });
 
 // POST /api/auth/apple — Sign in with Apple (mobile)
-router.post('/auth/apple', async (req, res) => {
+router.post('/auth/apple', authLimiter, async (req, res) => {
   const { identityToken, fullName } = req.body;
   if (!identityToken || typeof identityToken !== 'string') {
     return res.status(400).json({ error: 'identityToken required' });
@@ -730,9 +812,14 @@ router.get('/auth/me', requireAuth, async (req, res) => {
 
 // PUT /api/auth/profile
 const profileSchema = z.object({
-  name: z.string().optional(),
-  heightCm: z.number().optional(),
-  weightKg: z.number().optional(),
+  // Was unbounded. The display name renders in every feed row, comment and push
+  // notification, so it needs both a length cap and (below) a moderation pass.
+  name: z.string().min(1).max(60).optional(),
+  // Were bare z.number(). Bodyweight feeds TDEE which feeds the whole macro
+  // plan; height feeds the same chain. A 900 cm user poisons every downstream
+  // calculation, so these are now bounded to the physically possible.
+  heightCm: bounded('heightCm', 'Height').optional(),
+  weightKg: bounded('bodyWeightKg', 'Weight').optional(),
   unitPreference: z.enum(['metric', 'imperial']).optional(),
   trainingAge: z.string().optional(),
   equipment: z.string().optional(),
@@ -751,6 +838,24 @@ const profileSchema = z.object({
 router.put('/auth/profile', requireAuth, async (req, res) => {
   try {
     const data = profileSchema.parse(req.body);
+
+    // The display name is fanned out to other users (feed, comments, pushes),
+    // so it goes through the same checks as any other user-visible text.
+    if (data.name !== undefined) {
+      const reserved = checkReservedName(data.name);
+      if (reserved) return res.status(400).json({ error: reserved });
+      const verdict = await moderateText(data.name, 'display_name', req.user!.id);
+      if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
+    }
+
+    // Values inside the hard bounds but outside the plausible band are saved
+    // and reported back, never rejected. A 180 kg powerlifter is real; a hard
+    // gate there would be a bug, not a safeguard.
+    const warnings = [
+      implausibilityWarning('heightCm', data.heightCm, 'Height'),
+      implausibilityWarning('bodyWeightKg', data.weightKg, 'Weight'),
+    ].filter((w): w is string => w !== null);
+
     const user = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
@@ -775,8 +880,16 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
         .then(({ recomputeStrengthProfileInBackground }) => recomputeStrengthProfileInBackground(req.user!.id))
         .catch((err) => console.error('[auth] strength recompute after unit change failed:', err));
     }
-    res.json({ user });
+    res.json({ user, ...(warnings.length ? { warnings } : {}) });
   } catch (err: any) {
+    // Bounds failures are the user's to fix, so they need the specific message
+    // rather than the generic 500 this used to return for everything.
+    if (err?.name === 'ZodError') {
+      return res.status(400).json({
+        error: err.errors?.[0]?.message ?? 'Invalid profile data',
+        details: err.errors,
+      });
+    }
     console.error('Profile update error:', err);
     res.status(500).json({ error: 'Failed to update profile' });
   }
@@ -839,6 +952,14 @@ router.put('/auth/username', requireAuth, async (req, res) => {
     const cleaned = username.trim();
     if (cleaned.length < 3 || cleaned.length > 30) return res.status(400).json({ error: 'Username must be 3-30 characters' });
     if (!/^[a-zA-Z0-9_]+$/.test(cleaned)) return res.status(400).json({ error: 'Username can only contain letters, numbers, underscores' });
+
+    // Impersonation ("AxiomSupport" DMing users for their password) is a
+    // structural check the classifier can't make; slurs are one it can.
+    const reserved = checkReservedName(cleaned);
+    if (reserved) return res.status(400).json({ error: reserved });
+    const verdict = await moderateText(cleaned, 'username', req.user!.id);
+    if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
+
     try {
       const user = await prisma.user.update({ where: { id: req.user!.id }, data: { username: cleaned } });
       res.json({ username: user.username });
@@ -859,6 +980,13 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
     if (typeof avatarBase64 !== 'string') return res.status(400).json({ error: 'avatarBase64 required' });
     // Limit the raw upload to ~2MB base64.
     if (avatarBase64.length > 2_800_000) return res.status(413).json({ error: 'Image too large (max ~2MB)' });
+
+    // Avatars are the highest-leverage image on the platform: one explicit
+    // upload renders beside every post, comment and DM the user touches, with
+    // no way for anyone else to opt out of seeing it. Checked before the write.
+    const verdict = await moderateImageBase64(avatarBase64, 'image/jpeg', 'avatar', req.user!.id);
+    if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
+
     // Downscale to a thumbnail before storing. Avatars render at ~36px but were
     // being stored at full camera resolution (~68KB base64) and embedded per
     // user in every social-feed response. Resizing to 96px JPEG strips ~96% of
@@ -882,39 +1010,108 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
 // Required by Apple App Store guidelines (June 2022).
 // Manually cascade child records in dependency order since not all relations
 // have onDelete: Cascade defined in the schema.
+// GET /api/auth/export — self-serve data export (GDPR Art. 15/20, CCPA/CPRA).
+//
+// The privacy policy has always promised both Access and Portability; this is
+// the mechanism behind those sentences. Rate-limited because assembling the
+// document touches ~20 tables.
+router.get('/auth/export', requireAuth, outboundNotifyLimiter, async (req, res) => {
+  try {
+    const data = await buildUserDataExport(req.user!.id);
+
+    // Content-Disposition so browsers save rather than render it, and
+    // no-store so the export doesn't linger in an intermediary cache.
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="axiom-data-export-${stamp}.json"`);
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(JSON.stringify(data, null, 2));
+  } catch (err: any) {
+    console.error('[auth/export] failed:', err?.message ?? err);
+    res.status(500).json({ error: 'Could not build your data export. Please try again.' });
+  }
+});
+
 router.delete('/auth/account', requireAuth, async (req, res) => {
   const userId = req.user!.id;
   try {
+    // Deleting a relation that doesn't exist in this build (a model added on a
+    // branch that hasn't been pushed to this DB yet) must not abort the whole
+    // transaction and strand the user with a half-deleted account. Each step is
+    // therefore best-effort; the final user.delete is the one that must succeed,
+    // and it will fail loudly if any FK is genuinely still pointing at the row.
+    const tryDelete = async (label: string, fn: () => Promise<unknown>) => {
+      try { await fn(); } catch (e: any) {
+        console.warn(`[account-delete] skipped ${label}: ${e?.message ?? e}`);
+      }
+    };
+
     await prisma.$transaction(async (tx) => {
+      const t = tx as any;
+
       // 1. Leaf records with no further children
-      await tx.diagnosticMessage.deleteMany({ where: { session: { userId } } });
-      await tx.exerciseSnapshot.deleteMany({ where: { session: { userId } } });
-      await tx.generatedPlan.deleteMany({ where: { session: { userId } } });
-      await tx.mealEntry.deleteMany({ where: { userId } });
-      await tx.nutritionLog.deleteMany({ where: { userId } });
-      await tx.bodyWeightLog.deleteMany({ where: { userId } });
-      await tx.wellnessCheckin.deleteMany({ where: { userId } });
-      await tx.activityLog.deleteMany({ where: { userId } });
-      await tx.savedFood.deleteMany({ where: { userId } });
+      await tryDelete('diagnosticMessage', () => t.diagnosticMessage.deleteMany({ where: { session: { userId } } }));
+      await tryDelete('exerciseSnapshot', () => t.exerciseSnapshot.deleteMany({ where: { session: { userId } } }));
+      await tryDelete('generatedPlan', () => t.generatedPlan.deleteMany({ where: { session: { userId } } }));
+      await tryDelete('mealEntry', () => t.mealEntry.deleteMany({ where: { userId } }));
+      await tryDelete('nutritionLog', () => t.nutritionLog.deleteMany({ where: { userId } }));
+      await tryDelete('nutritionPlan', () => t.nutritionPlan.deleteMany({ where: { userId } }));
+      await tryDelete('bodyWeightLog', () => t.bodyWeightLog.deleteMany({ where: { userId } }));
+      await tryDelete('wellnessCheckin', () => t.wellnessCheckin.deleteMany({ where: { userId } }));
+      await tryDelete('activityLog', () => t.activityLog.deleteMany({ where: { userId } }));
+      await tryDelete('savedFood', () => t.savedFood.deleteMany({ where: { userId } }));
+      await tryDelete('recipe', () => t.recipe.deleteMany({ where: { userId } }));
+      await tryDelete('workoutLog', () => t.workoutLog.deleteMany({ where: { userId } }));
+      await tryDelete('scheduleOverride', () => t.scheduleOverride.deleteMany({ where: { userId } }));
+      await tryDelete('completedProgram', () => t.completedProgram.deleteMany({ where: { userId } }));
+      await tryDelete('formAnalysis', () => t.formAnalysis.deleteMany({ where: { userId } }));
+      await tryDelete('featureUsage', () => t.featureUsage.deleteMany({ where: { userId } }));
+      await tryDelete('savedArticle', () => t.savedArticle.deleteMany({ where: { userId } }));
+      await tryDelete('userFeedView', () => t.userFeedView.deleteMany({ where: { userId } }));
+      await tryDelete('agentMemory', () => t.agentMemory.deleteMany({ where: { userId } }));
+      await tryDelete('agentConversation', () => t.agentConversation.deleteMany({ where: { userId } }));
 
       // 2. Sessions (after their children are gone)
-      await tx.session.deleteMany({ where: { userId } });
+      await tryDelete('session', () => t.session.deleteMany({ where: { userId } }));
 
-      // 3. Social / messaging
-      await tx.message.deleteMany({
+      // 3. Social / messaging — both directions of every relation
+      await tryDelete('postComment', () => t.postComment.deleteMany({ where: { authorId: userId } }));
+      await tryDelete('postReaction', () => t.postReaction.deleteMany({ where: { userId } }));
+      await tryDelete('message', () => t.message.deleteMany({
         where: { OR: [{ senderId: userId }, { conversation: { OR: [{ participantAId: userId }, { participantBId: userId }] } }] },
-      });
-      await tx.directConversation.deleteMany({
+      }));
+      await tryDelete('directConversation', () => t.directConversation.deleteMany({
         where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
-      });
-      await tx.sharedItem.deleteMany({
+      }));
+      // Comments and reactions by *other* users on this user's posts have to go
+      // before the posts themselves, or the FK blocks the delete.
+      await tryDelete('postComment:onOwnPosts', () => t.postComment.deleteMany({ where: { post: { sharerId: userId } } }));
+      await tryDelete('postReaction:onOwnPosts', () => t.postReaction.deleteMany({ where: { post: { sharerId: userId } } }));
+      await tryDelete('sharedItem', () => t.sharedItem.deleteMany({
         where: { OR: [{ sharerId: userId }, { recipientId: userId }] },
-      });
-      await tx.friendship.deleteMany({
+      }));
+      await tryDelete('friendship', () => t.friendship.deleteMany({
         where: { OR: [{ requesterId: userId }, { addresseeId: userId }] },
-      });
+      }));
+      await tryDelete('userInvite', () => t.userInvite.deleteMany({
+        where: { OR: [{ inviterId: userId }, { usedByUserId: userId }] },
+      }));
 
-      // 4. Finally remove the user row itself
+      // 4. Groups, institutions, partner workouts
+      await tryDelete('groupMessage', () => t.groupMessage.deleteMany({ where: { senderId: userId } }));
+      await tryDelete('groupMember', () => t.groupMember.deleteMany({ where: { userId } }));
+      await tryDelete('institutionMember', () => t.institutionMember.deleteMany({ where: { userId } }));
+      await tryDelete('partnerWorkoutMember', () => t.partnerWorkoutMember.deleteMany({ where: { userId } }));
+      await tryDelete('partnerWorkout', () => t.partnerWorkout.deleteMany({ where: { creatorId: userId } }));
+
+      // 5. Trust & safety. Reports filed BY this user go; ContentFlag rows are
+      //    deliberately retained (userId is not an FK) — an abuse history that
+      //    a serial abuser can erase by deleting and re-registering is not an
+      //    abuse history. They carry no PII beyond a truncated excerpt.
+      await tryDelete('contentReport', () => t.contentReport.deleteMany({ where: { reporterId: userId } }));
+      await tryDelete('userSuspension', () => t.userSuspension.deleteMany({ where: { userId } }));
+
+      // 6. Finally remove the user row itself
       await tx.user.delete({ where: { id: userId } });
     });
 

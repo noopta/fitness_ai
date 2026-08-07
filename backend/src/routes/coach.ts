@@ -23,6 +23,9 @@ import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trai
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 
 import { getExerciseVideo } from '../services/youtubeService.js';
+import { bounded, implausibilityWarning, weightDeltaWarning } from '../validation/physiologicalBounds.js';
+import { moderateText } from '../services/moderationService.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -121,13 +124,17 @@ router.get('/coach/messages', requireAuth, async (req, res) => {
 });
 
 // POST /api/coach/chat - Send a message to the AI Coach
-router.post('/coach/chat', requireAuth, async (req, res) => {
+router.post('/coach/chat', requireAuth, aiLimiter, async (req, res) => {
   try {
     if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
       return res.status(403).json({ error: 'AI Coach is a pro feature', upgrade: true });
     }
 
     const { message } = coachMessageSchema.parse(req.body);
+
+    // Same gate as the streaming path — self-harm flags but never blocks.
+    const verdict = await moderateText(message, 'coach_message', req.user!.id);
+    if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
@@ -398,18 +405,54 @@ async function buildFullUserContext(userId: string): Promise<string> {
   return ctx;
 }
 
-// POST /api/coach/chat/stream - Streaming chat with gpt-4.1-mini via SSE
-router.post('/coach/chat/stream', requireAuth, async (req, res) => {
+// Validation for the streaming chat body.
+//
+// This route previously read `message` and `history` straight off req.body with
+// no schema and no caps. Two problems, both live:
+//
+//   1. Cost — `history` is echoed into the prompt, so a client could push
+//      megabytes of attacker-chosen context into every turn.
+//   2. Coach-puppeting — the client supplies the `assistant` turns, so a user
+//      could fabricate what Anakin "said" earlier and continue from there. On a
+//      general chatbot that's a party trick; on a product that gives training
+//      and nutrition advice, a screenshot of the coach appearing to endorse
+//      something dangerous is a real liability.
+//
+// The non-streaming /coach/chat has always capped at 4000 chars; this brings
+// the stream variant to parity and bounds the history as well.
+const coachStreamSchema = z.object({
+  message: z.string().min(1).max(4000),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string().max(4000),
+      }),
+    )
+    .max(24)
+    .optional(),
+});
+
+router.post('/coach/chat/stream', requireAuth, aiLimiter, async (req, res) => {
   try {
     if (req.user!.tier !== 'pro' && req.user!.tier !== 'enterprise') {
       return res.status(403).json({ error: 'AI Coach is a pro feature', upgrade: true });
     }
 
-    const { message, history } = req.body as {
-      message: string;
-      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
-    };
-    if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+    const parsed = coachStreamSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        error: parsed.error.errors?.[0]?.message ?? 'Invalid request',
+      });
+    }
+    const { message, history } = parsed.data;
+
+    // Moderation runs before the model does. Self-harm signals deliberately do
+    // NOT block — see moderationService for why refusing that message is the
+    // worst available outcome on a nutrition app — but they do get flagged so
+    // the response can carry support resources.
+    const verdict = await moderateText(message, 'coach_message', req.user!.id);
+    if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
 
     // Build full user context (cached, DB hit only on cold cache) + both RAG
     // sources (certified textbooks + expert podcast transcripts) in parallel.
@@ -425,6 +468,16 @@ router.post('/coach/chat/stream', requireAuth, async (req, res) => {
       `Reference specific data from their profile when relevant. Be direct, evidence-based, practical, and encouraging.`,
       `When you draw on the Expert Podcast Reference, attribute the claim to the speaker by name (e.g. "Dr. Layne Norton notes…").`,
       `Use markdown formatting for structured responses. All weights are in lbs.`,
+      // Attached only when the classifier saw self-harm / disordered-eating
+      // signals in the user's message. The model is told to respond with care
+      // rather than the message being refused.
+      verdict.needsSupport
+        ? `IMPORTANT: this athlete's message contains signals of disordered eating or self-harm. ` +
+          `Respond with warmth and without judgement. Do NOT provide restriction advice, calorie cuts, ` +
+          `or fasting protocols in this reply, even if asked. Gently encourage them to speak to a doctor ` +
+          `or a registered dietitian, and mention that support is available (in the US: call or text 988; ` +
+          `NEDA helpline 1-800-931-2237).`
+        : '',
       userContext,
       ragContext || '',
       podcast.context || '',
@@ -1608,7 +1661,11 @@ router.put('/coach/budget', requireAuth, async (req, res) => {
 // PUT /api/coach/nutrition-adjustment - Apply a calorie delta to the saved nutrition plan
 router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
   try {
-    const { calorieAdjustment } = z.object({ calorieAdjustment: z.number() }).parse(req.body);
+    // Was a bare z.number(): a ±1e9 adjustment sailed through and rewrote the
+    // saved plan's calories (and dailyCalorieTarget) to nonsense.
+    const { calorieAdjustment } = z
+      .object({ calorieAdjustment: bounded('calorieAdjustment', 'Calorie adjustment') })
+      .parse(req.body);
     const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { savedProgram: true } });
     if (!user?.savedProgram) return res.status(404).json({ error: 'No saved program' });
 
@@ -1651,9 +1708,13 @@ router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
 // `weightLbs` (pounds). Exactly one is required and we normalise to kg.
 const bodyWeightSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  weightKg: z.number().positive().optional(),
-  weightLbs: z.number().positive().optional(),
-  notes: z.string().optional(),
+  // Were `.positive()` with no ceiling. Bodyweight drives TDEE, the macro plan,
+  // the weight chart and the milestone push notifications, so a 900,000 kg
+  // entry propagated into all of them.
+  weightKg: bounded('bodyWeightKg', 'Weight').optional(),
+  // Pounds bound is the kg bound converted, so both paths gate identically.
+  weightLbs: z.number().finite().min(44).max(880).optional(),
+  notes: z.string().max(500).optional(),
 }).refine((v) => v.weightKg != null || v.weightLbs != null, {
   message: 'weightKg or weightLbs is required',
 });
@@ -1665,6 +1726,20 @@ router.post('/coach/body-weight', requireAuth, async (req, res) => {
     const userId = req.user!.id;
     // Prefer explicit kg; else convert legacy pounds. bodyWeightKg handles the math.
     const weightKg = kgIn != null ? kgIn : bodyWeightKg({ weightLbs: lbsIn })!;
+
+    // A large day-over-day jump is nearly always a unit mixup (pounds typed
+    // into a kg field) rather than a real change. Warn, don't reject — genuine
+    // large swings exist, and silently refusing the entry is worse than a
+    // flagged one the user can correct.
+    const lastLog = await prisma.bodyWeightLog.findFirst({
+      where: { userId, date: { not: date } },
+      orderBy: { date: 'desc' },
+      select: { weightKg: true },
+    });
+    const warnings = [
+      implausibilityWarning('bodyWeightKg', weightKg, 'Weight'),
+      weightDeltaWarning(lastLog?.weightKg ?? null, weightKg),
+    ].filter((w): w is string => w !== null);
 
     // Upsert: replace existing entry for same date
     const existing = await prisma.bodyWeightLog.findFirst({ where: { userId, date } });
@@ -1688,7 +1763,7 @@ router.post('/coach/body-weight', requireAuth, async (req, res) => {
       console.error('[coach] weight milestone detection error:', err)
     );
 
-    res.json(entry);
+    res.json({ ...entry, ...(warnings.length ? { warnings } : {}) });
   } catch (err: any) {
     console.error('Body weight log error:', err);
     res.status(400).json({ error: err.message || 'Failed to save body weight' });

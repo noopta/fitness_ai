@@ -67,6 +67,8 @@ import { runDailyFeedFetch } from './services/feedService.js';
 import { runAnakinGroupSweep } from './services/groupAccountability.js';
 import { runProgramRescueSweep } from './services/programRescueService.js';
 import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
+import { securityHeaders } from './middleware/securityHeaders.js';
+import { globalLimiter } from './middleware/rateLimiter.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -74,7 +76,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// nginx terminates TLS and proxies to us, so without this req.ip is always
+// nginx's address — which would make every IP-keyed rate limit below a single
+// global bucket shared by the entire internet.
+app.set('trust proxy', 1);
+
 // Middleware
+app.use(securityHeaders);
 app.use(cookieParser());
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'https://axiomtraining.io',
@@ -112,19 +120,42 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-app.use(express.json({
-  limit: '10mb',
-  verify: (req: any, _res, buf) => {
-    if (req.url === '/api/payments/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
-      req.rawBody = buf;
-    }
-  },
-}));
+// Body size. The 10MB ceiling exists for base64 image payloads (meal photos,
+// post images, avatars) and is applied only to the routes that need it; every
+// other endpoint gets a 1MB limit, so a JSON flood against, say, /auth/login
+// can't push 10MB per request through the parser.
+const jsonVerify = (req: any, _res: any, buf: Buffer) => {
+  // Stripe and Meta both sign the raw bytes, so those two need the untouched
+  // buffer stashed before JSON.parse gets to it.
+  if (req.url === '/api/payments/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
+    req.rawBody = buf;
+  }
+};
 
-// Health check
+const LARGE_BODY_PATHS = [
+  '/api/nutrition/analyze-photo',
+  '/api/nutrition/transcribe',
+  '/api/social/share',
+  '/api/auth/avatar',
+  '/api/recipes',
+];
+
+const largeJson = express.json({ limit: '10mb', verify: jsonVerify });
+const standardJson = express.json({ limit: '1mb', verify: jsonVerify });
+
+app.use((req, res, next) => {
+  const parser = LARGE_BODY_PATHS.some((p) => req.path.startsWith(p)) ? largeJson : standardJson;
+  return parser(req, res, next);
+});
+
+// Health check — before the rate limiter so uptime probes are never throttled.
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Axiom API is running' });
 });
+
+// Global backstop on the whole API surface. Per-route limiters (auth, register,
+// AI, social writes) are stricter and applied at their own definitions.
+app.use('/api', globalLimiter);
 
 // Routes
 app.use('/api', authRoutes);

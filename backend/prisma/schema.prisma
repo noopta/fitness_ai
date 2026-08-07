@@ -941,3 +941,74 @@ model Recommendation {
   @@index([status])
   @@index([digestId])
 }
+
+// ─── Trust & Safety ──────────────────────────────────────────────────────────
+//
+// Added by the 2026-08 security hardening pass. Before it the app had no
+// moderation, no report path and no takedown record — all three are required
+// by App Store Guideline 1.2 for an app that ships user-to-user content.
+
+/// Every classifier hit, blocked or not. Near-miss rows (flagged but allowed)
+/// are what let the sexual-content threshold be tuned against real traffic
+/// rather than guessed, and the blocked rows are the evidence trail behind a
+/// repeat-offender suspension.
+model ContentFlag {
+  id         String   @id @default(uuid())
+  /// Null for pre-auth surfaces. Not an FK: flags must outlive account deletion
+  /// for abuse-pattern analysis, and a cascade would erase exactly the history
+  /// a serial abuser wants erased.
+  userId     String?
+  /// Which surface produced it — dm | comment | post_caption | avatar | ...
+  surface    String
+  /// Truncated sample of the offending content, for human review.
+  excerpt    String
+  /// True when the write was rejected; false when flagged-but-allowed.
+  blocked    Boolean  @default(false)
+  /// Comma-separated classifier categories.
+  categories String
+  topScore   Float    @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([blocked, createdAt])
+}
+
+/// A user-submitted report against content or another user. The queue an
+/// operator works through; `status` drives the 24h takedown SLA.
+model ContentReport {
+  id             String   @id @default(uuid())
+  reporterId     String
+  /// What's being reported: post | comment | message | user | avatar
+  targetType     String
+  targetId       String
+  /// Reported user, when resolvable. Enables "show me every report against X".
+  reportedUserId String?
+  reason         String
+  details        String?
+  /// pending | reviewing | actioned | dismissed
+  status         String   @default("pending")
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  resolutionNote String?
+  createdAt      DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([reportedUserId])
+  @@unique([reporterId, targetType, targetId])
+}
+
+/// Enforcement state on an account. Separate from User so the moderation
+/// surface can be reasoned about (and audited) on its own.
+model UserSuspension {
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  /// write_ban (can read, cannot post/DM) | full (cannot use the app)
+  level     String    @default("write_ban")
+  reason    String
+  /// Null means indefinite, pending manual review.
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  createdBy String?
+
+  @@index([expiresAt])
+}
