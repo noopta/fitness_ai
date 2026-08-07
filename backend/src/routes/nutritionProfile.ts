@@ -30,7 +30,10 @@ import {
   runNutritionProfileEngine,
   type ProfileEngineOutput, type BodySystemScore,
 } from '../engine/nutritionProfileEngine.js';
-import { recommendFoods } from '../engine/nutritionRecommendations.js';
+import { foodSourceCandidates, recommendFoods } from '../engine/nutritionRecommendations.js';
+import { gainTextFor } from '../engine/nutritionGap.js';
+import { rankCandidates } from '../engine/foodFinderRanker.js';
+import { remainingForDay } from '../services/nutritionRemaining.js';
 import {
   NUTRIENTS, BODY_SYSTEMS, getNutrient, driversForSystem, type BodySystemId,
 } from '../engine/nutrientRegistry.js';
@@ -502,6 +505,45 @@ router.get('/nutrition-profile/recommendations', requireAuth, async (req, res) =
     const range = parseRange(req.query.range);
     // Same window + same coverage vector the day profile's topMove uses, so the
     // card the user tapped is the first row of the list it opens.
+    // `mode=situational` runs the food finder's ranker instead of the flat
+    // gap ranker: it decides whether this moment is about macros or micros and
+    // weights accordingly, and it accounts for calories, ceilings, and
+    // confidence. Opt-in so the shipped surface is untouched until the answers
+    // are judged good. Always evaluated against TODAY — "what's left in the
+    // day" has no meaning averaged over a 30-day window.
+    if (req.query.mode === 'situational') {
+      const remaining = await remainingForDay(userId, date);
+      const { arbitration, results } = rankCandidates(foodSourceCandidates(), remaining, {
+        limit: 8,
+        guaranteeBothKinds: false, // Phase 1 has only the ingredient path
+      });
+      res.json({
+        date,
+        mode: arbitration.mode,
+        why: arbitration.rationale,
+        pressures: { macro: arbitration.macroPressure, micro: arbitration.microPressure },
+        remaining: {
+          kcal: remaining.macros.kcal.remaining,
+          proteinG: remaining.macros.proteinG.remaining,
+          carbsG: remaining.macros.carbsG.remaining,
+          fatG: remaining.macros.fatG.remaining,
+        },
+        recommendations: results.map(r => ({
+          name: r.name,
+          serving: (r.meta?.serving as string) ?? '',
+          category: (r.meta?.category as string) ?? '',
+          kcal: r.kcal,
+          gain: r.closes[0] ? gainTextFor(r.closes[0].key, r.closes[0].amount, r.closes[0].label) : '',
+          closes: r.closes,
+          warns: r.warns,
+          mechanism: r.closes[0] ? mechanismSentence(r.closes[0].key) : '',
+          score: r.score,
+          prefill: { name: `${r.name} (${r.meta?.serving ?? ''})`, source: 'recommendation' },
+        })),
+      });
+      return;
+    }
+
     const win = await loadWindow(userId, date, range);
     const engine = runForWindow(win);
     const recs = recommendFoods(engine.coverage, win.bodyweightKg, 8);
