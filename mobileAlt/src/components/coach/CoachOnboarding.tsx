@@ -45,6 +45,7 @@ export interface OnboardingProfile {
   // Section 4 – Nutrition
   dietaryRestrictions: string[];
   nutritionQuality: string;
+  foodRegion: string;
   dailyProtein: string;
   // Section 5 – Lifestyle
   activityLevel: string;
@@ -78,7 +79,7 @@ const EMPTY: OnboardingProfile = {
   ohpWeight: '', ohpSets: '', ohpReps: '',
   rowWeight: '', rowSets: '', rowReps: '',
   trainingStyle: '',
-  dietaryRestrictions: [], nutritionQuality: '', dailyProtein: '',
+  dietaryRestrictions: [], nutritionQuality: '', dailyProtein: '', foodRegion: 'global',
   activityLevel: '', sleepQuality: '', stressEnergy: '', typicalWeekday: '',
   recoveryPractices: [], recoveryNotes: '',
   daysPerWeek: '', equipment: '', accountability: '',
@@ -311,6 +312,16 @@ const DIETARY_RESTRICTIONS = [
   { value: 'allergies', label: 'Food allergies', sub: 'Nuts, shellfish, or other allergies' },
 ];
 
+// Drives which food-composition data and prompt vocabulary meal logging uses.
+// Defaults to Global; West African options unlock the local dish table and
+// portion units (a wrap of eba, a derica cup) that USDA cannot supply.
+const FOOD_REGIONS = [
+  { value: 'global', label: 'Mostly Western / global food', sub: 'US and European dishes, standard portions' },
+  { value: 'ng', label: 'Nigeria', sub: 'Jollof, egusi, eba, moi moi, suya' },
+  { value: 'gm', label: 'The Gambia', sub: 'Benachin, domoda, superkanja' },
+  { value: 'wa', label: 'Elsewhere in West Africa', sub: 'Shared West African dishes' },
+];
+
 const NUTRITION_QUALITY = [
   { value: 'poor', label: 'Poor', sub: 'Mostly processed food, irregular meals' },
   { value: 'inconsistent', label: 'Inconsistent', sub: 'Good days and bad days — no real structure' },
@@ -411,7 +422,7 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
     if (step === 1) return !!p.primaryGoal.trim() && !!p.goalWhy.trim() && !!p.obstacle && !!p.commitment;
     if (step === 2) return !!p.biologicalSex && p.parq.length > 0;
     if (step === 3) return !!p.trainingAge && !!p.trainingStyle;
-    if (step === 4) return !!p.nutritionQuality;
+    if (step === 4) return !!p.nutritionQuality && !!p.foodRegion;
     if (step === 5) return !!p.activityLevel && !!p.sleepQuality && !!p.stressEnergy;
     if (step === 6) return !!p.daysPerWeek && !!p.equipment && !!p.accountability;
     return true;
@@ -658,6 +669,16 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
         {step === 4 && (
           <View style={s.stepWrap}>
             <SectionHeading title="Nutrition Baseline" sub="Anakin uses this to set your initial nutrition targets." />
+
+            {/* Asked before anything else on this step because it changes which
+                foods and portion sizes we can recognise at all. Left on Global,
+                a Nigerian user's egusi soup is estimated from model recall. */}
+            <QLabel text="Where do you mostly eat?" />
+            <SingleSelect
+              options={FOOD_REGIONS}
+              value={p.foodRegion as any}
+              onChange={v => set('foodRegion', v)}
+            />
 
             <QLabel text="Any dietary restrictions or preferences?" optional />
             <MultiSelect

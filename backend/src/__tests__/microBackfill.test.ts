@@ -35,8 +35,10 @@ describe('micro-backfill in enrichMealDetailHybrid', () => {
   it('re-asks when the parse produced an all-zero micro profile', async () => {
     mockEstimate.mockResolvedValue(richMicros);
     const { detail: out } = await enrichMealDetailHybrid(detail({}));
+    // The trailing region defaults to 'global', which makes the re-ask prompt
+    // byte-identical to what it was before regional support was added.
     expect(mockEstimate).toHaveBeenCalledWith(
-      'Chicken shawarma with rice', ['chicken', 'rice', 'garlic sauce'], 617,
+      'Chicken shawarma with rice', ['chicken', 'rice', 'garlic sauce'], 617, 'global',
     );
     expect(out.nutrients.ironMg).toBe(3.8);
     expect(out.nutrients.fiberG).toBe(4);

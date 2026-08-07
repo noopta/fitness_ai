@@ -48,3 +48,9 @@ backend/dev.db
 # 'gcloud iam workload-identity-pools create-cred-config'. Contains no secrets
 # (just URLs + audience), but each environment has its own SA + pool.
 backend/gcp-wif-credentials.json
+
+# Google Play service-account key used by `eas submit` (eas.json ->
+# submit.*.android.serviceAccountKeyPath). This one IS a real secret: it can
+# publish releases to the Play listing. Each maintainer downloads their own
+# from Play Console -> Users and permissions.
+mobileAlt/play-service-account.json

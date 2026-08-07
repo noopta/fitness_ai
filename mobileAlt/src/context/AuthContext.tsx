@@ -47,6 +47,10 @@ export interface AuthUser {
   heightCm?: number | null;
   weightKg?: number | null;
   unitPreference?: 'metric' | 'imperial' | null;
+  // Which food-composition data and prompt vocabulary meal logging uses.
+  // USDA has almost no West African coverage, so this is what makes egusi soup
+  // or benachin resolve to real numbers instead of model guesswork.
+  foodRegion?: 'global' | 'ng' | 'gm' | 'wa' | null;
   trainingAge?: string | null;
   equipment?: string | null;
   constraintsText?: string | null;

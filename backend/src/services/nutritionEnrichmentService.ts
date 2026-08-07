@@ -1,5 +1,6 @@
 import type { ParsedMealDetail, Micronutrients } from './llmService.js';
 import { estimateMicronutrientsOnly } from './llmService.js';
+import type { FoodRegion } from './prompts/regionPrompts.js';
 
 const USDA_API_KEY = process.env.USDA_API_KEY || '';
 const USDA_SEARCH_URL = 'https://api.nal.usda.gov/fdc/v1/foods/search';
@@ -256,14 +257,24 @@ function hasUsableMicros(n: Micronutrients | undefined | null): boolean {
 
 export async function enrichMealDetailHybrid(
   detail: ParsedMealDetail,
+  // Additive and defaulted, so every existing caller keeps its exact behaviour.
+  // Only used for the micro backfill today; Wave 2 will also use it to order
+  // the composition sources (local West African table before USDA).
+  opts: { region?: FoodRegion } = {},
 ): Promise<{ detail: ParsedMealDetail; meta: HybridEnrichmentMeta }> {
+  const region = opts.region ?? 'global';
   // Backfill net (gut-health feature): the primary parse intermittently
   // omits/zeroes the nutrients object. With no USDA key configured this
   // used to pass straight through as an all-zero micro profile — the
   // "sometimes no micronutrients" bug. One focused re-ask fixes it.
+  //
+  // This is also the weakest point for West African food: USDA has no coverage,
+  // so the re-ask is pure model recall. Handing it the regional block (palm oil
+  // dominates vitamin A, local greens dominate iron/folate) is the cheapest
+  // accuracy win available.
   if (!hasUsableMicros(detail.nutrients) && (detail.calories ?? 0) > 0) {
     const backfilled = await estimateMicronutrientsOnly(
-      detail.name, detail.ingredients ?? [], detail.calories,
+      detail.name, detail.ingredients ?? [], detail.calories, region,
     );
     if (backfilled && hasUsableMicros(backfilled)) {
       detail = { ...detail, nutrients: backfilled };

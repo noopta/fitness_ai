@@ -17,6 +17,12 @@ model User {
   // Defaults to imperial (US-first); set to metric at signup when we detect an
   // EU/metric locale, and user-overridable in Settings.
   unitPreference      String            @default("imperial")
+  // Which food-composition data and prompt vocabulary to use when logging
+  // meals: "global" (USDA-first, US portion anchors) | "ng" | "gm" | "wa".
+  // USDA has near-zero coverage of West African foods, so a Nigerian user on
+  // the default would get pure LLM guesswork for egusi soup. Detected from
+  // locale at signup where available, and user-overridable in Settings.
+  foodRegion          String            @default("global")
   bodyCompTag         String?
   trainingAge         String?
   equipment           String?
@@ -299,6 +305,117 @@ model SavedFood {
 
   @@unique([userId, normalizedName])
   @@index([userId, useCount])
+}
+
+// ─── Global food library ──────────────────────────────────────────────────────
+// Reference food-composition data, shared by every user. Deliberately NOT part
+// of SavedFood: that model is per-user (`@@unique([userId, normalizedName])`
+// with a cascading user relation), so it cannot host rows that belong to
+// everyone.
+//
+// Exists because there is no USDA-equivalent REST API for West Africa. The
+// authoritative sources are static tables (FAO/INFOODS Food Composition Table
+// for Western Africa 2019; Nigeria FCT 2017) which we import, plus a curated
+// composite-dish layer we author ourselves — FAO lists ingredients, but people
+// log dishes. Without the dish layer "egusi soup" resolves to "egusi seed, raw"
+// at ~590 kcal/100 g and the calorie-to-grams estimate goes badly wrong.
+model FoodComposition {
+  id                String   @id @default(uuid())
+  // (source, sourceCode) is the idempotency key: an ingest run replaces its own
+  // source wholesale and never touches another's.
+  source            String   // "FAO_INFOODS_WA_2019" | "NG_FCT_2017" | "CURATED_DISH_V1"
+  sourceCode        String   // FAO food code, or a slug for curated dishes
+  region            String   @default("WA") // "WA" | "NG" | "GM" | "GLOBAL"
+  name              String
+  // Diacritic-folded, lowercased search key (Ẹ̀bà → "eba"). Queries must be
+  // folded too — Prisma `contains` on SQLite is case-SENSITIVE.
+  foldedName        String
+  foodGroup         String?  // "cereals" | "roots-tubers" | "legumes" | "oils" | "composite-dish" …
+  preparation       String?  // "raw" | "boiled" | "fried" | "fermented" | "dried" | "as-consumed"
+  isComposite       Boolean  @default(false)
+  // FAO's refuse/inedible percentage. Stored for portion math ("half a tuber of
+  // yam" is gross weight) — NOT applied to the per-100 g values below, which are
+  // already edible-portion.
+  edibleFractionPct Float?
+  caloriesPer100g   Float    @default(0)
+  proteinG          Float    @default(0)
+  carbsG            Float    @default(0)
+  fatG              Float    @default(0)
+  // Open nutrient vector, same convention as SavedFood.nutrientsJson — keeps the
+  // 18 Micronutrients keys plus FAO extras (retinolMcg, thiaminMg, phytateMg)
+  // without adding 30 columns. A key is OMITTED when the source is blank;
+  // writing 0 would corrupt hasUsableMicros() and the enrichment blend.
+  nutrientsJson     String?
+  dataQuality       String   @default("analysed") // "analysed" | "borrowed" | "calculated" | "estimated"
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+  aliases           FoodAlias[]
+  portions          FoodPortion[]
+
+  @@unique([source, sourceCode])
+  @@index([foldedName])
+  @@index([region, foldedName])
+}
+
+// Spelling variants, local-language names and synonyms: egusi/agusi,
+// eba/garri, moi moi/moin moin, benachin/jollof rice, Ẹ̀bà/eba.
+model FoodAlias {
+  id          String          @id @default(uuid())
+  foodId      String
+  alias       String
+  foldedAlias String
+  language    String          @default("en") // en | yo | ig | ha | wo | mnk | ff
+  kind        String          @default("spelling") // spelling | local | synonym | regional
+  food        FoodComposition @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@unique([foodId, foldedAlias])
+  @@index([foldedAlias])
+}
+
+// How people actually measure the food: a wrap of eba, a derica cup of rice, a
+// mudu of beans, half a tuber of yam. Per-100 g data is unusable for logging
+// without these.
+model FoodPortion {
+  id          String          @id @default(uuid())
+  foodId      String
+  label       String          // "wrap" | "derica cup" | "mudu" | "ladle" | "half tuber"
+  foldedLabel String
+  grams       Float
+  region      String          @default("WA")
+  isDefault   Boolean         @default(false)
+  note        String?         // "street-vendor wrap, Lagos, ~180 g"
+  food        FoodComposition @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@index([foodId])
+  @@index([foldedLabel])
+}
+
+// Community barcode cache for packaged goods missing from OpenFoodFacts —
+// OFF's coverage of Nigerian-manufactured products is thin. Populated when a
+// user photographs a nutrition label after a lookup miss. Global (keyed by
+// GTIN) so one user's scan fixes the product for everyone.
+model ProductBarcode {
+  code                String   @id // GTIN / EAN / UPC
+  name                String
+  brand               String?
+  caloriesPer100g     Float    @default(0)
+  proteinG            Float    @default(0)
+  carbsG              Float    @default(0)
+  fatG                Float    @default(0)
+  nutrientsJson       String?
+  servingSize         String?
+  servingQuantityG    Float?
+  source              String   @default("user_label_scan") // user_label_scan | curated
+  contributedByUserId String?
+  // Unverified rows may be overwritten by a later, higher-confidence scan;
+  // verified rows are frozen. Also gates any future contribution back to OFF.
+  verified            Boolean  @default(false)
+  scanCount           Int      @default(1)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+
+  @@index([source, verified])
 }
 
 model BodyWeightLog {

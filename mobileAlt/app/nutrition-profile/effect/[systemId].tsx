@@ -1,35 +1,47 @@
-// Effect Detail (spec §5.1) — how today's food is acting on one body system.
-// Status pill + summary, contributing-nutrient driver rows (tracked ones tap
-// through to Nutrient Detail), mechanism sentences, and a single amber "watch
-// for" caution.
+// Effect Detail (spec §5.1) — how the selected window's food is acting on one
+// body system. Status pill + summary, contributing-nutrient driver rows (tracked
+// ones tap through to Nutrient Detail), mechanism sentences, and a single amber
+// "watch for" caution.
+//
+// `range` arrives as a query param and MUST be honoured: a 30-day card reading
+// "Sleep low · 41" that opens a screen showing today's 78 is worse than having
+// no ranges at all. It's forwarded onward to Nutrient Detail so the chain holds
+// at depth 2.
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { nutritionProfileApi, type NpEffectDetail } from '../../../src/lib/api';
+import { nutritionProfileApi, type NpEffectDetail, type NpRange } from '../../../src/lib/api';
 import { fontWeight } from '../../../src/constants/theme';
 import { NpScreen } from '../../../src/components/coach/nutritionProfile/NpScreen';
 import { StatusPill, CoverageBar } from '../../../src/components/coach/nutritionProfile/StatusPill';
 import { NP } from '../../../src/components/coach/nutritionProfile/npTokens';
+import { rangeWindowLabel } from '../../../src/components/coach/nutritionProfile/rangeCopy';
 import { todayStr } from '../../../src/lib/localDate';
 
+// Absent param → today, which preserves deep-link and back-nav behavior.
+export function asRange(raw: unknown): NpRange {
+  return raw === '7d' || raw === '30d' ? raw : 'today';
+}
+
 export default function EffectDetailScreen() {
-  const { systemId } = useLocalSearchParams<{ systemId: string }>();
+  const { systemId, range: rangeParam } = useLocalSearchParams<{ systemId: string; range?: string }>();
+  const range = asRange(rangeParam);
   const router = useRouter();
   const [data, setData] = useState<NpEffectDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    nutritionProfileApi.getEffect(String(systemId), todayStr())
+    nutritionProfileApi.getEffect(String(systemId), todayStr(), range)
       .then(d => { if (alive) setData(d); })
       .catch(() => {})
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [systemId]);
+  }, [systemId, range]);
 
   return (
-    <NpScreen kicker="BODY SYSTEM" title={data?.name ?? 'Effect'}>
+    <NpScreen kicker={`BODY SYSTEM · ${rangeWindowLabel(range)}`} title={data?.name ?? 'Effect'}>
       {loading ? (
         <ActivityIndicator color={NP.ink} />
       ) : !data ? (
@@ -59,7 +71,7 @@ export default function EffectDetailScreen() {
                 <TouchableOpacity
                   key={d.key}
                   style={[styles.driverRow, i > 0 && styles.divider]}
-                  onPress={() => router.push(`/nutrition-profile/nutrient/${d.key}` as never)}
+                  onPress={() => router.push(`/nutrition-profile/nutrient/${d.key}?range=${range}` as never)}
                   activeOpacity={0.82}
                   accessibilityRole="button"
                   accessibilityLabel={`${d.label}, ${d.pct}% of target, opens nutrient detail`}
@@ -82,6 +94,20 @@ export default function EffectDetailScreen() {
                 ))}
               </View>
             </>
+          ) : null}
+
+          {/* Averaging hides ceiling spikes: 4600 mg sodium one day and none
+              the next averages to a clean pass. The per-day counts are the only
+              place that excess is visible under a window. */}
+          {range !== 'today' && (data.ceilingSpikes ?? []).length > 0 ? (
+            <View style={styles.watch}>
+              <Ionicons name="alert-circle-outline" size={15} color="#B45309" />
+              <Text style={styles.watchText}>
+                {(data.ceilingSpikes ?? [])
+                  .map(s => `${s.label} over target on ${s.days} day${s.days === 1 ? '' : 's'}`)
+                  .join(' · ')}. Daily averages can mask single-day spikes.
+              </Text>
+            </View>
           ) : null}
 
           {data.watchFor ? (

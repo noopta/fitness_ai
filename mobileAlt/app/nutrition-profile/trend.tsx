@@ -13,18 +13,28 @@
 // of bad eating.
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { nutritionProfileApi, type NpTrend } from '../../src/lib/api';
 import { fontWeight } from '../../src/constants/theme';
 import { NpScreen } from '../../src/components/coach/nutritionProfile/NpScreen';
+import { NpSegmented } from '../../src/components/coach/nutritionProfile/NpSegmented';
 import { NP } from '../../src/components/coach/nutritionProfile/npTokens';
 import { todayStr } from '../../src/lib/localDate';
 
 type Range = '7d' | '30d';
 const CHART_H = 120;
 
+const TREND_RANGES = [
+  { value: '7d' as const, label: '7 days', a11yLabel: 'Last 7 days' },
+  { value: '30d' as const, label: '30 days', a11yLabel: 'Last 30 days' },
+];
+
 export default function TrendScreen() {
-  const [range, setRange] = useState<Range>('7d');
+  // Seeded from the profile screen's selection — landing on 7d after choosing
+  // 30d there reads as the toggle having been ignored.
+  const { range: rangeParam } = useLocalSearchParams<{ range?: string }>();
+  const [range, setRange] = useState<Range>(rangeParam === '30d' ? '30d' : '7d');
   const [data, setData] = useState<NpTrend | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,23 +55,8 @@ export default function TrendScreen() {
 
   return (
     <NpScreen kicker="TREND" title={wide ? '30-day trend' : '7-day trend'}>
-      {/* Range toggle — same segmented treatment as the profile's Strength|Nutrition */}
-      <View style={styles.segment}>
-        {(['7d', '30d'] as Range[]).map(r => (
-          <TouchableOpacity
-            key={r}
-            style={[styles.segItem, range === r && styles.segItemOn]}
-            onPress={() => setRange(r)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: range === r }}
-            accessibilityLabel={r === '7d' ? 'Last 7 days' : 'Last 30 days'}
-          >
-            <Text style={[styles.segText, range === r && styles.segTextOn]}>
-              {r === '7d' ? '7 days' : '30 days'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Range toggle — shared with the profile screen's Today|7d|30d selector */}
+      <NpSegmented options={TREND_RANGES} value={range} onChange={setRange} />
 
       {loading ? (
         <ActivityIndicator color={NP.ink} />
@@ -81,6 +76,13 @@ export default function TrendScreen() {
           )}
           <Text style={styles.footNote}>
             {loggedDays} of {data.series.length} days logged. Hollow columns are days with no food logged.
+          </Text>
+          {/* These bars are scored per day; the Nutrition tab's hero scores one
+              averaged day. Both are honest, and they legitimately differ — a
+              1650/0 split averages to full coverage but bars at 100 and 0. Name
+              the difference rather than letting it read as an inconsistency. */}
+          <Text style={styles.footNote}>
+            Scored day by day. The Nutrition tab scores your average day, so the two can differ.
           </Text>
 
           <Text style={styles.sectionLabel}>CONSISTENCY BY NUTRIENT</Text>
@@ -138,12 +140,6 @@ function Chart({ data, wide }: { data: NpTrend; wide: boolean }) {
 
 const styles = StyleSheet.create({
   muted: { fontSize: 13, color: NP.mutedInk, lineHeight: 19 },
-  segment: { flexDirection: 'row', backgroundColor: NP.muted, borderRadius: 10, padding: 4, gap: 4 },
-  segItem: { flex: 1, paddingVertical: 7, borderRadius: 8, alignItems: 'center' },
-  segItemOn: { backgroundColor: NP.cardBg, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } },
-  segText: { fontSize: 13, fontWeight: fontWeight.semibold, color: NP.mutedInk },
-  segTextOn: { color: NP.ink, fontWeight: fontWeight.bold },
-
   sectionLabel: { fontSize: 10, fontWeight: fontWeight.bold, letterSpacing: 1.2, color: NP.mutedInk },
   chart: { borderWidth: 1, borderColor: NP.border, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10 },
   chartScroll: { borderWidth: 1, borderColor: NP.border, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10 },

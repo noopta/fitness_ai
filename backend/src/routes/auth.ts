@@ -684,6 +684,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         heightCm: true,
         weightKg: true,
         unitPreference: true,
+        foodRegion: true,
         trainingAge: true,
         equipment: true,
         constraintsText: true,
@@ -734,6 +735,8 @@ const profileSchema = z.object({
   heightCm: z.number().optional(),
   weightKg: z.number().optional(),
   unitPreference: z.enum(['metric', 'imperial']).optional(),
+  // Which food-composition data and prompt vocabulary meal logging should use.
+  foodRegion: z.enum(['global', 'ng', 'gm', 'wa']).optional(),
   trainingAge: z.string().optional(),
   equipment: z.string().optional(),
   constraintsText: z.string().optional(),
@@ -759,7 +762,7 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
       },
       select: {
         id: true, name: true, email: true, tier: true,
-        heightCm: true, weightKg: true, unitPreference: true, trainingAge: true,
+        heightCm: true, weightKg: true, unitPreference: true, foodRegion: true, trainingAge: true,
         equipment: true, constraintsText: true,
         coachGoal: true, coachBudget: true, coachOnboardingDone: true, coachProfile: true, savedProgram: true,
         subtractWorkoutBurnFromCalories: true,
