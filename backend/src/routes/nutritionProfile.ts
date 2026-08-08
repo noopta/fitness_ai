@@ -34,6 +34,7 @@ import { foodSourceCandidates, recommendFoods } from '../engine/nutritionRecomme
 import { gainTextFor } from '../engine/nutritionGap.js';
 import { rankCandidates } from '../engine/foodFinderRanker.js';
 import { remainingForDay } from '../services/nutritionRemaining.js';
+import { findNearby } from '../services/foodFinder/nearbyFinder.js';
 import {
   NUTRIENTS, BODY_SYSTEMS, getNutrient, driversForSystem, type BodySystemId,
 } from '../engine/nutrientRegistry.js';
@@ -563,6 +564,110 @@ router.get('/nutrition-profile/recommendations', requireAuth, async (req, res) =
   } catch (err) {
     console.error('Recommendations error:', err);
     res.status(500).json({ error: 'Failed to load recommendations' });
+  }
+});
+
+// GET /nutrition-profile/food-finder?lat=&lng=&radius=&openNow=&include=
+//
+// "What should I eat right now, near me." Merges whole foods (attached to a
+// nearby shop that plausibly carries them) with typical dishes at real nearby
+// restaurants, ranked together by the situational ranker.
+//
+// Location is used for the request and never persisted; the Places cache is
+// keyed on a ~1 km grid, not on the caller's exact position.
+//
+// Degrades rather than fails: with no lat/lng, or when Places is unreachable,
+// it still answers with whole foods and says so via `degraded`.
+router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const date = parseDate(req.query.date);
+
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const hasLocation =
+      Number.isFinite(lat) && Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 && Math.abs(lng) <= 180 &&
+      !(lat === 0 && lng === 0); // a literal null island fix is a client bug, not a place
+
+    const radiusRaw = Number(req.query.radius);
+    const radiusM = Number.isFinite(radiusRaw) ? Math.min(Math.max(radiusRaw, 200), 10000) : undefined;
+
+    // include=groceries,takeout — omitted means both.
+    const include = typeof req.query.include === 'string' ? req.query.include.split(',') : null;
+    const includeGroceries = !include || include.includes('groceries');
+    const includeTakeout = !include || include.includes('takeout');
+
+    const remaining = await remainingForDay(userId, date);
+
+    const found = hasLocation
+      ? await findNearby(remaining, {
+          lat, lng, radiusM,
+          limit: 8,
+          includeGroceries,
+          includeTakeout,
+          openNowOnly: req.query.openNow === '1',
+        })
+      : {
+          ...rankCandidates(foodSourceCandidates(), remaining, { limit: 8, guaranteeBothKinds: false }),
+          storesFound: 0,
+          restaurantsFound: 0,
+          degraded: true,
+        };
+
+    res.json({
+      date,
+      mode: found.arbitration.mode,
+      why: found.arbitration.rationale,
+      pressures: { macro: found.arbitration.macroPressure, micro: found.arbitration.microPressure },
+      remaining: {
+        kcal: remaining.macros.kcal.remaining,
+        proteinG: remaining.macros.proteinG.remaining,
+        carbsG: remaining.macros.carbsG.remaining,
+        fatG: remaining.macros.fatG.remaining,
+      },
+      nearby: {
+        used: hasLocation,
+        degraded: found.degraded,
+        storesFound: found.storesFound,
+        restaurantsFound: found.restaurantsFound,
+      },
+      recommendations: found.results.map(r => {
+        const store = r.meta?.store as { name: string; distanceM: number; openNow: boolean | null } | null | undefined;
+        const vendor = r.meta?.vendor as { name: string; distanceM: number; openNow: boolean | null; rating: number | null } | undefined;
+        return {
+          id: r.id,
+          kind: r.kind,
+          name: r.name,
+          serving: (r.meta?.serving as string) ?? '',
+          category: (r.meta?.category as string) ?? '',
+          kcal: r.kcal,
+          gain: r.closes[0] ? gainTextFor(r.closes[0].key, r.closes[0].amount, r.closes[0].label) : '',
+          closes: r.closes,
+          warns: r.warns,
+          mechanism: r.closes[0] ? mechanismSentence(r.closes[0].key) : '',
+          score: r.score,
+          // We have no menu feed and no stock feed, so the copy is scoped to
+          // what we can actually stand behind: a real place, and a typical dish
+          // or a plausibly-stocked food. Never "their bowl has 45 g".
+          where: vendor
+            ? { name: vendor.name, distanceM: vendor.distanceM, openNow: vendor.openNow, rating: vendor.rating }
+            : store
+              ? { name: store.name, distanceM: store.distanceM, openNow: store.openNow, rating: null }
+              : null,
+          note: vendor
+            ? `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`
+            : store
+              ? `Usually carried at ${store.name}.`
+              : null,
+          confidence: r.confidence,
+          prefill: { name: `${r.name} (${r.meta?.serving ?? ''})`, source: 'food-finder' },
+        };
+      }),
+    });
+  } catch (err) {
+    console.error('Food finder error:', err);
+    res.status(500).json({ error: 'Failed to load food finder' });
   }
 });
 

@@ -163,15 +163,20 @@ function rationaleFor(
   const names = topMicros.slice(0, 2).map(m => m.label.toLowerCase());
   const microPhrase = names.length === 2 ? `${names[0]} and ${names[1]}` : names[0] ?? 'micronutrients';
 
+  // "still 5 g of protein short" is technically true and useless — it framed a
+  // micronutrient-led moment as a protein problem. Only lead with protein when
+  // the shortfall is material, matching the threshold leanOnly uses.
+  const proteinIsMaterial = remaining.macros.proteinG.short >= 0.15 && proteinLeft > 0;
+
   switch (mode) {
     case 'on_track':
       return 'Macros and micronutrients are both on track — nothing needs closing right now.';
     case 'tight_budget':
-      return proteinLeft > 0
+      return proteinIsMaterial
         ? `Only ${kcalLeft} kcal left but still ${proteinLeft} g of protein short — this needs lean, protein-dense food.`
         : `Only ${kcalLeft} kcal left, so this is about ${microPhrase} without spending calories.`;
     case 'macro_priority':
-      return proteinLeft > 0
+      return proteinIsMaterial
         ? `${proteinLeft} g of protein and ${kcalLeft} kcal still to go — macros lead.`
         : `${kcalLeft} kcal still to go — macros lead.`;
     case 'micro_priority':

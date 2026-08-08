@@ -173,6 +173,20 @@ describe('arbitrate', () => {
   it('always produces a rationale sentence', () => {
     expect(arbitrate(day()).rationale.length).toBeGreaterThan(10);
   });
+
+  it('does not frame a micronutrient moment as a protein problem', () => {
+    // Live probe caught this: 5 g of protein left read as "still 5 g of protein
+    // short — this needs lean, protein-dense food" on a micro-led day.
+    const d = day({ kcal: 2400, proteinG: 175, carbsG: 285, fatG: 76 });
+    const arb = arbitrate(d);
+    expect(d.macros.proteinG.remaining).toBeGreaterThan(0);
+    expect(arb.rationale).not.toMatch(/protein/i);
+  });
+
+  it('still leads with protein when the shortfall is material', () => {
+    const arb = arbitrate(day({ kcal: 2480, proteinG: 120, carbsG: 300, fatG: 80 }));
+    expect(arb.rationale).toMatch(/protein/i);
+  });
 });
 
 describe('scoring', () => {
