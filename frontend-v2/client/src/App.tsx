@@ -11,6 +11,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { FloatingCoachChat } from "@/components/FloatingCoachChat";
 import NotFound from "@/pages/not-found";
+import FoodFinderPage from "./pages/food-finder";
 import Signup from "./pages/signup";
 import Onboarding from "./pages/onboarding";
 import Snapshot from "./pages/snapshot";
@@ -177,6 +178,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
+      <Route path="/food-finder" component={FoodFinderPage} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />

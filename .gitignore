@@ -41,6 +41,8 @@ prisma/*.db-journal
 .next/
 out/
 backend/prisma/dev.db
+backend/prisma/dev.db-shm
+backend/prisma/dev.db-wal
 # stray SQLite file some tooling drops in backend/ instead of backend/prisma/
 backend/dev.db
 
