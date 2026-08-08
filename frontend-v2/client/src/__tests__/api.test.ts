@@ -219,3 +219,49 @@ describe('paymentsApi.getStatus', () => {
     expect(url).toContain('/payments/status');
   });
 });
+
+// ─── Bearer token fallback ────────────────────────────────────────────────────
+//
+// apiRequest used to send only the cookie. That was survivable while the
+// diagnostic session routes were unauthenticated on the backend; once they
+// required auth, cookie-only meant every session call 401'd for anyone whose
+// browser blocks third-party cookies (Safari ITP, Firefox ETP, Chrome's
+// third-party default) — and the web frontend is on a different origin to the
+// API, so `credentials: 'include'` alone is not reliable. These pin the same
+// contract authFetch has always had.
+
+describe('apiRequest bearer token', () => {
+  afterEach(() => sessionStorage.clear());
+
+  it('attaches the Authorization header when a token is stored', async () => {
+    sessionStorage.setItem('liftoff_bearer_token', 'tok_abc123');
+    mockFetch({ session: { id: 's1' } });
+
+    await liftCoachApi.createSession({ selectedLift: 'deadlift' } as any);
+
+    const [, opts] = (vi.mocked(fetch) as any).mock.calls[0];
+    expect(opts.headers.Authorization).toBe('Bearer tok_abc123');
+    // The cookie path must keep working alongside it.
+    expect(opts.credentials).toBe('include');
+  });
+
+  it('omits the Authorization header when no token is stored', async () => {
+    mockFetch({ lifts: [] });
+
+    await liftCoachApi.getLifts();
+
+    const [, opts] = (vi.mocked(fetch) as any).mock.calls[0];
+    expect(opts.headers.Authorization).toBeUndefined();
+  });
+
+  it('still sends Content-Type and does not clobber caller headers', async () => {
+    sessionStorage.setItem('liftoff_bearer_token', 'tok_xyz');
+    mockFetch({ ok: true });
+
+    await liftCoachApi.getLifts();
+
+    const [, opts] = (vi.mocked(fetch) as any).mock.calls[0];
+    expect(opts.headers['Content-Type']).toBe('application/json');
+    expect(opts.headers.Authorization).toBe('Bearer tok_xyz');
+  });
+});
