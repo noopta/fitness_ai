@@ -10,6 +10,7 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAnalysisRateLimit } from '../middleware/rateLimit.js';
 import { getExerciseVideo } from '../services/youtubeService.js';
 import posthog from '../services/posthogClient.js';
+import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -136,7 +137,7 @@ router.get('/sessions/history', requireAuth, async (req, res) => {
     });
 
     const result = sessions.map(s => {
-      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      const plan = parseJsonObjectColumn<any>(s.plans[0]?.planJson);
       return {
         id: s.id,
         selectedLift: s.selectedLift,

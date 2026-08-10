@@ -33,6 +33,7 @@ import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
+import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 
 
 const router = Router();
@@ -979,10 +980,12 @@ async function buildNutritionProfile(userId: string): Promise<Record<string, any
     ))];
     const workoutLiftNames = new Set<string>();
     for (const w of workoutLogs) {
-      try {
-        const exs: Array<{ name: string }> = JSON.parse(w.exercises);
-        exs.forEach(e => e.name && workoutLiftNames.add(e.name));
-      } catch { /* skip malformed */ }
+      // freeform entries are placeholders reconstructed from free text — the
+      // "name" is a whole sentence ("Outdoor run, 5.02km in 31 minutes"), not
+      // a lift. Feeding those to the engine as lift names pollutes the coach's
+      // context, which is why StoredExercise carries the flag.
+      const exs = parseJsonArrayColumn<{ name?: string; freeform?: boolean }>(w.exercises);
+      exs.forEach(e => { if (e?.name && !e.freeform) workoutLiftNames.add(e.name); });
     }
     const allLifts = [...new Set([...workoutLiftNames, ...sessionLifts])].slice(0, 8);
 

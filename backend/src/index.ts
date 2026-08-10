@@ -11,6 +11,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import posthog from './services/posthogClient.js';
+import { errorReporting, reportServerError } from './middleware/errorReporting.js';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
@@ -66,7 +67,7 @@ import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
 import { runAnakinGroupSweep } from './services/groupAccountability.js';
 import { runProgramRescueSweep } from './services/programRescueService.js';
-import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
+import { alertUncaughtException } from './services/errorAlertService.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -121,6 +122,11 @@ app.use(express.json({
   },
 }));
 
+// Catch 5xx responses that routes send themselves. Must sit above the routes;
+// see middleware/errorReporting.ts for why the central handler below isn't
+// enough on its own.
+app.use(errorReporting);
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Axiom API is running' });
@@ -168,16 +174,16 @@ Sentry.setupExpressErrorHandler(app);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const userId = (req as any).user?.id;
   const status: number = err?.status ?? err?.statusCode ?? 500;
 
   // CORS rejections + other expected 4xx errors don't need Sentry/PostHog
   // noise or a stack trace in the logs — they're constant scanner traffic.
   const noisy = !err?._isCors && status >= 500;
   if (noisy) {
-    posthog.captureException(err, userId);
-    console.error('Error:', err);
-    alertServerError(err, req.path, req.method, status).catch(() => {});
+    // Goes through the shared latch so the res.json interceptor doesn't
+    // report this same response a second time. Errors that reach here still
+    // carry their real stack, unlike ones a route already swallowed.
+    reportServerError(err, req, res, status);
   }
 
   res.status(status).json({ error: err?.message ?? 'Internal server error' });

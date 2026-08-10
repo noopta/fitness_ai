@@ -24,6 +24,7 @@ import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel 
 
 import { getExerciseVideo } from '../services/youtubeService.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
+import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -77,7 +78,7 @@ router.get('/coach/messages', requireAuth, async (req, res) => {
     const phaseState = computePhaseState(parseSavedProgram(user.savedProgram), user.programStartDate);
 
     const sessionSummaries = user.sessions.map(s => {
-      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      const plan = parseJsonObjectColumn<any>(s.plans[0]?.planJson);
       return {
         id: s.id,
         selectedLift: s.selectedLift,
@@ -148,7 +149,7 @@ router.post('/coach/chat', requireAuth, async (req, res) => {
     // Create thread if it doesn't exist yet
     if (!threadId) {
       const sessions: CoachSession[] = user.sessions.map(s => {
-        const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+        const plan = parseJsonObjectColumn<any>(s.plans[0]?.planJson);
         return {
           id: s.id,
           selectedLift: s.selectedLift,
@@ -261,7 +262,7 @@ async function buildFullUserContext(userId: string): Promise<string> {
   // Active training program
   if (user.savedProgram) {
     try {
-      const prog = JSON.parse(user.savedProgram);
+      const prog = parseJsonObjectColumn<any>(user.savedProgram) ?? {};
       lines.push('\n=== ACTIVE TRAINING PROGRAM ===');
       if (prog.programName) lines.push(`Program: ${prog.programName}`);
       if (prog.weeksTotal) lines.push(`Duration: ${prog.weeksTotal} weeks`);
@@ -292,7 +293,7 @@ async function buildFullUserContext(userId: string): Promise<string> {
   if (user.sessions.length > 0) {
     lines.push('\n=== DIAGNOSTIC ANALYSIS HISTORY ===');
     for (const s of user.sessions) {
-      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      const plan = parseJsonObjectColumn<any>(s.plans[0]?.planJson);
       lines.push(`\n--- ${s.selectedLift.replace(/_/g, ' ').toUpperCase()} (${new Date(s.createdAt).toLocaleDateString()}) ---`);
       if (s.snapshots.length > 0) {
         lines.push('  Working weights logged:');
@@ -543,7 +544,7 @@ router.get('/coach/analytics', requireAuth, async (req, res) => {
     const dataPoints = user.sessions
       .filter(s => s.plans[0])
       .map(s => {
-        const plan = JSON.parse(s.plans[0].planJson);
+        const plan = parseJsonObjectColumn<any>(s.plans[0].planJson);
         const ds = plan?.diagnostic_signals;
         return {
           sessionId: s.id,
@@ -736,7 +737,7 @@ router.get('/coach/program', requireAuth, async (req, res) => {
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
     const result = {
-      program: user.savedProgram ? JSON.parse(user.savedProgram) : null,
+      program: parseJsonObjectColumn<any>(user.savedProgram),
       programStartDate: user.programStartDate ? user.programStartDate.toISOString() : null,
     };
     cacheSet(cacheKey, result); // no expiry — only cleared on save
@@ -908,7 +909,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     const cachedToday = cacheGet(todayCacheKey);
     if (cachedToday) return res.json(cachedToday);
 
-    const program = JSON.parse(user.savedProgram);
+    const program = parseJsonObjectColumn<any>(user.savedProgram);
     const phaseState = computePhaseState(program, user.programStartDate);
     const { weekNumber, phaseNumber, currentPhase, daysSinceStart } = phaseState;
 
@@ -1043,7 +1044,7 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
     let weekSchedule: Array<{ dayLabel: string; isTrainingDay: boolean; sessionName?: string }> = [];
 
     if (user.savedProgram) {
-      const program = JSON.parse(user.savedProgram);
+      const program = parseJsonObjectColumn<any>(user.savedProgram);
       const startDate = user.programStartDate || new Date();
       const phaseState = computePhaseState(program, user.programStartDate);
       weekNumber = phaseState.weekNumber;
@@ -1390,7 +1391,7 @@ async function fetchOverridesMap(userId: string, fromDate: string, toDate: strin
   });
   const map = new Map<string, any | null>();
   for (const r of rows) {
-    map.set(r.date, r.sessionJson ? JSON.parse(r.sessionJson) : null);
+    map.set(r.date, parseJsonObjectColumn<any>(r.sessionJson));
   }
   return map;
 }
@@ -1410,7 +1411,7 @@ function buildScheduleData(
 ) {
   if (!user.savedProgram) return { weekDays: [], weekNumber: null, phaseName: null };
 
-  const program = JSON.parse(user.savedProgram);
+  const program = parseJsonObjectColumn<any>(user.savedProgram);
   const startDate = user.programStartDate || new Date();
   const phaseState = computePhaseState(program, user.programStartDate);
   const { weekNumber, currentPhase } = phaseState;
@@ -1615,7 +1616,7 @@ router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { savedProgram: true } });
     if (!user?.savedProgram) return res.status(404).json({ error: 'No saved program' });
 
-    const program = JSON.parse(user.savedProgram);
+    const program = parseJsonObjectColumn<any>(user.savedProgram) ?? {};
     if (program.nutritionPlan?.macros) {
       // Store original calories on first adjustment so subsequent adjustments apply from base
       const original = program.nutritionPlan.macros._originalCalories ?? program.nutritionPlan.macros.calories;
@@ -1757,7 +1758,7 @@ router.get('/strength-profile', requireAuth, async (req, res) => {
 
     // Build session history with key stats
     const sessionHistory = sessions.map(s => {
-      const plan = s.plans[0] ? JSON.parse(s.plans[0].planJson) : null;
+      const plan = parseJsonObjectColumn<any>(s.plans[0]?.planJson);
       const signals = plan?.diagnostic_signals;
       return {
         id: s.id,
