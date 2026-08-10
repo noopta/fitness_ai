@@ -16,6 +16,7 @@ import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel 
 import { latestNutritionPlan } from '../services/nutritionPlanService.js';
 import { computeMicroTargets, statusFor } from '../services/microTargetsService.js';
 import { scoreGutWeek, distinctPlants } from '../services/gutHealthScoreService.js';
+import { freeTextToExercises } from '../services/workoutExercises.js';
 import type { AgentTool } from './types.js';
 
 /** Look up a user's display-unit preference (defaults imperial). */
@@ -417,7 +418,8 @@ const logWorkout: AgentTool = {
       data: {
         userId, date,
         title: (input.title as string) || 'Workout',
-        exercises: String(input.exercises ?? ''),
+        // The column holds JSON (routes/workouts.ts parses it) — never raw text
+        exercises: JSON.stringify(freeTextToExercises(String(input.exercises ?? ''))),
         duration: input.durationMin != null ? Number(input.durationMin) : null,
       },
       select: { id: true, date: true, title: true, duration: true },
