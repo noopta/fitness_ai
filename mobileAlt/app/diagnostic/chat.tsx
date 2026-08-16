@@ -5,8 +5,6 @@ import {
   ScrollView,
   TextInput,
   Pressable,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -16,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { liftCoachApi } from '../../src/lib/api';
 import { Analytics } from '../../src/lib/analytics';
 import { Button } from '../../src/components/ui/Button';
@@ -214,11 +213,7 @@ export default function ChatScreen() {
         }}
       />
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior="padding"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-      >
+      <KeyboardAvoider style={styles.flex} iosOffset={100}>
         {/* Messages */}
         <ScrollView
           ref={scrollViewRef}
@@ -331,7 +326,7 @@ export default function ChatScreen() {
             </Pressable>
           </View>
         )}
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

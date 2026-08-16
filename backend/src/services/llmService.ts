@@ -8,6 +8,8 @@ import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
 import { buildRAGContext, retrieveProgramSources, type ProgramSource } from './ragService.js';
 import { kgToLb, type UnitPreference } from './weightUnits.js';
 import { chatComplete } from './chatClient.js';
+import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
+import { coerceNutritionLabel } from './food/communityProduct.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -1892,7 +1894,10 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
   };
 }
 
-export async function parseMealMacros(description: string): Promise<ParsedMealDetail> {
+export async function parseMealMacros(
+  description: string,
+  region: FoodRegion = 'global',
+): Promise<ParsedMealDetail> {
   const prompt = `You are a nutrition expert with deep knowledge of restaurant menus, packaged foods, and home cooking. A user described a meal — extract the macros as accurately as possible.
 
 MEAL DESCRIPTION: "${description}"
@@ -1963,7 +1968,8 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
 GUT-HEALTH FIELDS (required):
 - "plants": distinct plant species in the meal (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs, spices) as singular lowercase names, e.g. ["tomato","spinach","oat"]. Refined flour/sugar/oils do NOT count.
 - "fermentedFoods": live-culture fermented items present, e.g. ["kefir","kimchi","greek yogurt"], else [].
-- "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).`;
+- "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).
+${regionPromptBlock(region, 'text')}`;
 
   const response = await chatComplete({
     messages: [{ role: 'user', content: prompt }],
@@ -1984,6 +1990,15 @@ GUT-HEALTH FIELDS (required):
 export interface ProfileNarrationInput {
   headlineFacts: string;   // e.g. "kcal 1850, coverage 62%, score 71"
   systems: Array<{ name: string; status: string; score: number; topDriver: string }>;
+  // Which period the figures describe. Omitted → today (the original behavior).
+  // For 7d/30d the figures are a per-day MEAN, and the model has to be told so
+  // or it writes "today" into a 30-day headline.
+  periodLabel?: string;
+  // Logged-day coverage of the window, so the model can hedge a thin sample.
+  // Only what appears in the DATA block gets used reliably, so the caller also
+  // folds this into headlineFacts.
+  loggedDays?: number;
+  windowDays?: number;
 }
 
 export interface ProfileNarration {
@@ -1992,10 +2007,21 @@ export interface ProfileNarration {
 }
 
 export async function generateProfileNarration(input: ProfileNarrationInput): Promise<ProfileNarration> {
-  const prompt = `You write for a strength app's Nutrition Profile. Given pre-computed figures, write a plain-language verdict and one driver sentence per body system. Rules: second person, verbed, EVERY sentence carries a number from the data, no emoji, no exclamation marks, no weight-loss framing. Keep each sentence under 16 words.
+  const period = input.periodLabel ?? 'today';
+  const windowed = period !== 'today';
+  // A thin sample can't support "all month" claims — tell the model to hedge.
+  const thin = windowed
+    && typeof input.loggedDays === 'number' && typeof input.windowDays === 'number'
+    && input.loggedDays * 2 < input.windowDays;
+
+  const periodRules = windowed
+    ? ` The figures are an AVERAGE PER DAY across the logged days in this period — never describe them as a single day's intake, and never write "today".${thin ? ' Fewer than half the days in the window were logged: say so in the headline and avoid claiming a consistent pattern.' : ''}`
+    : '';
+
+  const prompt = `You write for a strength app's Nutrition Profile. Given pre-computed figures, write a plain-language verdict and one driver sentence per body system. Rules: second person, verbed, EVERY sentence carries a number from the data, no emoji, no exclamation marks, no weight-loss framing. Keep each sentence under 16 words.${periodRules}
 
 DATA
-Day: ${input.headlineFacts}
+Period: ${period} — ${input.headlineFacts}
 Systems:
 ${input.systems.map(s => `- ${s.name}: status ${s.status}, score ${s.score}/100, weakest driver ${s.topDriver}`).join('\n')}
 
@@ -2100,7 +2126,11 @@ function coerceParsedRecipe(raw: any, fallbackServings: number): ParsedRecipe {
   };
 }
 
-export async function parseRecipeIngredients(description: string, servingsHint?: number): Promise<ParsedRecipe> {
+export async function parseRecipeIngredients(
+  description: string,
+  servingsHint?: number,
+  region: FoodRegion = 'global',
+): Promise<ParsedRecipe> {
   const prompt = `You are a nutrition expert. A user pasted or dictated a recipe — break it into ingredients and estimate the macros of EACH ingredient for the WHOLE recipe (not per serving).
 
 RECIPE: "${description}"
@@ -2132,7 +2162,7 @@ OUTPUT FORMAT (JSON only, no explanation):
     { "name": "ground beef (90/10)", "quantity": "2 lbs", "calories": 1584, "proteinG": 181, "carbsG": 0, "fatG": 91 },
     { "name": "black beans", "quantity": "1 can (400g)", "calories": 368, "proteinG": 24, "carbsG": 66, "fatG": 1 }
   ]
-}`;
+}${regionPromptBlock(region, 'recipe')}`;
 
   const response = await chatComplete({
     messages: [{ role: 'user', content: prompt }],
@@ -2306,7 +2336,11 @@ import { toFile as openaiToFile } from 'openai';
 // coerceParsedMealDetail. Downstream code (enrichMealDetailHybrid) is
 // untouched.
 
-export async function analyzeMealPhoto(imageBase64: string, mimeType: string): Promise<ParsedMealDetail> {
+export async function analyzeMealPhoto(
+  imageBase64: string,
+  mimeType: string,
+  region: FoodRegion = 'global',
+): Promise<ParsedMealDetail> {
   const prompt = `You are a nutrition expert analyzing a photo of a meal. Identify all food items visible, estimate portion sizes based on visual cues (plate size, utensils, hand if visible), and calculate macros.
 
 INSTRUCTIONS:
@@ -2367,7 +2401,8 @@ biochemicalEffects: select from: anti-inflammatory, pro-inflammatory, blood-suga
 GUT-HEALTH FIELDS (required):
 - "plants": distinct plant species in the meal (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs, spices) as singular lowercase names, e.g. ["tomato","spinach","oat"]. Refined flour/sugar/oils do NOT count.
 - "fermentedFoods": live-culture fermented items present, e.g. ["kefir","kimchi","greek yogurt"], else [].
-- "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).`;
+- "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).
+${regionPromptBlock(region, 'photo')}`;
 
   const result = await gemini.models.generateContent({
     model: GEMINI_VISION_MODEL,
@@ -2431,10 +2466,96 @@ GUT-HEALTH FIELDS (required):
 // The parse models sometimes omit or zero the nutrients object (observed in
 // prod ~intermittently). This focused retry asks ONLY for the 18-nutrient
 // JSON — a much smaller generation that models get right far more reliably.
+// ── Nutrition-label scan (barcode recovery) ──────────────────────────────────
+// Reads a photographed nutrition panel when OpenFoodFacts has no record of the
+// barcode. This is the only way to build coverage for Nigerian and Gambian
+// packaged goods, which OFF barely has.
+//
+// The hard part is normalising to per-100 g. Nigerian panels frequently give
+// per-serving figures only, and often state energy in kJ rather than kcal, so
+// the prompt has to do the conversion rather than the caller guessing.
+export interface ParsedNutritionLabel {
+  name: string;
+  brand: string | null;
+  caloriesPer100g: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  nutrients: Partial<Micronutrients>;
+  servingSize: string | null;
+  servingQuantityG: number | null;
+}
+
+export async function parseNutritionLabel(
+  imageBase64: string,
+  mimeType: string,
+  region: FoodRegion = 'global',
+): Promise<ParsedNutritionLabel | null> {
+  const prompt = `You are reading a photograph of a packaged food's NUTRITION INFORMATION panel. Extract the figures exactly as printed — do not estimate from your own knowledge of the product.
+
+CRITICAL — normalise everything to PER 100 g (or per 100 ml for liquids):
+- If the panel gives per-100g values, use them directly.
+- If it ONLY gives per-serving values, convert: per100g = perServing × 100 / servingGrams. Read the serving weight off the panel.
+- If energy is given in kJ only, convert: kcal = kJ / 4.184.
+- If a nutrient is not printed on the panel, OMIT the key entirely. Never guess a value and never write 0 for "not stated" — 0 means the panel explicitly says zero.
+
+Also read the product name and brand from the packaging if visible.
+
+Return JSON only:
+{
+  "name": "product name as printed",
+  "brand": "brand or null",
+  "caloriesPer100g": 0,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0,
+  "servingSize": "as printed, e.g. '1 sachet (70 g)' or null",
+  "servingQuantityG": 70,
+  "nutrients": { "fiberG": 0, "sugarG": 0, "sodiumMg": 0, "saturatedFatG": 0, "cholesterolMg": 0, "calciumMg": 0, "ironMg": 0, "potassiumMg": 0, "vitaminAIU": 0, "vitaminCMg": 0 }
+}
+
+If the image is not a nutrition panel, or is too blurred to read, return {"name":"","caloriesPer100g":0}.${regionPromptBlock(region, 'micros')}`;
+
+  try {
+    const result = await gemini.models.generateContent({
+      model: GEMINI_VISION_MODEL,
+      config: {
+        responseMimeType: 'application/json',
+        thinkingConfig: { thinkingBudget: 1024 },
+        maxOutputTokens: 2048,
+      },
+      contents: [{ role: 'user', parts: [
+        { text: prompt },
+        { inlineData: { mimeType, data: imageBase64 } },
+      ]}],
+    });
+
+    const raw = result.text?.trim();
+    if (!raw) return null;
+    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    const parsed = JSON.parse(text);
+
+    // Clamping/typing lives in communityProduct.ts so it is unit-testable —
+    // routes/nutrition.ts can't be mounted in a test (OpenAI at import time).
+    const coerced = coerceNutritionLabel(parsed);
+    if (!coerced) return null;
+
+    // Reuse the shared meal coercion so the micro vector is clamped and typed
+    // the same way every other parse path produces it.
+    const detail = coerceParsedMealDetail({ nutrients: parsed?.nutrients ?? {} });
+
+    return { ...coerced, nutrients: detail.nutrients };
+  } catch (err) {
+    console.warn('[nutrition-label] parse failed:', (err as Error)?.message);
+    return null;
+  }
+}
+
 export async function estimateMicronutrientsOnly(
   mealName: string,
   ingredients: string[],
   calories: number,
+  region: FoodRegion = 'global',
 ): Promise<Micronutrients | null> {
   try {
     const response = await chatComplete({
@@ -2442,7 +2563,7 @@ export async function estimateMicronutrientsOnly(
         role: 'user',
         content: `Estimate micronutrients for this full meal (~${Math.round(calories)} kcal): "${mealName}"${ingredients.length ? ` — ingredients: ${ingredients.join(', ')}` : ''}.
 Return JSON only, all numeric fields required:
-{"fiberG":0,"sugarG":0,"sodiumMg":0,"saturatedFatG":0,"cholesterolMg":0,"vitaminAIU":0,"vitaminCMg":0,"vitaminDIU":0,"vitaminEMg":0,"vitaminB12Mcg":0,"folateMcg":0,"ironMg":0,"calciumMg":0,"magnesiumMg":0,"zincMg":0,"potassiumMg":0,"omega3G":0,"omega6G":0}`,
+{"fiberG":0,"sugarG":0,"sodiumMg":0,"saturatedFatG":0,"cholesterolMg":0,"vitaminAIU":0,"vitaminCMg":0,"vitaminDIU":0,"vitaminEMg":0,"vitaminB12Mcg":0,"folateMcg":0,"ironMg":0,"calciumMg":0,"magnesiumMg":0,"zincMg":0,"potassiumMg":0,"omega3G":0,"omega6G":0}${regionPromptBlock(region, 'micros')}`,
       }],
       response_format: { type: 'json_object' },
       max_completion_tokens: 400,
@@ -2476,6 +2597,7 @@ export interface OrderScanResult {
 export async function analyzeOrderScreenshot(
   imageBase64: string,
   mimeType: string,
+  region: FoodRegion = 'global',
 ): Promise<OrderScanResult> {
   const prompt = `You are a nutrition expert reading a screenshot of a food-delivery order (UberEats/DoorDash/etc.), a restaurant receipt, or possibly a photo of actual food.
 
@@ -2508,7 +2630,8 @@ OUTPUT (JSON only):
   ]
 }
 "plants": distinct plant species (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs), singular lowercase. "fermentedFoods": live-culture items only. "ultraProcessed": true only for predominantly ultra-processed items.
-FOR "food_photo" or "unreadable": return {"kind":"food_photo","vendor":null,"items":[]} or {"kind":"unreadable","vendor":null,"items":[]}.`;
+FOR "food_photo" or "unreadable": return {"kind":"food_photo","vendor":null,"items":[]} or {"kind":"unreadable","vendor":null,"items":[]}.
+${regionPromptBlock(region, 'order')}`;
 
   const result = await gemini.models.generateContent({
     model: GEMINI_VISION_MODEL,

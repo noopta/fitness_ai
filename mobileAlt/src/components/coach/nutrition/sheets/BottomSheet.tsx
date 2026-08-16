@@ -14,7 +14,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Modal, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView,
-  KeyboardAvoidingView, Platform, Pressable,
+  Pressable,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing,
@@ -23,6 +23,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontWeight } from '../../../../constants/theme';
+import { KeyboardAvoider } from '../../../ui/KeyboardAvoider';
 
 interface Props {
   visible: boolean;
@@ -111,8 +112,7 @@ export function BottomSheet({
           accessibilityLabel="Close sheet"
           accessibilityRole="button"
         />
-        <KeyboardAvoidingView
-          behavior="padding"
+        <KeyboardAvoider
           style={styles.sheetWrap}
           pointerEvents="box-none"
         >
@@ -155,7 +155,7 @@ export function BottomSheet({
               </ScrollView>
             </SafeAreaView>
           </Animated.View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </View>
     </Modal>
   );

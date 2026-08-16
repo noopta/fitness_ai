@@ -3,10 +3,58 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  runNutritionProfileEngine, sumNutrientMaps, effectiveTarget,
+  runNutritionProfileEngine, sumNutrientMaps, averageNutrientMaps, effectiveTarget,
 } from '../engine/nutritionProfileEngine.js';
 import { recommendFoods } from '../engine/nutritionRecommendations.js';
 import { getNutrient, NUTRIENTS } from '../engine/nutrientRegistry.js';
+
+describe('averageNutrientMaps', () => {
+  it('divides by the number of DAYS, not the number of keys', () => {
+    const avg = averageNutrientMaps([
+      { proteinG: 100, cholineMg: 400 },
+      { proteinG: 60, cholineMg: 200 },
+    ]);
+    expect(avg.proteinG).toBe(80);
+    expect(avg.cholineMg).toBe(300);
+  });
+
+  it('counts a key absent on a logged day as 0 for that day', () => {
+    // Deliberate: a day where only a coffee was logged really did contribute no
+    // protein. Do not "fix" this to average over the days a key appears on.
+    const avg = averageNutrientMaps([{ proteinG: 100 }, { cholineMg: 400 }]);
+    expect(avg.proteinG).toBe(50);
+    expect(avg.cholineMg).toBe(200);
+  });
+
+  it('averages the synthetic calories key like any other', () => {
+    const avg = averageNutrientMaps([
+      sumNutrientMaps([{ proteinG: 10 }], [2000]),
+      sumNutrientMaps([{ proteinG: 10 }], [3000]),
+    ]);
+    expect(avg.calories).toBe(2500);
+  });
+
+  it('returns an empty map for no logged days rather than NaN', () => {
+    const avg = averageNutrientMaps([]);
+    expect(avg).toEqual({});
+    expect(Object.values(avg).some(Number.isNaN)).toBe(false);
+  });
+
+  it('keeps daily targets valid — averaging never inflates coverage', () => {
+    // The reason this helper exists: summing a window would put choline at
+    // ~200% and clamp, pinning the system at 100.
+    const days = Array.from({ length: 30 }, () => ({ cholineMg: 550 }));
+    const summed = runNutritionProfileEngine({
+      totals: { cholineMg: 550 * 30 }, bodyweightKg: 80, mealsLogged: 30,
+    });
+    const averaged = runNutritionProfileEngine({
+      totals: averageNutrientMaps(days), bodyweightKg: 80, mealsLogged: 30,
+    });
+    const covOf = (o: typeof summed) => o.coverage.find(c => c.key === 'cholineMg')!;
+    expect(covOf(summed).pct).toBe(150);      // clamped, meaningless
+    expect(covOf(averaged).pct).toBe(100);    // the real daily picture
+  });
+});
 
 describe('sumNutrientMaps', () => {
   it('sums open maps across meals and injects calories', () => {

@@ -14,7 +14,7 @@ import {
   consumeMealLoggingQuota,
   updateNutritionStreakInBackground,
 } from '../services/nutritionShared.js';
-import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio } from '../services/llmService.js';
+import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
@@ -33,6 +33,8 @@ import { bounded, implausibilityWarning } from '../validation/physiologicalBound
 import { aiLimiter } from '../middleware/rateLimiter.js';
 import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
+import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
+import { serializeCommunityProduct } from '../services/food/communityProduct.js';
 
 
 const router = Router();
@@ -348,18 +350,31 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
   if (!/^[0-9]{6,14}$/.test(code)) {
     return res.status(400).json({ error: 'Invalid barcode format' });
   }
+  // OpenFoodFacts' coverage of Nigerian- and Gambian-manufactured goods is
+  // thin, so we keep our own community table of labels users have scanned.
+  // Both are queried together: OFF wins when it has the product (it is
+  // moderated and more complete), the community row is the fallback.
+  const communityRow = prisma.productBarcode.findUnique({ where: { code } }).catch(() => null);
+
   try {
     const r = await fetch(`${OFF_BASE}/${code}.json`, {
       headers: { 'User-Agent': 'Axiom-Fitness/2.0.2 (https://axiomtraining.io)' },
       signal: AbortSignal.timeout(8000),
-    });
-    if (!r.ok) {
-      return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: r.status });
-    }
-    const json: any = await r.json();
-    // status: 1 = product found, 0 = not in DB
-    if (!json || json.status === 0 || !json.product) {
-      return res.status(404).json({ error: 'Barcode not in database', code });
+    }).catch(() => null);
+
+    const json: any = r && r.ok ? await r.json().catch(() => null) : null;
+    const offHasProduct = !!json && json.status !== 0 && !!json.product;
+
+    if (!offHasProduct) {
+      // Fall back to a label a user has already photographed for us.
+      const local = await communityRow;
+      if (local) return res.json(serializeCommunityProduct(local));
+      if (r && !r.ok) {
+        return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: r.status });
+      }
+      // canScanLabel tells the client a recovery path exists, instead of the
+      // dead end it used to hit ("try the meal-photo scan instead").
+      return res.status(404).json({ error: 'Barcode not in database', code, canScanLabel: true });
     }
     const p = json.product;
     const nut = p.nutriments ?? {};
@@ -409,6 +424,89 @@ function num(v: unknown): number | null {
   const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : NaN);
   return Number.isFinite(n) ? n : null;
 }
+
+// POST /api/nutrition/barcode/:code/label — recover from a lookup miss.
+// The user photographs the nutrition panel, we read it, and the result is
+// cached globally so the next person to scan that product gets it instantly.
+// This is the only way to build coverage for products OpenFoodFacts lacks.
+router.post('/nutrition/barcode/:code/label', requireAuth, async (req, res) => {
+  const code = String(req.params.code ?? '').trim();
+  if (!/^[0-9]{6,14}$/.test(code)) {
+    return res.status(400).json({ error: 'Invalid barcode format' });
+  }
+  try {
+    const { imageBase64, mimeType } = req.body ?? {};
+    if (typeof imageBase64 !== 'string' || !imageBase64 || typeof mimeType !== 'string') {
+      return res.status(400).json({ error: 'imageBase64 and mimeType are required' });
+    }
+    if (!/^image\/(jpeg|jpg|png|webp|heic)$/i.test(mimeType)) {
+      return res.status(400).json({ error: 'Unsupported image type' });
+    }
+
+    const userId = req.user!.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { tier: true, foodRegion: true },
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // A vision call, so it shares the daily meal-logging quota that exists to
+    // stop scripted abuse.
+    const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
+    if (!ok) return;
+
+    const parsed = await parseNutritionLabel(imageBase64, mimeType, normalizeFoodRegion(user.foodRegion));
+    if (!parsed || parsed.caloriesPer100g <= 0) {
+      return res.status(422).json({ error: "Could not read that label — try a straighter, closer photo of the nutrition panel." });
+    }
+
+    const nutrients = Object.fromEntries(
+      Object.entries(parsed.nutrients ?? {}).filter(
+        ([, v]) => typeof v === 'number' && Number.isFinite(v) && v > 0,
+      ),
+    );
+
+    const existing = await prisma.productBarcode.findUnique({ where: { code } });
+    // A verified row is authoritative and never overwritten by a fresh scan;
+    // we only bump the counter so popularity is still visible.
+    const freeze = existing?.verified === true;
+    const row = await prisma.productBarcode.upsert({
+      where: { code },
+      create: {
+        code,
+        name: parsed.name || 'Unknown product',
+        brand: parsed.brand || null,
+        caloriesPer100g: parsed.caloriesPer100g,
+        proteinG: parsed.proteinG,
+        carbsG: parsed.carbsG,
+        fatG: parsed.fatG,
+        nutrientsJson: Object.keys(nutrients).length ? JSON.stringify(nutrients) : null,
+        servingSize: parsed.servingSize || null,
+        servingQuantityG: parsed.servingQuantityG ?? null,
+        contributedByUserId: userId,
+      },
+      update: freeze
+        ? { scanCount: { increment: 1 } }
+        : {
+            name: parsed.name || existing?.name || 'Unknown product',
+            brand: parsed.brand || existing?.brand || null,
+            caloriesPer100g: parsed.caloriesPer100g,
+            proteinG: parsed.proteinG,
+            carbsG: parsed.carbsG,
+            fatG: parsed.fatG,
+            nutrientsJson: Object.keys(nutrients).length ? JSON.stringify(nutrients) : existing?.nutrientsJson ?? null,
+            servingSize: parsed.servingSize || existing?.servingSize || null,
+            servingQuantityG: parsed.servingQuantityG ?? existing?.servingQuantityG ?? null,
+            scanCount: { increment: 1 },
+          },
+    });
+
+    return res.status(201).json(serializeCommunityProduct(row));
+  } catch (err: any) {
+    console.error('[nutrition/barcode/label] parse failed:', err?.message ?? err);
+    return res.status(500).json({ error: 'Could not read that label' });
+  }
+});
 
 // GET /api/nutrition/foods - Saved food library
 router.get('/nutrition/foods', requireAuth, async (req, res) => {
@@ -651,12 +749,15 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     }
     // Shared daily quota with /analyze-photo. Stops scripted abuse like the
     // Jun 2026 Go-http-client incident (2700 calls / day from one /24).
-    const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { tier: true } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { tier: true, foodRegion: true },
+    });
     if (!user) return res.status(404).json({ error: 'User not found' });
     const ok = await consumeMealLoggingQuota(prisma, req.user!.id, user.tier, res);
     if (!ok) return;
-    const parsed = await parseMealMacros(description.trim());
-    const { detail, meta } = await enrichMealDetailHybrid(parsed);
+    const parsed = await parseMealMacros(description.trim(), normalizeFoodRegion(user.foodRegion));
+    const { detail, meta } = await enrichMealDetailHybrid(parsed, { region: normalizeFoodRegion(user.foodRegion) });
     res.json({
       ...detail,
       source: 'text',
@@ -794,8 +895,8 @@ router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res)
     const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
     if (!ok) return;
 
-    const parsed = await analyzeMealPhoto(imageBase64, mimeType);
-    const { detail, meta } = await enrichMealDetailHybrid(parsed);
+    const parsed = await analyzeMealPhoto(imageBase64, mimeType, normalizeFoodRegion(user.foodRegion));
+    const { detail, meta } = await enrichMealDetailHybrid(parsed, { region: normalizeFoodRegion(user.foodRegion) });
     res.json({
       ...detail,
       source: 'photo',

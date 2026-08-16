@@ -206,6 +206,7 @@ export const authApi = {
     coachProfile?: string;
     subtractWorkoutBurnFromCalories?: boolean;
     unitPreference?: 'metric' | 'imperial';
+    foodRegion?: 'global' | 'ng' | 'gm' | 'wa';
   }) => apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(profile) }),
 
   registerPushToken: (token: string) =>
@@ -563,7 +564,10 @@ export interface BarcodeLookupResult {
   };
   servingSize: string | null;
   servingQuantityG: number | null;
-  source: 'openfoodfacts';
+  // 'community' = read from a nutrition label another user photographed after
+  // an OpenFoodFacts miss. Same shape, so callers need no branching.
+  source: 'openfoodfacts' | 'community';
+  verified?: boolean;
 }
 
 export const nutritionApi = {
@@ -571,6 +575,18 @@ export const nutritionApi = {
   // not in DB) — caller should fall through to manual entry / LLM parse.
   lookupBarcode: (code: string): Promise<BarcodeLookupResult> =>
     apiFetch(`/nutrition/barcode/${encodeURIComponent(code)}`),
+
+  // Recover from a barcode miss: the user photographs the nutrition panel and
+  // we read it. The result is cached globally, so the next person to scan that
+  // product gets it instantly — this is how coverage gets built for Nigerian
+  // and Gambian goods OpenFoodFacts doesn't carry.
+  scanNutritionLabel: (
+    code: string, imageBase64: string, mimeType: string,
+  ): Promise<BarcodeLookupResult> =>
+    apiFetch(`/nutrition/barcode/${encodeURIComponent(code)}/label`, {
+      method: 'POST',
+      body: JSON.stringify({ imageBase64, mimeType }),
+    }),
 
   // SavedFood library — every meal logged via POST /nutrition/meals
   // auto-upserts into this library on the backend, so this returns the
@@ -716,6 +732,34 @@ export const nutritionApi = {
 
 export type NpStatus = 'ok' | 'warn' | 'low';
 
+// Which window the profile describes. For 7d/30d every figure is the MEAN DAILY
+// intake across the window's LOGGED days — unlogged days are excluded, not
+// counted as zero. That's why the client must relabel "kcal logged" as a daily
+// rate: the number is a per-day average, not a window total.
+export type NpRange = 'today' | '7d' | '30d';
+
+// Fields every ranged endpoint echoes back. `range` is load-bearing: backend
+// and mobile ship independently, so a new build against an old server would
+// otherwise render today's numbers under a "30 days" pill. Callers compare it
+// against what they asked for and refuse the mismatch.
+export interface NpWindowMeta {
+  range?: NpRange;
+  windowDays?: number;
+  startDate?: string;
+  endDate?: string;
+  loggedDays?: number;
+  partialDays?: number;
+  avgDaily?: boolean;
+  daysOverCeiling?: Record<string, number>;
+}
+
+export interface NpWindowDay {
+  date: string;
+  logged: boolean;
+  mealCount: number;
+  kcal: number;
+}
+
 export interface NpSystem {
   id: 'recovery' | 'cognition' | 'energy' | 'sleep' | 'mood';
   name: string;
@@ -725,7 +769,7 @@ export interface NpSystem {
   chips: string[];
 }
 
-export interface NpDayProfile {
+export interface NpDayProfile extends NpWindowMeta {
   date: string;
   hasData: boolean;
   mealsLogged: number;
@@ -736,7 +780,15 @@ export interface NpDayProfile {
   headline?: string;
   systems?: NpSystem[];
   topMove?: { title: string; mechanism: string; gain: string } | null;
+  // `meals` on today only; `days` on 7d/30d — a month of undifferentiated meal
+  // rows is neither readable nor a bounded payload.
   meals?: Array<{ id: string; name: string; mealType: string; calories: number }>;
+  days?: NpWindowDay[];
+  // Scoring averaged intake is NOT the same as averaging per-day scores (1650/0
+  // choline → 100% vs 50%). The hero shows the former as "your typical day";
+  // these are the latter, matching what the trend chart's bars average to.
+  meanDailyProfileScore?: number;
+  meanDailyCoveragePct?: number;
   extras?: Array<{ key: string; amount: number }>;
 }
 
@@ -745,12 +797,16 @@ export interface NpDriverLine {
   amount: number; target: number; pct: number; status: NpStatus; tracked: boolean;
 }
 
-export interface NpEffectDetail {
+export interface NpEffectDetail extends NpWindowMeta {
   systemId: string; name: string; status: NpStatus; score: number;
   summary: string; drivers: NpDriverLine[]; mechanisms: string[]; watchFor: string | null;
+  hasData?: boolean;
+  // Ceiling nutrients are exposure, not a mean — an averaged sodium figure that
+  // reads "ok" can still hide a 4600 mg day, so the spikes are counted per day.
+  ceilingSpikes?: Array<{ key: string; label: string; days: number }>;
 }
 
-export interface NpNutrientDetail {
+export interface NpNutrientDetail extends NpWindowMeta {
   key: string; label: string; tag: string | null; unit: string;
   current: string; target: string; pct: number; status: NpStatus; ceiling: boolean;
   chain: Array<{ title: string; body: string }>;
@@ -773,6 +829,8 @@ export interface NpTrend {
   series: Array<{ date: string; coveragePct: number; profileScore: number; logged: boolean }>;
   consistency: Array<{ key: string; label: string; pctDaysOnTarget: number }>;
   loggedDays: number;
+  partialDays?: number;
+  daysOverCeiling?: Record<string, number>;
 }
 
 export interface NpRecommendation {
@@ -780,20 +838,31 @@ export interface NpRecommendation {
   prefill: { name: string; source: string };
 }
 
+// `date` always anchors the window's END and is the caller's LOCAL day (see
+// localDate.ts) — anchoring on the server's UTC day would hide meals logged
+// this evening. `range` defaults to today server-side, so it's only sent when
+// it's actually a window; that keeps the today request byte-identical to what
+// older builds send.
+function npQuery(date?: string, range: NpRange = 'today'): string {
+  const parts: string[] = [];
+  if (date) parts.push(`date=${date}`);
+  if (range !== 'today') parts.push(`range=${range}`);
+  return parts.length ? `?${parts.join('&')}` : '';
+}
+
 export const nutritionProfileApi = {
-  getDay: (date?: string): Promise<NpDayProfile> =>
-    apiFetch(`/nutrition-profile${date ? `?date=${date}` : ''}`),
-  getEffect: (systemId: string, date?: string): Promise<NpEffectDetail> =>
-    apiFetch(`/nutrition-profile/effect/${systemId}${date ? `?date=${date}` : ''}`),
-  getNutrient: (key: string, date?: string): Promise<NpNutrientDetail> =>
-    apiFetch(`/nutrition-profile/nutrient/${key}${date ? `?date=${date}` : ''}`),
+  getDay: (date?: string, range: NpRange = 'today'): Promise<NpDayProfile> =>
+    apiFetch(`/nutrition-profile${npQuery(date, range)}`),
+  getEffect: (systemId: string, date?: string, range: NpRange = 'today'): Promise<NpEffectDetail> =>
+    apiFetch(`/nutrition-profile/effect/${systemId}${npQuery(date, range)}`),
+  getNutrient: (key: string, date?: string, range: NpRange = 'today'): Promise<NpNutrientDetail> =>
+    apiFetch(`/nutrition-profile/nutrient/${key}${npQuery(date, range)}`),
   getMeal: (mealId: string): Promise<NpMealBreakdown> =>
     apiFetch(`/nutrition-profile/meal/${mealId}`),
-  // `date` anchors the window to the caller's LOCAL day (see localDate.ts).
   getTrend: (range: '7d' | '30d' = '7d', date?: string): Promise<NpTrend> =>
     apiFetch(`/nutrition-profile/trend?range=${range}${date ? `&date=${date}` : ''}`),
-  getRecommendations: (date?: string): Promise<{ date: string; recommendations: NpRecommendation[] }> =>
-    apiFetch(`/nutrition-profile/recommendations${date ? `?date=${date}` : ''}`),
+  getRecommendations: (date?: string, range: NpRange = 'today'): Promise<{ date: string; recommendations: NpRecommendation[] } & NpWindowMeta> =>
+    apiFetch(`/nutrition-profile/recommendations${npQuery(date, range)}`),
 };
 
 // ─── Workouts API ─────────────────────────────────────────────────────────────

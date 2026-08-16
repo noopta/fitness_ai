@@ -98,10 +98,13 @@ function BarcodeScanScreenInner() {
       const notFound = err?.status === 404 || /not in database/i.test(msg);
       Analytics.foodBarcodeLookupFailed?.({ code, reason: notFound ? 'not_found' : 'error' });
       if (notFound) {
-        setError('Not in our database. Try the meal-photo scan instead.');
-      } else {
-        setError(msg || 'Lookup failed. Try again or enter manually.');
+        // Not a dead end any more: OpenFoodFacts barely covers Nigerian and
+        // Gambian packaged goods, so offer to read the label ourselves and
+        // cache it globally for the next person who scans this product.
+        router.replace({ pathname: '/barcode-label-scan', params: { code } });
+        return;
       }
+      setError(msg || 'Lookup failed. Try again or enter manually.');
       firedRef.current = false;
       setLookingUp(false);
     }

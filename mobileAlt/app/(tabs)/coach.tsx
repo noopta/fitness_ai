@@ -218,6 +218,9 @@ function CoachScreenInner() {
         weightKg: weightKg || undefined,
         constraintsText: profile.injuries || undefined,
         coachBudget: profile.weeklyBudget || undefined,
+        // Promoted to a first-class column (not just coachProfile JSON) because
+        // the meal-parsing routes read it on every log.
+        foodRegion: (profile.foodRegion as 'global' | 'ng' | 'gm' | 'wa') || undefined,
         coachProfile: JSON.stringify({
           ...profile,
           trainingPreference: profile.trainingStyle,

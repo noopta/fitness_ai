@@ -212,3 +212,30 @@ export function sumNutrientMaps(
   if (kcal > 0) totals.calories = kcal;
   return totals;
 }
+
+// Mean daily intake across a window's LOGGED days. The engine's targets are
+// DAILY (see effectiveTarget), so a window has to be averaged, never summed —
+// summing 30 days would put every floor nutrient at ~3000%, clamp to 150 in
+// scoreNutrient, and pin every body system at 100.
+//
+// Divisor is the number of DAY totals passed in, not the number of keys and not
+// the number of meals. Callers pass one entry per logged day; a nutrient absent
+// from a given day counts as 0 for that day, which is deliberate — a day where
+// only a coffee was logged really did contribute no protein.
+export function averageNutrientMaps(
+  dayTotals: Array<Record<string, number>>,
+): Record<string, number> {
+  const days = dayTotals.length;
+  if (days === 0) return {};
+
+  const sums: Record<string, number> = {};
+  for (const day of dayTotals) {
+    for (const [key, value] of Object.entries(day)) {
+      if (typeof value === 'number' && Number.isFinite(value)) sums[key] = (sums[key] ?? 0) + value;
+    }
+  }
+
+  const avg: Record<string, number> = {};
+  for (const [key, total] of Object.entries(sums)) avg[key] = total / days;
+  return avg;
+}

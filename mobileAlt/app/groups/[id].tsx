@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl,
-  Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, Image,
+  Modal, TextInput, ActivityIndicator, Platform, Alert, Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { groupsApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 
 interface Msg { id: string; senderId: string | null; text: string; createdAt: string }
 interface Member { user: { id: string; username: string | null; name: string | null; avatarBase64?: string | null }; goal: string | null }
@@ -146,10 +147,7 @@ export default function GroupChatScreen() {
         ListEmptyComponent={<Text style={styles.empty}>Start the conversation.</Text>}
       />
 
-      <KeyboardAvoidingView
-        behavior="padding"
-        keyboardVerticalOffset={0}
-      >
+      <KeyboardAvoider>
         {/* paddingBottom respects the home-indicator inset so the input isn't
             clipped below the safe area on notched iPhones. */}
         <View style={[styles.composer, { paddingBottom: Math.max(spacing.sm, insets.bottom) }]}>
@@ -165,7 +163,7 @@ export default function GroupChatScreen() {
             {sending ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="send" size={18} color="#fff" />}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
 
       <SettingsSheet
         visible={settingsOpen}

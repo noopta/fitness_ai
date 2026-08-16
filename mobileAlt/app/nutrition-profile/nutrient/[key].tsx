@@ -6,29 +6,35 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { nutritionProfileApi, type NpNutrientDetail } from '../../../src/lib/api';
+import { nutritionProfileApi, type NpNutrientDetail, type NpRange } from '../../../src/lib/api';
 import { fontWeight } from '../../../src/constants/theme';
 import { NpScreen } from '../../../src/components/coach/nutritionProfile/NpScreen';
 import { StatusPill, CoverageBar } from '../../../src/components/coach/nutritionProfile/StatusPill';
 import { NP } from '../../../src/components/coach/nutritionProfile/npTokens';
+import { rangeWindowLabel } from '../../../src/components/coach/nutritionProfile/rangeCopy';
 import { todayStr } from '../../../src/lib/localDate';
 
+function asRange(raw: unknown): NpRange {
+  return raw === '7d' || raw === '30d' ? raw : 'today';
+}
+
 export default function NutrientDetailScreen() {
-  const { key } = useLocalSearchParams<{ key: string }>();
+  const { key, range: rangeParam } = useLocalSearchParams<{ key: string; range?: string }>();
+  const range = asRange(rangeParam);
   const [data, setData] = useState<NpNutrientDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    nutritionProfileApi.getNutrient(String(key), todayStr())
+    nutritionProfileApi.getNutrient(String(key), todayStr(), range)
       .then(d => { if (alive) setData(d); })
       .catch(() => {})
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [key]);
+  }, [key, range]);
 
   return (
-    <NpScreen kicker="NUTRIENT" title={data?.label ?? 'Nutrient'}>
+    <NpScreen kicker={`NUTRIENT · ${rangeWindowLabel(range)}`} title={data?.label ?? 'Nutrient'}>
       {loading ? (
         <ActivityIndicator color={NP.ink} />
       ) : !data ? (
@@ -46,6 +52,18 @@ export default function NutrientDetailScreen() {
             </Text>
             <Text style={styles.pctLine}>{data.pct}% of target</Text>
             <CoverageBar pct={data.pct} status={data.status} />
+            {/* Under a window the figure above is a per-day mean over logged
+                days, and the target is a daily one — say so, or it reads as a
+                window total measured against a single day's target. */}
+            {range !== 'today' ? (
+              <Text style={styles.perDayNote}>
+                Daily average across {data.loggedDays ?? 0} logged day
+                {(data.loggedDays ?? 0) === 1 ? '' : 's'} of {data.windowDays ?? 0}.
+                {data.ceiling && (data.daysOverCeiling?.[data.key] ?? 0) > 0
+                  ? ` Over target on ${data.daysOverCeiling?.[data.key]} of them.`
+                  : ''}
+              </Text>
+            ) : null}
           </View>
 
           {data.chain.length > 0 ? (
@@ -111,6 +129,7 @@ const styles = StyleSheet.create({
   bigUnit: { fontSize: 16, fontWeight: fontWeight.bold, color: NP.mutedInk },
   ofTarget: { fontSize: 12, fontWeight: fontWeight.medium, color: NP.mutedInk },
   pctLine: { fontSize: 12, fontWeight: fontWeight.semibold, color: NP.ink },
+  perDayNote: { fontSize: 11, color: NP.mutedInk, lineHeight: 16 },
   sectionLabel: { fontSize: 10, fontWeight: fontWeight.bold, letterSpacing: 1.2, color: NP.mutedInk },
 
   step: { flexDirection: 'row', gap: 12 },

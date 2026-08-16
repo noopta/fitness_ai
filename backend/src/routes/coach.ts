@@ -26,6 +26,7 @@ import { getExerciseVideo } from '../services/youtubeService.js';
 import { bounded, implausibilityWarning, weightDeltaWarning } from '../validation/physiologicalBounds.js';
 import { moderateText } from '../services/moderationService.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
+import { parseExercisesColumn } from '../services/workoutExercises.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -335,9 +336,11 @@ async function buildFullUserContext(userId: string): Promise<string> {
   if (workoutLogs.length > 0) {
     lines.push('\n=== RECENT WORKOUT LOGS (last 30 days) ===');
     for (const log of workoutLogs) {
-      const exs: any[] = JSON.parse(log.exercises);
+      const exs: any[] = parseExercisesColumn(log.exercises);
       const summary = exs.map((e: any) =>
-        `${e.name} ${e.sets}×${e.reps}${e.weightKg != null ? ` @ ${e.weightKg} lbs` : ''}${e.rpe ? ` RPE ${e.rpe}` : ''}`
+        e.freeform
+          ? e.name
+          : `${e.name} ${e.sets}×${e.reps}${e.weightKg != null ? ` @ ${e.weightKg} lbs` : ''}${e.rpe ? ` RPE ${e.rpe}` : ''}`
       ).join(' | ');
       lines.push(`  ${log.date} — ${log.title || 'Workout'}: ${summary}`);
       if (log.notes) lines.push(`    Notes: ${log.notes}`);
@@ -1864,7 +1867,7 @@ router.get('/strength-profile', requireAuth, async (req, res) => {
       .reverse();
 
     // Exercise progression from workout logs (group by exercise name, track max weight over time)
-    const parsedLogs = workoutLogs.map(l => ({ ...l, exercises: JSON.parse(l.exercises) as any[] }));
+    const parsedLogs = workoutLogs.map(l => ({ ...l, exercises: parseExercisesColumn(l.exercises) as any[] }));
     const exerciseProgression: Record<string, Array<{ date: string; maxWeightKg: number; sets: number; reps: string }>> = {};
     for (const log of parsedLogs) {
       for (const ex of log.exercises) {

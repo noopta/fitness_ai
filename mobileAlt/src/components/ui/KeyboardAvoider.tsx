@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView, View, Keyboard, Platform,
-  type KeyboardEvent, type ViewStyle, type StyleProp,
+  type KeyboardEvent, type ViewStyle, type StyleProp, type ViewProps,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -34,11 +34,18 @@ export function KeyboardAvoider({
   iosOffset = 0,
   /** Extra breathing room between the content and the keyboard. */
   extraOffset = 0,
+  /**
+   * Forwarded to the underlying container. Needed by overlay layouts such as
+   * BottomSheet, which rely on "box-none" so taps land on the backdrop behind
+   * the wrapper rather than being swallowed by it.
+   */
+  pointerEvents,
 }: {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   iosOffset?: number;
   extraOffset?: number;
+  pointerEvents?: ViewProps['pointerEvents'];
 }) {
   const insets = useSafeAreaInsets();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -54,7 +61,12 @@ export function KeyboardAvoider({
 
   if (Platform.OS === 'ios') {
     return (
-      <KeyboardAvoidingView style={style} behavior="padding" keyboardVerticalOffset={iosOffset}>
+      <KeyboardAvoidingView
+        style={style}
+        behavior="padding"
+        keyboardVerticalOffset={iosOffset}
+        pointerEvents={pointerEvents}
+      >
         {children}
       </KeyboardAvoidingView>
     );
@@ -64,7 +76,11 @@ export function KeyboardAvoider({
     ? Math.max(0, keyboardHeight - insets.bottom + extraOffset)
     : 0;
 
-  return <View style={[style, { paddingBottom: pad }]}>{children}</View>;
+  return (
+    <View style={[style, { paddingBottom: pad }]} pointerEvents={pointerEvents}>
+      {children}
+    </View>
+  );
 }
 
 export default KeyboardAvoider;

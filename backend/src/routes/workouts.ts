@@ -20,6 +20,7 @@ import { buildShareableWorkout } from '../services/shareableWorkout.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
 import { estimateWorkoutCalories } from '../services/workoutCalories.js';
+import { parseExercisesColumn } from '../services/workoutExercises.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -104,7 +105,7 @@ router.get('/workouts', requireAuth, async (req, res) => {
       where: { userId: req.user!.id },
       orderBy: { date: 'desc' },
     });
-    res.json(logs.map(l => ({ ...l, exercises: JSON.parse(l.exercises) })));
+    res.json(logs.map(l => ({ ...l, exercises: parseExercisesColumn(l.exercises) })));
   } catch (err) {
     console.error('Get workouts error:', err);
     res.status(500).json({ error: 'Failed to fetch workout logs' });
@@ -122,7 +123,7 @@ router.get('/workouts/:date', requireAuth, async (req, res) => {
       where: { userId: req.user!.id, date },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(logs.map(l => ({ ...l, exercises: JSON.parse(l.exercises) })));
+    res.json(logs.map(l => ({ ...l, exercises: parseExercisesColumn(l.exercises) })));
   } catch (err) {
     console.error('Get workout by date error:', err);
     res.status(500).json({ error: 'Failed to fetch workout log' });

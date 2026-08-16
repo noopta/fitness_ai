@@ -8,6 +8,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ActivityIndicator, Alert, Keyboard, Pressable,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -135,6 +136,7 @@ export default function VerifyEmailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoider style={{ flex: 1 }}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
           <Ionicons name="chevron-back" size={24} color={colors.foreground} />
@@ -191,6 +193,7 @@ export default function VerifyEmailScreen() {
           </Pressable>
         </View>
       </View>
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }

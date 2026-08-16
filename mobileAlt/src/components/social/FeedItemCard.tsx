@@ -4,6 +4,7 @@ import {
   SafeAreaView, ActivityIndicator, FlatList, TextInput,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../constants/theme';
 import { Analytics } from '../../lib/analytics';
@@ -166,6 +167,9 @@ export function FeedItemCard({ item, isSaved, onToggleSave, friends, onShareToFr
         onRequestClose={() => setShareOpen(false)}
       >
         <SafeAreaView style={styles.shareContainer}>
+          {/* A Modal renders in its own native window, so it never inherits
+              keyboard avoidance from the screen behind it — it needs its own. */}
+          <KeyboardAvoider style={{ flex: 1 }}>
           <View style={styles.shareHeader}>
             <TouchableOpacity onPress={() => setShareOpen(false)} style={styles.closeBtn}>
               <Ionicons name="close" size={22} color={colors.foreground} />
@@ -222,6 +226,7 @@ export function FeedItemCard({ item, isSaved, onToggleSave, friends, onShareToFr
               </TouchableOpacity>
             )}
           />
+          </KeyboardAvoider>
         </SafeAreaView>
       </Modal>
 

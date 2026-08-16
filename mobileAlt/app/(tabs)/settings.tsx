@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking,
   TextInput, Image, ActivityIndicator, Modal, Platform,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -102,6 +103,50 @@ export default function SettingsScreen() {
       Alert.alert('Could not update preference', err?.message ?? 'Please try again.');
     } finally {
       setTogglingSubtractBurn(false);
+    }
+  }
+
+  // ── Food region ────────────────────────────────────────────────────────────
+  // Picks which food-composition data and prompt vocabulary meal logging uses.
+  // USDA has almost no West African coverage, so leaving a Nigerian user on
+  // "Global" means egusi soup and eba get estimated from model recall alone.
+  const FOOD_REGIONS = [
+    { value: 'global', label: 'Global', sub: 'USDA database, US portion sizes' },
+    { value: 'ng', label: 'Nigeria', sub: 'Jollof, egusi, eba, moi moi, suya — local portions' },
+    { value: 'gm', label: 'The Gambia', sub: 'Benachin, domoda, superkanja — local portions' },
+    { value: 'wa', label: 'West Africa', sub: 'Shared West African dishes' },
+  ] as const;
+  type FoodRegionValue = typeof FOOD_REGIONS[number]['value'];
+
+  const foodRegion: FoodRegionValue = (user?.foodRegion as FoodRegionValue) ?? 'global';
+  const foodRegionLabel = FOOD_REGIONS.find(r => r.value === foodRegion)?.label ?? 'Global';
+  const [savingFoodRegion, setSavingFoodRegion] = useState(false);
+
+  function chooseFoodRegion() {
+    if (savingFoodRegion) return;
+    Alert.alert(
+      'Food region',
+      'Sets which foods and portion sizes we recognise when you log a meal.',
+      [
+        ...FOOD_REGIONS.map(r => ({
+          text: r.value === foodRegion ? `${r.label} ✓` : r.label,
+          onPress: () => applyFoodRegion(r.value),
+        })),
+        { text: 'Cancel', style: 'cancel' as const },
+      ],
+    );
+  }
+
+  async function applyFoodRegion(next: FoodRegionValue) {
+    if (next === foodRegion) return;
+    setSavingFoodRegion(true);
+    try {
+      await authApi.updateProfile({ foodRegion: next });
+      await auth.refreshUser();
+    } catch (err: any) {
+      Alert.alert('Could not update food region', err?.message ?? 'Please try again.');
+    } finally {
+      setSavingFoodRegion(false);
     }
   }
 
@@ -474,6 +519,30 @@ export default function SettingsScreen() {
             <View style={styles.rowDivider} />
             <View style={styles.cardRow}>
               <View style={styles.cardIconBox}>
+                <Ionicons name="globe-outline" size={18} color={colors.foreground} />
+              </View>
+              <View style={styles.cardRowText}>
+                <Text style={styles.cardRowTitle}>Food Region</Text>
+                <Text style={styles.cardRowSub}>Which foods and portion sizes we recognise when logging</Text>
+              </View>
+              <TouchableOpacity
+                onPress={chooseFoodRegion}
+                style={styles.unitToggle}
+                activeOpacity={0.8}
+                disabled={savingFoodRegion}
+                accessibilityRole="button"
+                accessibilityLabel={`Food region, currently ${foodRegionLabel}`}
+              >
+                {savingFoodRegion ? (
+                  <ActivityIndicator size="small" color={colors.mutedForeground} />
+                ) : (
+                  <Text style={[styles.unitOption, styles.unitOptionActive]}>{foodRegionLabel}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            <View style={styles.rowDivider} />
+            <View style={styles.cardRow}>
+              <View style={styles.cardIconBox}>
                 <Ionicons name="flame-outline" size={18} color={colors.foreground} />
               </View>
               <View style={styles.cardRowText}>
@@ -555,6 +624,9 @@ export default function SettingsScreen() {
         onRequestClose={() => !deletingAccount && setExitSurveyVisible(false)}
       >
         <SafeAreaView style={styles.exitContainer} edges={['top', 'bottom']}>
+          {/* Modals render in their own native window, so keyboard avoidance
+              from the screen behind does not reach them. */}
+          <KeyboardAvoider style={{ flex: 1 }}>
           <View style={styles.exitHeader}>
             <View style={{ flex: 1 }}>
               <Text style={styles.exitEyebrow}>One last thing</Text>
@@ -611,6 +683,7 @@ export default function SettingsScreen() {
               </View>
             )}
           </ScrollView>
+          </KeyboardAvoider>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

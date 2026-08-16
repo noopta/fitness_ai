@@ -9,6 +9,7 @@ import {
   Animated as RNAnimated, Easing as RNEasing,
   AccessibilityInfo, type ViewStyle, type TextStyle,
 } from 'react-native';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withDelay, withRepeat,
   withSequence, Easing,
@@ -256,20 +257,25 @@ export function TTSheet({ visible, onClose, children }: {
   if (!mounted) return null;
   return (
     <Modal visible transparent animationType="none" onRequestClose={onClose}>
-      <RNAnimated.View
-        style={[StyleSheet.absoluteFill, { backgroundColor: tt.scrim, opacity: scrim }]}
-        pointerEvents="none"
-      />
-      <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close sheet" />
-      <RNAnimated.View
-        style={[p.sheet, {
-          opacity: prog,
-          transform: [{ translateY: prog.interpolate({ inputRange: [0, 1], outputRange: [46, 0] }) }],
-        }]}
-      >
-        <View style={p.grabber} />
-        {children}
-      </RNAnimated.View>
+      {/* The sheet sits in normal flow after a flex:1 spacer, so padding this
+          container lifts it clear of the keyboard. A Modal gets its own native
+          window and inherits no keyboard avoidance from the screen behind it. */}
+      <KeyboardAvoider style={{ flex: 1 }}>
+        <RNAnimated.View
+          style={[StyleSheet.absoluteFill, { backgroundColor: tt.scrim, opacity: scrim }]}
+          pointerEvents="none"
+        />
+        <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close sheet" />
+        <RNAnimated.View
+          style={[p.sheet, {
+            opacity: prog,
+            transform: [{ translateY: prog.interpolate({ inputRange: [0, 1], outputRange: [46, 0] }) }],
+          }]}
+        >
+          <View style={p.grabber} />
+          {children}
+        </RNAnimated.View>
+      </KeyboardAvoider>
     </Modal>
   );
 }

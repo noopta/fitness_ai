@@ -9,9 +9,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { coachApi } from '../../lib/api';
@@ -112,10 +111,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <KeyboardAvoidingView
-        behavior="padding"
-        style={styles.kavWrapper}
-      >
+      <KeyboardAvoider style={styles.kavWrapper}>
       <Pressable style={styles.overlay} onPress={handleClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <KeyboardDoneBar />
@@ -318,7 +314,7 @@ export function LifeHappenedModal({ visible, onClose, onApplied }: Props) {
           </ScrollView>
         </Pressable>
       </Pressable>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </Modal>
   );
 }

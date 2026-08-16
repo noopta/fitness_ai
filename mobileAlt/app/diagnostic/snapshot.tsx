@@ -6,11 +6,10 @@ import {
   Pressable,
   Modal,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Alert,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -251,11 +250,7 @@ export default function SnapshotScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ title: 'Log Exercises' }} />
       <KeyboardDoneBar />
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior="padding"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-      >
+      <KeyboardAvoider style={styles.flex} iosOffset={80}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -382,7 +377,7 @@ export default function SnapshotScreen() {
             Continue
           </Button>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
 
       {/* Exercise Picker Modal */}
       <Modal

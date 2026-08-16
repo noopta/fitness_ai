@@ -8,7 +8,13 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "postinstall": "node scripts/strip-posthog-session-replay-ios.js",
-    "eas-build-post-install": "node scripts/strip-posthog-session-replay-ios.js"
+    "eas-build-post-install": "node scripts/strip-posthog-session-replay-ios.js",
+    "ota": "node scripts/preflight-ota.js && eas update --branch production",
+    "ota:force": "node scripts/preflight-ota.js --force && eas update --branch production",
+    "release:android": "eas build --platform android --profile production --auto-submit",
+    "release:ios": "eas build --platform ios --profile production --auto-submit",
+    "release:all": "eas build --platform all --profile production --auto-submit",
+    "release:promote-android": "eas submit --platform android --profile production-live --latest"
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.11",

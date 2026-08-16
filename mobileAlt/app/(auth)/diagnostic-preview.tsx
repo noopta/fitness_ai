@@ -16,8 +16,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
-  Pressable, KeyboardAvoidingView, Platform,
+  Pressable,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -116,10 +117,7 @@ export default function DiagnosticPreviewScreen() {
   if (step === 'inputs') {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior="padding"
-          style={{ flex: 1 }}
-        >
+        <KeyboardAvoider style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
             <View style={styles.headerRow}>
               <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backBtn}>
@@ -204,7 +202,7 @@ export default function DiagnosticPreviewScreen() {
               <Text style={styles.skipLinkText}>Skip and create an account</Text>
             </Pressable>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAvoider>
       </SafeAreaView>
     );
   }

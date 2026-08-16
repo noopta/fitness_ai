@@ -3,6 +3,7 @@ import {
   View, Text, Modal, SafeAreaView, FlatList, TouchableOpacity, TextInput,
   ActivityIndicator, StyleSheet,
 } from 'react-native';
+import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../constants/theme';
 
@@ -54,6 +55,9 @@ export function ShareToFriendSheet({ visible, title, subtitle, friends, onClose,
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
+        {/* Modals get their own native window — keyboard avoidance from the
+            screen behind does not apply, so it is declared here. */}
+        <KeyboardAvoider style={{ flex: 1 }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <Ionicons name="close" size={22} color={colors.foreground} />
@@ -108,6 +112,7 @@ export function ShareToFriendSheet({ visible, title, subtitle, friends, onClose,
             </TouchableOpacity>
           )}
         />
+        </KeyboardAvoider>
       </SafeAreaView>
     </Modal>
   );

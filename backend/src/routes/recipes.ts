@@ -17,6 +17,7 @@ import { logActivity } from '../services/activityService.js';
 import { parseRecipeIngredients } from '../services/llmService.js';
 import { normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 import type { Micronutrients } from '../services/llmService.js';
+import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import {
   nutritionProfileCacheKey,
   parseJsonObject,
@@ -260,11 +261,16 @@ router.post('/nutrition/recipes/parse', requireAuth, async (req, res) => {
   try {
     const data = parseRecipeSchema.parse(req.body);
     const userId = req.user!.id;
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { tier: true, foodRegion: true },
+    });
     if (!user) return res.status(404).json({ error: 'User not found' });
     const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
     if (!ok) return;
-    const parsed = await parseRecipeIngredients(data.description.trim(), data.servings);
+    const parsed = await parseRecipeIngredients(
+      data.description.trim(), data.servings, normalizeFoodRegion(user.foodRegion),
+    );
     res.json(parsed);
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Please provide a recipe description' });

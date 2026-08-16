@@ -26,6 +26,7 @@ import {
 import { consumeMealLoggingQuota, nutritionProfileCacheKey } from '../services/nutritionShared.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
+import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -281,7 +282,10 @@ router.post('/nutrition/order-scan', requireAuth, async (req, res) => {
   try {
     const { imageBase64, mimeType } = orderScanSchema.parse(req.body);
     const userId = req.user!.id;
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { tier: true, foodRegion: true },
+    });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Shares the daily meal-logging quota with parse-meal / analyze-photo.
@@ -291,7 +295,7 @@ router.post('/nutrition/order-scan', requireAuth, async (req, res) => {
     // PRIVACY: imageBase64 lives only in this request's memory. It is not
     // written to disk, the DB, logs, or any cache — the response carries
     // extracted food data only.
-    const scan = await analyzeOrderScreenshot(imageBase64, mimeType);
+    const scan = await analyzeOrderScreenshot(imageBase64, mimeType, normalizeFoodRegion(user.foodRegion));
 
     if (scan.kind === 'unreadable' || (scan.kind === 'order' && scan.items.length === 0)) {
       return res.status(422).json({
@@ -305,7 +309,7 @@ router.post('/nutrition/order-scan', requireAuth, async (req, res) => {
     const items = await Promise.all(
       scan.items.map(async (item) => {
         try {
-          const { detail, meta } = await enrichMealDetailHybrid(item);
+          const { detail, meta } = await enrichMealDetailHybrid(item, { region: normalizeFoodRegion(user.foodRegion) });
           return { ...item, ...detail, enrichment: meta };
         } catch {
           return { ...item, enrichment: null };

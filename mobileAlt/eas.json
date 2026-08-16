@@ -57,6 +57,18 @@
         "appleId": "thepicpanda@gmail.com",
         "ascAppId": "6761032954",
         "appleTeamId": "M8XR52BJHQ"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./play-service-account.json",
+        "track": "internal",
+        "releaseStatus": "completed"
+      }
+    },
+    "production-live": {
+      "android": {
+        "serviceAccountKeyPath": "./play-service-account.json",
+        "track": "production",
+        "releaseStatus": "completed"
       }
     },
     "preview": {

@@ -1,32 +1,44 @@
-// Recommendations (spec §5.5) — ranked whole foods to close today's gaps. Each
-// card: food name + a green gain ("+440 mg choline"), a mechanism sentence, a
-// category tag chip, and an "Add" pill that deep-links into the Coach log with
-// the food prefilled (no server write — logging stays in Coach).
+// Recommendations (spec §5.5) — ranked whole foods to close the selected
+// window's gaps. Each card: food name + a green gain ("+440 mg choline"), a
+// mechanism sentence, a category tag chip, and an "Add" pill that deep-links
+// into the Coach log with the food prefilled (no server write — logging stays
+// in Coach).
+//
+// `range` must match the profile screen's: the top-move card links straight
+// here, and it's ranked off the same coverage vector, so a mismatch would make
+// the card the user tapped absent from the list it opens.
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { nutritionProfileApi, type NpRecommendation } from '../../src/lib/api';
+import { nutritionProfileApi, type NpRecommendation, type NpRange } from '../../src/lib/api';
 import { Analytics } from '../../src/lib/analytics';
 import { fontWeight } from '../../src/constants/theme';
 import { NpScreen } from '../../src/components/coach/nutritionProfile/NpScreen';
 import { NP } from '../../src/components/coach/nutritionProfile/npTokens';
+import { rangeSpokenLabel, rangeWindowLabel } from '../../src/components/coach/nutritionProfile/rangeCopy';
 import { setNutritionPrefill } from '../../src/lib/nutritionPrefill';
 import { todayStr } from '../../src/lib/localDate';
 
+function asRange(raw: unknown): NpRange {
+  return raw === '7d' || raw === '30d' ? raw : 'today';
+}
+
 export default function RecommendationsScreen() {
   const router = useRouter();
+  const { range: rangeParam } = useLocalSearchParams<{ range?: string }>();
+  const range = asRange(rangeParam);
   const [recs, setRecs] = useState<NpRecommendation[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    nutritionProfileApi.getRecommendations(todayStr())
+    nutritionProfileApi.getRecommendations(todayStr(), range)
       .then(r => { if (alive) setRecs(r.recommendations); })
       .catch(() => { if (alive) setRecs([]); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [range]);
 
   const onAdd = (r: NpRecommendation) => {
     setNutritionPrefill(r.prefill.name);
@@ -37,14 +49,22 @@ export default function RecommendationsScreen() {
   };
 
   return (
-    <NpScreen kicker="RECOMMENDATIONS" title="What to eat next">
+    <NpScreen kicker={`RECOMMENDATIONS · ${rangeWindowLabel(range)}`} title="What to eat next">
       {loading ? (
         <ActivityIndicator color={NP.ink} />
       ) : !recs || recs.length === 0 ? (
-        <Text style={styles.muted}>You've hit today's targets. Nothing to close right now.</Text>
+        <Text style={styles.muted}>
+          {range === 'today'
+            ? "You've hit today's targets. Nothing to close right now."
+            : `You've hit your daily targets across ${rangeSpokenLabel(range)}. Nothing to close right now.`}
+        </Text>
       ) : (
         <>
-          <Text style={styles.intro}>Ranked to close today's biggest gaps. Add queues it into your Coach log.</Text>
+          <Text style={styles.intro}>
+            {range === 'today'
+              ? "Ranked to close today's biggest gaps. Add queues it into your Coach log."
+              : `Ranked to close your biggest average daily gaps over ${rangeSpokenLabel(range)}. Add queues it into your Coach log.`}
+          </Text>
           {recs.map((r, i) => (
             <View key={i} style={styles.card}>
               <View style={styles.topRow}>

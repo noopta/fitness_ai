@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
-  Modal, TextInput, Pressable, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
+  Modal, TextInput, Pressable, Image, ActivityIndicator, Dimensions,
 } from 'react-native';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS,
 } from 'react-native-reanimated';
@@ -318,10 +319,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1, justifyContent: 'flex-end' }}
-        behavior="padding"
-      >
+      <KeyboardAvoider style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View
           style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.40)' }, backdropStyle]}
           pointerEvents="none"
@@ -548,7 +546,7 @@ function NewPostModal({ visible, onClose, onPosted }: NewPostModalProps) {
               </Pressable>
             </ScrollView>
         </Animated.View>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </Modal>
   );
 }

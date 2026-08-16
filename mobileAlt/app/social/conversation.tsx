@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  Platform, ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { Analytics, trackScreen, trackScreenTime } from '../../src/lib/analytics';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 
 interface Message {
   id: string;
@@ -356,11 +357,7 @@ export default function ConversationScreen() {
       </View>
 
       <KeyboardDoneBar />
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior="padding"
-        keyboardVerticalOffset={0}
-      >
+      <KeyboardAvoider style={styles.flex}>
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={colors.foreground} />
@@ -420,7 +417,7 @@ export default function ConversationScreen() {
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAvoider>
     </SafeAreaView>
   );
 }
