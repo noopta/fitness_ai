@@ -264,13 +264,25 @@ async function apiRequest<T>(
 ): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
 
+  // Bearer fallback, matching authFetch above.
+  //
+  // This used to send the cookie only. That worked while the diagnostic session
+  // routes were unauthenticated on the backend; now that they require auth, a
+  // browser blocking third-party cookies (Safari ITP, Firefox ETP, and Chrome's
+  // third-party default) would have had every session call 401 — the frontend
+  // is on a different origin to the API, so `credentials: 'include'` alone is
+  // not reliable. The token is the same one authFetch already uses.
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  };
+  const token = sessionStorage.getItem('liftoff_bearer_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const response = await fetch(url, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
-    }
+    headers,
   });
 
   if (!response.ok) {

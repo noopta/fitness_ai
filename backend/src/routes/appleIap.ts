@@ -20,7 +20,7 @@
  *   https://api.airthreads.ai:4009/api/payments/apple-iap/notifications
  */
 import { Router } from 'express';
-import { createSign } from 'crypto';
+import { createSign, createVerify, X509Certificate } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import posthog from '../services/posthogClient.js';
@@ -29,6 +29,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 const PRO_PRODUCT_IDS = ['io.axiomtraining.app.pro.monthly'];
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 // ─── JWT for App Store Server API ────────────────────────────────────────────
 
@@ -109,7 +110,126 @@ function isActiveProTransaction(tx: ASAPITransaction): boolean {
   if (!PRO_PRODUCT_IDS.includes(tx.productId)) return false;
   if (tx.revocationDate) return false;
   if (tx.expiresDate && tx.expiresDate < Date.now()) return false;
+  // Reject sandbox transactions in production. fetchTransaction falls back to
+  // the sandbox App Store API when a transaction isn't found in production —
+  // which is correct for TestFlight, but without this check a StoreKit sandbox
+  // purchase (free, and creatable at will by anyone with a sandbox tester
+  // account) verified as a real Pro subscription against the live app.
+  if (IS_PROD && tx.environment && tx.environment !== 'Production') {
+    console.warn(`Apple IAP: rejecting ${tx.environment} transaction ${tx.transactionId} in production`);
+    return false;
+  }
   return true;
+}
+
+// ─── App Store Server Notification verification ──────────────────────────────
+//
+// The notification endpoint previously decoded the JWS without verifying it —
+// the code said so outright. Since the endpoint is unauthenticated, anyone could
+// POST a hand-built payload: `EXPIRED` with a known originalTransactionId
+// downgraded a paying customer, `SUBSCRIBED` re-granted Pro. (And the
+// originalTransactionId was itself obtainable from the unauthenticated
+// GET /sessions/:id user-record leak fixed in this same pass.)
+//
+// Apple signs these with an x5c certificate chain in the JWS header, rooted in
+// the Apple Root CA - G3. Verifying means: check the chain links to that root,
+// then check the payload signature against the leaf's public key.
+
+/**
+ * Apple Root CA - G3, the trust anchor for App Store Server Notifications V2.
+ * Distributed by Apple at https://www.apple.com/certificateauthority/
+ * Overridable via APPLE_ROOT_CA_G3_B64 so the cert can be rotated without a
+ * code change.
+ */
+const APPLE_ROOT_CA_G3_B64 =
+  process.env.APPLE_ROOT_CA_G3_B64 ??
+  'MIICQzCCAcmgAwIBAgIILcX8iNLFS5UwCgYIKoZIzj0EAwMwZzEbMBkGA1UEAwwSQXBwbGUgUm9v' +
+  'dCBDQSAtIEczMSYwJAYDVQQLDB1BcHBsZSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTETMBEGA1UE' +
+  'CgwKQXBwbGUgSW5jLjELMAkGA1UEBhMCVVMwHhcNMTQwNDMwMTgxOTA2WhcNMzkwNDMwMTgxOTA2' +
+  'WjBnMRswGQYDVQQDDBJBcHBsZSBSb290IENBIC0gRzMxJjAkBgNVBAsMHUFwcGxlIENlcnRpZmlj' +
+  'YXRpb24gQXV0aG9yaXR5MRMwEQYDVQQKDApBcHBsZSBJbmMuMQswCQYDVQQGEwJVUzB2MBAGByqG' +
+  'SM49AgEGBSuBBAAiA2IABJjpLz1AcqTtkyJygRMc3RCV8cWjTnHcFBbZDuWmBSp3ZHtfTjjTuxxE' +
+  'tX/1H7YyYl3J6YRbTzBPEVoA/VhYDKX1DyxNB0cTddqXl5dvMVztK517IDvYuVTZXpmkOlEKMaNC' +
+  'MEAwHQYDVR0OBBYEFLuw3qFYM4iapIqZ3r6966/ayySrMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0P' +
+  'AQH/BAQDAgEGMAoGCCqGSM49BAMDA2gAMGUCMQCD6cHEFl4aXTQY2e3v9GwOAEZLuN+yRhHFD/3m' +
+  'eoyhpmvOwgPUnPWTxnS4at+qIxUCMG1mihDK1A3UT82NQz60imOlM27jbdoXt2QfyFMm+YhidDkL' +
+  'F1vLUagM6BgD56KyKA==';
+
+/** Decode a JWS segment as UTF-8 JSON. */
+function decodeSegment<T>(segment: string): T {
+  return JSON.parse(Buffer.from(segment, 'base64url').toString('utf8')) as T;
+}
+
+/** Convert an ECDSA signature from JOSE (raw r||s) to DER, which crypto expects. */
+function joseToDer(sig: Buffer): Buffer {
+  const half = sig.length / 2;
+  const trim = (b: Buffer) => {
+    let i = 0;
+    while (i < b.length - 1 && b[i] === 0) i++;
+    const v = b.subarray(i);
+    // Prepend 0x00 when the high bit is set, so DER reads it as positive.
+    return v[0] & 0x80 ? Buffer.concat([Buffer.from([0]), v]) : v;
+  };
+  const r = trim(sig.subarray(0, half));
+  const s = trim(sig.subarray(half));
+  const body = Buffer.concat([
+    Buffer.from([0x02, r.length]), r,
+    Buffer.from([0x02, s.length]), s,
+  ]);
+  return Buffer.concat([Buffer.from([0x30, body.length]), body]);
+}
+
+/**
+ * Verify an Apple-signed JWS and return its decoded payload, or null if the
+ * signature, chain, or validity window doesn't hold up.
+ *
+ * Exported for tests.
+ */
+export function verifyAppleJWS<T>(jws: string): T | null {
+  try {
+    const parts = jws.split('.');
+    if (parts.length !== 3) return null;
+
+    const header = decodeSegment<{ alg: string; x5c?: string[] }>(parts[0]);
+    if (header.alg !== 'ES256') return null;
+    const chain = header.x5c;
+    if (!chain || chain.length < 2) return null;
+
+    // Build the certificate chain: [leaf, intermediate, ..., root].
+    const certs = chain.map((b64) => new X509Certificate(Buffer.from(b64, 'base64')));
+    const root = new X509Certificate(Buffer.from(APPLE_ROOT_CA_G3_B64, 'base64'));
+
+    // The chain Apple presents must terminate at the root we pin. Comparing
+    // the raw DER is stricter than comparing subjects — a self-signed cert with
+    // a spoofed subject won't match.
+    if (!certs[certs.length - 1].raw.equals(root.raw)) return null;
+
+    // Each certificate must be signed by the next one up.
+    for (let i = 0; i < certs.length - 1; i++) {
+      if (!certs[i].verify(certs[i + 1].publicKey)) return null;
+    }
+    // And the pinned root must be self-consistent.
+    if (!root.verify(root.publicKey)) return null;
+
+    // Validity windows.
+    const now = Date.now();
+    for (const cert of certs) {
+      if (now < Date.parse(cert.validFrom) || now > Date.parse(cert.validTo)) return null;
+    }
+
+    // Finally the payload signature, against the leaf.
+    const verifier = createVerify('SHA256');
+    verifier.update(`${parts[0]}.${parts[1]}`);
+    verifier.end();
+    if (!verifier.verify(certs[0].publicKey, joseToDer(Buffer.from(parts[2], 'base64url')))) {
+      return null;
+    }
+
+    return decodeSegment<T>(parts[1]);
+  } catch (err: any) {
+    console.warn('[apple-iap] JWS verification threw:', err?.message ?? err);
+    return null;
+  }
 }
 
 // ─── POST /api/payments/apple-iap/verify ─────────────────────────────────────
@@ -174,34 +294,54 @@ router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
 
 // ─── POST /api/payments/apple-iap/notifications ──────────────────────────────
 // App Store Server Notifications V2 — keeps tier in sync on renewal/cancellation.
-// Apple sends a signed JWS payload. We decode (not verify sig) and act on the event.
+// Apple signs the payload as a JWS with an x5c chain rooted in Apple Root CA -
+// G3; we verify that chain before acting on anything (see verifyAppleJWS).
+// Without verification this endpoint was a way for anyone to flip any user's
+// tier, in either direction.
 
 router.post('/payments/apple-iap/notifications', async (req, res) => {
   try {
     const { signedPayload } = req.body as { signedPayload?: string };
     if (!signedPayload) return res.status(400).json({ error: 'Missing signedPayload' });
 
-    const parts = signedPayload.split('.');
-    if (parts.length !== 3) return res.json({ ok: true });
-
-    const payloadJson = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as {
+    const payloadJson = verifyAppleJWS<{
       notificationType: string;
       subtype?: string;
-      data?: { signedTransactionInfo?: string; originalTransactionId?: string };
-    };
+      data?: { signedTransactionInfo?: string; originalTransactionId?: string; environment?: string };
+    }>(signedPayload);
+
+    if (!payloadJson) {
+      // 401, not 200: a genuine Apple notification always verifies, so anything
+      // that lands here is forged or corrupt and shouldn't be silently accepted.
+      console.warn('[apple-iap] rejecting notification with an invalid signature');
+      return res.status(401).json({ error: 'Invalid notification signature' });
+    }
 
     const { notificationType, subtype, data } = payloadJson;
 
-    // Decode inner transaction JWS
+    // The inner transaction JWS is signed separately — verify it too rather
+    // than trusting the outer envelope to vouch for its contents.
     let originalTransactionId: string | null = null;
+    let txEnvironment: string | null = data?.environment ?? null;
     if (data?.signedTransactionInfo) {
-      const txParts = data.signedTransactionInfo.split('.');
-      if (txParts.length === 3) {
-        const txPayload = JSON.parse(Buffer.from(txParts[1], 'base64url').toString('utf8'));
-        originalTransactionId = txPayload.originalTransactionId ?? null;
+      const txPayload = verifyAppleJWS<{ originalTransactionId?: string; environment?: string }>(
+        data.signedTransactionInfo,
+      );
+      if (!txPayload) {
+        console.warn('[apple-iap] rejecting notification with an invalid inner transaction signature');
+        return res.status(401).json({ error: 'Invalid transaction signature' });
       }
+      originalTransactionId = txPayload.originalTransactionId ?? null;
+      txEnvironment = txPayload.environment ?? txEnvironment;
     }
     originalTransactionId ??= data?.originalTransactionId ?? null;
+
+    // Same sandbox rule as the verify route: a sandbox lifecycle event must not
+    // move a production user's tier.
+    if (IS_PROD && txEnvironment && txEnvironment !== 'Production') {
+      console.log(`Apple notification: ignoring ${txEnvironment} event in production`);
+      return res.json({ ok: true });
+    }
 
     console.log(`Apple notification: ${notificationType}${subtype ? '/' + subtype : ''}`, { originalTransactionId });
 

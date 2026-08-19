@@ -11,9 +11,62 @@ import { checkAnalysisRateLimit } from '../middleware/rateLimit.js';
 import { getExerciseVideo } from '../services/youtubeService.js';
 import posthog from '../services/posthogClient.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
+import { bounded } from '../validation/physiologicalBounds.js';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// ─── Session ownership ───────────────────────────────────────────────────────
+//
+// Every /sessions/:id route below used to be reachable with no authentication
+// at all. GET /sessions/:id was the worst of them: it did `include: { user:
+// true }`, so a single session id returned the entire User row — bcrypt hash,
+// email, OAuth ids, Stripe/Apple/Google billing ids, push token, and the
+// coachProfile blob containing injuries and health conditions. Session ids
+// aren't secret (they appear in share URLs, PostHog and Sentry), so one leaked
+// id was a full account compromise.
+//
+// The write routes were equally open: anyone could inject snapshots and chat
+// turns into another user's diagnostic thread, and POST /:id/chat drove
+// unmetered OpenAI spend on our key with no user attached to bill.
+//
+// `loadOwnedSession` is the single gate. Returns the session or sends the
+// response and returns null — callers just `if (!session) return;`.
+//
+// 404 (not 403) on a foreign session is deliberate: a 403 confirms the id
+// exists, which is exactly the oracle an attacker enumerating ids wants.
+
+async function loadOwnedSession(
+  req: import('express').Request,
+  res: import('express').Response,
+): Promise<{ id: string; userId: string | null } | null> {
+  const session = await prisma.session.findUnique({
+    where: { id: req.params.id },
+    select: { id: true, userId: true },
+  });
+  if (!session || session.userId !== req.user!.id) {
+    res.status(404).json({ error: 'Session not found' });
+    return null;
+  }
+  return session;
+}
+
+/**
+ * The subset of User the diagnostic flow actually consumes. Replaces
+ * `include: { user: true }` everywhere a session is loaded with its user —
+ * the engine needs body stats and constraints, and nothing else.
+ */
+const SESSION_USER_SELECT = {
+  id: true,
+  name: true,
+  heightCm: true,
+  weightKg: true,
+  unitPreference: true,
+  bodyCompTag: true,
+  trainingAge: true,
+  equipment: true,
+  constraintsText: true,
+} as const;
 
 // Initialize Twilio client if credentials are provided
 let twilioClient = null;
@@ -28,62 +81,66 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN &&
 
 // Validation schemas
 const createSessionSchema = z.object({
-  selectedLift: z.string(),
-  goal: z.string().optional(),
+  selectedLift: z.string().min(1).max(80),
+  goal: z.string().max(500).optional(),
+  // Accepted for wire compatibility with older clients but no longer read —
+  // the session is always attributed to the authenticated user. Leaving it
+  // honoured would let a caller create sessions under any user id they named.
   userId: z.string().optional(),
   profile: z.object({
-    heightCm: z.number().optional(),
-    weightKg: z.number().optional(),
-    bodyCompTag: z.string().optional(),
-    trainingAge: z.string().optional(),
-    equipment: z.string().optional(),
-    constraintsText: z.string().optional()
+    heightCm: bounded('heightCm', 'Height').optional(),
+    weightKg: bounded('bodyWeightKg', 'Weight').optional(),
+    bodyCompTag: z.string().max(60).optional(),
+    trainingAge: z.string().max(60).optional(),
+    equipment: z.string().max(1000).optional(),
+    constraintsText: z.string().max(2000).optional()
   }).optional()
 });
 
+// Snapshot numbers were bare z.number(), so a 10,000 kg bench or 1e308 reps
+// persisted and then flowed into e1RM → the diagnostic engine → the strength
+// profile → the public leaderboard. Bounded to the physically possible; values
+// that are merely unusual (a 350 kg deadlift) still pass, and are surfaced as
+// warnings rather than rejected.
 const addSnapshotSchema = z.object({
-  exerciseId: z.string(),
-  weight: z.number(),
-  weightUnit: z.string().optional(),
-  reps: z.number(),
-  sets: z.number().optional().default(1),
-  rpe: z.number().nullish().transform(v => v ?? undefined),
-  date: z.string().optional()
+  exerciseId: z.string().min(1).max(120),
+  weight: bounded('liftWeightKg', 'Weight'),
+  weightUnit: z.string().max(10).optional(),
+  reps: bounded('reps', 'Reps'),
+  sets: bounded('sets', 'Sets').optional().default(1),
+  rpe: bounded('rpe', 'RPE').nullish().transform(v => v ?? undefined),
+  date: z.string().max(40).optional()
 });
 
 const addSnapshotsSchema = z.object({
-  snapshots: z.array(addSnapshotSchema)
+  // Capped so one request can't insert an unbounded number of rows.
+  snapshots: z.array(addSnapshotSchema).min(1).max(50)
 });
 
 const addMessageSchema = z.object({
-  message: z.string()
+  // Was unbounded — a 10 MB message went straight into an LLM prompt.
+  message: z.string().min(1).max(4000)
 });
 
 // POST /api/sessions - Create new session
-router.post('/sessions', optionalAuth, async (req, res) => {
+//
+// Now requires auth. Previously this ran under optionalAuth and, for an
+// unauthenticated caller with a `profile` body, did an unconditional
+// prisma.user.create() — so a loop over this endpoint flooded the user table
+// (and every user-count metric) without limit. Both clients gate the diagnostic
+// flow behind login already (web: ProtectedRoute on /snapshot and /diagnostic;
+// mobile: apiFetch sends the bearer token by default), so nothing legitimate
+// reaches this without a JWT. `userId` in the body is likewise ignored now —
+// it let a caller attribute a session to any user they named.
+router.post('/sessions', requireAuth, async (req, res) => {
   try {
     const data = createSessionSchema.parse(req.body);
 
-    // If user is authenticated, use their ID; otherwise fall back to provided userId or create anon user
-    let userId = req.user?.id || data.userId;
+    const userId = req.user!.id;
 
-    // Create or update user if profile provided and not authenticated
-    if (data.profile && !req.user) {
-      const user = await prisma.user.create({
-        data: {
-          heightCm: data.profile.heightCm,
-          weightKg: data.profile.weightKg,
-          bodyCompTag: data.profile.bodyCompTag,
-          trainingAge: data.profile.trainingAge,
-          equipment: data.profile.equipment,
-          constraintsText: data.profile.constraintsText
-        }
-      });
-      userId = user.id;
-    } else if (data.profile && req.user) {
-      // Update authenticated user's profile
+    if (data.profile) {
       await prisma.user.update({
-        where: { id: req.user.id },
+        where: { id: userId },
         data: {
           heightCm: data.profile.heightCm,
           weightKg: data.profile.weightKg,
@@ -94,7 +151,7 @@ router.post('/sessions', optionalAuth, async (req, res) => {
         }
       });
     }
-    
+
     const session = await prisma.session.create({
       data: {
         selectedLift: data.selectedLift,
@@ -171,23 +228,12 @@ router.delete('/sessions/:id', requireAuth, async (req, res) => {
 });
 
 // POST /api/sessions/:id/snapshots - Add exercise snapshots
-router.post('/sessions/:id/snapshots', async (req, res) => {
+router.post('/sessions/:id/snapshots', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if session exists
-    const sessionExists = await prisma.session.findUnique({
-      where: { id }
-    });
-
-    if (!sessionExists) {
-      console.error(`Session not found: ${id}`);
-      return res.status(404).json({
-        error: 'Session not found',
-        sessionId: id,
-        message: 'Please create a session first using POST /api/sessions'
-      });
-    }
+    const sessionExists = await loadOwnedSession(req, res);
+    if (!sessionExists) return;
 
     // Check if request has snapshots array or single snapshot
     let snapshotsData;
@@ -221,10 +267,10 @@ router.post('/sessions/:id/snapshots', async (req, res) => {
 
     console.log(`✓ Successfully added ${createdSnapshots.length} snapshots`);
 
-    const sessionOwner = await prisma.session.findUnique({ where: { id }, select: { userId: true } });
-    if (sessionOwner?.userId) {
+    // Owner is already established by loadOwnedSession — no need to re-query.
+    if (sessionExists.userId) {
       posthog.capture({
-        distinctId: sessionOwner.userId,
+        distinctId: sessionExists.userId,
         event: 'exercise_snapshots_added',
         properties: {
           session_id: id,
@@ -252,11 +298,17 @@ router.post('/sessions/:id/snapshots', async (req, res) => {
 });
 
 // POST /api/sessions/:id/messages - Add message and get AI response
-router.post('/sessions/:id/messages', async (req, res) => {
+router.post('/sessions/:id/messages', requireAuth, checkAnalysisRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
     const data = addMessageSchema.parse(req.body);
-    
+
+    // Ownership before any write or LLM call. This route both persists a
+    // message and drives a GPT-4 request, so an open version of it was a way to
+    // write into someone else's thread *and* spend our tokens anonymously.
+    const owned = await loadOwnedSession(req, res);
+    if (!owned) return;
+
     // '__init__' is a client-side trigger to prime the AI's opening questions.
     // Don't persist it as a real user message — it would show as a confusing
     // bubble when the user resumes the session.
@@ -276,7 +328,7 @@ router.post('/sessions/:id/messages', async (req, res) => {
     const session = await prisma.session.findUnique({
       where: { id },
       include: {
-        user: true,
+        user: { select: SESSION_USER_SELECT },
         snapshots: true,
         messages: {
           orderBy: { createdAt: 'asc' }
@@ -398,15 +450,21 @@ router.post('/sessions/:id/messages', async (req, res) => {
 });
 
 // POST /api/sessions/:id/generate - Generate workout plan
-router.post('/sessions/:id/generate', optionalAuth, checkAnalysisRateLimit, async (req, res) => {
+// requireAuth (was optionalAuth): checkAnalysisRateLimit keys off req.user, so
+// under optionalAuth an anonymous caller skipped the free-tier quota entirely
+// and got unlimited plan generation.
+router.post('/sessions/:id/generate', requireAuth, checkAnalysisRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
+    const owned = await loadOwnedSession(req, res);
+    if (!owned) return;
+
     // Get session with full context
     const session = await prisma.session.findUnique({
       where: { id },
       include: {
-        user: true,
+        user: { select: SESSION_USER_SELECT },
         snapshots: true,
         messages: {
           orderBy: { createdAt: 'asc' }
@@ -500,9 +558,15 @@ router.post('/sessions/:id/generate', optionalAuth, checkAnalysisRateLimit, asyn
 });
 
 // GET /api/sessions/:id/plan - Return already-generated plan (no regeneration)
-router.get('/sessions/:id/plan', async (req, res) => {
+// Owner only. The public share path is GET /sessions/:id/public, which checks
+// the isPublic flag the user has to explicitly set.
+router.get('/sessions/:id/plan', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
+
+    const owned = await loadOwnedSession(req, res);
+    if (!owned) return;
+
     const plan = await prisma.generatedPlan.findFirst({
       where: { sessionId: id },
       orderBy: { createdAt: 'desc' },
@@ -517,15 +581,18 @@ router.get('/sessions/:id/plan', async (req, res) => {
   }
 });
 
-// GET /api/sessions/:id - Get session details
-router.get('/sessions/:id', async (req, res) => {
+// GET /api/sessions/:id - Get session details (owner only)
+router.get('/sessions/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
+    const owned = await loadOwnedSession(req, res);
+    if (!owned) return;
+
     const session = await prisma.session.findUnique({
       where: { id },
       include: {
-        user: true,
+        user: { select: SESSION_USER_SELECT },
         snapshots: true,
         messages: {
           orderBy: { createdAt: 'asc' }
@@ -659,10 +726,15 @@ const chatMessageSchema = z.object({
   message: z.string().min(1).max(2000),
 });
 
-router.post('/sessions/:id/chat', async (req, res) => {
+router.post('/sessions/:id/chat', requireAuth, checkAnalysisRateLimit, async (req, res) => {
   try {
     const { message } = chatMessageSchema.parse(req.body);
     const sessionId = req.params.id;
+
+    // Every call here creates or continues an OpenAI Assistants thread. Open
+    // and unmetered, it was a way to spend our API budget anonymously.
+    const owned = await loadOwnedSession(req, res);
+    if (!owned) return;
 
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
@@ -670,7 +742,7 @@ router.post('/sessions/:id/chat', async (req, res) => {
         snapshots: true,
         messages: { orderBy: { createdAt: 'asc' } },
         plans: { orderBy: { createdAt: 'desc' }, take: 1 },
-        user: true,
+        user: { select: SESSION_USER_SELECT },
       },
     });
 
