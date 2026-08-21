@@ -101,7 +101,11 @@ export default function RegisterScreen() {
     Analytics.authProviderTapped('google', 'register');
     setGoogleLoading(true);
     try {
-      await googleLogin();
+      // false = cancelled/failed (auth shows its own alert where warranted).
+      // Stay on this screen — navigating anyway used to dump the user on the
+      // Coach tab with no session and count a phantom `register` conversion.
+      const ok = await googleLogin();
+      if (!ok) return;
       Analytics.register('google');
       // Same fast-path as email signup — straight to Coach tab where
       // onboarding kicks off for new users (returning users land on
@@ -114,7 +118,8 @@ export default function RegisterScreen() {
     Analytics.authProviderTapped('apple', 'register');
     setAppleLoading(true);
     try {
-      await appleLogin();
+      const ok = await appleLogin();
+      if (!ok) return;
       Analytics.register('apple');
       router.replace('/(tabs)/coach');
     } finally { setAppleLoading(false); }

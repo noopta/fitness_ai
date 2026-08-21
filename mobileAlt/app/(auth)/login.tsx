@@ -96,8 +96,9 @@ export default function LoginScreen() {
     Analytics.authProviderTapped('google', 'login');
     setGoogleLoading(true);
     try {
-      await googleLogin();
-      Analytics.login('google');
+      // false = cancelled/failed — don't count a phantom login conversion.
+      const ok = await googleLogin();
+      if (ok) Analytics.login('google');
     } finally {
       setGoogleLoading(false);
     }
@@ -107,8 +108,8 @@ export default function LoginScreen() {
     Analytics.authProviderTapped('apple', 'login');
     setAppleLoading(true);
     try {
-      await appleLogin();
-      Analytics.login('apple');
+      const ok = await appleLogin();
+      if (ok) Analytics.login('apple');
     } finally {
       setAppleLoading(false);
     }
