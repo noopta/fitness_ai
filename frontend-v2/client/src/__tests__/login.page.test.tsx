@@ -4,9 +4,19 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Login from '@/pages/login';
+
+// The page renders <Navbar variant="full" />, which itself contains a "Sign In"
+// button linking to /login. A case-insensitive /^sign in$/i therefore matched
+// BOTH it and the form's submit button, so every query below failed with
+// "Found multiple elements". Scope to the form instead of loosening the name.
+function submitButton(): HTMLElement {
+  const form = document.querySelector('form');
+  if (!form) throw new Error('login form not found');
+  return within(form as HTMLElement).getByRole('button', { name: /^sign in/i });
+}
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -94,7 +104,7 @@ describe('Login page — form', () => {
     render(<Login />);
     expect(screen.getByPlaceholderText(/you@example\.com/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/••••••••/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(submitButton()).toBeInTheDocument();
   });
 
   it('calls login() with email and password on form submit', async () => {
@@ -103,23 +113,26 @@ describe('Login page — form', () => {
 
     await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'test@example.com');
     await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'password123');
-    await userEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    await userEvent.click(submitButton());
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
     });
   });
 
-  it('redirects to /onboarding after successful login (no saved redirect)', async () => {
+  // Was asserting /onboarding. The default landing was changed to /coach — the
+  // intake now lives on the Coach screen rather than a separate route — so this
+  // test had been failing against correct behaviour.
+  it('redirects to /coach after successful login (no saved redirect)', async () => {
     mockLogin.mockResolvedValueOnce(undefined);
     render(<Login />);
 
     await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'test@example.com');
     await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'pass');
-    await userEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    await userEvent.click(submitButton());
 
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/onboarding');
+      expect(mockSetLocation).toHaveBeenCalledWith('/coach');
     });
   });
 
@@ -130,7 +143,7 @@ describe('Login page — form', () => {
 
     await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'x@x.com');
     await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'pass');
-    await userEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    await userEvent.click(submitButton());
 
     await waitFor(() => {
       expect(mockSetLocation).toHaveBeenCalledWith('/plan');
@@ -144,7 +157,7 @@ describe('Login page — form', () => {
 
     await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'bad@example.com');
     await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'wrongpass');
-    await userEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    await userEvent.click(submitButton());
 
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith('Invalid credentials');
@@ -154,7 +167,7 @@ describe('Login page — form', () => {
 
   it('does not submit when fields are empty', async () => {
     render(<Login />);
-    await userEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    await userEvent.click(submitButton());
     expect(mockLogin).not.toHaveBeenCalled();
   });
 });
