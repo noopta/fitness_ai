@@ -287,8 +287,25 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const err: any = new Error(errorData.error || `API Error: ${response.statusText}`);
+    // Zod validation failures arrive as { error: 'Invalid request', details: [
+    // { path: ['dateOfBirth'], message: 'Required' } ] }. Keeping only `error`
+    // rendered every one of them as a bare "Invalid request" toast — which is
+    // how a required-but-unlabelled field on the register form turned into an
+    // unexplained dead end. Fold the field names into the message so the user
+    // (and we) can see which field actually failed.
+    let message: string = errorData.error || `API Error: ${response.statusText}`;
+    if (Array.isArray(errorData.details) && errorData.details.length > 0) {
+      const parts = errorData.details
+        .map((d: any) => {
+          const field = Array.isArray(d?.path) ? d.path.join('.') : d?.path;
+          return field ? `${field}: ${d?.message ?? 'invalid'}` : d?.message;
+        })
+        .filter(Boolean);
+      if (parts.length) message = `${message} — ${parts.join('; ')}`;
+    }
+    const err: any = new Error(message);
     err.status = response.status;
+    err.details = errorData.details;
     err.upgradeUrl = errorData.upgradeUrl;
     throw err;
   }

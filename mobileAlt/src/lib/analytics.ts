@@ -158,6 +158,19 @@ export const Analytics = {
 
   intakeCompleted: () => posthog.capture('intake_completed'),
 
+  // Fires when a COMPLETED intake fails to persist. Previously this path was
+  // swallowed silently and the user was pushed on to Build Your Program with
+  // nothing saved, so a lost intake looked identical to a completed one in the
+  // funnel. status 0 = network/unreachable.
+  intakeSaveFailed: (status: number) =>
+    posthog.capture('intake_save_failed', { status }),
+
+  // Fires when the Coach screen sits on the loading skeleton long enough that
+  // the watchdog has to force it forward. Any occurrence means a user saw an
+  // unresponsive screen — the 2026-08-16 stall produced no event at all.
+  coachStageStuck: (stage: string) =>
+    posthog.capture('coach_stage_stuck', { stage }),
+
   programGenerateStarted: (auto: boolean) =>
     posthog.capture('program_generate_started', { auto }),
 

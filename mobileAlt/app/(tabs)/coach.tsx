@@ -55,7 +55,7 @@ export default function CoachScreen() {
 }
 
 function CoachScreenInner() {
-  const { user, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const { toKg } = useUnits();
 
   // Hydrate from in-memory cache synchronously so a tab switch with a hot
@@ -105,7 +105,23 @@ function CoachScreenInner() {
 
   useEffect(() => {
     initCoach();
-  }, [user?.id]);
+  }, [user?.id, authLoading]);
+
+  // Watchdog: this screen must never sit on the skeleton indefinitely. The
+  // 2026-08-16 stall was invisible precisely because the failure was silent —
+  // no crash, no error, just a skeleton that never resolved. Whatever future
+  // path fails to settle `stage`, this bounds it: after 12s, fall through to
+  // the intake, which is safe for anyone without a program.
+  useEffect(() => {
+    if (stage !== 'loading') return;
+    const t = setTimeout(() => {
+      console.warn('[coach] stage stuck on loading for 12s — falling through to intake');
+      Analytics.coachStageStuck('loading');
+      setStage(resumeStageForNoProgram());
+      setLoading(false);
+    }, 12_000);
+    return () => clearTimeout(t);
+  }, [stage]);
 
   // (extractProgram + fetchCoachInit live in src/lib/coachData.ts so the
   // boot-time prefetcher can warm the same cache shape this screen reads.)
@@ -121,7 +137,24 @@ function CoachScreenInner() {
 
   async function initCoach() {
     if (!user) {
-      setStage('loading');
+      // Auth is still bootstrapping — the skeleton is correct here, and the
+      // effect below re-runs when the user lands (or when authLoading flips).
+      if (authLoading) {
+        setStage('loading');
+        return;
+      }
+      // Auth has SETTLED and there is still no user. This is the state that
+      // stranded every signup from 2026-08-16 onward: AuthContext swallows
+      // network/server failures from getMe() (user stays null, loading goes
+      // false) on the assumption that something redirects to login. Nothing
+      // does — this screen just sat on CoachDashboardSkeleton forever. No
+      // throw, so nothing in Sentry; users rage-tapped a skeleton and left.
+      //
+      // Resolve to the intake instead: it is the right screen for anyone
+      // without a program, and it re-reads auth on submit, so a genuinely
+      // signed-out user is bounced there rather than staring at a fake screen.
+      setStage('onboarding');
+      setLoading(false);
       return;
     }
 
@@ -229,8 +262,22 @@ function CoachScreenInner() {
         }),
       });
       await refreshUser();
-    } catch {
-      // Continue even if save fails
+    } catch (err: any) {
+      // Do NOT silently continue. This used to swallow every failure and march
+      // the user into Build Your Program with nothing saved — no goal, no
+      // injuries, no region — so they got a generic plan and we got no signal.
+      // The intake depth IS the product; discarding a completed one is the
+      // worst outcome available here.
+      Analytics.intakeSaveFailed(err?.status ?? 0);
+      const signedOut = err?.status === 401 || err?.status === 403;
+      Alert.alert(
+        signedOut ? 'Please sign in again' : "Couldn't save your answers",
+        signedOut
+          ? 'Your session expired while you were filling this in. Sign in and your answers will be here.'
+          : "We couldn't reach the server. Your answers are still on screen — tap Retry.",
+        [{ text: 'OK' }],
+      );
+      return; // stay on the intake so the answers aren't lost
     }
     setSetupReturnStage('onboarding');
     setAutoStartSetup(true);

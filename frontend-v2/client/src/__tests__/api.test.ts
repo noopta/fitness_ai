@@ -265,3 +265,62 @@ describe('apiRequest bearer token', () => {
     expect(opts.headers.Authorization).toBe('Bearer tok_xyz');
   });
 });
+
+// Regression: a zod validation failure used to surface as a bare
+// "Invalid request" toast because apiRequest kept only errorData.error and
+// discarded `details`. On the register form — which called date of birth
+// "optional" while the backend had required it since the 13+ age gate — that
+// produced an unexplained dead end with no indication of the failing field.
+describe('apiRequest validation errors', () => {
+  function mockFail(body: unknown, status = 400) {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status,
+      statusText: 'Bad Request',
+      json: async () => body,
+    }) as any;
+  }
+
+  it('names the failing field instead of only "Invalid request"', async () => {
+    mockFail({
+      error: 'Invalid request',
+      details: [{ code: 'invalid_type', path: ['dateOfBirth'], message: 'Required' }],
+    });
+    await expect(authApi.register('N', 'e@x.com', 'password123')).rejects.toThrow(/dateOfBirth: Required/);
+  });
+
+  it('keeps the top-level error text as the prefix', async () => {
+    mockFail({ error: 'Invalid request', details: [{ path: ['email'], message: 'Invalid email' }] });
+    await expect(authApi.register('N', 'bad', 'password123')).rejects.toThrow(/^Invalid request — /);
+  });
+
+  it('joins multiple field errors', async () => {
+    mockFail({
+      error: 'Invalid request',
+      details: [
+        { path: ['dateOfBirth'], message: 'Required' },
+        { path: ['password'], message: 'Too short' },
+      ],
+    });
+    await expect(authApi.register('N', 'e@x.com', 'x')).rejects.toThrow(/dateOfBirth: Required; password: Too short/);
+  });
+
+  it('falls back cleanly when there are no details', async () => {
+    mockFail({ error: 'Too many accounts created from this network. Please try again later.' }, 429);
+    await expect(authApi.register('N', 'e@x.com', 'password123'))
+      .rejects.toThrow('Too many accounts created from this network. Please try again later.');
+  });
+
+  it('tolerates a malformed details array', async () => {
+    mockFail({ error: 'Invalid request', details: [null, {}, { message: 'odd' }] });
+    await expect(authApi.register('N', 'e@x.com', 'password123')).rejects.toThrow(/Invalid request/);
+  });
+
+  it('exposes details on the thrown error for callers that want them', async () => {
+    mockFail({ error: 'Invalid request', details: [{ path: ['dateOfBirth'], message: 'Required' }] });
+    await authApi.register('N', 'e@x.com', 'password123').catch((e: any) => {
+      expect(e.details).toHaveLength(1);
+      expect(e.status).toBe(400);
+    });
+  });
+});

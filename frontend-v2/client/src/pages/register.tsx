@@ -38,9 +38,28 @@ export default function Register() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     if (!name || !email || !password) return;
+    // The backend has required dateOfBirth since the 13+ age gate (a9ecd3d,
+    // 2026-04-23). This form went on calling it optional, so anyone who left
+    // it blank got a bare "Invalid request" toast and could not sign up.
+    if (!dateOfBirth) {
+      toast.error('Please enter your date of birth.');
+      return;
+    }
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) {
+      toast.error('Please enter a valid date of birth.');
+      return;
+    }
+    // Mirrors the mobile check so both clients fail the same way, before the
+    // request rather than after.
+    const ageYears = (Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (ageYears < 13) {
+      toast.error('You must be 13 or older to create an account.');
+      return;
+    }
     setSubmitting(true);
     try {
-      await register(name, email, password, dateOfBirth || undefined, referralCode.current || undefined);
+      await register(name, email, password, dateOfBirth, referralCode.current || undefined);
       if (referralCode.current) localStorage.removeItem('axiom_referral');
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
@@ -131,12 +150,16 @@ export default function Register() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Date of Birth (optional)</Label>
+              <Label>Date of Birth</Label>
               <Input
                 type="date"
                 value={dateOfBirth}
                 onChange={e => setDateOfBirth(e.target.value)}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Required — we use this to confirm you're 13 or older.
+              </p>
             </div>
             <p className="text-xs text-muted-foreground">
               By creating an account, you agree to our{" "}
