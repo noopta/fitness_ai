@@ -18,6 +18,7 @@ import Diagnostic from "./pages/diagnostic";
 import Plan from "./pages/plan";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import VerifyEmail from "./pages/verify-email";
 import HistoryPage from "./pages/history";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
@@ -175,6 +176,7 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/pricing" component={Pricing} />

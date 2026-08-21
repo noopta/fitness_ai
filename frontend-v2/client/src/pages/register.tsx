@@ -59,11 +59,19 @@ export default function Register() {
     }
     setSubmitting(true);
     try {
-      await register(name, email, password, dateOfBirth, referralCode.current || undefined);
+      const pending = await register(name, email, password, dateOfBirth, referralCode.current || undefined);
       if (referralCode.current) localStorage.removeItem('axiom_referral');
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
-      setLocation('/coach');
+      if (pending) {
+        // Email verification is on — the account exists but needs the 6-digit
+        // code before a session is issued.
+        const params = new URLSearchParams({ email: pending.email });
+        if (pending.codeSent === false) params.set('codeSent', '0');
+        setLocation(`/verify-email?${params.toString()}`);
+      } else {
+        setLocation('/coach');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');
     } finally {
