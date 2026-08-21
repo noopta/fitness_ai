@@ -100,7 +100,8 @@ SQLite via Prisma. Schema at `backend/prisma/schema.prisma`. Key models:
 
 ## Deployment
 - **Backend:** systemd `fitness-ai.service`, port 3051, proxied via Nginx at `https://api.airthreads.ai:4009`
-- **Frontend:** Vercel (see `frontend-v2/vercel.json`)
+- **Frontend:** axiomtraining.io is served from Replit's "Publish your App" deploys (Google App Engine frontend, the `Published your App` commits) — NOT auto-deployed from GitHub pushes. Web changes only go live after a manual publish from Replit. (`frontend-v2/vercel.json` is legacy.)
+- **Mobile OTA:** `cd mobileAlt && NODE_OPTIONS="--max-old-space-size=2600" ./node_modules/.bin/eas update --branch production --environment production --platform ios` (then `--platform android`). Publish per-platform — `--platform all` also bundles web and OOMs this 4GB box. Publish only from a committed tree; Metro reads files mid-bundle, so editing during a publish ships a torn bundle.
 - After backend changes: `npm run build` in `backend/`, then `sudo systemctl restart fitness-ai.service`
 
 
