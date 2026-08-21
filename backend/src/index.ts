@@ -82,6 +82,24 @@ const PORT = process.env.PORT || 3001;
 // global bucket shared by the entire internet.
 app.set('trust proxy', 1);
 
+// No ETags on API responses.
+//
+// Express sends a weak ETag on every res.json, so a repeat request answers
+// 304 with an empty body. The mobile client's apiFetch treats any response
+// where `!res.ok` as a failure — and res.ok is false for 304 — so a normal
+// cache revalidation is thrown as an error inside the app.
+//
+// This is reachable on the brand-new-user path: after POST /auth/set-dob the
+// app re-requests /coach/program, /coach/messages, /social/notifications/counts
+// and /form-analysis, and prod answered 304 to all four for the signups that
+// stalled before the intake quiz (2026-08-16 onward, 0/6 converted).
+//
+// The payloads here are small since the feed slimming work, so conditional
+// revalidation buys little; correctness on a shipped client that mishandles
+// 304 is worth more than the bytes. Fixing apiFetch is the real fix, but that
+// needs an app release — this reaches every install already out there.
+app.set('etag', false);
+
 // Middleware
 app.use(securityHeaders);
 app.use(cookieParser());
