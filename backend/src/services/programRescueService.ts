@@ -46,18 +46,36 @@ function isTestAccount(email: string | null): boolean {
   return e.includes('axiom.test') || e.includes('pomelo') || e.includes('cis3760') || e.includes('@example.com');
 }
 
+// A draft is only promotable if it looks like a real program — mirrors the
+// client's validity check (a `phases` array with at least one entry).
+function parseDraft(raw: string | null): any | null {
+  if (!raw) return null;
+  try {
+    const prog = JSON.parse(raw);
+    if (prog && typeof prog === 'object' && Array.isArray(prog.phases) && prog.phases.length > 0) {
+      return prog;
+    }
+  } catch { /* corrupt draft — fall through to regeneration */ }
+  return null;
+}
+
 export async function runProgramRescueSweep(): Promise<{ rescued: number; failed: number }> {
   const cutoff = new Date(Date.now() - RESCUE_AFTER_MS);
   const stranded = await prisma.user.findMany({
     where: {
-      coachOnboardingDone: true,
       savedProgram: null,
-      coachProfile: { not: null },
       updatedAt: { lt: cutoff },
+      // Two stranded shapes: (a) they generated a program but never tapped
+      // Save — promote the stored draft, no LLM spend; (b) they finished the
+      // intake but never generated — generate from the saved profile.
+      OR: [
+        { draftProgram: { not: null } },
+        { coachOnboardingDone: true, coachProfile: { not: null } },
+      ],
     },
     select: {
       id: true, email: true, coachProfile: true, trainingAge: true,
-      equipment: true, weightKg: true, heightCm: true,
+      equipment: true, weightKg: true, heightCm: true, draftProgram: true,
     },
     take: 50,
   });
@@ -73,20 +91,28 @@ export async function runProgramRescueSweep(): Promise<{ rescued: number; failed
     try { profile = user.coachProfile ? JSON.parse(user.coachProfile) : {}; } catch { /* tolerate */ }
 
     try {
-      const goal = inferGoal(profile?.trainingPreference, profile?.primaryGoal);
-      const program = await generateTrainingProgram({
-        goal,
-        daysPerWeek: clampDays(profile?.frequency),
-        durationWeeks: 8,
-        trainingAge: user.trainingAge,
-        equipment: user.equipment,
-        primaryLimiter: null,
-        selectedLift: null,
-        accessories: [],
-        coachProfile: user.coachProfile,
-        diagnosticSignals: null,
-        gender: profile?.gender ?? null,
-      });
+      // Prefer the draft they already generated in-app — it reflects their
+      // exact picker choices and costs nothing to promote.
+      let program = parseDraft(user.draftProgram);
+      if (!program) {
+        // No usable draft. Without an intake profile there is nothing to
+        // generate from — skip rather than produce a generic program.
+        if (!user.coachProfile) continue;
+        const goal = inferGoal(profile?.trainingPreference, profile?.primaryGoal);
+        program = await generateTrainingProgram({
+          goal,
+          daysPerWeek: clampDays(profile?.frequency),
+          durationWeeks: 8,
+          trainingAge: user.trainingAge,
+          equipment: user.equipment,
+          primaryLimiter: null,
+          selectedLift: null,
+          accessories: [],
+          coachProfile: user.coachProfile,
+          diagnosticSignals: null,
+          gender: profile?.gender ?? null,
+        });
+      }
 
       // Guard against a race: if they generated in-app while we worked, keep theirs.
       const fresh = await prisma.user.findUnique({ where: { id: user.id }, select: { savedProgram: true } });
@@ -94,7 +120,12 @@ export async function runProgramRescueSweep(): Promise<{ rescued: number; failed
 
       await prisma.user.update({
         where: { id: user.id },
-        data: { savedProgram: JSON.stringify(program), programStartDate: new Date() },
+        data: {
+          savedProgram: JSON.stringify(program),
+          programStartDate: new Date(),
+          draftProgram: null,
+          draftProgramAt: null,
+        },
       });
       cacheDelete(`program:${user.id}`);
 

@@ -770,7 +770,23 @@ router.post('/coach/program', requireAuth, async (req, res) => {
       }).catch(() => null),
     ]);
 
-    res.json({ ...program, nutritionPlan: nutritionPlan ?? undefined });
+    const fullProgram = { ...program, nutritionPlan: nutritionPlan ?? undefined };
+
+    // Persist the generation as a draft immediately. The client only saves
+    // via PUT /coach/program after the reveal→walkthrough Save tap, and users
+    // who abandon there used to lose the program (and the LLM spend) — the
+    // rescue sweep promotes stale drafts instead of regenerating. Best-effort:
+    // a draft-write failure must not fail the generation response.
+    try {
+      await prisma.user.update({
+        where: { id: req.user!.id },
+        data: { draftProgram: JSON.stringify(fullProgram), draftProgramAt: new Date() },
+      });
+    } catch (draftErr: any) {
+      console.error('[coach] draft program save failed:', draftErr?.message ?? draftErr);
+    }
+
+    res.json(fullProgram);
   } catch (err: any) {
     console.error('Program generation error:', err);
     res.status(500).json({ error: err.message || 'Failed to generate program' });
@@ -848,6 +864,10 @@ router.put('/coach/program', requireAuth, async (req, res) => {
       where: { id: req.user!.id },
       data: {
         savedProgram: JSON.stringify(program),
+        // The explicit save supersedes any pending draft — clear it so the
+        // rescue sweep can't later overwrite this save with a stale draft.
+        draftProgram: null,
+        draftProgramAt: null,
         // Whether this is the first program OR a replacement, reset the start
         // date so the new program's week 1 starts today. Otherwise replacing
         // a finished program would land the user mid-way through the new one.

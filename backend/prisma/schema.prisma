@@ -59,6 +59,13 @@ model User {
   agentTurnsDate      DateTime?
   coachThreadId       String?
   savedProgram        String?
+  // Last generated-but-unsaved program (POST /coach/program output). The
+  // client only persists via PUT /coach/program after the reveal→walkthrough
+  // Save tap; abandoning there used to lose the generation entirely. The
+  // rescue sweep promotes a stale draft to savedProgram instead of paying
+  // for a fresh LLM generation. Cleared on save.
+  draftProgram        String?
+  draftProgramAt      DateTime?
   coachGoal           String?
   coachBudget         String?
   coachOnboardingDone Boolean           @default(false)
