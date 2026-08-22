@@ -15,6 +15,7 @@ import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 import { SEO } from "@/components/SEO";
 import { HeroV2 } from "@/components/landing/HeroV2";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
+import { MemberProofSection } from "@/components/landing/MemberProofSection";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -1197,7 +1198,7 @@ const FEATURE_GRID = [
 
 function FeatureGrid() {
   return (
-    <section className="py-16 sm:py-24 bg-muted/30 border-t">
+    <section id="coaching-stack" className="py-16 sm:py-24 bg-muted/30 border-t">
       <div className="container-tight">
         <FadeUp className="mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-xs font-medium text-muted-foreground mb-5">
@@ -1554,6 +1555,7 @@ export default function FeaturesPage() {
       <DiagnosticSection />
       <ProgramFlowSection />
       <StrengthProfileSection />
+      <MemberProofSection />
       <FeatureGrid />
       <ComparisonSection />
       <CTASection />
