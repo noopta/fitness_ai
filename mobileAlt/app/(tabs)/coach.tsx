@@ -11,6 +11,7 @@ import {
 } from '../../src/lib/coachData';
 import { useFocusEffect } from 'expo-router';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
@@ -36,6 +37,36 @@ type Stage = 'loading' | 'onboarding' | 'setup' | 'reveal' | 'walkthrough' | 'da
 type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
 const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
+
+// What Pro actually buys, stated as things the coach DOES rather than features
+// you get. This card is shown at the highest-intent moment in the funnel — the
+// user has just finished the intake and watched a program get built — so the
+// job here is to reframe: the plan is the artifact, Pro is the coach that runs
+// it with you. Every line below maps to a shipped surface (Chat/agent tools,
+// NutritionProfileV2, strength profile, form-analysis) — no vapour.
+const PRO_CAPABILITIES = [
+  {
+    icon: 'chatbubble-ellipses-outline',
+    title: 'A coach that acts, not just answers',
+    body: 'Tell Anakin what happened and it logs the meal, adjusts your macros, or swaps an exercise — then updates the plan.',
+  },
+  {
+    icon: 'nutrition-outline',
+    title: 'Nutrition profiling',
+    body: 'Micronutrient targets, gut-health scoring, and photo or barcode logging that understands your food.',
+  },
+  {
+    icon: 'stats-chart-outline',
+    title: 'Strength profiling',
+    body: 'Estimated 1RMs, PR detection and weak-point diagnosis tracked across every session.',
+  },
+  {
+    icon: 'videocam-outline',
+    title: 'Video form analysis',
+    body: 'Upload a working set and get specific coaching cues on what to fix.',
+  },
+];
+
 
 // ─── Coach Screen ─────────────────────────────────────────────────────────────
 
@@ -548,14 +579,30 @@ function CoachScreenInner() {
         {!isPro && (
           <Pressable style={styles.upgradeScrim} onPress={() => setUpgradeVisible(true)}>
             <View style={styles.upgradeCard}>
-              <Text style={styles.upgradeLockIcon}>🔒</Text>
-              <Text style={styles.upgradeCardTitle}>Your plan is ready</Text>
+              <Text style={styles.upgradeEyebrow}>YOUR PROGRAM IS BUILT</Text>
+              <Text style={styles.upgradeCardTitle}>Now put a coach behind it</Text>
               <Text style={styles.upgradeCardSub}>
-                Upgrade to Pro to unlock your full program, AI coaching, nutrition tracking, and more.
+                The plan is the starting point. Pro is the part that adapts it to you, week after week.
               </Text>
-              <View style={styles.upgradeCardBtn}>
-                <Text style={styles.upgradeCardBtnText}>Upgrade to Pro</Text>
+
+              <View style={styles.capList}>
+                {PRO_CAPABILITIES.map((c) => (
+                  <View key={c.title} style={styles.capRow}>
+                    <View style={styles.capIcon}>
+                      <Ionicons name={c.icon as any} size={16} color={colors.primary} />
+                    </View>
+                    <View style={styles.capText}>
+                      <Text style={styles.capTitle}>{c.title}</Text>
+                      <Text style={styles.capBody}>{c.body}</Text>
+                    </View>
+                  </View>
+                ))}
               </View>
+
+              <View style={styles.upgradeCardBtn}>
+                <Text style={styles.upgradeCardBtnText}>Unlock the full coach</Text>
+              </View>
+              <Text style={styles.upgradeFinePrint}>1 month free · cancel anytime</Text>
             </View>
           </Pressable>
         )}
@@ -767,7 +814,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  upgradeLockIcon: { fontSize: 32 },
+  upgradeEyebrow: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 1.2,
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  capList: {
+    alignSelf: 'stretch',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  capRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  capIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.muted,
+    marginTop: 1,
+  },
+  capText: {
+    flex: 1,
+    gap: 2,
+  },
+  capTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  capBody: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    lineHeight: 17,
+  },
+  upgradeFinePrint: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+  },
   upgradeCardTitle: {
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
