@@ -1550,12 +1550,12 @@ export default function FeaturesPage() {
       />
       <Navbar />
       <HeroV2 statsRow={<HeroStatsRow />} />
+      <MemberProofSection />
       <SocialProofSection />
       <AnakinSection />
       <DiagnosticSection />
       <ProgramFlowSection />
       <StrengthProfileSection />
-      <MemberProofSection />
       <FeatureGrid />
       <ComparisonSection />
       <CTASection />

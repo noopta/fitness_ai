@@ -121,3 +121,39 @@ describe('MemberProofSection — CTA', () => {
     expect(container.textContent).not.toMatch(/diagnostic/i);
   });
 });
+
+describe('MemberProofSection — mobile', () => {
+  // The design is desktop-first at 1024px and specifies three breakpoints:
+  // 900 (data row stacks), 720 (quote band, stat strip, CTA) and 560 (photos
+  // stack, First column drops). jsdom does no layout, so these assert the
+  // contract that encodes it rather than measured geometry.
+  it('drops the First column on the narrowest layout', () => {
+    render(<MemberProofSection />);
+    const first = screen.getByText('First');
+    // Hidden by default, revealed at 560 — not the other way round.
+    expect(first.className).toContain('hidden');
+    expect(first.className).toContain('min-[560px]:block');
+  });
+
+  it('keeps every lift row readable at 360px by letting the name take the slack', () => {
+    render(<MemberProofSection />);
+    const row = document.querySelector('[data-lift="Bulgarian Split Squat"]');
+    // Fixed 92px/128px columns left ~20px for the name at 360px; the mobile
+    // grid sizes those two to content instead.
+    expect(row).toBeNull(); // 7th lift — collapsed by default
+    const visible = document.querySelector('[data-lift="Hip Thrust"]') as HTMLElement;
+    expect(visible.className).toContain('grid-cols-[1fr_auto_auto]');
+    expect(visible.className).toContain('min-[560px]:grid-cols-[1fr_92px_92px_128px]');
+  });
+
+  it('stacks the photo pair below 560 and the data row below 900', () => {
+    const { container } = render(<MemberProofSection />);
+    expect(container.innerHTML).toContain('min-[560px]:grid-cols-2');
+    expect(container.innerHTML).toContain('min-[900px]:grid-cols-[1fr_380px]');
+  });
+
+  it('uses only the spec breakpoints, not Tailwind defaults', () => {
+    const { container } = render(<MemberProofSection />);
+    expect(container.innerHTML).not.toMatch(/\b(sm|md|lg|xl):/);
+  });
+});

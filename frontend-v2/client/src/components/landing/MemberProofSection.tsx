@@ -66,7 +66,7 @@ export function MemberProofSection() {
 
   return (
     <motion.section
-      className="py-24 px-6 bg-white"
+      className="border-t border-[#e4e4e7] bg-white px-5 py-16 min-[720px]:px-6 min-[720px]:py-24"
       initial={reduceMotion ? false : { opacity: 0, y: 24 }}
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -81,7 +81,7 @@ export function MemberProofSection() {
         </div>
 
         {/* 2. Headline + subhead */}
-        <h2 className="mt-5 text-center text-[36px] font-bold leading-[1.12] tracking-[-.02em] text-[#09090b] text-balance">
+        <h2 className="mt-5 text-center text-[28px] leading-[1.15] font-bold tracking-[-.02em] text-[#09090b] text-balance min-[720px]:text-[36px] min-[720px]:leading-[1.12]">
           Same person. Different data.
         </h2>
         <p className="mx-auto mt-3 max-w-[580px] text-center text-[15px] text-[#71717a] text-pretty">
@@ -89,7 +89,7 @@ export function MemberProofSection() {
         </p>
 
         {/* 3. Photo pair */}
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+        <div className="mt-10 grid gap-5 min-[560px]:grid-cols-2">
           <figure className="rounded-2xl border border-[#e4e4e7] bg-[#fafafa] p-3.5">
             <div className="aspect-4/5 overflow-hidden rounded-xl bg-[#f4f4f5]">
               <img
@@ -124,33 +124,35 @@ export function MemberProofSection() {
         </div>
 
         {/* 4. Stat strip */}
-        <div className="mt-5 grid grid-cols-2 overflow-hidden rounded-[14px] border border-[#e4e4e7] sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 overflow-hidden rounded-[14px] border border-[#e4e4e7] min-[720px]:grid-cols-4">
           {STATS.map((s, i) => (
             <div
               key={s.label}
               className={[
-                "px-6 py-[22px]",
-                // Interior hairlines: every cell except the last in its row.
-                i < STATS.length - 1 ? "sm:border-r sm:border-[#e4e4e7]" : "",
-                i % 2 === 0 ? "border-r border-[#e4e4e7] sm:border-r" : "",
-                i < 2 ? "border-b border-[#e4e4e7] sm:border-b-0" : "",
+                "px-4 py-4 min-[720px]:px-6 min-[720px]:py-[22px]",
+                // 2x2: right hairline on the left column, bottom hairline on
+                // the top row. 4-up: right hairline on all but the last, and
+                // no bottom hairline at all.
+                i % 2 === 0 ? "border-r border-[#e4e4e7]" : "",
+                i < 2 ? "border-b border-[#e4e4e7] min-[720px]:border-b-0" : "",
+                i === 3 ? "min-[720px]:border-r-0" : "min-[720px]:border-r min-[720px]:border-[#e4e4e7]",
               ].join(" ")}
             >
-              <div className="text-[28px] font-bold tracking-[-.02em] text-[#09090b]">{s.value}</div>
-              <div className="mt-1.5 text-[12px] text-[#71717a]">{s.label}</div>
+              <div className="text-[22px] font-bold tracking-[-.02em] text-[#09090b] min-[720px]:text-[28px]">{s.value}</div>
+              <div className="mt-1.5 text-[11px] leading-snug text-[#71717a] min-[720px]:text-[12px]">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* 5. Quote band */}
-        <figure className="mt-5 grid gap-10 rounded-2xl bg-[#09090b] px-11 py-10 md:grid-cols-[1fr_220px] md:items-center">
+        <figure className="mt-5 grid gap-8 rounded-2xl bg-[#09090b] px-6 py-8 min-[720px]:grid-cols-[1fr_220px] min-[720px]:items-center min-[720px]:gap-10 min-[720px]:px-11 min-[720px]:py-10">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[#a1a1aa]">In Alex's words</div>
-            <blockquote className="mt-[18px] text-[24px] font-normal leading-[1.5] tracking-[-.015em] text-white text-pretty">
+            <blockquote className="mt-[18px] text-[19px] font-normal leading-[1.5] tracking-[-.015em] text-white text-pretty min-[720px]:text-[24px]">
               &ldquo;{QUOTE}&rdquo;
             </blockquote>
           </div>
-          <figcaption className="flex flex-col gap-3.5 border-t border-white/[.14] pt-10 md:border-l md:border-t-0 md:pl-10 md:pt-0">
+          <figcaption className="flex flex-col gap-3.5 border-t border-white/[.14] pt-8 min-[720px]:border-l min-[720px]:border-t-0 min-[720px]:pl-10 min-[720px]:pt-0">
             <div>
               <div className="text-[15px] font-semibold text-white">Alex Hernandez</div>
               <div className="mt-0.5 text-[12px] text-[#71717a]">Axiom member &middot; 8 weeks in</div>
@@ -160,10 +162,10 @@ export function MemberProofSection() {
         </figure>
 
         {/* 6. Data row */}
-        <div className="mt-5 grid items-start gap-5 lg:grid-cols-[1fr_380px]">
+        <div className="mt-5 grid items-start gap-5 min-[900px]:grid-cols-[1fr_380px]">
           {/* 6a. Lift table */}
           <div className="overflow-hidden rounded-[14px] border border-[#e4e4e7]">
-            <div className="flex items-center justify-between border-b border-[#e4e4e7] px-5 py-4">
+            <div className="flex items-center justify-between gap-3 border-b border-[#e4e4e7] px-3 py-4 min-[560px]:px-5">
               <span className="text-[11px] font-bold uppercase tracking-[.12em] text-[#71717a]">Logged e1RM change</span>
               <button
                 type="button"
@@ -176,9 +178,9 @@ export function MemberProofSection() {
             </div>
 
             {/* Column header. `First` is dropped on the narrowest layout. */}
-            <div className="grid grid-cols-[1fr_92px_128px] gap-4 bg-[#f4f4f5] px-5 py-2.5 text-[10px] font-bold uppercase tracking-[.12em] text-[#71717a] sm:grid-cols-[1fr_92px_92px_128px]">
+            <div className="grid grid-cols-[1fr_auto_auto] gap-3 bg-[#f4f4f5] px-3 py-2.5 text-[10px] font-bold uppercase tracking-[.12em] text-[#71717a] min-[560px]:grid-cols-[1fr_92px_92px_128px] min-[560px]:gap-4 min-[560px]:px-5">
               <div>Exercise</div>
-              <div className="hidden text-right sm:block">First</div>
+              <div className="hidden text-right min-[560px]:block">First</div>
               <div className="text-right">Best</div>
               <div className="text-right">e1RM change</div>
             </div>
@@ -188,7 +190,7 @@ export function MemberProofSection() {
                 <div
                   key={l.name}
                   data-lift={l.name}
-                  className={`grid grid-cols-[1fr_92px_128px] items-center gap-4 px-5 py-4 sm:grid-cols-[1fr_92px_92px_128px] ${i > 0 ? "border-t border-[#e4e4e7]" : ""}`}
+                  className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 px-3 py-4 min-[560px]:grid-cols-[1fr_92px_92px_128px] min-[560px]:gap-4 min-[560px]:px-5 ${i > 0 ? "border-t border-[#e4e4e7]" : ""}`}
                 >
                   <div>
                     <div className="text-[13px] font-semibold text-[#09090b]">{l.name}</div>
@@ -197,7 +199,7 @@ export function MemberProofSection() {
                       <div className="h-full rounded-full bg-[#047857]" style={{ width: `${(l.bar / MAX_BAR) * 100}%` }} />
                     </div>
                   </div>
-                  <div className="hidden text-right text-[13px] text-[#71717a] sm:block">{l.first}</div>
+                  <div className="hidden text-right text-[13px] text-[#71717a] min-[560px]:block">{l.first}</div>
                   <div className="text-right text-[13px] font-semibold text-[#09090b]">{l.best}</div>
                   <div className="text-right">
                     <div className="text-[15px] font-bold tracking-[-.02em] text-[#047857]">{l.delta ?? l.pct}</div>
@@ -243,11 +245,11 @@ export function MemberProofSection() {
         </div>
 
         {/* 7. CTA row */}
-        <div className="mt-8 flex flex-col items-stretch gap-6 border-t border-[#e4e4e7] pt-7 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-[560px] text-[20px] font-semibold leading-[1.35] tracking-[-.02em] text-[#09090b] text-pretty">
+        <div className="mt-8 flex flex-col items-stretch gap-6 border-t border-[#e4e4e7] pt-7 min-[720px]:flex-row min-[720px]:items-center min-[720px]:justify-between">
+          <p className="max-w-[560px] text-[18px] font-semibold leading-[1.35] tracking-[-.02em] text-[#09090b] text-pretty min-[720px]:text-[20px]">
             Adaptive training and nutrition profiling helped Alex break past his limits. Now let's break yours.
           </p>
-          <div className="flex flex-col gap-2.5 sm:flex-row">
+          <div className="flex flex-col gap-2.5 min-[720px]:flex-row">
             <Link
               href="/register"
               className="whitespace-nowrap rounded-xl bg-[#09090b] px-[18px] py-3 text-center text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-zinc-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-foreground/12"
