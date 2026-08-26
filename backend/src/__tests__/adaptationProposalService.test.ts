@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const store = vi.hoisted(() => ({
-  user: { savedProgram: null as string | null, unitPreference: 'metric' },
+  user: { savedProgram: null as string | null, unitPreference: 'metric', programStartDate: null as Date | null, splitLabel: null as string | null },
   workouts: [] as any[],
   norm: [] as Array<{ rawName: string; canonicalName: string }>,
   proposals: [] as any[],
@@ -34,6 +34,9 @@ vi.mock('@prisma/client', () => ({
   }),
 }));
 vi.mock('../services/cacheService.js', () => ({ cacheDelete: vi.fn(), cacheClearByPrefix: vi.fn() }));
+const archiveMock = vi.hoisted(() => vi.fn(async () => ({ id: 'cp1' })));
+vi.mock('../services/completedProgramService.js', () => ({ archiveProgram: archiveMock }));
+vi.mock('../services/trainTogetherService.js', () => ({ deriveSplitLabel: () => 'PPL' }));
 
 function matches(row: any, where: any): boolean {
   if (!where) return true;
@@ -70,7 +73,8 @@ const draft = (key = 'load_change:bench press') => ({
 });
 
 beforeEach(() => {
-  store.user = { savedProgram: JSON.stringify(program()), unitPreference: 'metric' };
+  store.user = { savedProgram: JSON.stringify(program()), unitPreference: 'metric', programStartDate: new Date('2026-06-01T00:00:00Z'), splitLabel: 'UL' };
+  archiveMock.mockClear();
   store.workouts = []; store.norm = []; store.proposals = []; store.seq = 0;
   process.env.ADAPTATION_USER_ALLOWLIST = 'u1';
 });
@@ -193,5 +197,67 @@ describe('lastForExercises / seedTargetsForNewProgram', () => {
     expect(seeded.phases[0].trainingDays[0].exercises[0].targetWeightKg).toBe(80);
     expect(seeded.phases[0].trainingDays[0].exercises[0].targetBasis).toBe('history');
     expect(seeded.phases[0].trainingDays[0].exercises[1]).not.toHaveProperty('targetWeightKg');
+  });
+});
+
+describe('bootstrap — Cohort C (program from logs)', () => {
+  const NOW = Date.now();
+  const daysAgo = (n: number) => new Date(NOW - n * 86400000).toISOString().slice(0, 10);
+  const ex = (name: string, weightKg: number, reps: number, sets = 3) => ({ name, sets, reps: String(reps), weightKg, setEntries: Array.from({ length: sets }, () => ({ weightKg, reps })) });
+  function ppl() {
+    const out: any[] = []; let id = 0;
+    for (let w = 0; w < 6; w++) {
+      const base = 42 - w * 7;
+      out.push({ id: 'p' + id++, date: daysAgo(base), programDayRef: null, exercises: JSON.stringify([ex('Bench Press', 80, 8), ex('Overhead Press', 45, 8)]) });
+      out.push({ id: 'p' + id++, date: daysAgo(base - 2), programDayRef: null, exercises: JSON.stringify([ex('Barbell Row', 70, 8), ex('Lat Pulldown', 60, 10)]) });
+      out.push({ id: 'p' + id++, date: daysAgo(base - 4), programDayRef: null, exercises: JSON.stringify([ex('Back Squat', 100, 5, 4), ex('Romanian Deadlift', 90, 8)]) });
+    }
+    return out;
+  }
+  it('no program + enough history → proposes the inferred program; apply saves it, archives nothing, undo restores', async () => {
+    store.user.savedProgram = null; store.user.programStartDate = null; store.user.splitLabel = null;
+    store.workouts = ppl();
+    const r = await bootstrap('u1');
+    expect(r.cohort).toBe('program_from_logs');
+    const prop = (r as any).proposal;
+    expect(prop.proposal.observed.split).toBe('Push / Pull / Legs');
+    expect(await bootstrap('u1')).toMatchObject({ cohort: 'program_from_logs_pending' });
+
+    const applied = await decide('u1', prop.id, 'apply');
+    expect(applied.proposal.status).toBe('applied');
+    expect(applied.touched).toBe(3);
+    expect(archiveMock).not.toHaveBeenCalled();
+    const saved = JSON.parse(store.user.savedProgram!);
+    expect(saved.inferredFromLogs).toBe(true);
+    expect(saved.phases[0].trainingDays.map((d: any) => d.day)).toEqual(['Push', 'Pull', 'Legs']);
+    expect(store.user.programStartDate).toBeInstanceOf(Date);
+    expect(store.user.splitLabel).toBe('PPL');
+    expect(applied.proposal.inverse).toMatchObject({ kind: 'restore_program', savedProgram: null, programStartDate: null });
+
+    const u = await undo('u1', prop.id);
+    expect(u.proposal.status).toBe('undone');
+    expect(store.user.savedProgram).toBeNull();
+    expect(store.user.programStartDate).toBeNull();
+    expect(await bootstrap('u1')).toEqual({ cohort: 'already_bootstrapped' }); // undone recently → don't nag
+  });
+  it('abandoned program → inferred program; apply archives the old one and undo brings it back', async () => {
+    store.user.savedProgram = JSON.stringify({ goal: 'strength', phases: [{ trainingDays: [{ day: 'A', exercises: [{ exercise: 'Deadlift', sets: 3, reps: '5' }] }] }] });
+    store.workouts = ppl();
+    const r = await bootstrap('u1');
+    expect(r.cohort).toBe('program_from_logs');
+    expect(((r as any).proposal.proposal).reason).toBe('abandoned');
+    await decide('u1', (r as any).proposal.id, 'apply');
+    expect(archiveMock).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(store.user.savedProgram!).inferredFromLogs).toBe(true);
+    await undo('u1', (r as any).proposal.id);
+    expect(JSON.parse(store.user.savedProgram!).goal).toBe('strength');
+    expect(store.user.programStartDate?.toISOString()).toBe('2026-06-01T00:00:00.000Z');
+    expect(store.user.splitLabel).toBe('UL');
+  });
+  it('a declined inferred program is not re-proposed', async () => {
+    store.user.savedProgram = null; store.workouts = ppl();
+    const r = await bootstrap('u1');
+    await decide('u1', (r as any).proposal.id, 'decline');
+    expect(await bootstrap('u1')).toEqual({ cohort: 'already_bootstrapped' });
   });
 });

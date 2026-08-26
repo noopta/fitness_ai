@@ -65,7 +65,9 @@ export type ProposalKind =
   | 'retrofit'
   | 'load_change'
   | 'calibration'
-  | 'set_targets';   // internal — the inverse of retrofit / load_change
+  | 'program_from_logs'  // Cohort C — formalize the program the logs describe
+  | 'set_targets'        // internal — the inverse of retrofit / load_change
+  | 'restore_program';   // internal — the inverse of program_from_logs
 
 export interface EvidenceLine {
   label: string;
@@ -106,7 +108,9 @@ export type ProposalPayload =
   | { kind: 'retrofit'; targets: TargetSeed[] }
   | { kind: 'load_change'; key: string; exercise: string; fromWeightKg: number | null; toWeightKg: number; scope: 'program' }
   | { kind: 'calibration'; key: string; exercise: string; targetWeightKg: number; targetRPE: number | null }
-  | { kind: 'set_targets'; targets: Array<{ key: string; targetWeightKg: number | null; targetRPE?: number | null; confidence?: number | null; basis?: string | null }> };
+  | { kind: 'set_targets'; targets: Array<{ key: string; targetWeightKg: number | null; targetRPE?: number | null; confidence?: number | null; basis?: string | null }> }
+  | { kind: 'program_from_logs'; program: any; observed: any; reason: 'no_program' | 'abandoned' }
+  | { kind: 'restore_program'; savedProgram: string | null; programStartDate: string | null; splitLabel: string | null };
 
 /** Everything the rules need, loaded once per run. */
 export interface AdaptationContext {

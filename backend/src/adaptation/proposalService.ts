@@ -9,6 +9,8 @@ import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizePreference, type UnitPreference } from '../services/weightUnits.js';
 import { parseSavedProgram } from '../services/programPhaseService.js';
+import { archiveProgram } from '../services/completedProgramService.js';
+import { deriveSplitLabel } from '../services/trainTogetherService.js';
 import { buildExposures, makeKeyFn, type KeyFn } from './history.js';
 import { applyTargetsToProgram, extractPlannedExercises, type TargetWrite } from './targets.js';
 import { runBootstrapRules, runPostWorkoutRules } from './engine.js';
@@ -227,7 +229,34 @@ function targetWritesFor(payload: ProposalPayload, edits?: Array<{ key: string; 
       return [{ key: payload.key, targetWeightKg: editMap.get(payload.key) ?? payload.targetWeightKg, targetRPE: payload.targetRPE, confidence: 0.8, basis: 'calibration' }];
     case 'set_targets':
       return payload.targets;
+    default:
+      return [];
   }
+}
+
+/** Replace the saved program (Cohort C apply). Archives the prior one and
+ *  returns the inverse needed to put it back. */
+async function replaceProgram(userId: string, program: any, now: Date): Promise<ProposalPayload> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { savedProgram: true, programStartDate: true, splitLabel: true },
+  });
+  const inverse: ProposalPayload = {
+    kind: 'restore_program',
+    savedProgram: user?.savedProgram ?? null,
+    programStartDate: user?.programStartDate ? new Date(user.programStartDate).toISOString() : null,
+    splitLabel: user?.splitLabel ?? null,
+  };
+  if (user?.savedProgram) {
+    try { await archiveProgram(userId, user.savedProgram, user.programStartDate ?? null, 'replaced'); }
+    catch (err: any) { console.error('[adaptation] archive prior program failed:', err?.message ?? err); }
+  }
+  await prisma.user.update({
+    where: { id: userId },
+    data: { savedProgram: JSON.stringify(program), programStartDate: now, splitLabel: deriveSplitLabel(program) },
+  });
+  invalidateProgramCaches(userId);
+  return inverse;
 }
 
 export type DecideAction = 'apply' | 'decline' | 'snooze';
@@ -255,10 +284,19 @@ export async function decide(
   }
 
   // apply
+  const payload = JSON.parse(row.proposal) as ProposalPayload;
+  if (payload.kind === 'program_from_logs') {
+    if (!payload.program?.phases?.length) throw new Error('Inferred program is empty');
+    const inverse = await replaceProgram(userId, payload.program, now);
+    const updated = await prisma.adaptationProposal.update({
+      where: { id: proposalId },
+      data: { status: 'applied', decidedAt: now, inverse: JSON.stringify(inverse) },
+    });
+    return { proposal: rowToProposal(updated), touched: payload.program.phases[0]?.trainingDays?.length ?? 0 };
+  }
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   const program = parseSavedProgram(user?.savedProgram ?? null);
   if (!program) throw new Error('No saved program to update');
-  const payload = JSON.parse(row.proposal) as ProposalPayload;
   const writes = targetWritesFor(payload, opts.edits);
   if (writes.length === 0) throw new Error('Nothing to apply');
   const keyFn = await keyFnFor(program);
@@ -290,10 +328,23 @@ export async function undo(userId: string, proposalId: string, now = new Date())
   const row = await prisma.adaptationProposal.findUnique({ where: { id: proposalId } });
   if (!row || row.userId !== userId) throw new Error('Proposal not found');
   if (row.status !== 'applied' || !row.inverse) throw new Error('Nothing to undo');
+  const inverse = JSON.parse(row.inverse) as ProposalPayload;
+  if (inverse.kind === 'restore_program') {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        savedProgram: inverse.savedProgram,
+        programStartDate: inverse.programStartDate ? new Date(inverse.programStartDate) : null,
+        splitLabel: inverse.splitLabel,
+      },
+    });
+    invalidateProgramCaches(userId);
+    const updated = await prisma.adaptationProposal.update({ where: { id: proposalId }, data: { status: 'undone', decidedAt: now } });
+    return { proposal: rowToProposal(updated), touched: 1 };
+  }
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   const program = parseSavedProgram(user?.savedProgram ?? null);
   if (!program) throw new Error('No saved program to update');
-  const inverse = JSON.parse(row.inverse) as ProposalPayload;
   const keyFn = await keyFnFor(program);
   const { program: next, touched } = applyTargetsToProgram(program, targetWritesFor(inverse), keyFn, now.toISOString());
   await prisma.user.update({ where: { id: userId }, data: { savedProgram: JSON.stringify(next) } });
@@ -320,27 +371,41 @@ export type BootstrapResult =
   | { cohort: 'already_bootstrapped' }
   | { cohort: 'no_history'; workouts: number }
   | { cohort: 'retrofit'; proposal: ProposalRow }
-  | { cohort: 'retrofit_pending'; proposal: ProposalRow };
+  | { cohort: 'retrofit_pending'; proposal: ProposalRow }
+  | { cohort: 'program_from_logs'; proposal: ProposalRow }
+  | { cohort: 'program_from_logs_pending'; proposal: ProposalRow };
+
+const BOOTSTRAP_KINDS = ['retrofit', 'program_from_logs'];
+const BOOTSTRAP_RETRY_DAYS = 60;
 
 /**
- * Idempotent bootstrap for existing users. Cohort A (program + loaded
- * history) gets a retrofit proposal; Cohort B (program, no loaded history)
- * gets nothing — calibration happens from their first weighted session.
+ * Idempotent bootstrap for existing users.
+ *   Cohort A  program + loaded history      → retrofit targets
+ *   Cohort B  program, no loaded history    → nothing; calibrate from the next session
+ *   Cohort C  no program (or an abandoned one) + enough history → the program the logs describe
+ * A prior decided bootstrap proposal suppresses re-proposing for 60 days.
  */
 export async function bootstrap(userId: string): Promise<BootstrapResult> {
   const ctx = await loadContext(userId);
-  if (!ctx.program) return { cohort: 'no_program' };
-  const prior = await prisma.adaptationProposal.findFirst({ where: { userId, kind: 'retrofit' }, orderBy: { createdAt: 'desc' } });
+  const prior = await prisma.adaptationProposal.findFirst({
+    where: { userId, kind: { in: BOOTSTRAP_KINDS } }, orderBy: { createdAt: 'desc' },
+  });
   if (prior) {
-    if (prior.status === 'pending' || prior.status === 'snoozed') return { cohort: 'retrofit_pending', proposal: rowToProposal(prior) };
-    return { cohort: 'already_bootstrapped' };
+    if (prior.status === 'pending' || prior.status === 'snoozed') {
+      return { cohort: prior.kind === 'retrofit' ? 'retrofit_pending' : 'program_from_logs_pending', proposal: rowToProposal(prior) };
+    }
+    const decidedAt = prior.decidedAt ? new Date(prior.decidedAt).getTime() : new Date(prior.createdAt).getTime();
+    const recent = ctx.now.getTime() - decidedAt < BOOTSTRAP_RETRY_DAYS * 86400000;
+    // An applied retrofit / inferred program is done for good; a decline or
+    // undo only suppresses for a while (their situation may change).
+    if (prior.status === 'applied' || recent) return { cohort: 'already_bootstrapped' };
   }
-  if (ctx.planned.some(p => p.targetWeightKg != null)) return { cohort: 'already_bootstrapped' };
+  if (ctx.program && ctx.planned.some(p => p.targetWeightKg != null)) return { cohort: 'already_bootstrapped' };
   const drafts = runBootstrapRules(ctx);
-  if (drafts.length === 0) return { cohort: 'no_history', workouts: ctx.workoutCount };
+  if (drafts.length === 0) return ctx.program ? { cohort: 'no_history', workouts: ctx.workoutCount } : { cohort: 'no_program' };
   const [row] = await createProposals(userId, drafts, 'bootstrap', ctx.now);
   if (!row) return { cohort: 'already_bootstrapped' };
-  return { cohort: 'retrofit', proposal: row };
+  return { cohort: row.kind === 'retrofit' ? 'retrofit' : 'program_from_logs', proposal: row };
 }
 
 /** Seed targets straight into a program object from history — used when a

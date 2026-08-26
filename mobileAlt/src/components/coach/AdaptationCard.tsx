@@ -32,6 +32,10 @@ export type AdaptationPayload =
   | { kind: 'retrofit'; targets: AdaptationTargetSeed[] }
   | { kind: 'load_change'; key: string; exercise: string; fromWeightKg: number | null; toWeightKg: number; scope: string }
   | { kind: 'calibration'; key: string; exercise: string; targetWeightKg: number; targetRPE: number | null }
+  | { kind: 'program_from_logs'; program: any; reason: 'no_program' | 'abandoned'; observed: {
+      windowWeeks: number; sessions: number; weeks: number; sessionsPerWeek: number; split: string; goal: string; medianReps: number;
+      days: Array<{ label: string; day: string; sessions: number; exercises: Array<{ exercise: string; sets: number; reps: number; weightKg: number | null; frequency: number }> }>;
+    } }
   | { kind: string; [k: string]: any };
 
 export interface AdaptationProposalData {
@@ -71,6 +75,7 @@ const FINDING_LABEL: Record<AdaptationTargetSeed['finding'], { text: string; sof
 function kindLabel(kind: string): string {
   switch (kind) {
     case 'retrofit': return 'Your history';
+    case 'program_from_logs': return 'Your training';
     case 'load_change': return 'Load';
     case 'calibration': return 'Calibration';
     default: return kind.replace(/_/g, ' ');
@@ -116,6 +121,8 @@ export function AdaptationCard({
   const payload = proposal.proposal;
   const isRetrofit = payload.kind === 'retrofit';
   const isLoad = payload.kind === 'load_change';
+  const isProgram = payload.kind === 'program_from_logs';
+  const canEdit = isRetrofit || isLoad;
 
   const confidencePct = Math.round((proposal.confidence ?? 0) * 100);
   const confidenceNote = confidencePct < 70 ? 'log RPE to sharpen this' : null;
@@ -138,6 +145,7 @@ export function AdaptationCard({
       const p = payload as Extract<AdaptationPayload, { kind: 'load_change' }>;
       return `About your suggestion to move my ${p.exercise} from ${fmt(p.fromWeightKg)} to ${fmt(p.toWeightKg)} — `;
     }
+    if (isProgram) return `About the program you built from my training logs — I'd rather `;
     return `About the targets you suggested from my training history — `;
   }, [isLoad, payload, unit]);
 
@@ -184,7 +192,30 @@ export function AdaptationCard({
 
       {/* 3 · Proposed change */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{isRetrofit ? 'PROPOSED TARGETS' : 'PROPOSED CHANGE'}</Text>
+        <Text style={styles.sectionLabel}>{isRetrofit ? 'PROPOSED TARGETS' : isProgram ? 'PROPOSED PROGRAM' : 'PROPOSED CHANGE'}</Text>
+
+        {isProgram ? (() => {
+          const p = payload as Extract<AdaptationPayload, { kind: 'program_from_logs' }>;
+          return (
+            <View style={styles.targetList}>
+              <Text style={styles.programSummary}>{p.observed.split} · {p.observed.sessionsPerWeek}×/week · {p.observed.goal}</Text>
+              {p.observed.days.map(d => (
+                <View key={d.label} style={styles.programDay}>
+                  <View style={styles.targetTop}>
+                    <Text style={styles.targetName}>{d.day}</Text>
+                    <Text style={styles.targetSummary}>{d.sessions} session{d.sessions === 1 ? '' : 's'} seen</Text>
+                  </View>
+                  {d.exercises.map(e => (
+                    <View key={e.exercise} style={styles.programExRow}>
+                      <Text style={styles.programExName} numberOfLines={1}>{e.exercise}</Text>
+                      <Text style={styles.programExScheme}>{e.sets} × {e.reps}{e.weightKg != null ? ` · ${fmt(e.weightKg)}` : ''}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          );
+        })() : null}
 
         {isLoad ? (() => {
           const p = payload as Extract<AdaptationPayload, { kind: 'load_change' }>;
@@ -257,7 +288,7 @@ export function AdaptationCard({
       {applied ? (
         <View style={styles.appliedStrip}>
           <Ionicons name="checkmark-circle" size={15} color={SUCCESS_INK} />
-          <Text style={styles.appliedText}>{isRetrofit ? 'Targets set' : 'Applied to your program'}</Text>
+          <Text style={styles.appliedText}>{isRetrofit ? 'Targets set' : isProgram ? 'This is now your program' : 'Applied to your program'}</Text>
           <View style={{ flex: 1 }} />
           {onUndo ? (
             <Pressable hitSlop={10} onPress={onUndo}>
@@ -275,14 +306,16 @@ export function AdaptationCard({
             </Pressable>
             <Pressable style={[styles.btn, styles.btnPrimary, working && { opacity: 0.6 }]} onPress={() => onApply(collectEdits())} disabled={working} hitSlop={6}>
               {working ? <ActivityIndicator size="small" color="#fff" /> : (
-                <Text style={styles.btnPrimaryText}>{failed ? 'Retry' : isRetrofit ? (editing ? 'Use edited targets' : 'Use these') : 'Apply'}</Text>
+                <Text style={styles.btnPrimaryText}>{failed ? 'Retry' : isRetrofit ? (editing ? 'Use edited targets' : 'Use these') : isProgram ? 'Make this my program' : 'Apply'}</Text>
               )}
             </Pressable>
           </View>
           <View style={styles.linkRow}>
-            <Pressable hitSlop={8} onPress={() => setEditing(e => !e)}>
-              <Text style={styles.link}>{editing ? 'Stop editing' : 'Let me edit'}</Text>
-            </Pressable>
+            {canEdit ? (
+              <Pressable hitSlop={8} onPress={() => setEditing(e => !e)}>
+                <Text style={styles.link}>{editing ? 'Stop editing' : 'Let me edit'}</Text>
+              </Pressable>
+            ) : null}
             {onAskCoach ? (
               <Pressable hitSlop={8} onPress={() => onAskCoach(askPrompt)}>
                 <Text style={styles.link}>Ask coach ↗</Text>
@@ -337,6 +370,12 @@ const styles = StyleSheet.create({
   targetValueCol: { alignItems: 'flex-end', minWidth: 74 },
   targetValue: { fontSize: 14, fontWeight: '700', color: colors.foreground, ...MONO },
   targetScheme: { fontSize: 10.5, color: colors.mutedForeground, ...MONO, marginTop: 1 },
+
+  programSummary: { fontSize: 12.5, fontWeight: '600', color: colors.foreground, marginBottom: 6, ...MONO },
+  programDay: { paddingVertical: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  programExRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingVertical: 2, gap: 10 },
+  programExName: { flex: 1, fontSize: 12.5, color: colors.foreground },
+  programExScheme: { fontSize: 12, color: colors.mutedForeground, ...MONO },
 
   pill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
   pillText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
