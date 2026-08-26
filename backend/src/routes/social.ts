@@ -4,6 +4,14 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSources } from '../services/feedService.js';
 import { putImageBase64, objectUrl } from '../services/blobStore.js';
+import { moderateText, moderatePost } from '../services/moderationService.js';
+import { socialWriteLimiter } from '../middleware/rateLimiter.js';
+
+/** Length caps for user-to-user text. All of these were previously unbounded. */
+const MAX_MESSAGE_LEN = 4000;
+const MAX_COMMENT_LEN = 1000;
+const MAX_CAPTION_LEN = 2000;
+const MAX_POST_TEXT_LEN = 5000;
 
 const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
   (req: Request, res: Response, next: NextFunction) =>
@@ -37,6 +45,89 @@ async function areFriendsOrColleagues(userA: string, userB: string): Promise<boo
   const idsA = new Set(membershipsA.map(m => m.institutionId));
   const membershipsB = await prisma.institutionMember.findMany({ where: { userId: userB, active: true }, select: { institutionId: true } });
   return membershipsB.some(m => idsA.has(m.institutionId));
+}
+
+/**
+ * True when either user has blocked the other.
+ *
+ * Blocking used to be cosmetic: a 'blocked' Friendship row was honoured only by
+ * the user-search filter. A blocked user could still DM their target, comment on
+ * their posts (which push-notified them), react, forward, and read their
+ * profile. This is the check that makes the block mean something, and it's
+ * called on every user-to-user path below.
+ *
+ * Symmetric on purpose — a block stops interaction in both directions, so the
+ * blocker isn't left able to keep poking someone they've cut off.
+ */
+async function isBlockedBetween(userA: string, userB: string): Promise<boolean> {
+  if (userA === userB) return false;
+  const row = await prisma.friendship.findFirst({
+    where: {
+      status: 'blocked',
+      OR: [
+        { requesterId: userA, addresseeId: userB },
+        { requesterId: userB, addresseeId: userA },
+      ],
+    },
+    select: { id: true },
+  });
+  // `!= null` rather than `!== null`: Prisma returns null for a miss, but a
+  // strict check would treat an undefined from any other source as "blocked"
+  // and silently deny every interaction.
+  return row != null;
+}
+
+/**
+ * Can `viewerId` see this post?
+ *
+ * Several read routes (`/posts/:id/image`, `/posts/:id/comments`) and the
+ * comment-write route looked posts up by id with no visibility check at all —
+ * so any authenticated user could pull the image off a friends-only post, or
+ * comment on one, purely by knowing (or enumerating) its id. The image route
+ * was the sharpest of the three: it minted a 7-day signed GCS URL for whatever
+ * it was handed.
+ *
+ * Visibility rules mirror the feed:
+ *   - your own post: always
+ *   - a direct share addressed to you: always
+ *   - visibility 'public': any non-blocked user
+ *   - visibility 'friends': accepted friends and institution colleagues
+ */
+async function canViewPost(
+  viewerId: string,
+  post: { sharerId: string; recipientId: string; visibility: string },
+): Promise<boolean> {
+  if (post.sharerId === viewerId) return true;
+  // Auto-hidden by the report threshold: nobody but the author sees it again
+  // until an operator restores it.
+  if (post.visibility === 'hidden') return false;
+  if (post.recipientId === viewerId) return true;
+  if (await isBlockedBetween(viewerId, post.sharerId)) return false;
+  if (post.visibility === 'public') return true;
+  return areFriendsOrColleagues(viewerId, post.sharerId);
+}
+
+/**
+ * Load a post the viewer is allowed to see, or send a 404 and return null.
+ * 404 rather than 403 so the route can't be used to confirm that a given post
+ * id exists.
+ */
+async function loadViewablePost(
+  req: Request,
+  res: Response,
+  select?: Record<string, boolean>,
+): Promise<any | null> {
+  const post = await prisma.sharedItem.findUnique({
+    where: { id: req.params.id },
+    ...(select
+      ? { select: { ...select, sharerId: true, recipientId: true, visibility: true } }
+      : {}),
+  });
+  if (!post || !(await canViewPost(req.user!.id, post as any))) {
+    res.status(404).json({ error: 'Post not found' });
+    return null;
+  }
+  return post;
 }
 
 // ─── Friends ──────────────────────────────────────────────────────────────────
@@ -229,13 +320,19 @@ router.get('/social/users/search', wrap(async (req, res) => {
   if (!q || q.length < 2) return res.json([]);
 
   const userId = req.user!.id;
+  // Email is deliberately NOT a substring-searchable field. It used to be
+  // matched with `contains`, which turned this route into an account oracle:
+  // search "@gmail.com" and page through the user base, or search a specific
+  // address to confirm whether that person has an Axiom account. Exact-match
+  // is kept so "add the friend whose email I already know" still works — that
+  // reveals nothing the searcher didn't already have.
   const users = await prisma.user.findMany({
     where: {
       id: { not: userId },
       OR: [
         { name: { contains: q } },
-        { email: { contains: q } },
         { username: { contains: q } },
+        ...(q.includes('@') ? [{ email: q.toLowerCase() }] : []),
       ],
     },
     select: { id: true, name: true, username: true, avatarBase64: true },
@@ -458,16 +555,32 @@ router.get('/social/conversations/:conversationId/messages', wrap(async (req, re
 }));
 
 // POST /api/social/conversations/:conversationId/messages
-router.post('/social/conversations/:conversationId/messages', wrap(async (req, res) => {
+router.post('/social/conversations/:conversationId/messages', socialWriteLimiter, wrap(async (req, res) => {
   const userId = req.user!.id;
   const { conversationId } = req.params;
   const { body } = req.body;
-  if (!body?.trim()) return res.status(400).json({ error: 'Message body required' });
+  if (typeof body !== 'string' || !body.trim()) return res.status(400).json({ error: 'Message body required' });
+  if (body.length > MAX_MESSAGE_LEN) {
+    return res.status(400).json({ error: `Message is too long (max ${MAX_MESSAGE_LEN} characters).` });
+  }
 
   const convo = await prisma.directConversation.findUnique({ where: { id: conversationId } });
   if (!convo || (convo.participantAId !== userId && convo.participantBId !== userId)) {
     return res.status(403).json({ error: 'Access denied' });
   }
+
+  const otherId = convo.participantAId === userId ? convo.participantBId : convo.participantAId;
+
+  // Participation alone isn't enough: an existing conversation stayed usable
+  // after a block, so blocking someone you'd already talked to did nothing.
+  if (await isBlockedBetween(userId, otherId)) {
+    return res.status(403).json({ error: 'You can no longer message this person.' });
+  }
+
+  // DMs are the least visible surface on the platform and the easiest place to
+  // send someone something vile, so they're checked like anything else.
+  const verdict = await moderateText(body, 'dm', userId);
+  if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
 
   const [message] = await prisma.$transaction([
     prisma.message.create({
@@ -478,7 +591,7 @@ router.post('/social/conversations/:conversationId/messages', wrap(async (req, r
   ]);
 
   // Push notification to the other participant
-  const recipientId = convo.participantAId === userId ? convo.participantBId : convo.participantAId;
+  const recipientId = otherId;
   const senderDisplay = (message.sender as any)?.username
     ? `@${(message.sender as any).username}`
     : ((message.sender as any)?.name ?? 'Someone');
@@ -631,9 +744,21 @@ export function extractAuthors(
 }
 
 // POST /api/social/share
-router.post('/social/share', async (req, res) => {
+/** Post kinds the client is allowed to create. */
+const ALLOWED_ITEM_TYPES = new Set([
+  'text', 'media', 'workout', 'meal', 'recipe', 'article',
+  'pr', 'streak', 'program', 'form_analysis', 'strength_profile',
+]);
+
+router.post('/social/share', socialWriteLimiter, wrap(async (req, res) => {
   const { recipientId, itemType, itemId, payload, caption, visibility } = req.body;
   if (!itemType || !payload) return res.status(400).json({ error: 'itemType and payload required' });
+  if (typeof itemType !== 'string' || !ALLOWED_ITEM_TYPES.has(itemType)) {
+    return res.status(400).json({ error: 'Unsupported post type' });
+  }
+  if (typeof payload !== 'object' || Array.isArray(payload)) {
+    return res.status(400).json({ error: 'payload must be an object' });
+  }
 
   // Audience: only meaningful for broadcast posts (no recipientId). Direct
   // shares are always private to the recipient, so they stay "friends".
@@ -645,6 +770,14 @@ router.post('/social/share', async (req, res) => {
     return res.status(400).json({ error: 'Text content is required for text posts' });
   }
 
+  // Length caps — both fields were previously unbounded up to the 10MB body limit.
+  if (typeof caption === 'string' && caption.length > MAX_CAPTION_LEN) {
+    return res.status(400).json({ error: `Caption is too long (max ${MAX_CAPTION_LEN} characters).` });
+  }
+  if (typeof payload.text === 'string' && payload.text.length > MAX_POST_TEXT_LEN) {
+    return res.status(400).json({ error: `Post is too long (max ${MAX_POST_TEXT_LEN} characters).` });
+  }
+
   // Enforce imageBase64 size limit (~2MB decoded)
   if (payload.imageBase64 && payload.imageBase64.length > 2_800_000) {
     return res.status(400).json({ error: 'Image exceeds the 2MB size limit.' });
@@ -652,9 +785,24 @@ router.post('/social/share', async (req, res) => {
 
   // For directed shares, verify relationship; for feed broadcasts (no recipientId) skip check
   if (recipientId) {
+    if (await isBlockedBetween(req.user!.id, recipientId)) {
+      return res.status(403).json({ error: 'You can no longer share with this person.' });
+    }
     const canShare = await areFriendsOrColleagues(req.user!.id, recipientId);
     if (!canShare) return res.status(403).json({ error: 'Can only share with friends' });
   }
+
+  // Caption, body text and image checked together in one classifier call. A
+  // broadcast post fans out to every friend and fires a push at each of them,
+  // so this is the highest-reach content a user can create.
+  const verdict = await moderatePost(
+    [caption, payload.text].filter((s) => typeof s === 'string' && s.trim()).join('\n\n') || null,
+    payload.imageBase64 ?? null,
+    payload.imageMimeType ?? 'image/jpeg',
+    itemType === 'media' ? 'post_image' : 'post_caption',
+    req.user!.id,
+  );
+  if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
 
   // Offload the photo to content-addressed object storage and keep only its
   // key in the row. Storing image bytes in a JSON column is what produced the
@@ -709,7 +857,7 @@ router.post('/social/share', async (req, res) => {
       sendPushToUser(originalPost.sharerId, 'New repost', `${reposterDisplay} reposted your post`, { type: 'repost', postId: payload.originalPostId }).catch(() => {});
     }
   }
-});
+}));
 
 // GET /api/social/shared-feed
 router.get('/social/shared-feed', wrap(async (req, res) => {
@@ -728,6 +876,9 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
   // Fetch: posts to/from me + friends' broadcast posts (recipientId = sharerId)
   const items = await prisma.sharedItem.findMany({
     where: {
+      // Posts auto-hidden by the report threshold drop out of every feed,
+      // whichever audience clause below would otherwise have matched them.
+      visibility: { not: 'hidden' },
       OR: [
         { recipientId: userId },
         { sharerId: userId },
@@ -812,6 +963,7 @@ router.get('/social/feed', wrap(async (req, res) => {
   const [rawItems, initialFeedResult] = await Promise.all([
     prisma.sharedItem.findMany({
       where: {
+        visibility: { not: 'hidden' },
         OR: [
           { recipientId: userId },
           { sharerId: userId },
@@ -1004,6 +1156,7 @@ router.get('/social/feed/new-count', wrap(async (req, res) => {
     where: {
       createdAt: { gt: after },
       sharerId: { not: userId },
+      visibility: { not: 'hidden' },
       OR: [
         { recipientId: userId },
         ...(friendIds.length > 0 ? [{
@@ -1240,6 +1393,11 @@ router.post('/social/posts/:id/react', wrap(async (req, res) => {
 
 // GET /api/social/posts/:id/comments
 router.get('/social/posts/:id/comments', wrap(async (req, res) => {
+  // Visibility gate — previously any authenticated user could read the comment
+  // thread on any post id, including friends-only posts.
+  const post = await loadViewablePost(req, res);
+  if (!post) return;
+
   const comments = await prisma.postComment.findMany({
     where: { postId: req.params.id },
     include: { author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
@@ -1249,17 +1407,30 @@ router.get('/social/posts/:id/comments', wrap(async (req, res) => {
 }));
 
 // POST /api/social/posts/:id/comments
-router.post('/social/posts/:id/comments', wrap(async (req, res) => {
+router.post('/social/posts/:id/comments', socialWriteLimiter, wrap(async (req, res) => {
+  const userId = req.user!.id;
   const { text } = req.body;
-  if (!text?.trim()) return res.status(400).json({ error: 'Comment text required' });
+  if (typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'Comment text required' });
+  if (text.length > MAX_COMMENT_LEN) {
+    return res.status(400).json({ error: `Comment is too long (max ${MAX_COMMENT_LEN} characters).` });
+  }
+
+  // Was completely open: you could comment on any post id whether or not you
+  // could see the post, and the comment fired a push at its owner — an
+  // unsolicited-notification channel aimed at any user you knew a post id for.
+  const post = await loadViewablePost(req, res);
+  if (!post) return;
+
+  const verdict = await moderateText(text, 'comment', userId);
+  if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
+
   const comment = await prisma.postComment.create({
-    data: { postId: req.params.id, authorId: req.user!.id, text: text.trim() },
+    data: { postId: req.params.id, authorId: userId, text: text.trim() },
     include: { author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
   });
   res.status(201).json(comment);
   // Notify post owner
-  const post = await prisma.sharedItem.findUnique({ where: { id: req.params.id }, select: { sharerId: true } });
-  if (post && post.sharerId !== req.user!.id) {
+  if (post.sharerId !== userId) {
     const commenter = comment.author as any;
     const display = commenter?.username ? `@${commenter.username}` : (commenter?.name ?? 'Someone');
     sendPushToUser(post.sharerId, 'New comment', `${display}: ${text.trim().slice(0, 60)}`, { type: 'comment', postId: req.params.id }).catch(() => {});
@@ -1268,11 +1439,12 @@ router.post('/social/posts/:id/comments', wrap(async (req, res) => {
 
 // GET /api/social/posts/:id/image — returns only the imageBase64 for a post (lazy-load)
 router.get('/social/posts/:id/image', wrap(async (req, res) => {
-  const post = await prisma.sharedItem.findUnique({
-    where: { id: req.params.id },
-    select: { payload: true },
-  });
-  if (!post) return res.status(404).json({ error: 'Not found' });
+  // Visibility gate. Without it this route handed out the image on any post id
+  // — and for migrated posts it minted a 7-day signed GCS URL to go with it,
+  // so a leak here outlived the request by a week.
+  const post = await loadViewablePost(req, res, { payload: true });
+  if (!post) return;
+
   const p = typeof post.payload === 'string' ? JSON.parse(post.payload) : post.payload;
 
   // Migrated posts carry only a key. Hand back a signed URL so the bytes go
@@ -1445,21 +1617,125 @@ router.get('/social/leaderboard/lifts', wrap(async (req, res) => {
 // ─── Content Reporting ────────────────────────────────────────────────────────
 // POST /api/social/report — report a shared post as objectionable/inappropriate
 // Required for apps with user-generated content under Apple App Store guidelines.
-router.post('/social/report', requireAuth, wrap(async (req, res) => {
+// Reasons the client may submit. Free text goes in `details`.
+const REPORT_REASONS = new Set([
+  'sexual', 'harassment', 'hate', 'violence', 'spam',
+  'impersonation', 'self_harm', 'misinformation', 'other',
+]);
+
+/**
+ * Auto-hide threshold. A post reported by this many distinct users is pulled
+ * from the feed pending review, rather than staying up for however long it
+ * takes a human to look at it. Deliberately low — this is a small community and
+ * three independent reports on one post is a strong signal.
+ */
+const AUTOHIDE_REPORT_COUNT = 3;
+
+router.post('/social/report', requireAuth, socialWriteLimiter, wrap(async (req, res) => {
   const reporterId = req.user!.id;
-  const { itemId, reason } = req.body as { itemId?: string; reason?: string };
+  const { itemId, targetType = 'post', reason, details } = req.body as {
+    itemId?: string; targetType?: string; reason?: string; details?: string;
+  };
   if (!itemId) return res.status(400).json({ error: 'itemId required' });
+  if (reason && !REPORT_REASONS.has(reason)) {
+    return res.status(400).json({ error: 'Unknown report reason' });
+  }
+  if (typeof details === 'string' && details.length > 1000) {
+    return res.status(400).json({ error: 'Details are too long (max 1000 characters).' });
+  }
 
-  const item = await prisma.sharedItem.findUnique({ where: { id: itemId } });
-  if (!item) return res.status(404).json({ error: 'Post not found' });
+  // Resolve the reported user so an operator can see every report against one
+  // account, not just per-item ones.
+  let reportedUserId: string | null = null;
+  if (targetType === 'post') {
+    const item = await prisma.sharedItem.findUnique({ where: { id: itemId }, select: { sharerId: true } });
+    if (!item) return res.status(404).json({ error: 'Post not found' });
+    reportedUserId = item.sharerId;
+  } else if (targetType === 'comment') {
+    const comment = await prisma.postComment.findUnique({ where: { id: itemId }, select: { authorId: true } });
+    if (!comment) return res.status(404).json({ error: 'Comment not found' });
+    reportedUserId = comment.authorId;
+  } else if (targetType === 'message') {
+    const message = await prisma.message.findUnique({ where: { id: itemId }, select: { senderId: true } });
+    if (!message) return res.status(404).json({ error: 'Message not found' });
+    reportedUserId = message.senderId;
+  } else if (targetType === 'user') {
+    reportedUserId = itemId;
+  } else {
+    return res.status(400).json({ error: 'Unknown target type' });
+  }
 
-  // Log the report — a simple console + notification is sufficient for v1.
-  // In production you'd write to a ContentReport table and notify admins.
-  console.warn(`[content-report] item=${itemId} reporter=${reporterId} reason=${reason ?? 'unspecified'}`);
+  console.warn(
+    `[content-report] type=${targetType} item=${itemId} reporter=${reporterId} ` +
+    `reported=${reportedUserId} reason=${reason ?? 'unspecified'}`,
+  );
 
-  // Auto-hide the post from the reporter immediately
-  // (they won't see it again in their feed)
-  res.json({ success: true, message: 'Thank you — we\'ll review this post.' });
+  // Persist. The previous implementation only wrote a console line, which is
+  // not a takedown path: nothing was queryable, nothing could be actioned, and
+  // nothing survived a log rotation. App Store Guideline 1.2 wants a real
+  // mechanism behind the button.
+  try {
+    await (prisma as any).contentReport.create({
+      data: {
+        reporterId,
+        targetType,
+        targetId: itemId,
+        reportedUserId,
+        reason: reason ?? 'unspecified',
+        details: typeof details === 'string' ? details.slice(0, 1000) : null,
+      },
+    });
+  } catch (err: any) {
+    // P2002 = this user already reported this item. Idempotent success — a
+    // double-tap shouldn't look like a failure.
+    if (err?.code !== 'P2002') {
+      console.error('[content-report] persist failed:', err?.message ?? err);
+    }
+  }
+
+  // Auto-hide once enough distinct users have flagged the same item. Setting
+  // visibility to 'hidden' takes it out of every feed query without destroying
+  // it, so a wrongly-hidden post can be restored on review.
+  try {
+    const reportCount = await (prisma as any).contentReport.count({
+      where: { targetType, targetId: itemId },
+    });
+    if (targetType === 'post' && reportCount >= AUTOHIDE_REPORT_COUNT) {
+      await prisma.sharedItem.update({ where: { id: itemId }, data: { visibility: 'hidden' } });
+      console.warn(`[content-report] auto-hid post ${itemId} after ${reportCount} reports`);
+    }
+  } catch { /* table not migrated yet — the report itself still logged */ }
+
+  res.json({ success: true, message: 'Thank you — we\'ll review this within 24 hours.' });
+}));
+
+// POST /api/social/users/:userId/block — block a user outright.
+// The existing /social/friends/block sits under the friends surface; this is the
+// same action reachable from a post, comment or DM, which is where Guideline 1.2
+// expects to find it.
+router.post('/social/users/:userId/block', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const targetUserId = req.params.userId;
+  if (targetUserId === userId) return res.status(400).json({ error: 'You cannot block yourself' });
+
+  const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } });
+  if (!target) return res.status(404).json({ error: 'User not found' });
+
+  // Collapse any existing relationship in either direction into a single
+  // blocked row, so the block isn't shadowed by a stale 'accepted' row.
+  await prisma.friendship.deleteMany({
+    where: {
+      OR: [
+        { requesterId: userId, addresseeId: targetUserId },
+        { requesterId: targetUserId, addresseeId: userId },
+      ],
+    },
+  });
+  await prisma.friendship.create({
+    data: { requesterId: userId, addresseeId: targetUserId, status: 'blocked' },
+  });
+
+  res.json({ success: true, blocked: true });
 }));
 
 // ─── Invite Links ─────────────────────────────────────────────────────────────

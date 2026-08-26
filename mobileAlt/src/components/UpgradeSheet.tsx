@@ -50,12 +50,17 @@ interface Props {
   onSuccess: () => void;
 }
 
+// Kept in step with the capability card on the Coach screen, and with what the
+// server actually enforces. Note "Unlimited AI coach chat" was wrong: pro is
+// capped at AGENT_PRO_DAILY_LIMIT (200/day) by checkAgentRateLimit, vs 10/day
+// free. Claiming unlimited is both untrue and the kind of thing App Store
+// review flags, so it now says what it is — a ceiling nobody realistically hits.
 const PERKS = [
-  { icon: 'infinite-outline',              text: 'Unlimited daily analyses' },
-  { icon: 'barbell-outline',               text: 'Full diagnostic interview + AI plan' },
-  { icon: 'chatbubble-ellipses-outline',   text: 'Unlimited AI coach chat' },
-  { icon: 'stats-chart-outline',           text: 'Strength profile & history' },
-  { icon: 'nutrition-outline',             text: 'Nutrition intelligence & tracking' },
+  { icon: 'chatbubble-ellipses-outline',   text: 'A coach that logs, adjusts and edits your plan for you' },
+  { icon: 'nutrition-outline',             text: 'Nutrition profiling — micros, gut health, photo & barcode logging' },
+  { icon: 'stats-chart-outline',           text: 'Strength profiling — 1RM estimates, PRs, weak-point diagnosis' },
+  { icon: 'videocam-outline',              text: 'Unlimited video form analysis (free: 1 per day)' },
+  { icon: 'infinite-outline',              text: 'Unlimited daily analyses + 200 coach messages a day' },
 ];
 
 // ── Inner content — mounts only when sheet is open ────────────────────────────

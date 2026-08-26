@@ -96,6 +96,13 @@ export async function apiFetch(
     });
     console.log(`[API] ${path} -> ${res.status}`);
 
+    // 304 is a SUCCESS, not a failure — but res.ok is false for it, so the
+    // block below would throw on a routine cache revalidation. The body is
+    // empty by definition, so return an empty object and let the caller fall
+    // back to what it already had. Prod also has ETags disabled now; this
+    // stays so a proxy or CDN adding them later can't resurrect the bug.
+    if (res.status === 304) return {};
+
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
       let parsed: any = {};

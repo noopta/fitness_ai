@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser, sendPushToUsers } from '../services/notificationService.js';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
+import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 import {
   upcomingDates,
   loadUserCalendar,
@@ -309,8 +310,8 @@ router.get('/train-together/pins/:id', wrap(async (req, res) => {
     pinnedTier: pin.pinnedTier,
     tier,
     reason: matchReason(days, tier),
-    sharedSession: pin.sharedSessionJson ? JSON.parse(pin.sharedSessionJson) : null,
-    sharedFits: pin.sharedFitJson ? JSON.parse(pin.sharedFitJson) : null,
+    sharedSession: parseJsonObjectColumn<any>(pin.sharedSessionJson),
+    sharedFits: parseJsonObjectColumn<any>(pin.sharedFitJson),
     members: pin.members.map((m, i) => ({
       userId: m.userId,
       response: m.response,
@@ -339,8 +340,8 @@ router.post('/train-together/pins/:id/shared-session', wrap(async (req, res) => 
 
   if (pin.sharedSessionJson) {
     return res.json({
-      session: JSON.parse(pin.sharedSessionJson),
-      fits: pin.sharedFitJson ? JSON.parse(pin.sharedFitJson) : {},
+      session: parseJsonObjectColumn<any>(pin.sharedSessionJson),
+      fits: parseJsonObjectColumn<any>(pin.sharedFitJson) ?? {},
     });
   }
 

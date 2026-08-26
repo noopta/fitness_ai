@@ -29,10 +29,13 @@ import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import type { NutritionEngineUser, DailyMacro, MealTiming, WellnessPoint } from '../engine/nutritionEngine.js';
 import { runNutritionRules } from '../engine/nutritionRulesEngine.js';
 import { buildRAGContext } from '../services/ragService.js';
+import { bounded, implausibilityWarning } from '../validation/physiologicalBounds.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
+import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 
 
 const router = Router();
@@ -573,18 +576,37 @@ router.delete('/nutrition/foods/:id', requireAuth, async (req, res) => {
 });
 
 // PUT /api/nutrition/targets - Set user's daily calorie/macro targets
+//
+// This route had NO validation at all: `dailyCalorieTarget` went from req.body
+// straight to Prisma. A 25,000 kcal target, a negative one, Infinity (via
+// `1e400` in JSON) or a string all persisted, and the value drives the whole
+// nutrition surface — the daily ring, the macro split, the coach's advice.
+const targetsSchema = z.object({
+  // Nullable: clearing the manual target falls back to the TDEE-computed one.
+  dailyCalorieTarget: bounded('dailyCalories', 'Calorie target').nullable().optional(),
+});
+
 router.put('/nutrition/targets', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const { dailyCalorieTarget } = req.body as { dailyCalorieTarget?: number | null };
+    const { dailyCalorieTarget } = targetsSchema.parse(req.body);
+
+    // Inside the hard bounds but outside the plausible band (say 900 or 6,000):
+    // saved, and reported back so the client can ask "are you sure?". A real
+    // 130 kg athlete bulking legitimately eats 5,000+, so this can't be a gate.
+    const warning = implausibilityWarning('dailyCalories', dailyCalorieTarget, 'Calorie target');
+
     await prisma.user.update({
       where: { id: userId },
       data: { dailyCalorieTarget: dailyCalorieTarget ?? null },
     });
     // Bust the nutrition profile cache so next fetch uses the new target
     cacheMarkStale(nutritionProfileCacheKey(userId));
-    res.json({ success: true });
+    res.json({ success: true, ...(warning ? { warnings: [warning] } : {}) });
   } catch (err: any) {
+    if (err?.name === 'ZodError') {
+      return res.status(400).json({ error: err.errors?.[0]?.message ?? 'Invalid calorie target' });
+    }
     console.error('Set nutrition targets error:', err);
     res.status(500).json({ error: 'Failed to update targets' });
   }
@@ -663,7 +685,7 @@ const transcribeSchema = z.object({
   mimeType: z.string().min(3).max(60),
 });
 
-router.post('/nutrition/transcribe', requireAuth, async (req, res) => {
+router.post('/nutrition/transcribe', requireAuth, aiLimiter, async (req, res) => {
   // Log every request — without this we can't tell whether a "voice doesn't
   // work" report is a client-never-sent issue, an nginx rejection, or a
   // server-side Whisper failure. Logging only on catch hides the first two.
@@ -697,7 +719,7 @@ const suggestSchema = z.object({
   slot: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).optional().nullable(),
 });
 
-router.post('/nutrition/suggest-meals', requireAuth, async (req, res) => {
+router.post('/nutrition/suggest-meals', requireAuth, aiLimiter, async (req, res) => {
   try {
     const data = suggestSchema.parse(req.body);
     // Pull a thin slice of the user's profile so suggestions can lean toward
@@ -720,7 +742,7 @@ router.post('/nutrition/suggest-meals', requireAuth, async (req, res) => {
 });
 
 // POST /api/nutrition/parse-meal - Parse free-text meal description into macros
-router.post('/nutrition/parse-meal', requireAuth, async (req, res) => {
+router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { description } = req.body;
     if (!description || typeof description !== 'string' || description.trim().length < 3) {
@@ -854,11 +876,14 @@ router.get('/nutrition/history', requireAuth, async (req, res) => {
 
 // POST /api/nutrition/analyze-photo — Gemini vision meal photo analysis
 const photoSchema = z.object({
-  imageBase64: z.string().min(1),
+  // Was `.min(1)` with no ceiling, so the only cap was the global 10MB body
+  // limit. ~8MB of base64 is ~6MB of image, well past anything a phone camera
+  // needs to send for macro estimation.
+  imageBase64: z.string().min(1).max(8_000_000),
   mimeType: z.string().regex(/^image\/(jpeg|png|webp|heic)$/),
 });
 
-router.post('/nutrition/analyze-photo', requireAuth, async (req, res) => {
+router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { imageBase64, mimeType } = photoSchema.parse(req.body);
     const userId = req.user!.id;
@@ -979,10 +1004,12 @@ async function buildNutritionProfile(userId: string): Promise<Record<string, any
     ))];
     const workoutLiftNames = new Set<string>();
     for (const w of workoutLogs) {
-      try {
-        const exs: Array<{ name: string }> = JSON.parse(w.exercises);
-        exs.forEach(e => e.name && workoutLiftNames.add(e.name));
-      } catch { /* skip malformed */ }
+      // freeform entries are placeholders reconstructed from free text — the
+      // "name" is a whole sentence ("Outdoor run, 5.02km in 31 minutes"), not
+      // a lift. Feeding those to the engine as lift names pollutes the coach's
+      // context, which is why StoredExercise carries the flag.
+      const exs = parseJsonArrayColumn<{ name?: string; freeform?: boolean }>(w.exercises);
+      exs.forEach(e => { if (e?.name && !e.freeform) workoutLiftNames.add(e.name); });
     }
     const allLifts = [...new Set([...workoutLiftNames, ...sessionLifts])].slice(0, 8);
 

@@ -33,6 +33,58 @@ function client(): GoogleGenAI {
   return _client;
 }
 
+// ─── Safety ───────────────────────────────────────────────────────────────────
+//
+// These calls previously specified no safetySettings at all, so Vertex's
+// defaults applied silently. Two consequences worth fixing:
+//
+//   1. A blocked response surfaced to the user as a generic "couldn't analyze
+//      that video" 502, indistinguishable from a real failure — so nobody knew
+//      whether the model had refused or the service was broken.
+//   2. Form videos are footage of a person, often filmed at home. Explicit
+//      thresholds are the difference between "we rely on a default we never
+//      chose" and "we decided what this endpoint accepts".
+//
+// BLOCK_MEDIUM_AND_ABOVE on sexually explicit and harassment; dangerous-content
+// is left more permissive because legitimate training talk (failure sets, cutting
+// weight, injury descriptions) trips it constantly at a lower threshold.
+export const SAFETY_SETTINGS = [
+  { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+  { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+  { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+  { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+] as any;
+
+/** Raised when the model refuses on safety grounds, so routes can 400 (not 502). */
+export class ContentBlockedError extends Error {
+  readonly isContentBlocked = true;
+  constructor(reason: string) {
+    super(reason);
+    this.name = 'ContentBlockedError';
+  }
+}
+
+/**
+ * Convert a safety block into a typed error. Vertex signals this via
+ * promptFeedback.blockReason (input rejected) or a SAFETY finishReason
+ * (output stopped), and in both cases `res.text` is empty — which is why this
+ * used to read as a parse failure.
+ */
+export function assertNotBlocked(res: any): void {
+  const blockReason = res?.promptFeedback?.blockReason;
+  if (blockReason) {
+    throw new ContentBlockedError(
+      'That content was rejected by our safety checks. Please upload training content only.',
+    );
+  }
+  const finish = res?.candidates?.[0]?.finishReason;
+  if (finish === 'SAFETY' || finish === 'PROHIBITED_CONTENT' || finish === 'BLOCKLIST') {
+    throw new ContentBlockedError(
+      'That content was rejected by our safety checks. Please upload training content only.',
+    );
+  }
+}
+
 // ─── Meal: image → macros ─────────────────────────────────────────────────────
 
 export interface MealMacros {
@@ -74,6 +126,7 @@ export async function analyzeMealImage(base64: string, mimeType: string): Promis
       systemInstruction: MEAL_SYSTEM,
       responseMimeType: 'application/json',
       responseSchema: MEAL_SCHEMA,
+      safetySettings: SAFETY_SETTINGS,
     },
     contents: [{ role: 'user', parts: [
       { text: 'Estimate the macros for this meal photo.' },
@@ -90,6 +143,7 @@ export async function parseMealText(description: string): Promise<MealMacros> {
       systemInstruction: MEAL_SYSTEM,
       responseMimeType: 'application/json',
       responseSchema: MEAL_SCHEMA,
+      safetySettings: SAFETY_SETTINGS,
     },
     contents: `Estimate macros for: "${description}"`,
   });
@@ -226,6 +280,7 @@ export async function analyzeWorkoutVideo(
         systemInstruction: WORKOUT_VIDEO_SYSTEM,
         responseMimeType: 'application/json',
         responseSchema: WORKOUT_VIDEO_SCHEMA,
+        safetySettings: SAFETY_SETTINGS,
         // Gemini 3.1 Pro thinks internally before responding; thinking tokens
         // count against maxOutputTokens AND add multi-second latency. Cap the
         // budget so there's room for the full JSON and the call stays quick —
@@ -243,6 +298,9 @@ export async function analyzeWorkoutVideo(
     // JSON in markdown code fences (```json … ```) or truncates under thinking
     // pressure. Strip fences and parse defensively so a recoverable formatting
     // quirk doesn't surface to the user as "couldn't analyze your video".
+    // A safety refusal also yields an empty res.text, so distinguish it here —
+    // otherwise a blocked upload reports as "couldn't analyze your video".
+    assertNotBlocked(res);
     const raw = res.text?.trim();
     if (!raw) throw new Error('Gemini returned an empty response for the workout video.');
     const text = raw

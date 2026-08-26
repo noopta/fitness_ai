@@ -21,6 +21,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { analyzeWorkoutVideo } from '../services/geminiService.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import {
@@ -62,7 +63,7 @@ const uploadVideo = (req: any, res: any, next: any) =>
     return res.status(400).json({ error: err?.message || 'Invalid video upload' });
   });
 
-router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) => {
+router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
   const userId = req.user!.id;
   const tier = req.user!.tier;
 
@@ -174,7 +175,12 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
   try {
     const analysis = await finalize(false);
     return res.json({ id: pending.id, createdAt: pending.createdAt, analysis, usage });
-  } catch {
+  } catch (err: any) {
+    // A safety refusal is the user's problem to fix, not ours — tell them what
+    // happened instead of the generic "couldn't analyze" that used to cover it.
+    if (err?.isContentBlocked) {
+      return res.status(400).json({ error: err.message });
+    }
     return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
   }
 });

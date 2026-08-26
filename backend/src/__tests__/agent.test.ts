@@ -221,6 +221,16 @@ describe('tool registry', () => {
     );
     expect(out.logged.title).toBe('Push');
     expect(out.logged.duration).toBe(50);
+
+    // The column MUST hold JSON. This test previously passed free text in and
+    // asserted only title/duration — so when the tool wrote that text straight
+    // to the column, every reader's JSON.parse threw and a Pro user's workout
+    // history 500'd for a full day (2026-08-07) with the suite green.
+    expect(typeof out.logged.exercises).toBe('string');
+    const stored = JSON.parse(out.logged.exercises);
+    expect(Array.isArray(stored)).toBe(true);
+    expect(stored.length).toBeGreaterThan(0);
+    expect(stored[0]).toMatchObject({ name: expect.any(String), freeform: true });
   });
 
   it('read_latest_diagnostic returns the most recent session + plan', async () => {

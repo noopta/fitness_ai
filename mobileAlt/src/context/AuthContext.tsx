@@ -87,8 +87,12 @@ interface AuthContextType {
   verifyEmail: (email: string, code: string) => Promise<void>;
   resendVerification: (email: string) => Promise<{ sent: boolean; cooldownRemainingSec?: number; reason?: string }>;
   logout: () => Promise<void>;
-  googleLogin: () => Promise<void>;
-  appleLogin: () => Promise<void>;
+  // Resolve true only when a session was actually established. A cancelled /
+  // dismissed provider sheet resolves false — callers must NOT fire success
+  // analytics or navigate on false (doing so used to silently dump users on
+  // the Coach tab with no session).
+  googleLogin: () => Promise<boolean>;
+  appleLogin: () => Promise<boolean>;
   refreshUser: () => Promise<void>;
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
@@ -256,7 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function googleLogin() {
+  async function googleLogin(): Promise<boolean> {
     try {
       const redirectUri = Linking.createURL('/auth/callback');
       console.log('[Auth] Google OAuth redirect URI:', redirectUri);
@@ -289,6 +293,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
               setUser(data.user);
               if (dobRequired) setNeedsDobCheck(true);
+              return true;
             }
           } catch (err: any) {
             // Network error — still store token, let user proceed
@@ -315,7 +320,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await new Promise(r => setTimeout(r, 2500));
         if (!handledToken) {
           console.log('[Auth] no deep link arrived after dismiss — treating as cancelled');
+          return false;
         }
+        // The deep link landed while we waited — completeAuthCallback owns the
+        // session; report success so the caller's analytics reflect reality.
+        return true;
       } else {
         Alert.alert('Sign In Failed', `Unexpected result: ${result.type}. Please try again.`);
       }
@@ -323,9 +332,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[Auth] Google OAuth error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Google sign-in.');
     }
+    return false;
   }
 
-  async function appleLogin() {
+  async function appleLogin(): Promise<boolean> {
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -346,16 +356,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         Alert.alert('Sign In Failed', data.error ?? 'Apple sign-in failed. Please try again.');
-        return;
+        return false;
       }
 
       if (data.token) await setToken(data.token);
       setUser(data.user);
       if (data.needsDobCheck) setNeedsDobCheck(true);
+      return true;
     } catch (err: any) {
-      if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed sheet
+      if (err?.code === 'ERR_REQUEST_CANCELED') return false; // user dismissed sheet
       console.log('[Auth] Apple sign-in error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Apple sign-in.');
+      return false;
     }
   }
 

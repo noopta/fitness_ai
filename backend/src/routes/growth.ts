@@ -12,6 +12,7 @@
 // these aren't user-scoped endpoints.
 
 import { Router } from 'express';
+import { timingSafeEqual } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { runDailyDigest } from '../services/growth/dailyDigestRunner.js';
 
@@ -27,8 +28,19 @@ function requireGrowthAuth(req: any, res: any, next: any) {
   if (!GROWTH_AUTH) {
     return res.status(503).json({ error: 'GROWTH_API_SECRET not configured' });
   }
-  const provided = req.header('x-growth-secret') ?? (typeof req.query.secret === 'string' ? req.query.secret : '');
-  if (provided !== GROWTH_AUTH) return res.status(403).json({ error: 'forbidden' });
+  // Header only. The `?secret=` query fallback was convenient for curl but put
+  // the shared secret into nginx access logs, Sentry breadcrumbs and browser
+  // history — three places it then sat in plaintext indefinitely.
+  const provided = req.header('x-growth-secret') ?? '';
+
+  // Constant-time compare. `!==` leaks the length of the matching prefix via
+  // timing; the same file's sibling (instagramWebhook.ts) already does this
+  // correctly, so this brings growth in line.
+  const a = Buffer.from(provided);
+  const b = Buffer.from(GROWTH_AUTH);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
   next();
 }
 

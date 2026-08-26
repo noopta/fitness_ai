@@ -264,19 +264,48 @@ async function apiRequest<T>(
 ): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
 
+  // Bearer fallback, matching authFetch above.
+  //
+  // This used to send the cookie only. That worked while the diagnostic session
+  // routes were unauthenticated on the backend; now that they require auth, a
+  // browser blocking third-party cookies (Safari ITP, Firefox ETP, and Chrome's
+  // third-party default) would have had every session call 401 — the frontend
+  // is on a different origin to the API, so `credentials: 'include'` alone is
+  // not reliable. The token is the same one authFetch already uses.
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  };
+  const token = sessionStorage.getItem('liftoff_bearer_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const response = await fetch(url, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
-    }
+    headers,
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const err: any = new Error(errorData.error || `API Error: ${response.statusText}`);
+    // Zod validation failures arrive as { error: 'Invalid request', details: [
+    // { path: ['dateOfBirth'], message: 'Required' } ] }. Keeping only `error`
+    // rendered every one of them as a bare "Invalid request" toast — which is
+    // how a required-but-unlabelled field on the register form turned into an
+    // unexplained dead end. Fold the field names into the message so the user
+    // (and we) can see which field actually failed.
+    let message: string = errorData.error || `API Error: ${response.statusText}`;
+    if (Array.isArray(errorData.details) && errorData.details.length > 0) {
+      const parts = errorData.details
+        .map((d: any) => {
+          const field = Array.isArray(d?.path) ? d.path.join('.') : d?.path;
+          return field ? `${field}: ${d?.message ?? 'invalid'}` : d?.message;
+        })
+        .filter(Boolean);
+      if (parts.length) message = `${message} — ${parts.join('; ')}`;
+    }
+    const err: any = new Error(message);
     err.status = response.status;
+    err.details = errorData.details;
     err.upgradeUrl = errorData.upgradeUrl;
     throw err;
   }

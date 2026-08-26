@@ -102,7 +102,13 @@ export default function Login() {
     if (!email || !password) return;
     setSubmitting(true);
     try {
-      await login(email, password);
+      const pending = await login(email, password);
+      if (pending) {
+        // Unverified account — the server just re-sent a code; finish there.
+        redirected.current = true;
+        setLocation(`/verify-email?${new URLSearchParams({ email: pending.email }).toString()}`);
+        return;
+      }
       WebAnalytics.login('email');
       redirected.current = true; // prevent the useEffect from also firing
       const saved = sessionStorage.getItem('liftoff_redirect');

@@ -11,6 +11,7 @@ import {
 } from '../../src/lib/coachData';
 import { useFocusEffect } from 'expo-router';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { CoachOnboarding, OnboardingProfile } from '../../src/components/coach/CoachOnboarding';
@@ -37,6 +38,36 @@ type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
 const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
 
+// What Pro actually buys, stated as things the coach DOES rather than features
+// you get. This card is shown at the highest-intent moment in the funnel — the
+// user has just finished the intake and watched a program get built — so the
+// job here is to reframe: the plan is the artifact, Pro is the coach that runs
+// it with you. Every line below maps to a shipped surface (Chat/agent tools,
+// NutritionProfileV2, strength profile, form-analysis) — no vapour.
+const PRO_CAPABILITIES = [
+  {
+    icon: 'chatbubble-ellipses-outline',
+    title: 'A coach that acts, not just answers',
+    body: 'Tell Anakin what happened and it logs the meal, adjusts your macros, or swaps an exercise — then updates the plan.',
+  },
+  {
+    icon: 'nutrition-outline',
+    title: 'Nutrition profiling',
+    body: 'Micronutrient targets, gut-health scoring, and photo or barcode logging that understands your food.',
+  },
+  {
+    icon: 'stats-chart-outline',
+    title: 'Strength profiling',
+    body: 'Estimated 1RMs, PR detection and weak-point diagnosis tracked across every session.',
+  },
+  {
+    icon: 'videocam-outline',
+    title: 'Video form analysis',
+    body: 'Upload a working set and get specific coaching cues on what to fix.',
+  },
+];
+
+
 // ─── Coach Screen ─────────────────────────────────────────────────────────────
 
 // Wrapper: catches render-time errors so a bug in any child component shows a
@@ -55,7 +86,7 @@ export default function CoachScreen() {
 }
 
 function CoachScreenInner() {
-  const { user, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const { toKg } = useUnits();
 
   // Hydrate from in-memory cache synchronously so a tab switch with a hot
@@ -105,7 +136,23 @@ function CoachScreenInner() {
 
   useEffect(() => {
     initCoach();
-  }, [user?.id]);
+  }, [user?.id, authLoading]);
+
+  // Watchdog: this screen must never sit on the skeleton indefinitely. The
+  // 2026-08-16 stall was invisible precisely because the failure was silent —
+  // no crash, no error, just a skeleton that never resolved. Whatever future
+  // path fails to settle `stage`, this bounds it: after 12s, fall through to
+  // the intake, which is safe for anyone without a program.
+  useEffect(() => {
+    if (stage !== 'loading') return;
+    const t = setTimeout(() => {
+      console.warn('[coach] stage stuck on loading for 12s — falling through to intake');
+      Analytics.coachStageStuck('loading');
+      setStage(resumeStageForNoProgram());
+      setLoading(false);
+    }, 12_000);
+    return () => clearTimeout(t);
+  }, [stage]);
 
   // (extractProgram + fetchCoachInit live in src/lib/coachData.ts so the
   // boot-time prefetcher can warm the same cache shape this screen reads.)
@@ -121,7 +168,24 @@ function CoachScreenInner() {
 
   async function initCoach() {
     if (!user) {
-      setStage('loading');
+      // Auth is still bootstrapping — the skeleton is correct here, and the
+      // effect below re-runs when the user lands (or when authLoading flips).
+      if (authLoading) {
+        setStage('loading');
+        return;
+      }
+      // Auth has SETTLED and there is still no user. This is the state that
+      // stranded every signup from 2026-08-16 onward: AuthContext swallows
+      // network/server failures from getMe() (user stays null, loading goes
+      // false) on the assumption that something redirects to login. Nothing
+      // does — this screen just sat on CoachDashboardSkeleton forever. No
+      // throw, so nothing in Sentry; users rage-tapped a skeleton and left.
+      //
+      // Resolve to the intake instead: it is the right screen for anyone
+      // without a program, and it re-reads auth on submit, so a genuinely
+      // signed-out user is bounced there rather than staring at a fake screen.
+      setStage('onboarding');
+      setLoading(false);
       return;
     }
 
@@ -229,8 +293,22 @@ function CoachScreenInner() {
         }),
       });
       await refreshUser();
-    } catch {
-      // Continue even if save fails
+    } catch (err: any) {
+      // Do NOT silently continue. This used to swallow every failure and march
+      // the user into Build Your Program with nothing saved — no goal, no
+      // injuries, no region — so they got a generic plan and we got no signal.
+      // The intake depth IS the product; discarding a completed one is the
+      // worst outcome available here.
+      Analytics.intakeSaveFailed(err?.status ?? 0);
+      const signedOut = err?.status === 401 || err?.status === 403;
+      Alert.alert(
+        signedOut ? 'Please sign in again' : "Couldn't save your answers",
+        signedOut
+          ? 'Your session expired while you were filling this in. Sign in and your answers will be here.'
+          : "We couldn't reach the server. Your answers are still on screen — tap Retry.",
+        [{ text: 'OK' }],
+      );
+      return; // stay on the intake so the answers aren't lost
     }
     setSetupReturnStage('onboarding');
     setAutoStartSetup(true);
@@ -501,14 +579,30 @@ function CoachScreenInner() {
         {!isPro && (
           <Pressable style={styles.upgradeScrim} onPress={() => setUpgradeVisible(true)}>
             <View style={styles.upgradeCard}>
-              <Text style={styles.upgradeLockIcon}>🔒</Text>
-              <Text style={styles.upgradeCardTitle}>Your plan is ready</Text>
+              <Text style={styles.upgradeEyebrow}>YOUR PROGRAM IS BUILT</Text>
+              <Text style={styles.upgradeCardTitle}>Now put a coach behind it</Text>
               <Text style={styles.upgradeCardSub}>
-                Upgrade to Pro to unlock your full program, AI coaching, nutrition tracking, and more.
+                The plan is the starting point. Pro is the part that adapts it to you, week after week.
               </Text>
-              <View style={styles.upgradeCardBtn}>
-                <Text style={styles.upgradeCardBtnText}>Upgrade to Pro</Text>
+
+              <View style={styles.capList}>
+                {PRO_CAPABILITIES.map((c) => (
+                  <View key={c.title} style={styles.capRow}>
+                    <View style={styles.capIcon}>
+                      <Ionicons name={c.icon as any} size={16} color={colors.primary} />
+                    </View>
+                    <View style={styles.capText}>
+                      <Text style={styles.capTitle}>{c.title}</Text>
+                      <Text style={styles.capBody}>{c.body}</Text>
+                    </View>
+                  </View>
+                ))}
               </View>
+
+              <View style={styles.upgradeCardBtn}>
+                <Text style={styles.upgradeCardBtnText}>Unlock the full coach</Text>
+              </View>
+              <Text style={styles.upgradeFinePrint}>1 month free · cancel anytime</Text>
             </View>
           </Pressable>
         )}
@@ -720,7 +814,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  upgradeLockIcon: { fontSize: 32 },
+  upgradeEyebrow: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 1.2,
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  capList: {
+    alignSelf: 'stretch',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  capRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  capIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.muted,
+    marginTop: 1,
+  },
+  capText: {
+    flex: 1,
+    gap: 2,
+  },
+  capTitle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+  },
+  capBody: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    lineHeight: 17,
+  },
+  upgradeFinePrint: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+  },
   upgradeCardTitle: {
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
