@@ -20,6 +20,7 @@ import { buildShareableWorkout } from '../services/shareableWorkout.js';
 import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
 import { estimateWorkoutCalories } from '../services/workoutCalories.js';
+import { runPostWorkout, lastForExercises } from '../adaptation/proposalService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -89,12 +90,22 @@ const exerciseSchema = z.object({
   setEntries: z.array(setEntrySchema).optional().nullable(),
 });
 
+// Which planned program day this log fulfils. Sent by the client when the
+// log sheet was opened from a program session; absent for ad-hoc workouts.
+const programDayRefSchema = z.object({
+  phaseIndex: z.number().int().min(0),
+  dayIndex: z.number().int().min(0),
+  weekNumber: z.number().int().min(1).optional(),
+  day: z.string().optional().nullable(),
+});
+
 const workoutLogSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   title: z.string().optional().nullable(),
   exercises: z.array(exerciseSchema).min(1),
   notes: z.string().optional().nullable(),
   duration: z.number().int().min(1).max(600).optional().nullable(),
+  programDayRef: programDayRefSchema.optional().nullable(),
 });
 
 // GET /api/workouts — list all workout logs for the user (newest first)
@@ -108,6 +119,37 @@ router.get('/workouts', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Get workouts error:', err);
     res.status(500).json({ error: 'Failed to fetch workout logs' });
+  }
+});
+
+// GET /api/workouts/exercise/:name/last — last few exposures of one lift,
+// with the program target + how the latest session scored against it. This
+// is the "Last time: 80 kg × 8 @ RPE 6.5" line on the logging sheet.
+router.get('/workouts/exercise/:name/last', requireAuth, async (req, res) => {
+  try {
+    const name = String(req.params.name ?? '').trim();
+    if (!name) return res.status(400).json({ error: 'name required' });
+    const [result] = await lastForExercises(req.user!.id, [name]);
+    res.json(result ?? { name, key: null, exposures: [], target: null, lastScore: null });
+  } catch (err) {
+    console.error('Get exercise history error:', err);
+    res.status(500).json({ error: 'Failed to fetch exercise history' });
+  }
+});
+
+// POST /api/workouts/exercises/last — batch form of the above for a whole
+// session's worth of exercises in one round-trip. { names: string[] }
+router.post('/workouts/exercises/last', requireAuth, async (req, res) => {
+  try {
+    const names = Array.isArray(req.body?.names)
+      ? (req.body.names as unknown[]).map(n => String(n ?? '').trim()).filter(Boolean).slice(0, 40)
+      : [];
+    if (names.length === 0) return res.json({ results: [] });
+    const results = await lastForExercises(req.user!.id, names);
+    res.json({ results });
+  } catch (err) {
+    console.error('Batch exercise history error:', err);
+    res.status(500).json({ error: 'Failed to fetch exercise history' });
   }
 });
 
@@ -138,7 +180,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid workout data', details: parsed.error.issues });
     }
 
-    const { date, title, exercises, notes, duration } = parsed.data;
+    const { date, title, exercises, notes, duration, programDayRef } = parsed.data;
 
     // Fire-and-forget normalization — doesn't block the response
     const names = exercises.map(e => e.name);
@@ -169,6 +211,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
         notes: notes || null,
         duration: duration || null,
         caloriesBurnedKcal: caloriesBurnedKcal > 0 ? caloriesBurnedKcal : null,
+        programDayRef: programDayRef ? JSON.stringify(programDayRef) : null,
       },
     });
 
@@ -205,6 +248,17 @@ router.post('/workouts', requireAuth, async (req, res) => {
       );
     }
 
+    // ── Adaptive progression: evaluate the lifts just logged ─────────────────
+    // Deterministic, DB-only, and gated per user inside runPostWorkout. Runs
+    // inline so the post-workout sheet can show the proposal card immediately;
+    // it never mutates the program — that takes an explicit decide() tap.
+    let adaptationProposals: unknown[] = [];
+    try {
+      adaptationProposals = await runPostWorkout(req.user!.id, names);
+    } catch (err: any) {
+      console.error('[workouts] adaptation post-workout failed:', err?.message ?? err);
+    }
+
     // ── Proactive agent: post-workout drop-in (fire-and-forget) ───────────────
     // Per the user-psychology audit's "AI coach: opened but barely messaged"
     // finding — give Anakin a reason to surface AFTER the user logs a workout
@@ -233,7 +287,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
       },
     });
 
-    res.status(201).json({ ...log, exercises, shareable });
+    res.status(201).json({ ...log, exercises, shareable, adaptationProposals });
   } catch (err) {
     posthog.captureException(err, req.user?.id);
     console.error('Create workout error:', err);
@@ -254,7 +308,7 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid workout data', details: parsed.error.issues });
     }
 
-    const { date, title, exercises, notes, duration } = parsed.data;
+    const { date, title, exercises, notes, duration, programDayRef } = parsed.data;
 
     // Fire-and-forget normalization for any new exercise names
     const names = exercises.map(e => e.name);
@@ -270,6 +324,9 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
         exercises: JSON.stringify(exercises),
         notes: notes || null,
         duration: duration || null,
+        // Only touch the link when the client sent one; an old client
+        // editing a log must not wipe it.
+        ...(programDayRef !== undefined ? { programDayRef: programDayRef ? JSON.stringify(programDayRef) : null } : {}),
       },
     });
 

@@ -105,6 +105,7 @@ model User {
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
   workoutLogs              WorkoutLog[]
+  adaptationProposals      AdaptationProposal[]
   scheduleOverrides        ScheduleOverride[]
   activityLogs             ActivityLog[]
   // Social
@@ -605,6 +606,11 @@ model WorkoutLog {
   // from exercises + the user's bodyweight (MET × kg × hours). Nullable so
   // pre-migration rows stay valid.
   caloriesBurnedKcal Int?
+  // Which planned program day this log fulfilled, as JSON
+  // {"phaseIndex","dayIndex","weekNumber","day"}. Set by the client when the
+  // log was opened from a program session; null for ad-hoc workouts. This is
+  // the planned-vs-actual link the adaptation engine scores against.
+  programDayRef String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   user      User     @relation(fields: [userId], references: [id])
@@ -621,6 +627,43 @@ model WorkoutLog {
 // re-balanced. The underlying savedProgram template is never mutated — reads
 // (today + schedule) check for an override for the date first and fall back to
 // the index lookup. sessionJson null = an explicit rest day for that date.
+// ─── Adaptive progression ────────────────────────────────────────────────────
+// One row per change the adaptation engine PROPOSED. Nothing in the program is
+// ever changed without a row here moving to status=applied by an explicit user
+// decision — this table is the audit trail ("what did Axiom suggest, what did
+// I say") and what makes snooze / "declined three times" semantics possible.
+//
+// evidence / proposal / inverse are JSON strings (SQLite). `inverse` is the
+// patch that undoes `proposal` and is filled in at apply time.
+model AdaptationProposal {
+  id          String    @id @default(uuid())
+  userId      String
+  // retrofit | load_change | calibration | deload | rep_range_shift | ...
+  kind        String
+  // Stable key for dedupe + snooze: e.g. "load_change:bench press". A new
+  // proposal with the same key while one is pending is not created.
+  dedupeKey   String
+  title       String
+  evidence    String
+  reasoning   String
+  proposal    String
+  inverse     String?
+  confidence  Float     @default(0.6)
+  // pending | applied | declined | snoozed | superseded | undone
+  status      String    @default("pending")
+  decidedAt   DateTime?
+  snoozeUntil DateTime?
+  // What produced it: post_workout | bootstrap | weekly | manual
+  trigger     String    @default("post_workout")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@index([userId, dedupeKey, status])
+  @@index([userId, createdAt])
+}
+
 model ScheduleOverride {
   id          String   @id @default(uuid())
   userId      String

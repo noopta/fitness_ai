@@ -895,8 +895,48 @@ export const workoutsApi = {
     }>;
     notes?: string;
     duration?: number;
+    // Which planned program day this log fulfils (from /coach/today). Lets the
+    // adaptation engine score the session against the plan. Omit for ad-hoc.
+    programDayRef?: { phaseIndex: number; dayIndex: number; weekNumber?: number; day?: string | null } | null;
   }) => apiFetch('/workouts', { method: 'POST', body: JSON.stringify(data) }),
   deleteWorkout: (id: string) => apiFetch(`/workouts/${id}`, { method: 'DELETE' }),
+  // "Last time" for a whole session's exercises in one round-trip: recent
+  // exposures, the program target, and how the last session scored.
+  lastForExercises: (names: string[]): Promise<{ results: ExerciseLast[] }> =>
+    apiFetch('/workouts/exercises/last', { method: 'POST', body: JSON.stringify({ names }) }),
+};
+
+export interface ExerciseLast {
+  name: string;
+  key: string | null;
+  exposures: Array<{
+    date: string;
+    sets: Array<{ weightKg: number | null; reps: number; rpe: number | null }>;
+    top: { weightKg: number | null; reps: number; rpe: number | null } | null;
+    e1rmKg: number;
+    confidence: number;
+  }>;
+  target: { targetWeightKg: number | null; targetRPE: number | null; reps: string; sets: number } | null;
+  lastScore: { result: string; note: string; rpeDelta: number | null; loadDeltaKg: number | null } | null;
+  unitPref: 'metric' | 'imperial';
+}
+
+// ─── Adaptive progression ─────────────────────────────────────────────────────
+// Proposals Axiom makes about a program. Nothing is applied without `decide`.
+
+export const adaptationApi = {
+  pending: (): Promise<{ enabled: boolean; proposals: any[] }> => apiFetch('/adaptation/pending'),
+  history: (): Promise<{ proposals: any[] }> => apiFetch('/adaptation/history'),
+  // Idempotent: existing users get a one-time "we looked back at your
+  // history" proposal; everyone else gets a cohort label and nothing pending.
+  bootstrap: (): Promise<{ enabled: boolean; cohort: string; proposal?: any }> =>
+    apiFetch('/adaptation/bootstrap', { method: 'POST' }),
+  decide: (
+    id: string,
+    action: 'apply' | 'decline' | 'snooze',
+    opts: { edits?: Array<{ key: string; targetWeightKg: number | null }>; snoozeDays?: number } = {},
+  ) => apiFetch(`/adaptation/${id}/decide`, { method: 'POST', body: JSON.stringify({ action, ...opts }) }),
+  undo: (id: string) => apiFetch(`/adaptation/${id}/undo`, { method: 'POST' }),
 };
 
 // ─── Social API ───────────────────────────────────────────────────────────────

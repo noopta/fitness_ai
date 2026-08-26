@@ -16,6 +16,7 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/t
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { coachApi } from '../../lib/api';
+import { useUnits } from '../../context/UnitsContext';
 
 interface ProgramTabProps {
   coachData: any;
@@ -23,6 +24,7 @@ interface ProgramTabProps {
 
 
 export function ProgramTab({ coachData }: ProgramTabProps) {
+  const { fromKg: fromKgUnits, unit: unitLabelUnits } = useUnits();
   const [expandedPhase, setExpandedPhase] = useState<number | null>(0);
   const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
   const [videoModal, setVideoModal] = useState<{ videoId: string; title: string } | null>(null);
@@ -201,6 +203,9 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
                                   <Text style={styles.exerciseSets}>{ex.sets} × {ex.reps}</Text>
                                 ) : ex.sets ? (
                                   <Text style={styles.exerciseSets}>{ex.sets} sets</Text>
+                                ) : null}
+                                {ex.targetWeightKg ? (
+                                  <Text style={styles.exerciseTarget}>{fromKgUnits(ex.targetWeightKg)} {unitLabelUnits}</Text>
                                 ) : null}
                                 {(ex.rpe || ex.intensity) ? (
                                   <Text style={styles.exerciseRpe}>{ex.rpe ? `RPE ${ex.rpe}` : ex.intensity}</Text>
@@ -444,6 +449,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: fontWeight.semibold,
   },
+  exerciseTarget: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.foreground, fontVariant: ['tabular-nums'] },
   exerciseRpe: {
     fontSize: fontSize.xs,
     color: colors.mutedForeground,

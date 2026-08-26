@@ -1155,6 +1155,13 @@ export interface ProgramExercise {
   reps: string;
   intensity: string;
   notes?: string;
+  // Adaptive progression (set by the engine / user, never by the LLM):
+  // the load the plan expects, canonical kg, plus how sure we are and why.
+  targetWeightKg?: number;
+  targetRPE?: number;
+  targetConfidence?: number;
+  targetBasis?: string;
+  targetSetAt?: string;
 }
 
 export interface ProgramDay {

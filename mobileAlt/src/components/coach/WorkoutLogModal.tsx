@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { RpeHelpButton } from '../ui/RpeHelpButton';
-import { workoutsApi, socialApi } from '../../lib/api';
+import { workoutsApi, socialApi, type ExerciseLast } from '../../lib/api';
 import { invalidateCache } from '../../lib/cache';
 import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
@@ -81,6 +81,9 @@ interface Props {
   todayExercises?: Array<{ exercise?: string; name?: string; sets?: number; reps?: string | number }>;
   date?: string;
   workoutTitle?: string;
+  // Which program day this log fulfils (from /coach/today). Sent with the
+  // log so Axiom can score the session against the plan. Absent for ad-hoc.
+  programDayRef?: { phaseIndex: number; dayIndex: number; weekNumber?: number; day?: string | null } | null;
 }
 
 function emptyExercise(): ExerciseEntry {
@@ -129,8 +132,11 @@ function buildInitialExercises(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, date, workoutTitle }: Props) {
-  const { unit, toKg } = useUnits();
+export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, date, workoutTitle, programDayRef }: Props) {
+  const { unit, toKg, fromKg } = useUnits();
+  // "Last time" per exercise name — fetched once per open for the prefilled
+  // session so the sheet can show what the lifter did last and the plan target.
+  const [lastByName, setLastByName] = useState<Record<string, ExerciseLast>>({});
   const [saving, setSaving] = useState(false);
   const [workoutNotes, setWorkoutNotes] = useState('');
   const [duration, setDuration] = useState('');
@@ -154,8 +160,69 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       setFocusedExIndex(null);
       setShareToFeed(false);
       setShareCaption('');
+      setLastByName({});
+      const names = (todayExercises ?? []).map(ex => (ex.exercise ?? ex.name ?? '').trim()).filter(Boolean);
+      if (names.length > 0) {
+        let cancelled = false;
+        workoutsApi.lastForExercises(names)
+          .then(res => {
+            if (cancelled) return;
+            const map: Record<string, ExerciseLast> = {};
+            for (const r of res?.results ?? []) map[r.name.toLowerCase()] = r;
+            setLastByName(map);
+          })
+          .catch(() => { /* history is a nicety — never block logging */ });
+        return () => { cancelled = true; };
+      }
     }
   }, [visible]);
+
+  // Tap the "last time" line to prefill an empty weight/reps from the top set.
+  function prefillFromLast(index: number, last: ExerciseLast) {
+    const top = last.exposures[0]?.top;
+    if (!top) return;
+    setExercises(prev => prev.map((ex, i) => {
+      if (i !== index) return ex;
+      return {
+        ...ex,
+        weight: ex.weight.trim() || (top.weightKg != null ? String(fromKg(top.weightKg)) : ex.weight),
+        reps: ex.reps.trim() || String(top.reps),
+        rpe: ex.rpe.trim() || (top.rpe != null ? String(top.rpe) : ex.rpe),
+      };
+    }));
+  }
+
+  function renderHistoryHint(ex: ExerciseEntry, index: number) {
+    const last = lastByName[ex.name.trim().toLowerCase()];
+    if (!last) return null;
+    const e = last.exposures[0];
+    const target = last.target;
+    const targetLine = target?.targetWeightKg != null
+      ? `Target ${fromKg(target.targetWeightKg)} ${unit} × ${target.reps}${target.targetRPE != null ? ` @ RPE ${target.targetRPE}` : ''}`
+      : null;
+    if (!e || !e.top) {
+      return (
+        <View style={styles.historyHint}>
+          <Ionicons name="time-outline" size={12} color={colors.mutedForeground} />
+          <Text style={styles.historyHintText} numberOfLines={2}>
+            {targetLine ? `${targetLine} · no history yet` : 'No history yet — log your working sets and Axiom will set a target.'}
+          </Text>
+        </View>
+      );
+    }
+    const reps = e.sets.filter(s => s.weightKg != null).map(s => s.reps).join(', ');
+    const lastLine = `Last ${e.top.weightKg != null ? `${fromKg(e.top.weightKg)} ${unit} × ` : ''}${reps || e.top.reps}${e.top.rpe != null ? ` @ RPE ${e.top.rpe}` : ''}`;
+    const scoreWord = last.lastScore?.result === 'exceeded' ? ' · ahead of plan' : last.lastScore?.result === 'missed' ? ' · below plan' : '';
+    return (
+      <TouchableOpacity style={styles.historyHint} activeOpacity={0.7} onPress={() => prefillFromLast(index, last)}>
+        <Ionicons name="time-outline" size={12} color={colors.mutedForeground} />
+        <Text style={styles.historyHintText} numberOfLines={2}>
+          {lastLine}{targetLine ? `  ·  ${targetLine}` : ''}{scoreWord}
+        </Text>
+        {!ex.weight.trim() ? <Text style={styles.historyHintAction}>Use</Text> : null}
+      </TouchableOpacity>
+    );
+  }
 
   function updateExercise(index: number, field: keyof ExerciseEntry, value: string) {
     setExercises(prev => prev.map((ex, i) => i === index ? { ...ex, [field]: value } : ex));
@@ -340,6 +407,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
         exercises: mappedExercises,
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
+        programDayRef: programDayRef ?? undefined,
       })) as { shareable?: ShareableWorkout };
       // Logged workout changes today's session, schedule (logged-flag), and the
       // social feed (auto-share + friends' shares). Drop those caches so the
@@ -476,6 +544,8 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                     </View>
                   )}
                 </View>
+
+                {renderHistoryHint(ex, i)}
 
                 {/* Toggle: uniform (one weight × N sets) vs per-set
                     (different load/reps each set). Defaults to uniform. */}
@@ -766,6 +836,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   exerciseHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
+  historyHint: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 2, marginBottom: 2 },
+  historyHintText: { flex: 1, fontSize: 11.5, color: colors.mutedForeground, fontVariant: ['tabular-nums'] },
+  historyHintAction: { fontSize: 11.5, fontWeight: '700', color: colors.foreground, textDecorationLine: 'underline' },
   exerciseNum: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
   removeBtn: { padding: 4 },
   input: {

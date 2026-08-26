@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/t
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { useRouter } from 'expo-router';
-import { coachApi, socialApi, trainTogetherApi } from '../../lib/api';
+import { coachApi, socialApi, trainTogetherApi, adaptationApi } from '../../lib/api';
 import { OverlapMark } from '../trainTogether/primitives';
 import { usePinsRefresh } from '../../lib/ttEvents';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +25,7 @@ import { useUnits } from '../../context/UnitsContext';
 import { getCached, setCached, invalidateCache } from '../../lib/cache';
 import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
+import { AdaptationCard, type AdaptationProposalData, type AdaptationCardState, type TargetEdit } from './AdaptationCard';
 import { SwapWorkoutModal } from './SwapWorkoutModal';
 import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
 import { Analytics } from '../../lib/analytics';
@@ -40,7 +41,12 @@ interface Exercise {
   reps?: number | string;
   intensity?: string;
   notes?: string;
+  // Adaptive progression target (canonical kg), present once targets are set.
+  targetWeightKg?: number;
+  targetRPE?: number;
 }
+
+type ProgramDayRef = { phaseIndex: number; dayIndex: number; weekNumber: number; day?: string | null };
 
 interface TodayData {
   todaySession: {
@@ -56,6 +62,9 @@ interface TodayData {
   tips: string | null;
   nextTrainingDay: string | null;
   programGoal: string | null;
+  // Which template day today's session is — passed through to the log sheet
+  // so the workout can be scored against the plan.
+  programDayRef?: ProgramDayRef | null;
 }
 
 interface WeekDay {
@@ -461,6 +470,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
           tips: todayRes.tips ?? null,
           nextTrainingDay: todayRes.nextTrainingDay ?? null,
           programGoal: todayRes.programGoal ?? null,
+          programDayRef: todayRes.programDayRef ?? null,
         };
         setTodayData(nextToday);
       }
@@ -482,6 +492,54 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
       setLoading(false);
     }
   }, [cacheKey, todayData, scheduleData]);
+
+  // ── Adaptive progression: proposals Axiom wants the user to decide on ────
+  // bootstrap() is idempotent server-side (existing users get their one-time
+  // "we looked back at your history" card); pending() lists what's open. Only
+  // the top proposal renders here — one card per visit, never a stack.
+  const { fromKg: fromKgUnits } = useUnits();
+  const [proposals, setProposals] = useState<AdaptationProposalData[]>([]);
+  const [proposalStates, setProposalStates] = useState<Record<string, AdaptationCardState>>({});
+  const bootstrappedRef = useRef(false);
+  const loadProposals = useCallback(async () => {
+    try {
+      if (!bootstrappedRef.current) {
+        bootstrappedRef.current = true;
+        await adaptationApi.bootstrap().catch(() => null);
+      }
+      const res = await adaptationApi.pending();
+      if (res?.enabled === false) { setProposals([]); return; }
+      setProposals(res?.proposals ?? []);
+    } catch { /* feature-gated or offline — the tab works without it */ }
+  }, []);
+  useEffect(() => { void loadProposals(); }, [loadProposals]);
+
+  const setProposalState = (id: string, st: AdaptationCardState) =>
+    setProposalStates(prev => ({ ...prev, [id]: st }));
+
+  async function decideProposal(id: string, action: 'apply' | 'decline' | 'snooze', edits?: TargetEdit[]) {
+    setProposalState(id, 'working');
+    try {
+      await adaptationApi.decide(id, action, edits ? { edits } : {});
+      setProposalState(id, action === 'apply' ? 'applied' : action === 'snooze' ? 'snoozed' : 'declined');
+      invalidateCache('coach:');
+      if (action === 'apply') loadData();
+      if (action !== 'apply') setTimeout(() => setProposals(prev => prev.filter(p => p.id !== id)), 1800);
+    } catch {
+      setProposalState(id, 'failed');
+    }
+  }
+  async function undoProposal(id: string) {
+    setProposalState(id, 'working');
+    try {
+      await adaptationApi.undo(id);
+      setProposalState(id, 'undone');
+      invalidateCache('coach:');
+      loadData();
+    } catch {
+      setProposalState(id, 'applied');
+    }
+  }
 
   // Cache-first: only fetch when we don't already have a fresh snapshot.
   // Tab switches inside the TTL window paint synchronously and skip the
@@ -580,6 +638,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
       } : prev);
     }
     loadData();
+    void loadProposals();
     onRefresh?.();
   }
 
@@ -762,7 +821,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                       <Text style={dark.exName}>{exName}</Text>
                       <View style={dark.exRight}>
                         {ex.sets && ex.reps ? (
-                          <Text style={dark.exMeta}>{ex.sets}×{ex.reps}{ex.intensity ? ` · ${ex.intensity}` : ''}</Text>
+                          <Text style={dark.exMeta}>{ex.sets}×{ex.reps}{ex.targetWeightKg ? ` · ${fromKgUnits(ex.targetWeightKg)} ${unit}` : ''}{ex.intensity ? ` · ${ex.intensity}` : ''}</Text>
                         ) : null}
                         {isLoadingThis
                           ? <ActivityIndicator size="small" color="#71717a" />
@@ -775,6 +834,24 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
             </View>
           </View>
         )}
+
+        {/* ── Adaptation proposal (one at a time) ───────────────────────── */}
+        {proposals[0] ? (
+          <AdaptationCard
+            proposal={proposals[0]}
+            state={proposalStates[proposals[0].id] ?? 'idle'}
+            onApply={(edits) => decideProposal(proposals[0].id, 'apply', edits)}
+            onSnooze={() => decideProposal(proposals[0].id, 'snooze')}
+            onDecline={() => decideProposal(proposals[0].id, 'decline')}
+            onUndo={() => undoProposal(proposals[0].id)}
+            onAskCoach={onAskAnakin ? (prompt) => onAskAnakin(prompt) : undefined}
+          />
+        ) : null}
+        {proposals.length > 1 ? (
+          <Text style={{ fontSize: 12, color: colors.mutedForeground, marginBottom: spacing.sm }}>
+            {proposals.length - 1} more suggestion{proposals.length - 1 === 1 ? '' : 's'} waiting after this one.
+          </Text>
+        ) : null}
 
         {/* ── Action buttons ───────────────────────────────────────────────── */}
         <TouchableOpacity
@@ -1007,6 +1084,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
         onClose={() => setLogWorkoutVisible(false)}
         onSaved={handleWorkoutSaved}
         todayExercises={todayExercises}
+        programDayRef={todayData?.programDayRef ?? null}
         workoutTitle={
           todayData?.todaySession?.day || todayData?.todaySession?.focus || undefined
         }

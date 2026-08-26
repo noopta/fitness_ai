@@ -17,6 +17,7 @@ import { buildRAGContext } from '../services/ragService.js';
 import { buildPodcastContext } from '../services/podcast/podcastRagService.js';
 import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/weekRebalance.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
+import { adaptationEnabledFor, seedTargetsForNewProgram } from '../adaptation/proposalService.js';
 import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
 import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trainTogetherService.js';
@@ -787,10 +788,23 @@ router.put('/coach/program', requireAuth, async (req, res) => {
       ? { dailyCalorieTarget: Math.round(programCalories) }
       : {};
 
+    // Adaptive progression: a brand-new program inherits target loads from
+    // whatever this lifter has already logged, so "ahead of / behind plan"
+    // works from session one instead of after a calibration cycle.
+    let programToSave = program;
+    try {
+      if (adaptationEnabledFor(req.user!.id)) {
+        const seeded = await seedTargetsForNewProgram(req.user!.id, program);
+        programToSave = seeded.program;
+      }
+    } catch (err) {
+      console.error('[coach] seeding program targets failed:', (err as any)?.message ?? err);
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
-        savedProgram: JSON.stringify(program),
+        savedProgram: JSON.stringify(programToSave),
         // Whether this is the first program OR a replacement, reset the start
         // date so the new program's week 1 starts today. Otherwise replacing
         // a finished program would land the user mid-way through the new one.
@@ -935,6 +949,18 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     }
     const isRestDay = !todaySession;
 
+    // Planned-vs-actual link for the adaptation engine: which template day
+    // this session is. An override session is matched back by its day label.
+    let programDayRef: { phaseIndex: number; dayIndex: number; weekNumber: number; day: string | null } | null = null;
+    if (todaySession) {
+      const idx = todayOverride
+        ? trainingDays.findIndex((d: any) => d?.day && d.day === (todaySession as any)?.day)
+        : dayInWeek;
+      if (idx >= 0 && idx < totalDays) {
+        programDayRef = { phaseIndex: phaseState.phaseIndex, dayIndex: idx, weekNumber, day: trainingDays[idx]?.day ?? null };
+      }
+    }
+
     // Next training day
     let nextTrainingDay: string | null = null;
     if (isRestDay) {
@@ -999,6 +1025,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
       nextTrainingDay,
       programGoal: program.goal,
       caloriesBurnedKcalToday,
+      programDayRef,
     };
     // Cache until the next EST day (use noon UTC of tomorrow EST to avoid timezone bleed)
     const tomorrowEST = new Date(getESTDateString() + 'T12:00:00Z');
