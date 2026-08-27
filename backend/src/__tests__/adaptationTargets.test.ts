@@ -144,6 +144,13 @@ describe('applyTargetsToProgram', () => {
     expect(back.phases[0].trainingDays[0].exercises[0]).not.toHaveProperty('targetWeightKg');
     expect(back.phases[0].trainingDays[1].exercises[0]).not.toHaveProperty('targetSetAt');
   });
+  it('also writes the legacy weeks view (old clients render it)', () => {
+    const keyFn = makeKeyFn();
+    const p: any = program();
+    p.weeks = [{ weekNumber: 1, days: [{ day: 'Upper A', sessions: [{ exercise: 'Bench Press', sets: 4, reps: '6-8' }] }] }];
+    const { program: next } = applyTargetsToProgram(p, [{ key: 'bench press', targetWeightKg: 80 }], keyFn, 't0');
+    expect(next.weeks[0].days[0].sessions[0].targetWeightKg).toBe(80);
+  });
   it('a load_change on an exercise already carrying a target records the old load as previous', () => {
     const keyFn = makeKeyFn();
     const { program: seeded } = applyTargetsToProgram(program(), [{ key: 'bench press', targetWeightKg: 80 }], keyFn, 't0');

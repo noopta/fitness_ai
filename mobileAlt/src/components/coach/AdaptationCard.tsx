@@ -146,7 +146,7 @@ export function AdaptationCard({
       return `About your suggestion to move my ${p.exercise} from ${fmt(p.fromWeightKg)} to ${fmt(p.toWeightKg)} — `;
     }
     if (isProgram) return `About the program you built from my training logs — I'd rather `;
-    return `About the targets you suggested from my training history — `;
+    return `About your "${proposal.title}" card and the targets you proposed from my history — `;
   }, [isLoad, payload, unit]);
 
   if (state === 'declined' || state === 'snoozed') {

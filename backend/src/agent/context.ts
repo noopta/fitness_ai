@@ -23,7 +23,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
   const date = todayStr();
 
   // Run the independent reads in parallel — they don't depend on each other.
-  const [user, meals, bwLogs, wellness, memory] = await Promise.all([
+  const [user, meals, bwLogs, wellness, memory, pendingAdaptation] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -47,6 +47,11 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       orderBy: { date: 'desc' },
     }),
     readMemory(userId),
+    // Promise.resolve wrapper: tolerate test mocks / old clients where the
+    // adaptationProposal model doesn't exist (sync throw, not a rejection).
+    Promise.resolve()
+      .then(() => prisma.adaptationProposal.findMany({ where: { userId, status: 'pending' }, orderBy: { createdAt: 'desc' }, take: 3, select: { title: true } }))
+      .catch(() => [] as Array<{ title: string }>),
   ]);
 
   if (!user) throw new Error('User not found');
@@ -110,6 +115,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
         }
       : null,
     memory,
+    adaptation: { pendingCount: pendingAdaptation.length, latestTitle: pendingAdaptation[0]?.title ?? null },
   };
 }
 
@@ -133,6 +139,10 @@ export function renderContext(ctx: UserContext): string {
   if (p.weightKg) profileBits.push(`weight: ${displayWeight(p.weightKg, p.unitPreference, 1)} ${unitLabel(p.unitPreference)}`);
   if (p.constraints) profileBits.push(`constraints: ${p.constraints}`);
   lines.push(`Profile — ${profileBits.join(', ')}`);
+
+  if (ctx.adaptation && ctx.adaptation.pendingCount > 0) {
+    lines.push(`Adaptive progression — ${ctx.adaptation.pendingCount} proposal(s) PENDING the user's decision${ctx.adaptation.latestTitle ? ` (latest: "${ctx.adaptation.latestTitle}")` : ''}. If the user mentions targets, suggestions, or "the card", call read_adaptation for the details before answering.`);
+  }
 
   if (ctx.todayNutrition) {
     const n = ctx.todayNutrition;

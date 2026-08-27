@@ -26,6 +26,9 @@ export interface AgentTool {
 /** Everything the agent knows about the user at the start of a turn. */
 export interface UserContext {
   userId: string;
+  /** Adaptive-progression snapshot — a pending proposal is usually what a
+   *  user means by "your suggestion"; details come from read_adaptation. */
+  adaptation?: { pendingCount: number; latestTitle: string | null } | null;
   profile: {
     name: string | null;
     tier: string;

@@ -523,7 +523,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
       await adaptationApi.decide(id, action, edits ? { edits } : {});
       setProposalState(id, action === 'apply' ? 'applied' : action === 'snooze' ? 'snoozed' : 'declined');
       invalidateCache('coach:');
-      if (action === 'apply') loadData();
+      if (action === 'apply') { loadData(); onRefresh?.(); } // parent refetch → Program tab shows the new targets
       if (action !== 'apply') setTimeout(() => setProposals(prev => prev.filter(p => p.id !== id)), 1800);
     } catch {
       setProposalState(id, 'failed');
@@ -536,6 +536,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
       setProposalState(id, 'undone');
       invalidateCache('coach:');
       loadData();
+      onRefresh?.();
     } catch {
       setProposalState(id, 'applied');
     }

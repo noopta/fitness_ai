@@ -193,37 +193,42 @@ export function applyTargetsToProgram(
   const wanted = new Map(targets.map(t => [t.key, t]));
   const previous = new Map<string, TargetWrite>();
   let touched = 0;
-  for (const phase of copy?.phases ?? []) {
-    for (const day of phase?.trainingDays ?? phase?.days ?? []) {
-      for (const ex of day?.exercises ?? day?.sessions ?? []) {
-        const name = String(ex?.exercise ?? ex?.name ?? '').trim();
-        const key = keyFn(name);
-        const t = wanted.get(key);
-        if (!t) continue;
-        if (!previous.has(key)) {
-          previous.set(key, {
-            key,
-            targetWeightKg: typeof ex.targetWeightKg === 'number' ? ex.targetWeightKg : null,
-            targetRPE: typeof ex.targetRPE === 'number' ? ex.targetRPE : null,
-            confidence: typeof ex.targetConfidence === 'number' ? ex.targetConfidence : null,
-            basis: ex.targetBasis ?? null,
-          });
-        }
-        if (t.targetWeightKg == null) {
-          delete ex.targetWeightKg; delete ex.targetConfidence; delete ex.targetBasis; delete ex.targetSetAt;
-        } else {
-          ex.targetWeightKg = t.targetWeightKg;
-          if (t.confidence != null) ex.targetConfidence = t.confidence;
-          if (t.basis) ex.targetBasis = t.basis;
-          ex.targetSetAt = setAt;
-        }
-        if (t.targetRPE !== undefined) {
-          if (t.targetRPE == null) delete ex.targetRPE; else ex.targetRPE = t.targetRPE;
-        }
-        touched += 1;
-      }
+  const writeTo = (ex: any) => {
+    const name = String(ex?.exercise ?? ex?.name ?? '').trim();
+    const key = keyFn(name);
+    const t = wanted.get(key);
+    if (!t) return;
+    if (!previous.has(key)) {
+      previous.set(key, {
+        key,
+        targetWeightKg: typeof ex.targetWeightKg === 'number' ? ex.targetWeightKg : null,
+        targetRPE: typeof ex.targetRPE === 'number' ? ex.targetRPE : null,
+        confidence: typeof ex.targetConfidence === 'number' ? ex.targetConfidence : null,
+        basis: ex.targetBasis ?? null,
+      });
     }
-  }
+    if (t.targetWeightKg == null) {
+      delete ex.targetWeightKg; delete ex.targetConfidence; delete ex.targetBasis; delete ex.targetSetAt;
+    } else {
+      ex.targetWeightKg = t.targetWeightKg;
+      if (t.confidence != null) ex.targetConfidence = t.confidence;
+      if (t.basis) ex.targetBasis = t.basis;
+      ex.targetSetAt = setAt;
+    }
+    if (t.targetRPE !== undefined) {
+      if (t.targetRPE == null) delete ex.targetRPE; else ex.targetRPE = t.targetRPE;
+    }
+    touched += 1;
+  };
+  for (const phase of copy?.phases ?? [])
+    for (const day of phase?.trainingDays ?? phase?.days ?? [])
+      for (const ex of day?.exercises ?? day?.sessions ?? []) writeTo(ex);
+  // The generator also synthesizes a legacy `weeks` view for old clients —
+  // after JSON round-trips its exercise objects are independent copies, so
+  // they must be written too or old UIs keep showing the stale plan.
+  for (const week of copy?.weeks ?? [])
+    for (const day of week?.days ?? [])
+      for (const ex of day?.sessions ?? day?.exercises ?? []) writeTo(ex);
   return { program: copy, previous: [...previous.values()], touched };
 }
 

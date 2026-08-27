@@ -9,6 +9,7 @@ import {
   Target, TrendingUp,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
+import { useUnits } from "@/lib/units";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -17,6 +18,10 @@ interface ProgramExercise {
   sets: number;
   reps: string;
   intensity: string;
+  // Adaptive-progression target (canonical kg) — present once the user has
+  // accepted targets from the adaptation flow.
+  targetWeightKg?: number;
+  targetRPE?: number;
   notes?: string;
 }
 
@@ -134,11 +139,17 @@ function PhaseTimeline({ phases }: { phases: ProgramPhase[] }) {
 
 function ExerciseRow({ ex }: { ex: ProgramExercise }) {
   const intensityClass = getIntensityStyle(ex.intensity);
+  const { formatWeight } = useUnits();
   return (
     <div className="rounded-lg bg-background/70 border border-border/40 px-3 py-2.5">
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs font-semibold leading-snug">{ex.exercise}</p>
         <div className="flex items-center gap-1.5 shrink-0">
+          {ex.targetWeightKg != null && (
+            <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground tabular-nums">
+              {formatWeight(ex.targetWeightKg)}
+            </span>
+          )}
           <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
             {ex.sets}×{ex.reps}
           </span>
