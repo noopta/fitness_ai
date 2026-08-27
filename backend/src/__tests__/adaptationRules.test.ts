@@ -142,6 +142,12 @@ describe('buildRetrofitProposal', () => {
     expect(d.confidence).toBeGreaterThan(0.5);
     expect(d.confidence).toBeLessThan(0.7);
   });
+  it('returns null below 3 loaded sessions — a thin history never earns a card', () => {
+    const two = weeks(2).map((date, i) => ({ id: 'w' + i, date, exercises: [{ name: 'Bench Press', sets: 3, reps: '8', weightKg: 80 }] }));
+    expect(buildRetrofitProposal(ctxFrom(program(), two))).toBeNull();
+    const three = weeks(3).map((date, i) => ({ id: 'w' + i, date, exercises: [{ name: 'Bench Press', sets: 3, reps: '8', weightKg: 80 }] }));
+    expect(buildRetrofitProposal(ctxFrom(program(), three))).not.toBeNull();
+  });
   it('returns null when no program lift has loaded history', () => {
     const ctx = ctxFrom(program(), [{ id: 'w', date: '2026-08-01', exercises: [{ name: 'Push-Up', sets: 3, reps: '15', bodyweight: true }] }]);
     expect(buildRetrofitProposal(ctx)).toBeNull();

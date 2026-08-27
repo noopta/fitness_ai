@@ -42,8 +42,17 @@ function monthLabel(dateStr: string | null): string {
   return d.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
 }
 
+/** Minimum distinct workouts with loaded sets before a retrofit is worth
+ *  showing. Below this the history says nothing a card should claim — the
+ *  user calibrates naturally as they log (Cohort B), no card. */
+const MIN_LOADED_SESSIONS = 3;
+
 export function buildRetrofitProposal(ctx: AdaptationContext): ProposalDraft | null {
   if (!ctx.program || ctx.planned.length === 0) return null;
+  const loadedSessions = new Set<string>();
+  for (const list of ctx.exposuresByKey.values())
+    for (const e of list) if (e.e1rmKg > 0) loadedSessions.add(e.workoutId);
+  if (loadedSessions.size < MIN_LOADED_SESSIONS) return null;
   const pref: UnitPreference = ctx.unitPref;
   const fmt = (kg: number) => formatWeight(kg, pref, pref === 'metric' ? 1 : 0) ?? '';
 
