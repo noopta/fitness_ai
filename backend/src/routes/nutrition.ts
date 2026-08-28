@@ -134,7 +134,15 @@ router.get('/nutrition/log', requireAuth, async (req, res) => {
 
 // ── Meal Entries (individual logged meals) ─────────────────────────────────────
 
-const mealEntrySchema = z.object({
+// Clamp an estimated nutrient value into [0, max] instead of rejecting it.
+// NaN/Infinity still reject (finite()) — those indicate a broken payload, not
+// an over-eager estimate.
+const clampedEstimate = (max: number) =>
+  z.number().finite().optional()
+    .transform((v) => (v == null ? v : Math.min(Math.max(v, 0), max)));
+
+// Exported for schema-level tests (clamping behavior).
+export const mealEntrySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   name: z.string().min(1).max(200),
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).default('meal'),
@@ -147,26 +155,31 @@ const mealEntrySchema = z.object({
   plants: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
   fermentedFoods: z.array(z.string().min(1).max(60)).max(20).optional().default([]),
   ultraProcessed: z.boolean().optional().default(false),
+  // Micronutrients are scan/LLM ESTIMATES, not user assertions. An implausible
+  // estimate (a salty takeout scan came back sodiumMg > 20000 on 2026-08-28 and
+  // 400'd the whole meal four times) must never reject the log — clamp into the
+  // plausible range instead. Same philosophy as descriptiveLabel below.
   nutrients: z.object({
-    fiberG: z.number().min(0).max(500).optional(),
-    sugarG: z.number().min(0).max(500).optional(),
-    sodiumMg: z.number().min(0).max(20000).optional(),
-    saturatedFatG: z.number().min(0).max(500).optional(),
-    cholesterolMg: z.number().min(0).max(5000).optional(),
-    vitaminAIU: z.number().min(0).max(200000).optional(),
-    vitaminCMg: z.number().min(0).max(5000).optional(),
-    vitaminDIU: z.number().min(0).max(10000).optional(),
-    vitaminEMg: z.number().min(0).max(2000).optional(),
-    vitaminB12Mcg: z.number().min(0).max(5000).optional(),
-    folateMcg: z.number().min(0).max(10000).optional(),
-    ironMg: z.number().min(0).max(200).optional(),
-    calciumMg: z.number().min(0).max(5000).optional(),
-    magnesiumMg: z.number().min(0).max(3000).optional(),
-    zincMg: z.number().min(0).max(300).optional(),
-    potassiumMg: z.number().min(0).max(10000).optional(),
-    omega3G: z.number().min(0).max(200).optional(),
-    omega6G: z.number().min(0).max(300).optional(),
-    glycemicIndex: z.number().min(0).max(150).nullable().optional(),
+    fiberG: clampedEstimate(500),
+    sugarG: clampedEstimate(500),
+    sodiumMg: clampedEstimate(20000),
+    saturatedFatG: clampedEstimate(500),
+    cholesterolMg: clampedEstimate(5000),
+    vitaminAIU: clampedEstimate(200000),
+    vitaminCMg: clampedEstimate(5000),
+    vitaminDIU: clampedEstimate(10000),
+    vitaminEMg: clampedEstimate(2000),
+    vitaminB12Mcg: clampedEstimate(5000),
+    folateMcg: clampedEstimate(10000),
+    ironMg: clampedEstimate(200),
+    calciumMg: clampedEstimate(5000),
+    magnesiumMg: clampedEstimate(3000),
+    zincMg: clampedEstimate(300),
+    potassiumMg: clampedEstimate(10000),
+    omega3G: clampedEstimate(200),
+    omega6G: clampedEstimate(300),
+    glycemicIndex: z.number().finite().nullable().optional()
+      .transform((v) => (v == null ? v : Math.min(Math.max(v, 0), 150))),
   }).optional(),
   // Descriptive labels, NOT gates — an unrecognised value must never reject the
   // meal. See src/validation/descriptiveLabel.ts for why (this broke twice).
