@@ -224,14 +224,26 @@ export default function HistoryScreen() {
       {/* Top bar */}
       <View style={styles.topBar}>
         <Text style={styles.screenTitle}>Diagnostics</Text>
-        <TouchableOpacity
-          style={styles.newButton}
-          activeOpacity={0.82}
-          onPress={() => router.push('/diagnostic/onboarding')}
-        >
-          <Ionicons name="add" size={18} color={colors.primaryForeground} />
-          <Text style={styles.newButtonText}>New</Text>
-        </TouchableOpacity>
+        <View style={styles.topBarActions}>
+          {/* Direct entry to form-video analysis — previously only reachable
+              through an existing analysis's "analyze another video". */}
+          <TouchableOpacity
+            style={styles.formButton}
+            activeOpacity={0.82}
+            onPress={() => router.push('/form-analysis')}
+          >
+            <Ionicons name="videocam-outline" size={16} color={colors.foreground} />
+            <Text style={styles.formButtonText}>Form Check</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.newButton}
+            activeOpacity={0.82}
+            onPress={() => router.push('/diagnostic/onboarding')}
+          >
+            <Ionicons name="add" size={18} color={colors.primaryForeground} />
+            <Text style={styles.newButtonText}>New</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -249,6 +261,13 @@ export default function HistoryScreen() {
             onPress={() => router.push('/diagnostic/onboarding')}
           >
             <Text style={styles.startButtonText}>Start Analysis</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.startButtonOutline}
+            activeOpacity={0.82}
+            onPress={() => router.push('/form-analysis')}
+          >
+            <Text style={styles.startButtonOutlineText}>Analyze a Form Video</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -297,6 +316,19 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   screenTitle: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, color: colors.foreground },
+  topBarActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  formButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.md,
+  },
+  formButtonText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
   newButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -364,4 +396,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   startButtonText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
+  startButtonOutline: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: 13,
+    borderRadius: radius.xl,
+  },
+  startButtonOutlineText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
 });
