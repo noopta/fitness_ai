@@ -38,6 +38,7 @@ export const PRO_PRICE_FALLBACK = '$12.99';
 // math beats the App Store / Play 30% cut + still lets us net more per
 // sub. The exact value here must match the Stripe Product configuration
 // referenced from /payments/create-checkout — keep them in sync.
+export const STRIPE_PRICE_CENTS = 1299;
 export const STRIPE_PRICE_DISPLAY = '$12.99';
 // AXIOMTRIAL promo code applies in Stripe checkout — 1 month free trial.
 // Backend already accepts promotion_code via allow_promotion_codes on
@@ -88,10 +89,27 @@ function PaymentSheetContent({
   // Pre-fills with the user's stored referredByCode (set at signup via ?ref=).
   // Hidden behind a toggle so users who don't have a code aren't prompted.
   const [referralCode, setReferralCode] = useState<string>(user?.referredByCode ?? '');
+  // idle → nothing entered · checking → validating · valid/invalid → feedback.
+  // A valid code changes the card price shown AND replaces the AXIOMTRIAL
+  // free month (Stripe can't stack a coupon with promo-code entry).
+  const [refStatus, setRefStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const [refDiscountPct, setRefDiscountPct] = useState(20);
+
+  const validateReferral = useCallback(async (raw: string) => {
+    const code = raw.trim().toUpperCase();
+    if (!code) { setRefStatus('idle'); return; }
+    setRefStatus('checking');
+    try {
+      const d = await apiFetch(`/payments/referral-code/${encodeURIComponent(code)}`);
+      if (d?.valid) { setRefDiscountPct(d.discountPercent ?? 20); setRefStatus('valid'); }
+      else setRefStatus('invalid');
+    } catch { setRefStatus('invalid'); }
+  }, []);
   const [showRefInput, setShowRefInput] = useState<boolean>(!!user?.referredByCode);
   useEffect(() => {
     if (user?.referredByCode && !referralCode) {
       setReferralCode(user.referredByCode);
+      void validateReferral(user.referredByCode);
       setShowRefInput(true);
     }
   }, [user?.referredByCode]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -259,25 +277,48 @@ function PaymentSheetContent({
         <>
           <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
             <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.stripeBtnText}>Subscribe · {STRIPE_PRICE_DISPLAY}/mo</Text>
+            <Text style={styles.stripeBtnText}>
+              {refStatus === 'valid'
+                ? `Subscribe · $${((STRIPE_PRICE_CENTS * (100 - refDiscountPct)) / 10000).toFixed(2)}/mo`
+                : `Subscribe · ${STRIPE_PRICE_DISPLAY}/mo`}
+            </Text>
           </TouchableOpacity>
 
-          {!showRefInput ? (
+          {!showRefInput && refStatus !== 'valid' ? (
             <TouchableOpacity onPress={() => setShowRefInput(true)} style={styles.refToggle} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
               <Text style={styles.refToggleText}>Have a referral code?</Text>
             </TouchableOpacity>
-          ) : (
-            <View style={styles.refRow}>
-              <TextInput
-                value={referralCode}
-                onChangeText={(t) => setReferralCode(t.toUpperCase())}
-                placeholder="Referral code"
-                placeholderTextColor={colors.mutedForeground}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                style={styles.refInput}
-              />
-            </View>
+          ) : null}
+          {(showRefInput || refStatus === 'valid') && (
+            <>
+              <View style={styles.refRow}>
+                <TextInput
+                  value={referralCode}
+                  onChangeText={(t) => { setReferralCode(t.toUpperCase()); setRefStatus('idle'); }}
+                  placeholder="Referral code"
+                  placeholderTextColor={colors.mutedForeground}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  style={[styles.refInput, { flex: 1 }]}
+                  onSubmitEditing={() => void validateReferral(referralCode)}
+                />
+                <TouchableOpacity
+                  style={[styles.refApplyBtn, (!referralCode.trim() || refStatus === 'checking') && styles.btnDisabled]}
+                  disabled={!referralCode.trim() || refStatus === 'checking'}
+                  onPress={() => void validateReferral(referralCode)}
+                >
+                  <Text style={styles.refApplyText}>{refStatus === 'checking' ? '…' : 'Apply'}</Text>
+                </TouchableOpacity>
+              </View>
+              {refStatus === 'valid' && (
+                <Text style={styles.refFeedbackOk}>
+                  ✓ {referralCode.trim()} applied — {refDiscountPct}% off every month with card checkout. (Replaces the {TRIAL_PROMO_CODE} free month.)
+                </Text>
+              )}
+              {refStatus === 'invalid' && (
+                <Text style={styles.refFeedbackBad}>That code wasn't found — check the spelling.</Text>
+              )}
+            </>
           )}
         </>
       ) : (
@@ -330,7 +371,7 @@ function PaymentSheetContent({
       <View style={styles.promoBanner}>
         <Ionicons name="gift-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
         <Text style={styles.promoText}>
-          <Text style={{ fontWeight: fontWeight.bold }}>Start with 1 month free</Text> — risk-free, no commitment. Applied automatically with Apple; paying by card, enter code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> at checkout.
+          <Text style={{ fontWeight: fontWeight.bold }}>First month free.</Text> Paying with Apple? It's applied automatically. Paying by card? Enter code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> on the Stripe payment page.
         </Text>
       </View>
 
@@ -495,8 +536,12 @@ const styles = StyleSheet.create({
   stripeBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
   refToggle: { alignSelf: 'center', paddingVertical: 4 },
   refToggleText: { fontSize: fontSize.sm, color: colors.mutedForeground, textDecorationLine: 'underline' },
-  refRow: { paddingTop: 2 },
+  refRow: { flexDirection: 'row', alignItems: 'stretch',  paddingTop: 2 },
   refInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: fontSize.sm, color: colors.foreground, backgroundColor: colors.card, letterSpacing: 1 },
+  refApplyBtn: { marginLeft: 8, borderRadius: radius.md, backgroundColor: colors.foreground, paddingHorizontal: 16, justifyContent: 'center' },
+  refApplyText: { color: colors.primaryForeground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  refFeedbackOk: { fontSize: fontSize.xs, color: colors.successInk, marginTop: 6, lineHeight: 16 },
+  refFeedbackBad: { fontSize: fontSize.xs, color: colors.destructive, marginTop: 6 },
   stripeConfirmBox: { gap: spacing.sm },
   stripeConfirmMsg: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20 },
   reopenLink: { alignSelf: 'center', paddingVertical: 4 },

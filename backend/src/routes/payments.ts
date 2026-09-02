@@ -10,6 +10,23 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 const router = Router();
 const prisma = new PrismaClient();
 
+// GET /api/payments/referral-code/:code — validate a referral code before
+// checkout so the paywall can show real feedback instead of a silent no-op.
+// Public by design: codes are meant to be shared (?ref= links); this returns
+// only that the code exists and the generic discount — never affiliate PII.
+router.get('/payments/referral-code/:code', async (req, res) => {
+  try {
+    const code = String(req.params.code ?? '').trim().toUpperCase();
+    if (!code || code.length > 32) return res.json({ valid: false });
+    const affiliate = await prisma.affiliate.findUnique({ where: { referralCode: code } });
+    if (!affiliate) return res.json({ valid: false });
+    res.json({ valid: true, code, discountPercent: Math.round((affiliate.discountRate ?? 0.2) * 100) });
+  } catch (err) {
+    console.error('Referral code check error:', err);
+    res.status(500).json({ error: 'Failed to check code' });
+  }
+});
+
 // GET /api/payments/status
 router.get('/payments/status', requireAuth, async (req, res) => {
   try {
@@ -374,7 +391,11 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
       const affiliate = await prisma.affiliate.findUnique({
         where: { referralCode: referralCode.trim().toUpperCase() },
       });
-      if (affiliate?.active) {
+      // The user's discount applies for ANY real code — a referred customer
+      // shouldn't lose 20% because their affiliate hasn't finished Stripe
+      // onboarding yet. Commission stays gated on affiliate.active inside
+      // recordCommission; the attribution metadata is set either way.
+      if (affiliate) {
         const couponId = await getOrCreateAffiliateCoupon();
         discounts = [{ coupon: couponId }];
         affiliateId = affiliate.id;
