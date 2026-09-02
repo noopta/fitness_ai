@@ -710,7 +710,7 @@ model Affiliate {
   stripeAccountId String?               @unique   // Stripe Connect acct_xxx
   onboarded       Boolean               @default(false)  // completed Stripe Connect onboarding
   active          Boolean               @default(false)  // admin activates after onboarding
-  commissionRate  Float                 @default(0.30)   // 30% of original price
+  commissionRate  Float                 @default(0.40)   // 40% of the pre-discount price
   discountRate    Float                 @default(0.20)   // 20% off for referred users
   inviteToken     String?               @unique   // one-time setup link token
   inviteUsedAt    DateTime?
@@ -727,7 +727,7 @@ model AffiliateCommission {
   stripeInvoiceId      String           @unique   // idempotency — one commission per invoice
   stripeCustomerId     String
   originalAmountCents  Int              // price before discount
-  commissionCents      Int              // 30% of original
+  commissionCents      Int              // commissionRate × original
   currency             String           @default("cad")
   status               String           @default("pending")  // pending | paid | cancelled
   payoutId             String?
