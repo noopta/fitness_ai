@@ -284,7 +284,7 @@ export const Analytics = {
     // Google's bidding uses this as the highest-value conversion. We
     // approximate value (in CAD); the actual price is set on the IAP/Stripe
     // side. Currency is required by Firebase's purchase schema.
-    const valueCAD = source === 'stripe' ? 11.99 : 12.99;
+    const valueCAD = 12.99; // Stripe and Apple monthly are both $12.99 now
     logFirebaseEvent('purchase', {
       currency: 'CAD',
       value: valueCAD,

@@ -38,7 +38,7 @@ export const PRO_PRICE_FALLBACK = '$12.99';
 // math beats the App Store / Play 30% cut + still lets us net more per
 // sub. The exact value here must match the Stripe Product configuration
 // referenced from /payments/create-checkout — keep them in sync.
-export const STRIPE_PRICE_DISPLAY = '$11.99';
+export const STRIPE_PRICE_DISPLAY = '$12.99';
 // AXIOMTRIAL promo code applies in Stripe checkout — 1 month free trial.
 // Backend already accepts promotion_code via allow_promotion_codes on
 // the session (payments.ts), this string is the user-facing surface.
