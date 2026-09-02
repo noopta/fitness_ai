@@ -171,8 +171,8 @@ router.post('/payments/webhook', async (req, res) => {
             stripeSubscriptionId: invoice.subscription,
             stripeInvoiceId: invoice.id,
             stripeCustomerId: invoice.customer,
-            // Pre-discount basis — the affiliate's 30% is of the original
-            // price, not what the discounted user actually paid.
+            // Pre-discount basis — the affiliate's commissionRate applies to
+            // the original price, not what the discounted user actually paid.
             originalAmountCents: renewalCommissionBaseCents(invoice),
           });
         }
