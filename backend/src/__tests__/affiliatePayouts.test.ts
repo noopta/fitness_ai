@@ -68,7 +68,10 @@ describe('recordCommission', () => {
 
     store.affiliates = [aff({ id: 'a2', active: false })];
     await recordCommission({ ...params, affiliateId: 'a2', stripeInvoiceId: 'in_2' });
-    expect(store.commissions).toHaveLength(1); // inactive → nothing recorded
+    // Inactive → the attribution row is still written (renewals look it up),
+    // but no money accrues.
+    expect(store.commissions).toHaveLength(2);
+    expect(store.commissions[1].commissionCents).toBe(0);
   });
 });
 

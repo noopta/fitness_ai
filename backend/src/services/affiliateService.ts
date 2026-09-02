@@ -133,9 +133,12 @@ export async function recordCommission(params: {
   if (existing) return;
 
   const affiliate = await prisma.affiliate.findUnique({ where: { id: affiliateId } });
-  if (!affiliate?.active) return;
+  if (!affiliate) return;
 
-  const commissionCents = Math.round(originalAmountCents * affiliate.commissionRate);
+  // The row is written even when the affiliate isn't active yet — it's the
+  // attribution anchor renewals look up. Money only accrues while active:
+  // an inactive affiliate's rows record 0¢.
+  const commissionCents = affiliate.active ? Math.round(originalAmountCents * affiliate.commissionRate) : 0;
 
   await prisma.affiliateCommission.create({
     data: {

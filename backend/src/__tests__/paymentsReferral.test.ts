@@ -66,7 +66,8 @@ describe('POST /payments/create-checkout with a referral code', () => {
     const session = store.sessions[0];
     expect(session.discounts).toEqual([{ coupon: 'coupon_20' }]);
     expect(session.metadata.affiliateId).toBe('a1');
-    expect(session.allow_promotion_codes).toBeUndefined(); // coupon replaces promo-code entry
+    expect(session.allow_promotion_codes).toBeUndefined(); // coupon replaces promo-code entry…
+    expect(session.subscription_data).toEqual({ trial_period_days: 30 }); // …so the trial is set server-side
   });
   it('without a code: no discount, promo codes (AXIOMTRIAL) allowed', async () => {
     await request(app).post('/api/payments/create-checkout').send({});

@@ -160,11 +160,16 @@ router.post('/payments/webhook', async (req, res) => {
       // ── Record affiliate commission on initial purchase ───────────────────
       // affiliateId is set in session.metadata when checkout was created via /create-checkout
       const affiliateId = (session.metadata as any)?.affiliateId as string | undefined;
-      if (affiliateId && session.subscription && session.amount_total) {
-        // amount_total is after discount — we commission on original (pre-discount) amount
-        // Retrieve subscription to get the plan amount
+      if (affiliateId && session.subscription) {
+        // Trialing referrals complete checkout with amount_total 0 — no money
+        // moved, so no commission yet. Record a 0¢ marker anyway: renewals
+        // attribute by looking up prior commission rows for the subscription,
+        // and the first PAID invoice (subscription_cycle) then records the
+        // real commission on the pre-discount price.
         const sub = await stripe.subscriptions.retrieve(session.subscription as string);
-        const originalAmountCents = sub.items.data[0]?.price?.unit_amount ?? session.amount_total;
+        const originalAmountCents = session.amount_total
+          ? (sub.items.data[0]?.price?.unit_amount ?? session.amount_total)
+          : 0;
         await recordCommission({
           affiliateId,
           stripeSubscriptionId: session.subscription as string,
@@ -414,7 +419,13 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
         ...(affiliateId ? { affiliateId } : {}),
         ...(referralCode ? { referralCode: referralCode.trim().toUpperCase() } : {}),
       },
-      ...(discounts ? { discounts } : { allow_promotion_codes: true }),
+      // A referral stacks BOTH perks: 30-day trial (what AXIOMTRIAL grants)
+      // plus the 20% coupon on every invoice after it. Stripe forbids
+      // combining `discounts` with user-typed promo codes, so the trial is
+      // set server-side instead of asking the user to also enter AXIOMTRIAL.
+      ...(discounts
+        ? { discounts, subscription_data: { trial_period_days: 30 } }
+        : { allow_promotion_codes: true }),
     });
 
     res.json({ url: session.url });

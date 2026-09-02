@@ -25,6 +25,7 @@ import {
   restorePurchases as restoreGoogle,
 } from '../lib/googleIap';
 import type { ProductSubscription, Purchase } from 'react-native-iap';
+import { presentCodeRedemptionSheetIOS } from 'react-native-iap';
 import { Analytics } from '../lib/analytics';
 import { apiFetch } from '../lib/api';
 
@@ -312,7 +313,7 @@ function PaymentSheetContent({
               </View>
               {refStatus === 'valid' && (
                 <Text style={styles.refFeedbackOk}>
-                  ✓ {referralCode.trim()} applied — {refDiscountPct}% off every month with card checkout. (Replaces the {TRIAL_PROMO_CODE} free month.)
+                  ✓ {referralCode.trim()} applied — first month free, then {refDiscountPct}% off every month with card checkout.
                 </Text>
               )}
               {refStatus === 'invalid' && (
@@ -415,6 +416,21 @@ function PaymentSheetContent({
                   <Text style={styles.appleBtnText}>Subscribe · {displayPrice}/mo</Text>
                 </View>
               )}
+            </TouchableOpacity>
+          )}
+
+          {/* Apple offer codes (KAVI10 etc.) have no visible entry point unless
+              the app presents StoreKit's redemption sheet. iOS only — Google
+              Play promo codes redeem through the Play Store app. */}
+          {!IS_ANDROID && (
+            <TouchableOpacity
+              onPress={() => {
+                void presentCodeRedemptionSheetIOS().catch(() => {});
+              }}
+              style={styles.refToggle}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.refToggleText}>Have an Apple promo code? Redeem it</Text>
             </TouchableOpacity>
           )}
         </View>
