@@ -58,21 +58,27 @@ export default function AffiliatePage() {
   const [location] = useLocation();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [emailInput, setEmailInput] = useState('');
+  // The invite token is the affiliate's credential — from the URL (?token=,
+  // their personal link) or saved by a prior visit. Email is NOT an
+  // identifier: it's public knowledge and must never unlock earnings data.
+  const [token, setToken] = useState('');
   const [onboardingLoading, setOnboardingLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
-  // Handle ?onboarding=complete callback from Stripe Connect
+  // Handle ?onboarding=complete callback from Stripe Connect + auto-load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const affiliateId = localStorage.getItem('affiliateId');
+    const urlToken = params.get('token')?.trim() ?? '';
+    const savedToken = localStorage.getItem('affiliateToken') ?? '';
+    const t = urlToken || savedToken;
+    if (urlToken) localStorage.setItem('affiliateToken', urlToken);
+    setToken(t);
 
-    if (params.get('onboarding') === 'complete' && affiliateId) {
+    if (params.get('onboarding') === 'complete' && t) {
       apiFetch('/affiliate/onboarding-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ affiliateId }),
+        body: JSON.stringify({ token: t }),
       }).then(async res => {
         const d = await res.json();
         if (d.onboarded) toast.success('Stripe Connect onboarding complete! Your account is now active.');
@@ -80,26 +86,21 @@ export default function AffiliatePage() {
       }).catch(() => {});
     }
 
-    // Auto-load if email saved in localStorage
-    const savedEmail = localStorage.getItem('affiliateEmail');
-    if (savedEmail) {
-      setEmail(savedEmail);
-      loadDashboard(savedEmail);
-    }
+    if (t) loadDashboard(t);
   }, []);
 
-  async function loadDashboard(e: string) {
+  async function loadDashboard(t: string) {
     setLoading(true);
     try {
-      const res = await apiFetch(`/affiliate/me?email=${encodeURIComponent(e)}`);
-      if (res.status === 404) {
-        toast.error('No affiliate account found for this email.');
+      const res = await apiFetch(`/affiliate/me?token=${encodeURIComponent(t)}`);
+      if (res.status === 401 || res.status === 404) {
+        localStorage.removeItem('affiliateToken');
+        setToken('');
+        toast.error('This affiliate link is no longer valid — contact hello@axiomtraining.io.');
         return;
       }
       const data = await res.json();
       setDashboard(data);
-      localStorage.setItem('affiliateEmail', e);
-      if (data.id) localStorage.setItem('affiliateId', data.id);
     } catch {
       toast.error('Failed to load affiliate data');
     } finally {
@@ -114,7 +115,7 @@ export default function AffiliatePage() {
       const res = await apiFetch('/affiliate/onboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ affiliateId: dashboard.id }),
+        body: JSON.stringify({ token }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
@@ -130,7 +131,7 @@ export default function AffiliatePage() {
     if (!dashboard) return;
     setDashboardLoading(true);
     try {
-      const res = await apiFetch(`/affiliate/dashboard-url?affiliateId=${dashboard.id}`);
+      const res = await apiFetch(`/affiliate/dashboard-url?token=${encodeURIComponent(token)}`);
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
       window.open(d.url, '_blank');
@@ -147,7 +148,8 @@ export default function AffiliatePage() {
     toast.success('Referral link copied to clipboard');
   }
 
-  // Email gate
+  // Access gate — the dashboard only opens from the affiliate's personal
+  // tokened link. No email lookup: an email address is not a credential.
   if (!dashboard) {
     return (
       <div className="page">
@@ -157,24 +159,15 @@ export default function AffiliatePage() {
             <Card className="p-8 space-y-6 text-center">
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight">Affiliate Portal</h1>
-                <p className="text-sm text-muted-foreground mt-2">Enter your affiliate email address to view your dashboard.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {loading
+                    ? 'Loading your dashboard…'
+                    : 'Open your personal affiliate link to view your dashboard — it\'s the same link you used to set up your account.'}
+                </p>
               </div>
-              <div className="space-y-3">
-                <input
-                  className="w-full border rounded-md px-4 py-2.5 text-sm bg-background"
-                  placeholder="your@email.com"
-                  type="email"
-                  value={emailInput}
-                  onChange={e => setEmailInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { setEmail(emailInput); loadDashboard(emailInput); } }}
-                />
-                <Button className="w-full" disabled={loading || !emailInput.trim()} onClick={() => { setEmail(emailInput); loadDashboard(emailInput); }}>
-                  {loading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-                  View My Dashboard
-                </Button>
-              </div>
+              {loading ? <Loader2 size={20} className="animate-spin mx-auto text-muted-foreground" /> : null}
               <p className="text-xs text-muted-foreground">
-                Don't have an affiliate account? Contact us at <strong>hello@axiomtraining.io</strong> to apply.
+                Lost your link, or want to join the program? Contact us at <strong>hello@axiomtraining.io</strong>.
               </p>
             </Card>
           </motion.div>

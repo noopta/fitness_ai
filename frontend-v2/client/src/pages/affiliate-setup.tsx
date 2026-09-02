@@ -31,7 +31,9 @@ export default function AffiliateSetupPage() {
         setAffiliateName(d.affiliate.name);
         setAffiliateId(d.affiliate.id);
         setOnboardingUrl(d.onboardingUrl);
-        localStorage.setItem('affiliateId', d.affiliate.id);
+        // The invite token is the affiliate's credential — keep it so the
+        // dashboard page can authenticate without re-opening the invite link.
+        localStorage.setItem('affiliateToken', token);
         localStorage.setItem('affiliateEmail', d.affiliate.email);
         setStatus('ready');
       })
