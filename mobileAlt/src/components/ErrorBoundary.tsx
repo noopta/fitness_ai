@@ -48,6 +48,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
         component_stack: info?.componentStack ?? null,
         is_fatal: false,
       });
+      // Flush now: the client uses persistence:'memory' with a 30s flush
+      // interval, so a user who force-quits from the fallback screen would
+      // take the queued report with them.
+      void posthog.flush().catch(() => {});
     } catch { /* never let our reporter mask the real error */ }
   }
 
