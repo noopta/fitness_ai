@@ -361,6 +361,21 @@ function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
 }
 
 scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
+// Affiliate payouts — 1st of each month, 14:00 UTC (10am ET). Idempotent:
+// commissions flip to 'paid' as they're bundled into a payout, so a re-run
+// (or the admin pressing the button the same day) can never pay twice.
+scheduleAt(14, null, () => {
+  if (new Date().getDate() !== 1) return;
+  import('./services/affiliateService.js')
+    .then(m => m.runMonthlyPayouts())
+    .then(r => {
+      if (r.affiliatesPaid === 0 && r.errors.length === 0) return;
+      const msg = `[affiliates] monthly payout run: ${r.affiliatesPaid} affiliate(s) paid, $${(r.totalCents / 100).toFixed(2)} total${r.errors.length ? `, ERRORS: ${r.errors.join('; ')}` : ''}`;
+      console.log(msg);
+      import('./services/smsService.js').then(sms => sms.sendCoachSMS(`💸 ${msg}`)).catch(() => {});
+    })
+    .catch(err => console.error('[scheduler] affiliate payout error:', err));
+});
 scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
 scheduleAt(18, null, () => runReengagementCheck().catch(err => console.error('[scheduler] reengagement error:', err)));
 // Streak-at-risk loss-aversion pass — runs at 7pm and 9pm so we cover both

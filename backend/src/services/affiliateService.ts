@@ -153,6 +153,20 @@ export async function recordCommission(params: {
   console.log(`[affiliates] Commission ${commissionCents}¢ → ${affiliate.email} (invoice ${stripeInvoiceId})`);
 }
 
+/**
+ * Commission base for a renewal invoice: the PRE-discount amount. Stripe's
+ * `subtotal` is the price before discounts/credits; `amount_paid` is after.
+ * Affiliates are promised commissionRate × original price, so a referred
+ * user's 20% discount must not shrink the affiliate's cut. Falls back to
+ * amount_paid only when subtotal is missing/nonsensical.
+ */
+export function renewalCommissionBaseCents(invoice: { subtotal?: number | null; amount_paid?: number | null }): number {
+  const subtotal = invoice?.subtotal;
+  const paid = invoice?.amount_paid ?? 0;
+  if (typeof subtotal === 'number' && subtotal >= paid && subtotal > 0) return subtotal;
+  return paid;
+}
+
 // ─── Monthly payout runner ────────────────────────────────────────────────────
 
 export async function runMonthlyPayouts(): Promise<{

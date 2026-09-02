@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { recordCommission, getOrCreateAffiliateCoupon } from '../services/affiliateService.js';
+import { recordCommission, getOrCreateAffiliateCoupon, renewalCommissionBaseCents } from '../services/affiliateService.js';
 import posthog from '../services/posthogClient.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
@@ -171,7 +171,9 @@ router.post('/payments/webhook', async (req, res) => {
             stripeSubscriptionId: invoice.subscription,
             stripeInvoiceId: invoice.id,
             stripeCustomerId: invoice.customer,
-            originalAmountCents: invoice.amount_paid,
+            // Pre-discount basis — the affiliate's 30% is of the original
+            // price, not what the discounted user actually paid.
+            originalAmountCents: renewalCommissionBaseCents(invoice),
           });
         }
       }
