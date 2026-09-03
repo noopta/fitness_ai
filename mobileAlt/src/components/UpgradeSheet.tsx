@@ -207,8 +207,10 @@ function PaymentSheetContent({
       // Pay and Link all still work. Checkout's success/cancel URLs bounce to
       // axiom://checkout?status=…, which closes the tab and resolves here.
       const result = await WebBrowser.openAuthSessionAsync(d.url, 'axiom://checkout');
+      // Regex rather than URL.searchParams — React Native's built-in
+      // URLSearchParams.get() throws 'not implemented' without a polyfill.
       const returnedStatus = result.type === 'success'
-        ? (new URL(result.url).searchParams.get('status') ?? 'cancelled')
+        ? (/[?&]status=([^&#]+)/.exec(result.url)?.[1] ?? 'cancelled')
         : null;
 
       if (returnedStatus === 'cancelled') return;
