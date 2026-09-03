@@ -188,6 +188,32 @@ function PaymentSheetContent({
     }
   }, [iapPurchasing, product]);
 
+/**
+ * Android: prefer Chrome to host the Custom Tab for checkout.
+ *
+ * Google Pay's support in a Custom Tab is only reliable in Chrome — some OEM
+ * defaults (Samsung Internet et al.) either drop the wallet button or handle
+ * the redirect back to the app differently. Returns undefined when Chrome
+ * can't host a Custom Tab (not installed / disabled), which lets
+ * expo-web-browser fall back to the user's preferred browser rather than
+ * failing the purchase.
+ *
+ * iOS ignores this entirely — Apple only permits its own SFSafariViewController,
+ * so "Chrome" there would still be WebKit, and Google Pay never renders on iOS.
+ */
+async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
+  if (Platform.OS !== 'android') return undefined;
+  try {
+    const { browserPackages, servicePackages } = await WebBrowser.getCustomTabsSupportingBrowsersAsync();
+    const CHROME = 'com.android.chrome';
+    // servicePackages = can host the Custom Tabs *service* (what we need).
+    if (servicePackages?.includes(CHROME) || browserPackages?.includes(CHROME)) return CHROME;
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
   const handleStripeCheckout = useCallback(async () => {
     Analytics.upgradeTapped('stripe');
     try {
@@ -206,7 +232,12 @@ function PaymentSheetContent({
       // user never leaves the app — and unlike a WebView, Apple Pay, Google
       // Pay and Link all still work. Checkout's success/cancel URLs bounce to
       // axiom://checkout?status=…, which closes the tab and resolves here.
-      const result = await WebBrowser.openAuthSessionAsync(d.url, 'axiom://checkout');
+      const browserPackage = await resolveAndroidBrowserPackage();
+      const result = await WebBrowser.openAuthSessionAsync(
+        d.url,
+        'axiom://checkout',
+        browserPackage ? { browserPackage } : undefined,
+      );
       // Regex rather than URL.searchParams — React Native's built-in
       // URLSearchParams.get() throws 'not implemented' without a polyfill.
       const returnedStatus = result.type === 'success'
