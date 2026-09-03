@@ -81,3 +81,20 @@ describe('POST /payments/create-checkout with a referral code', () => {
     expect(store.sessions[0].discounts).toBeUndefined();
   });
 });
+
+describe('mobile return flow', () => {
+  it('platform=mobile routes success/cancel through the app-bounce endpoint; web keeps the site', async () => {
+    await request(app).post('/api/payments/create-checkout').send({ platform: 'mobile' });
+    expect(store.sessions[0].success_url).toMatch(/\/payments\/return\?status=success$/);
+    expect(store.sessions[0].cancel_url).toMatch(/\/payments\/return\?status=cancelled$/);
+    await request(app).post('/api/payments/create-checkout').send({});
+    expect(store.sessions[1].success_url).toMatch(/axiomtraining\.io\?checkout=success/);
+  });
+  it('GET /payments/return 302s into the app scheme and sanitizes the status', async () => {
+    const ok = await request(app).get('/api/payments/return?status=success');
+    expect(ok.status).toBe(302);
+    expect(ok.headers.location).toBe('axiom://checkout?status=success');
+    const junk = await request(app).get('/api/payments/return?status=<script>');
+    expect(junk.headers.location).toBe('axiom://checkout?status=cancelled');
+  });
+});

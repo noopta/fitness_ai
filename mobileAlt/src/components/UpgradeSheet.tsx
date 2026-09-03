@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Linking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
-  ScrollView, Animated, Dimensions, Alert, TextInput,
+  ScrollView, Animated, Dimensions, Alert,
 } from 'react-native';
 import { KeyboardAvoider } from './ui/KeyboardAvoider';
 import { Ionicons } from '@expo/vector-icons';
@@ -90,28 +91,13 @@ function PaymentSheetContent({
   // Pre-fills with the user's stored referredByCode (set at signup via ?ref=).
   // Hidden behind a toggle so users who don't have a code aren't prompted.
   const [referralCode, setReferralCode] = useState<string>(user?.referredByCode ?? '');
-  // idle → nothing entered · checking → validating · valid/invalid → feedback.
-  // A valid code changes the card price shown AND replaces the AXIOMTRIAL
-  // free month (Stripe can't stack a coupon with promo-code entry).
-  const [refStatus, setRefStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
-  const [refDiscountPct, setRefDiscountPct] = useState(20);
+  // Referral attribution only comes from the signup-time code on the user
+  // record. The in-sheet code input was removed — it confused people and the
+  // Stripe page has its own promo-code field.
 
-  const validateReferral = useCallback(async (raw: string) => {
-    const code = raw.trim().toUpperCase();
-    if (!code) { setRefStatus('idle'); return; }
-    setRefStatus('checking');
-    try {
-      const d = await apiFetch(`/payments/referral-code/${encodeURIComponent(code)}`);
-      if (d?.valid) { setRefDiscountPct(d.discountPercent ?? 20); setRefStatus('valid'); }
-      else setRefStatus('invalid');
-    } catch { setRefStatus('invalid'); }
-  }, []);
-  const [showRefInput, setShowRefInput] = useState<boolean>(!!user?.referredByCode);
   useEffect(() => {
     if (user?.referredByCode && !referralCode) {
       setReferralCode(user.referredByCode);
-      void validateReferral(user.referredByCode);
-      setShowRefInput(true);
     }
   }, [user?.referredByCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -209,18 +195,52 @@ function PaymentSheetContent({
       // affiliate (sets affiliateId in Stripe session metadata; commission then
       // fires from /payments/webhook on checkout.session.completed).
       const code = (referralCode.trim() || user?.referredByCode || '').toUpperCase();
-      const body = code ? { referralCode: code } : {};
+      const body = { platform: 'mobile', ...(code ? { referralCode: code } : {}) };
       const d = await apiFetch('/payments/create-checkout', {
         method: 'POST',
         body: JSON.stringify(body),
       });
       if (!d?.url) throw new Error('Could not create checkout session');
-      await Linking.openURL(d.url);
-      setStripeOpened(true);
+
+      // In-app browser tab (SFSafariViewController / Chrome Custom Tabs) so the
+      // user never leaves the app — and unlike a WebView, Apple Pay, Google
+      // Pay and Link all still work. Checkout's success/cancel URLs bounce to
+      // axiom://checkout?status=…, which closes the tab and resolves here.
+      const result = await WebBrowser.openAuthSessionAsync(d.url, 'axiom://checkout');
+      const returnedStatus = result.type === 'success'
+        ? (new URL(result.url).searchParams.get('status') ?? 'cancelled')
+        : null;
+
+      if (returnedStatus === 'cancelled') return;
+
+      // Either Stripe sent us back with success, or the user closed the tab
+      // themselves (maybe after paying). Poll briefly — the webhook that flips
+      // the tier can land a beat after the redirect.
+      setStripeConfirming(true);
+      try {
+        let pro = false;
+        for (let i = 0; i < (returnedStatus === 'success' ? 8 : 2); i++) {
+          const st: any = await apiFetch('/payments/status').catch(() => null);
+          if (st?.tier === 'pro') { pro = true; break; }
+          await new Promise<void>(r => setTimeout(r, 1500));
+        }
+        if (pro) {
+          await refreshUser();
+          Analytics.upgradeCompleted('stripe');
+          onClose();
+          await new Promise<void>(r => setTimeout(r, 300));
+          onSuccessRef.current();
+        } else if (returnedStatus === 'success') {
+          // Paid but the webhook is slow — leave the manual confirm as a fallback.
+          setStripeOpened(true);
+        }
+      } finally {
+        setStripeConfirming(false);
+      }
     } catch (err: any) {
       Alert.alert('Could not start checkout', err?.message ?? 'Please visit axiomtraining.io to upgrade.');
     }
-  }, [referralCode, user?.referredByCode]);
+  }, [referralCode, user?.referredByCode, refreshUser, onClose]);
 
   const handleStripeConfirm = useCallback(async () => {
     setStripeConfirming(true);
@@ -276,51 +296,21 @@ function PaymentSheetContent({
 
       {!stripeOpened ? (
         <>
-          <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
-            <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.stripeBtnText}>
-              {refStatus === 'valid'
-                ? `Subscribe · $${((STRIPE_PRICE_CENTS * (100 - refDiscountPct)) / 10000).toFixed(2)}/mo`
-                : `Subscribe · ${STRIPE_PRICE_DISPLAY}/mo`}
-            </Text>
+          <TouchableOpacity
+            style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
+            onPress={handleStripeCheckout}
+            disabled={stripeConfirming}
+            activeOpacity={0.85}
+          >
+            {stripeConfirming ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.stripeBtnText}>Subscribe · {STRIPE_PRICE_DISPLAY}/mo</Text>
+              </>
+            )}
           </TouchableOpacity>
-
-          {!showRefInput && refStatus !== 'valid' ? (
-            <TouchableOpacity onPress={() => setShowRefInput(true)} style={styles.refToggle} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-              <Text style={styles.refToggleText}>Have a referral code?</Text>
-            </TouchableOpacity>
-          ) : null}
-          {(showRefInput || refStatus === 'valid') && (
-            <>
-              <View style={styles.refRow}>
-                <TextInput
-                  value={referralCode}
-                  onChangeText={(t) => { setReferralCode(t.toUpperCase()); setRefStatus('idle'); }}
-                  placeholder="Referral code"
-                  placeholderTextColor={colors.mutedForeground}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                  style={[styles.refInput, { flex: 1 }]}
-                  onSubmitEditing={() => void validateReferral(referralCode)}
-                />
-                <TouchableOpacity
-                  style={[styles.refApplyBtn, (!referralCode.trim() || refStatus === 'checking') && styles.btnDisabled]}
-                  disabled={!referralCode.trim() || refStatus === 'checking'}
-                  onPress={() => void validateReferral(referralCode)}
-                >
-                  <Text style={styles.refApplyText}>{refStatus === 'checking' ? '…' : 'Apply'}</Text>
-                </TouchableOpacity>
-              </View>
-              {refStatus === 'valid' && (
-                <Text style={styles.refFeedbackOk}>
-                  ✓ {referralCode.trim()} applied — first month free, then {refDiscountPct}% off every month with card checkout.
-                </Text>
-              )}
-              {refStatus === 'invalid' && (
-                <Text style={styles.refFeedbackBad}>That code wasn't found — check the spelling.</Text>
-              )}
-            </>
-          )}
         </>
       ) : (
         <View style={styles.stripeConfirmBox}>
@@ -552,12 +542,6 @@ const styles = StyleSheet.create({
   stripeBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
   refToggle: { alignSelf: 'center', paddingVertical: 4 },
   refToggleText: { fontSize: fontSize.sm, color: colors.mutedForeground, textDecorationLine: 'underline' },
-  refRow: { flexDirection: 'row', alignItems: 'stretch',  paddingTop: 2 },
-  refInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: fontSize.sm, color: colors.foreground, backgroundColor: colors.card, letterSpacing: 1 },
-  refApplyBtn: { marginLeft: 8, borderRadius: radius.md, backgroundColor: colors.foreground, paddingHorizontal: 16, justifyContent: 'center' },
-  refApplyText: { color: colors.primaryForeground, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-  refFeedbackOk: { fontSize: fontSize.xs, color: colors.successInk, marginTop: 6, lineHeight: 16 },
-  refFeedbackBad: { fontSize: fontSize.xs, color: colors.destructive, marginTop: 6 },
   stripeConfirmBox: { gap: spacing.sm },
   stripeConfirmMsg: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20 },
   reopenLink: { alignSelf: 'center', paddingVertical: 4 },

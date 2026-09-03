@@ -27,6 +27,16 @@ router.get('/payments/referral-code/:code', async (req, res) => {
   }
 });
 
+// GET /api/payments/return?status=success|cancelled — Checkout's success/
+// cancel URLs must be https, so mobile sessions land here and get bounced
+// into the app's custom scheme. The in-app browser tab (ASWebAuthentication
+// Session / Chrome Custom Tabs) intercepts the axiom:// navigation, closes
+// itself, and hands the URL back to the upgrade sheet.
+router.get('/payments/return', (req, res) => {
+  const status = req.query.status === 'success' ? 'success' : 'cancelled';
+  res.redirect(302, `axiom://checkout?status=${status}`);
+});
+
 // GET /api/payments/status
 router.get('/payments/status', requireAuth, async (req, res) => {
   try {
@@ -362,7 +372,13 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
 // Supports optional referral code (affiliate discount coupon applied automatically)
 router.post('/payments/create-checkout', requireAuth, async (req, res) => {
   try {
-    const { referralCode } = req.body as { referralCode?: string };
+    const { referralCode, platform } = req.body as { referralCode?: string; platform?: string };
+    // Mobile opens Checkout in an in-app browser tab and needs to be sent back
+    // into the app on completion; web keeps the site redirect.
+    const publicApi = process.env.PUBLIC_API_URL || 'https://api.airthreads.ai/api';
+    const returnUrls = platform === 'mobile'
+      ? { success_url: `${publicApi}/payments/return?status=success`, cancel_url: `${publicApi}/payments/return?status=cancelled` }
+      : { success_url: `${FRONTEND_URL}?checkout=success`, cancel_url: `${FRONTEND_URL}?checkout=cancelled` };
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
@@ -412,8 +428,7 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: req.user!.id,
-      success_url: `${FRONTEND_URL}?checkout=success`,
-      cancel_url: `${FRONTEND_URL}?checkout=cancelled`,
+      ...returnUrls,
       metadata: {
         userId: req.user!.id,
         ...(affiliateId ? { affiliateId } : {}),
