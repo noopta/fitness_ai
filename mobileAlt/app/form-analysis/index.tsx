@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Alert, TextInput, Switch, Image,
+  Alert, TextInput, Switch, Image, Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
@@ -18,7 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
-import { formAnalysisApi, type WorkoutVideoAnalysis, type FormReferenceFrame } from '../../src/lib/api';
+import { formAnalysisApi, authApi, type WorkoutVideoAnalysis, type FormReferenceFrame } from '../../src/lib/api';
 import { posthog } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
@@ -53,7 +53,7 @@ function timecode(seconds: number): string {
 export default function FormAnalysisScreen() {
   const router = useRouter();
   const { id: deepLinkId } = useLocalSearchParams<{ id?: string }>();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
   const [stage, setStage] = useState<Stage>('capture');
@@ -80,9 +80,63 @@ export default function FormAnalysisScreen() {
       .catch(() => {});
   }, []);
 
+  // Stills are 18+, which needs a date of birth we may not have: accounts
+  // predating the age-check screen have none, and they are deliberately not
+  // prompted at launch. So we ask here instead — only when someone actually
+  // reaches for the feature that needs it.
+  const [dobPrompt, setDobPrompt] = useState(false);
+  const [dobInput, setDobInput] = useState('');
+  const [dobSaving, setDobSaving] = useState(false);
+
   const toggleSaveFrames = (next: boolean) => {
+    if (next && !user?.dateOfBirth) {
+      setDobInput('');
+      setDobPrompt(true);
+      return; // stays off until we know how old they are
+    }
     setSaveFrames(next);
     AsyncStorage.setItem(SAVE_FRAMES_KEY, next ? '1' : '0').catch(() => {});
+  };
+
+  // Same YYYY-MM-DD auto-formatting as the age-check and register screens.
+  const formatDob = (input: string) => {
+    const digits = input.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+  };
+
+  const submitDob = async () => {
+    const value = dobInput.trim();
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime()) || value.length !== 10) {
+      Alert.alert('Invalid date', 'Please enter your date of birth as YYYY-MM-DD.');
+      return;
+    }
+    const years = (Date.now() - parsed.getTime()) / (365.25 * 86400000);
+    setDobSaving(true);
+    try {
+      // Server validates the 13+ minimum and is the source of truth; this call
+      // is what actually persists the date regardless of the 18+ outcome.
+      await authApi.setDob(value);
+      await refreshUser();
+      setDobPrompt(false);
+      if (years < 18) {
+        // Saved, but stills stay off. Say so plainly rather than leaving a
+        // toggle that silently refuses to move.
+        Alert.alert(
+          'Thanks — stills stay off',
+          'Saved reference stills are only available to users 18 and over. You\u2019ll still get the full written breakdown of your lift.',
+        );
+        return;
+      }
+      setSaveFrames(true);
+      AsyncStorage.setItem(SAVE_FRAMES_KEY, '1').catch(() => {});
+    } catch (err: any) {
+      Alert.alert('Could not save', err?.message ?? 'Please try again.');
+    } finally {
+      setDobSaving(false);
+    }
   };
 
   const ensurePermission = async (kind: 'camera' | 'library'): Promise<boolean> => {
@@ -358,6 +412,44 @@ export default function FormAnalysisScreen() {
         onClose={() => setShowUpgrade(false)}
         onSuccess={() => setShowUpgrade(false)}
       />
+
+      {/* Asked in context, not at launch: only someone who just reached for an
+          18+ feature sees this, and dismissing it costs them nothing but the
+          stills. */}
+      <Modal visible={dobPrompt} transparent animationType="fade" onRequestClose={() => setDobPrompt(false)}>
+        <View style={styles.dobBackdrop}>
+          <View style={styles.dobCard}>
+            <Text style={styles.dobTitle}>One thing first</Text>
+            <Text style={styles.dobBody}>
+              Saved stills are only available to users 18 and over, and we don’t have your date of birth on file. Add it once and it’s done.
+            </Text>
+            <TextInput
+              style={styles.dobInput}
+              value={dobInput}
+              onChangeText={(t) => setDobInput(formatDob(t))}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.mutedForeground}
+              keyboardType="number-pad"
+              maxLength={10}
+              autoFocus
+              accessibilityLabel="Date of birth"
+            />
+            <TouchableOpacity
+              style={[styles.dobPrimary, dobSaving && { opacity: 0.6 }]}
+              onPress={submitDob}
+              disabled={dobSaving}
+              accessibilityRole="button"
+            >
+              {dobSaving
+                ? <ActivityIndicator color={colors.primaryForeground} />
+                : <Text style={styles.dobPrimaryText}>Save</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dobSkip} onPress={() => setDobPrompt(false)} accessibilityRole="button">
+              <Text style={styles.dobSkipText}>Not now — analyze without stills</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -520,6 +612,31 @@ const styles = StyleSheet.create({
   consentText: { flex: 1, gap: 3 },
   consentTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   consentBody: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 18 },
+
+  // DOB prompt. Modals never inherit keyboard avoidance from the screen behind
+  // them, so the card is centred with room for the keypad rather than pinned low.
+  dobBackdrop: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center', justifyContent: 'center', padding: spacing.lg,
+  },
+  dobCard: {
+    width: '100%', maxWidth: 380, backgroundColor: colors.background,
+    borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm,
+  },
+  dobTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
+  dobBody: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 19 },
+  dobInput: {
+    backgroundColor: colors.muted, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: 12, marginTop: spacing.xs,
+    fontSize: fontSize.base, color: colors.foreground, letterSpacing: 1,
+  },
+  dobPrimary: {
+    height: 48, borderRadius: radius.full, backgroundColor: colors.foreground,
+    alignItems: 'center', justifyContent: 'center', marginTop: spacing.xs,
+  },
+  dobPrimaryText: { color: colors.primaryForeground, fontWeight: fontWeight.semibold, fontSize: fontSize.base },
+  dobSkip: { alignItems: 'center', paddingVertical: spacing.sm },
+  dobSkipText: { color: colors.mutedForeground, fontSize: fontSize.sm },
 
   captureRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   tile: {

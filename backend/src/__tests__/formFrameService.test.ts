@@ -4,12 +4,25 @@
 // — argument order, the -ss-before--i seek, filter syntax — are exactly the
 // parts a mocked ffmpeg would assert nothing about.
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+// Image-grounding runs against Vertex; mocked so the suite stays offline and
+// so each test controls exactly what "where is it" returns.
+//
+// vi.hoisted is required, not stylistic: vi.mock is hoisted above the file's
+// statements, and formFrameService is imported statically below, so the factory
+// runs during module load — before a plain `const mockFn = vi.fn()` would have
+// initialised. (formAnalysis.routes.test.ts gets away with the plain form only
+// because it imports the module under test dynamically inside buildApp.)
+const { mockLocateInFrame } = vi.hoisted(() => ({ mockLocateInFrame: vi.fn() }));
+vi.mock('../services/geminiService.js', () => ({
+  locateInFrame: mockLocateInFrame,
+}));
+
 import {
   isValidBox,
   selectAnchoredWeaknesses,
@@ -21,6 +34,11 @@ import {
 import type { FormWeakness } from '../services/geminiService.js';
 
 const execFileAsync = promisify(execFile);
+
+beforeEach(() => {
+  mockLocateInFrame.mockReset();
+  mockLocateInFrame.mockResolvedValue([200, 150, 700, 800]);
+});
 
 const weakness = (over: Partial<FormWeakness> = {}): FormWeakness => ({
   issue: 'Lumbar rounds at the bottom',
@@ -194,7 +212,7 @@ describe.runIf(() => hasFfmpeg)('extractReferenceFrames (real ffmpeg)', () => {
   it('extracts a decodable JPEG at the requested moment', async () => {
     const video = await readFile(clipPath);
     const frames = await extractReferenceFrames(video, 'video/mp4', [
-      weakness({ timestampSec: 2, box2d: [200, 150, 700, 800] }),
+      weakness({ timestampSec: 2, focusTarget: "the lifter's shoes" }),
     ]);
 
     expect(frames).toHaveLength(1);
@@ -215,11 +233,50 @@ describe.runIf(() => hasFfmpeg)('extractReferenceFrames (real ffmpeg)', () => {
     expect(parseInt(stdout.trim(), 10)).toBe(540);
   }, 30_000);
 
-  it('extracts without a highlight when the box is malformed', async () => {
+  it('asks the image pass where the named target is', async () => {
+    // The whole point of the second pass: video-mode coordinates were ~20% of
+    // frame height off on a real analysis, image-mode coordinates ~1%.
+    const video = await readFile(clipPath);
+    await extractReferenceFrames(video, 'video/mp4', [
+      weakness({ timestampSec: 2, focusTarget: "the lifter's shoes" }),
+    ]);
+    expect(mockLocateInFrame).toHaveBeenCalledOnce();
+    const [jpeg, target] = mockLocateInFrame.mock.calls[0];
+    expect(target).toBe("the lifter's shoes");
+    // It must be handed the CLEAN frame — annotating first would put a red
+    // bracket into the picture we are asking it to interpret.
+    expect(Buffer.isBuffer(jpeg)).toBe(true);
+    expect(jpeg.subarray(0, 2)).toEqual(Buffer.from([0xff, 0xd8]));
+  }, 30_000);
+
+  it('renders an unmarked still when the target cannot be located', async () => {
+    // Right moment, no marker — strictly better than a marker in the wrong place.
+    mockLocateInFrame.mockResolvedValue(null);
     const video = await readFile(clipPath);
     const frames = await extractReferenceFrames(video, 'video/mp4', [
-      weakness({ timestampSec: 1, box2d: [9, 9, 9] }),
+      weakness({ timestampSec: 1, focusTarget: 'the bar' }),
     ]);
+    expect(frames).toHaveLength(1);
+    expect(frames[0].box2d).toBeUndefined();
+    expect(Buffer.from(frames[0].b64, 'base64').subarray(0, 2)).toEqual(Buffer.from([0xff, 0xd8]));
+  }, 30_000);
+
+  it('renders an unmarked still when the image pass returns a malformed box', async () => {
+    mockLocateInFrame.mockResolvedValue([9, 9, 9]);
+    const video = await readFile(clipPath);
+    const frames = await extractReferenceFrames(video, 'video/mp4', [
+      weakness({ timestampSec: 1, focusTarget: 'the bar' }),
+    ]);
+    expect(frames).toHaveLength(1);
+    expect(frames[0].box2d).toBeUndefined();
+  }, 30_000);
+
+  it('skips the image pass entirely when no target was named', async () => {
+    const video = await readFile(clipPath);
+    const frames = await extractReferenceFrames(video, 'video/mp4', [
+      weakness({ timestampSec: 1 }),
+    ]);
+    expect(mockLocateInFrame).not.toHaveBeenCalled();
     expect(frames).toHaveLength(1);
     expect(frames[0].box2d).toBeUndefined();
   }, 30_000);

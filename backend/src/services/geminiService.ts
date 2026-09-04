@@ -168,8 +168,12 @@ export interface FormWeakness {
   cue: string;
   /** Seconds from the start of the clip. Null when the fault isn't tied to one moment. */
   timestampSec?: number | null;
-  /** [ymin, xmin, ymax, xmax] normalized 0-1000. Null when not spatially localisable. */
-  box2d?: number[] | null;
+  /**
+   * A short noun phrase naming what to highlight ("the lifter's shoes", "the
+   * lower back and hips"). NOT coordinates — see locateInFrame for why the
+   * model is asked what to look for here and where to find it separately.
+   */
+  focusTarget?: string | null;
 }
 
 export interface WorkoutVideoAnalysis {
@@ -207,12 +211,11 @@ const WORKOUT_VIDEO_SCHEMA = {
             description:
               'Seconds from the start of the video at the single clearest moment this fault is visible. Null if the fault is not tied to one moment.',
           },
-          box2d: {
-            type: Type.ARRAY,
+          focusTarget: {
+            type: Type.STRING,
             nullable: true,
-            items: { type: Type.NUMBER },
             description:
-              'Region to highlight at that moment as exactly four numbers [ymin, xmin, ymax, xmax], normalized 0-1000. Null if the fault has no single location.',
+              "Short noun phrase naming what a viewer should look at in that frame — e.g. \"the lifter's shoes\", \"the lower back and hips\", \"the bar and hands\". Not coordinates. Null if the fault has no single location.",
           },
         },
       },
@@ -238,12 +241,102 @@ const WORKOUT_VIDEO_SCHEMA = {
 const WORKOUT_VIDEO_SYSTEM = `You are an elite strength & conditioning coach analyzing a lifter's video. Be direct, specific, and evidence-based. Focus on the BIGGEST single fix the lifter can make first. When you spot a weakness, give a concrete coaching cue ("push knees out", "brace before unrack", "drive hips forward through the bar") — not vague advice. Drill recommendations should target the actual weakness, not generic warm-ups. Flag anything that looks like an immediate injury risk (lumbar rounding under load, valgus knee collapse, dangerous unrack, etc.). If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and explain in summary.
 
 ANCHORING FAULTS TO THE VIDEO
-For each weakness, when you can genuinely see it at one identifiable moment, set timestampSec to that moment and box2d to the body region that demonstrates it. These become a still frame shown to the lifter with the region highlighted, so accuracy matters more than coverage:
+For each weakness, when you can genuinely see it at one identifiable moment, set timestampSec to that moment and focusTarget to a short noun phrase naming what a viewer should look at. These become a still frame shown to the lifter with that region highlighted, so accuracy matters more than coverage:
 
 - Anchor only what you actually observed in a frame. If you did not see the fault at a specific instant, leave both fields null. A wrong anchor is far worse than no anchor — it points the lifter at the wrong part of their body.
 - Pick the single clearest instant, not the first or an average.
-- Box the whole relevant region (the lower back and hips, the knee and shin, the bar and hands), not a pinpoint. A slightly generous box reads as "look here"; a tight one implies precision that misleads when it is a few percent off.
+- focusTarget names a thing, not coordinates: "the lifter's shoes", "the lower back and hips", "the knee and shin", "the bar and hands". Name the whole relevant region rather than a pinpoint.
 - Anchor at most the three most important faults. Leave the rest null.`;
+
+// ─── Locating a fault inside one extracted frame ─────────────────────────────
+//
+// Asking the video pass for coordinates does not work, and it fails in the
+// worst possible way: confidently and plausibly.
+//
+// Measured against a real production analysis (a deficit deadlift, 2026-09-04)
+// where the fault was "wearing cushioned running shoes for a heavy pull". The
+// lifter's shoes sit at y 667-729 in the extracted frame:
+//
+//   video pass                 y 867-939   — ~20% of frame height too low,
+//                                            landing on empty floor
+//   image pass on that frame   y 678-728   \
+//                              y 674-729    > three runs, all within ~1%
+//                              y 675-734   /
+//
+// The same video pass put a LARGE region (the torso, for a hip-rise fault)
+// roughly in the right place, which is what makes this so easy to miss: a big
+// box covers its own error, and only small targets expose it.
+//
+// So the question is split. The video pass — which is genuinely reliable about
+// time (10/10 exact timestamps in calibration) — says WHEN and names WHAT to
+// look at. This function takes the frame we actually extracted and asks WHERE,
+// in image mode, where grounding is properly calibrated. The coordinates then
+// refer to the exact pixels we are about to draw on, rather than to whatever
+// internal representation the video path was reasoning over.
+
+const LOCATE_SCHEMA = {
+  type: Type.OBJECT,
+  required: ['found'],
+  properties: {
+    found: { type: Type.BOOLEAN, description: 'False if the target is not clearly visible.' },
+    box2d: {
+      type: Type.ARRAY,
+      nullable: true,
+      items: { type: Type.NUMBER },
+      description: '[ymin, xmin, ymax, xmax] normalized 0-1000.',
+    },
+  },
+};
+
+/**
+ * Find `target` in a single frame. Returns the box in 0-1000 normalized
+ * coordinates, or null when the model cannot see it — null means we render the
+ * still with no highlight, which is the right outcome: the frame is still the
+ * right moment, and no marker beats a marker in the wrong place.
+ *
+ * Never throws. A failure here must cost the highlight, not the analysis.
+ */
+export async function locateInFrame(
+  jpeg: Buffer,
+  target: string,
+): Promise<number[] | null> {
+  try {
+    const res = await client().models.generateContent({
+      model: MODEL,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: LOCATE_SCHEMA,
+        safetySettings: SAFETY_SETTINGS,
+        // Pure perception, so the budget is the minimum the model accepts
+        // rather than zero — 2.5-pro rejects thinkingBudget:0 outright with
+        // INVALID_ARGUMENT. Kept low because this call runs up to three times
+        // per analysis and has nothing to deliberate about.
+        thinkingConfig: { thinkingBudget: 128 },
+        maxOutputTokens: 512,
+      },
+      contents: [{ role: 'user', parts: [
+        {
+          text:
+            `In this photo of someone lifting, give the bounding box of: ${target}. ` +
+            'Return [ymin, xmin, ymax, xmax] normalized 0-1000. ' +
+            'If that is not clearly visible in this photo, set found=false rather than guessing.',
+        },
+        { inlineData: { mimeType: 'image/jpeg', data: jpeg.toString('base64') } },
+      ]}],
+    });
+    assertNotBlocked(res);
+    const raw = res.text?.trim();
+    if (!raw) return null;
+    const parsed = JSON.parse(
+      raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim(),
+    );
+    if (!parsed?.found) return null;
+    return Array.isArray(parsed.box2d) ? parsed.box2d : null;
+  } catch (err: any) {
+    console.warn(`[form-frames] locate "${target}" failed: ${err?.message ?? err}`);
+    return null;
+  }
+}
 
 // ─── GCS-backed video upload (replaces inline-base64) ───────────────────────
 //
