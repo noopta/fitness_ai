@@ -133,6 +133,31 @@ export const Analytics = {
   firstScreenAfterAuth: (screen: string) =>
     posthog.capture('first_screen_after_auth', { screen }),
 
+  // ── First-run form-analysis hook ─────────────────────────────────────────
+  // The signup → intake funnel now has a step between the two. These four
+  // events are what make the "does the aha moment actually earn the intake"
+  // question answerable: shown → submitted → result → finished(reason), with
+  // `reason` separating users who completed it from those who skipped (no
+  // gym, no barbell) and those whose clip failed to read.
+  formHookShown: () => posthog.capture('onboarding_form_hook_shown'),
+
+  // Separate from 'submitted' on purpose: consent given and a clip actually
+  // uploaded are different events, and the gap between them is the number
+  // that tells us whether the consent screen is doing its job or being
+  // clicked through.
+  formHookConsented: () => posthog.capture('onboarding_form_hook_consented'),
+
+  formHookSubmitted: () => posthog.capture('onboarding_form_hook_submitted'),
+
+  formHookResult: (exercise: string, formScore: number) =>
+    posthog.capture('onboarding_form_hook_result', { exercise, form_score: formScore }),
+
+  // 'age_ineligible' is kept distinct from 'skipped' on purpose: an under-18
+  // user redirected to the intake did not decline anything, and folding them
+  // into the skip rate would quietly understate how well the hook converts.
+  formHookFinished: (reason: 'completed' | 'skipped' | 'failed' | 'age_ineligible') =>
+    posthog.capture('onboarding_form_hook_finished', { reason }),
+
   socialProofShown: (count: number) =>
     posthog.capture('signup_social_proof_shown', { user_count: count }),
 

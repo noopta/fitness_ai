@@ -14,10 +14,11 @@ import { useAuth } from '../../src/context/AuthContext';
 import { Analytics } from '../../src/lib/analytics';
 import { authApi } from '../../src/lib/api';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
+import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { register, googleLogin, appleLogin } = useAuth();
+  const { register, googleLogin, appleLogin, getLatestUser } = useAuth();
 
   // Name is no longer collected at signup — defer to post-auth (the
   // diagnostic flow already asks for profile detail). Removing this field
@@ -87,7 +88,7 @@ export default function RegisterScreen() {
         // kicks off and the program-generation loop runs. Bypasses the Home
         // tab so new users see the first piece of real value (questionnaire
         // → personalized plan) immediately rather than browsing tabs.
-        router.replace('/(tabs)/coach');
+        router.replace((await postAuthDestination(getLatestUser())) as any);
       }
     } catch (err: any) {
       Analytics.signupSubmitFailed('register', err?.message ?? 'unknown');
@@ -110,7 +111,7 @@ export default function RegisterScreen() {
       // Same fast-path as email signup — straight to Coach tab where
       // onboarding kicks off for new users (returning users land on
       // their dashboard, which the Coach screen handles natively).
-      router.replace('/(tabs)/coach');
+      router.replace((await postAuthDestination(getLatestUser())) as any);
     } finally { setGoogleLoading(false); }
   }
 
@@ -121,7 +122,7 @@ export default function RegisterScreen() {
       const ok = await appleLogin();
       if (!ok) return;
       Analytics.register('apple');
-      router.replace('/(tabs)/coach');
+      router.replace((await postAuthDestination(getLatestUser())) as any);
     } finally { setAppleLoading(false); }
   }
 

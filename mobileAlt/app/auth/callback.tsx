@@ -21,10 +21,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { colors, fontSize, spacing } from '../../src/constants/theme';
+import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute';
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
-  const { completeAuthCallback } = useAuth();
+  const { completeAuthCallback, getLatestUser } = useAuth();
   const params = useLocalSearchParams<{
     token?: string | string[];
     auth?: string | string[];
@@ -63,7 +64,7 @@ export default function AuthCallbackScreen() {
     }
 
     finalized.current = true;
-    void completeAuthCallback(token, { needsDob }).then((ok) => {
+    void completeAuthCallback(token, { needsDob }).then(async (ok) => {
       if (!ok) {
         Alert.alert(
           'Sign In Failed',
@@ -72,13 +73,15 @@ export default function AuthCallbackScreen() {
         router.replace('/(auth)/welcome');
         return;
       }
-      // RootNavigator's segment-watching useEffect will redirect to
-      // /age-check if needsDobCheck is set, or to /(tabs) otherwise — so
-      // we just need to leave the auth-callback route. Using replace()
-      // (not push) so the back button doesn't return here.
-      router.replace('/(tabs)');
+      // Route via postAuthDestination rather than leaving it to
+      // RootNavigator: its branch only fires while we are still in the auth
+      // or cinematic segment, and replacing the route here wins that race.
+      // (needsDobCheck is still handled by RootNavigator, which redirects to
+      // /age-check on its own and takes precedence over this.)
+      // replace(), not push(), so the back button doesn't return here.
+      router.replace((await postAuthDestination(getLatestUser())) as any);
     });
-  }, [params.token, params.auth, params.needsDob, completeAuthCallback, router]);
+  }, [params.token, params.auth, params.needsDob, completeAuthCallback, router, getLatestUser]);
 
   return (
     <View style={styles.container}>

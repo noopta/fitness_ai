@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -103,6 +103,12 @@ interface AuthContextType {
   appleLogin: () => Promise<boolean>;
   refreshUser: () => Promise<void>;
   /**
+   * The current user, readable synchronously — including immediately after an
+   * `await login()/register()`, when the caller's `user` is still stale.
+   * Post-auth routing depends on this; see postAuthRoute.
+   */
+  getLatestUser: () => AuthUser | null;
+  /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
    * the OS rather than intercepting it in-browser). Persists the token,
@@ -116,6 +122,20 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+
+  // A synchronously-readable mirror of `user`.
+  //
+  // Post-auth routing needs the user the instant `await login()` returns, and
+  // React state is not available to the caller's closure at that point — the
+  // screen still sees the stale value it rendered with. Reading a ref avoids
+  // both a duplicate /auth/me round-trip on the critical path and the class
+  // of bug where a screen routes on a user it hasn't been told about yet.
+  const userRef = useRef<AuthUser | null>(null);
+  const commitUser = useCallback((u: AuthUser | null) => {
+    userRef.current = u;
+    setUser(u);
+  }, []);
+  const getLatestUser = useCallback(() => userRef.current, []);
   const [loading, setLoading] = useState(true);
   const [needsDobCheck, setNeedsDobCheck] = useState(false);
 
@@ -124,12 +144,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refreshUser() {
     try {
       const data = await authApi.getMe();
-      setUser(data.user);
+      commitUser(data.user);
     } catch (err: any) {
       // Only clear user on explicit auth rejection (401/403), not network errors
       if (err?.status === 401 || err?.status === 403) {
         await clearToken();
-        setUser(null);
+        commitUser(null);
       }
       // On network errors, keep the current user state intact
     }
@@ -141,11 +161,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const data = await authApi.getMe();
-          setUser(data.user);
+          commitUser(data.user);
         } catch (err: any) {
           if (err?.status === 401 || err?.status === 403) {
             await clearToken();
-            setUser(null);
+            commitUser(null);
           }
           // Network/server errors: still allow app to load (user stays null → redirect to login)
         }
@@ -198,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await authApi.login(email, password);
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
-    setUser(data.user);
+    commitUser(data.user);
     return null;
   }
 
@@ -206,14 +226,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await authApi.register(name, email, password, dateOfBirth);
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
-    setUser(data.user);
+    commitUser(data.user);
     return null;
   }
 
   async function verifyEmail(email: string, code: string) {
     const data = await authApi.verifyEmail(email, code);
     if (data.token) await setToken(data.token);
-    setUser(data.user);
+    commitUser(data.user);
   }
 
   async function resendVerification(email: string) {
@@ -223,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     try { await authApi.logout(); } catch { /* ignore */ }
     await clearToken();
-    setUser(null);
+    commitUser(null);
   }
 
   /**
@@ -255,7 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         handledToken = null; // release the guard so a retry can run
         return false;
       }
-      setUser(data.user);
+      commitUser(data.user);
       if (opts?.needsDob) setNeedsDobCheck(true);
       return true;
     } catch {
@@ -299,7 +319,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               await clearToken();
               Alert.alert('Sign In Failed', `Verification failed (${res.status}: ${data.error ?? 'unknown'}). Please try again.`);
             } else {
-              setUser(data.user);
+              commitUser(data.user);
               if (dobRequired) setNeedsDobCheck(true);
               return true;
             }
@@ -368,7 +388,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.token) await setToken(data.token);
-      setUser(data.user);
+      commitUser(data.user);
       if (data.needsDobCheck) setNeedsDobCheck(true);
       return true;
     } catch (err: any) {
@@ -380,7 +400,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, completeAuthCallback }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, getLatestUser, completeAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );

@@ -99,3 +99,49 @@ export async function alertUncaughtException(type: string, err: unknown): Promis
 
   await sendSMS(body);
 }
+
+
+// ── Content-safety escalation ───────────────────────────────────────────────
+//
+// Deliberately separate from alertServerError, for three reasons that all
+// matter:
+//
+//  1. NO COOLDOWN DEDUP. alertServerError suppresses a repeat fingerprint for
+//     10 minutes, which is right for a crashing route and wrong here: two
+//     quarantines ten seconds apart are two incidents, not one noisy error,
+//     and silently dropping the second could drop the one that mattered.
+//  2. NO CONTENT, NO OBJECT PATH. The SMS is a summons, not a report. Routing
+//     an evidence pointer through Twilio would put it in a third party's logs.
+//     The message says where to look; it never says what was seen.
+//  3. IT IS TIME-BOUND. The GCS bucket's 1-day lifecycle rule reaps preserved
+//     objects, so an unactioned alert becomes an expired legal obligation in
+//     24 hours. The deadline is in the message because a reviewer who reads
+//     it tomorrow needs to know it is already too late.
+export async function alertContentQuarantine(opts: {
+  flagId: string;
+  concern: string;
+}): Promise<void> {
+  const body = [
+    '\u26A0\uFE0F Axiom CONTENT QUARANTINE',
+    `Flag: ${opts.flagId}`,
+    `Reason: ${opts.concern}`,
+    'A video was withheld from deletion for human review.',
+    'ACT WITHIN 24H — the storage lifecycle rule deletes it after that.',
+    'Review: ContentFlag table, then the referenced object.',
+  ].join('\n');
+
+  // Bypasses shouldSend on purpose — see (1) above.
+  await sendSMS(body);
+  // Always leave the durable trace too, so the incident is recoverable even
+  // when Twilio is unconfigured, over quota, or silently failing.
+  console.error(`[errorAlert] CONTENT QUARANTINE flag=${opts.flagId} concern=${opts.concern}`);
+}
+
+/**
+ * Fire a harmless test escalation so the on-call path can be verified without
+ * waiting for a real incident. An alert that has never fired is one nobody
+ * knows is broken — and this one is expected to fire approximately never.
+ */
+export async function testQuarantineAlert(): Promise<void> {
+  await alertContentQuarantine({ flagId: 'TEST-no-real-incident', concern: 'synthetic_test' });
+}

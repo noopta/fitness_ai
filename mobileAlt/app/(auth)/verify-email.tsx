@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute';
 
 const CODE_LENGTH = 6;
 
@@ -21,7 +22,7 @@ export default function VerifyEmailScreen() {
   const router = useRouter();
   const { email: emailParam } = useLocalSearchParams<{ email: string }>();
   const email = (emailParam ?? '').trim();
-  const { verifyEmail, resendVerification, logout } = useAuth();
+  const { verifyEmail, resendVerification, logout, getLatestUser } = useAuth();
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [submitting, setSubmitting] = useState(false);
@@ -93,7 +94,7 @@ export default function VerifyEmailScreen() {
       // Route straight into Coach (where CoachOnboarding → program generation
       // kicks off) instead of the Home tab — give new users first value
       // immediately, no tab-hunting.
-      router.replace('/(tabs)/coach');
+      router.replace((await postAuthDestination(getLatestUser())) as any);
     } catch (err: any) {
       setError(err?.message ?? 'That code didn\'t match. Try again.');
       // Clear digits so the user can re-type without manually wiping each.

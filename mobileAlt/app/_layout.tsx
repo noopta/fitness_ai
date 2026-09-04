@@ -5,7 +5,7 @@
 // user on launch. Re-enable ONLY after a fresh `eas build --profile
 // production` ships a binary that includes the native module (1.2.2+). The
 // dependency + app.json plugin stay in place so that build links it.
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -24,6 +24,8 @@ import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/comp
 import { hydrateCacheFromStorage } from '../src/lib/cache';
 import { runBootPrefetch } from '../src/lib/prefetch';
 import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
+import { hasSeenFormHook } from '../src/onboarding/formhook/storage';
+import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
 // it captures module-load startup errors. Here we only wrap the root component.
@@ -157,8 +159,16 @@ function RootNavigator() {
     void hasSeenCinematicOnboarding().then(setSeenCinematic);
   }, []);
 
+  // The first-run form-analysis hook sits between sign-in and the intake.
+  // Read once at mount alongside the cinematic flag; the hook screen writes
+  // it on both completion and skip, and `refreshFormHook` re-reads it so the
+  // gate below stops firing the moment the user leaves that screen.
+  const [seenFormHook, setSeenFormHook] = useState<boolean | null>(null);
+  const refreshFormHook = useCallback(() => { void hasSeenFormHook().then(setSeenFormHook); }, []);
+  useEffect(() => { refreshFormHook(); }, [refreshFormHook]);
+
   useEffect(() => {
-    if (loading || seenCinematic === null) return;
+    if (loading || seenCinematic === null || seenFormHook === null) return;
     const inAuthGroup = segments[0] === '(auth)';
     const inAgeCheck = (segments[0] as string) === 'age-check';
     const inCinematic = (segments[0] as string) === 'onboarding-cinematic';
@@ -172,7 +182,8 @@ function RootNavigator() {
     // cold-start the app on the deep link rather than resume it in place.
     // The callback screen routes itself out on both success and failure.
     const inAuthCallback = (segments[0] as string) === 'auth';
-    if (!user && !inAuthGroup && !inCinematic && !inAuthCallback) {
+    const inFormHook = (segments[0] as string) === 'onboarding-form';
+    if (!user && !inAuthGroup && !inCinematic && !inAuthCallback && !inFormHook) {
       // Signed-out users: first-timers (downloaded the app, not signed in) get the
       // cinematic onboarding; users who've already seen it go straight to login.
       router.replace(seenCinematic ? '/(auth)/welcome' : ('/onboarding-cinematic' as any));
@@ -182,9 +193,31 @@ function RootNavigator() {
       // Funnel: users who haven't completed coach onboarding go straight into
       // it (intake → plan → paywall) rather than the Home tab. Onboarded users
       // land on Home as before.
-      router.replace((user.coachOnboardingDone ? '/(tabs)' : '/(tabs)/coach') as any);
+      //
+      // The form-analysis hook is spliced in ahead of the intake for users who
+      // have neither finished the intake nor seen (or skipped) the hook. The
+      // ordering matters: a piece of real coaching first, then the 8-step
+      // interview it just made the case for. `coachOnboardingDone` is checked
+      // first so an existing user re-authenticating never gets sent back
+      // through a first-run screen.
+      // Delegates to the same helper the auth screens use, so there is one
+      // decision rather than two that can disagree. This branch is now the
+      // backstop; the screens themselves route first and win the race.
+      void postAuthDestination(user).then((dest) => router.replace(dest as any));
+    } else if (user && !needsDobCheck && inFormHook && seenFormHook) {
+      // The hook screen marks the flag then replaces to the intake itself.
+      // This is the belt-and-braces path for a cold start that lands back on
+      // the hook route with the flag already set.
+      router.replace('/(tabs)/coach' as any);
     }
-  }, [user, loading, needsDobCheck, segments, seenCinematic]);
+  }, [user, loading, needsDobCheck, segments, seenCinematic, seenFormHook]);
+
+  // Re-read the hook flag whenever we navigate away from the hook screen, so
+  // the gate sees the write the screen just made rather than the stale mount
+  // value (which would bounce the user straight back into it).
+  useEffect(() => {
+    if ((segments[0] as string) !== 'onboarding-form') refreshFormHook();
+  }, [segments, refreshFormHook]);
 
   if (loading || !cacheReady) {
     return (

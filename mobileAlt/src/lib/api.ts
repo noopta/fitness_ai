@@ -1285,7 +1285,57 @@ export interface FormAnalysisDetail {
   repCount: number | null;
   exerciseHint: string | null;
   createdAt: string;
-  analysis: WorkoutVideoAnalysis;
+  analysis: FormAnalysisPayload;
+}
+
+/**
+ * What `analysis` actually holds over a row's life.
+ *
+ * Modelled as one shape with two optional halves rather than a union,
+ * because that is how consumers already read it — every section in the
+ * viewer is optional-chained and renders nothing when its array is absent.
+ * A union would force a narrowing rewrite at every call site to express a
+ * distinction the UI doesn't care about.
+ *
+ * An onboarding row is written twice: mode='quick' (headline/cue, no arrays)
+ * within ~8s, then mode='full' (the arrays, plus onboardingHeadline/Cue
+ * carrying over the line the user actually read) ~20s later. Rows from the
+ * main route are only ever mode='full'; rows predating this feature have no
+ * `mode` at all and must keep rendering.
+ */
+export interface FormAnalysisPayload extends Partial<WorkoutVideoAnalysis> {
+  exercise: string;
+  formScore: number;
+  repCount: number | null;
+  summary: string;
+  mode?: 'quick' | 'full';
+  /** Quick pass only: the single biggest fix. */
+  headline?: string;
+  /** Quick pass only: the cue that fixes it. */
+  cue?: string;
+  /** Full pass on an onboarding row: what the quick pass told the user. */
+  onboardingHeadline?: string;
+  onboardingCue?: string;
+}
+
+/**
+ * The onboarding hook's payload. A `mode` discriminator rides inside
+ * `analysis` because the row upgrades in place: the quick pass writes
+ * mode='quick', then the background full pass rewrites the same row as
+ * mode='full'. Anything reading an analysis must tolerate both shapes.
+ */
+export interface QuickVideoAnalysis {
+  mode: 'quick';
+  framesConsent?: boolean;
+  referenceFrames?: FormReferenceFrame[];
+  timestampSec?: number | null;
+  focusTarget?: string | null;
+  exercise: string;
+  formScore: number;
+  repCount: number | null;
+  headline: string;
+  cue: string;
+  summary: string;
 }
 
 export interface FormAnalysisListItem {
@@ -1321,6 +1371,32 @@ export const formAnalysisApi = {
     // Opt into the async/poll flow — the backend defaults to the legacy
     // synchronous 200 for clients that don't send this header.
     return apiUpload('/form-analysis/video', form, { 'X-Form-Analysis-Async': '1' });
+  },
+
+  /**
+   * The first-run onboarding pass. Same upload contract as `start`, but hits
+   * the route that skips the daily quota and runs the ~6s quick model, so a
+   * brand-new user sees feedback before they lose interest — and can retry a
+   * bad clip without burning their one free credit.
+   *
+   * 409 means they've already run an analysis; callers should fall back to
+   * `start`. Reference stills are never requested here (no consent UI in the
+   * onboarding flow), so no saveFrames field is sent.
+   */
+  startOnboarding: (
+    uri: string,
+    mimeType: string,
+    saveFrames: boolean,
+    exerciseHint?: string,
+  ): Promise<FormAnalysisStarted> => {
+    const form = new FormData();
+    const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+    form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
+    if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
+    // Sent explicitly every time rather than remembered server-side, so the
+    // choice travels with the upload it authorised.
+    form.append('saveFrames', saveFrames ? '1' : '0');
+    return apiUpload('/form-analysis/onboarding', form, { 'X-Form-Analysis-Async': '1' });
   },
 
   list: (): Promise<{ analyses: FormAnalysisListItem[] }> => apiFetch('/form-analysis'),
