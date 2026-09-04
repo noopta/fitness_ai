@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { onboardingHookAvailableFor } from '../services/featureFlags.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
@@ -811,7 +812,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
     // a probe so the decision has one owner.
     res.json({
       user: { ...userFields, institutions },
-      features: { onboardingFormHook: process.env.ONBOARDING_FORM_HOOK_ENABLED === '1' },
+      features: { onboardingFormHook: onboardingHookAvailableFor(user.id, user.email) },
     });
   } catch (err) {
     console.error('Me error:', err);

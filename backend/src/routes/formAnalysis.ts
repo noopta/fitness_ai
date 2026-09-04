@@ -46,6 +46,7 @@ import {
   analyzeFormVideoFull,
 } from '../services/geminiService.js';
 import { extractReferenceFrames } from '../services/formFrameService.js';
+import { onboardingHookAvailableFor } from '../services/featureFlags.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import {
   consumeDailyQuota,
@@ -99,7 +100,6 @@ const ONBOARDING_MIN_AGE_YEARS = 18;
  * same way as the age gate: skip quietly to the intake. So with the flag off
  * the app behaves exactly as it did before the hook existed.
  */
-const ONBOARDING_HOOK_ENABLED = process.env.ONBOARDING_FORM_HOOK_ENABLED === '1';
 
 function isAtLeast(dateOfBirth: Date | null | undefined, years: number): boolean {
   if (!dateOfBirth) return false;
@@ -300,7 +300,7 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
 router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
   const userId = req.user!.id;
 
-  if (!ONBOARDING_HOOK_ENABLED) {
+  if (!onboardingHookAvailableFor(userId, req.user!.email)) {
     return res.status(403).json({
       error: 'The onboarding form check is not available.',
       reason: 'not_enabled',

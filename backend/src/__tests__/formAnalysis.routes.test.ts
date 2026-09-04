@@ -846,6 +846,7 @@ describe('onboarding hook — kill switch', () => {
     // disabled deploy cannot be re-enabled by a request.
     vi.resetModules();
     process.env.ONBOARDING_FORM_HOOK_ENABLED = '0';
+    process.env.ONBOARDING_FORM_HOOK_USERS = '';
     const { default: routes } = await import('../routes/formAnalysis.js');
     const app = express();
     app.use(cookieParser()); app.use(express.json()); app.use('/api', routes);
@@ -859,5 +860,48 @@ describe('onboarding hook — kill switch', () => {
     expect(res.body.reason).toBe('not_enabled');
     expect(prismaFormAnalysis.create).not.toHaveBeenCalled();
     process.env.ONBOARDING_FORM_HOOK_ENABLED = '1';
+  });
+});
+
+
+describe('onboarding hook — per-user allowlist', () => {
+  // The states that matter are "off for the public" and "on for whoever is
+  // testing", not on/off. These cover that the allowlist opens the route for
+  // exactly one user and nobody else.
+  const buildWith = async (env: Record<string, string>) => {
+    vi.resetModules();
+    Object.assign(process.env, env);
+    const { default: routes } = await import('../routes/formAnalysis.js');
+    const app = express();
+    app.use(cookieParser()); app.use(express.json()); app.use('/api', routes);
+    return app;
+  };
+  const upload = (app: express.Express, id: string, email = 'test@axiom.io') =>
+    request(app).post('/api/form-analysis/onboarding')
+      .set('Authorization', `Bearer ${jwt.sign({ id, email, tier: 'free' }, process.env.JWT_SECRET!, { expiresIn: '1h' })}`)
+      .attach('video', Buffer.from('v'), { filename: 'l.mp4', contentType: 'video/mp4' });
+
+  it('opens the route for an allowlisted user id while the switch is off', async () => {
+    const app = await buildWith({ ONBOARDING_FORM_HOOK_ENABLED: '0', ONBOARDING_FORM_HOOK_USERS: 'u-allowed' });
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    expect((await upload(app, 'u-allowed')).status).toBe(202);
+  });
+
+  it('matches on email too, case-insensitively', async () => {
+    const app = await buildWith({ ONBOARDING_FORM_HOOK_ENABLED: '0', ONBOARDING_FORM_HOOK_USERS: 'Tester@Axiom.IO' });
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    expect((await upload(app, 'u-other', 'tester@axiom.io')).status).toBe(202);
+  });
+
+  it('still refuses everyone not on the list', async () => {
+    const app = await buildWith({ ONBOARDING_FORM_HOOK_ENABLED: '0', ONBOARDING_FORM_HOOK_USERS: 'u-allowed' });
+    const res = await upload(app, 'u-someone-else', 'other@axiom.io');
+    expect(res.status).toBe(403);
+    expect(res.body.reason).toBe('not_enabled');
+  });
+
+  afterEach(() => {
+    process.env.ONBOARDING_FORM_HOOK_ENABLED = '1';
+    process.env.ONBOARDING_FORM_HOOK_USERS = '';
   });
 });
