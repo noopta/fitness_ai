@@ -1103,9 +1103,23 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
       // 4. Groups, institutions, partner workouts
       await tryDelete('groupMessage', () => t.groupMessage.deleteMany({ where: { senderId: userId } }));
       await tryDelete('groupMember', () => t.groupMember.deleteMany({ where: { userId } }));
+      // GroupChat.createdById is RESTRICT, so chats this user created block
+      // the delete. Members and messages both cascade from GroupChat, so
+      // removing the chat is enough. This orphans the other members' history
+      // — the same outcome as the creator deleting the chat by hand.
+      // Reassigning ownership instead would be a product decision, not a
+      // deletion one.
+      await tryDelete('groupChat', () => t.groupChat.deleteMany({ where: { createdById: userId } }));
       await tryDelete('institutionMember', () => t.institutionMember.deleteMany({ where: { userId } }));
       await tryDelete('partnerWorkoutMember', () => t.partnerWorkoutMember.deleteMany({ where: { userId } }));
       await tryDelete('partnerWorkout', () => t.partnerWorkout.deleteMany({ where: { creatorId: userId } }));
+
+      // 4b. Adaptive progression. AdaptationProposal.userId is RESTRICT, so a
+      //     user who was ever offered a progression change cannot be deleted
+      //     until these go. Missing this is what made account deletion fail
+      //     with an unnamed P2003 (SQLite reports constraint: null) for every
+      //     user who had one.
+      await tryDelete('adaptationProposal', () => t.adaptationProposal.deleteMany({ where: { userId } }));
 
       // 5. Trust & safety. Reports filed BY this user go; ContentFlag rows are
       //    deliberately retained (userId is not an FK) — an abuse history that
