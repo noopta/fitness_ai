@@ -57,9 +57,6 @@ export interface AuthUser {
   coachGoal?: string | null;
   coachBudget?: string | null;
   coachOnboardingDone?: boolean;
-  // ISO date string, or null for accounts created before the age-check screen
-  // existed. Null is what drives needsDobCheck — see resolveDobCheck below.
-  dateOfBirth?: string | null;
   coachProfile?: string | null;
   savedProgram?: string | null;
   institutions?: InstitutionMembership[];
@@ -116,27 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function clearDobCheck() { setNeedsDobCheck(false); }
 
-  /**
-   * Date of birth is what enforces the 13+ minimum and gates age-restricted
-   * features, so an account without one is an account we cannot apply either
-   * rule to. Anyone missing it gets routed to /age-check by the root layout.
-   *
-   * This is derived from the user object rather than read from a login
-   * response because the response is not where most of the gap was: a signed
-   * -in user restores their session through /auth/me and may not log in again
-   * for months. 102 of 178 production accounts had a null dateOfBirth on
-   * 2026-09-04, all of them predating the age-check screen, and none of them
-   * would ever have been asked. Deriving it here catches them on next launch.
-   */
-  function resolveDobCheck(u: { dateOfBirth?: string | null } | null | undefined) {
-    setNeedsDobCheck(!!u && !u.dateOfBirth);
-  }
-
   async function refreshUser() {
     try {
       const data = await authApi.getMe();
       setUser(data.user);
-      resolveDobCheck(data.user);
     } catch (err: any) {
       // Only clear user on explicit auth rejection (401/403), not network errors
       if (err?.status === 401 || err?.status === 403) {
@@ -154,7 +134,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const data = await authApi.getMe();
           setUser(data.user);
-          resolveDobCheck(data.user);
         } catch (err: any) {
           if (err?.status === 401 || err?.status === 403) {
             await clearToken();
@@ -212,10 +191,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
     setUser(data.user);
-    // Not resolveDobCheck(data.user): the login response trims `user` to four
-    // fields and dateOfBirth is not one of them, so deriving from it here
-    // would report "missing" for everybody. The server sends the verdict.
-    setNeedsDobCheck(!!data.needsDobCheck);
     return null;
   }
 
@@ -273,11 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
       setUser(data.user);
-      // The verified user object is more authoritative than the needsDob query
-      // param that rode in on the redirect, so derive from it and treat the
-      // param as a fallback for the case where /auth/me omits the field.
       if (opts?.needsDob) setNeedsDobCheck(true);
-      else resolveDobCheck(data.user);
       return true;
     } catch {
       // Network error — token is stored, but we couldn't verify. Roll back so

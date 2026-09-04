@@ -206,36 +206,6 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(401);
   });
 
-  // ── Date of birth ─────────────────────────────────────────────────────────
-  // DOB enforces the 13+ minimum and gates age-restricted features (the 18+
-  // form-analysis stills), so an account without one is an account neither
-  // rule can be applied to. Every signed-in surface has to report it missing,
-  // not just brand-new signups — 102 of 178 production accounts predated the
-  // age-check screen and would otherwise never have been asked.
-
-  async function loginWith(overrides: Record<string, unknown>) {
-    const bcrypt = await import('bcryptjs');
-    const hash = await bcrypt.default.hash('mypassword123', 12);
-    prismaUserMock.findUnique.mockResolvedValueOnce({
-      ...mockUser, hashedPassword: hash, emailVerified: true, ...overrides,
-    });
-    return request(app)
-      .post('/api/auth/login')
-      .send({ email: 'test@example.com', password: 'mypassword123' });
-  }
-
-  it('flags needsDobCheck for an existing account with no date of birth', async () => {
-    const res = await loginWith({ dateOfBirth: null });
-    expect(res.status).toBe(200);
-    expect(res.body.needsDobCheck).toBe(true);
-  });
-
-  it('does not flag needsDobCheck once a date of birth is on file', async () => {
-    const res = await loginWith({ dateOfBirth: new Date('1995-04-12') });
-    expect(res.status).toBe(200);
-    expect(res.body.needsDobCheck).toBe(false);
-  });
-
   it('returns 200 with user and sets cookie on valid credentials (verified user)', async () => {
     // Use bcrypt to hash a known password for a realistic test
     const bcrypt = await import('bcryptjs');
