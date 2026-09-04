@@ -368,7 +368,10 @@ router.post('/auth/login', authLimiter, async (req, res) => {
       event: 'user_logged_in',
       properties: { login_method: 'email', tier: user.tier },
     });
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token });
+    // Any signed-in account missing a date of birth is routed to /age-check.
+    // See the note at the Apple handler below for why this is not gated on
+    // "is this a brand new user".
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, needsDobCheck: !user.dateOfBirth });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request' });
@@ -628,7 +631,7 @@ router.get('/auth/google/callback', async (req, res) => {
     });
 
     if (mobileRedirect) {
-      const needsDob = isNewUser && !user.dateOfBirth ? '&needsDob=1' : '';
+      const needsDob = !user.dateOfBirth ? '&needsDob=1' : '';
       redirectToApp(res, `${mobileRedirect}?token=${token}${needsDob}`);
     } else {
       // Include token in URL so web frontend can use it as Bearer fallback
@@ -719,7 +722,14 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
       event: 'user_apple_signin_completed',
       properties: { is_new_user: isNewUser, tier: user.tier },
     });
-    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, accessToken: token, needsDobCheck: isNewUser && !user.dateOfBirth });
+    // Was `isNewUser && !user.dateOfBirth`, which meant an account that
+    // predated the age-check screen was never asked again — 102 of 178
+    // production users had a null dateOfBirth as of 2026-09-04. Date of birth
+    // is what enforces the 13+ minimum and gates age-restricted features
+    // (form-analysis reference stills are 18+), so an account we cannot age
+    // is one we cannot apply either rule to. Ask any account that is missing
+    // it, not just new ones.
+    res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, accessToken: token, needsDobCheck: !user.dateOfBirth });
   } catch (err: any) {
     posthog.captureException(err);
     console.error('Apple auth error:', err);

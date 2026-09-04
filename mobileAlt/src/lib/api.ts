@@ -156,6 +156,13 @@ export interface AuthSuccess {
   user: { id: string; name: string | null; email: string | null; tier: string };
   token: string;
   alreadyVerified?: boolean;
+  /**
+   * True when the account has no date of birth on file, which routes the user
+   * to /age-check. Reported as its own field rather than inferred from `user`
+   * because this response deliberately trims the user object down to four
+   * fields — dateOfBirth is not among them.
+   */
+  needsDobCheck?: boolean;
 }
 export interface AuthVerifyPending {
   requiresVerification: true;
