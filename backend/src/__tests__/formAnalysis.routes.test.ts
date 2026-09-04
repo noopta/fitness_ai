@@ -82,6 +82,7 @@ const mockCleanup = vi.fn();
 const MINOR_DOB = new Date(Date.now() - 15 * 365.25 * 24 * 3600 * 1000);
 const QUICK = {
   exercise: 'Barbell Back Squat', formScore: 5, repCount: 4,
+  timestampSec: 3.2, focusTarget: "the lifter's knees",
   headline: 'Knees collapse in out of the hole',
   cue: 'Screw your feet into the floor and push the knees out',
   summary: 'Solid depth and a stable brace. The knee track is what to fix first.',
@@ -761,5 +762,77 @@ describe('onboarding hook — legal protections', () => {
       expect(mockAnalyzeFormVideoFull).toHaveBeenCalledTimes(1);
       expect(mockCleanup).toHaveBeenCalled();
     });
+  });
+});
+
+
+describe('onboarding hook — reference stills', () => {
+  let app: express.Express;
+  beforeAll(async () => { app = await buildApp(); });
+
+  const post = (saveFrames: string) => request(app)
+    .post('/api/form-analysis/onboarding')
+    .set('Authorization', `Bearer ${makeToken('u-1')}`)
+    .field('saveFrames', saveFrames)
+    .attach('video', Buffer.from('mock video'), { filename: 'lift.mp4', contentType: 'video/mp4' });
+
+  const settle = () => new Promise((r) => setTimeout(r, 20));
+
+  beforeEach(() => {
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    mockExtractReferenceFrames.mockResolvedValue([
+      { weaknessIndex: 0, timestampSec: 3.2, b64: 'ZmFrZQ==', box2d: [100, 200, 400, 500] },
+    ]);
+  });
+
+  it('extracts a still from the QUICK pass, so it lands on the aha screen', async () => {
+    await post('1'); await settle();
+
+    // Anchored off the quick pass's own headline — not the full report's
+    // weaknesses, which arrive ~20s too late to be the feature.
+    const [buf, mime, weaknesses] = mockExtractReferenceFrames.mock.calls[0];
+    expect(weaknesses).toEqual([expect.objectContaining({
+      issue: QUICK.headline,
+      cue: QUICK.cue,
+      timestampSec: 3.2,
+      focusTarget: "the lifter's knees",
+    })]);
+
+    const quickJson = JSON.parse(prismaFormAnalysis.update.mock.calls[0][0].data.analysisJson);
+    expect(quickJson.mode).toBe('quick');
+    expect(quickJson.framesConsent).toBe(true);
+    expect(quickJson.referenceFrames).toHaveLength(1);
+  });
+
+  it('stores no stills when the user did not opt in', async () => {
+    await post('0'); await settle();
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+    const quickJson = JSON.parse(prismaFormAnalysis.update.mock.calls[0][0].data.analysisJson);
+    expect(quickJson.framesConsent).toBe(false);
+    expect(quickJson.referenceFrames).toEqual([]);
+  });
+
+  it('treats a missing saveFrames field as no consent', async () => {
+    await request(app)
+      .post('/api/form-analysis/onboarding')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`)
+      .attach('video', Buffer.from('v'), { filename: 'l.mp4', contentType: 'video/mp4' });
+    await settle();
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+  });
+
+  it('a failed still extraction never costs the analysis', async () => {
+    mockExtractReferenceFrames.mockResolvedValue([]);
+    await post('1'); await settle();
+    const quickJson = JSON.parse(prismaFormAnalysis.update.mock.calls[0][0].data.analysisJson);
+    expect(quickJson.headline).toBe(QUICK.headline);
+    expect(quickJson.referenceFrames).toEqual([]);
+    expect(prismaFormAnalysis.update.mock.calls[0][0].data.status).toBe('complete');
+  });
+
+  it('screened-out clips never reach frame extraction', async () => {
+    mockScreenFormVideo.mockResolvedValue({ action: 'reject', concern: 'not_exercise' });
+    await post('1'); await settle();
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
   });
 });

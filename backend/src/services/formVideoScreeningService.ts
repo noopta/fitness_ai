@@ -32,6 +32,7 @@
 import { Type } from '@google/genai';
 import { PrismaClient } from '@prisma/client';
 import { client, assertNotBlocked } from './geminiService.js';
+import { alertContentQuarantine } from './errorAlertService.js';
 
 const prisma = new PrismaClient();
 
@@ -45,7 +46,13 @@ const SCREEN_MODEL = process.env.FORM_VIDEO_SCREEN_MODEL ?? 'gemini-2.5-flash';
  * signal we act on (see the catch below).
  */
 const SCREEN_SAFETY = [
-  { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' },
+  // MEDIUM, not LOW, and the difference matters. At BLOCK_LOW_AND_ABOVE an
+  // ordinary shirtless man deadlifting can trip SEXUALLY_EXPLICIT — which
+  // under the old logic quarantined him: his onboarding blocked AND his video
+  // retained, the exact opposite of what he consented to. At MEDIUM ordinary
+  // gym footage passes, which means a block here is now a signal worth acting
+  // on rather than noise worth suppressing.
+  { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
   { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_LOW_AND_ABOVE' },
   { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_LOW_AND_ABOVE' },
   { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -86,6 +93,12 @@ export interface ScreenVerdict {
   action: ScreenAction;
   /** Machine-readable reason, stored on the ContentFlag. */
   concern: string;
+  /**
+   * Which safety categories Vertex blocked on, when it blocked. Recorded so a
+   * reviewer opening a quarantine knows what tripped rather than having to
+   * infer it from a video they may not want to open blind.
+   */
+  blockedCategories?: string[];
   /** User-facing message. Deliberately non-accusatory for 'reject'. */
   userMessage?: string;
   raw?: unknown;
@@ -100,6 +113,20 @@ export interface ScreenVerdict {
  * reject is one retry on an onboarding screen; the cost of a false allow is
  * the thing this module exists to prevent.
  */
+/**
+ * Which categories Vertex actually blocked on. assertNotBlocked throws a bare
+ * ContentBlockedError without the category, and we need it for the review
+ * record, so read the ratings off the response directly.
+ */
+function blockedCategories(res: any): string[] {
+  const out = new Set<string>();
+  for (const r of res?.promptFeedback?.safetyRatings ?? []) if (r?.blocked) out.add(r.category);
+  for (const r of res?.candidates?.[0]?.safetyRatings ?? []) if (r?.blocked) out.add(r.category);
+  const reason = res?.promptFeedback?.blockReason;
+  if (!out.size && reason) out.add(String(reason));
+  return [...out];
+}
+
 export async function screenFormVideo(
   fileUri: string,
   mimeType: string,
@@ -130,7 +157,20 @@ export async function screenFormVideo(
       ]}],
     });
 
-    assertNotBlocked(res);
+    const blocked = blockedCategories(res);
+    try {
+      assertNotBlocked(res);
+    } catch (err: any) {
+      if (err?.isContentBlocked) {
+        return {
+          action: 'quarantine',
+          concern: 'classifier_safety_block',
+          blockedCategories: blocked,
+          userMessage: 'We could not process this video. If you believe this is a mistake, contact support.',
+        };
+      }
+      throw err;
+    }
     const raw = res.text?.trim();
     if (!raw) return failClosed('empty_screen_response');
     const v = JSON.parse(raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim());
@@ -173,10 +213,11 @@ export async function screenFormVideo(
     }
     return { action: 'allow', concern: 'none', raw: v };
   } catch (err: any) {
-    // A safety block on the CLASSIFIER is itself a strong signal: the content
-    // tripped Vertex's own filters at BLOCK_LOW_AND_ABOVE. Quarantine rather
-    // than reject, because we cannot rule out the case that requires
-    // preservation and we no longer have a model opinion to rule it in.
+    // A safety block on the CLASSIFIER is a strong signal now that the sexual
+    // threshold sits at MEDIUM: ordinary gym footage no longer trips it, so a
+    // block means something genuinely tripped Google's filters. Quarantine,
+    // because we cannot rule out the case requiring preservation and we no
+    // longer have a model opinion to rule it in.
     if (err?.isContentBlocked) {
       return {
         action: 'quarantine',
@@ -220,27 +261,39 @@ export async function recordScreenVerdict(opts: {
 }): Promise<void> {
   const { userId, surface, verdict, preservedObject } = opts;
   if (verdict.action === 'allow') return; // don't log a flag for every clean upload
+  let flagId = 'unrecorded';
   try {
-    await prisma.contentFlag.create({
+    const flag = await prisma.contentFlag.create({
       data: {
         userId,
         surface,
         excerpt: verdict.action === 'quarantine' ? (preservedObject ?? '') : '',
         blocked: true,
-        categories: JSON.stringify({ concern: verdict.concern, action: verdict.action, raw: verdict.raw ?? null }),
+        categories: JSON.stringify({
+          concern: verdict.concern,
+          action: verdict.action,
+          blockedCategories: verdict.blockedCategories ?? [],
+          raw: verdict.raw ?? null,
+        }),
         topScore: verdict.action === 'quarantine' ? 1 : 0.5,
       },
+      select: { id: true },
     });
+    flagId = flag.id;
   } catch (err) {
     console.error('[form-screen] failed to record verdict:', err);
   }
 
   if (verdict.action === 'quarantine') {
-    // Loud and unmissable. This is the line a human has to act on, and the
-    // object referenced here is deliberately NOT deleted.
+    // Durable local trace, with the object path — this stays on our own box.
     console.error(
       `[form-screen] QUARANTINE user=${userId} concern=${verdict.concern} object=${preservedObject ?? 'none'} — ` +
       `video preserved for review, NOT deleted. Review and, if confirmed, report to NCMEC within the statutory window.`,
+    );
+    // Out-of-band page. Deliberately carries neither the object path nor any
+    // description of what was seen — see alertContentQuarantine.
+    await alertContentQuarantine({ flagId, concern: verdict.concern }).catch((e) =>
+      console.error('[form-screen] quarantine alert failed to send:', e),
     );
   }
 }

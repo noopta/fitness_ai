@@ -152,7 +152,10 @@ export const Analytics = {
   formHookResult: (exercise: string, formScore: number) =>
     posthog.capture('onboarding_form_hook_result', { exercise, form_score: formScore }),
 
-  formHookFinished: (reason: 'completed' | 'skipped' | 'failed') =>
+  // 'age_ineligible' is kept distinct from 'skipped' on purpose: an under-18
+  // user redirected to the intake did not decline anything, and folding them
+  // into the skip rate would quietly understate how well the hook converts.
+  formHookFinished: (reason: 'completed' | 'skipped' | 'failed' | 'age_ineligible') =>
     posthog.capture('onboarding_form_hook_finished', { reason }),
 
   socialProofShown: (count: number) =>

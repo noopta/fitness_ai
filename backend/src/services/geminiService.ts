@@ -431,10 +431,15 @@ const QUICK_MODEL = process.env.FORM_VIDEO_QUICK_MODEL ?? 'gemini-2.5-flash';
 /**
  * Frame rate for the quick pass. Latency is flat across fps (measured
  * 5.3s @ 2fps vs 6.4s @ 1fps — 2fps was marginally *faster*), so fps costs
- * input tokens rather than wall-clock. 2 is the floor at which the model
- * stops confabulating between frames on "how many reps" (see the
- * VIDEO_SAMPLE_FPS calibration above); 4 doubles the token bill for temporal
- * precision this pass never reports.
+ * input tokens rather than wall-clock.
+ *
+ * Stays at 2 even though this pass now anchors a fault for a reference still.
+ * The VIDEO_SAMPLE_FPS calibration above shows timestamps are already 10/10
+ * at 1 fps — it is the *boxes* that need 4, and this pass no longer asks the
+ * video for a box. It names a focusTarget, and locateInFrame resolves the
+ * coordinates against the extracted still where the pixels are exact. So 4
+ * would double the token bill to buy precision the design already gets for
+ * free elsewhere.
  */
 const QUICK_SAMPLE_FPS = Number(process.env.FORM_VIDEO_QUICK_FPS ?? 2);
 
@@ -449,6 +454,15 @@ export interface QuickVideoAnalysis {
   cue: string;
   /** Two sentences. Specific, not congratulatory. */
   summary: string;
+  /**
+   * Where the headline fault happens, so the onboarding screen can show the
+   * frame rather than describe it. Mirrors FormWeakness exactly — including
+   * asking for a noun phrase rather than coordinates, because the box is
+   * resolved against the extracted still by locateInFrame, not against the
+   * video (see formFrameService).
+   */
+  timestampSec?: number | null;
+  focusTarget?: string | null;
 }
 
 const QUICK_VIDEO_SCHEMA = {
@@ -461,6 +475,8 @@ const QUICK_VIDEO_SCHEMA = {
     headline: { type: Type.STRING, description: 'The single biggest fix, 6-10 words. No hedging.' },
     cue: { type: Type.STRING, description: 'One concrete coaching cue that fixes the headline fault.' },
     summary: { type: Type.STRING, description: 'Exactly two sentences. Specific and direct, not congratulatory.' },
+    timestampSec: { type: Type.NUMBER, nullable: true, description: 'Seconds from clip start where the headline fault is clearest. Null if it is not tied to one moment.' },
+    focusTarget: { type: Type.STRING, nullable: true, description: "A short noun phrase naming what to highlight (\"the lifter's knees\", \"the lower back and hips\"). NOT coordinates. Null if the fault isn't localisable." },
   },
 };
 
@@ -477,6 +493,7 @@ Scope limits, which are not negotiable:
 - Comment ONLY on lifting technique. Do not assess injury risk, do not name or imply any injury, condition, pain or medical problem, and do not use clinical language.
 - Do not comment on the lifter's body, physique, weight or appearance.
 - If what you see looks genuinely unsafe, do not diagnose it — give the technique cue that addresses it and nothing more.
+Set timestampSec to the moment the fault is clearest and focusTarget to a short noun phrase naming what to highlight there. Leave both null rather than guessing if the fault isn't tied to one moment.
 If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and say plainly what would make a better clip in the summary.`;
 
 /**
@@ -589,7 +606,7 @@ export async function analyzeFormVideoQuick(
       responseSchema: QUICK_VIDEO_SCHEMA,
       safetySettings: SAFETY_SETTINGS,
       thinkingConfig: { thinkingBudget: 0 },
-      // The schema tops out around 150 tokens; 1024 is headroom, not a target.
+      // The schema tops out around 170 tokens; 1024 is headroom, not a target.
       maxOutputTokens: 1024,
     },
     contents: [{ role: 'user', parts: [

@@ -1326,6 +1326,10 @@ export interface FormAnalysisPayload extends Partial<WorkoutVideoAnalysis> {
  */
 export interface QuickVideoAnalysis {
   mode: 'quick';
+  framesConsent?: boolean;
+  referenceFrames?: FormReferenceFrame[];
+  timestampSec?: number | null;
+  focusTarget?: string | null;
   exercise: string;
   formScore: number;
   repCount: number | null;
@@ -1382,12 +1386,16 @@ export const formAnalysisApi = {
   startOnboarding: (
     uri: string,
     mimeType: string,
+    saveFrames: boolean,
     exerciseHint?: string,
   ): Promise<FormAnalysisStarted> => {
     const form = new FormData();
     const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
     form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
     if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
+    // Sent explicitly every time rather than remembered server-side, so the
+    // choice travels with the upload it authorised.
+    form.append('saveFrames', saveFrames ? '1' : '0');
     return apiUpload('/form-analysis/onboarding', form, { 'X-Form-Analysis-Async': '1' });
   },
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Switch, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -68,6 +68,12 @@ export default function OnboardingFormHook() {
   const [beat, setBeat] = useState(0);
   const [result, setResult] = useState<QuickVideoAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Stills default OFF. The stills DPIA's basis is Art. 9(2)(a) explicit
+  // consent, and a pre-ticked box in a first-run flow is not that — nor is it
+  // the "high privacy default" the UK AADC expects of a service minors can
+  // reach. Declining costs the user only the picture; all the coaching text
+  // is identical either way.
+  const [saveFrames, setSaveFrames] = useState(false);
   const cancelled = useRef(false);
 
   useEffect(() => () => { cancelled.current = true; }, []);
@@ -90,11 +96,59 @@ export default function OnboardingFormHook() {
    * after a failure — being asked to film yourself on every cold start would
    * be worse than never having asked.
    */
-  const finish = useCallback(async (reason: 'completed' | 'skipped' | 'failed') => {
+  const finish = useCallback(async (reason: 'completed' | 'skipped' | 'failed' | 'age_ineligible') => {
     Analytics.formHookFinished(reason);
     await markFormHookSeen();
     router.replace('/(tabs)/coach' as any);
   }, [router]);
+
+  const analyze = useCallback(async (uri: string, mimeType: string) => {
+    setStage('working');
+    setBeat(0);
+    setError(null);
+    Analytics.formHookSubmitted();
+    try {
+      const started = await formAnalysisApi.startOnboarding(uri, mimeType, saveFrames);
+      // 1.5s rather than the main screen's 4s: the quick pass lands in ~6s,
+      // and a 4s poll would routinely add half again as much dead time on top
+      // of a result that was already sitting there.
+      const detail = await formAnalysisApi.pollUntilDone(started.id, {
+        intervalMs: 1500,
+        timeoutMs: 120_000,
+      });
+      if (cancelled.current) return;
+
+      if (detail.status === 'failed') {
+        setError(detail.errorMessage ?? "We couldn't read that clip.");
+        setStage('result');
+        return;
+      }
+      const a = detail.analysis as QuickVideoAnalysis;
+      // The model is instructed to return exercise="unknown" rather than
+      // invent feedback on an unreadable clip. That is the right behaviour
+      // and the wrong thing to show as an aha moment, so it routes to retry.
+      if (!a || a.exercise === 'unknown') {
+        setError(a?.summary ?? "We couldn't tell what lift that was.");
+        setStage('result');
+        return;
+      }
+      setResult(a);
+      setStage('result');
+      Analytics.formHookResult(a.exercise, a.formScore);
+    } catch (e: any) {
+      if (cancelled.current) return;
+      // The route 403s anyone under 18. If we somehow got here anyway (stale
+      // client state, a DOB corrected after launch), don't strand them on a
+      // screen they cannot use — send them to the intake, which is where they
+      // were always going next.
+      if (/18 and over|age_restricted/i.test(String(e?.message ?? ''))) {
+        void finish('age_ineligible');
+        return;
+      }
+      setError(e?.message ?? 'Analysis failed.');
+      setStage('result');
+    }
+  }, [saveFrames, finish]);
 
   const pick = useCallback(async (mode: 'camera' | 'library') => {
     try {
@@ -144,47 +198,8 @@ export default function OnboardingFormHook() {
     } catch (e: any) {
       Alert.alert('Something went wrong', e?.message ?? 'Please try again.');
     }
-  }, []);
+  }, [analyze]);
 
-  const analyze = useCallback(async (uri: string, mimeType: string) => {
-    setStage('working');
-    setBeat(0);
-    setError(null);
-    Analytics.formHookSubmitted();
-    try {
-      const started = await formAnalysisApi.startOnboarding(uri, mimeType);
-      // 1.5s rather than the main screen's 4s: the quick pass lands in ~6s,
-      // and a 4s poll would routinely add half again as much dead time on top
-      // of a result that was already sitting there.
-      const detail = await formAnalysisApi.pollUntilDone(started.id, {
-        intervalMs: 1500,
-        timeoutMs: 120_000,
-      });
-      if (cancelled.current) return;
-
-      if (detail.status === 'failed') {
-        setError(detail.errorMessage ?? "We couldn't read that clip.");
-        setStage('result');
-        return;
-      }
-      const a = detail.analysis as QuickVideoAnalysis;
-      // The model is instructed to return exercise="unknown" rather than
-      // invent feedback on an unreadable clip. That is the right behaviour
-      // and the wrong thing to show as an aha moment, so it routes to retry.
-      if (!a || a.exercise === 'unknown') {
-        setError(a?.summary ?? "We couldn't tell what lift that was.");
-        setStage('result');
-        return;
-      }
-      setResult(a);
-      setStage('result');
-      Analytics.formHookResult(a.exercise, a.formScore);
-    } catch (e: any) {
-      if (cancelled.current) return;
-      setError(e?.message ?? 'Analysis failed.');
-      setStage('result');
-    }
-  }, []);
 
   // ── Bottom bar, mirroring OnboardingPager's so the chrome doesn't jump ──
   const Bar = ({ children }: { children: React.ReactNode }) => (
@@ -245,12 +260,32 @@ export default function OnboardingFormHook() {
               <Text style={styles.consentEmphasis}> permanently deleted</Text> — usually within a minute.
             </Text>
             <Text style={styles.consentLine}>
-              We keep the written feedback, not the video. No one else sees it, and it is
-              never used to train any model.
+              We keep the written feedback. No one else sees it, and it is never used to
+              train any model.
             </Text>
             <Text style={styles.consentLine}>
               Film only yourself, and avoid catching other people in frame.
             </Text>
+
+            {/* Separate, unticked, and separately revocable. The written
+                analysis is identical whether this is on or off — which is
+                what keeps the consent freely given rather than the price of
+                using the feature. */}
+            <View style={styles.stillsRow}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={styles.stillsTitle}>Show me the exact frame</Text>
+                <Text style={styles.stillsBody}>
+                  Saves one still from your clip with the moment marked, so you can see what
+                  we mean. Stored with your feedback until you delete it. Off by default.
+                </Text>
+              </View>
+              <Switch
+                value={saveFrames}
+                onValueChange={setSaveFrames}
+                trackColor={{ false: 'rgba(255,255,255,0.20)', true: 'rgba(255,255,255,0.55)' }}
+                thumbColor="#fff"
+              />
+            </View>
           </View>
         </Reveal>
         <Bar>
@@ -377,7 +412,28 @@ export default function OnboardingFormHook() {
             <Text style={styles.cueText}>{result.cue}</Text>
           </View>
         </Reveal>
-        <Reveal index={4}>
+        {result.referenceFrames?.[0]?.b64 ? (
+          <Reveal index={4}>
+            {/* The picture is the point: "your knees cave" lands differently
+                when it is drawn on the frame it happened in. Only present
+                when the user opted in AND the model could localise the
+                fault — both are routinely false, so this is never assumed. */}
+            <View style={styles.frameWrap}>
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${result.referenceFrames[0].b64}` }}
+                style={styles.frameImage}
+                resizeMode="cover"
+                accessibilityLabel={`The moment we're describing: ${result.headline}`}
+              />
+              <Text style={styles.frameCaption}>
+                {typeof result.referenceFrames[0].timestampSec === 'number'
+                  ? `${result.referenceFrames[0].timestampSec.toFixed(1)}s into your set`
+                  : 'From your set'}
+              </Text>
+            </View>
+          </Reveal>
+        ) : null}
+        <Reveal index={5}>
           <Text style={[scene.body, { marginTop: s(14) }]}>{result.summary}</Text>
         </Reveal>
         <Bar>
@@ -446,6 +502,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   consentLine: { color: 'rgba(255,255,255,0.80)', fontSize: 13, lineHeight: 19 },
+  stillsRow: {
+    flexDirection: 'row', alignItems: 'center', marginTop: 4, paddingTop: 12,
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.14)',
+  },
+  stillsTitle: { color: '#fff', fontSize: 13.5, fontWeight: '700', marginBottom: 3 },
+  stillsBody: { color: 'rgba(255,255,255,0.62)', fontSize: 12, lineHeight: 16.5 },
+  frameWrap: { marginTop: 16, gap: 6 },
+  frameImage: {
+    width: '100%', aspectRatio: 3 / 4, maxHeight: 260,
+    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  frameCaption: { color: 'rgba(255,255,255,0.55)', fontSize: 11.5 },
   consentEmphasis: { color: '#fff', fontWeight: '700' },
   cueCard: {
     marginTop: 16, padding: 14, borderRadius: 12,

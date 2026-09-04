@@ -40,9 +40,17 @@ path in the product.
 > the user waits for (~8s) and a fuller written report in the background, then
 > delete the video. Show the fast result, then proceed to intake.
 
-Not in scope and not done: retained stills (explicitly disabled on this path),
-facial recognition, biometric identification, retained pose templates, matching
-users across videos, advertising use, model-training use.
+Reference stills ARE in scope on this path, having initially been disabled.
+They were re-enabled once the hook became 18+ enforced, which is the condition
+the stills DPIA already required. They remain opt-in per upload, default off,
+and the written analysis is identical whether or not the user opts in — see
+§3. One still is taken from the fast pass's own anchor rather than the full
+report's, because a picture that arrives after the user has moved on is not
+the feature.
+
+Not in scope and not done: facial recognition, biometric identification,
+retained pose templates, matching users across videos, advertising use,
+model-training use.
 
 ---
 
@@ -73,10 +81,13 @@ testable claim rather than a statement of intent:
 
 **Retention:** the video is deleted from GCS immediately after analysis, with a
 1-day bucket lifecycle rule as backstop. The written analysis is retained with
-the account and is deleted with it. One deliberate exception is at §5.
+the account and is deleted with it. Where — and only where — the user opted in,
+one annotated still is stored alongside the analysis and is deleted with it.
+One deliberate exception is at §5.
 
 **Recipients:** Google Vertex AI as processor (existing, contractually excluded
-from model training). No other recipient. Stills are not produced on this path.
+from model training), which also resolves the highlight region against the
+extracted still. No other recipient; stills are never shared between users.
 
 ---
 
@@ -207,8 +218,9 @@ These are conditions, not recommendations. The first three are blocking.
    who files, how the preserved object is handed over, how the account is
    handled. Detection without a procedure is not compliance.
 3. **Privacy policy update** — the onboarding context, the 18+ restriction, the
-   two-pass processing, and the §5 retention exception. The current text
-   describes a feature the user chooses and cites "up to 60 seconds."
+   two-pass processing, stills on this path, and the §5 retention exception.
+   The current text describes a feature the user chooses and cites "up to 60
+   seconds."
 4. Legal review of the §3 consent argument. It is engineered to be defensible;
    whether it *is* defensible is not an engineering judgement.
 5. Escalate `otherPeopleVisible` to user-facing guidance (§4.4).

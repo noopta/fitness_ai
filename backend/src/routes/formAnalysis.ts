@@ -325,6 +325,14 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
       ? req.body.exerciseHint.trim().slice(0, 120)
       : null;
 
+  // Stills are opt-in here exactly as on the main route: the stills DPIA's
+  // basis is Art. 9(2)(a) explicit consent, and a default-on toggle in a
+  // first-run flow is not explicit consent. The age half of mayStoreFrames is
+  // already satisfied — this route 403s anyone under 18 above — but we call it
+  // anyway rather than duplicating the rule in a second place.
+  const framesRequested = String(req.body?.saveFrames ?? '') === '1';
+  const framesAllowed = await mayStoreFrames(userId, framesRequested);
+
   const pending = await prisma.formAnalysis.create({
     data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
     select: { id: true, createdAt: true },
@@ -336,11 +344,6 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
   const mimeType = req.file.mimetype;
 
   // Two passes, one upload. The user waits only for the first.
-  //
-  // Reference stills are deliberately off here: extracting them requires the
-  // age check in mayStoreFrames, and a user who signed in with Apple/Google
-  // seconds ago may not have a date of birth on file yet. The full report
-  // still lands in Diagnostics, just without the annotated frames.
   const runBothPasses = async () => {
     const t0 = Date.now();
     let upload: { fileUri: string; cleanup: () => void } | null = null;
@@ -385,6 +388,22 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
         return;
       }
 
+      // One still, from the quick pass's own anchor. It has to come from THIS
+      // pass rather than the full one: the full report lands ~20s later, and a
+      // picture that arrives after the user has moved on is not the feature.
+      // Best-effort by design — extractReferenceFrames swallows its own
+      // failures and returns [], so a missing ffmpeg or an unanchored fault
+      // costs the picture and never the analysis.
+      const quickFrames = framesAllowed
+        ? await extractReferenceFrames(videoBuffer, mimeType, [{
+            issue: quick.headline,
+            severity: 'major',
+            cue: quick.cue,
+            timestampSec: quick.timestampSec ?? null,
+            focusTarget: quick.focusTarget ?? null,
+          }])
+        : [];
+
       await prisma.formAnalysis.update({
         where: { id: pending.id },
         data: {
@@ -395,7 +414,11 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
           // `mode` is what tells the client which shape it is holding. It
           // lives inside the JSON rather than in a column so this whole
           // feature ships without a migration (and therefore OTA-able).
-          analysisJson: JSON.stringify({ ...quick, mode: 'quick' }),
+          analysisJson: JSON.stringify({
+            ...quick, mode: 'quick',
+            framesConsent: framesAllowed,
+            referenceFrames: quickFrames,
+          }),
           errorMessage: null,
         },
       });
@@ -416,8 +439,10 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
             analysisJson: JSON.stringify({
               ...full,
               mode: 'full',
-              framesConsent: false,
-              referenceFrames: [],
+              framesConsent: framesAllowed,
+              referenceFrames: framesAllowed
+                ? await extractReferenceFrames(videoBuffer, mimeType, full.weaknesses)
+                : [],
               // Keep the line the user actually read on screen, so the full
               // report can open with it instead of contradicting it.
               onboardingHeadline: quick.headline,
