@@ -25,12 +25,18 @@ import { hasSeenFormHook, isOldEnoughForFormHook } from './storage';
  * seen" is wrong, so hasSeenFormHook returns false and they see it once more;
  * a missing date of birth reads as not-an-adult and they skip it entirely.
  */
-export async function postAuthDestination(user: {
-  coachOnboardingDone?: boolean;
-  dateOfBirth?: string | null;
-} | null | undefined): Promise<string> {
+export async function postAuthDestination(
+  user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
+  features?: { onboardingFormHook?: boolean },
+): Promise<string> {
   if (!user) return '/(auth)/welcome';
   if (user.coachOnboardingDone) return '/(tabs)';
+  // The server's kill switch, checked BEFORE we route anyone into the hook.
+  // Without this the feature being dark would still show the whole capture
+  // flow and only fail on upload — the user films a set for nothing. Omitted
+  // or false both mean off, so an older client or a failed /auth/me leaves it
+  // dark rather than guessing.
+  if (!features?.onboardingFormHook) return '/(tabs)/coach';
   if (!isOldEnoughForFormHook(user.dateOfBirth)) return '/(tabs)/coach';
   return (await hasSeenFormHook()) ? '/(tabs)/coach' : '/onboarding-form';
 }

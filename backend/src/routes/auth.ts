@@ -804,7 +804,15 @@ router.get('/auth/me', requireAuth, async (req, res) => {
     }));
 
     const { institutionMemberships: _, ...userFields } = user as any;
-    res.json({ user: { ...userFields, institutions } });
+    // Server-owned feature flags the client must not guess at. The onboarding
+    // form hook ships behind a kill switch, and without telling the client we
+    // would still show the whole capture flow and only fail on upload — the
+    // user films a set for nothing. Sent as a flag rather than inferred from
+    // a probe so the decision has one owner.
+    res.json({
+      user: { ...userFields, institutions },
+      features: { onboardingFormHook: process.env.ONBOARDING_FORM_HOOK_ENABLED === '1' },
+    });
   } catch (err) {
     console.error('Me error:', err);
     res.status(500).json({ error: 'Failed to fetch user' });

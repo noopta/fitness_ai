@@ -18,12 +18,12 @@ import { useAuth } from '../src/context/AuthContext';
  */
 export default function CinematicOnboardingScreen() {
   const router = useRouter();
-  const { getLatestUser } = useAuth();
+  const { getLatestUser, getFeatures } = useAuth();
 
   const handleSignedIn = useCallback(async () => {
     await markCinematicOnboardingSeen();
-    router.replace((await postAuthDestination(getLatestUser())) as any);
-  }, [router, getLatestUser]);
+    router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
+  }, [router, getLatestUser, getFeatures]);
 
   return <OnboardingPager onSignedIn={handleSignedIn} />;
 }

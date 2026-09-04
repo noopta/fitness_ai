@@ -108,6 +108,8 @@ interface AuthContextType {
    * Post-auth routing depends on this; see postAuthRoute.
    */
   getLatestUser: () => AuthUser | null;
+  /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
+  getFeatures: () => { onboardingFormHook: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -136,6 +138,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(u);
   }, []);
   const getLatestUser = useCallback(() => userRef.current, []);
+
+  // Server-owned feature flags from /auth/me. Kept in a ref for the same
+  // reason as the user: post-auth routing reads them synchronously, before
+  // any re-render has happened. Defaults to everything off, so a server that
+  // does not send the block (or a request that failed) leaves gated features
+  // dark rather than showing a flow the backend will refuse.
+  const featuresRef = useRef<{ onboardingFormHook: boolean }>({ onboardingFormHook: false });
+  const commitFeatures = useCallback((f: any) => {
+    featuresRef.current = { onboardingFormHook: f?.onboardingFormHook === true };
+  }, []);
+  const getFeatures = useCallback(() => featuresRef.current, []);
   const [loading, setLoading] = useState(true);
   const [needsDobCheck, setNeedsDobCheck] = useState(false);
 
@@ -145,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await authApi.getMe();
       commitUser(data.user);
+      commitFeatures(data.features);
     } catch (err: any) {
       // Only clear user on explicit auth rejection (401/403), not network errors
       if (err?.status === 401 || err?.status === 403) {
@@ -162,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const data = await authApi.getMe();
           commitUser(data.user);
+          commitFeatures(data.features);
         } catch (err: any) {
           if (err?.status === 401 || err?.status === 403) {
             await clearToken();
@@ -400,7 +415,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, getLatestUser, completeAuthCallback }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, getLatestUser, getFeatures, completeAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );

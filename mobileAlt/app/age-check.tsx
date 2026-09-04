@@ -14,7 +14,7 @@ import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 
 export default function AgeCheckScreen() {
   const router = useRouter();
-  const { logout, clearDobCheck, getLatestUser } = useAuth();
+  const { logout, clearDobCheck, getLatestUser, getFeatures } = useAuth();
 
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -58,7 +58,7 @@ export default function AgeCheckScreen() {
       // CoachOnboarding questionnaire + program-generation flow lives.
       // New users (no savedProgram) see onboarding immediately; returning
       // users see their dashboard.
-      router.replace((await postAuthDestination(getLatestUser())) as any);
+      router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not save your date of birth. Please try again.');
     } finally {

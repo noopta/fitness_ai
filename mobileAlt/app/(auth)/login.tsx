@@ -18,7 +18,7 @@ import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, googleLogin, appleLogin, getLatestUser } = useAuth();
+  const { login, googleLogin, appleLogin, getLatestUser, getFeatures } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,7 +84,7 @@ export default function LoginScreen() {
       if (orgMode) {
         router.replace(`/institution/athlete?slug=${encodeURIComponent(orgSlug.trim())}` as any);
       } else {
-        router.replace((await postAuthDestination(getLatestUser())) as any);
+        router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
       }
     } catch (err: any) {
       Alert.alert('Sign In Failed', err?.message || 'Invalid email or password. Please try again.');

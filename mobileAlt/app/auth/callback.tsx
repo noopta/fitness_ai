@@ -25,7 +25,7 @@ import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
-  const { completeAuthCallback, getLatestUser } = useAuth();
+  const { completeAuthCallback, getLatestUser, getFeatures } = useAuth();
   const params = useLocalSearchParams<{
     token?: string | string[];
     auth?: string | string[];
@@ -79,7 +79,7 @@ export default function AuthCallbackScreen() {
       // (needsDobCheck is still handled by RootNavigator, which redirects to
       // /age-check on its own and takes precedence over this.)
       // replace(), not push(), so the back button doesn't return here.
-      router.replace((await postAuthDestination(getLatestUser())) as any);
+      router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
     });
   }, [params.token, params.auth, params.needsDob, completeAuthCallback, router, getLatestUser]);
 

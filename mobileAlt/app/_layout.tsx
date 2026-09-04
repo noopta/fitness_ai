@@ -33,7 +33,7 @@ import * as Sentry from '@sentry/react-native';
 const queryClient = new QueryClient();
 
 function RootNavigator() {
-  const { user, loading, needsDobCheck } = useAuth();
+  const { user, loading, needsDobCheck, getFeatures } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
@@ -203,7 +203,7 @@ function RootNavigator() {
       // Delegates to the same helper the auth screens use, so there is one
       // decision rather than two that can disagree. This branch is now the
       // backstop; the screens themselves route first and win the race.
-      void postAuthDestination(user).then((dest) => router.replace(dest as any));
+      void postAuthDestination(user, getFeatures()).then((dest) => router.replace(dest as any));
     } else if (user && !needsDobCheck && inFormHook && seenFormHook) {
       // The hook screen marks the flag then replaces to the intake itself.
       // This is the belt-and-braces path for a cold start that lands back on
