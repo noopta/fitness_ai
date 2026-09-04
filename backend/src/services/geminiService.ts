@@ -152,12 +152,32 @@ export async function parseMealText(description: string): Promise<MealMacros> {
 
 // ─── Workout video → form analysis ───────────────────────────────────────────
 
+/**
+ * A single fault, optionally anchored to the moment and place in the video
+ * where it happens. `timestampSec` + `box2d` are what let us extract a
+ * reference still (see formFrameService) so the feedback can point at the
+ * frame it's talking about rather than describing it in the abstract.
+ *
+ * Both anchors are nullable and independent: the model routinely spots a
+ * fault it can name but can't localise ("bracing is inconsistent across the
+ * set"), and forcing a coordinate there would just invite it to invent one.
+ */
+export interface FormWeakness {
+  issue: string;
+  severity: 'minor' | 'moderate' | 'major';
+  cue: string;
+  /** Seconds from the start of the clip. Null when the fault isn't tied to one moment. */
+  timestampSec?: number | null;
+  /** [ymin, xmin, ymax, xmax] normalized 0-1000. Null when not spatially localisable. */
+  box2d?: number[] | null;
+}
+
 export interface WorkoutVideoAnalysis {
   exercise: string;                       // e.g. "Back squat"
   formScore: number;                       // 1-10, holistic
   repCount: number | null;
   strengths: string[];                     // 2-4 short bullets
-  weaknesses: { issue: string; severity: 'minor' | 'moderate' | 'major'; cue: string }[];
+  weaknesses: FormWeakness[];
   recommendedDrills: { name: string; why: string; setsReps?: string }[];
   programmingNotes: string[];              // 1-3 short progression suggestions
   safetyFlags: string[];                   // empty if nothing concerning
@@ -181,6 +201,19 @@ const WORKOUT_VIDEO_SCHEMA = {
           issue: { type: Type.STRING, description: 'What went wrong in 6-10 words.' },
           severity: { type: Type.STRING, enum: ['minor', 'moderate', 'major'] },
           cue: { type: Type.STRING, description: 'Concrete coaching cue to fix it.' },
+          timestampSec: {
+            type: Type.NUMBER,
+            nullable: true,
+            description:
+              'Seconds from the start of the video at the single clearest moment this fault is visible. Null if the fault is not tied to one moment.',
+          },
+          box2d: {
+            type: Type.ARRAY,
+            nullable: true,
+            items: { type: Type.NUMBER },
+            description:
+              'Region to highlight at that moment as exactly four numbers [ymin, xmin, ymax, xmax], normalized 0-1000. Null if the fault has no single location.',
+          },
         },
       },
     },
@@ -202,7 +235,15 @@ const WORKOUT_VIDEO_SCHEMA = {
   },
 };
 
-const WORKOUT_VIDEO_SYSTEM = `You are an elite strength & conditioning coach analyzing a lifter's video. Be direct, specific, and evidence-based. Focus on the BIGGEST single fix the lifter can make first. When you spot a weakness, give a concrete coaching cue ("push knees out", "brace before unrack", "drive hips forward through the bar") — not vague advice. Drill recommendations should target the actual weakness, not generic warm-ups. Flag anything that looks like an immediate injury risk (lumbar rounding under load, valgus knee collapse, dangerous unrack, etc.). If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and explain in summary.`;
+const WORKOUT_VIDEO_SYSTEM = `You are an elite strength & conditioning coach analyzing a lifter's video. Be direct, specific, and evidence-based. Focus on the BIGGEST single fix the lifter can make first. When you spot a weakness, give a concrete coaching cue ("push knees out", "brace before unrack", "drive hips forward through the bar") — not vague advice. Drill recommendations should target the actual weakness, not generic warm-ups. Flag anything that looks like an immediate injury risk (lumbar rounding under load, valgus knee collapse, dangerous unrack, etc.). If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and explain in summary.
+
+ANCHORING FAULTS TO THE VIDEO
+For each weakness, when you can genuinely see it at one identifiable moment, set timestampSec to that moment and box2d to the body region that demonstrates it. These become a still frame shown to the lifter with the region highlighted, so accuracy matters more than coverage:
+
+- Anchor only what you actually observed in a frame. If you did not see the fault at a specific instant, leave both fields null. A wrong anchor is far worse than no anchor — it points the lifter at the wrong part of their body.
+- Pick the single clearest instant, not the first or an average.
+- Box the whole relevant region (the lower back and hips, the knee and shin, the bar and hands), not a pinpoint. A slightly generous box reads as "look here"; a tight one implies precision that misleads when it is a few percent off.
+- Anchor at most the three most important faults. Leave the rest null.`;
 
 // ─── GCS-backed video upload (replaces inline-base64) ───────────────────────
 //
@@ -219,6 +260,29 @@ const WORKOUT_VIDEO_SYSTEM = `You are an elite strength & conditioning coach ana
 
 const STORAGE_BUCKET = process.env.GCP_FORM_VIDEO_BUCKET ?? `axiom-form-videos-${PROJECT}`;
 const STORAGE_LOCATION = process.env.GCP_STORAGE_LOCATION ?? 'us-central1';
+
+/**
+ * Frames per second Gemini samples the video at. This is NOT a cosmetic
+ * quality knob — it is the difference between analysis and confabulation.
+ *
+ * Vertex defaults to 1 fps. Measured against a synthetic clip with ten known
+ * events (a coloured square jumping twice per second, ground truth known
+ * exactly), asking the model to report each event's time, colour and box:
+ *
+ *   fps=1  10/10 timestamps right, 0/10 colours right, positions scrambled
+ *   fps=2  10/10 timestamps, 10/10 colours, boxes within ~9% of frame
+ *   fps=4  10/10 timestamps, 10/10 colours, boxes within ~2% of frame
+ *
+ * The 1 fps row is the important one. Given five sampled frames and asked
+ * about ten events, the model did not decline — it produced ten confident,
+ * evenly-spaced, entirely invented ones. Applied to a lift that means a
+ * highlight drawn over the wrong part of the lifter's body, delivered with
+ * the same confidence as a correct one.
+ *
+ * 4 fps costs ~1,030 video tokens per second of clip (~62k for the 60s
+ * maximum), which is a few cents and well worth not being wrong.
+ */
+const VIDEO_SAMPLE_FPS = Number(process.env.FORM_VIDEO_SAMPLE_FPS ?? 4);
 
 let _storage: Storage | null = null;
 let _bucketReady = false;
@@ -286,12 +350,19 @@ export async function analyzeWorkoutVideo(
         // budget so there's room for the full JSON and the call stays quick —
         // form scoring is structured output, it doesn't need deep deliberation.
         // (Same fix applied to the meal-photo analyzer in llmService.)
-        thinkingConfig: { thinkingBudget: 1024 },
+        //
+        // Raised 1024 -> 2048 when timestamp/box anchoring was added: locating
+        // a fault in space and time is the part of this task that actually
+        // needs deliberation, and 2048 is what the calibration probes ran at.
+        thinkingConfig: { thinkingBudget: 2048 },
         maxOutputTokens: 8192,
       },
       contents: [{ role: 'user', parts: [
         { text: userText },
-        { fileData: { mimeType, fileUri: `gs://${STORAGE_BUCKET}/${objectName}` } },
+        {
+          fileData: { mimeType, fileUri: `gs://${STORAGE_BUCKET}/${objectName}` },
+          videoMetadata: { fps: VIDEO_SAMPLE_FPS },
+        },
       ]}],
     });
     // Despite responseMimeType=application/json, Gemini occasionally wraps the

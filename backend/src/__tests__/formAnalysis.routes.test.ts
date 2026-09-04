@@ -14,7 +14,7 @@ process.env.JWT_EXPIRES_IN = '1h';
 
 // ─── Prisma mock ──────────────────────────────────────────────────────────────
 const prismaUser = { findUnique: vi.fn(), update: vi.fn() };
-const prismaFormAnalysis = { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
+const prismaFormAnalysis = { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn(), deleteMany: vi.fn() };
 const prismaFeatureUsage = { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
 
 vi.mock('@prisma/client', () => {
@@ -30,6 +30,14 @@ vi.mock('@prisma/client', () => {
 const mockAnalyzeWorkoutVideo = vi.fn();
 vi.mock('../services/geminiService.js', () => ({
   analyzeWorkoutVideo: mockAnalyzeWorkoutVideo,
+}));
+
+// ─── Reference-frame service mock ─────────────────────────────────────────────
+// Real extraction shells out to ffmpeg and is covered in formFrameService.test;
+// here we only care whether the route calls it, which is the consent decision.
+const mockExtractReferenceFrames = vi.fn();
+vi.mock('../services/formFrameService.js', () => ({
+  extractReferenceFrames: mockExtractReferenceFrames,
 }));
 
 // ─── Notification service mock ────────────────────────────────────────────────
@@ -59,6 +67,10 @@ beforeEach(() => {
   prismaFormAnalysis.update.mockResolvedValue({});
   prismaFormAnalysis.updateMany.mockReset();
   prismaFormAnalysis.updateMany.mockResolvedValue({ count: 0 });
+  prismaFormAnalysis.deleteMany.mockReset();
+  prismaFormAnalysis.deleteMany.mockResolvedValue({ count: 1 });
+  mockExtractReferenceFrames.mockReset();
+  mockExtractReferenceFrames.mockResolvedValue([]);
   mockSendPushToUser.mockReset();
   mockSendPushToUser.mockResolvedValue(undefined);
   prismaFeatureUsage.findUnique.mockReset();
@@ -372,5 +384,140 @@ describe('GET /api/form-analysis/:id', () => {
       .get('/api/form-analysis/missing')
       .set('Authorization', `Bearer ${makeToken('u-1')}`);
     expect(res.status).toBe(404);
+  });
+});
+
+// ─── Reference stills: consent + age gating ──────────────────────────────────
+//
+// These stills are retained imagery of the user's body in a pipeline that
+// otherwise retains nothing, so the interesting assertions are all about when
+// we DON'T produce them.
+
+describe('reference stills', () => {
+  let app: express.Express;
+  beforeAll(async () => { app = await buildApp(); });
+
+  const ANALYSIS = {
+    exercise: 'Back squat',
+    formScore: 6,
+    repCount: 3,
+    strengths: ['Good depth'],
+    weaknesses: [{ issue: 'Lumbar rounds at the bottom', severity: 'major', cue: 'Brace harder', timestampSec: 2.5, box2d: [400, 300, 700, 650] }],
+    recommendedDrills: [],
+    programmingNotes: [],
+    safetyFlags: [],
+    summary: 'One thing to fix.',
+  };
+
+  const adult = { ...USER, dateOfBirth: new Date('1995-01-01') };
+  const minor = { ...USER, dateOfBirth: new Date(Date.now() - 15 * 365.25 * 864e5) };
+
+  /** Upload and wait for the fire-and-forget analysis to write its terminal row. */
+  async function upload(fields: Record<string, string>, user: any) {
+    prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
+    prismaUser.findUnique.mockResolvedValue(user);
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-x', createdAt: new Date() });
+    mockAnalyzeWorkoutVideo.mockResolvedValue(ANALYSIS);
+
+    const settled = new Promise<any>((resolve) => {
+      prismaFormAnalysis.update.mockImplementation(async (args: any) => {
+        if (args?.data?.status === 'complete') resolve(args);
+        return {};
+      });
+    });
+
+    let req = request(app)
+      .post('/api/form-analysis/video')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`)
+      .set('X-Form-Analysis-Async', '1');
+    for (const [k, v] of Object.entries(fields)) req = req.field(k, v);
+    const res = await req.attach('video', Buffer.from('mock video'), { filename: 'lift.mp4', contentType: 'video/mp4' });
+    expect(res.status).toBe(202);
+    return JSON.parse((await settled).data.analysisJson);
+  }
+
+  it('extracts stills when an adult opts in', async () => {
+    mockExtractReferenceFrames.mockResolvedValue([
+      { weaknessIndex: 0, timestampSec: 2.5, b64: 'AAAA', box2d: [400, 300, 700, 650] },
+    ]);
+    const stored = await upload({ saveFrames: '1' }, adult);
+    expect(mockExtractReferenceFrames).toHaveBeenCalledOnce();
+    expect(stored.framesConsent).toBe(true);
+    expect(stored.referenceFrames).toHaveLength(1);
+    expect(stored.referenceFrames[0].b64).toBe('AAAA');
+  });
+
+  it('does not extract when the client omits the flag', async () => {
+    // The installed build never sends saveFrames, so it must keep behaving
+    // exactly as it does today: analysis, no imagery.
+    const stored = await upload({}, adult);
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+    expect(stored.framesConsent).toBe(false);
+    expect(stored.referenceFrames).toEqual([]);
+  });
+
+  it('does not extract when the user explicitly opts out', async () => {
+    const stored = await upload({ saveFrames: '0' }, adult);
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+    expect(stored.framesConsent).toBe(false);
+  });
+
+  it('refuses stills for an under-18 account even when opted in', async () => {
+    const stored = await upload({ saveFrames: '1' }, minor);
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+    expect(stored.framesConsent).toBe(false);
+  });
+
+  it('refuses stills when the date of birth is unknown', async () => {
+    const stored = await upload({ saveFrames: '1' }, { ...USER, dateOfBirth: null });
+    expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+    expect(stored.framesConsent).toBe(false);
+  });
+
+  it('still completes the analysis when extraction fails', async () => {
+    // extractReferenceFrames is contracted not to throw, but a defect there
+    // must not cost the user the analysis they are waiting on.
+    mockExtractReferenceFrames.mockResolvedValue([]);
+    const stored = await upload({ saveFrames: '1' }, adult);
+    expect(stored.summary).toBe('One thing to fix.');
+    expect(stored.referenceFrames).toEqual([]);
+  });
+});
+
+describe('DELETE /api/form-analysis/:id', () => {
+  let app: express.Express;
+  beforeAll(async () => { app = await buildApp(); });
+
+  it('returns 401 when no auth', async () => {
+    const res = await request(app).delete('/api/form-analysis/fa-1');
+    expect(res.status).toBe(401);
+  });
+
+  it('deletes the row, scoped to the caller', async () => {
+    const res = await request(app)
+      .delete('/api/form-analysis/fa-1')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    // The ownership predicate has to be part of the write, not a prior read.
+    expect(prismaFormAnalysis.deleteMany).toHaveBeenCalledWith({
+      where: { id: 'fa-1', userId: 'u-1' },
+    });
+  });
+
+  it('returns 404 when the row belongs to someone else', async () => {
+    prismaFormAnalysis.deleteMany.mockResolvedValue({ count: 0 });
+    const res = await request(app)
+      .delete('/api/form-analysis/fa-other')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 500 when the delete fails', async () => {
+    prismaFormAnalysis.deleteMany.mockRejectedValue(new Error('db down'));
+    const res = await request(app)
+      .delete('/api/form-analysis/fa-1')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`);
+    expect(res.status).toBe(500);
   });
 });
