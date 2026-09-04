@@ -84,6 +84,23 @@ const FRAME_MIN_AGE_YEARS = 18;
 /** Minimum age for the onboarding video hook. See the gate in the route. */
 const ONBOARDING_MIN_AGE_YEARS = 18;
 
+/**
+ * Kill switch for the onboarding hook, default OFF.
+ *
+ * The code ships dark. The DPIA addendum lists three conditions that are not
+ * engineering work and were not met at deploy time — a named owner for
+ * quarantine alerts, a written NCMEC procedure, and a privacy policy that
+ * describes this processing — and none of them are things a deploy can
+ * satisfy. Shipping the route disabled means the mobile build can go out,
+ * the backend can be verified in place, and the feature turns on with one
+ * env var once those are signed off, rather than a second risky deploy.
+ *
+ * Disabled returns 403 `not_enabled`, which the client already treats the
+ * same way as the age gate: skip quietly to the intake. So with the flag off
+ * the app behaves exactly as it did before the hook existed.
+ */
+const ONBOARDING_HOOK_ENABLED = process.env.ONBOARDING_FORM_HOOK_ENABLED === '1';
+
 function isAtLeast(dateOfBirth: Date | null | undefined, years: number): boolean {
   if (!dateOfBirth) return false;
   const time = dateOfBirth.getTime();
@@ -282,6 +299,13 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
 //     404s back to the metered route rather than handing out free passes.
 router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
   const userId = req.user!.id;
+
+  if (!ONBOARDING_HOOK_ENABLED) {
+    return res.status(403).json({
+      error: 'The onboarding form check is not available.',
+      reason: 'not_enabled',
+    });
+  }
 
   if (!req.file) {
     return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });

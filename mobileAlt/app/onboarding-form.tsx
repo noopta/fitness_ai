@@ -137,11 +137,12 @@ export default function OnboardingFormHook() {
       Analytics.formHookResult(a.exercise, a.formScore);
     } catch (e: any) {
       if (cancelled.current) return;
-      // The route 403s anyone under 18. If we somehow got here anyway (stale
-      // client state, a DOB corrected after launch), don't strand them on a
-      // screen they cannot use — send them to the intake, which is where they
-      // were always going next.
-      if (/18 and over|age_restricted/i.test(String(e?.message ?? ''))) {
+      // The route 403s when the user is under 18 or the feature is switched
+      // off server-side. Either way this screen cannot do its job, and the
+      // right move is never to strand the user on it — send them to the
+      // intake, which is where they were always going next.
+      const msg = String(e?.message ?? '');
+      if (/18 and over|age_restricted|not_enabled|not available/i.test(msg)) {
         void finish('age_ineligible');
         return;
       }

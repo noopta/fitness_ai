@@ -10,6 +10,9 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 
 process.env.JWT_SECRET = 'test_secret_key_at_least_32_chars_long!!';
+// The onboarding hook ships behind a default-off kill switch; the suite
+// exercises the enabled behaviour, plus one test that the switch works.
+process.env.ONBOARDING_FORM_HOOK_ENABLED = '1';
 process.env.JWT_EXPIRES_IN = '1h';
 
 // ─── Prisma mock ──────────────────────────────────────────────────────────────
@@ -834,5 +837,27 @@ describe('onboarding hook — reference stills', () => {
     mockScreenFormVideo.mockResolvedValue({ action: 'reject', concern: 'not_exercise' });
     await post('1'); await settle();
     expect(mockExtractReferenceFrames).not.toHaveBeenCalled();
+  });
+});
+
+describe('onboarding hook — kill switch', () => {
+  it('403s not_enabled when the feature is switched off, before touching anything', async () => {
+    // Re-import the module with the flag off: it is read at module load, so a
+    // disabled deploy cannot be re-enabled by a request.
+    vi.resetModules();
+    process.env.ONBOARDING_FORM_HOOK_ENABLED = '0';
+    const { default: routes } = await import('../routes/formAnalysis.js');
+    const app = express();
+    app.use(cookieParser()); app.use(express.json()); app.use('/api', routes);
+
+    const res = await request(app)
+      .post('/api/form-analysis/onboarding')
+      .set('Authorization', `Bearer ${makeToken('u-1')}`)
+      .attach('video', Buffer.from('v'), { filename: 'l.mp4', contentType: 'video/mp4' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.reason).toBe('not_enabled');
+    expect(prismaFormAnalysis.create).not.toHaveBeenCalled();
+    process.env.ONBOARDING_FORM_HOOK_ENABLED = '1';
   });
 });
