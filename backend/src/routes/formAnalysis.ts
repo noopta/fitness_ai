@@ -38,7 +38,12 @@ import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
-import { analyzeWorkoutVideo } from '../services/geminiService.js';
+import {
+  analyzeWorkoutVideo,
+  uploadFormVideo,
+  analyzeFormVideoQuick,
+  analyzeFormVideoFull,
+} from '../services/geminiService.js';
 import { extractReferenceFrames } from '../services/formFrameService.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import {
@@ -249,6 +254,145 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
     }
     return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
   }
+});
+
+// ─── Onboarding hook ────────────────────────────────────────────────────────
+//
+// POST /api/form-analysis/onboarding — the first-run "taste of Axiom" pass.
+//
+// Differs from the main route in three deliberate ways:
+//
+//  1. It does NOT consume the free daily quota. The whole point is that a
+//     brand-new user's first clip is free and, critically, RETRYABLE — the
+//     most likely first-clip outcome is a bad angle or a dark gym, and
+//     spending their one daily credit on that would turn the aha moment into
+//     a 429 paywall. Abuse exposure is bounded instead by (a) eligibility
+//     below and (b) aiLimiter, and the pass costs well under a cent.
+//
+//  2. It runs the quick model (~6s) so the user is looking at feedback before
+//     they lose interest, then upgrades the same row to the full report in
+//     the background off the SAME GCS upload.
+//
+//  3. Eligibility is "this user has never run an analysis", which needs no
+//     schema column — the FormAnalysis row count IS the flag. A second call
+//     404s back to the metered route rather than handing out free passes.
+router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
+  const userId = req.user!.id;
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
+  }
+
+  // The eligibility gate. Note this is a count, not a boolean flag: it is
+  // self-healing (deleting your analyses makes you eligible again, which is
+  // fine — you also deleted your history) and needs no migration.
+  const priorAnalyses = await prisma.formAnalysis.count({ where: { userId } });
+  if (priorAnalyses > 0) {
+    return res.status(409).json({
+      error: 'The onboarding analysis is only available on your first clip.',
+      useInstead: '/api/form-analysis/video',
+    });
+  }
+
+  const exerciseHint =
+    typeof req.body?.exerciseHint === 'string' && req.body.exerciseHint.trim()
+      ? req.body.exerciseHint.trim().slice(0, 120)
+      : null;
+
+  const pending = await prisma.formAnalysis.create({
+    data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
+    select: { id: true, createdAt: true },
+  });
+
+  // req.file goes out of scope once we respond; the background work needs
+  // its own references.
+  const videoBuffer = req.file.buffer;
+  const mimeType = req.file.mimetype;
+
+  // Two passes, one upload. The user waits only for the first.
+  //
+  // Reference stills are deliberately off here: extracting them requires the
+  // age check in mayStoreFrames, and a user who signed in with Apple/Google
+  // seconds ago may not have a date of birth on file yet. The full report
+  // still lands in Diagnostics, just without the annotated frames.
+  const runBothPasses = async () => {
+    const t0 = Date.now();
+    let upload: { fileUri: string; cleanup: () => void } | null = null;
+    try {
+      upload = await uploadFormVideo(videoBuffer, mimeType);
+      const uploadMs = Date.now() - t0;
+
+      const tQuick = Date.now();
+      const quick = await analyzeFormVideoQuick(upload.fileUri, mimeType, exerciseHint);
+      const quickMs = Date.now() - tQuick;
+
+      await prisma.formAnalysis.update({
+        where: { id: pending.id },
+        data: {
+          status: 'complete',
+          exercise: quick.exercise || 'unknown',
+          formScore: Number.isFinite(quick.formScore) ? quick.formScore : null,
+          repCount: typeof quick.repCount === 'number' ? quick.repCount : null,
+          // `mode` is what tells the client which shape it is holding. It
+          // lives inside the JSON rather than in a column so this whole
+          // feature ships without a migration (and therefore OTA-able).
+          analysisJson: JSON.stringify({ ...quick, mode: 'quick' }),
+          errorMessage: null,
+        },
+      });
+      console.log(`[form-analysis] onboarding quick pass ${pending.id}: gcs=${uploadMs}ms quick=${quickMs}ms`);
+
+      // ── Second pass. The user already has their result; from here on every
+      // failure is silent. Never downgrade a delivered 'complete' row to
+      // 'failed' because the bonus report didn't land.
+      try {
+        const tFull = Date.now();
+        const full = await analyzeFormVideoFull(upload.fileUri, mimeType, quick.exercise || exerciseHint);
+        await prisma.formAnalysis.update({
+          where: { id: pending.id },
+          data: {
+            exercise: full.exercise || quick.exercise || 'unknown',
+            formScore: Number.isFinite(full.formScore) ? full.formScore : null,
+            repCount: typeof full.repCount === 'number' ? full.repCount : null,
+            analysisJson: JSON.stringify({
+              ...full,
+              mode: 'full',
+              framesConsent: false,
+              referenceFrames: [],
+              // Keep the line the user actually read on screen, so the full
+              // report can open with it instead of contradicting it.
+              onboardingHeadline: quick.headline,
+              onboardingCue: quick.cue,
+            }),
+          },
+        });
+        console.log(`[form-analysis] onboarding full pass ${pending.id}: ${Date.now() - tFull}ms`);
+      } catch (err) {
+        console.warn(`[form-analysis] onboarding full pass failed for ${pending.id} (quick result stands):`, err);
+      }
+    } catch (err: any) {
+      console.error('[form-analysis] onboarding analysis error:', err);
+      await prisma.formAnalysis
+        .update({
+          where: { id: pending.id },
+          data: {
+            status: 'failed',
+            exercise: 'unknown',
+            errorMessage: err?.message?.slice(0, 300) ?? 'Analysis failed',
+          },
+        })
+        .catch(() => {});
+    } finally {
+      upload?.cleanup();
+    }
+  };
+
+  // Fire and forget — the client polls GET /:id. No push notification here:
+  // unlike the main route the user is staring at the screen, and a push for
+  // something already on screen reads as a bug.
+  runBothPasses().catch(() => {});
+
+  return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending' });
 });
 
 router.get('/form-analysis', requireAuth, async (req, res) => {

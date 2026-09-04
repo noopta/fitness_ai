@@ -410,6 +410,191 @@ async function getBucket() {
 }
 
 /**
+ * The onboarding-hook model. The full analysis runs on 2.5-pro with a 2048
+ * thinking budget and a nine-field schema because it is a coaching document;
+ * the first-run hook is a different job with a different constraint — it has
+ * to land before a brand-new user loses interest.
+ *
+ * Measured on the real GCS→Vertex path (15s 720p clip, n=11):
+ *
+ *   2.5-pro   + full schema     18.6-25.5s   (matches the 25.5s prod average)
+ *   2.5-flash + quick schema     5.5-6.5s    (avg 5.9s)
+ *   2.5-flash-lite + quick       8.1-8.2s    (slower than flash — don't)
+ *
+ * The lever is output tokens, not clip length: an 8s clip and a 15s clip both
+ * come back in ~6.1s, so shortening the clip buys nothing and costs the user
+ * a worse capture. Thinking is disabled outright — "what is the one biggest
+ * fault" does not need deliberation, and 2048 thinking tokens is ~8s.
+ */
+const QUICK_MODEL = process.env.FORM_VIDEO_QUICK_MODEL ?? 'gemini-2.5-flash';
+
+/**
+ * Frame rate for the quick pass. Latency is flat across fps (measured
+ * 5.3s @ 2fps vs 6.4s @ 1fps — 2fps was marginally *faster*), so fps costs
+ * input tokens rather than wall-clock. 2 is the floor at which the model
+ * stops confabulating between frames on "how many reps" (see the
+ * VIDEO_SAMPLE_FPS calibration above); 4 doubles the token bill for temporal
+ * precision this pass never reports.
+ */
+const QUICK_SAMPLE_FPS = Number(process.env.FORM_VIDEO_QUICK_FPS ?? 2);
+
+/** The first-run hook's payload. Deliberately small — see QUICK_MODEL. */
+export interface QuickVideoAnalysis {
+  exercise: string;
+  formScore: number;
+  repCount: number | null;
+  /** The single biggest fix, 6-10 words. */
+  headline: string;
+  /** One concrete coaching cue that fixes it. */
+  cue: string;
+  /** Two sentences. Specific, not congratulatory. */
+  summary: string;
+}
+
+const QUICK_VIDEO_SCHEMA = {
+  type: Type.OBJECT,
+  required: ['exercise', 'formScore', 'headline', 'cue', 'summary'],
+  properties: {
+    exercise: { type: Type.STRING, description: 'Name of the lift performed.' },
+    formScore: { type: Type.NUMBER, description: 'Holistic form quality 1-10 (10 = competition-perfect).' },
+    repCount: { type: Type.NUMBER, nullable: true, description: 'Complete reps visible, or null if unclear.' },
+    headline: { type: Type.STRING, description: 'The single biggest fix, 6-10 words. No hedging.' },
+    cue: { type: Type.STRING, description: 'One concrete coaching cue that fixes the headline fault.' },
+    summary: { type: Type.STRING, description: 'Exactly two sentences. Specific and direct, not congratulatory.' },
+  },
+};
+
+/**
+ * Note the deliberate divergence from WORKOUT_VIDEO_SYSTEM: this prompt is
+ * told to commit to one fault rather than enumerate. A first-time user shown
+ * six weaknesses reads it as "this app thinks I'm bad at lifting"; shown one
+ * fault and one cue, they read it as coaching. Same model, same video — the
+ * framing is the product decision.
+ */
+const WORKOUT_VIDEO_QUICK_SYSTEM = `You are an elite strength & conditioning coach giving a lifter their very first piece of feedback. Watch the lift and commit to ONE thing: the single biggest fix that would most improve this lift. Give a concrete cue for it ("push the knees out", "brace before you unrack", "drive the hips through the bar") — never vague advice. Be direct and specific; you are earning trust, not flattering them. Score honestly: most untrained lifters land 4-6, and a dishonest 9 is worthless feedback. If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and say plainly what would make a better clip in the summary.`;
+
+/**
+ * Upload a clip to GCS and hand back the gs:// URI plus its cleanup.
+ *
+ * Split out from analyzeWorkoutVideo so the onboarding hook can run *two*
+ * analyses against one upload: a ~6s quick pass the user waits for, then the
+ * full coaching report in the background. Re-uploading 8-20MB for the second
+ * pass would cost more than the analysis itself.
+ *
+ * The caller owns cleanup and must call it in a finally. The bucket's 1-day
+ * lifecycle rule is the safety net if the process dies first.
+ */
+export async function uploadFormVideo(
+  videoBuffer: Buffer,
+  mimeType: string,
+): Promise<{ fileUri: string; cleanup: () => void }> {
+  const bucket = await getBucket();
+  const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+  const objectName = `form-video/${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`;
+  const file = bucket.file(objectName);
+  await file.save(videoBuffer, { metadata: { contentType: mimeType }, resumable: false });
+  return {
+    fileUri: `gs://${STORAGE_BUCKET}/${objectName}`,
+    cleanup: () => { file.delete({ ignoreNotFound: true }).catch(() => {}); },
+  };
+}
+
+/**
+ * Shared response handling for both video passes.
+ *
+ * Despite responseMimeType=application/json, Gemini occasionally wraps the
+ * JSON in markdown code fences (```json … ```) or truncates under thinking
+ * pressure. Strip fences and parse defensively so a recoverable formatting
+ * quirk doesn't surface to the user as "couldn't analyze your video".
+ * A safety refusal also yields an empty res.text, so distinguish it here —
+ * otherwise a blocked upload reports as "couldn't analyze your video".
+ */
+function parseVideoResponse<T>(res: any, label: string): T {
+  assertNotBlocked(res);
+  const raw = res.text?.trim();
+  if (!raw) throw new Error('Gemini returned an empty response for the workout video.');
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  try {
+    return JSON.parse(text) as T;
+  } catch (err: any) {
+    const tail = text.length > 300 ? '…' + text.slice(-300) : text;
+    console.error(`[form-video] ${label} JSON parse failed, response tail:`, tail);
+    throw new Error(`Workout video response was malformed: ${err?.message ?? 'unknown'}`);
+  }
+}
+
+/**
+ * The full coaching report: nine fields, timestamp/box anchors for reference
+ * stills, 2.5-pro. Slow (~18-25s) by design — this is the artifact the user
+ * reads, not the one they wait on.
+ */
+export async function analyzeFormVideoFull(
+  fileUri: string,
+  mimeType: string,
+  exerciseHint?: string | null,
+): Promise<WorkoutVideoAnalysis> {
+  const userText = exerciseHint
+    ? `Analyze the lifter's form in this video. They told us it's: "${exerciseHint}". Confirm or correct.`
+    : `Identify the exercise and analyze the lifter's form in this video.`;
+  const res = await client().models.generateContent({
+    model: MODEL,
+    config: {
+      systemInstruction: WORKOUT_VIDEO_SYSTEM,
+      responseMimeType: 'application/json',
+      responseSchema: WORKOUT_VIDEO_SCHEMA,
+      safetySettings: SAFETY_SETTINGS,
+      // Gemini thinks internally before responding; thinking tokens count
+      // against maxOutputTokens AND add multi-second latency. Cap the budget
+      // so there's room for the full JSON and the call stays quick — form
+      // scoring is structured output, it doesn't need deep deliberation.
+      // (Same fix applied to the meal-photo analyzer in llmService.)
+      //
+      // Raised 1024 -> 2048 when timestamp/box anchoring was added: locating
+      // a fault in space and time is the part of this task that actually
+      // needs deliberation, and 2048 is what the calibration probes ran at.
+      thinkingConfig: { thinkingBudget: 2048 },
+      maxOutputTokens: 8192,
+    },
+    contents: [{ role: 'user', parts: [
+      { text: userText },
+      { fileData: { mimeType, fileUri }, videoMetadata: { fps: VIDEO_SAMPLE_FPS } },
+    ]}],
+  });
+  return parseVideoResponse<WorkoutVideoAnalysis>(res, 'full');
+}
+
+/**
+ * The onboarding hook: one fault, one cue, ~6s. See QUICK_MODEL for the
+ * measurements behind every constant here.
+ */
+export async function analyzeFormVideoQuick(
+  fileUri: string,
+  mimeType: string,
+  exerciseHint?: string | null,
+): Promise<QuickVideoAnalysis> {
+  const userText = exerciseHint
+    ? `Analyze the lifter's form. They told us it's: "${exerciseHint}". Confirm or correct.`
+    : `Identify the exercise and analyze the lifter's form.`;
+  const res = await client().models.generateContent({
+    model: QUICK_MODEL,
+    config: {
+      systemInstruction: WORKOUT_VIDEO_QUICK_SYSTEM,
+      responseMimeType: 'application/json',
+      responseSchema: QUICK_VIDEO_SCHEMA,
+      safetySettings: SAFETY_SETTINGS,
+      thinkingConfig: { thinkingBudget: 0 },
+      // The schema tops out around 150 tokens; 1024 is headroom, not a target.
+      maxOutputTokens: 1024,
+    },
+    contents: [{ role: 'user', parts: [
+      { text: userText },
+      { fileData: { mimeType, fileUri }, videoMetadata: { fps: QUICK_SAMPLE_FPS } },
+    ]}],
+  });
+  return parseVideoResponse<QuickVideoAnalysis>(res, 'quick');
+}
+
+/**
  * Analyze a workout video for form. The buffer is uploaded to GCS, referenced
  * via gs:// URI in the Gemini request, and deleted after the call. We don't
  * keep the user's video around — it's processed and gone in under a minute.
@@ -419,68 +604,10 @@ export async function analyzeWorkoutVideo(
   mimeType: string,
   exerciseHint?: string | null,
 ): Promise<WorkoutVideoAnalysis> {
-  const bucket = await getBucket();
-  const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
-  const objectName = `form-video/${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`;
-  const file = bucket.file(objectName);
-
-  // Upload, then call Gemini, then delete — try/finally so a failed call
-  // still cleans up the object.
-  await file.save(videoBuffer, { metadata: { contentType: mimeType }, resumable: false });
+  const { fileUri, cleanup } = await uploadFormVideo(videoBuffer, mimeType);
   try {
-    const userText = exerciseHint
-      ? `Analyze the lifter's form in this video. They told us it's: "${exerciseHint}". Confirm or correct.`
-      : `Identify the exercise and analyze the lifter's form in this video.`;
-    const res = await client().models.generateContent({
-      model: MODEL,
-      config: {
-        systemInstruction: WORKOUT_VIDEO_SYSTEM,
-        responseMimeType: 'application/json',
-        responseSchema: WORKOUT_VIDEO_SCHEMA,
-        safetySettings: SAFETY_SETTINGS,
-        // Gemini 3.1 Pro thinks internally before responding; thinking tokens
-        // count against maxOutputTokens AND add multi-second latency. Cap the
-        // budget so there's room for the full JSON and the call stays quick —
-        // form scoring is structured output, it doesn't need deep deliberation.
-        // (Same fix applied to the meal-photo analyzer in llmService.)
-        //
-        // Raised 1024 -> 2048 when timestamp/box anchoring was added: locating
-        // a fault in space and time is the part of this task that actually
-        // needs deliberation, and 2048 is what the calibration probes ran at.
-        thinkingConfig: { thinkingBudget: 2048 },
-        maxOutputTokens: 8192,
-      },
-      contents: [{ role: 'user', parts: [
-        { text: userText },
-        {
-          fileData: { mimeType, fileUri: `gs://${STORAGE_BUCKET}/${objectName}` },
-          videoMetadata: { fps: VIDEO_SAMPLE_FPS },
-        },
-      ]}],
-    });
-    // Despite responseMimeType=application/json, Gemini occasionally wraps the
-    // JSON in markdown code fences (```json … ```) or truncates under thinking
-    // pressure. Strip fences and parse defensively so a recoverable formatting
-    // quirk doesn't surface to the user as "couldn't analyze your video".
-    // A safety refusal also yields an empty res.text, so distinguish it here —
-    // otherwise a blocked upload reports as "couldn't analyze your video".
-    assertNotBlocked(res);
-    const raw = res.text?.trim();
-    if (!raw) throw new Error('Gemini returned an empty response for the workout video.');
-    const text = raw
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
-    try {
-      return JSON.parse(text) as WorkoutVideoAnalysis;
-    } catch (err: any) {
-      const tail = text.length > 300 ? '…' + text.slice(-300) : text;
-      console.error('[form-video] JSON parse failed, response tail:', tail);
-      throw new Error(`Workout video response was malformed: ${err?.message ?? 'unknown'}`);
-    }
+    return await analyzeFormVideoFull(fileUri, mimeType, exerciseHint);
   } finally {
-    // Best-effort cleanup. The 1-day lifecycle rule on the bucket is the
-    // safety net if this delete races a process crash.
-    file.delete({ ignoreNotFound: true }).catch(() => {});
+    cleanup();
   }
 }

@@ -18,7 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
-import { formAnalysisApi, authApi, type WorkoutVideoAnalysis, type FormReferenceFrame } from '../../src/lib/api';
+import { formAnalysisApi, authApi, type FormAnalysisPayload, type FormReferenceFrame } from '../../src/lib/api';
 import { posthog } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
@@ -58,7 +58,7 @@ export default function FormAnalysisScreen() {
 
   const [stage, setStage] = useState<Stage>('capture');
   const [hint, setHint] = useState('');
-  const [analysis, setAnalysis] = useState<WorkoutVideoAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<FormAnalysisPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   // Persisted across the in-flight analysis so the submitted-state CTA can
@@ -459,7 +459,7 @@ function ResultView({
   onAnother,
   onDelete,
 }: {
-  analysis: WorkoutVideoAnalysis;
+  analysis: FormAnalysisPayload;
   onAnother: () => void;
   onDelete?: () => void;
 }) {
@@ -487,27 +487,45 @@ function ResultView({
         )}
       </View>
 
+      {/* The one-line verdict. Present on a quick (onboarding) row as
+          headline/cue, and carried onto the full report as onboarding* so the
+          full view opens with the same line the user first read rather than
+          silently replacing it. */}
+      {(analysis.headline ?? analysis.onboardingHeadline) ? (
+        <View style={styles.headlineCard}>
+          <Text style={styles.headlineText}>{analysis.headline ?? analysis.onboardingHeadline}</Text>
+          {(analysis.cue ?? analysis.onboardingCue) ? (
+            <Text style={styles.headlineCue}>{analysis.cue ?? analysis.onboardingCue}</Text>
+          ) : null}
+        </View>
+      ) : null}
+
       {analysis.summary ? <Text style={styles.summary}>{analysis.summary}</Text> : null}
 
-      {analysis.safetyFlags?.length > 0 && (
+      {/* The full report lands ~20s after the quick one on onboarding rows. */}
+      {analysis.mode === 'quick' ? (
+        <Text style={styles.pendingFull}>Your full breakdown is still being written — check back in a moment.</Text>
+      ) : null}
+
+      {(analysis.safetyFlags?.length ?? 0) > 0 && (
         <Section title="Safety" tone="danger">
-          {analysis.safetyFlags.map((s, i) => (
+          {(analysis.safetyFlags ?? []).map((s, i) => (
             <Bullet key={i} icon="warning" tone="danger" text={s} />
           ))}
         </Section>
       )}
 
-      {analysis.strengths?.length > 0 && (
+      {(analysis.strengths?.length ?? 0) > 0 && (
         <Section title="What’s working">
-          {analysis.strengths.map((s, i) => (
+          {(analysis.strengths ?? []).map((s, i) => (
             <Bullet key={i} icon="checkmark-circle" tone="success" text={s} />
           ))}
         </Section>
       )}
 
-      {analysis.weaknesses?.length > 0 && (
+      {(analysis.weaknesses?.length ?? 0) > 0 && (
         <Section title="What to fix">
-          {analysis.weaknesses.map((w, i) => {
+          {(analysis.weaknesses ?? []).map((w, i) => {
             const frame = framesByWeakness.get(i);
             return (
               <View key={i} style={styles.weakItem}>
@@ -535,9 +553,9 @@ function ResultView({
         </Section>
       )}
 
-      {analysis.recommendedDrills?.length > 0 && (
+      {(analysis.recommendedDrills?.length ?? 0) > 0 && (
         <Section title="Drills to fix it">
-          {analysis.recommendedDrills.map((d, i) => (
+          {(analysis.recommendedDrills ?? []).map((d, i) => (
             <View key={i} style={styles.drillItem}>
               <Text style={styles.drillName}>{d.name}{d.setsReps ? `  ·  ${d.setsReps}` : ''}</Text>
               <Text style={styles.drillWhy}>{d.why}</Text>
@@ -546,9 +564,9 @@ function ResultView({
         </Section>
       )}
 
-      {analysis.programmingNotes?.length > 0 && (
+      {(analysis.programmingNotes?.length ?? 0) > 0 && (
         <Section title="Programming notes">
-          {analysis.programmingNotes.map((n, i) => (
+          {(analysis.programmingNotes ?? []).map((n, i) => (
             <Bullet key={i} icon="arrow-forward-circle" text={n} />
           ))}
         </Section>
@@ -676,6 +694,15 @@ const styles = StyleSheet.create({
   scoreBadge: { flexDirection: 'row', alignItems: 'baseline' },
   scoreValue: { fontSize: fontSize.display, fontWeight: fontWeight.bold, color: colors.foreground },
   scoreOutOf: { fontSize: fontSize.lg, color: colors.mutedForeground, fontWeight: fontWeight.semibold },
+  headlineCard: {
+    padding: 14, borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    gap: 6,
+  },
+  headlineText: { color: colors.foreground, fontSize: 16, fontWeight: '700', lineHeight: 22 },
+  headlineCue: { color: colors.mutedForeground, fontSize: 14, lineHeight: 20 },
+  pendingFull: { color: colors.mutedForeground, fontSize: 13, fontStyle: 'italic' },
   summary: { fontSize: fontSize.base, color: colors.foreground, lineHeight: 23 },
   section: { gap: spacing.sm },
   sectionTitle: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.mutedForeground, letterSpacing: 0.8, textTransform: 'uppercase' },

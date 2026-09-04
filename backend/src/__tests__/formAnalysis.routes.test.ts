@@ -14,7 +14,7 @@ process.env.JWT_EXPIRES_IN = '1h';
 
 // ─── Prisma mock ──────────────────────────────────────────────────────────────
 const prismaUser = { findUnique: vi.fn(), update: vi.fn() };
-const prismaFormAnalysis = { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn(), deleteMany: vi.fn() };
+const prismaFormAnalysis = { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn(), deleteMany: vi.fn(), count: vi.fn() };
 const prismaFeatureUsage = { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
 
 vi.mock('@prisma/client', () => {
@@ -28,8 +28,17 @@ vi.mock('@prisma/client', () => {
 
 // ─── Gemini service mock ──────────────────────────────────────────────────────
 const mockAnalyzeWorkoutVideo = vi.fn();
+// The onboarding route drives the two passes itself off one upload, so it
+// imports the split primitives rather than the all-in-one helper. All four
+// must be mocked or the module fails to import.
+const mockUploadFormVideo = vi.fn();
+const mockAnalyzeFormVideoQuick = vi.fn();
+const mockAnalyzeFormVideoFull = vi.fn();
 vi.mock('../services/geminiService.js', () => ({
   analyzeWorkoutVideo: mockAnalyzeWorkoutVideo,
+  uploadFormVideo: mockUploadFormVideo,
+  analyzeFormVideoQuick: mockAnalyzeFormVideoQuick,
+  analyzeFormVideoFull: mockAnalyzeFormVideoFull,
 }));
 
 // ─── Reference-frame service mock ─────────────────────────────────────────────
@@ -57,6 +66,22 @@ function makeToken(userId: string, tier = 'free') {
 
 const USER = { id: 'u-1', name: 'Test', email: 't@axiom.io', tier: 'free' };
 
+const mockCleanup = vi.fn();
+const QUICK = {
+  exercise: 'Barbell Back Squat', formScore: 5, repCount: 4,
+  headline: 'Knees collapse in out of the hole',
+  cue: 'Screw your feet into the floor and push the knees out',
+  summary: 'Solid depth and a stable brace. The knee track is what to fix first.',
+};
+const FULL = {
+  exercise: 'Barbell Back Squat', formScore: 5.5, repCount: 4,
+  strengths: ['Consistent depth'], weaknesses: [], recommendedDrills: [],
+  programmingNotes: [], safetyFlags: [], summary: 'Full report.',
+};
+
+/** The route fires the passes without awaiting; let the microtasks drain. */
+const settle = () => new Promise((r) => setTimeout(r, 20));
+
 beforeEach(() => {
   prismaUser.findUnique.mockReset();
   prismaUser.update.mockReset();
@@ -79,6 +104,16 @@ beforeEach(() => {
   prismaFeatureUsage.updateMany.mockReset();
   prismaFeatureUsage.updateMany.mockResolvedValue({ count: 0 });
   mockAnalyzeWorkoutVideo.mockReset();
+  prismaFormAnalysis.count = prismaFormAnalysis.count ?? vi.fn();
+  prismaFormAnalysis.count.mockReset();
+  prismaFormAnalysis.count.mockResolvedValue(0);
+  mockCleanup.mockReset();
+  mockUploadFormVideo.mockReset();
+  mockUploadFormVideo.mockResolvedValue({ fileUri: 'gs://bucket/obj.mp4', cleanup: mockCleanup });
+  mockAnalyzeFormVideoQuick.mockReset();
+  mockAnalyzeFormVideoQuick.mockResolvedValue(QUICK);
+  mockAnalyzeFormVideoFull.mockReset();
+  mockAnalyzeFormVideoFull.mockResolvedValue(FULL);
 
   // Default: a valid free user
   prismaUser.findUnique.mockResolvedValue(USER);
@@ -519,5 +554,95 @@ describe('DELETE /api/form-analysis/:id', () => {
       .delete('/api/form-analysis/fa-1')
       .set('Authorization', `Bearer ${makeToken('u-1')}`);
     expect(res.status).toBe(500);
+  });
+});
+
+
+describe('POST /api/form-analysis/onboarding', () => {
+  let app: express.Express;
+  beforeAll(async () => { app = await buildApp(); });
+
+  const post = (token?: string) => {
+    const r = request(app).post('/api/form-analysis/onboarding');
+    if (token) r.set('Authorization', `Bearer ${token}`);
+    return r.attach('video', Buffer.from('mock video'), { filename: 'lift.mp4', contentType: 'video/mp4' });
+  };
+
+  it('returns 401 when no auth', async () => {
+    expect((await post()).status).toBe(401);
+  });
+
+  it('returns 202 with the row id and never consumes the daily quota', async () => {
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    const res = await post(makeToken('u-1'));
+    expect(res.status).toBe(202);
+    expect(res.body.id).toBe('fa-1');
+    expect(res.body.status).toBe('pending');
+    // The whole point of the route: the first clip is free AND retryable.
+    expect(prismaFeatureUsage.upsert).not.toHaveBeenCalled();
+    expect(prismaFeatureUsage.update).not.toHaveBeenCalled();
+  });
+
+  it('409s once the user already has an analysis, pointing at the metered route', async () => {
+    prismaFormAnalysis.count.mockResolvedValue(1);
+    const res = await post(makeToken('u-1'));
+    expect(res.status).toBe(409);
+    expect(res.body.useInstead).toBe('/api/form-analysis/video');
+    expect(prismaFormAnalysis.create).not.toHaveBeenCalled();
+  });
+
+  it('writes the quick result first, then upgrades the same row to the full report', async () => {
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    await post(makeToken('u-1'));
+    await settle();
+
+    // One upload, two analyses.
+    expect(mockUploadFormVideo).toHaveBeenCalledTimes(1);
+    expect(mockAnalyzeFormVideoQuick).toHaveBeenCalledTimes(1);
+    expect(mockAnalyzeFormVideoFull).toHaveBeenCalledTimes(1);
+    expect(mockAnalyzeFormVideoFull.mock.calls[0][0]).toBe('gs://bucket/obj.mp4');
+
+    const [quickWrite, fullWrite] = prismaFormAnalysis.update.mock.calls;
+    expect(quickWrite[0].data.status).toBe('complete');
+    expect(JSON.parse(quickWrite[0].data.analysisJson).mode).toBe('quick');
+    expect(JSON.parse(quickWrite[0].data.analysisJson).headline).toBe(QUICK.headline);
+
+    const fullJson = JSON.parse(fullWrite[0].data.analysisJson);
+    expect(fullJson.mode).toBe('full');
+    // The line the user actually read survives into the full report.
+    expect(fullJson.onboardingHeadline).toBe(QUICK.headline);
+    expect(mockCleanup).toHaveBeenCalled();
+  });
+
+  it('keeps the delivered quick result when the background full pass fails', async () => {
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    mockAnalyzeFormVideoFull.mockRejectedValue(new Error('vertex exploded'));
+    await post(makeToken('u-1'));
+    await settle();
+
+    // Exactly one write — the quick one — and the row is NOT downgraded.
+    expect(prismaFormAnalysis.update).toHaveBeenCalledTimes(1);
+    expect(prismaFormAnalysis.update.mock.calls[0][0].data.status).toBe('complete');
+    expect(mockCleanup).toHaveBeenCalled();
+  });
+
+  it('marks the row failed when the quick pass itself fails', async () => {
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    mockAnalyzeFormVideoQuick.mockRejectedValue(new Error('unreadable clip'));
+    await post(makeToken('u-1'));
+    await settle();
+
+    const write = prismaFormAnalysis.update.mock.calls[0][0];
+    expect(write.data.status).toBe('failed');
+    expect(write.data.errorMessage).toContain('unreadable clip');
+    expect(mockAnalyzeFormVideoFull).not.toHaveBeenCalled();
+    expect(mockCleanup).toHaveBeenCalled();
+  });
+
+  it('never sends a push — the user is looking at the screen', async () => {
+    prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+    await post(makeToken('u-1'));
+    await settle();
+    expect(mockSendPushToUser).not.toHaveBeenCalled();
   });
 });

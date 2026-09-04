@@ -133,6 +133,22 @@ export const Analytics = {
   firstScreenAfterAuth: (screen: string) =>
     posthog.capture('first_screen_after_auth', { screen }),
 
+  // ── First-run form-analysis hook ─────────────────────────────────────────
+  // The signup → intake funnel now has a step between the two. These four
+  // events are what make the "does the aha moment actually earn the intake"
+  // question answerable: shown → submitted → result → finished(reason), with
+  // `reason` separating users who completed it from those who skipped (no
+  // gym, no barbell) and those whose clip failed to read.
+  formHookShown: () => posthog.capture('onboarding_form_hook_shown'),
+
+  formHookSubmitted: () => posthog.capture('onboarding_form_hook_submitted'),
+
+  formHookResult: (exercise: string, formScore: number) =>
+    posthog.capture('onboarding_form_hook_result', { exercise, form_score: formScore }),
+
+  formHookFinished: (reason: 'completed' | 'skipped' | 'failed') =>
+    posthog.capture('onboarding_form_hook_finished', { reason }),
+
   socialProofShown: (count: number) =>
     posthog.capture('signup_social_proof_shown', { user_count: count }),
 
