@@ -38,6 +38,7 @@ import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
+import { screenFormVideo, recordScreenVerdict } from '../services/formVideoScreeningService.js';
 import {
   analyzeWorkoutVideo,
   uploadFormVideo,
@@ -79,6 +80,9 @@ const upload = multer({
 // full written analysis and no imagery. An unknown date of birth is treated as
 // under-18: the safe default when we cannot tell is the one that stores less.
 const FRAME_MIN_AGE_YEARS = 18;
+
+/** Minimum age for the onboarding video hook. See the gate in the route. */
+const ONBOARDING_MIN_AGE_YEARS = 18;
 
 function isAtLeast(dateOfBirth: Date | null | undefined, years: number): boolean {
   if (!dateOfBirth) return false;
@@ -283,6 +287,28 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
     return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
   }
 
+  // ── Age gate. The onboarding hook is 18+ ────────────────────────────────
+  //
+  // Not the app's 13+ minimum. Three reasons, in order of weight:
+  //  - It is the same line already drawn for retained stills, and it is not
+  //    coherent to refuse to STORE imagery of a 15-year-old while making
+  //    filming themselves the first thing we ask them to do.
+  //  - The UK Age Appropriate Design Code treats a flow designed to maximise
+  //    data provision as a prohibited nudge when children can reach it.
+  //  - It removes the largest part of the CSAM surface at the door, which is
+  //    worth more than any downstream classifier.
+  //
+  // Unknown DOB fails closed. A user with no date of birth on file is not
+  // assumed adult — they skip the hook and go straight to intake, which is a
+  // strictly better outcome than guessing.
+  const dobRow = await prisma.user.findUnique({ where: { id: userId }, select: { dateOfBirth: true } });
+  if (!isAtLeast(dobRow?.dateOfBirth, ONBOARDING_MIN_AGE_YEARS)) {
+    return res.status(403).json({
+      error: 'The onboarding form check is available to users 18 and over.',
+      reason: 'age_restricted',
+    });
+  }
+
   // The eligibility gate. Note this is a count, not a boolean flag: it is
   // self-healing (deleting your analyses makes you eligible again, which is
   // fine — you also deleted your history) and needs no migration.
@@ -318,13 +344,46 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
   const runBothPasses = async () => {
     const t0 = Date.now();
     let upload: { fileUri: string; cleanup: () => void } | null = null;
+    // Set by a quarantine verdict. When true the GCS object is deliberately
+    // NOT deleted in the finally — see formVideoScreeningService for why
+    // preservation beats privacy in exactly this one case.
+    let preserveObject = false;
     try {
       upload = await uploadFormVideo(videoBuffer, mimeType);
       const uploadMs = Date.now() - t0;
 
+      // Screening runs CONCURRENTLY with the analysis, not in front of it.
+      // It is a tiny-output call and lands well inside the analysis window,
+      // so in the common case it adds no wall-clock at all — but nothing is
+      // written to the row or shown to the user until it comes back clean.
       const tQuick = Date.now();
-      const quick = await analyzeFormVideoQuick(upload.fileUri, mimeType, exerciseHint);
+      const [screen, quick] = await Promise.all([
+        screenFormVideo(upload.fileUri, mimeType),
+        analyzeFormVideoQuick(upload.fileUri, mimeType, exerciseHint),
+      ]);
       const quickMs = Date.now() - tQuick;
+
+      if (screen.action !== 'allow') {
+        preserveObject = screen.action === 'quarantine';
+        await recordScreenVerdict({
+          userId,
+          surface: 'form_video_onboarding',
+          verdict: screen,
+          preservedObject: preserveObject ? upload.fileUri : null,
+        });
+        // The analysis is discarded unread. Storing coaching feedback derived
+        // from a clip we just refused would defeat the point of refusing it.
+        await prisma.formAnalysis.update({
+          where: { id: pending.id },
+          data: {
+            status: 'failed',
+            exercise: 'unknown',
+            errorMessage: screen.userMessage ?? 'This video could not be processed.',
+          },
+        });
+        console.log(`[form-analysis] onboarding screened out ${pending.id}: ${screen.concern} (${screen.action})`);
+        return;
+      }
 
       await prisma.formAnalysis.update({
         where: { id: pending.id },
@@ -383,7 +442,14 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
         })
         .catch(() => {});
     } finally {
-      upload?.cleanup();
+      // Quarantined objects are left in place on purpose. The bucket's 1-day
+      // lifecycle rule would still reap them, so acting on a quarantine alert
+      // is time-bound — that window is the reason the log line is an error.
+      if (preserveObject) {
+        console.error(`[form-analysis] object preserved for review, cleanup skipped: ${upload?.fileUri}`);
+      } else {
+        upload?.cleanup();
+      }
     }
   };
 

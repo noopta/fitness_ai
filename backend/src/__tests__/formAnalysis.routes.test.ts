@@ -41,6 +41,16 @@ vi.mock('../services/geminiService.js', () => ({
   analyzeFormVideoFull: mockAnalyzeFormVideoFull,
 }));
 
+// ─── Ingest-screening mock ────────────────────────────────────────────────────
+// The real classifier calls Vertex; here we only care that the route honours
+// its verdict — and, critically, that a quarantine does NOT delete the object.
+const mockScreenFormVideo = vi.fn();
+const mockRecordScreenVerdict = vi.fn();
+vi.mock('../services/formVideoScreeningService.js', () => ({
+  screenFormVideo: mockScreenFormVideo,
+  recordScreenVerdict: mockRecordScreenVerdict,
+}));
+
 // ─── Reference-frame service mock ─────────────────────────────────────────────
 // Real extraction shells out to ffmpeg and is covered in formFrameService.test;
 // here we only care whether the route calls it, which is the consent decision.
@@ -64,9 +74,12 @@ function makeToken(userId: string, tier = 'free') {
   return jwt.sign({ id: userId, email: 'test@axiom.io', tier }, process.env.JWT_SECRET!, { expiresIn: '1h' });
 }
 
-const USER = { id: 'u-1', name: 'Test', email: 't@axiom.io', tier: 'free' };
+// dateOfBirth is on the default user because two different call sites read
+// it: requireAuth's lookup and the onboarding route's 18+ gate.
+const USER = { id: 'u-1', name: 'Test', email: 't@axiom.io', tier: 'free', dateOfBirth: new Date('1990-01-01') };
 
 const mockCleanup = vi.fn();
+const MINOR_DOB = new Date(Date.now() - 15 * 365.25 * 24 * 3600 * 1000);
 const QUICK = {
   exercise: 'Barbell Back Squat', formScore: 5, repCount: 4,
   headline: 'Knees collapse in out of the hole',
@@ -114,6 +127,10 @@ beforeEach(() => {
   mockAnalyzeFormVideoQuick.mockResolvedValue(QUICK);
   mockAnalyzeFormVideoFull.mockReset();
   mockAnalyzeFormVideoFull.mockResolvedValue(FULL);
+  mockScreenFormVideo.mockReset();
+  mockScreenFormVideo.mockResolvedValue({ action: 'allow', concern: 'none' });
+  mockRecordScreenVerdict.mockReset();
+  mockRecordScreenVerdict.mockResolvedValue(undefined);
 
   // Default: a valid free user
   prismaUser.findUnique.mockResolvedValue(USER);
@@ -644,5 +661,105 @@ describe('POST /api/form-analysis/onboarding', () => {
     await post(makeToken('u-1'));
     await settle();
     expect(mockSendPushToUser).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('onboarding hook — legal protections', () => {
+  let app: express.Express;
+  beforeAll(async () => { app = await buildApp(); });
+
+  const post = () => request(app)
+    .post('/api/form-analysis/onboarding')
+    .set('Authorization', `Bearer ${makeToken('u-1')}`)
+    .attach('video', Buffer.from('mock video'), { filename: 'lift.mp4', contentType: 'video/mp4' });
+
+  const settle = () => new Promise((r) => setTimeout(r, 20));
+
+  describe('age gate (18+)', () => {
+    it('403s an under-18 user and never touches the video', async () => {
+      prismaUser.findUnique.mockResolvedValue({ ...USER, dateOfBirth: MINOR_DOB });
+      const res = await post();
+      expect(res.status).toBe(403);
+      expect(res.body.reason).toBe('age_restricted');
+      expect(prismaFormAnalysis.create).not.toHaveBeenCalled();
+      expect(mockUploadFormVideo).not.toHaveBeenCalled();
+    });
+
+    it('fails closed when no date of birth is on file', async () => {
+      prismaUser.findUnique.mockResolvedValue({ ...USER, dateOfBirth: null });
+      const res = await post();
+      expect(res.status).toBe(403);
+      expect(mockUploadFormVideo).not.toHaveBeenCalled();
+    });
+
+    it('allows an adult through', async () => {
+      prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() });
+      expect((await post()).status).toBe(202);
+    });
+  });
+
+  describe('ingest screening', () => {
+    beforeEach(() => prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date() }));
+
+    it('screens concurrently with the analysis, not in front of it', async () => {
+      await post(); await settle();
+      // Both were issued against the same single upload.
+      expect(mockUploadFormVideo).toHaveBeenCalledTimes(1);
+      expect(mockScreenFormVideo).toHaveBeenCalledWith('gs://bucket/obj.mp4', 'video/mp4');
+      expect(mockAnalyzeFormVideoQuick).toHaveBeenCalledTimes(1);
+    });
+
+    it('on reject: fails the row, discards the analysis, and DELETES the object', async () => {
+      mockScreenFormVideo.mockResolvedValue({
+        action: 'reject', concern: 'not_exercise', userMessage: 'not a lift',
+      });
+      await post(); await settle();
+
+      const write = prismaFormAnalysis.update.mock.calls[0][0];
+      expect(write.data.status).toBe('failed');
+      expect(write.data.errorMessage).toBe('not a lift');
+      // The coaching text derived from a refused clip is never persisted...
+      expect(prismaFormAnalysis.update).toHaveBeenCalledTimes(1);
+      // ...and the full pass never runs.
+      expect(mockAnalyzeFormVideoFull).not.toHaveBeenCalled();
+      // No preservation obligation attaches to a plain reject.
+      expect(mockCleanup).toHaveBeenCalled();
+    });
+
+    it('on quarantine: PRESERVES the object rather than deleting it', async () => {
+      mockScreenFormVideo.mockResolvedValue({
+        action: 'quarantine', concern: 'minor_and_sexual', userMessage: 'could not process',
+      });
+      await post(); await settle();
+
+      // The whole point: auto-delete is suppressed so the material still
+      // exists when a human reviews and reports it.
+      expect(mockCleanup).not.toHaveBeenCalled();
+      expect(mockRecordScreenVerdict).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          surface: 'form_video_onboarding',
+          preservedObject: 'gs://bucket/obj.mp4',
+        }),
+      );
+      expect(prismaFormAnalysis.update.mock.calls[0][0].data.status).toBe('failed');
+      expect(mockAnalyzeFormVideoFull).not.toHaveBeenCalled();
+    });
+
+    it('records a flag for reject too, but with no preserved object', async () => {
+      mockScreenFormVideo.mockResolvedValue({ action: 'reject', concern: 'sexual_content' });
+      await post(); await settle();
+      expect(mockRecordScreenVerdict).toHaveBeenCalledWith(
+        expect.objectContaining({ preservedObject: null }),
+      );
+    });
+
+    it('a clean verdict proceeds to the normal two-pass flow', async () => {
+      await post(); await settle();
+      expect(mockRecordScreenVerdict).not.toHaveBeenCalled();
+      expect(mockAnalyzeFormVideoFull).toHaveBeenCalledTimes(1);
+      expect(mockCleanup).toHaveBeenCalled();
+    });
   });
 });

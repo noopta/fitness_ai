@@ -24,7 +24,7 @@ import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/comp
 import { hydrateCacheFromStorage } from '../src/lib/cache';
 import { runBootPrefetch } from '../src/lib/prefetch';
 import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
-import { hasSeenFormHook } from '../src/onboarding/formhook/storage';
+import { hasSeenFormHook, isOldEnoughForFormHook } from '../src/onboarding/formhook/storage';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
 // it captures module-load startup errors. Here we only wrap the root component.
@@ -201,7 +201,11 @@ function RootNavigator() {
       // through a first-run screen.
       if (user.coachOnboardingDone) {
         router.replace('/(tabs)' as any);
-      } else if (!seenFormHook) {
+      } else if (!seenFormHook && isOldEnoughForFormHook(user.dateOfBirth)) {
+        // 18+ only. Under-18s (and anyone with no DOB on file) go straight to
+        // the intake — the hook is never shown and never mentioned, so there
+        // is nothing to feel excluded from. The backend enforces the same age
+        // independently; this only avoids showing a screen that would 403.
         router.replace('/onboarding-form' as any);
       } else {
         router.replace('/(tabs)/coach' as any);

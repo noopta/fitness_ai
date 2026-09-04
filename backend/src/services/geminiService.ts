@@ -27,7 +27,7 @@ const PROJECT = process.env.GCP_PROJECT_NUMBER ?? '656267185967';
 const LOCATION = process.env.GCP_LOCATION ?? 'global';
 
 let _client: GoogleGenAI | null = null;
-function client(): GoogleGenAI {
+export function client(): GoogleGenAI {
   if (_client) return _client;
   _client = new GoogleGenAI({ vertexai: true, project: PROJECT, location: LOCATION });
   return _client;
@@ -471,7 +471,13 @@ const QUICK_VIDEO_SCHEMA = {
  * fault and one cue, they read it as coaching. Same model, same video — the
  * framing is the product decision.
  */
-const WORKOUT_VIDEO_QUICK_SYSTEM = `You are an elite strength & conditioning coach giving a lifter their very first piece of feedback. Watch the lift and commit to ONE thing: the single biggest fix that would most improve this lift. Give a concrete cue for it ("push the knees out", "brace before you unrack", "drive the hips through the bar") — never vague advice. Be direct and specific; you are earning trust, not flattering them. Score honestly: most untrained lifters land 4-6, and a dishonest 9 is worthless feedback. If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and say plainly what would make a better clip in the summary.`;
+const WORKOUT_VIDEO_QUICK_SYSTEM = `You are an elite strength & conditioning coach giving a lifter their very first piece of feedback. Watch the lift and commit to ONE thing: the single biggest technique change that would most improve this lift. Give a concrete cue for it ("push the knees out", "brace before you unrack", "drive the hips through the bar") — never vague advice. Be direct and specific; you are earning trust, not flattering them. Score honestly: most untrained lifters land 4-6, and a dishonest 9 is worthless feedback.
+
+Scope limits, which are not negotiable:
+- Comment ONLY on lifting technique. Do not assess injury risk, do not name or imply any injury, condition, pain or medical problem, and do not use clinical language.
+- Do not comment on the lifter's body, physique, weight or appearance.
+- If what you see looks genuinely unsafe, do not diagnose it — give the technique cue that addresses it and nothing more.
+If the video is too dark, too short, or doesn't show a recognizable exercise, return exercise="unknown" and say plainly what would make a better clip in the summary.`;
 
 /**
  * Upload a clip to GCS and hand back the gs:// URI plus its cleanup.

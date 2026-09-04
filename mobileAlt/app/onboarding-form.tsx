@@ -227,17 +227,35 @@ export default function OnboardingFormHook() {
         <Reveal index={2}>
           <Text style={[scene.body, { marginTop: s(16) }]}>
             Film {MAX_CLIP_SECONDS} seconds of any lift — a warm-up set is perfect. You'll get
-            the same read a coach would give you standing next to the rack.
+            a read on your technique, the way a coach standing next to the rack would.
           </Text>
         </Reveal>
         <Reveal index={3}>
-          <Text style={[scene.caption, { marginTop: s(14) }]}>
-            Takes about a minute. Free, and it won't touch your plan.
-          </Text>
+          {/* The consent notice is load-bearing, not decoration.
+              Our DPIA's lawful basis rests on consent being freely given and
+              specific. In a flow where the video sits between signup and the
+              product, that only holds if declining is a visibly equal option
+              and the user is told what happens to the clip BEFORE they film
+              it — not in a policy they never opened. Hence: what we do with
+              it, who sees it, how long we keep it, stated here, with a skip
+              that is a real button rather than a grey afterthought. */}
+          <View style={styles.consentCard}>
+            <Text style={styles.consentLine}>
+              Your clip is sent to Google's Vertex AI to be analysed, then
+              <Text style={styles.consentEmphasis}> permanently deleted</Text> — usually within a minute.
+            </Text>
+            <Text style={styles.consentLine}>
+              We keep the written feedback, not the video. No one else sees it, and it is
+              never used to train any model.
+            </Text>
+            <Text style={styles.consentLine}>
+              Film only yourself, and avoid catching other people in frame.
+            </Text>
+          </View>
         </Reveal>
         <Bar>
-          <Primary label="Film a set" onPress={() => setStage('capture')} icon="arrow-forward" />
-          <Skip label="I'm not at the gym — skip" />
+          <Primary label="I agree — film a set" onPress={() => { Analytics.formHookConsented(); setStage('capture'); }} icon="arrow-forward" />
+          <Skip label="Skip this — go to my intake" />
         </Bar>
       </Poster>
     );
@@ -421,6 +439,14 @@ const styles = StyleSheet.create({
   beatDot: { height: 3, flex: 1, borderRadius: 2 },
   beatDotOn: { backgroundColor: '#fff' },
   beatDotOff: { backgroundColor: 'rgba(255,255,255,0.22)' },
+  consentCard: {
+    marginTop: 16, padding: 14, borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)',
+    gap: 8,
+  },
+  consentLine: { color: 'rgba(255,255,255,0.80)', fontSize: 13, lineHeight: 19 },
+  consentEmphasis: { color: '#fff', fontWeight: '700' },
   cueCard: {
     marginTop: 16, padding: 14, borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.09)',

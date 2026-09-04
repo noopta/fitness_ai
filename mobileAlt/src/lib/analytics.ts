@@ -141,6 +141,12 @@ export const Analytics = {
   // gym, no barbell) and those whose clip failed to read.
   formHookShown: () => posthog.capture('onboarding_form_hook_shown'),
 
+  // Separate from 'submitted' on purpose: consent given and a clip actually
+  // uploaded are different events, and the gap between them is the number
+  // that tells us whether the consent screen is doing its job or being
+  // clicked through.
+  formHookConsented: () => posthog.capture('onboarding_form_hook_consented'),
+
   formHookSubmitted: () => posthog.capture('onboarding_form_hook_submitted'),
 
   formHookResult: (exercise: string, formScore: number) =>
