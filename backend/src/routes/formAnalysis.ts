@@ -7,6 +7,22 @@
 //   Free tier capped at FEATURE.FORM_VIDEO daily quota; pro unmetered.
 // GET  /api/form-analysis        — history (newest first).
 // GET  /api/form-analysis/:id    — status + analysis when complete.
+// DELETE /api/form-analysis/:id  — remove one analysis and its stills.
+//
+// ── Reference stills ────────────────────────────────────────────────────────
+// When the model anchors a fault to a moment and a region, we cut that frame
+// out of the clip, bracket the region, and store it with the analysis so the
+// feedback can point at what it means. See formFrameService for why the JPEGs
+// live in the row rather than in object storage.
+//
+// Stills are strictly opt-in per upload (`saveFrames=1`), because they are
+// retained imagery of the user's body and the rest of this pipeline retains
+// nothing. Two consequences follow, both deliberate:
+//   - The installed build never sends the field, so it never gets stills and
+//     its behaviour is unchanged.
+//   - Consent is re-affirmed on every upload and recorded on the row itself,
+//     rather than being a profile flag set once and forgotten.
+// Under-18 accounts never get stills regardless of the flag.
 //
 // The async pattern was added after live testing surfaced 60-90s sync
 // round-trips that timed out RN's default 60s fetch (and would also kill
@@ -23,6 +39,7 @@ import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
 import { analyzeWorkoutVideo } from '../services/geminiService.js';
+import { extractReferenceFrames } from '../services/formFrameService.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import {
   consumeDailyQuota,
@@ -51,6 +68,40 @@ const upload = multer({
     cb(new Error('Only video uploads are supported'));
   },
 });
+
+// Retaining stills of a minor's body is a materially different proposition to
+// retaining an adult's, and the app's floor is 13. Under-18 accounts get the
+// full written analysis and no imagery. An unknown date of birth is treated as
+// under-18: the safe default when we cannot tell is the one that stores less.
+const FRAME_MIN_AGE_YEARS = 18;
+
+function isAtLeast(dateOfBirth: Date | null | undefined, years: number): boolean {
+  if (!dateOfBirth) return false;
+  const time = dateOfBirth.getTime();
+  if (!Number.isFinite(time)) return false;
+  const threshold = new Date();
+  threshold.setFullYear(threshold.getFullYear() - years);
+  return time <= threshold.getTime();
+}
+
+/**
+ * Whether this upload may keep reference stills: the client asked for them AND
+ * the account is old enough. Never throws — if the age lookup fails we fall
+ * through to "no stills" rather than failing an analysis over it.
+ */
+async function mayStoreFrames(userId: string, requested: boolean): Promise<boolean> {
+  if (!requested) return false;
+  try {
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { dateOfBirth: true },
+    });
+    return isAtLeast(row?.dateOfBirth, FRAME_MIN_AGE_YEARS);
+  } catch (err) {
+    console.warn('[form-analysis] age check failed, withholding stills:', err);
+    return false;
+  }
+}
 
 // Wrap multer so its errors become clean JSON (it throws MulterError, e.g.
 // LIMIT_FILE_SIZE, which would otherwise hit the generic 500 handler).
@@ -115,12 +166,27 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
   const videoBuffer = req.file.buffer;
   const mimeType = req.file.mimetype;
 
+  // Opt-in, so anything other than an explicit '1' means no stills.
+  const framesRequested = String(req.body?.saveFrames ?? '') === '1';
+  const framesAllowed = await mayStoreFrames(userId, framesRequested);
+
   // Shared work: run the analysis, write the row's terminal state, optionally
   // push. Returns the analysis on success; on failure it marks the row failed,
   // refunds the credit, then rethrows so the sync caller can 502.
   const finalize = async (notify: boolean) => {
     try {
       const analysis = await analyzeWorkoutVideo(videoBuffer, mimeType, exerciseHint);
+
+      // Reference stills, if the user asked for them. Best-effort by design:
+      // extractReferenceFrames swallows its own failures and returns [], so a
+      // bad clip or a missing ffmpeg costs the pictures, never the analysis.
+      // `framesConsent` is persisted alongside so the row records the choice
+      // that produced it, not just the result.
+      const referenceFrames = framesAllowed
+        ? await extractReferenceFrames(videoBuffer, mimeType, analysis.weaknesses)
+        : [];
+      const stored = { ...analysis, framesConsent: framesAllowed, referenceFrames };
+
       await prisma.formAnalysis.update({
         where: { id: pending.id },
         data: {
@@ -128,7 +194,7 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
           exercise: analysis.exercise || 'unknown',
           formScore: Number.isFinite(analysis.formScore) ? analysis.formScore : null,
           repCount: typeof analysis.repCount === 'number' ? analysis.repCount : null,
-          analysisJson: JSON.stringify(analysis),
+          analysisJson: JSON.stringify(stored),
           errorMessage: null,
         },
       });
@@ -142,7 +208,7 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
           { screen: 'form-analysis', id: pending.id },
         ).catch(() => {});
       }
-      return analysis;
+      return stored;
     } catch (err: any) {
       console.error('Form video analysis error:', err);
       // Refund the credit — the user shouldn't lose it to a failure they didn't cause.
@@ -224,6 +290,32 @@ router.get('/form-analysis/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Form analysis fetch error:', err);
     res.status(500).json({ error: 'Failed to load analysis' });
+  }
+});
+
+/**
+ * Delete one analysis, and with it any reference stills — they live inside
+ * analysisJson, so removing the row removes the imagery in the same statement
+ * with nothing left to orphan.
+ *
+ * This exists because the feature now retains pictures of the user. "Delete
+ * your whole account" was the only erasure path before, which is not a real
+ * choice to offer someone who wants one clip gone.
+ *
+ * deleteMany, not delete, so the userId predicate is part of the write: a
+ * findFirst-then-delete pair would be racy and would leak row existence
+ * through the 404. Zero rows deleted is reported as not found either way.
+ */
+router.delete('/form-analysis/:id', requireAuth, async (req, res) => {
+  try {
+    const { count } = await prisma.formAnalysis.deleteMany({
+      where: { id: req.params.id, userId: req.user!.id },
+    });
+    if (count === 0) return res.status(404).json({ error: 'Analysis not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Form analysis delete error:', err);
+    res.status(500).json({ error: 'Failed to delete analysis' });
   }
 });
 

@@ -1234,6 +1234,19 @@ export async function apiUpload(path: string, form: FormData, extraHeaders?: Rec
 
 export interface FormWeakness { issue: string; severity: 'minor' | 'moderate' | 'major'; cue: string }
 export interface FormDrill { name: string; why: string; setsReps?: string }
+/**
+ * A still cut from the clip at the moment a fault happens, with the relevant
+ * region bracketed. `weaknessIndex` points back into `weaknesses` so the image
+ * renders beside the fault it illustrates.
+ */
+export interface FormReferenceFrame {
+  weaknessIndex: number;
+  timestampSec: number;
+  /** Base64 JPEG without the data: prefix. */
+  b64: string;
+  box2d?: number[];
+}
+
 export interface WorkoutVideoAnalysis {
   exercise: string;
   formScore: number;
@@ -1244,6 +1257,10 @@ export interface WorkoutVideoAnalysis {
   programmingNotes: string[];
   safetyFlags: string[];
   summary: string;
+  /** Present only when the user opted into keeping stills; absent on older analyses. */
+  referenceFrames?: FormReferenceFrame[];
+  /** What the user chose for this specific upload. */
+  framesConsent?: boolean;
 }
 export type FormAnalysisStatus = 'pending' | 'complete' | 'failed';
 
@@ -1291,11 +1308,16 @@ export const formAnalysisApi = {
     uri: string,
     mimeType: string,
     exerciseHint?: string,
+    saveFrames?: boolean,
   ): Promise<FormAnalysisStarted> => {
     const form = new FormData();
     const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
     form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
     if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
+    // Reference stills are opt-in per upload: the server keeps none unless this
+    // is an explicit '1'. Sent every time rather than remembered server-side so
+    // the choice travels with the analysis it produced.
+    form.append('saveFrames', saveFrames ? '1' : '0');
     // Opt into the async/poll flow — the backend defaults to the legacy
     // synchronous 200 for clients that don't send this header.
     return apiUpload('/form-analysis/video', form, { 'X-Form-Analysis-Async': '1' });
@@ -1304,6 +1326,10 @@ export const formAnalysisApi = {
   list: (): Promise<{ analyses: FormAnalysisListItem[] }> => apiFetch('/form-analysis'),
 
   get: (id: string): Promise<FormAnalysisDetail> => apiFetch(`/form-analysis/${id}`),
+
+  /** Delete one analysis and any reference stills stored with it. */
+  remove: (id: string): Promise<{ success: true }> =>
+    apiFetch(`/form-analysis/${id}`, { method: 'DELETE' }),
 
   /**
    * Poll GET /:id every `intervalMs` until status is terminal (complete or

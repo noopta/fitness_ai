@@ -9,7 +9,7 @@ export default function Privacy() {
       <main className="container-tight py-12 sm:py-16">
         <div className="max-w-3xl mx-auto space-y-6 text-sm text-muted-foreground">
           <h1 className="text-2xl font-bold text-foreground mb-1">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground mt-1">Last updated: April 23, 2026</p>
+          <p className="text-sm text-muted-foreground mt-1">Last updated: September 4, 2026</p>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">1. Introduction</h2>
@@ -27,6 +27,8 @@ export default function Privacy() {
               <li><strong>Fitness and health data:</strong> Height, weight, body composition goals, training age, available equipment, physical constraints or injuries, working weights, exercise logs, workout history, and other health-related information you choose to provide. This includes body weight log entries you record over time.</li>
               <li><strong>AI Coach interactions:</strong> Onboarding interview responses, chat messages with the AI coach, nutrition logs, wellness check-ins, program preferences, and strength diagnostic answers.</li>
               <li><strong>Lift diagnostic data:</strong> Selected lifts, sets, reps, weights, video form descriptions, diagnostic conversation transcripts, and generated analysis plans.</li>
+              <li><strong>Form-check videos:</strong> If you use the Form Analysis feature, you upload a short video (up to 60 seconds) of yourself performing a lift. The video is transmitted to Google's Vertex AI for analysis and is <strong>permanently deleted from our systems as soon as the analysis completes</strong> — typically within one minute. We never retain your video.</li>
+              <li><strong>Reference stills (optional):</strong> Within the Form Analysis feature you may separately choose to save "reference stills." When you switch this on for an upload, we extract up to three individual frames from that video — the specific moments the analysis is commenting on — draw a marker around the relevant area, and store those images with your analysis so you can see what the feedback refers to. This setting is <strong>off unless you turn it on</strong>, is confirmed for each upload, and is unavailable to users under 18. The stills are stored with that analysis record and are deleted when you delete the analysis or your account. Declining does not limit the written analysis in any way.</li>
               <li><strong>Workout logs:</strong> Exercise entries including exercise name, sets, reps, weight used, and any session notes you record through the app's workout logging features.</li>
               <li><strong>Nutrition and food logs:</strong> Meal entries including name, meal type, calorie count, macronutrient breakdown, and any notes. Images you submit for AI-powered meal analysis and calorie/macro estimation are processed in real time and are not permanently stored after analysis unless you explicitly save the result to your log.</li>
               <li><strong>Social content:</strong> Text posts, shared workouts, shared programs, forwarded posts, reactions, comments, and media you post or share with friends on the platform.</li>
@@ -71,7 +73,7 @@ export default function Privacy() {
             <p>We share data with the following third-party processors to operate the Service. Each is contractually required to protect your data and use it only for the services they provide to us:</p>
             <ul className="list-disc pl-6 mt-2 space-y-2">
               <li><strong>OpenAI (openai.com):</strong> Powers the AI coach chat, lift diagnostic analysis, training program generation, daily home insights, nutrition meal parsing, and coaching insight features. Your messages, fitness data, and meal descriptions are sent to OpenAI's API to generate responses. OpenAI's privacy policy governs their data handling.</li>
-              <li><strong>Google – Gemini (ai.google.dev):</strong> Powers the AI photo meal analysis feature. Food photos you submit are processed by Google's Gemini API to estimate nutritional content. Google's privacy policy governs their data handling.</li>
+              <li><strong>Google – Vertex AI (cloud.google.com/vertex-ai):</strong> Powers the AI photo meal analysis and the Form Analysis video feature. Food photos and form-check videos you submit are processed by Google's Gemini models running on Google Cloud's Vertex AI platform. Under Google Cloud's terms, customer data submitted to Vertex AI is not used to train Google's models. Media is deleted from Google Cloud storage immediately after processing. Reference stills, when you enable them, are produced on our own servers and are never sent to any third party.</li>
               <li><strong>Google – Authentication (accounts.google.com):</strong> If you sign in with Google, we receive your name and email address from Google OAuth. We do not receive your Google password. New accounts created via Google OAuth are prompted to provide a date of birth before accessing the app.</li>
               <li><strong>Apple – Sign In (apple.com):</strong> If you sign in with Apple, we receive your name and email address (or Apple's private relay address) via Apple's Sign In service. We do not receive your Apple password. New accounts created via Apple Sign In are prompted to provide a date of birth before accessing the app.</li>
               <li><strong>Google – YouTube (youtube.com):</strong> Exercise demonstration videos are embedded from YouTube. YouTube may collect data per their own privacy policy when you view these videos.</li>
@@ -101,6 +103,8 @@ export default function Privacy() {
               <li><strong>Workout and diagnostic history:</strong> Retained while your account is active. Deleted when your account is deleted.</li>
               <li><strong>AI coach conversation threads:</strong> Retained for up to 90 days of inactivity, after which older thread data may be pruned.</li>
               <li><strong>Food photos:</strong> Processed in real time; not permanently stored after analysis unless you save the result to your log.</li>
+              <li><strong>Form-check videos:</strong> Deleted immediately after the analysis completes, typically within one minute. Never retained.</li>
+              <li><strong>Reference stills:</strong> Only created if you switch them on for a given upload. Stored as part of that analysis record and deleted when you delete the analysis (available in the app on each analysis) or your account. They are not used for any purpose other than displaying your own feedback to you, are never shown to other users, and are never used for advertising or model training.</li>
               <li><strong>Billing records:</strong> Retained for up to 7 years as required by financial and tax regulations.</li>
               <li><strong>Server logs:</strong> Retained for up to 90 days for security and debugging purposes.</li>
             </ul>
@@ -135,6 +139,39 @@ export default function Privacy() {
             <p className="mt-1">
               Canadian residents may have rights under the Personal Information Protection and Electronic Documents Act (PIPEDA), including the right to access and correct personal information we hold. Contact our privacy office at the address below to exercise these rights.
             </p>
+
+            <p className="font-medium text-foreground mt-4">European Economic Area and United Kingdom (GDPR / UK GDPR)</p>
+            <p className="mt-1">
+              If you are located in the EEA or the UK, the following applies to you in addition to the rights listed above.
+            </p>
+            <ul className="list-disc pl-6 mt-2 space-y-1">
+              <li><strong>Controller:</strong> Axiom is the data controller for the personal data described in this policy. Contact us at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> for any request under this section.</li>
+              <li><strong>Lawful bases.</strong> We process your account and usage data to <em>perform our contract</em> with you (Art. 6(1)(b)); we process data for security, fraud prevention and product improvement on the basis of our <em>legitimate interests</em> (Art. 6(1)(f)); and we rely on your <em>consent</em> (Art. 6(1)(a)) for push notifications and for optional features you switch on.</li>
+              <li><strong>Health data.</strong> Fitness, body, nutrition and form-check data are special category data under Art. 9. We process them only on the basis of your <strong>explicit consent</strong>, which you give by choosing to provide them and which you may withdraw at any time by deleting the data or your account. Withdrawal does not affect processing already carried out.</li>
+              <li><strong>Reference stills.</strong> Because these are retained images of your body, they are processed only where you give a separate, explicit opt-in for that upload. You may withhold it, change it at any time, and delete any stored still by deleting the analysis — none of which limits your access to the rest of the Service.</li>
+              <li><strong>International transfers.</strong> Our servers and processors are in the United States. Where we transfer personal data out of the EEA or UK we rely on the European Commission's Standard Contractual Clauses (and the UK Addendum), together with supplementary technical measures including encryption in transit. A copy of the relevant transfer mechanism is available on request.</li>
+              <li><strong>Retention.</strong> See Section 6. We keep personal data no longer than necessary for the purposes described, and you can shorten that at any time by deleting individual records or your account.</li>
+              <li><strong>Automated decision-making.</strong> We do not make decisions producing legal or similarly significant effects about you by solely automated means. AI-generated training and nutrition output is advisory and you remain free to disregard it.</li>
+              <li><strong>Complaints.</strong> You have the right to lodge a complaint with your local supervisory authority, or with the UK Information Commissioner's Office (ico.org.uk), if you believe we have handled your data unlawfully. We would ask that you raise it with us first so we can try to resolve it.</li>
+            </ul>
+
+            <p className="font-medium text-foreground mt-4">Washington, Nevada and Connecticut — Consumer Health Data</p>
+            <p className="mt-1">
+              Washington's My Health My Data Act, Nevada SB 370 and comparable state laws give residents specific rights over "consumer health data." Much of what Axiom processes — your workouts, body weight, nutrition, injuries, form-check videos and any reference stills — falls within that definition, and we treat it as consumer health data for all users, not only those in these states.
+            </p>
+            <ul className="list-disc pl-6 mt-2 space-y-1">
+              <li><strong>What we collect and why:</strong> the categories in Section 2, for the purposes in Section 3. We collect consumer health data only to provide the Service to you.</li>
+              <li><strong>Consent to collect.</strong> Health data is collected only from what you choose to enter or upload. Optional processing that goes beyond providing a feature you requested — notably saving reference stills from a form-check video — requires a separate opt-in that is off by default.</li>
+              <li><strong>We do not sell it.</strong> We do not sell consumer health data, and we do not share it with third parties for their own purposes. Our processors (Section 4) act only on our instructions.</li>
+              <li><strong>Right to withdraw and delete.</strong> You may withdraw consent, and you may require us to delete your consumer health data, by deleting the individual records, deleting your account in the app, or emailing <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>. We will process deletion requests within 30 days and will pass them on to our processors.</li>
+              <li><strong>Right to access.</strong> You may request a list of the third parties with whom we have shared your consumer health data, and a copy of the data itself, at the same address.</li>
+              <li><strong>No geofencing.</strong> We do not operate geofences around healthcare facilities or use location to infer health status.</li>
+            </ul>
+
+            <p className="font-medium text-foreground mt-4">Biometric Data</p>
+            <p className="mt-1">
+              We want to be explicit about what we do not do, because form-check video could otherwise raise the question. Axiom does <strong>not</strong> perform facial recognition, does not extract face, hand or body geometry as an identifier, does not attempt to identify or match individuals across videos or photos, and does not create, store or use biometric identifiers or biometric information as those terms are defined under the Illinois Biometric Information Privacy Act, the Texas Capture or Use of Biometric Identifier Act, or comparable laws. Form-check videos are analyzed for movement quality and then deleted.
+            </p>
           </section>
 
           <section>
@@ -149,6 +186,9 @@ export default function Privacy() {
               This Service is designed for general fitness tracking and strength training guidance. Health and fitness data collected from minor users is used solely to provide and personalize the Service and is not shared with third parties for marketing or advertising purposes.
             </p>
             <p className="mt-2">
+              <strong>Additional protection for users under 18.</strong> The optional "reference stills" feature described in Section 2.1 is disabled for accounts under 18 years old and cannot be enabled by them. Minors receive the full written form analysis; we do not retain still images of them. This restriction is enforced on our servers using the date of birth collected at registration, not by the app alone, and an account whose age we cannot determine is treated as under 18 for this purpose.
+            </p>
+            <p className="mt-2">
               If you are a parent or guardian and believe your child under 13 has created an account or provided us with personal information without your consent, please contact us immediately at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>. We will delete such information promptly upon verification.
             </p>
             <p className="mt-2 font-medium text-foreground">COPPA (Children's Online Privacy Protection Act)</p>
@@ -160,14 +200,14 @@ export default function Privacy() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">10. International Data Transfers</h2>
             <p>
-              Our servers are located in the United States. If you access the Service from outside the United States, your information will be transferred to and processed in the U.S., where data protection laws may differ from those in your jurisdiction. By using the Service, you consent to this transfer. We take steps to ensure appropriate safeguards are in place, including relying on service providers who comply with applicable data protection frameworks.
+              Our servers are located in the United States. If you access the Service from outside the United States, your information will be transferred to and processed in the U.S., where data protection laws may differ from those in your jurisdiction. Where the law of your jurisdiction requires a specific safeguard for that transfer — including for users in the EEA and UK — we rely on the Standard Contractual Clauses and the measures described under "European Economic Area and United Kingdom" in Section 8, not on your consent alone. We also require our service providers to comply with applicable data protection frameworks.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">11. AI and Automated Processing</h2>
             <p>
-              The Service uses AI models from OpenAI and Google (Gemini) to process your fitness data, food photos, meal descriptions, and coaching conversations. These AI systems generate recommendations automatically. We do not make solely automated decisions that produce significant legal or similarly significant effects on you without human oversight. AI-generated outputs are informational only — see our Terms of Service for full disclaimers.
+              The Service uses AI models from OpenAI, and Google Gemini models running on Google Cloud's Vertex AI, to process your fitness data, food photos, form-check videos, meal descriptions, and coaching conversations. These AI systems generate recommendations automatically. We do not make solely automated decisions that produce significant legal or similarly significant effects on you without human oversight. AI-generated outputs are informational only — see our Terms of Service for full disclaimers.
             </p>
             <p className="mt-2 font-medium text-foreground">Strength Metrics and Automated Scoring</p>
             <p className="mt-1">
@@ -177,12 +217,17 @@ export default function Privacy() {
             <p className="mt-1">
               When you have logged sufficient workout data (a minimum of 3 sessions with weighted exercises), your home screen may display "Anakin's Latest Insights" — up to five personalized observations generated by OpenAI's GPT-4 model based on your strength metrics, movement balance scores, recent training trends, and nutrition log averages. These insights are generated once per day and cached. The data sent to OpenAI for this purpose includes anonymized lift names, estimated 1RM values, training session counts, monthly trend percentages, and averaged macro totals — not raw conversation history.
             </p>
+            <p className="mt-2 font-medium text-foreground">Form Analysis (Video)</p>
+            <p className="mt-1">
+              When you upload a lift video, it is analyzed by a Gemini model on Vertex AI, which returns a written critique — a form score, strengths, faults with coaching cues, drills and any safety flags. Where the model can identify the specific moment a fault occurs, it also returns a timestamp and a region of the frame. If, and only if, you have switched on reference stills for that upload, our own servers use those coordinates to cut up to three frames out of your video and mark the relevant area, and we store those images with your analysis. The video itself is deleted either way. This output is informational coaching feedback, not a medical or physiotherapeutic assessment, and it can be wrong — see our Terms of Service.
+            </p>
+
             <p className="mt-2 font-medium text-foreground">Food Behavior Analysis</p>
             <p className="mt-1">
               When you log a meal using the AI-assisted "Describe" or "Scan" modes, the name and calorie content of the analyzed meal are evaluated against a set of criteria to determine whether the meal qualifies as a high-calorie junk food item. If it does, the system may send a motivational push notification. This analysis is entirely automated, uses no AI model, and applies a calorie threshold to avoid triggering on small or incidental treats. A maximum of one such notification is sent per 6-hour window. You can disable push notifications entirely in your device settings.
             </p>
             <p className="mt-2">
-              Anonymized, aggregated usage patterns (not personally identifiable data) may be used to improve our own product features and algorithms. We do not share personally identifiable AI interaction data with third parties for their model training without your explicit consent.
+              Anonymized, aggregated usage patterns (not personally identifiable data) may be used to improve our own product features and algorithms. We do not share personally identifiable AI interaction data with third parties for their model training without your explicit consent. Your form-check videos, reference stills and food photos are never used to train any model, ours or a third party's.
             </p>
           </section>
 
