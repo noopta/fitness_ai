@@ -26,12 +26,18 @@
  * 10,000 analyses. Past that, swap `b64` for a storage key and resolve at read
  * time; the frames are behind a JSON field precisely so that stays contained.
  *
- * ── Why the boxes are drawn loosely ──────────────────────────────────────────
- * Calibration (see VIDEO_SAMPLE_FPS in geminiService) puts the model's boxes
- * within ~2% of frame dimensions at 4 fps — about 25px on a 1280px-tall clip.
- * Good, not exact. So we render a rounded corner-bracket rather than a tight
- * rectangle: brackets read as "look in here", which is what the data supports,
- * where a tight box claims a precision we do not have.
+ * ── Two passes: when, then where ─────────────────────────────────────────────
+ * The video pass supplies the timestamp and a NAME for what to look at; this
+ * file extracts that frame and asks a second, image-mode call where that thing
+ * actually is (see locateInFrame in geminiService for the measurements). Video
+ * -mode coordinates were wrong by ~20% of frame height on a real analysis and
+ * put a marker on empty floor; image-mode coordinates on the same frame land
+ * within ~1%.
+ *
+ * The marker is still drawn as corner brackets rather than a tight rectangle.
+ * Brackets read as "look in here", which stays honest about a target that is a
+ * body region rather than an object with crisp edges, and degrades gracefully
+ * when the box is a little generous.
  */
 
 import { execFile } from 'node:child_process';
@@ -40,6 +46,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { locateInFrame } from './geminiService.js';
 import type { FormWeakness } from './geminiService.js';
 
 const execFileAsync = promisify(execFile);
@@ -166,15 +173,18 @@ export function buildFilter(box2d: number[] | null): string {
 }
 
 /**
- * Extract one annotated still. Returns base64 JPEG, or null on any ffmpeg
- * failure — a missing still degrades the feature, it must never fail the
- * analysis the user is waiting on.
+ * Cut one frame out of the clip, scaled, with nothing drawn on it. Returns the
+ * file path, or null on any ffmpeg failure.
+ *
+ * Deliberately separate from annotation: the clean frame is what gets sent to
+ * locateInFrame, so the coordinates that come back describe the exact pixels we
+ * then draw on. Drawing first would put a red bracket in the picture we are
+ * asking the model to interpret.
  */
-async function extractOne(
+async function extractClean(
   videoPath: string,
   workDir: string,
   timestampSec: number,
-  box2d: number[] | null,
 ): Promise<string | null> {
   const outPath = path.join(workDir, `${randomBytes(6).toString('hex')}.jpg`);
   try {
@@ -188,17 +198,42 @@ async function extractOne(
         '-ss', timestampSec.toFixed(3),
         '-i', videoPath,
         '-frames:v', '1',
-        '-vf', buildFilter(box2d),
+        '-vf', `scale=${FRAME_WIDTH}:-2`,
         '-q:v', String(FRAME_QUALITY),
         '-f', 'image2',
         outPath,
       ],
       { timeout: FFMPEG_TIMEOUT_MS },
     );
-    return (await readFile(outPath)).toString('base64');
+    return outPath;
   } catch (err: any) {
     console.warn(`[form-frames] extract at ${timestampSec}s failed: ${err?.message ?? err}`);
     return null;
+  }
+}
+
+/**
+ * Draw the corner brackets onto an already-extracted frame. Image-only, so it
+ * costs a few milliseconds rather than another seek through the video.
+ * Returns the annotated bytes, or the original bytes if drawing fails — a
+ * still without a marker is still the right moment.
+ */
+async function annotate(
+  jpegPath: string,
+  workDir: string,
+  box2d: number[],
+): Promise<Buffer> {
+  const outPath = path.join(workDir, `${randomBytes(6).toString('hex')}-marked.jpg`);
+  try {
+    await execFileAsync(
+      'ffmpeg',
+      ['-v', 'error', '-i', jpegPath, '-vf', buildFilter(box2d), '-q:v', String(FRAME_QUALITY), outPath],
+      { timeout: FFMPEG_TIMEOUT_MS },
+    );
+    return await readFile(outPath);
+  } catch (err: any) {
+    console.warn(`[form-frames] annotate failed, using clean frame: ${err?.message ?? err}`);
+    return readFile(jpegPath);
   }
 }
 
@@ -232,13 +267,20 @@ export async function extractReferenceFrames(
     // Sequential on purpose: this box is 2 vCPU and shared with prod, and
     // three 0.5s encodes back to back are cheaper than three at once.
     for (const { weakness, index } of selected) {
-      const box = isValidBox(weakness.box2d) ? (weakness.box2d as number[]) : null;
-      const b64 = await extractOne(videoPath, workDir, weakness.timestampSec!, box);
-      if (!b64) continue;
+      const cleanPath = await extractClean(videoPath, workDir, weakness.timestampSec!);
+      if (!cleanPath) continue;
+
+      // Where, asked of the frame itself rather than of the video. Skipped
+      // when the video pass named nothing to look at.
+      const target = typeof weakness.focusTarget === 'string' ? weakness.focusTarget.trim() : '';
+      const located = target ? await locateInFrame(await readFile(cleanPath), target) : null;
+      const box = isValidBox(located) ? (located as number[]) : null;
+
+      const bytes = box ? await annotate(cleanPath, workDir, box) : await readFile(cleanPath);
       frames.push({
         weaknessIndex: index,
         timestampSec: weakness.timestampSec!,
-        b64,
+        b64: bytes.toString('base64'),
         ...(box ? { box2d: box } : {}),
       });
     }

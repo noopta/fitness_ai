@@ -57,6 +57,14 @@ export interface AuthUser {
   coachGoal?: string | null;
   coachBudget?: string | null;
   coachOnboardingDone?: boolean;
+  /**
+   * ISO date string, or null for accounts created before the age-check screen
+   * existed. /auth/me returns it; it gates age-restricted features (18+ for
+   * form-analysis reference stills). Existing accounts are deliberately NOT
+   * prompted at launch — the form-analysis screen asks for it in context, only
+   * when the user reaches for something that needs it.
+   */
+  dateOfBirth?: string | null;
   coachProfile?: string | null;
   savedProgram?: string | null;
   institutions?: InstitutionMembership[];
