@@ -10,10 +10,11 @@ import { KeyboardDoneBar } from '../src/components/ui/KeyboardDoneBar';
 import { useAuth } from '../src/context/AuthContext';
 import { authApi } from '../src/lib/api';
 import { colors, spacing, radius, fontSize, fontWeight } from '../src/constants/theme';
+import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 
 export default function AgeCheckScreen() {
   const router = useRouter();
-  const { logout, clearDobCheck } = useAuth();
+  const { logout, clearDobCheck, getLatestUser } = useAuth();
 
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +58,7 @@ export default function AgeCheckScreen() {
       // CoachOnboarding questionnaire + program-generation flow lives.
       // New users (no savedProgram) see onboarding immediately; returning
       // users see their dashboard.
-      router.replace('/(tabs)/coach');
+      router.replace((await postAuthDestination(getLatestUser())) as any);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not save your date of birth. Please try again.');
     } finally {

@@ -14,10 +14,11 @@ import { KeyboardDoneBar } from '../../src/components/ui/KeyboardDoneBar';
 import { useAuth } from '../../src/context/AuthContext';
 import { Analytics } from '../../src/lib/analytics';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
+import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, googleLogin, appleLogin } = useAuth();
+  const { login, googleLogin, appleLogin, getLatestUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -83,7 +84,7 @@ export default function LoginScreen() {
       if (orgMode) {
         router.replace(`/institution/athlete?slug=${encodeURIComponent(orgSlug.trim())}` as any);
       } else {
-        router.replace('/(tabs)');
+        router.replace((await postAuthDestination(getLatestUser())) as any);
       }
     } catch (err: any) {
       Alert.alert('Sign In Failed', err?.message || 'Invalid email or password. Please try again.');
