@@ -235,11 +235,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, []);
 
+  // Every sign-in path must end with a /auth/me pass BEFORE the caller
+  // routes: the login/register/apple/google responses carry a minimal user
+  // and NO `features` block, and postAuthDestination runs the moment these
+  // functions return. Without this, server feature flags read as all-off on
+  // every fresh sign-in — new users were routed into the intake with the
+  // diagnostic-first flag on because getFeatures() still held the defaults.
+  // refreshUser() commits both the full user and the features, and tolerates
+  // a network blip by keeping the state we already committed.
   async function login(email: string, password: string): Promise<AuthVerifyPending | null> {
     const data = await authApi.login(email, password);
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
     commitUser(data.user);
+    await refreshUser();
     return null;
   }
 
@@ -248,6 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
     commitUser(data.user);
+    await refreshUser();
     return null;
   }
 
@@ -255,6 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await authApi.verifyEmail(email, code);
     if (data.token) await setToken(data.token);
     commitUser(data.user);
+    await refreshUser();
   }
 
   async function resendVerification(email: string) {
@@ -297,6 +308,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
       commitUser(data.user);
+      // This IS the /auth/me payload — commit the features it carries, or
+      // post-auth routing runs on the all-off defaults.
+      commitFeatures(data.features);
       if (opts?.needsDob) setNeedsDobCheck(true);
       return true;
     } catch {
@@ -341,6 +355,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               Alert.alert('Sign In Failed', `Verification failed (${res.status}: ${data.error ?? 'unknown'}). Please try again.`);
             } else {
               commitUser(data.user);
+              // Same /auth/me payload — features must land before routing.
+              commitFeatures(data.features);
               if (dobRequired) setNeedsDobCheck(true);
               return true;
             }
@@ -410,6 +426,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.token) await setToken(data.token);
       commitUser(data.user);
+      // The /auth/apple response has no `features` block — refresh from
+      // /auth/me so feature-gated routing (diagnostic-first, form hook)
+      // sees real flags instead of the all-off defaults.
+      await refreshUser();
       if (data.needsDobCheck) setNeedsDobCheck(true);
       return true;
     } catch (err: any) {
