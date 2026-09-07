@@ -32,8 +32,12 @@ vi.mock('@/context/AuthContext', () => ({
     googleLogin: mockGoogleLogin,
     refreshUser: mockRefreshUser,
     user: null,
+    features: { onboardingFormHook: false, diagnosticFirstOnboarding: false },
     loading: false,
   }),
+  postAuthDestination: (user: any, features: any) =>
+    !user?.coachOnboardingDone && features?.diagnosticFirstOnboarding ? '/onboarding' : '/coach',
+  DEFAULT_FEATURES: { onboardingFormHook: false, diagnosticFirstOnboarding: false },
 }));
 
 vi.mock('wouter', () => ({
@@ -149,6 +153,42 @@ describe('Login page — form', () => {
       expect(mockSetLocation).toHaveBeenCalledWith('/plan');
     });
     expect(window.sessionStorage.getItem('liftoff_redirect')).toBeNull();
+  });
+
+  it('cold-starts a new diagnostic-first user in /onboarding, even over a saved redirect', async () => {
+    window.sessionStorage.setItem('liftoff_redirect', '/plan');
+    mockLogin.mockResolvedValueOnce(undefined);
+    // /auth/me is the only response carrying coachOnboardingDone + flags
+    mockRefreshUser.mockResolvedValueOnce({
+      user: { id: 'u1', coachOnboardingDone: false },
+      features: { onboardingFormHook: false, diagnosticFirstOnboarding: true },
+    });
+    render(<Login />);
+
+    await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'new@example.com');
+    await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'pass');
+    await userEvent.click(submitButton());
+
+    await waitFor(() => {
+      expect(mockSetLocation).toHaveBeenCalledWith('/onboarding');
+    });
+  });
+
+  it('keeps a returning flagged user out of the diagnostic cold start', async () => {
+    mockLogin.mockResolvedValueOnce(undefined);
+    mockRefreshUser.mockResolvedValueOnce({
+      user: { id: 'u1', coachOnboardingDone: true },
+      features: { onboardingFormHook: false, diagnosticFirstOnboarding: true },
+    });
+    render(<Login />);
+
+    await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'old@example.com');
+    await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'pass');
+    await userEvent.click(submitButton());
+
+    await waitFor(() => {
+      expect(mockSetLocation).toHaveBeenCalledWith('/coach');
+    });
   });
 
   it('shows an error toast when login fails', async () => {

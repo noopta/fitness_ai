@@ -9,7 +9,7 @@ import {
   coachInitCacheKey, COACH_INIT_TTL_MS, extractProgram, fetchCoachInit,
   type CoachInitCacheShape,
 } from '../../src/lib/coachData';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, spacing, radius } from '../../src/constants/theme';
@@ -86,7 +86,8 @@ export default function CoachScreen() {
 }
 
 function CoachScreenInner() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser, getFeatures } = useAuth();
+  const router = useRouter();
   const { toKg } = useUnits();
 
   // Hydrate from in-memory cache synchronously so a tab switch with a hot
@@ -380,6 +381,54 @@ function CoachScreenInner() {
   }
 
   if (stage === 'onboarding') {
+    // Diagnostic-first funnel: the free intake→program path is the one hole
+    // in the verdict paywall — without this gate a user who declined the
+    // trial could walk the 8-step intake and be handed the full program for
+    // free, which is exactly what the trial sells. Under the flag, free
+    // users see the offer here instead; the deep intake becomes the first
+    // thing the trial unlocks ("now let's build your real program").
+    if (getFeatures().diagnosticFirstOnboarding && !isPro) {
+      return (
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <View style={styles.lockedIntakeWrap}>
+            <View style={styles.lockedIntakeIcon}>
+              <Ionicons name="lock-closed" size={26} color={colors.primary} />
+            </View>
+            <Text style={styles.lockedIntakeTitle}>Your program starts here</Text>
+            <Text style={styles.lockedIntakePromise}>
+              Unlock the adaptive program + AI coach that fixes your weak link and keeps adjusting.
+            </Text>
+            <Text style={styles.lockedIntakeSub}>
+              Start your free month and Anakin runs the full elite-coach intake, builds your program
+              around your diagnostic, and adapts it as you train.
+            </Text>
+            <TouchableOpacity
+              style={styles.lockedIntakeCta}
+              onPress={() => {
+                Analytics.paywallViewed('coach_intake_locked');
+                setUpgradeVisible(true);
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.lockedIntakeCtaText}>Start your free month</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/diagnostic/onboarding' as any)}
+              style={styles.lockedIntakeSecondary}
+            >
+              <Text style={styles.lockedIntakeSecondaryText}>Run another lift diagnostic</Text>
+            </TouchableOpacity>
+            <Text style={styles.lockedIntakeFinePrint}>1 month free · cancel anytime</Text>
+          </View>
+          <UpgradeSheet
+            visible={upgradeVisible}
+            onClose={() => setUpgradeVisible(false)}
+            promise="Unlock the adaptive program + AI coach that fixes your weak link and keeps adjusting."
+            onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
+          />
+        </SafeAreaView>
+      );
+    }
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.stageHeader}>
@@ -660,6 +709,69 @@ const styles = StyleSheet.create({
   },
 
   // Stage header (onboarding / setup / walkthrough)
+  // ── Locked intake (diagnostic-first funnel, free tier) ────────────────────
+  lockedIntakeWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.md,
+  },
+  lockedIntakeIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: `${colors.primary}1A`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  lockedIntakeTitle: {
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+    textAlign: 'center',
+  },
+  lockedIntakePromise: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  lockedIntakeSub: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  lockedIntakeCta: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  lockedIntakeCtaText: {
+    color: colors.primaryForeground,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.bold,
+  },
+  lockedIntakeSecondary: {
+    paddingVertical: spacing.sm,
+  },
+  lockedIntakeSecondaryText: {
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+  },
+  lockedIntakeFinePrint: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+  },
+
   stageHeader: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,

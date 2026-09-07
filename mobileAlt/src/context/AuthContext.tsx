@@ -109,7 +109,7 @@ interface AuthContextType {
    */
   getLatestUser: () => AuthUser | null;
   /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
-  getFeatures: () => { onboardingFormHook: boolean };
+  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -144,9 +144,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // any re-render has happened. Defaults to everything off, so a server that
   // does not send the block (or a request that failed) leaves gated features
   // dark rather than showing a flow the backend will refuse.
-  const featuresRef = useRef<{ onboardingFormHook: boolean }>({ onboardingFormHook: false });
+  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean }>({
+    onboardingFormHook: false,
+    diagnosticFirstOnboarding: false,
+  });
   const commitFeatures = useCallback((f: any) => {
-    featuresRef.current = { onboardingFormHook: f?.onboardingFormHook === true };
+    featuresRef.current = {
+      onboardingFormHook: f?.onboardingFormHook === true,
+      diagnosticFirstOnboarding: f?.diagnosticFirstOnboarding === true,
+    };
   }, []);
   const getFeatures = useCallback(() => featuresRef.current, []);
   const [loading, setLoading] = useState(true);

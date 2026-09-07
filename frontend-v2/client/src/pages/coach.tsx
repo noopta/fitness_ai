@@ -58,7 +58,7 @@ function deriveStage(user: any): CoachStage {
 }
 
 export default function CoachPage() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { user, features, loading: authLoading, refreshUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [coachData, setCoachData] = useState<CoachData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -210,6 +210,32 @@ export default function CoachPage() {
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
+          </Card>
+        </div>
+      ) : stage === 'onboarding' && features.diagnosticFirstOnboarding && !isPro ? (
+        /* Diagnostic-first funnel: free users don't get the coach intake — the
+           diagnostic verdict is the front door, and the coach is what the
+           paywall sells. Pro/enterprise users still run the full intake. */
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card className="max-w-md w-full p-8 text-center space-y-5">
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 mx-auto">
+              <Lock className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Your program starts here</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Unlock the adaptive program + AI coach that fixes this and keeps adjusting.
+              </p>
+            </div>
+            <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-600 font-semibold" asChild onClick={() => WebAnalytics.upgradeTapped('coach_diagnostic_first')}>
+              <Link href="/pricing">
+                Start your free month
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+            <Link href="/onboarding" className="block text-sm text-primary hover:underline">
+              Run another lift diagnostic
+            </Link>
           </Card>
         </div>
       ) : stage === 'onboarding' ? (

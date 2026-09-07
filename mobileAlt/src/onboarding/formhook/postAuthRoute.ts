@@ -1,4 +1,5 @@
 import { hasSeenFormHook, isOldEnoughForFormHook } from './storage';
+import { hasSeenDiagnosticFirst } from '../diagnosticFirst';
 
 /**
  * Where a freshly-authenticated user belongs.
@@ -27,10 +28,19 @@ import { hasSeenFormHook, isOldEnoughForFormHook } from './storage';
  */
 export async function postAuthDestination(
   user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
-  features?: { onboardingFormHook?: boolean },
+  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
   if (user.coachOnboardingDone) return '/(tabs)';
+  // Diagnostic-first funnel: the cold start is the lift diagnostic, not the
+  // intake — verdict first, paywall on the verdict, intake only inside the
+  // trial. Takes precedence over the form hook: when both flags are on the
+  // diagnostic IS the funnel and the hook stays an alternate entry. A user
+  // who already reached a verdict and declined lands on Home, where the
+  // coach tab shows the locked upsell rather than a free full-program intake.
+  if (features?.diagnosticFirstOnboarding) {
+    return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : '/diagnostic/onboarding';
+  }
   // The server's kill switch, checked BEFORE we route anyone into the hook.
   // Without this the feature being dark would still show the whole capture
   // flow and only fail on upload — the user films a set for nothing. Omitted

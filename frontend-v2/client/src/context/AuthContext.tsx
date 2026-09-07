@@ -34,6 +34,39 @@ export interface AuthUser {
   institutions?: InstitutionMembership[];
 }
 
+// Server-owned feature flags from /auth/me. Defaults are all-false so a failed
+// fetch leaves gated features dark rather than flickering them on.
+export interface AuthFeatures {
+  onboardingFormHook: boolean;
+  diagnosticFirstOnboarding: boolean;
+}
+
+export const DEFAULT_FEATURES: AuthFeatures = {
+  onboardingFormHook: false,
+  diagnosticFirstOnboarding: false,
+};
+
+function normalizeFeatures(raw: any): AuthFeatures {
+  return {
+    onboardingFormHook: raw?.onboardingFormHook === true,
+    diagnosticFirstOnboarding: raw?.diagnosticFirstOnboarding === true,
+  };
+}
+
+/**
+ * Where a just-authenticated user should land. Users who haven't finished the
+ * coach intake cold-start in the legacy diagnostic flow when the server's
+ * diagnostic-first flag is on; everyone else lands on the coach dashboard.
+ */
+export function postAuthDestination(
+  user: Pick<AuthUser, 'coachOnboardingDone'> | null | undefined,
+  features: AuthFeatures
+): '/onboarding' | '/coach' {
+  return !user?.coachOnboardingDone && features.diagnosticFirstOnboarding
+    ? '/onboarding'
+    : '/coach';
+}
+
 // Returned by register() when EMAIL_VERIFICATION_ENABLED is on server-side:
 // the account exists but is unverified, and the caller must route to the
 // verify-email screen instead of into the app. `codeSent: false` means the
@@ -46,6 +79,7 @@ export interface PendingVerification {
 
 interface AuthContextType {
   user: AuthUser | null;
+  features: AuthFeatures;
   loading: boolean;
   login: (email: string, password: string) => Promise<PendingVerification | null>;
   register: (name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string) => Promise<PendingVerification | null>;
@@ -53,7 +87,9 @@ interface AuthContextType {
   resendVerification: (email: string) => Promise<{ sent: boolean; reason?: string; cooldownRemainingSec?: number }>;
   logout: () => Promise<void>;
   googleLogin: () => void;
-  refreshUser: () => Promise<void>;
+  // Resolves with what /auth/me returned so callers can route on fresh data
+  // instead of waiting for the async state update to land.
+  refreshUser: () => Promise<{ user: AuthUser | null; features: AuthFeatures }>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -82,14 +118,20 @@ async function apiFetch(path: string, options?: RequestInit) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [features, setFeatures] = useState<AuthFeatures>(DEFAULT_FEATURES);
   const [loading, setLoading] = useState(true);
 
   async function refreshUser() {
     try {
       const data = await apiFetch('/auth/me');
+      const nextFeatures = normalizeFeatures(data.features);
       setUser(data.user);
+      setFeatures(nextFeatures);
+      return { user: (data.user ?? null) as AuthUser | null, features: nextFeatures };
     } catch {
       setUser(null);
+      setFeatures(DEFAULT_FEATURES);
+      return { user: null, features: DEFAULT_FEATURES };
     }
   }
 
@@ -150,6 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await apiFetch('/auth/logout', { method: 'POST' });
     sessionStorage.removeItem('liftoff_bearer_token');
     setUser(null);
+    setFeatures(DEFAULT_FEATURES);
   }
 
   function googleLogin() {
@@ -157,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, resendVerification, logout, googleLogin, refreshUser }}>
+    <AuthContext.Provider value={{ user, features, loading, login, register, verifyEmail, resendVerification, logout, googleLogin, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -7,14 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Navbar } from '@/components/Navbar';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, postAuthDestination, DEFAULT_FEATURES } from '@/context/AuthContext';
 import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 
 export default function Login() {
-  const { login, googleLogin, refreshUser, user, loading } = useAuth();
+  const { login, googleLogin, refreshUser, user, features, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,32 +48,26 @@ export default function Login() {
       window.history.replaceState({}, '', '/login');
 
       // Retry refreshUser up to 3 times with a short delay — cookie may need a
-      // brief moment to propagate after the OAuth redirect chain.
+      // brief moment to propagate after the OAuth redirect chain. refreshUser
+      // resolves with the /auth/me payload, so we route on fresh data rather
+      // than a stale closure over `user`.
       const attemptRefresh = async (attemptsLeft: number): Promise<void> => {
-        await refreshUser();
-        // After refreshUser, user state update is async — read from /auth/me result
-        // by attempting the redirect in the same tick via a small timeout
+        const refreshed = await refreshUser();
+        if (refreshed.user) {
+          redirected.current = true;
+          const saved = sessionStorage.getItem('liftoff_redirect');
+          const dest = postAuthDestination(refreshed.user, refreshed.features);
+          // A new user under diagnostic-first cold-starts in the diagnostic
+          // flow regardless of any saved path; returning users keep theirs.
+          const redirect = dest === '/onboarding'
+            ? dest
+            : (saved && saved !== '/login' && saved !== '/register') ? saved : dest;
+          sessionStorage.removeItem('liftoff_redirect');
+          setLocation(redirect);
+          return;
+        }
         if (attemptsLeft > 1) {
           await new Promise(r => setTimeout(r, 400));
-          // Check if we already have a user via a fresh fetch rather than stale closure
-          try {
-            const res = await fetch(
-              (import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api') + '/auth/me',
-              { credentials: 'include' }
-            );
-            if (res.ok) {
-              const data = await res.json();
-              if (data.user) {
-                const saved = sessionStorage.getItem('liftoff_redirect');
-                const redirect = (saved && saved !== '/login' && saved !== '/register')
-                  ? saved
-                  : '/coach';
-                sessionStorage.removeItem('liftoff_redirect');
-                setLocation(redirect);
-                return;
-              }
-            }
-          } catch { /* ignore */ }
           return attemptRefresh(attemptsLeft - 1);
         }
       };
@@ -89,13 +83,14 @@ export default function Login() {
     if (!loading && !oauthPending && user && !redirected.current) {
       redirected.current = true;
       const saved = sessionStorage.getItem('liftoff_redirect');
-      const redirect = (saved && saved !== '/login' && saved !== '/register')
-        ? saved
-        : '/coach';
+      const dest = postAuthDestination(user, features ?? DEFAULT_FEATURES);
+      const redirect = dest === '/onboarding'
+        ? dest
+        : (saved && saved !== '/login' && saved !== '/register') ? saved : dest;
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     }
-  }, [user, loading, oauthPending]);
+  }, [user, features, loading, oauthPending]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -111,9 +106,16 @@ export default function Login() {
       }
       WebAnalytics.login('email');
       redirected.current = true; // prevent the useEffect from also firing
+      // The login response is minimal (id/name/email/tier) — coachOnboardingDone
+      // and the server feature flags only come back on /auth/me, so refresh
+      // before deciding where to land.
+      const refreshed = await Promise.resolve(refreshUser()).catch(() => null);
+      const dest = postAuthDestination(refreshed?.user ?? null, refreshed?.features ?? DEFAULT_FEATURES);
       const saved = sessionStorage.getItem('liftoff_redirect');
       // If org mode, redirect to institution page after login
-      let redirect = (saved && saved !== '/login' && saved !== '/register') ? saved : '/coach';
+      let redirect = dest === '/onboarding'
+        ? dest
+        : (saved && saved !== '/login' && saved !== '/register') ? saved : dest;
       if (orgMode && orgSlug.trim()) {
         redirect = `/institution/${orgSlug.trim()}`;
       }

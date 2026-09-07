@@ -221,6 +221,13 @@ export const Analytics = {
     logFirebaseEvent('tutorial_complete', { lift });
   },
 
+  // The diagnostic-first funnel's core beat: the user saw their verdict.
+  // `locked` distinguishes the funnel cohort (prescription withheld, paywall
+  // on this screen) from legacy/pro users seeing the full plan, so
+  // verdict→trial conversion is measurable without a separate cohort flag.
+  diagnosticVerdictViewed: (props: { locked: boolean }) =>
+    posthog.capture('diagnostic_verdict_viewed', props),
+
   // ── Coach — Life Happened ─────────────────────────────────────────────────
   lifeHappenedSubmitted: (disruptionType?: string) =>
     posthog.capture('life_happened_submitted', { disruption_type: disruptionType }),

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Target, Eye, TrendingUp, Activity, BarChart2, Zap, History } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clipboard, Dumbbell, Shield, Sparkles, Loader2, Lock, Target, Eye, TrendingUp, Activity, BarChart2, Zap, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { AccessoryVideoCard } from "@/components/AccessoryVideoCard";
 import { useAuth } from "@/context/AuthContext";
+import { WebAnalytics } from "@/lib/analytics";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -64,6 +65,15 @@ export default function Plan() {
     loadPlan();
   }, []);
 
+  // One event per rendered verdict. `plan` is set exactly once per load, so
+  // this fires once whether the plan came from cache, the server, or generate.
+  useEffect(() => {
+    if (!plan) return;
+    const locked = plan.prescription_locked === true;
+    WebAnalytics.diagnosticVerdictViewed(locked);
+    if (locked) WebAnalytics.paywallViewed('diagnostic_verdict');
+  }, [plan]);
+
   async function loadPlan() {
     const sessionId = localStorage.getItem("liftoff_session_id");
     if (!sessionId) {
@@ -73,14 +83,21 @@ export default function Plan() {
       return;
     }
 
-    // Check localStorage cache first
+    // Check localStorage cache first. Locked (prescription-stripped) plans are
+    // never trusted from cache: after an upgrade the server returns the full
+    // prescription, and a stale locked snapshot would keep the paywall up.
     const cacheKey = `liftoff_plan_${sessionId}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       try {
-        setPlan(JSON.parse(cached));
-        setLoading(false);
-        return;
+        const parsed = JSON.parse(cached);
+        if (parsed?.prescription_locked) {
+          localStorage.removeItem(cacheKey);
+        } else {
+          setPlan(parsed);
+          setLoading(false);
+          return;
+        }
       } catch {
         localStorage.removeItem(cacheKey);
       }
@@ -92,14 +109,18 @@ export default function Plan() {
       try {
         const cached = await liftCoachApi.getCachedPlan(sessionId);
         setPlan(cached.plan);
-        localStorage.setItem(cacheKey, JSON.stringify(cached.plan));
+        if (!cached.plan.prescription_locked) {
+          localStorage.setItem(cacheKey, JSON.stringify(cached.plan));
+        }
         return;
       } catch {
         // No cached plan — generate a new one
       }
       const response = await liftCoachApi.generatePlan(sessionId);
       setPlan(response.plan);
-      localStorage.setItem(cacheKey, JSON.stringify(response.plan));
+      if (!response.plan.prescription_locked) {
+        localStorage.setItem(cacheKey, JSON.stringify(response.plan));
+      }
     } catch (err: any) {
       console.error("Failed to generate plan:", err);
       if (err.status === 429) {
@@ -135,10 +156,10 @@ export default function Plan() {
       ),
       "",
       "Progression Rules:",
-      ...plan.progression_rules.map(r => `  • ${r}`),
+      ...(plan.progression_rules ?? []).map(r => `  • ${r}`),
       "",
       "Track Next Time:",
-      ...plan.track_next_time.map(t => `  • ${t}`),
+      ...(plan.track_next_time ?? []).map(t => `  • ${t}`),
     ].join("\n");
 
     navigator.clipboard.writeText(text).then(() => {
@@ -218,8 +239,12 @@ export default function Plan() {
   }
 
   const primaryDiagnosis = plan.diagnosis[0];
-  const primary = plan.bench_day_plan.primary_lift;
-  const accessories = plan.bench_day_plan.accessories;
+  // Diagnostic-first free tier: the server withholds bench_day_plan entirely
+  // and sends prescription_locked + an accessory count preview instead.
+  const locked = plan.prescription_locked === true;
+  const primary = plan.bench_day_plan?.primary_lift;
+  const accessories = plan.bench_day_plan?.accessories ?? [];
+  const accessoryCount = plan.prescription_preview?.accessory_count ?? accessories.length;
 
   return (
     <div className="min-h-screen grid-fade">
@@ -287,15 +312,17 @@ export default function Plan() {
                       History
                     </Link>
                   </Button>
-                  <Button
-                    variant="secondary"
-                    className="shadow-xs"
-                    onClick={copy}
-                    data-testid="button-copy-plan"
-                  >
-                    <Clipboard className="mr-2 h-4 w-4" />
-                    Copy plan
-                  </Button>
+                  {!locked && (
+                    <Button
+                      variant="secondary"
+                      className="shadow-xs"
+                      onClick={copy}
+                      data-testid="button-copy-plan"
+                    >
+                      <Clipboard className="mr-2 h-4 w-4" />
+                      Copy plan
+                    </Button>
+                  )}
                   <Button
                     className="shadow-sm"
                     onClick={startNewSession}
@@ -310,7 +337,7 @@ export default function Plan() {
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <Stat label="Limiter" value={primaryDiagnosis?.limiterName || "Unknown"} />
                 <Stat label="Confidence" value={primaryDiagnosis ? `${Math.round(primaryDiagnosis.confidence * 100)}%` : "N/A"} />
-                <Stat label="Accessories" value={`${accessories.length}`} />
+                <Stat label="Accessories" value={`${accessoryCount}`} />
               </div>
 
               <Separator className="my-6" />
@@ -414,6 +441,32 @@ export default function Plan() {
                   </Card>
                 )}
 
+                {/* ── Locked prescription (diagnostic-first free tier) ── */}
+                {locked && (
+                  <Card className="border-primary/40 bg-primary/5 p-6 shadow-xs backdrop-blur dark:bg-primary/10" data-testid="card-prescription-locked">
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <div className="grid h-12 w-12 place-items-center rounded-2xl border bg-primary/10">
+                        <Lock className="h-6 w-6 text-primary" strokeWidth={1.8} />
+                      </div>
+                      <div className="font-serif text-2xl">Your fix is ready</div>
+                      <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                        A targeted protocol built around this weak link — {accessoryCount > 0 ? `${accessoryCount} accessories` : 'accessories'} chosen for you, with sets, loads and progression rules.
+                      </p>
+                      <p className="max-w-md text-sm font-medium">
+                        Unlock the adaptive program + AI coach that fixes this and keeps adjusting.
+                      </p>
+                      <Button size="lg" className="mt-1 shadow-sm" asChild data-testid="button-unlock-prescription">
+                        <Link href="/pricing">
+                          Start your free month
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <p className="text-xs text-muted-foreground">First month free · cancel anytime</p>
+                    </div>
+                  </Card>
+                )}
+
+                {!locked && primary && (
                 <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
                   <div className="flex items-start gap-3">
                     <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
@@ -446,7 +499,9 @@ export default function Plan() {
                     </div>
                   </div>
                 </Card>
+                )}
 
+                {!locked && (
                 <Card className="border-border/70 bg-white/60 p-5 shadow-xs backdrop-blur dark:bg-white/5">
                   <div className="flex items-start gap-3">
                     <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
@@ -537,11 +592,15 @@ export default function Plan() {
                       })}
                   </div>
                 </Card>
+                )}
               </div>
             </div>
           </Card>
 
           <div className="grid gap-4">
+            {/* Progression rules are part of the locked promise ("sets, loads
+                and progression rules"), so they stay hidden with it. */}
+            {!locked && (
             <Card className="glass p-6">
               <div className="flex items-start gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl border bg-white/70 shadow-xs dark:bg-white/5">
@@ -557,7 +616,7 @@ export default function Plan() {
                 </div>
               </div>
               <div className="mt-5 space-y-3 text-sm text-muted-foreground">
-                {plan.progression_rules.map((rule, idx) => (
+                {(plan.progression_rules ?? []).map((rule, idx) => (
                   <div className="flex items-start gap-3" key={idx}>
                     <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" strokeWidth={1.8} />
                     <p>{rule}</p>
@@ -565,6 +624,7 @@ export default function Plan() {
                 ))}
               </div>
             </Card>
+            )}
 
             <Card className="glass p-6">
               <div className="flex items-start gap-3">
@@ -581,7 +641,7 @@ export default function Plan() {
                 </div>
               </div>
               <div className="mt-5 space-y-3 text-sm text-muted-foreground">
-                {plan.track_next_time.map((item, idx) => (
+                {(plan.track_next_time ?? []).map((item, idx) => (
                   <div className="flex items-start gap-3" key={idx}>
                     <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" strokeWidth={1.8} />
                     <p>{item}</p>

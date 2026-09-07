@@ -39,3 +39,31 @@ export function onboardingHookAvailableFor(userId: string, email?: string | null
   if (ONBOARDING_HOOK_ALLOWLIST.has(userId.toLowerCase())) return true;
   return !!email && ONBOARDING_HOOK_ALLOWLIST.has(email.toLowerCase());
 }
+
+/** Global switch for the diagnostic-first onboarding funnel. Off unless '1'. */
+const DIAGNOSTIC_FIRST_ENABLED = process.env.DIAGNOSTIC_FIRST_ONBOARDING_ENABLED === '1';
+
+/** Per-user allowlist, same shape and reasoning as the onboarding hook's. */
+const DIAGNOSTIC_FIRST_ALLOWLIST = new Set(
+  (process.env.DIAGNOSTIC_FIRST_ONBOARDING_USERS ?? '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+/**
+ * Whether the diagnostic-first onboarding funnel is on for this user.
+ *
+ * When on, a new user's cold start is the lift diagnostic instead of the
+ * coach intake, and the free tier gets the diagnosis but not the
+ * prescription — the plan endpoints strip the fix for free users and the
+ * paywall sells it back. Both the /auth/me advertisement and the plan
+ * routes' enforcement read this same predicate, so the client is never told
+ * the funnel is on while the server would serve the old shape (or vice
+ * versa — a free user shown a locked card the server would have filled in).
+ */
+export function diagnosticFirstAvailableFor(userId: string, email?: string | null): boolean {
+  if (DIAGNOSTIC_FIRST_ENABLED) return true;
+  if (DIAGNOSTIC_FIRST_ALLOWLIST.has(userId.toLowerCase())) return true;
+  return !!email && DIAGNOSTIC_FIRST_ALLOWLIST.has(email.toLowerCase());
+}

@@ -12,6 +12,7 @@ import { getExerciseVideo } from '../services/youtubeService.js';
 import posthog from '../services/posthogClient.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 import { bounded } from '../validation/physiologicalBounds.js';
+import { diagnosticFirstAvailableFor } from '../services/featureFlags.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -49,6 +50,61 @@ async function loadOwnedSession(
     return null;
   }
   return session;
+}
+
+// ── Diagnostic-first prescription gate ────────────────────────────────────────
+//
+// Under the diagnostic-first funnel the free tier gets the diagnosis (what's
+// weak and why) but not the prescription (the protocol that fixes it) — the
+// paywall sells the fix right after the verdict. The full plan is always
+// generated and persisted; only the RESPONSE is stripped, so starting a trial
+// unlocks it with a plain refetch, no regeneration (and no second LLM spend).
+//
+// The strip happens server-side because a client-side gate would ship the
+// entire prescription in the JSON for anyone to read in a proxy.
+
+/**
+ * Whether this user should receive plans with the prescription stripped.
+ * Tier is read fresh from the DB, NOT from the JWT — the JWT's tier is known
+ * to go stale across an upgrade, and a just-paid user staring at a still-
+ * locked plan is the one outcome this screen must never produce.
+ */
+async function prescriptionLockedFor(user: { id: string; email: string | null }): Promise<boolean> {
+  if (!diagnosticFirstAvailableFor(user.id, user.email)) return false;
+  const fresh = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { tier: true },
+  });
+  const tier = fresh?.tier ?? 'free';
+  return tier !== 'pro' && tier !== 'enterprise';
+}
+
+/**
+ * The locked response shape: diagnosis and signals intact, prescription
+ * replaced by a marker plus just enough of a silhouette to sell it (how many
+ * targeted accessories are waiting). Never leaks exercise names or numbers.
+ */
+function stripPrescription(plan: any): any {
+  if (!plan || typeof plan !== 'object') return plan;
+  const {
+    bench_day_plan: prescription,
+    benchDayPlan: prescriptionCamel,
+    // Top-level too, not just nested: generateWorkoutPlan emits
+    // progression_rules at the plan root, and the locked card promises them
+    // behind the trial — they must not ride along in the free payload.
+    // track_next_time stays: it's observational ("watch your bar speed"),
+    // not the fix.
+    progression_rules: _progressionRules,
+    ...rest
+  } = plan;
+  const accessories = prescription?.accessories ?? prescriptionCamel?.accessories ?? [];
+  return {
+    ...rest,
+    prescription_locked: true,
+    prescription_preview: {
+      accessory_count: Array.isArray(accessories) ? accessories.length : 0,
+    },
+  };
 }
 
 /**
@@ -536,6 +592,8 @@ router.post('/sessions/:id/generate', requireAuth, checkAnalysisRateLimit, async
       }
     }
     
+    const locked = await prescriptionLockedFor(req.user!);
+
     const planUserId = session.userId;
     if (planUserId) {
       posthog.capture({
@@ -544,11 +602,12 @@ router.post('/sessions/:id/generate', requireAuth, checkAnalysisRateLimit, async
         properties: {
           session_id: id,
           selected_lift: session.selectedLift,
+          prescription_locked: locked,
         },
       });
     }
 
-    res.json({ plan });
+    res.json({ plan: locked ? stripPrescription(plan) : plan });
 
   } catch (error) {
     posthog.captureException(error);
@@ -574,7 +633,9 @@ router.get('/sessions/:id/plan', requireAuth, async (req, res) => {
     if (!plan) {
       return res.status(404).json({ error: 'No plan found for this session' });
     }
-    res.json({ plan: JSON.parse(plan.planJson) });
+    const parsed = JSON.parse(plan.planJson);
+    const locked = await prescriptionLockedFor(req.user!);
+    res.json({ plan: locked ? stripPrescription(parsed) : parsed });
   } catch (err) {
     console.error('Get plan error:', err);
     res.status(500).json({ error: 'Failed to fetch plan' });
@@ -607,9 +668,19 @@ router.get('/sessions/:id', requireAuth, async (req, res) => {
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
     }
-    
+
+    // Same gate as the plan endpoints — this route embeds the raw plan rows,
+    // so leaving it open would hand a locked user the prescription anyway.
+    if (session.plans.length > 0 && await prescriptionLockedFor(req.user!)) {
+      session.plans = session.plans.map((p) => ({
+        ...p,
+        planJson: JSON.stringify(stripPrescription(JSON.parse(p.planJson))),
+        planText: '',
+      }));
+    }
+
     res.json({ session });
-    
+
   } catch (error) {
     console.error('Error fetching session:', error);
     res.status(500).json({ error: 'Failed to fetch session' });
@@ -807,7 +878,20 @@ router.get('/sessions/:id/public', async (req, res) => {
       return res.status(404).json({ error: 'Plan not found or not public' });
     }
 
-    const plan = session.plans[0] ? JSON.parse(session.plans[0].planJson) : null;
+    let plan = session.plans[0] ? JSON.parse(session.plans[0].planJson) : null;
+    // The share link is public, but it must not be a side door around the
+    // prescription gate: if the OWNER is locked (free tier under the
+    // diagnostic-first funnel), viewers — including the owner in a private
+    // browser tab — get the same stripped shape the owner sees in-app.
+    if (plan && session.userId) {
+      const owner = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { id: true, email: true },
+      });
+      if (owner && await prescriptionLockedFor(owner)) {
+        plan = stripPrescription(plan);
+      }
+    }
     res.json({ plan, selectedLift: session.selectedLift });
   } catch (err) {
     console.error('Public session error:', err);

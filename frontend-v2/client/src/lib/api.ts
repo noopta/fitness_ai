@@ -190,7 +190,9 @@ export interface WorkoutPlan {
     confidence: number;
     evidence: string[];
   }>;
-  bench_day_plan: {
+  // Absent when the server withholds the prescription (diagnostic-first free
+  // tier) — the response then carries prescription_locked + a preview instead.
+  bench_day_plan?: {
     primary_lift: {
       exercise_id: string;
       exercise_name: string;
@@ -209,6 +211,11 @@ export interface WorkoutPlan {
       priority?: 1 | 2 | 3;
       impact?: 'high' | 'medium' | 'low';
     }>;
+  };
+  // Set (true) only on stripped plans for free-tier diagnostic-first users.
+  prescription_locked?: boolean;
+  prescription_preview?: {
+    accessory_count: number;
   };
   progression_rules: string[];
   track_next_time: string[];

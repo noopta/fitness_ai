@@ -51,6 +51,14 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /**
+   * One clear promise shown under the title in place of the generic
+   * subtitle. The diagnostic-first surfaces pass the funnel's single sell —
+   * "Unlock the adaptive program + AI coach that fixes this and keeps
+   * adjusting." — so the sheet continues the sentence the verdict started
+   * instead of pivoting to a feature list.
+   */
+  promise?: string;
 }
 
 // Kept in step with the capability card on the Coach screen, and with what the
@@ -490,7 +498,7 @@ async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
 }
 
 // ── Outer shell ───────────────────────────────────────────────────────────────
-export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
+export function UpgradeSheet({ visible, onClose, onSuccess, promise }: Props) {
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
   useEffect(() => {
@@ -510,9 +518,11 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
         <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.handle} />
           <View style={styles.header}>
-            <View>
+            {/* flex:1 so a multi-line promise wraps instead of pushing the
+                close button off the sheet. */}
+            <View style={{ flex: 1, paddingRight: spacing.sm }}>
               <Text style={styles.title}>Upgrade to Pro</Text>
-              <Text style={styles.subtitle}>Everything Axiom has to offer</Text>
+              <Text style={styles.subtitle}>{promise ?? 'Everything Axiom has to offer'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="close" size={22} color={colors.mutedForeground} />

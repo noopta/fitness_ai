@@ -6,14 +6,14 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Navbar } from '@/components/Navbar';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, postAuthDestination, DEFAULT_FEATURES } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 
 export default function Register() {
-  const { register, googleLogin, user, loading } = useAuth();
+  const { register, googleLogin, refreshUser, user, features, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,13 +27,13 @@ export default function Register() {
   useEffect(() => {
     if (!loading && user && !redirected.current) {
       redirected.current = true;
-      setLocation('/coach');
+      setLocation(postAuthDestination(user, features ?? DEFAULT_FEATURES));
     }
     // Capture ?ref= or stored referral code
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     const storedRef = localStorage.getItem('axiom_referral');
     referralCode.current = urlRef || storedRef || null;
-  }, [user, loading]);
+  }, [user, features, loading]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +70,10 @@ export default function Register() {
         if (pending.codeSent === false) params.set('codeSent', '0');
         setLocation(`/verify-email?${params.toString()}`);
       } else {
-        setLocation('/coach');
+        // The register response carries no feature flags — ask /auth/me so a
+        // diagnostic-first user cold-starts in the diagnostic flow.
+        const refreshed = await Promise.resolve(refreshUser()).catch(() => null);
+        setLocation(postAuthDestination(refreshed?.user ?? null, refreshed?.features ?? DEFAULT_FEATURES));
       }
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');
