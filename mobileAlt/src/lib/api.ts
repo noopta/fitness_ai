@@ -390,6 +390,13 @@ export const coachApi = {
   },
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
+  // The agent's server-side transcript. Used by the chat's reply-recovery
+  // path: ~10% of /coach/agent calls die client-side (OS kills the long-held
+  // socket mid tool-loop; nginx logs a 499) while the server finishes the
+  // turn and persists the reply anyway — so on a network error the chat polls
+  // this before telling the user Anakin was unreachable.
+  agentHistory: (): Promise<{ messages?: Array<{ role: string; content: string }> }> =>
+    apiFetch('/coach/agent/history'),
   // Try the agentic Anakin first; the backend allowlist (AGENT_USER_ALLOWLIST)
   // decides who gets it. A 404 means "not enabled for this user" → fall back
   // to the classic coach so everyone else is unaffected. Both endpoints return

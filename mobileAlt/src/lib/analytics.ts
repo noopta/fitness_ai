@@ -228,6 +228,12 @@ export const Analytics = {
   diagnosticVerdictViewed: (props: { locked: boolean }) =>
     posthog.capture('diagnostic_verdict_viewed', props),
 
+  // The agent turn's HTTP response was lost (socket died mid tool-loop) but
+  // the reply was found in server-side history and rendered anyway. Every
+  // one of these is a "couldn't reach Anakin" error a user did NOT see.
+  agentReplyRecovered: (waitedMs: number) =>
+    posthog.capture('agent_reply_recovered', { waited_ms: waitedMs }),
+
   // ── Coach — Life Happened ─────────────────────────────────────────────────
   lifeHappenedSubmitted: (disruptionType?: string) =>
     posthog.capture('life_happened_submitted', { disruption_type: disruptionType }),
