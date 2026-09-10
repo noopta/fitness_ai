@@ -16,6 +16,9 @@ export interface BlogPostSummary {
   updatedAt: string;
   createdAt: string;
   readingMinutes: number;
+  /** Set once the post has been emailed to all opted-in users. */
+  emailedAt: string | null;
+  emailedCount: number;
 }
 
 export interface BlogPostFull extends BlogPostSummary {
@@ -29,6 +32,8 @@ export interface BlogPostInput {
   content?: string;
   category?: string;
   published?: boolean;
+  /** Email all opted-in users on first publish (server default: true). */
+  notifyUsers?: boolean;
 }
 
 async function parse<T>(res: Response): Promise<T> {
@@ -66,6 +71,13 @@ export async function adminCreatePost(input: BlogPostInput): Promise<BlogPostFul
 export async function adminUpdatePost(id: string, input: Partial<BlogPostInput>): Promise<BlogPostFull> {
   const res = await authFetch(`${API}/blog/admin/posts/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(input) });
   return (await parse<{ post: BlogPostFull }>(res)).post;
+}
+
+export interface BroadcastResult { status: string; sent: number; failed: number; recipients: number }
+
+export async function adminEmailPost(id: string): Promise<BroadcastResult> {
+  const res = await authFetch(`${API}/blog/admin/posts/${encodeURIComponent(id)}/email`, { method: 'POST' });
+  return parse<BroadcastResult>(res);
 }
 
 export async function adminDeletePost(id: string): Promise<void> {

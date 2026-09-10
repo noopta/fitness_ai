@@ -74,6 +74,11 @@ model User {
   programStartDate    DateTime?
   expoPushToken       String?
   reengagementOptOut  Boolean           @default(false)
+  /// Set once the one-time welcome email has been sent (or deliberately skipped).
+  welcomeEmailSentAt  DateTime?
+  /// True after the user clicks the unsubscribe link in a blog/update email.
+  /// Transactional mail (verification codes, welcome) is unaffected.
+  marketingEmailsOptOut Boolean         @default(false)
   lastActiveAt        DateTime?
   lastWorkoutNudgeAt  DateTime?
   lastNutritionNudgeAt DateTime?
@@ -1195,6 +1200,9 @@ model BlogPost {
   /// Set the first time a post is published; drives public ordering.
   publishedAt DateTime?
   authorEmail String?
+  /// When the post was emailed to all opted-in users (once per post).
+  emailedAt   DateTime?
+  emailedCount Int      @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
 

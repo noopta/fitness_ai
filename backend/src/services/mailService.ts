@@ -44,6 +44,10 @@ export interface SendEmailInput {
   // Optional plain-text body. If omitted we strip HTML tags from `html`.
   text?: string;
   from?: string;
+  /** Where replies land (e.g. inquiries@ for the welcome email). */
+  replyTo?: string;
+  /** Extra headers, e.g. List-Unsubscribe for broadcast mail. */
+  headers?: Record<string, string>;
 }
 
 export interface SendEmailResult {
@@ -52,13 +56,13 @@ export interface SendEmailResult {
   reason?: string;
 }
 
-export async function sendEmail({ to, subject, html, text, from }: SendEmailInput): Promise<SendEmailResult> {
+export async function sendEmail({ to, subject, html, text, from, replyTo, headers }: SendEmailInput): Promise<SendEmailResult> {
   const fromAddr = from || FROM;
   const plain = text ?? html.replace(/<[^>]*>/g, '');
 
   if (useSendGrid) {
     try {
-      await sgMail.send({ to, from: fromAddr, subject, html, text: plain });
+      await sgMail.send({ to, from: fromAddr, subject, html, text: plain, ...(replyTo ? { replyTo } : {}), ...(headers ? { headers } : {}) });
       return { sent: true, provider: 'sendgrid' };
     } catch (err: any) {
       // SendGrid errors carry useful body info — surface it for logs but
@@ -70,7 +74,7 @@ export async function sendEmail({ to, subject, html, text, from }: SendEmailInpu
 
   if (gmailTransport) {
     try {
-      await gmailTransport.sendMail({ from: `"Axiom Team" <${fromAddr}>`, to, subject, html, text: plain });
+      await gmailTransport.sendMail({ from: `"Axiom Team" <${fromAddr}>`, to, subject, html, text: plain, ...(replyTo ? { replyTo } : {}), ...(headers ? { headers } : {}) });
       return { sent: true, provider: 'gmail' };
     } catch (err: any) {
       console.error('[mail] Gmail send failed:', err?.message ?? err);

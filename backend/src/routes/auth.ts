@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
+import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
 import { onboardingHookAvailableFor, diagnosticFirstAvailableFor } from '../services/featureFlags.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
@@ -191,6 +192,7 @@ router.post('/auth/register', registerLimiter, async (req, res) => {
       // app already expects. No mail call, no risk of SendGrid quota stranding.
       const token = issueToken(user);
       res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+      scheduleWelcomeEmail(user.id);
       return res.json({
         user: { id: user.id, name: user.name, email: user.email, tier: user.tier },
         token,
@@ -238,6 +240,7 @@ router.post('/auth/verify-email', authLimiter, async (req, res) => {
     if (user.emailVerified) {
       const token = issueToken(user);
       res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+      scheduleWelcomeEmail(user.id);
       return res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, alreadyVerified: true });
     }
 
@@ -259,6 +262,7 @@ router.post('/auth/verify-email', authLimiter, async (req, res) => {
 
     const token = issueToken(updated);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    scheduleWelcomeEmail(updated.id);
     sendAuthSMS(`✅ Verified: ${updated.name || 'User'} (${updated.email}) [${updated.tier}]`);
     posthog.capture({
       distinctId: updated.id,
@@ -360,6 +364,7 @@ router.post('/auth/login', authLimiter, async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    scheduleWelcomeEmail(user.id);
     sendAuthSMS(`🔑 Axiom login: ${user.name || 'User'} (${user.email}) [${user.tier}]`);
     posthog.identify({
       distinctId: user.id,
@@ -615,6 +620,7 @@ router.get('/auth/google/callback', async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    scheduleWelcomeEmail(user.id);
     sendAuthSMS(`${isNewUser ? '🆕 New Google signup' : '🔑 Google login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
     posthog.identify({
       distinctId: user.id,
@@ -708,6 +714,7 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    scheduleWelcomeEmail(user.id);
     sendAuthSMS(`${isNewUser ? '🆕 New Apple signup' : '🔑 Apple login'}: ${user.name || 'User'} (${user.email || 'no email'}) [${user.tier}]`);
     posthog.identify({
       distinctId: user.id,

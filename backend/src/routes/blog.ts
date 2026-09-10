@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { scheduleBlogBroadcast, broadcastBlogPost } from '../services/blogBroadcastService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -44,6 +45,8 @@ const postInput = z.object({
   content: z.string().max(MAX_CONTENT).optional().default(''),
   category: z.string().trim().min(1).max(40).optional().default('Update'),
   published: z.boolean().optional().default(false),
+  /** Email the post to all opted-in users on first publish (default on). */
+  notifyUsers: z.boolean().optional().default(true),
 });
 
 function publicShape(p: any, withContent: boolean) {
@@ -58,6 +61,8 @@ function publicShape(p: any, withContent: boolean) {
     updatedAt: p.updatedAt,
     createdAt: p.createdAt,
     readingMinutes: readingMinutes(p.content ?? ''),
+    emailedAt: p.emailedAt ?? null,
+    emailedCount: p.emailedCount ?? 0,
     ...(withContent ? { content: p.content } : {}),
   };
 }
@@ -132,6 +137,7 @@ router.post('/blog/admin/posts', requireAuth, requireAdmin, async (req, res) => 
         authorEmail: req.user!.email ?? null,
       },
     });
+    if (post.published && d.notifyUsers) scheduleBlogBroadcast(post.id);
     res.status(201).json({ post: publicShape(post, true) });
   } catch (err: any) {
     if (err?.code === 'P2002') return res.status(409).json({ error: 'A post with that slug already exists' });
@@ -148,6 +154,8 @@ router.put('/blog/admin/posts/:id', requireAuth, requireAdmin, async (req, res) 
   try {
     const existing = await prisma.blogPost.findUnique({ where: { id: String(req.params.id) } });
     if (!existing) return res.status(404).json({ error: 'Post not found' });
+    const wasPublished = existing.published;
+    const wasEmailed = !!existing.emailedAt;
 
     let slug: string | undefined;
     if (d.slug !== undefined) {
@@ -174,11 +182,28 @@ router.put('/blog/admin/posts/:id', requireAuth, requireAdmin, async (req, res) 
         ...(publishedAt !== undefined ? { publishedAt } : {}),
       },
     });
+    const justPublished = d.published === true && !wasPublished;
+    if (justPublished && d.notifyUsers !== false && !wasEmailed) scheduleBlogBroadcast(post.id);
     res.json({ post: publicShape(post, true) });
   } catch (err: any) {
     if (err?.code === 'P2002') return res.status(409).json({ error: 'A post with that slug already exists' });
     console.error('[blog] update error:', err);
     res.status(500).json({ error: 'Failed to update post' });
+  }
+});
+
+// Manual send for a post that was published without notifying (or before this
+// existed). Synchronous so the editor can show the real count.
+router.post('/blog/admin/posts/:id/email', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const result = await broadcastBlogPost(String(req.params.id));
+    if (result.status === 'not_found') return res.status(404).json({ error: 'Post not found' });
+    if (result.status === 'not_published') return res.status(400).json({ error: 'Publish the post before emailing it' });
+    if (result.status === 'already_emailed') return res.status(409).json({ error: 'This post has already been emailed' });
+    res.json(result);
+  } catch (err) {
+    console.error('[blog] email error:', err);
+    res.status(500).json({ error: 'Failed to email post' });
   }
 });
 

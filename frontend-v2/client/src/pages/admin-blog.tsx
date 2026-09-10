@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Loader2, Plus, Trash2, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Plus, Trash2, ArrowLeft, ExternalLink, Mail } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { BlogMarkdown } from '@/components/BlogMarkdown';
 import {
-  adminListPosts, adminGetPost, adminCreatePost, adminUpdatePost, adminDeletePost,
+  adminListPosts, adminGetPost, adminCreatePost, adminUpdatePost, adminDeletePost, adminEmailPost,
   slugify, formatPostDate, type BlogPostSummary, type BlogPostFull,
 } from '@/lib/blogApi';
 
@@ -29,12 +29,16 @@ interface Draft {
   content: string;
   category: string;
   published: boolean;
+  /** Email every opted-in Axiom user when this post is first published. */
+  notifyUsers: boolean;
+  emailedAt: string | null;
+  emailedCount: number;
 }
 
-const EMPTY: Draft = { title: '', slug: '', slugTouched: false, excerpt: '', content: '', category: 'Update', published: false };
+const EMPTY: Draft = { title: '', slug: '', slugTouched: false, excerpt: '', content: '', category: 'Update', published: false, notifyUsers: true, emailedAt: null, emailedCount: 0 };
 
 function draftFrom(p: BlogPostFull): Draft {
-  return { title: p.title, slug: p.slug, slugTouched: true, excerpt: p.excerpt, content: p.content, category: p.category, published: p.published };
+  return { title: p.title, slug: p.slug, slugTouched: true, excerpt: p.excerpt, content: p.content, category: p.category, published: p.published, notifyUsers: true, emailedAt: p.emailedAt ?? null, emailedCount: p.emailedCount ?? 0 };
 }
 
 export default function AdminBlogPage() {
@@ -46,6 +50,7 @@ export default function AdminBlogPage() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [emailing, setEmailing] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -98,12 +103,13 @@ export default function AdminBlogPage() {
     if (!effectiveSlug) { toast.error('Slug needs at least one letter or number'); return; }
     setSaving(true);
     try {
-      const input = { title: draft.title.trim(), slug: effectiveSlug, excerpt: draft.excerpt.trim(), content: draft.content, category: draft.category.trim() || 'Update', published };
+      const firstPublish = published && !draft.published && !draft.emailedAt;
+      const input = { title: draft.title.trim(), slug: effectiveSlug, excerpt: draft.excerpt.trim(), content: draft.content, category: draft.category.trim() || 'Update', published, notifyUsers: draft.notifyUsers };
       const saved = editingId ? await adminUpdatePost(editingId, input) : await adminCreatePost(input);
-      setDraft(draftFrom(saved));
+      setDraft({ ...draftFrom(saved), notifyUsers: draft.notifyUsers });
       setEditingId(saved.id);
       setCreating(false);
-      toast.success(published ? 'Published' : 'Saved as draft');
+      toast.success(published ? (firstPublish && draft.notifyUsers ? 'Published — emailing all Axiom users now' : 'Published') : 'Saved as draft');
       await load();
     } catch (err: any) {
       toast.error(err.message || 'Save failed');
@@ -121,6 +127,22 @@ export default function AdminBlogPage() {
       await load();
     } catch (err: any) {
       toast.error(err.message || 'Delete failed');
+    }
+  }
+
+  async function emailNow() {
+    if (!editingId) return;
+    if (!window.confirm('Email this post to every opted-in Axiom user now?')) return;
+    setEmailing(true);
+    try {
+      const r = await adminEmailPost(editingId);
+      toast.success(`Emailed to ${r.sent} user${r.sent === 1 ? '' : 's'}${r.failed ? ` (${r.failed} failed)` : ''}`);
+      setDraft(d => ({ ...d, emailedAt: new Date().toISOString(), emailedCount: r.sent }));
+      await load();
+    } catch (err: any) {
+      toast.error(err.message || 'Email failed');
+    } finally {
+      setEmailing(false);
     }
   }
 
@@ -229,10 +251,24 @@ export default function AdminBlogPage() {
                     placeholder={"## What's new\n\n- Shipped X\n- Fixed Y\n\nLonger thoughts here. **Bold**, _italics_, [links](https://...), images and tables all work."}
                     onChange={e => setDraft(d => ({ ...d, content: e.target.value }))} />
                 </div>
-                <div className="flex items-center justify-between gap-3 pt-2 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    <Switch id="post-published" checked={draft.published} onCheckedChange={v => setDraft(d => ({ ...d, published: v }))} />
-                    <Label htmlFor="post-published" className="text-sm">{draft.published ? 'Published — visible on /blog' : 'Draft — hidden from /blog'}</Label>
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-border flex-wrap">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Switch id="post-published" checked={draft.published} onCheckedChange={v => setDraft(d => ({ ...d, published: v }))} />
+                      <Label htmlFor="post-published" className="text-sm">{draft.published ? 'Published — visible on /blog' : 'Draft — hidden from /blog'}</Label>
+                    </div>
+                    {draft.emailedAt ? (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Mail size={12} /> Emailed to {draft.emailedCount} user{draft.emailedCount === 1 ? '' : 's'} on {formatPostDate(draft.emailedAt)}</p>
+                    ) : draft.published && editingId ? (
+                      <Button type="button" variant="outline" size="sm" disabled={emailing} onClick={emailNow}>
+                        {emailing ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <Mail size={13} className="mr-1.5" />} Email all users now
+                      </Button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Switch id="post-notify" checked={draft.notifyUsers} onCheckedChange={v => setDraft(d => ({ ...d, notifyUsers: v }))} />
+                        <Label htmlFor="post-notify" className="text-sm">Email all Axiom users when published</Label>
+                      </div>
+                    )}
                   </div>
                   {editingId && (
                     <Button variant="ghost" size="sm" onClick={() => remove(editingId)}><Trash2 size={14} className="mr-1.5 text-red-500" /> Delete</Button>

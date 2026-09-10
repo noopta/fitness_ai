@@ -31,6 +31,7 @@ import strengthRoutes from './routes/strength.js';
 import affiliatesRoutes from './routes/affiliates.js';
 import adminRoutes from './routes/admin.js';
 import blogRoutes from './routes/blog.js';
+import emailRoutes from './routes/email.js';
 import socialRoutes from './routes/social.js';
 import agentRoutes from './routes/agent.js';
 import groupsRoutes from './routes/groups.js';
@@ -204,6 +205,7 @@ app.use('/api', waitlistRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', blogRoutes);
+app.use('/api', emailRoutes);
 app.use('/', adminRoutes);
 app.use('/api', socialRoutes);
 // Agentic Anakin (flag-gated via AGENT_ENABLED; 404s when off).

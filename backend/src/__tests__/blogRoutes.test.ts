@@ -45,6 +45,12 @@ vi.mock('../middleware/requireAuth.js', () => ({
   },
 }));
 
+const broadcast = vi.hoisted(() => ({
+  scheduleBlogBroadcast: vi.fn(),
+  broadcastBlogPost: vi.fn(async (id: string) => ({ status: 'sent', sent: 3, failed: 0, recipients: 3 })),
+}));
+vi.mock('../services/blogBroadcastService.js', () => broadcast);
+
 process.env.ADMIN_EMAILS = 'Inquiries@AxiomTraining.io';
 const { default: blogRouter, slugify, readingMinutes } = await import('../routes/blog.js');
 
@@ -55,7 +61,7 @@ app.use('/api', blogRouter);
 const ADMIN = { 'x-test-user': 'inquiries@axiomtraining.io' };
 const MEMBER = { 'x-test-user': 'someone@example.com' };
 
-beforeEach(() => { store.posts = []; store.seq = 0; });
+beforeEach(() => { store.posts = []; store.seq = 0; broadcast.scheduleBlogBroadcast.mockClear(); broadcast.broadcastBlogPost.mockClear(); });
 
 describe('helpers', () => {
   it('slugify normalises titles', () => {
@@ -136,5 +142,39 @@ describe('update / delete', () => {
     expect((await request(app).post('/api/blog/admin/posts').set(ADMIN).send({})).status).toBe(400);
     expect((await request(app).post('/api/blog/admin/posts').set(ADMIN).send({ title: '!!!' })).status).toBe(400);
     expect((await request(app).post('/api/blog/admin/posts').set(ADMIN).send({ title: 'ok', published: 'yes' })).status).toBe(400);
+  });
+});
+
+describe('publish → email all users', () => {
+  it('schedules the broadcast on first publish only, and honours notifyUsers=false', async () => {
+    const draft = (await request(app).post('/api/blog/admin/posts').set(ADMIN).send({ title: 'Quiet draft' })).body.post;
+    expect(broadcast.scheduleBlogBroadcast).not.toHaveBeenCalled();
+
+    await request(app).put(`/api/blog/admin/posts/${draft.id}`).set(ADMIN).send({ published: true });
+    expect(broadcast.scheduleBlogBroadcast).toHaveBeenCalledTimes(1);
+    expect(broadcast.scheduleBlogBroadcast).toHaveBeenCalledWith(draft.id);
+
+    // Editing an already-published post never re-sends.
+    await request(app).put(`/api/blog/admin/posts/${draft.id}`).set(ADMIN).send({ content: 'typo fix' });
+    await request(app).put(`/api/blog/admin/posts/${draft.id}`).set(ADMIN).send({ published: true });
+    expect(broadcast.scheduleBlogBroadcast).toHaveBeenCalledTimes(1);
+
+    // Created-as-published sends immediately; notifyUsers=false suppresses it.
+    await request(app).post('/api/blog/admin/posts').set(ADMIN).send({ title: 'Loud', published: true });
+    expect(broadcast.scheduleBlogBroadcast).toHaveBeenCalledTimes(2);
+    await request(app).post('/api/blog/admin/posts').set(ADMIN).send({ title: 'Silent', published: true, notifyUsers: false });
+    expect(broadcast.scheduleBlogBroadcast).toHaveBeenCalledTimes(2);
+  });
+
+  it('manual send endpoint is admin-only and maps service statuses to HTTP', async () => {
+    const p = (await request(app).post('/api/blog/admin/posts').set(ADMIN).send({ title: 'Manual', published: true, notifyUsers: false })).body.post;
+    expect((await request(app).post(`/api/blog/admin/posts/${p.id}/email`).set(MEMBER)).status).toBe(403);
+    const ok = await request(app).post(`/api/blog/admin/posts/${p.id}/email`).set(ADMIN);
+    expect(ok.status).toBe(200);
+    expect(ok.body.sent).toBe(3);
+    broadcast.broadcastBlogPost.mockResolvedValueOnce({ status: 'already_emailed', sent: 0, failed: 0, recipients: 0 });
+    expect((await request(app).post(`/api/blog/admin/posts/${p.id}/email`).set(ADMIN)).status).toBe(409);
+    broadcast.broadcastBlogPost.mockResolvedValueOnce({ status: 'not_published', sent: 0, failed: 0, recipients: 0 });
+    expect((await request(app).post(`/api/blog/admin/posts/${p.id}/email`).set(ADMIN)).status).toBe(400);
   });
 });
