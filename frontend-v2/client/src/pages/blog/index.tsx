@@ -1,8 +1,13 @@
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Clock, PenSquare } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
+import { useAuth } from "@/context/AuthContext";
+import { listPublishedPosts, formatPostDate, type BlogPostSummary } from "@/lib/blogApi";
 
+// Static, hand-written SEO guides. Founder posts and startup updates are
+// written in /admin/blog and loaded from the API; they render above these.
 const POSTS = [
   {
     slug: "how-to-break-a-bench-press-plateau",
@@ -89,31 +94,71 @@ const JSON_LD = {
   }))
 };
 
+interface Card {
+  slug: string;
+  title: string;
+  excerpt: string;
+  readingMinutes: number;
+  category: string;
+  date?: string;
+}
+
+/** Founder posts first (newest first), then the evergreen guides. */
+export function mergePosts(dynamic: BlogPostSummary[], statics: typeof POSTS): Card[] {
+  const staticSlugs = new Set(statics.map(p => p.slug));
+  const fresh = dynamic
+    .filter(p => !staticSlugs.has(p.slug))
+    .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime())
+    .map(p => ({ slug: p.slug, title: p.title, excerpt: p.excerpt, readingMinutes: p.readingMinutes, category: p.category, date: formatPostDate(p.publishedAt ?? p.createdAt) }));
+  return [...fresh, ...statics];
+}
+
 export default function BlogIndexPage() {
+  const { user } = useAuth();
+  const [dynamicPosts, setDynamicPosts] = useState<BlogPostSummary[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    listPublishedPosts()
+      .then(posts => { if (!cancelled) setDynamicPosts(posts); })
+      .catch(() => { /* the static guides still render */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const cards = mergePosts(dynamicPosts, POSTS);
+
   return (
     <>
       <SEO
-        title="Strength Training Blog — Axiom"
-        description="Evidence-based guides on strength training, powerlifting programming, nutrition, and lifting technique. Written for lifters who want to get stronger, not just inspired."
+        title="Blog & Updates — Axiom"
+        description="Startup updates from the Axiom team plus evidence-based guides on strength training, powerlifting programming, nutrition, and lifting technique."
         canonical="/blog"
         jsonLd={JSON_LD}
       />
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16">
-          <div className="mb-10">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3">Strength Training Blog</h1>
-            <p className="text-muted-foreground text-base">
-              Evidence-based guides on getting stronger — no filler, no inspiration porn.
-            </p>
+          <div className="mb-10 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3">Blog & Updates</h1>
+              <p className="text-muted-foreground text-base">
+                What we're building at Axiom, plus evidence-based guides on getting stronger — no filler, no inspiration porn.
+              </p>
+            </div>
+            {user?.isAdmin && (
+              <Link href="/admin/blog" className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                <PenSquare size={13} /> Write
+              </Link>
+            )}
           </div>
 
           <div className="space-y-6">
-            {POSTS.map((post) => (
+            {cards.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="block group">
                 <div className="border border-border rounded-xl p-5 hover:bg-muted/40 transition-colors">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{post.category}</span>
+                    {post.date && <span className="text-xs text-muted-foreground">{post.date}</span>}
                     <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock size={10} /> {post.readingMinutes} min</span>
                   </div>
                   <h2 className="text-base font-bold text-foreground mb-1 group-hover:underline">{post.title}</h2>

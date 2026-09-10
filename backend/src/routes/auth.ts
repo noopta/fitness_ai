@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { onboardingHookAvailableFor, diagnosticFirstAvailableFor } from '../services/featureFlags.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
@@ -811,7 +812,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
     // user films a set for nothing. Sent as a flag rather than inferred from
     // a probe so the decision has one owner.
     res.json({
-      user: { ...userFields, institutions },
+      user: { ...userFields, institutions, isAdmin: isAdminEmail(user.email) },
       features: {
         onboardingFormHook: onboardingHookAvailableFor(user.id, user.email),
         diagnosticFirstOnboarding: diagnosticFirstAvailableFor(user.id, user.email),

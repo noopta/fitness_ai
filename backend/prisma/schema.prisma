@@ -1179,3 +1179,24 @@ model UserSuspension {
 
   @@index([expiresAt])
 }
+
+/// Founder blog + startup-update posts. Written from the web admin editor
+/// (/admin/blog, ADMIN_EMAILS only); read publicly at /blog and /blog/:slug.
+/// Body is Markdown; readingMinutes is derived at read time, not stored.
+model BlogPost {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  title       String
+  excerpt     String    @default("")
+  content     String    @default("")
+  /// Free-text label shown as the post's pill, e.g. "Update", "Product", "Training"
+  category    String    @default("Update")
+  published   Boolean   @default(false)
+  /// Set the first time a post is published; drives public ordering.
+  publishedAt DateTime?
+  authorEmail String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([published, publishedAt])
+}

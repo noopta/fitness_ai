@@ -32,6 +32,8 @@ export interface AuthUser {
   savedProgram?: string | null; // Saved AI-generated training program JSON
   programStartDate?: string | null;
   institutions?: InstitutionMembership[];
+  /** Server-owned: email is on the backend ADMIN_EMAILS allowlist. Gates /admin/* pages. */
+  isAdmin?: boolean;
 }
 
 // Server-owned feature flags from /auth/me. Defaults are all-false so a failed
