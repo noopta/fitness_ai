@@ -42,10 +42,10 @@ export const PRO_PRICE_FALLBACK = '$12.99';
 // referenced from /payments/create-checkout — keep them in sync.
 export const STRIPE_PRICE_CENTS = 1299;
 export const STRIPE_PRICE_DISPLAY = '$12.99';
-// AXIOMTRIAL promo code applies in Stripe checkout — 1 month free trial.
-// Backend already accepts promotion_code via allow_promotion_codes on
-// the session (payments.ts), this string is the user-facing surface.
-export const TRIAL_PROMO_CODE = 'AXIOMTRIAL';
+// 1-month free trial is included on BOTH payment rails with no code:
+// Apple applies its introductory offer at the StoreKit sheet, and the Stripe
+// price now carries a free-trial offer so Checkout applies it automatically.
+// (The old AXIOMTRIAL promo code is no longer surfaced to users.)
 
 interface Props {
   visible: boolean;
@@ -395,15 +395,14 @@ async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
         ))}
       </View>
 
-      {/* Risk-free trial callout — shown on every paywall surface. Apple now has
-          a native introductory offer (1 month free) that StoreKit applies
-          automatically at the sheet for eligible Apple IDs — no code. Stripe
-          checkout has allow_promotion_codes enabled, so card payers paste the
-          AXIOMTRIAL code on the Stripe page. */}
+      {/* Risk-free trial callout — shown on every paywall surface. Apple applies
+          its native introductory offer (1 month free) at the StoreKit sheet, and
+          the Stripe price carries a free-trial offer, so card checkout gets the
+          same month free automatically — no promo code on either rail. */}
       <View style={styles.promoBanner}>
         <Ionicons name="gift-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
         <Text style={styles.promoText}>
-          <Text style={{ fontWeight: fontWeight.bold }}>First month free.</Text> Paying with Apple? It's applied automatically. Paying by card? Enter code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> on the Stripe payment page.
+          <Text style={{ fontWeight: fontWeight.bold }}>1 month free included.</Text> {IS_IOS ? 'Whether you pay with Apple Pay or by card, your first month is free.' : 'Pay by card and your first month is free.'} Cancel anytime from your account settings.
         </Text>
       </View>
 
@@ -561,7 +560,7 @@ const styles = StyleSheet.create({
   perksCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md, gap: spacing.sm },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
-  // AXIOMTRIAL promo banner (shown on every paywall surface)
+  // Free-trial banner (shown on every paywall surface)
   promoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -574,7 +573,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   promoText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1, lineHeight: 18 },
-  promoCode: { fontWeight: fontWeight.bold, color: colors.primary, letterSpacing: 0.5 },
   perkIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center' },
   perkText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1 },
 
