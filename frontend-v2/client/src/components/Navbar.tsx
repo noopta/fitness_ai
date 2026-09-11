@@ -87,6 +87,9 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
         <Link href="/social" onClick={closeMobile}>Social Feed</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/blog" onClick={closeMobile}>Blog</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/settings" onClick={closeMobile}>Settings</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start text-muted-foreground" onClick={() => { handleLogout(); closeMobile(); }}>
@@ -97,6 +100,9 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
     <>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/pricing" onClick={closeMobile}>Pricing</Link>
+      </Button>
+      <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
+        <Link href="/blog" onClick={closeMobile}>Blog</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/login" onClick={closeMobile}>Sign In</Link>
@@ -158,6 +164,9 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                <Link href="/blog">Blog</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/settings">Settings</Link>
               </Button>
               <span className="text-sm font-medium text-foreground truncate max-w-[100px] ml-1">
@@ -171,6 +180,9 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
             <>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/pricing">Pricing</Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+                <Link href="/blog">Blog</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/login">Sign In</Link>
