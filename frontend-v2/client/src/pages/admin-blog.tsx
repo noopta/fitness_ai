@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Loader2, Plus, Trash2, ArrowLeft, ExternalLink, Mail } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Plus, Trash2, ArrowLeft, ExternalLink, Mail, UserPlus } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { BlogMarkdown } from '@/components/BlogMarkdown';
 import {
   adminListPosts, adminGetPost, adminCreatePost, adminUpdatePost, adminDeletePost, adminEmailPost,
-  slugify, formatPostDate, type BlogPostSummary, type BlogPostFull,
+  adminListSubscribers, adminAddSubscribers, adminRemoveSubscriber,
+  slugify, formatPostDate, type BlogPostSummary, type BlogPostFull, type BlogSubscriber,
 } from '@/lib/blogApi';
 
 /**
@@ -39,6 +40,89 @@ const EMPTY: Draft = { title: '', slug: '', slugTouched: false, excerpt: '', con
 
 function draftFrom(p: BlogPostFull): Draft {
   return { title: p.title, slug: p.slug, slugTouched: true, excerpt: p.excerpt, content: p.content, category: p.category, published: p.published, notifyUsers: true, emailedAt: p.emailedAt ?? null, emailedCount: p.emailedCount ?? 0 };
+}
+
+/**
+ * Email-only subscribers: people who aren't Axiom accounts but should get every
+ * post. The broadcast merges them with opted-in users, deduped by email.
+ */
+function SubscribersCard() {
+  const [subs, setSubs] = useState<BlogSubscriber[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState('');
+  const [adding, setAdding] = useState(false);
+
+  async function load() {
+    try { setSubs(await adminListSubscribers()); }
+    catch (e: any) { toast.error(e?.message || 'Could not load subscribers'); }
+    finally { setLoading(false); }
+  }
+  useEffect(() => { load(); }, []);
+
+  async function add() {
+    const emails = input.split(/[\s,;]+/).map(e => e.trim()).filter(Boolean);
+    if (emails.length === 0) return;
+    setAdding(true);
+    try {
+      const r = await adminAddSubscribers(emails);
+      if (r.added.length) toast.success(`Added ${r.added.length} subscriber${r.added.length === 1 ? '' : 's'}`);
+      if (r.existing.length) toast.message(`Already on the list: ${r.existing.join(', ')}`);
+      setInput('');
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not add subscribers');
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function remove(s: BlogSubscriber) {
+    if (!confirm(`Remove ${s.email} from the subscriber list?`)) return;
+    try { await adminRemoveSubscriber(s.id); setSubs(prev => prev.filter(x => x.id !== s.id)); }
+    catch (e: any) { toast.error(e?.message || 'Could not remove subscriber'); }
+  }
+
+  return (
+    <Card className="p-5 space-y-4">
+      <div>
+        <h2 className="text-base font-semibold flex items-center gap-2"><Mail size={15} /> Extra subscribers</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Every published post is emailed to all verified, opted-in Axiom accounts automatically. Add addresses here for people who don't have an account.
+        </p>
+      </div>
+      <div className="flex gap-2 items-start">
+        <Textarea
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="one@example.com, two@example.com"
+          rows={2}
+          className="text-sm"
+        />
+        <Button size="sm" onClick={add} disabled={adding || !input.trim()} className="shrink-0">
+          {adding ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <UserPlus size={14} className="mr-1.5" />} Add
+        </Button>
+      </div>
+      {loading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Loading…</div>
+      ) : subs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No extra subscribers yet.</p>
+      ) : (
+        <ul className="divide-y divide-border/60">
+          {subs.map(s => (
+            <li key={s.id} className="flex items-center gap-3 py-2">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm truncate">{s.email}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {s.unsubscribedAt ? <span className="text-red-500 font-medium">Unsubscribed</span> : 'Subscribed'} · added {formatPostDate(s.createdAt)}{s.addedBy ? ` by ${s.addedBy}` : ''}
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" aria-label="Remove subscriber" onClick={() => remove(s)}><Trash2 size={14} className="text-red-500" /></Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
 }
 
 export default function AdminBlogPage() {
@@ -191,6 +275,8 @@ export default function AdminBlogPage() {
                 ))}
               </div>
             )}
+
+            <SubscribersCard />
           </>
         ) : (
           <>

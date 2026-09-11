@@ -85,6 +85,32 @@ export async function adminDeletePost(id: string): Promise<void> {
   await parse<{ ok: true }>(res);
 }
 
+// ─── Subscribers (email-only recipients, not accounts) ───────────────────────
+
+export interface BlogSubscriber {
+  id: string;
+  email: string;
+  source: string;
+  addedBy: string | null;
+  unsubscribedAt: string | null;
+  createdAt: string;
+}
+
+export async function adminListSubscribers(): Promise<BlogSubscriber[]> {
+  const res = await authFetch(`${API}/blog/admin/subscribers`);
+  return (await parse<{ subscribers: BlogSubscriber[] }>(res)).subscribers;
+}
+
+export async function adminAddSubscribers(emails: string[]): Promise<{ added: string[]; existing: string[] }> {
+  const res = await authFetch(`${API}/blog/admin/subscribers`, { method: 'POST', body: JSON.stringify({ emails }) });
+  return parse<{ added: string[]; existing: string[] }>(res);
+}
+
+export async function adminRemoveSubscriber(id: string): Promise<void> {
+  const res = await authFetch(`${API}/blog/admin/subscribers/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  await parse<{ ok: true }>(res);
+}
+
 /** Mirrors the server's slugify so the editor can preview the URL live. */
 export function slugify(input: string): string {
   return input

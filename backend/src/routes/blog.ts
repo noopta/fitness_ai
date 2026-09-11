@@ -219,4 +219,66 @@ router.delete('/blog/admin/posts/:id', requireAuth, requireAdmin, async (req, re
   }
 });
 
+// ─── Admin: subscriber list ──────────────────────────────────────────────────
+// Email-only recipients (not accounts). Every broadcast goes to opted-in users
+// + these, deduped by email. Unsubscribed rows are kept (so a click sticks)
+// and shown as such; re-adding an unsubscribed address is a no-op.
+
+const emailInput = z.string().trim().toLowerCase().email().max(254);
+const subscribersInput = z.object({
+  emails: z.array(emailInput).min(1).max(500),
+});
+
+function subscriberShape(s: { id: string; email: string; source: string; addedBy: string | null; unsubscribedAt: Date | null; createdAt: Date }) {
+  return {
+    id: s.id,
+    email: s.email,
+    source: s.source,
+    addedBy: s.addedBy,
+    unsubscribedAt: s.unsubscribedAt ? s.unsubscribedAt.toISOString() : null,
+    createdAt: s.createdAt.toISOString(),
+  };
+}
+
+router.get('/blog/admin/subscribers', requireAuth, requireAdmin, async (_req, res) => {
+  try {
+    const subs = await prisma.blogSubscriber.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json({ subscribers: subs.map(subscriberShape) });
+  } catch (err) {
+    console.error('[blog] subscribers list error:', err);
+    res.status(500).json({ error: 'Failed to load subscribers' });
+  }
+});
+
+router.post('/blog/admin/subscribers', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = subscribersInput.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Invalid emails' });
+  try {
+    const added: string[] = [];
+    const existing: string[] = [];
+    for (const email of Array.from(new Set(parsed.data.emails))) {
+      const found = await prisma.blogSubscriber.findUnique({ where: { email } });
+      if (found) { existing.push(email); continue; }
+      await prisma.blogSubscriber.create({ data: { email, source: 'admin', addedBy: req.user!.email ?? null } });
+      added.push(email);
+    }
+    res.json({ added, existing });
+  } catch (err) {
+    console.error('[blog] subscribers add error:', err);
+    res.status(500).json({ error: 'Failed to add subscribers' });
+  }
+});
+
+router.delete('/blog/admin/subscribers/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const existing = await prisma.blogSubscriber.findUnique({ where: { id: String(req.params.id) } });
+    if (!existing) return res.status(404).json({ error: 'Subscriber not found' });
+    await prisma.blogSubscriber.delete({ where: { id: existing.id } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[blog] subscribers delete error:', err);
+    res.status(500).json({ error: 'Failed to remove subscriber' });
+  }
+});
+
 export default router;

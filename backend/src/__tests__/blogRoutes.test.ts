@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
-const store = vi.hoisted(() => ({ posts: [] as any[], seq: 0 }));
+const store = vi.hoisted(() => ({ posts: [] as any[], subs: [] as any[], seq: 0 }));
 
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(function (this: any) {
@@ -31,6 +31,16 @@ vi.mock('@prisma/client', () => ({
         Object.assign(row, a.data, { updatedAt: new Date() }); return row;
       }),
       delete: vi.fn(async (a: any) => { store.posts = store.posts.filter(p => p.id !== a.where.id); }),
+    };
+    this.blogSubscriber = {
+      findMany: vi.fn(async () => store.subs.slice().reverse()),
+      findUnique: vi.fn(async (a: any) => store.subs.find(s =>
+        (a.where.id !== undefined && s.id === a.where.id) || (a.where.email !== undefined && s.email === a.where.email)) ?? null),
+      create: vi.fn(async (a: any) => {
+        const row = { id: `sub-${++store.seq}`, unsubscribedAt: null, createdAt: new Date(), ...a.data };
+        store.subs.push(row); return row;
+      }),
+      delete: vi.fn(async (a: any) => { store.subs = store.subs.filter(s => s.id !== a.where.id); }),
     };
   }),
 }));
@@ -61,7 +71,7 @@ app.use('/api', blogRouter);
 const ADMIN = { 'x-test-user': 'inquiries@axiomtraining.io' };
 const MEMBER = { 'x-test-user': 'someone@example.com' };
 
-beforeEach(() => { store.posts = []; store.seq = 0; broadcast.scheduleBlogBroadcast.mockClear(); broadcast.broadcastBlogPost.mockClear(); });
+beforeEach(() => { store.posts = []; store.subs = []; store.seq = 0; broadcast.scheduleBlogBroadcast.mockClear(); broadcast.broadcastBlogPost.mockClear(); });
 
 describe('helpers', () => {
   it('slugify normalises titles', () => {
@@ -176,5 +186,40 @@ describe('publish → email all users', () => {
     expect((await request(app).post(`/api/blog/admin/posts/${p.id}/email`).set(ADMIN)).status).toBe(409);
     broadcast.broadcastBlogPost.mockResolvedValueOnce({ status: 'not_published', sent: 0, failed: 0, recipients: 0 });
     expect((await request(app).post(`/api/blog/admin/posts/${p.id}/email`).set(ADMIN)).status).toBe(400);
+  });
+});
+
+describe('subscriber list', () => {
+  it('is admin-only', async () => {
+    expect((await request(app).get('/api/blog/admin/subscribers')).status).toBe(401);
+    expect((await request(app).get('/api/blog/admin/subscribers').set(MEMBER)).status).toBe(403);
+    expect((await request(app).post('/api/blog/admin/subscribers').set(MEMBER).send({ emails: ['a@b.co'] })).status).toBe(403);
+  });
+
+  it('adds normalised addresses once, reports existing ones, validates input', async () => {
+    const r = await request(app).post('/api/blog/admin/subscribers').set(ADMIN)
+      .send({ emails: [' Saeed.Abiissa@gmail.com ', 'themoroccandevil@gmail.com', 'saeed.abiissa@gmail.com'] });
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ added: ['saeed.abiissa@gmail.com', 'themoroccandevil@gmail.com'], existing: [] });
+    expect(store.subs.map(s => s.addedBy)).toEqual(['inquiries@axiomtraining.io', 'inquiries@axiomtraining.io']);
+
+    const again = await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: ['themoroccandevil@gmail.com'] });
+    expect(again.body).toEqual({ added: [], existing: ['themoroccandevil@gmail.com'] });
+    expect(store.subs).toHaveLength(2);
+
+    expect((await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: ['not-an-email'] })).status).toBe(400);
+    expect((await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: [] })).status).toBe(400);
+
+    const list = await request(app).get('/api/blog/admin/subscribers').set(ADMIN);
+    expect(list.body.subscribers.map((s: any) => s.email)).toEqual(['themoroccandevil@gmail.com', 'saeed.abiissa@gmail.com']);
+    expect(list.body.subscribers[0].unsubscribedAt).toBeNull();
+  });
+
+  it('removes by id; unknown id 404s', async () => {
+    const id = (await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: ['x@y.co'] })).status === 200 ? store.subs[0].id : '';
+    expect((await request(app).delete(`/api/blog/admin/subscribers/${id}`).set(MEMBER)).status).toBe(403);
+    expect((await request(app).delete(`/api/blog/admin/subscribers/${id}`).set(ADMIN)).status).toBe(200);
+    expect(store.subs).toHaveLength(0);
+    expect((await request(app).delete('/api/blog/admin/subscribers/nope').set(ADMIN)).status).toBe(404);
   });
 });

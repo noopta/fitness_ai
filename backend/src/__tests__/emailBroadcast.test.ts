@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
-const store = vi.hoisted(() => ({ users: [] as any[], posts: [] as any[] }));
+const store = vi.hoisted(() => ({ users: [] as any[], posts: [] as any[], subs: [] as any[] }));
 const mail = vi.hoisted(() => ({ sendEmail: vi.fn(async () => ({ sent: true, provider: 'sendgrid' as const })) }));
 
 vi.mock('@prisma/client', () => ({
@@ -19,6 +19,14 @@ vi.mock('@prisma/client', () => ({
       findMany: vi.fn(async (a: any) => store.users.filter(u => matchWhere(u, a.where))),
       updateMany: vi.fn(async (a: any) => {
         const rows = store.users.filter(u => matchWhere(u, a.where));
+        rows.forEach(r => Object.assign(r, a.data));
+        return { count: rows.length };
+      }),
+    };
+    this.blogSubscriber = {
+      findMany: vi.fn(async (a: any) => store.subs.filter(u => matchWhere(u, a.where))),
+      updateMany: vi.fn(async (a: any) => {
+        const rows = store.subs.filter(u => matchWhere(u, a.where));
         rows.forEach(r => Object.assign(r, a.data));
         return { count: rows.length };
       }),
@@ -55,6 +63,7 @@ const OLD = () => ({ id: 'u-old', name: 'Old Timer', email: 'old@x.com', emailVe
 beforeEach(() => {
   store.users = [];
   store.posts = [];
+  store.subs = [];
   mail.sendEmail.mockClear();
   mail.sendEmail.mockImplementation(async () => ({ sent: true, provider: 'sendgrid' as const }));
 });
@@ -128,6 +137,26 @@ describe('blog broadcast', () => {
     expect(mail.sendEmail).toHaveBeenCalledTimes(2);
   });
 
+  it('includes admin-added subscribers, skips unsubscribed ones, and dedupes against accounts', async () => {
+    store.posts = [POST()];
+    store.users = [NEW()];
+    store.subs = [
+      { id: 's1', email: 'friend@x.com', unsubscribedAt: null },
+      { id: 's-gone', email: 'gone@x.com', unsubscribedAt: new Date() },
+      { id: 's-dup', email: 'SAM@x.com', unsubscribedAt: null },   // same person as u-new
+    ];
+    const r = await broadcastBlogPost('p1');
+    expect(r).toEqual({ status: 'sent', sent: 2, failed: 0, recipients: 2 });
+    const calls = mail.sendEmail.mock.calls.map(c => c[0] as any);
+    expect(calls.map(c => c.to).sort()).toEqual(['friend@x.com', 'sam@x.com']);
+    // The subscriber's unsubscribe link is signed for the subscriber id, not a user id.
+    const friend = calls.find(c => c.to === 'friend@x.com')!;
+    expect(friend.headers['List-Unsubscribe']).toContain('/email/unsubscribe?u=s1&');
+    // The duplicate went out via the account (u-new), so its link points at the user.
+    const sam = calls.find(c => c.to === 'sam@x.com')!;
+    expect(sam.headers['List-Unsubscribe']).toContain('/email/unsubscribe?u=u-new&');
+  });
+
   it('refuses drafts and unknown posts', async () => {
     store.posts = [{ ...POST(), published: false }];
     store.users = [NEW()];
@@ -184,5 +213,15 @@ describe('unsubscribe', () => {
     const post = await request(app).post(`/api/email/unsubscribe?u=u2&t=${encodeURIComponent(unsubscribeToken('u2'))}`);
     expect(post.status).toBe(200);
     expect(store.users[1].marketingEmailsOptOut).toBe(true);
+  });
+
+  it('subscriber links flip unsubscribedAt on the subscriber row; unknown ids 404', async () => {
+    store.subs = [{ id: 's1', email: 'friend@x.com', unsubscribedAt: null }];
+    const ok = await request(app).get(`/api/email/unsubscribe?u=s1&t=${encodeURIComponent(unsubscribeToken('s1'))}`);
+    expect(ok.status).toBe(200);
+    expect(store.subs[0].unsubscribedAt).toBeInstanceOf(Date);
+
+    const missing = await request(app).get(`/api/email/unsubscribe?u=nobody&t=${encodeURIComponent(unsubscribeToken('nobody'))}`);
+    expect(missing.status).toBe(404);
   });
 });

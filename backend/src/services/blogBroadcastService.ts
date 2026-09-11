@@ -1,4 +1,5 @@
-// Emails a published blog post to every opted-in Axiom user. Once per post
+// Emails a published blog post to every opted-in Axiom user and every
+// admin-added subscriber (BlogSubscriber). Once per post
 // (BlogPost.emailedAt), claimed atomically before any mail goes out so a
 // double-click on Publish can't send twice. Recipients: verified email, not
 // unsubscribed. Sends in small parallel batches; per-recipient failures are
@@ -18,6 +19,33 @@ export interface BroadcastResult {
   recipients: number;
 }
 
+export interface Recipient { id: string; email: string }
+
+/**
+ * Everyone a blog post goes to: verified, opted-in accounts plus admin-added
+ * BlogSubscriber rows that haven't unsubscribed. Deduped by lowercased email
+ * so a subscriber who later signs up is emailed once, via their account.
+ */
+export async function recipients(): Promise<Recipient[]> {
+  const users = await prisma.user.findMany({
+    where: { email: { not: null }, emailVerified: true, marketingEmailsOptOut: false },
+    select: { id: true, email: true },
+  });
+  const subs = await prisma.blogSubscriber.findMany({
+    where: { unsubscribedAt: null },
+    select: { id: true, email: true },
+  });
+  const seen = new Set<string>();
+  const out: Recipient[] = [];
+  for (const r of [...users, ...subs]) {
+    const email = (r.email ?? '').trim().toLowerCase();
+    if (!email || seen.has(email)) continue;
+    seen.add(email);
+    out.push({ id: r.id, email: r.email! });
+  }
+  return out;
+}
+
 export async function broadcastBlogPost(postId: string): Promise<BroadcastResult> {
   const none = (status: BroadcastResult['status']): BroadcastResult => ({ status, sent: 0, failed: 0, recipients: 0 });
   if (process.env.BLOG_EMAIL_ENABLED === '0') return none('disabled');
@@ -33,10 +61,7 @@ export async function broadcastBlogPost(postId: string): Promise<BroadcastResult
   });
   if (claimed.count !== 1) return none('already_emailed');
 
-  const users = await prisma.user.findMany({
-    where: { email: { not: null }, emailVerified: true, marketingEmailsOptOut: false },
-    select: { id: true, email: true },
-  });
+  const users = await recipients();
 
   let sent = 0;
   let failed = 0;
@@ -47,7 +72,7 @@ export async function broadcastBlogPost(postId: string): Promise<BroadcastResult
       const msg = blogPostEmail(post, unsub);
       try {
         const r = await sendEmail({
-          to: u.email!,
+          to: u.email,
           subject: msg.subject,
           html: msg.html,
           text: msg.text,

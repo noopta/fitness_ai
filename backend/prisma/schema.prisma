@@ -1208,3 +1208,18 @@ model BlogPost {
 
   @@index([published, publishedAt])
 }
+
+/// Email-only blog/update subscribers who are not (or not yet) Axiom accounts.
+/// Added by an admin; merged into every blog broadcast alongside opted-in users
+/// (deduped by email, the account wins). Unsubscribe links work for them too.
+model BlogSubscriber {
+  id             String    @id @default(uuid())
+  /// Stored lowercased + trimmed; unique.
+  email          String    @unique
+  /// Where the address came from, e.g. "admin".
+  source         String    @default("admin")
+  addedBy        String?
+  /// Set when they click unsubscribe; never emailed again unless cleared.
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
+}
