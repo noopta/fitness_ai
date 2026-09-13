@@ -4,6 +4,7 @@ import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { recordCommission, getOrCreateAffiliateCoupon, renewalCommissionBaseCents } from '../services/affiliateService.js';
 import posthog from '../services/posthogClient.js';
+import { safeReturnPath } from '../services/checkoutReturn.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
@@ -372,13 +373,14 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
 // Supports optional referral code (affiliate discount coupon applied automatically)
 router.post('/payments/create-checkout', requireAuth, async (req, res) => {
   try {
-    const { referralCode, platform } = req.body as { referralCode?: string; platform?: string };
+    const { referralCode, platform, returnPath } = req.body as { referralCode?: string; platform?: string; returnPath?: string };
     // Mobile opens Checkout in an in-app browser tab and needs to be sent back
     // into the app on completion; web keeps the site redirect.
     const publicApi = process.env.PUBLIC_API_URL || 'https://api.airthreads.ai/api';
+    const webReturn = safeReturnPath(returnPath);
     const returnUrls = platform === 'mobile'
       ? { success_url: `${publicApi}/payments/return?status=success`, cancel_url: `${publicApi}/payments/return?status=cancelled` }
-      : { success_url: `${FRONTEND_URL}?checkout=success`, cancel_url: `${FRONTEND_URL}?checkout=cancelled` };
+      : { success_url: `${FRONTEND_URL}${webReturn}?checkout=success`, cancel_url: `${FRONTEND_URL}${webReturn}?checkout=cancelled` };
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },

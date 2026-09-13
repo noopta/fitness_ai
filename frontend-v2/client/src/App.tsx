@@ -1,5 +1,5 @@
 import { Component, ReactNode, useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { posthog, identifyUser, resetUser, trackPageView } from "./lib/analytics";
 import { useAuth } from "@/context/AuthContext";
 import { queryClient } from "./lib/queryClient";
@@ -13,14 +13,15 @@ import AdminRoute from "@/components/AdminRoute";
 import { FloatingCoachChat } from "@/components/FloatingCoachChat";
 import NotFound from "@/pages/not-found";
 import Signup from "./pages/signup";
-import Onboarding from "./pages/onboarding";
+import DiagnosticsHome from "./pages/diagnostics";
+import DiagnosticChat from "./pages/diagnostics/chat";
+import DiagnosticReport from "./pages/diagnostics/report";
 import Snapshot from "./pages/snapshot";
 import Diagnostic from "./pages/diagnostic";
 import Plan from "./pages/plan";
 import Login from "./pages/login";
 import Register from "./pages/register";
 import VerifyEmail from "./pages/verify-email";
-import HistoryPage from "./pages/history";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import Privacy from "./pages/privacy";
@@ -130,11 +131,14 @@ class ErrorBoundary extends Component<
 // never changes between renders. Inline arrows like () => <ProtectedRoute .../>
 // inside Router() recreate a new component type on every render, causing React
 // error #310 (hook count mismatch) when auth state updates after OAuth redirects.
-const ProtectedOnboarding = () => <ProtectedRoute component={Onboarding} />;
+// Conversational lift diagnostic (single thread with Anakin). /onboarding and
+// /mvp are its first-run entry points and forward into it.
+const ProtectedDiagnosticsHome = () => <ProtectedRoute component={DiagnosticsHome} />;
+const ProtectedDiagnosticChat  = () => <ProtectedRoute component={DiagnosticChat} />;
+const ToDiagnosticChat = () => <Redirect to="/diagnostics/chat" replace />;
 const ProtectedSnapshot   = () => <ProtectedRoute component={Snapshot} />;
 const ProtectedDiagnostic = () => <ProtectedRoute component={Diagnostic} />;
 const ProtectedPlan       = () => <ProtectedRoute component={Plan} />;
-const ProtectedHistory    = () => <ProtectedRoute component={HistoryPage} />;
 const ProtectedCoach      = () => <ProtectedRoute component={CoachPage} />;
 const ProtectedSettings   = () => <ProtectedRoute component={SettingsPage} />;
 const ProtectedWorkouts        = () => <ProtectedRoute component={WorkoutsPage} />;
@@ -187,12 +191,15 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/delete-account" component={DeleteAccount} />
-      <Route path="/mvp" component={ProtectedOnboarding} />
-      <Route path="/onboarding" component={ProtectedOnboarding} />
+      <Route path="/mvp" component={ToDiagnosticChat} />
+      <Route path="/onboarding" component={ToDiagnosticChat} />
+      <Route path="/diagnostics" component={ProtectedDiagnosticsHome} />
+      <Route path="/diagnostics/chat/:id?" component={ProtectedDiagnosticChat} />
+      <Route path="/diagnostics/:id" component={DiagnosticReport} />
       <Route path="/snapshot" component={ProtectedSnapshot} />
       <Route path="/diagnostic" component={ProtectedDiagnostic} />
       <Route path="/plan" component={ProtectedPlan} />
-      <Route path="/history" component={ProtectedHistory} />
+      <Route path="/history" component={ProtectedDiagnosticsHome} />
       <Route path="/coach" component={ProtectedCoach} />
       <Route path="/workouts" component={ProtectedWorkouts} />
       <Route path="/strength-profile" component={ProtectedStrengthProfile} />
