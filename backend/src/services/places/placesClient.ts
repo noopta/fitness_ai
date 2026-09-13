@@ -165,6 +165,78 @@ function toNearbyPlace(raw: any, fromLat: number, fromLng: number): NearbyPlace 
   };
 }
 
+export interface GeocodedPlace {
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
+const GEOCODE_FIELD_MASK = 'places.displayName,places.formattedAddress,places.location';
+const geocodeCache = new Map<string, GeocodedPlace | null>();
+
+/**
+ * Resolve free text ("King & Spadina", "Brooklyn NY") to coordinates.
+ *
+ * Exists because device geolocation is not always available or willing — the
+ * browser prompt can be blocked, dismissed, or silently denied, and a user who
+ * cannot get past that has no way into the feature at all. Typing where you are
+ * is the reliable fallback, and it also lets you check what the finder would say
+ * somewhere you are not.
+ *
+ * Returns null rather than throwing, same contract as searchNearby.
+ */
+export async function geocodePlace(query: string): Promise<GeocodedPlace | null> {
+  const q = query.trim();
+  if (!q) return null;
+
+  const key = q.toLowerCase();
+  if (geocodeCache.has(key)) return geocodeCache.get(key) ?? null;
+
+  const token = await bearer();
+  if (!token) return null;
+
+  try {
+    const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Goog-User-Project': QUOTA_PROJECT,
+        'X-Goog-FieldMask': GEOCODE_FIELD_MASK,
+      },
+      body: JSON.stringify({ textQuery: q, maxResultCount: 1 }),
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (!res.ok) {
+      console.warn(`[places] geocode ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return null;
+    }
+
+    const json = await res.json() as { places?: any[] };
+    const p = json.places?.[0];
+    const lat = p?.location?.latitude;
+    const lng = p?.location?.longitude;
+    if (typeof lat !== 'number' || typeof lng !== 'number') {
+      geocodeCache.set(key, null);
+      return null;
+    }
+
+    const out: GeocodedPlace = {
+      name: p.displayName?.text ?? q,
+      address: p.formattedAddress ?? '',
+      lat,
+      lng,
+    };
+    if (geocodeCache.size < CACHE_MAX_ENTRIES) geocodeCache.set(key, out);
+    return out;
+  } catch (err) {
+    console.warn('[places] geocode failed:', (err as Error).message);
+    return null;
+  }
+}
+
 /**
  * Nearby search. Returns [] on any failure — see the module header.
  *

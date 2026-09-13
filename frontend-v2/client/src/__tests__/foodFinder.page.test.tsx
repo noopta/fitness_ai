@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FoodFinderPage from '@/pages/food-finder';
 
@@ -21,7 +21,7 @@ const response = (over: Record<string, unknown> = {}) => ({
   why: '110 g of protein and 1400 kcal still to go — macros lead.',
   pressures: { macro: 0.7, micro: 0.4 },
   remaining: { kcal: 1400, proteinG: 110, carbsG: 150, fatG: 40 },
-  nearby: { used: true, degraded: false, storesFound: 3, restaurantsFound: 2 },
+  nearby: { used: true, degraded: false, storesFound: 3, restaurantsFound: 2, resolvedPlace: null, coords: { lat: 43.65, lng: -79.38 } },
   recommendations: [
     {
       id: 'ingredient:wild-salmon', kind: 'ingredient', name: 'Wild salmon',
@@ -116,12 +116,76 @@ describe('FoodFinderPage', () => {
   it('falls back to a location-free answer when permission is denied', async () => {
     mockGeolocation('deny');
     mockAuthFetch.mockImplementation(() =>
-      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0 } })));
+      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null } })));
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     // Denial is a choice, not an error — still a real answer, no lat/lng sent.
-    expect(await screen.findByText(/showing foods without nearby shops/i)).toBeTruthy();
+    expect(await screen.findByText('Wild salmon')).toBeTruthy();
     expect(mockAuthFetch.mock.calls[0][0]).not.toContain('lat=');
+  });
+
+  it('says WHY location failed instead of doing nothing', async () => {
+    // The reported failure: tapping the button appeared to do nothing at all.
+    // Permission-denied, no-fix and timeout are indistinguishable from inside
+    // the page unless we name which one happened.
+    mockGeolocation('deny');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(await screen.findByText(/location permission was denied/i)).toBeTruthy();
+  });
+
+  it('does not sit silently when the device never calls back', async () => {
+    vi.useFakeTimers();
+    // Neither callback ever fires — the iOS case the built-in timeout misses.
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
+      value: { getCurrentPosition: vi.fn() }, configurable: true, writable: true,
+    });
+    render(<FoodFinderPage />);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(screen.getByText(/waiting for your device/i)).toBeTruthy();
+    await act(async () => { vi.advanceTimersByTime(13000); });
+    expect(screen.getByText(/no response from your device/i)).toBeTruthy();
+    vi.useRealTimers();
+  });
+
+  it('geocodes a typed place', async () => {
+    render(<FoodFinderPage />);
+    await userEvent.type(screen.getByLabelText(/enter a location/i), 'King and Spadina');
+    await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
+    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    expect(mockAuthFetch.mock.calls[0][0]).toContain('place=King%20and%20Spadina');
+  });
+
+  it('sends pasted coordinates directly rather than geocoding them', async () => {
+    render(<FoodFinderPage />);
+    await userEvent.type(screen.getByLabelText(/enter a location/i), '43.65, -79.38');
+    await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
+    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    const url = mockAuthFetch.mock.calls[0][0];
+    expect(url).toContain('lat=43.65');
+    expect(url).toContain('lng=-79.38');
+    expect(url).not.toContain('place=');
+  });
+
+  it('says so when a typed place cannot be found', async () => {
+    mockAuthFetch.mockImplementation(() =>
+      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null } })));
+    render(<FoodFinderPage />);
+    await userEvent.type(screen.getByLabelText(/enter a location/i), 'asdkjhasd');
+    await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
+    expect(await screen.findByText(/couldn't find "asdkjhasd"/i)).toBeTruthy();
+  });
+
+  it('shows which place it actually searched around', async () => {
+    // A silently wrong location is worse than an obviously wrong one.
+    mockGeolocation('grant');
+    mockAuthFetch.mockImplementation(() => ok(response({
+      nearby: { used: true, degraded: false, storesFound: 3, restaurantsFound: 2, resolvedPlace: { name: 'King St W & Spadina Ave', address: 'Toronto' }, coords: { lat: 43.65, lng: -79.39 } },
+    })));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(await screen.findByText(/around King St W & Spadina Ave/)).toBeTruthy();
   });
 
   it('bootstraps a bearer token from the URL and strips it', async () => {

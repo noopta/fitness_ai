@@ -35,6 +35,7 @@ import { gainTextFor } from '../engine/nutritionGap.js';
 import { rankCandidates } from '../engine/foodFinderRanker.js';
 import { remainingForDay } from '../services/nutritionRemaining.js';
 import { findNearby } from '../services/foodFinder/nearbyFinder.js';
+import { geocodePlace } from '../services/places/placesClient.js';
 import {
   NUTRIENTS, BODY_SYSTEMS, getNutrient, driversForSystem, type BodySystemId,
 } from '../engine/nutrientRegistry.js';
@@ -583,12 +584,27 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
     const userId = req.user!.id;
     const date = parseDate(req.query.date);
 
-    const lat = Number(req.query.lat);
-    const lng = Number(req.query.lng);
-    const hasLocation =
-      Number.isFinite(lat) && Number.isFinite(lng) &&
-      Math.abs(lat) <= 90 && Math.abs(lng) <= 180 &&
-      !(lat === 0 && lng === 0); // a literal null island fix is a client bug, not a place
+    let lat = Number(req.query.lat);
+    let lng = Number(req.query.lng);
+    const validCoords = (a: number, b: number) =>
+      Number.isFinite(a) && Number.isFinite(b) &&
+      Math.abs(a) <= 90 && Math.abs(b) <= 180 &&
+      !(a === 0 && b === 0); // a literal null island fix is a client bug, not a place
+
+    // `place=` lets the caller type where they are instead of relying on the
+    // browser's location prompt, which can be blocked or silently dismissed
+    // with no way for the user to recover. Explicit coords still win.
+    let resolvedPlace: { name: string; address: string } | null = null;
+    if (!validCoords(lat, lng) && typeof req.query.place === 'string' && req.query.place.trim()) {
+      const geo = await geocodePlace(req.query.place);
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+        resolvedPlace = { name: geo.name, address: geo.address };
+      }
+    }
+
+    const hasLocation = validCoords(lat, lng);
 
     const radiusRaw = Number(req.query.radius);
     const radiusM = Number.isFinite(radiusRaw) ? Math.min(Math.max(radiusRaw, 200), 10000) : undefined;
@@ -631,6 +647,12 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
         degraded: found.degraded,
         storesFound: found.storesFound,
         restaurantsFound: found.restaurantsFound,
+        // Echo back what a typed place resolved to, so the user can see we
+        // understood "king and spadina" as the right corner of the right city.
+        resolvedPlace,
+        // Rounded to the ~1 km cache grid — enough to confirm the right area,
+        // without reflecting a precise position back over the wire.
+        coords: hasLocation ? { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 } : null,
       },
       recommendations: found.results.map(r => {
         const store = r.meta?.store as { name: string; distanceM: number; openNow: boolean | null } | null | undefined;
