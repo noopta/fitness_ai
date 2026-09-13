@@ -12,6 +12,7 @@ import { Badge } from '../../src/components/ui/Badge';
 import { DailyQuoteCard } from '../../src/components/home/DailyQuoteCard';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
+import { HomeDiagnostics } from '../../src/diagnostic/components/HomeDiagnostics';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -91,51 +92,36 @@ export default function HomeScreen() {
           {greeting}{'\n'}{firstName}.
         </Text>
 
+        {/* ── Hero → Diagnostics → upgrade card (free) ──
+            The hero is context-aware: an unfinished lift diagnostic takes it
+            over with Resume; otherwise free users start one and Pro users
+            keep Coach Anakin. */}
+        <HomeDiagnostics
+          isPro={isPro}
+          proHero={
+              <TouchableOpacity
+                style={styles.heroCard}
+                activeOpacity={0.85}
+                onPress={() => { Analytics.coachDashboardOpened('home_cta'); router.push('/(tabs)/coach'); }}
+              >
+                <View style={styles.heroIconBox}>
+                  <Ionicons name="sparkles" size={22} color={colors.primaryForeground} />
+                </View>
+                <View style={styles.heroBottom}>
+                  <View style={styles.heroTextCol}>
+                    <Text style={styles.heroTitle}>Coach{'\n'}Anakin</Text>
+                    <Text style={styles.heroSubtitle}>Open Dashboard</Text>
+                  </View>
+                  <View style={styles.heroArrowBtn}>
+                    <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+          }
+        />
+
         {/* ── Daily motivational quote ── */}
         <DailyQuoteCard />
-
-        {/* ── Hero card ── */}
-        {isPro ? (
-          /* Paid: Coach Anakin card */
-          <TouchableOpacity
-            style={styles.heroCard}
-            activeOpacity={0.85}
-            onPress={() => { Analytics.coachDashboardOpened('home_cta'); router.push('/(tabs)/coach'); }}
-          >
-            <View style={styles.heroIconBox}>
-              <Ionicons name="sparkles" size={22} color={colors.primaryForeground} />
-            </View>
-            <View style={styles.heroBottom}>
-              <View style={styles.heroTextCol}>
-                <Text style={styles.heroTitle}>Coach{'\n'}Anakin</Text>
-                <Text style={styles.heroSubtitle}>Open Dashboard</Text>
-              </View>
-              <View style={styles.heroArrowBtn}>
-                <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
-              </View>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          /* Free: New Analysis card */
-          <TouchableOpacity
-            style={styles.heroCard}
-            activeOpacity={0.85}
-            onPress={() => router.push('/diagnostic/onboarding')}
-          >
-            <View style={styles.heroIconBox}>
-              <Ionicons name="barbell-outline" size={22} color={colors.primaryForeground} />
-            </View>
-            <View style={styles.heroBottom}>
-              <View style={styles.heroTextCol}>
-                <Text style={styles.heroTitle}>New{'\n'}Analysis</Text>
-                <Text style={styles.heroSubtitle}>Begin Session</Text>
-              </View>
-              <View style={styles.heroArrowBtn}>
-                <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
 
         {/* ── Secondary card — Anakin's Note, pro only and not dismissed ── */}
         {isPro && !welcomeDismissed && welcomeMessage ? (
@@ -155,7 +141,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.rowAction}
             activeOpacity={0.8}
-            onPress={() => router.push('/diagnostic/onboarding')}
+            onPress={() => router.push('/diagnostic/conversation')}
           >
             <View style={styles.rowActionIcon}>
               <Ionicons name="barbell-outline" size={18} color={colors.foreground} />

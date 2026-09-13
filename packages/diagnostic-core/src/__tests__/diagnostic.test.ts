@@ -43,7 +43,6 @@ function verdict(grade: 0 | 1 | 2, over: Partial<Verdict> = {}): Verdict {
     charts: grade === 2 ? { indices: {}, efficiency: 70 } : null,
     video: null,
     validationTest: null,
-    sharpen: [],
     fix: { locked: true, accessoryCount: 3 },
     trackNextTime: [],
     missingLifts: [],

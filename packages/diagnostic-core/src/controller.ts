@@ -50,6 +50,7 @@ export class DiagnosticController {
   private disposed = false;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly resuming: boolean;
+  private started = false;
 
   constructor(private readonly api: DiagnosticApi, private readonly opts: ControllerOptions = {}) {
     this.resuming = !!opts.sessionId;
@@ -75,9 +76,17 @@ export class DiagnosticController {
     this.listeners.forEach((l) => l());
   }
 
-  /** Load a saved thread (resume) — a fresh session needs no network. */
+  /**
+   * Load a saved thread (resume) — a fresh session needs no network. Safe to
+   * call again after dispose() (React strict-mode remounts reuse the instance).
+   */
   async start(): Promise<void> {
-    if (!this.resuming) return;
+    this.disposed = false;
+    if (!this.resuming || this.started) {
+      this.resumePolling();
+      return;
+    }
+    this.started = true;
     this.dispatch({ type: 'loading' });
     try {
       const data = await this.api.load(this.state.sessionId);
@@ -128,10 +137,11 @@ export class DiagnosticController {
     }
   }
 
+  /** Stop timers and ignore late responses. Subscribers unsubscribe themselves. */
   dispose(): void {
     this.disposed = true;
     if (this.pollTimer) clearTimeout(this.pollTimer);
-    this.listeners.clear();
+    this.pollTimer = null;
   }
 
   private async send(turnId: string, input: TurnInput): Promise<void> {
@@ -189,6 +199,7 @@ export class DiagnosticController {
   }
 
   private poll(turnId: string, startedAt: number) {
+    if (this.pollTimer) clearTimeout(this.pollTimer);
     const interval = this.opts.videoPollMs ?? 2500;
     const timeout = this.opts.videoTimeoutMs ?? 180_000;
     const tick = async () => {

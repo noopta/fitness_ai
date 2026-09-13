@@ -34,6 +34,7 @@ function formatDate(dateStr: string): string {
 }
 
 interface Session {
+  flow?: 'conversation' | 'wizard';
   id: string;
   selectedLift: string;
   status?: string;
@@ -74,7 +75,15 @@ function SessionCard({ session, onDelete }: { session: Session; onDelete: (id: s
   return (
     <Swipeable ref={swipeRef} renderRightActions={renderRightActions} rightThreshold={40} overshootRight={false}>
       <Pressable
-        onPress={() => router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`)}
+        onPress={() => {
+          // Conversational diagnostics open their report or resume the thread;
+          // legacy wizard sessions keep their original screens.
+          if (session.flow === 'conversation') {
+            router.push(isCompleted ? `/diagnostic/report?sessionId=${session.id}` : `/diagnostic/conversation?sessionId=${session.id}`);
+          } else {
+            router.push(isCompleted ? `/diagnostic/plan?sessionId=${session.id}` : `/diagnostic/chat?sessionId=${session.id}`);
+          }
+        }}
         style={({ pressed }) => [styles.sessionCard, { opacity: pressed ? 0.72 : 1 }]}
       >
         <View style={styles.row}>
@@ -238,7 +247,7 @@ export default function HistoryScreen() {
           <TouchableOpacity
             style={styles.newButton}
             activeOpacity={0.82}
-            onPress={() => router.push('/diagnostic/onboarding')}
+            onPress={() => router.push('/diagnostic/conversation')}
           >
             <Ionicons name="add" size={18} color={colors.primaryForeground} />
             <Text style={styles.newButtonText}>New</Text>
@@ -258,7 +267,7 @@ export default function HistoryScreen() {
           <TouchableOpacity
             style={styles.startButton}
             activeOpacity={0.82}
-            onPress={() => router.push('/diagnostic/onboarding')}
+            onPress={() => router.push('/diagnostic/conversation')}
           >
             <Text style={styles.startButtonText}>Start Analysis</Text>
           </TouchableOpacity>

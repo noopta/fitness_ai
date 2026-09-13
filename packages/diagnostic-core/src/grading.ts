@@ -35,6 +35,13 @@ export function verdictHeadline(v: Pick<Verdict, 'grade' | 'lift' | 'limiter'>):
   return { eyebrow: COPY.reportClosestRead, headline: `Probably ${short} — untested.` };
 }
 
+/** "What would sharpen this" — built from what's missing, never invented. */
+export function sharpenList(v: Pick<Verdict, 'missingLifts' | 'hasVideo'>): string[] {
+  const items = v.missingLifts.map((id) => COPY.sharpenLog(id));
+  if (!v.hasVideo) items.push(COPY.sharpenVideo);
+  return items;
+}
+
 /** Which report sections render for a grade. Charts are suppressed below 2. */
 export function reportSections(v: Pick<Verdict, 'grade'>) {
   return {

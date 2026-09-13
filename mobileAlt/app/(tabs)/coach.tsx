@@ -413,7 +413,7 @@ function CoachScreenInner() {
               <Text style={styles.lockedIntakeCtaText}>Start your free month</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push('/diagnostic/onboarding' as any)}
+              onPress={() => router.push('/diagnostic/conversation' as any)}
               style={styles.lockedIntakeSecondary}
             >
               <Text style={styles.lockedIntakeSecondaryText}>Run another lift diagnostic</Text>

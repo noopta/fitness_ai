@@ -139,7 +139,7 @@ export function canSubmit(s: DiagnosticState, input: TurnInput): boolean {
     case 'verdict':
       return s.stage === 'ready';
     case 'addNumbers':
-      return s.stage === 'verdict' && !!s.verdict && !!s.lift && nextOffer(s.lift, s.accessories) !== null;
+      return s.stage === 'verdict' && !!s.verdict && !!s.lift && nextOffer(s.lift, reopenSkipped(s.accessories)) !== null;
   }
 }
 
@@ -309,13 +309,19 @@ function applyTurn(s: DiagnosticState, turn: Turn, result: TurnResult): Diagnost
       return showVerdict(s, result.verdict);
 
     case 'addNumbers': {
-      const offer = nextOffer(s.lift!, s.accessories);
+      // Lifts skipped the first time are exactly the missing numbers — offer them again.
+      const accessories = reopenSkipped(s.accessories);
+      const offer = nextOffer(s.lift!, accessories);
       if (!offer) return s;
       // "discards the stale verdict card"
       const thread = s.thread.filter((t) => t.kind !== 'verdict');
-      return toStage(anakin({ ...s, thread, rescoring: true, offer }, COPY.resumeNumbers(offer)), 'acc');
+      return toStage(anakin({ ...s, accessories, thread, rescoring: true, offer }, COPY.resumeNumbers(offer)), 'acc');
     }
   }
+}
+
+function reopenSkipped(records: AccessoryRecord[]): AccessoryRecord[] {
+  return records.filter((r) => r.status !== 'skipped');
 }
 
 function afterAccessory(s: DiagnosticState, kind: 'logged' | 'untrained' | 'skipped'): DiagnosticState {

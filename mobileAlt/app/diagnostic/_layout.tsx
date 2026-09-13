@@ -25,6 +25,11 @@ export default function DiagnosticLayout() {
           </TouchableOpacity>
         ),
       }}
-    />
+    >
+      {/* The conversational diagnostic owns its header (× · monogram · progress). */}
+      <Stack.Screen name="conversation" options={{ headerShown: false, gestureEnabled: false }} />
+      {/* Report: opaque, full-bleed, modal presentation with a fade. */}
+      <Stack.Screen name="report" options={{ headerShown: false, presentation: 'modal', animation: 'fade' }} />
+    </Stack>
   );
 }

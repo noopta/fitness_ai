@@ -39,7 +39,7 @@ export async function postAuthDestination(
   // who already reached a verdict and declined lands on Home, where the
   // coach tab shows the locked upsell rather than a free full-program intake.
   if (features?.diagnosticFirstOnboarding) {
-    return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : '/diagnostic/onboarding';
+    return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : '/diagnostic/conversation';
   }
   // The server's kill switch, checked BEFORE we route anyone into the hook.
   // Without this the feature being dark would still show the whole capture

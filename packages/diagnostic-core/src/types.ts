@@ -143,7 +143,6 @@ export interface Verdict {
   charts: { indices: RadarIndices; efficiency: number } | null;
   video: VideoResult | null;
   validationTest: { description: string; howToRun: string } | null;
-  sharpen: string[];
   fix: Fix;
   trackNextTime: string[];
   /** Ladder lifts not yet logged — drives "Add the missing numbers". */

@@ -74,14 +74,39 @@ const PERKS = [
   { icon: 'infinite-outline',              text: 'Unlimited daily analyses + 200 coach messages a day' },
 ];
 
-// ── Inner content — mounts only when sheet is open ────────────────────────────
-function PaymentSheetContent({
-  onClose,
-  onSuccess,
-}: {
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
+/**
+ * Android: prefer Chrome to host the Custom Tab for checkout.
+ *
+ * Google Pay's support in a Custom Tab is only reliable in Chrome — some OEM
+ * defaults (Samsung Internet et al.) either drop the wallet button or handle
+ * the redirect back to the app differently. Returns undefined when Chrome
+ * can't host a Custom Tab (not installed / disabled), which lets
+ * expo-web-browser fall back to the user's preferred browser rather than
+ * failing the purchase.
+ *
+ * iOS ignores this entirely — Apple only permits its own SFSafariViewController,
+ * so "Chrome" there would still be WebKit, and Google Pay never renders on iOS.
+ */
+async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
+  if (Platform.OS !== 'android') return undefined;
+  try {
+    const { browserPackages, servicePackages } = await WebBrowser.getCustomTabsSupportingBrowsersAsync();
+    const CHROME = 'com.android.chrome';
+    // servicePackages = can host the Custom Tabs *service* (what we need).
+    if (servicePackages?.includes(CHROME) || browserPackages?.includes(CHROME)) return CHROME;
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// ── Purchase logic — shared by UpgradeSheet and the lift diagnostic paywall ──
+/**
+ * Everything a paywall needs to sell Pro: native store IAP (Apple / Google
+ * Play), Stripe card checkout in an in-app browser tab, and restore. Surfaces
+ * differ only in layout, so the purchase paths stay verified in one place.
+ */
+export function useProPurchase(onClose: () => void, onSuccess: () => void) {
   const { user, refreshUser } = useAuth();
 
   // ── Native IAP state (Apple on iOS / Google Play on Android) ──
@@ -196,32 +221,6 @@ function PaymentSheetContent({
     }
   }, [iapPurchasing, product]);
 
-/**
- * Android: prefer Chrome to host the Custom Tab for checkout.
- *
- * Google Pay's support in a Custom Tab is only reliable in Chrome — some OEM
- * defaults (Samsung Internet et al.) either drop the wallet button or handle
- * the redirect back to the app differently. Returns undefined when Chrome
- * can't host a Custom Tab (not installed / disabled), which lets
- * expo-web-browser fall back to the user's preferred browser rather than
- * failing the purchase.
- *
- * iOS ignores this entirely — Apple only permits its own SFSafariViewController,
- * so "Chrome" there would still be WebKit, and Google Pay never renders on iOS.
- */
-async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
-  if (Platform.OS !== 'android') return undefined;
-  try {
-    const { browserPackages, servicePackages } = await WebBrowser.getCustomTabsSupportingBrowsersAsync();
-    const CHROME = 'com.android.chrome';
-    // servicePackages = can host the Custom Tabs *service* (what we need).
-    if (servicePackages?.includes(CHROME) || browserPackages?.includes(CHROME)) return CHROME;
-    return undefined;
-  } catch {
-    return undefined;
-  }
-}
-
   const handleStripeCheckout = useCallback(async () => {
     Analytics.upgradeTapped('stripe');
     try {
@@ -326,6 +325,27 @@ async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
   // while Apple actually charged $12.99 at the sheet — under-stating the price
   // to the user. PRO_PRICE_FALLBACK is the real price; keep them in sync with ASC.
   const displayPrice = PRO_PRICE_FALLBACK;
+
+  return {
+    product, iapLoading, iapPurchasing, iapError, setIapError, setRetryCount,
+    stripeOpened, stripeConfirming, restoring, restoreMsg, displayPrice,
+    handleNativeSubscribe, handleStripeCheckout, handleStripeConfirm, handleRestore,
+  };
+}
+
+// ── Inner content — mounts only when sheet is open ────────────────────────────
+function PaymentSheetContent({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const {
+    product, iapLoading, iapPurchasing, iapError, setIapError, setRetryCount,
+    stripeOpened, stripeConfirming, restoring, restoreMsg, displayPrice,
+    handleNativeSubscribe, handleStripeCheckout, handleStripeConfirm, handleRestore,
+  } = useProPurchase(onClose, onSuccess);
 
   // ── Stripe (card) section ──
   // Offered on both platforms. On Android it renders *after* the Google Play
