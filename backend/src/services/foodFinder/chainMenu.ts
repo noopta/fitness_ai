@@ -119,6 +119,29 @@ function safeObject(raw: string | null): Record<string, number> {
   try { const v = JSON.parse(raw); return v && typeof v === 'object' ? v : {}; } catch { return {}; }
 }
 
+/**
+ * Places types where chains actually live.
+ *
+ * Deliberately separate from CUISINE_DISHES' keys. That map answers "what dishes
+ * can we guess for this kind of restaurant"; this one answers "where do branded
+ * chains file themselves". They barely overlap — no chain is a
+ * `mediterranean_restaurant`, and nothing in the cuisine table is a
+ * `fast_food_restaurant` — which is why deriving the Places query from the
+ * cuisine table alone returned zero chains even at Times Square.
+ *
+ * Every entry verified live via scripts/probePlaceTypes.ts. ONE invalid type
+ * 400s the whole request, so nothing goes in here unguessed.
+ */
+export const CHAIN_PLACE_TYPES = [
+  'fast_food_restaurant',
+  'hamburger_restaurant',
+  'chicken_restaurant',
+  'sandwich_shop',
+  'coffee_shop',
+  'donut_shop',
+  'pizza_restaurant',
+] as const;
+
 export interface ChainMatch {
   place: NearbyPlace;
   brand: BrandRecord;

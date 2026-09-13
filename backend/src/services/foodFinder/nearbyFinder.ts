@@ -18,7 +18,7 @@ import { dishesForPlace, DISH_PLACE_TYPES, type CuisineDish } from '../../engine
 import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fold } from '../../engine/dietaryFilter.js';
 import { type ShownRecord } from '../../engine/foodVariety.js';
 import { priceForIngredient, priceFromMenu } from './pricing.js';
-import { matchChains, chainCandidates } from './chainMenu.js';
+import { matchChains, chainCandidates, CHAIN_PLACE_TYPES } from './chainMenu.js';
 import calibration from './calibration.json' with { type: 'json' };
 import { calibrationKeyFor } from '../../engine/cuisineDishes.js';
 import { rankCandidates, type Candidate, type RankResult } from '../../engine/foodFinderRanker.js';
@@ -227,12 +227,19 @@ export async function findNearby(
   const wantGroceries = opts.includeGroceries ?? true;
   const wantTakeout = opts.includeTakeout ?? true;
 
-  const [stores, restaurants] = await Promise.all([
+  // Chains get their OWN query rather than being folded into the cuisine one.
+  // Both are capped at 20 results, so sharing a query would have chains and
+  // independents crowd each other out — and in a dense downtown the cuisine
+  // types alone fill all 20 slots before a single McDonald's appears.
+  const [stores, restaurants, chainPlaces] = await Promise.all([
     wantGroceries
       ? searchNearby({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes: GROCERY_PLACE_TYPES, maxResults: 20 })
       : Promise.resolve([]),
     wantTakeout
       ? searchNearby({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes: DISH_PLACE_TYPES, maxResults: 20 })
+      : Promise.resolve([]),
+    wantTakeout
+      ? searchNearby({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes: [...CHAIN_PLACE_TYPES], maxResults: 20 })
       : Promise.resolve([]),
   ]);
 
@@ -241,13 +248,21 @@ export async function findNearby(
   const openFilter = (p: NearbyPlace) => !opts.openNowOnly || p.openNow !== false;
   const openStores = stores.filter(openFilter);
   const openRestaurants = restaurants.filter(openFilter);
+  const openChainPlaces = chainPlaces.filter(openFilter);
 
   // Chains we hold a published menu for replace the cuisine guess entirely for
   // those places: a real nutrition table beats a typical-for-this-cuisine
   // estimate, and offering both would put two contradictory answers for the
   // same restaurant in one list.
-  const chainMatches = wantTakeout ? await matchChains(openRestaurants) : [];
+  // Dedupe by place id: a Subway can legitimately come back from both queries.
+  const takeoutPool = [...openRestaurants, ...openChainPlaces];
+  const seenPlaces = new Set<string>();
+  const uniqueTakeout = takeoutPool.filter(p => !seenPlaces.has(p.id) && seenPlaces.add(p.id));
+
+  const chainMatches = wantTakeout ? await matchChains(uniqueTakeout) : [];
   const chainedPlaceIds = new Set(chainMatches.map(m => m.place.id));
+  // Only the cuisine-typed places can yield a cuisine guess; a chain venue we
+  // failed to match has no dish table to fall back on.
   const unchainedRestaurants = openRestaurants.filter(p => !chainedPlaceIds.has(p.id));
 
   const raw: Candidate[] = [
@@ -286,7 +301,7 @@ export async function findNearby(
   return {
     ...ranked,
     storesFound: openStores.length,
-    restaurantsFound: openRestaurants.length,
+    restaurantsFound: uniqueTakeout.length,
     degraded: stores.length === 0 && restaurants.length === 0,
     dietExcluded,
     dietWarnings,

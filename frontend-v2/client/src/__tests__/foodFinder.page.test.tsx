@@ -317,14 +317,14 @@ describe('FoodFinderPage — budget, price and provenance', () => {
       recommendations: [{
         ...response().recommendations[1],
         confidence: 'published',
-        note: "From Nando's published nutrition.",
+        note: "Published nutrition from Nando's.",
       }],
     })));
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     // The badge on the card, distinct from the header count line.
     expect(await screen.findByText('published')).toBeTruthy();
-    expect(screen.getByText(/^From Nando's published nutrition\.$/)).toBeTruthy();
+    expect(screen.getByText(/^Published nutrition from Nando's\.$/)).toBeTruthy();
     expect(screen.getByText(/1 nearby chain has published nutrition/i)).toBeTruthy();
   });
 

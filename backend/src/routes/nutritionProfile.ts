@@ -747,7 +747,9 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
             ? (r.meta?.published
                 // We hold this chain's own published nutrition, so there is
                 // nothing to hedge — say where the number came from instead.
-                ? `From ${(r.meta?.brand as { name?: string } | undefined)?.name ?? vendor.name}'s published nutrition.`
+                // No possessive: "Tim Hortons's" and "Nando's's" are both wrong,
+                // and brand names ending in s are common enough to matter.
+                ? `Published nutrition from ${(r.meta?.brand as { name?: string } | undefined)?.name ?? vendor.name}.`
                 : `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`)
             : store
               ? `Usually carried at ${store.name}.`

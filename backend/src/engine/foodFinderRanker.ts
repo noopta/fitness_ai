@@ -508,14 +508,20 @@ export function diversify(
     for (let i = 0; i < remainingPool.length; i++) {
       const c = remainingPool[i];
       if (seen.has(signatureOf(c))) continue;
-      const adjusted = c.score * venueSpreadFactor(c.placeKey, pickedVenues);
+      // Groceries are exempt: a basket you buy at ONE shop is the desirable
+      // outcome, not a lack of variety. Spreading them would send the user to
+      // three supermarkets to save nothing. Takeout is the opposite — five
+      // dishes from one restaurant is a menu, not a set of choices.
+      const adjusted = c.kind === 'takeout'
+        ? c.score * venueSpreadFactor(c.placeKey, pickedVenues)
+        : c.score;
       if (adjusted > bestScore) { bestScore = adjusted; bestIdx = i; }
     }
     if (bestIdx < 0) break;
     const [chosen] = remainingPool.splice(bestIdx, 1);
     seen.add(signatureOf(chosen));
     picked.push(chosen);
-    pickedVenues.push(chosen.placeKey);
+    if (chosen.kind === 'takeout') pickedVenues.push(chosen.placeKey);
   }
 
   if (guaranteeBothKinds && picked.length >= 2) {

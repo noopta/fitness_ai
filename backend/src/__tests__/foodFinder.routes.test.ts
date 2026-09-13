@@ -339,7 +339,7 @@ describe('GET /nutrition-profile/food-finder — chain menus', () => {
     const res = await get(TORONTO);
     const item = res.body.recommendations.find((r: any) => /grilled chicken breast/i.test(r.name));
     // The cuisine-guess copy would have said "estimated, not their menu".
-    expect(item.note).toMatch(/published nutrition/i);
+    expect(item.note).toMatch(/^Published nutrition from Nando's\.$/);
     expect(item.note).not.toMatch(/estimated/i);
   });
 
