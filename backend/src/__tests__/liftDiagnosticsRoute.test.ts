@@ -163,7 +163,7 @@ app.use(express.json());
 app.use('/api', router);
 
 const token = (id: string, email: string) => `Bearer ${jwt.sign({ id, email, tier: 'free' }, process.env.JWT_SECRET!)}`;
-const FREE = token('u1', 'free@axiom.io'); // tier 'pro' in the DB rows below — sees the fix
+const FREE = token('u1', 'free@axiom.io');
 const LOCKED = token('u2', 'locked@axiom.io');
 let turnN = 0;
 const turn = (auth: string, input: any, clientTurnId = `turn-${String(++turnN).padStart(4, '0')}`, sid = SID) =>
@@ -186,7 +186,7 @@ async function toReady(auth = FREE) {
 beforeEach(() => {
   db.reset();
   db.tables.user.push(
-    { id: 'u1', email: 'free@axiom.io', tier: 'pro', unitPreference: 'imperial', trainingAge: 'intermediate' },
+    { id: 'u1', email: 'free@axiom.io', tier: 'free', unitPreference: 'imperial', trainingAge: 'intermediate' },
     { id: 'u2', email: 'locked@axiom.io', tier: 'free', unitPreference: 'metric' },
   );
   quota.allowed = true;
@@ -259,6 +259,7 @@ describe('turns', () => {
   it('a second verdict tap returns the existing verdict without spending another diagnosis', async () => {
     const { consumeDailyQuota } = await import('../services/featureUsageService.js');
     vi.mocked(consumeDailyQuota).mockClear();
+    priorDiagnosis();
     await toReady();
     await turn(FREE, { type: 'verdict' });
     const again = await turn(FREE, { type: 'verdict' });
@@ -268,8 +269,30 @@ describe('turns', () => {
   });
 });
 
+/** A finished earlier diagnosis, so the session under test isn't the user's onboarding one. */
+function priorDiagnosis(userId = 'u1') {
+  db.tables.session.push({ id: 'earlier', userId, selectedLift: 'deadlift', flow: 'conversation', isPublic: false, workoutLogId: null, createdAt: new Date(1), updatedAt: new Date(1) });
+  db.tables.plan.push({ id: 'p-earlier', sessionId: 'earlier', planJson: '{}', createdAt: new Date(1) });
+}
+
 describe('daily limit (§8)', () => {
+  it('onboarding (a first diagnosis) never counts toward the daily limit', async () => {
+    const { consumeDailyQuota, peekDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(consumeDailyQuota).mockClear();
+    vi.mocked(peekDailyQuota).mockClear();
+    quota.allowed = false;
+    const last = await toReady();
+    expect(last.body.result).toEqual({});
+    const load = await request(app).get(`/api/lift-diagnostics/${SID}`).set('Authorization', FREE);
+    expect(load.body.limit).toEqual({ reached: false });
+    const v = await turn(FREE, { type: 'verdict' });
+    expect(v.body.result.verdict).toBeDefined();
+    expect(consumeDailyQuota).not.toHaveBeenCalled();
+    expect(peekDailyQuota).not.toHaveBeenCalled();
+  });
+
   it('blocks on the final answer with the answer saved', async () => {
+    priorDiagnosis();
     quota.allowed = false;
     const res = await toReady();
     expect(res.body.result).toEqual({ limitReached: true });
@@ -279,6 +302,7 @@ describe('daily limit (§8)', () => {
   });
 
   it('a verdict tap over the limit returns limitReached without generating', async () => {
+    priorDiagnosis();
     await toReady();
     quota.allowed = false;
     const res = await turn(FREE, { type: 'verdict' });
@@ -292,7 +316,7 @@ describe('verdict + re-score', () => {
     await toReady();
     const res = await turn(FREE, { type: 'verdict' });
     const v = res.body.result.verdict;
-    expect(v).toMatchObject({ grade: 2, ratiosLogged: 2, answersGiven: 3, fix: { locked: false } });
+    expect(v).toMatchObject({ grade: 2, ratiosLogged: 2, answersGiven: 3, fix: { primary: { name: 'Flat Bench Press' } } });
     expect(v.evidence.map((e: any) => e.tag)).toContain('RATIO');
     const flags = generateWorkoutPlan.mock.calls[0][0].sessionFlags;
     expect(flags).toMatchObject({ hard_at_lockout: true, elbows_flare_early: true });
@@ -305,36 +329,48 @@ describe('verdict + re-score', () => {
   it('a late ratio re-scores the same session and does not spend another diagnosis', async () => {
     const { consumeDailyQuota } = await import('../services/featureUsageService.js');
     vi.mocked(consumeDailyQuota).mockClear();
+    priorDiagnosis();
     await toReady();
     await turn(FREE, { type: 'verdict' });
     await turn(FREE, { type: 'addNumbers' });
     const res = await turn(FREE, { type: 'accessory', exerciseId: 'overhead_press', set: SET(150) });
     expect(res.body.result.verdict.ratiosLogged).toBe(3);
-    expect(db.tables.session).toHaveLength(1);
-    expect(db.tables.plan).toHaveLength(2);
+    expect(db.tables.session.filter((x) => x.id === SID)).toHaveLength(1);
+    expect(db.tables.plan.filter((p) => p.sessionId === SID)).toHaveLength(2);
     expect(consumeDailyQuota).toHaveBeenCalledTimes(1);
   });
 
-  it('locks only the fix for a free user — by tier, not the diagnostic-first flag — in the turn and on reload', async () => {
+  it('a free user gets the full fix — the analysis is never paywalled — in the turn, on reload, and on the report', async () => {
     const sid = '99999999-2222-4333-8444-555555555555';
     await turn(LOCKED, { type: 'lift', lift: 'flat_bench_press' }, undefined, sid);
     await turn(LOCKED, { type: 'main', set: SET(100) }, undefined, sid);
     await turn(LOCKED, { type: 'moveOn' }, undefined, sid);
     const res = await turn(LOCKED, { type: 'verdict' }, undefined, sid);
-    expect(res.body.result.verdict.fix).toEqual({ locked: true, accessoryCount: 1 });
-    expect(JSON.stringify(res.body)).not.toContain('JM Press');
+    expect(res.body.result.verdict.fix.accessories[0].name).toBe('JM Press');
     const load = await request(app).get(`/api/lift-diagnostics/${sid}`).set('Authorization', LOCKED);
-    expect(JSON.stringify(load.body)).not.toContain('JM Press');
+    expect(JSON.stringify(load.body)).toContain('JM Press');
     expect(load.body.unit).toBe('kg');
     const report = await request(app).get(`/api/lift-diagnostics/${sid}/report`).set('Authorization', LOCKED);
-    expect(report.body.verdict.fix.locked).toBe(true);
+    expect(report.body.verdict.fix.accessories).toHaveLength(1);
   });
 });
 
 describe('robustness', () => {
+  it('two verdict taps racing on one session spend one diagnosis and write one plan', async () => {
+    const { consumeDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(consumeDailyQuota).mockClear();
+    priorDiagnosis();
+    await toReady();
+    const [a, b] = await Promise.all([turn(FREE, { type: 'verdict' }, 'race-tap-a'), turn(FREE, { type: 'verdict' }, 'race-tap-b')]);
+    expect(a.body.result.verdict ?? b.body.result.verdict).toBeDefined();
+    expect(consumeDailyQuota).toHaveBeenCalledTimes(1);
+    expect(db.tables.plan.filter((p) => p.sessionId === SID)).toHaveLength(1);
+  });
+
   it('a turn stranded by a restart is released so Retry works, and a stranded verdict refunds', async () => {
     const { refundDailyQuota } = await import('../services/featureUsageService.js');
     vi.mocked(refundDailyQuota).mockClear();
+    priorDiagnosis();
     await toReady();
     db.tables.turn.push({
       id: 'stuck', sessionId: SID, clientTurnId: 'verdict-stuck', seq: 99, type: 'verdict', payloadJson: '{}',

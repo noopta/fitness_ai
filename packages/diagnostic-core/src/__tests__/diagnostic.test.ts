@@ -43,7 +43,7 @@ function verdict(grade: 0 | 1 | 2, over: Partial<Verdict> = {}): Verdict {
     charts: grade === 2 ? { indices: {}, efficiency: 70 } : null,
     video: null,
     validationTest: null,
-    fix: { locked: true, accessoryCount: 3 },
+    fix: null,
     trackNextTime: [],
     missingLifts: [],
     createdAt: '2026-09-13T00:00:00Z',
@@ -413,7 +413,7 @@ describe('controller: one shared send path', () => {
     const sendTurn = vi.fn().mockRejectedValueOnce(Object.assign(new Error('offline'), { status: 0 })).mockResolvedValue({});
     const events: string[] = [];
     const c = new DiagnosticController(fakeApi({ sendTurn }), { onEvent: (e) => events.push(e.name) });
-    expect(c.act({ type: 'lift', lift: 'snatch' })).toBe(true);
+    expect(c.act({ type: 'lift', lift: 'deadlift' })).toBe(true);
     await flush();
     expect(c.getState().pending?.status).toBe('failed');
     expect(c.getState().stage).toBe('lift');
@@ -421,7 +421,7 @@ describe('controller: one shared send path', () => {
     await flush();
     expect(sendTurn).toHaveBeenCalledTimes(2);
     expect(sendTurn.mock.calls[0][1]).toBe(sendTurn.mock.calls[1][1]);
-    expect(sendTurn.mock.calls[1][2]).toEqual({ type: 'lift', lift: 'snatch' });
+    expect(sendTurn.mock.calls[1][2]).toEqual({ type: 'lift', lift: 'deadlift' });
     expect(c.getState().stage).toBe('numbers');
     expect(events).toContain('diagnostic_turn_failed');
     expect(events).toContain('diagnostic_started');
@@ -474,6 +474,17 @@ describe('grading (§7)', () => {
     ]);
     expect(reportSections(verdict(1)).charts).toBe(false);
     expect(reportSections(verdict(2)).charts).toBe(true);
+  });
+});
+
+describe('lift list', () => {
+  it('offers the five non-Olympic lifts, each with a ladder and a question set', async () => {
+    const { LIFTS, ladderFor, questionsFor } = await import('../index');
+    expect(LIFTS.map((l) => l.id)).toEqual(['flat_bench_press', 'incline_bench_press', 'deadlift', 'barbell_back_squat', 'barbell_front_squat']);
+    for (const l of LIFTS) {
+      expect(ladderFor(l.id).length).toBeGreaterThanOrEqual(3);
+      expect(questionsFor(l.id).map((q) => q.id)).toEqual(['q0', 'q1', 'q2']);
+    }
   });
 });
 

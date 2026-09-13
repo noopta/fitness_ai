@@ -17,8 +17,19 @@ import path from 'node:path';
 import { LIFT_NAMES, LIFT_PHASES, liftFamily, type ConversationLift } from './policy.js';
 import type { VideoResult } from './verdict.js';
 
+/**
+ * Deliberately NOT the Form Analysis report (2.5-pro, nine fields, ~18-25s).
+ * This pass answers three numbers and a phase, so it runs the quick-model
+ * setup the onboarding hook measured at ~6s: flash, thinking off, a tiny
+ * output. Latency is driven by output + thinking tokens, not clip length or
+ * fps (see geminiService QUICK_MODEL / QUICK_SAMPLE_FPS notes).
+ */
 const MODEL = process.env.DIAGNOSTIC_VIDEO_MODEL ?? 'gemini-2.5-flash';
-/** 4 fps: at 1 fps Vertex confabulates *when* things happen (see geminiService VIDEO_SAMPLE_FPS). */
+/**
+ * 4 fps stays: a stall measured in tenths of a second needs it, and at 1 fps
+ * Vertex confabulates *when* things happen (geminiService VIDEO_SAMPLE_FPS).
+ * fps costs input tokens, not wall-clock.
+ */
 const FPS = Number(process.env.DIAGNOSTIC_VIDEO_FPS ?? 4);
 
 interface Measurement {
@@ -54,8 +65,8 @@ function schemaFor(lift: ConversationLift) {
   };
 }
 
-const SYSTEM = `You measure barbell lifts from video for a strength diagnostic. Watch the hardest rep only. Report measurements, not opinions: where the bar slows most (as one of the provided phase ids), for how long, when, and — if visible from the side — elbow flare and horizontal bar drift, using a standard 45 cm plate as the scale reference.
-If a measurement is not clearly visible, return null for it. Never estimate what you cannot see. Do not comment on the lifter's body, appearance or health.`;
+const SYSTEM = `Quick measurement pass for a strength diagnostic — numbers only, no coaching. Watch the hardest rep. Return: the phase id where the bar is slowest, how long it stalls, when, and (if visible side-on) elbow flare and horizontal bar drift using a 45 cm plate as scale.
+Null any value you cannot clearly see; never estimate. Do not comment on the lifter's body, appearance or health.`;
 
 export async function measureDiagnosticVideo(
   fileUri: string,
@@ -69,8 +80,9 @@ export async function measureDiagnosticVideo(
       responseMimeType: 'application/json',
       responseSchema: schemaFor(lift),
       safetySettings: SAFETY_SETTINGS,
-      thinkingConfig: { thinkingBudget: 1024 },
-      maxOutputTokens: 2048,
+      // Thinking off: ~8s of latency for a job that's six fields of structured output.
+      thinkingConfig: { thinkingBudget: 0 },
+      maxOutputTokens: 512,
     },
     contents: [
       {

@@ -390,8 +390,6 @@ function volumeNoun(lift: LiftId): string {
       return 'pulling volume';
     case 'squat':
       return 'leg volume';
-    default:
-      return 'strength base';
   }
 }
 

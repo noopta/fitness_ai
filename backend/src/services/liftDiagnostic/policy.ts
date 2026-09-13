@@ -13,10 +13,6 @@ export const CONVERSATION_LIFTS = [
   'deadlift',
   'barbell_back_squat',
   'barbell_front_squat',
-  'clean_and_jerk',
-  'snatch',
-  'power_clean',
-  'hang_clean',
 ] as const;
 
 export type ConversationLift = (typeof CONVERSATION_LIFTS)[number];
@@ -31,10 +27,6 @@ export const LIFT_NAMES: Record<ConversationLift, string> = {
   deadlift: 'Deadlift',
   barbell_back_squat: 'Back Squat',
   barbell_front_squat: 'Front Squat',
-  clean_and_jerk: 'Clean & Jerk',
-  snatch: 'Snatch',
-  power_clean: 'Power Clean',
-  hang_clean: 'Hang Clean',
 };
 
 const LIFT_SHORT: Record<ConversationLift, string> = {
@@ -43,10 +35,6 @@ const LIFT_SHORT: Record<ConversationLift, string> = {
   deadlift: 'deadlift',
   barbell_back_squat: 'squat',
   barbell_front_squat: 'front squat',
-  clean_and_jerk: 'clean & jerk',
-  snatch: 'snatch',
-  power_clean: 'power clean',
-  hang_clean: 'hang clean',
 };
 
 export const EXERCISE_NAMES: Record<string, string> = {
@@ -64,12 +52,7 @@ export const EXERCISE_NAMES: Record<string, string> = {
   pause_squat: 'Pause Squat',
   leg_press: 'Leg Press',
   hip_thrust: 'Hip Thrust',
-  power_clean: 'Power Clean',
-  hang_clean: 'Hang Clean',
-  push_press: 'Push Press',
   deadlift: 'Deadlift',
-  overhead_squat: 'Overhead Squat',
-  snatch_pull: 'Snatch Pull',
 };
 
 export function exerciseName(id: string): string {
@@ -129,30 +112,6 @@ export const LADDERS: Record<ConversationLift, { id: string; norm: RatioNorm }[]
     { id: 'barbell_row', norm: N(0.55, 0.7, 'upper back', 'upper-back') },
     { id: 'romanian_deadlift', norm: N(0.65, 0.85, 'posterior chain', 'posterior-chain') },
   ],
-  clean_and_jerk: [
-    { id: 'power_clean', norm: N(0.8, 0.9, 'pulling power', 'pulling-power') },
-    { id: 'barbell_front_squat', norm: N(1.15, 1.3, 'leg strength', 'leg-strength') },
-    { id: 'push_press', norm: N(0.85, 1.0, 'overhead drive', 'overhead-drive') },
-    { id: 'deadlift', norm: N(1.6, 2.0, 'base strength', 'base-strength') },
-  ],
-  snatch: [
-    { id: 'overhead_squat', norm: N(1.1, 1.3, 'overhead stability', 'overhead-stability') },
-    { id: 'snatch_pull', norm: N(1.1, 1.25, 'pulling strength', 'pulling-strength') },
-    { id: 'barbell_back_squat', norm: N(1.6, 1.9, 'leg strength', 'leg-strength') },
-    { id: 'power_clean', norm: N(1.25, 1.4, 'pulling power', 'pulling-power') },
-  ],
-  power_clean: [
-    { id: 'barbell_front_squat', norm: N(1.25, 1.45, 'leg strength', 'leg-strength') },
-    { id: 'deadlift', norm: N(1.7, 2.1, 'base strength', 'base-strength') },
-    { id: 'hang_clean', norm: N(0.9, 0.98, 'hang position', 'hang-position') },
-    { id: 'push_press', norm: N(0.75, 0.9, 'overhead drive', 'overhead-drive') },
-  ],
-  hang_clean: [
-    { id: 'power_clean', norm: N(1.0, 1.1, 'pull from the floor', 'floor-pull') },
-    { id: 'barbell_front_squat', norm: N(1.2, 1.4, 'leg strength', 'leg-strength') },
-    { id: 'deadlift', norm: N(1.7, 2.1, 'base strength', 'base-strength') },
-    { id: 'push_press', norm: N(0.75, 0.9, 'overhead drive', 'overhead-drive') },
-  ],
 };
 
 export function ladderIds(lift: ConversationLift): string[] {
@@ -163,20 +122,18 @@ export function liftShort(lift: ConversationLift): string {
   return LIFT_SHORT[lift];
 }
 
-export type LiftFamily = 'press' | 'deadlift' | 'squat' | 'olympic';
+export type LiftFamily = 'press' | 'deadlift' | 'squat';
 
 export function liftFamily(lift: string): LiftFamily {
   if (lift === 'flat_bench_press' || lift === 'incline_bench_press') return 'press';
   if (lift === 'deadlift') return 'deadlift';
-  if (lift === 'barbell_back_squat' || lift === 'barbell_front_squat') return 'squat';
-  return 'olympic';
+  return 'squat';
 }
 
 export const VOLUME_CANDIDATE: Record<LiftFamily, { key: string; label: string; noun: string }> = {
   press: { key: 'pressing_volume', label: 'Pressing volume', noun: 'pressing volume' },
   deadlift: { key: 'pulling_volume', label: 'Pulling volume', noun: 'pulling volume' },
   squat: { key: 'leg_volume', label: 'Leg volume', noun: 'leg volume' },
-  olympic: { key: 'strength_base', label: 'Strength base', noun: 'strength base' },
 };
 
 /** Where a phase sits, in words, for VIDEO rows: "in the lockout". */
@@ -186,14 +143,6 @@ export const PHASE_WORDS: Record<string, string> = {
   lockout: 'at lockout',
   initial_pull: 'off the floor',
   knee_level: 'at the knees',
-  first_pull: 'in the first pull',
-  second_pull: 'in the second pull',
-  catch: 'in the catch',
-  catch_clean: 'in the catch',
-  jerk: 'in the jerk',
-  hang_position: 'from the hang',
-  transition: 'in the turnover',
-  overhead_squat: 'overhead',
 };
 
 /** Movement phases per lift (phase ids from engine/liftConfigs.ts). */
@@ -203,10 +152,6 @@ export const LIFT_PHASES: Record<ConversationLift, string[]> = {
   deadlift: ['initial_pull', 'knee_level', 'lockout'],
   barbell_back_squat: ['bottom', 'ascent'],
   barbell_front_squat: ['bottom', 'ascent'],
-  clean_and_jerk: ['first_pull', 'second_pull', 'catch_clean', 'jerk'],
-  snatch: ['first_pull', 'second_pull', 'transition', 'overhead_squat'],
-  power_clean: ['first_pull', 'second_pull', 'catch'],
-  hang_clean: ['hang_position', 'second_pull', 'catch'],
 };
 
 /**
@@ -220,16 +165,6 @@ const PHASE_FLAGS: Record<ConversationLift, Record<string, string[]>> = {
   deadlift: { initial_pull: ['hard_off_floor'], knee_level: ['hard_mid_range'], lockout: ['hard_at_lockout'] },
   barbell_back_squat: { bottom: ['hard_off_floor'], ascent: ['hard_mid_range'] },
   barbell_front_squat: { bottom: ['hard_off_floor'], ascent: ['hard_mid_range'] },
-  clean_and_jerk: {
-    first_pull: ['hips_rise_first'], second_pull: ['insufficient_extension'],
-    catch_clean: ['front_rack_limited'], jerk: ['elbow_lockout_incomplete'],
-  },
-  snatch: {
-    first_pull: ['back_rounds'], second_pull: ['insufficient_bar_height'],
-    transition: ['no_scoop'], overhead_squat: ['overhead_unstable'],
-  },
-  power_clean: { first_pull: ['hips_rise_first'], second_pull: ['no_shrug'], catch: ['elbows_drop'] },
-  hang_clean: { hang_position: ['forward_lean'], second_pull: ['insufficient_extension'], catch: ['elbows_drop'] },
 };
 
 export function flagsForPhase(lift: ConversationLift, phase: string | null): string[] {
@@ -244,9 +179,6 @@ export const KNOWN_FLAGS = new Set([
   'hard_off_chest', 'hard_off_floor', 'hard_mid_range', 'hard_at_lockout', 'bar_drifts', 'bar_drifts_forward',
   'hips_shoot_up', 'chest_drops', 'back_rounds', 'feel_lower_back', 'elbows_flare_early', 'elbows_drop',
   'touch_point_inconsistent', 'shoulder_discomfort', 'mobility_restriction', 'grip_limiting', 'pause_much_harder',
-  'hips_rise_first', 'insufficient_extension', 'front_rack_limited', 'elbow_lockout_incomplete', 'early_arm_pull',
-  'bar_out_front', 'footwork_inconsistent', 'insufficient_bar_height', 'no_scoop', 'overhead_unstable', 'heels_rise',
-  'no_shrug', 'wrist_pain', 'forward_lean', 'too_upright',
 ]);
 
 /** What each interview question was about, for YOU evidence rows. */
@@ -254,7 +186,6 @@ export const QUESTION_TOPICS: Record<LiftFamily, Record<'q0' | 'q1' | 'q2', stri
   press: { q0: 'where the bar slows', q1: 'what the bar does when it gets heavy', q2: 'paused reps' },
   deadlift: { q0: 'where the pull gets hard', q1: 'what breaks first', q2: 'where you feel it the next day' },
   squat: { q0: 'where the squat gets hard', q1: 'your position under load', q2: 'depth' },
-  olympic: { q0: 'where the lift breaks down', q1: 'the pull', q2: 'the catch' },
 };
 
 /** §7 stand-in scorer — same shape as packages/diagnostic-core computeConfidence. */

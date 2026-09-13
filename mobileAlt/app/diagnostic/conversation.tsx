@@ -46,7 +46,7 @@ export default function DiagnosticConversation() {
   const { refreshUser } = useAuth();
   const { controller, state } = useDiagnostic(params.sessionId, unit === 'kg' ? 'kg' : 'lb');
   const [reportOpen, setReportOpen] = useState(false);
-  const [paywall, setPaywall] = useState<null | 'diagnostic_limit' | 'diagnostic_report'>(null);
+  const [paywall, setPaywall] = useState(false);
   const listRef = useRef<FlatList<ThreadItem>>(null);
   const insets = useSafeAreaInsets();
   // Items already on screen when the thread (re)loads don't animate in.
@@ -77,16 +77,15 @@ export default function DiagnosticConversation() {
 
   const openReport = useCallback(() => {
     if (!state.verdict) return;
-    Analytics.diagnosticVerdictViewed({ locked: state.verdict.fix.locked });
+    Analytics.diagnosticVerdictViewed({ locked: false });
     setReportOpen(true);
   }, [state.verdict]);
 
   const onPurchased = useCallback(async () => {
-    setPaywall(null);
+    setPaywall(false);
     await refreshUser();
-    // Purchase clears the block and resumes at `ready`; a locked fix swaps in place.
+    // Purchase clears the daily-limit block and resumes at `ready`.
     controller.unblock();
-    await controller.refreshVerdict();
   }, [controller, refreshUser]);
 
   const view = composerView(state);
@@ -105,7 +104,7 @@ export default function DiagnosticConversation() {
       case 'verdict':
         return <VerdictCard verdict={item.verdict} animate={animate} onOpen={openReport} />;
       case 'limit':
-        return <LimitCard animate={animate} onUpgrade={() => setPaywall('diagnostic_limit')} onLater={exit} />;
+        return <LimitCard animate={animate} onUpgrade={() => setPaywall(true)} onLater={exit} />;
     }
   };
 
@@ -159,7 +158,6 @@ export default function DiagnosticConversation() {
           <ReportView
             verdict={state.verdict}
             onClose={() => setReportOpen(false)}
-            onUpgrade={() => setPaywall('diagnostic_report')}
             onAddNumbers={
               controller.canAct({ type: 'addNumbers' })
                 ? () => { setReportOpen(false); controller.act({ type: 'addNumbers' }); }
@@ -167,18 +165,13 @@ export default function DiagnosticConversation() {
             }
           />
         ) : null}
-        <DiagnosticPaywall
-          visible={paywall === 'diagnostic_report'}
-          source="diagnostic_report"
-          onClose={() => setPaywall(null)}
-          onSuccess={() => void onPurchased()}
-        />
       </Modal>
 
+      {/* The only paywall in the flow: the daily limit (never on onboarding). */}
       <DiagnosticPaywall
-        visible={paywall === 'diagnostic_limit'}
+        visible={paywall}
         source="diagnostic_limit"
-        onClose={() => setPaywall(null)}
+        onClose={() => setPaywall(false)}
         onSuccess={() => void onPurchased()}
       />
     </SafeAreaView>

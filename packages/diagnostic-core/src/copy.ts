@@ -114,11 +114,6 @@ export const COPY = {
   sharpenLog: (id: string) => `Log your ${exerciseName(id)}`,
   sharpenVideo: 'Film one working rep, side-on',
   fixTitle: 'Your fix',
-  fixLockedTitle: 'Your fix is ready',
-  fixLockedBody: (n: number) =>
-    `A protocol built around this weak link — ${n > 0 ? `${n} accessories` : 'accessories'} chosen for you, with sets, loads and progression rules.`,
-  confirmLockedTitle: 'Confirm it first',
-  confirmLockedBody: 'Unlock the confirmation test protocol and the program that adapts once the limiter is named.',
   startFreeMonth: 'Start your free month',
   freeMonthFine: 'First month free · cancel anytime',
   trackNextTime: 'Track next time',
@@ -129,7 +124,7 @@ export const COPY = {
 
   // Paywall
   paywallTitle: 'Go unlimited',
-  paywallPromise: 'Unlimited diagnoses, the protocol that fixes each one, and a coach that keeps adjusting.',
+  paywallPromise: 'Unlimited diagnoses and a coach that turns each fix into a program — and keeps adjusting it.',
   payWithApple: 'Pay with Apple Pay',
   payByCard: 'Pay by card',
   restore: 'Restore purchase',
@@ -150,6 +145,6 @@ export const COPY = {
   diagnostics: 'Diagnostics',
   inProgress: 'In progress',
   noDiagnostics: 'No diagnostics yet.',
-  upgradeTitle: 'Unlock the fix',
-  upgradeBody: 'The diagnosis is free. Pro adds the protocol that fixes it and a coach that adapts it.',
+  upgradeTitle: 'Go unlimited',
+  upgradeBody: 'Diagnoses and their fixes are free, one a day. Pro removes the limit and adds a coach that adapts your program.',
 } as const;

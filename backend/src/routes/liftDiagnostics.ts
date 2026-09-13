@@ -5,7 +5,7 @@
 //   POST /lift-diagnostics/:id/turns              one user action; idempotent on clientTurnId
 //   POST /lift-diagnostics/:id/video              multipart clip → 202, async measurement job
 //   GET  /lift-diagnostics/:id/video/:turnId      poll the job
-//   GET  /lift-diagnostics/:id/report             the graded verdict (tier-gated fix)
+//   GET  /lift-diagnostics/:id/report             the graded verdict + fix (both free)
 //   POST /lift-diagnostics/:id/share              make public, return link
 //   GET  /lift-diagnostics/:id/public             read-only report for the link
 //
@@ -23,7 +23,7 @@ import { aiLimiter } from '../middleware/rateLimiter.js';
 import posthog from '../services/posthogClient.js';
 import { generateWorkoutPlan } from '../services/llmService.js';
 import { kgToLb } from '../services/weightUnits.js';
-import { conversationLockedFor, formatPlanAsText } from '../services/diagnosticPlan.js';
+import { formatPlanAsText } from '../services/diagnosticPlan.js';
 import { consumeDailyQuota, peekDailyQuota, refundDailyQuota, FEATURE } from '../services/featureUsageService.js';
 import {
   KNOWN_FLAGS,
@@ -189,7 +189,7 @@ async function releaseStrandedTurns(sessionId: string, userId: string) {
   });
   if (!stranded.length) return;
   await prisma.diagnosticTurn.deleteMany({ where: { id: { in: stranded.map((t) => t.id) } } });
-  if (stranded.some((t) => t.type === 'verdict') && !(await latestVerdict(sessionId))) {
+  if (stranded.some((t) => t.type === 'verdict') && !(await latestVerdict(sessionId)) && !(await isOnboarding(userId, sessionId))) {
     await refundDailyQuota(userId, await freshTier(userId), FEATURE.LIFT_DIAGNOSTIC).catch(() => {});
   }
 }
@@ -203,10 +203,38 @@ function missingNow(lift: ConversationLift, turns: TurnRow[]): string[] {
   });
 }
 
-/** Tier-gate any verdict riding inside a stored turn result. */
-function presentResult(result: any, locked: boolean): any {
-  if (!result?.verdict) return result;
-  return { ...result, verdict: presentVerdict(result.verdict, { locked }) };
+/**
+ * The first diagnosis a user ever gets is their onboarding, and onboarding
+ * never counts toward a daily limit (product decision 2026-09-13). It stays
+ * onboarding until some session of theirs — this flow or the old wizard —
+ * has produced a plan, so exactly one diagnosis is free of the quota.
+ */
+async function isOnboarding(userId: string, sessionId: string): Promise<boolean> {
+  const sessions = await prisma.session.findMany({
+    where: { userId },
+    select: { id: true, plans: { take: 1, select: { id: true } } },
+  });
+  return !sessions.some((s) => s.id !== sessionId && s.plans.length > 0);
+}
+
+const sessionLocks = new Map<string, Promise<unknown>>();
+
+/**
+ * Run plan-writing work for one session one at a time. Two verdict taps from
+ * two devices would otherwise both pass the "already have a verdict?" check
+ * and both spend a diagnosis; serialized, the second finds the first's.
+ * (Single backend process — an in-memory lock is sufficient.)
+ */
+async function serialized<T>(sessionId: string, fn: () => Promise<T>): Promise<T> {
+  const previous = sessionLocks.get(sessionId) ?? Promise.resolve();
+  const run = previous.catch(() => {}).then(fn);
+  const tail = run.catch(() => {});
+  sessionLocks.set(sessionId, tail);
+  try {
+    return await run;
+  } finally {
+    if (sessionLocks.get(sessionId) === tail) sessionLocks.delete(sessionId);
+  }
 }
 
 function sendError(res: Response, err: unknown, label: string) {
@@ -308,40 +336,45 @@ async function applyTurn(
       await recordSet(session, userId, session.selectedLift, input.set);
       return {};
 
-    case 'accessory': {
-      const verdict = await latestVerdict(session.id);
-      // Only a NEW ratio re-scores; re-sending a lift that already had numbers
-      // at the verdict just updates the set. Bounds plan generation per
-      // session to the ladder's length.
-      const wasMissing = !verdict || verdict.missingLifts.includes(input.exerciseId);
-      await recordSet(session, userId, input.exerciseId, input.set);
-      // A set after a verdict is a late ratio: re-score the SAME session (§7).
-      if (verdict) return { verdict: wasMissing ? await generateVerdict(session, userId) : verdict };
-      return {};
-    }
+    case 'accessory':
+      return serialized(session.id, async () => {
+        const verdict = await latestVerdict(session.id);
+        // Only a NEW ratio re-scores; re-sending a lift that already had numbers
+        // at the verdict just updates the set. Bounds plan generation per
+        // session to the ladder's length.
+        const wasMissing = !verdict || verdict.missingLifts.includes(input.exerciseId);
+        await recordSet(session, userId, input.exerciseId, input.set);
+        // A set after a verdict is a late ratio: re-score the SAME session (§7).
+        if (verdict) return { verdict: wasMissing ? await generateVerdict(session, userId) : verdict };
+        return {};
+      });
 
     case 'answer': {
       // q2 always closes the interview (a video removes q0, never q2). The
       // daily limit blocks here, with the answer saved (§8).
       if (input.question !== 'q2' || (await latestVerdict(session.id))) return {};
+      if (await isOnboarding(userId, session.id)) return {};
       const quota = await peekDailyQuota(userId, await freshTier(userId), FEATURE.LIFT_DIAGNOSTIC);
       return quota.allowed ? {} : { limitReached: true };
     }
 
-    case 'verdict': {
-      // A second tap (or a replayed client) never spends another diagnosis.
-      const existing = await latestVerdict(session.id);
-      if (existing) return { verdict: existing };
-      const tier = await freshTier(userId);
-      const quota = await consumeDailyQuota(userId, tier, FEATURE.LIFT_DIAGNOSTIC);
-      if (!quota.allowed) return { limitReached: true };
-      try {
-        return { verdict: await generateVerdict(session, userId) };
-      } catch (err) {
-        await refundDailyQuota(userId, tier, FEATURE.LIFT_DIAGNOSTIC).catch(() => {});
-        throw err;
-      }
-    }
+    case 'verdict':
+      return serialized(session.id, async () => {
+        // A second tap (or a replayed client) never spends another diagnosis.
+        const existing = await latestVerdict(session.id);
+        if (existing) return { verdict: existing };
+        // Onboarding diagnoses skip the quota entirely.
+        if (await isOnboarding(userId, session.id)) return { verdict: await generateVerdict(session, userId) };
+        const tier = await freshTier(userId);
+        const quota = await consumeDailyQuota(userId, tier, FEATURE.LIFT_DIAGNOSTIC);
+        if (!quota.allowed) return { limitReached: true };
+        try {
+          return { verdict: await generateVerdict(session, userId) };
+        } catch (err) {
+          await refundDailyQuota(userId, tier, FEATURE.LIFT_DIAGNOSTIC).catch(() => {});
+          throw err;
+        }
+      });
 
     default:
       return {};
@@ -397,14 +430,13 @@ router.get('/lift-diagnostics', requireAuth, async (req, res) => {
 router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
   try {
     const session = await loadConversation(req);
-    const [turns, locked, verdict, prefs] = await Promise.all([
+    const [turns, verdict, prefs] = await Promise.all([
       turnRows(session.id),
-      conversationLockedFor(req.user!.id),
       latestVerdict(session.id),
       prisma.user.findUnique({ where: { id: req.user!.id }, select: { unitPreference: true } }),
     ]);
     let reached = false;
-    if (!verdict) {
+    if (!verdict && !(await isOnboarding(req.user!.id, session.id))) {
       const quota = await peekDailyQuota(req.user!.id, await freshTier(req.user!.id), FEATURE.LIFT_DIAGNOSTIC);
       reached = !quota.allowed;
     }
@@ -415,7 +447,7 @@ router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
         clientTurnId: t.clientTurnId,
         seq: t.seq,
         input: { type: t.type, ...t.payload },
-        result: presentResult(t.result, locked),
+        result: t.result,
         createdAt: t.createdAt.toISOString(),
       })),
       limit: { reached },
@@ -455,8 +487,7 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
     });
     if (prior) {
       if (prior.resultJson === PENDING) throw new HttpError(409, 'That message is still sending');
-      const locked = await conversationLockedFor(req.user!.id);
-      return res.json({ result: presentResult(parseJson(prior.resultJson, {}), locked) });
+      return res.json({ result: parseJson(prior.resultJson, {}) });
     }
 
     const existing = await turnRows(id);
@@ -474,7 +505,8 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
         select: { id: true },
       })
       .catch((err: any) => {
-        // Unique (sessionId, clientTurnId): the same turn is being applied by a concurrent request.
+        // Unique (sessionId, clientTurnId) or (sessionId, seq): a concurrent
+        // request claimed it first. The client's Retry resolves either way.
         if (err?.code === 'P2002') throw new HttpError(409, 'That message is still sending');
         throw err;
       });
@@ -485,16 +517,15 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
     claimedId = null;
     await prisma.session.update({ where: { id }, data: { updatedAt: new Date() } });
 
-    const locked = await conversationLockedFor(req.user!.id);
     if (result.verdict) {
       const v = result.verdict as Verdict;
       posthog.capture({
         distinctId: userId,
         event: 'workout_plan_generated',
-        properties: { session_id: id, selected_lift: session.selectedLift, prescription_locked: locked, flow: 'conversation', grade: v.grade, confidence: v.confidence },
+        properties: { session_id: id, selected_lift: session.selectedLift, flow: 'conversation', grade: v.grade, confidence: v.confidence },
       });
     }
-    res.json({ result: presentResult(result, locked) });
+    res.json({ result });
   } catch (err) {
     if (claimedId) await prisma.diagnosticTurn.delete({ where: { id: claimedId } }).catch(() => {});
     sendError(res, err, 'turn');
@@ -545,7 +576,8 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
     const clientDuration = Number(req.body?.durationSec);
     const pending = { video: { status: 'pending' } };
     const last = await prisma.diagnosticTurn.findFirst({ where: { sessionId: session.id }, orderBy: { seq: 'desc' }, select: { seq: true } });
-    const turn = await prisma.diagnosticTurn.create({
+    const turn = await prisma.diagnosticTurn
+      .create({
       data: {
         sessionId: session.id,
         clientTurnId,
@@ -555,7 +587,11 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
         resultJson: JSON.stringify(pending),
       },
       select: { id: true },
-    });
+    })
+      .catch((err: any) => {
+        if (err?.code === 'P2002') throw new HttpError(409, 'That clip is still uploading');
+        throw err;
+      });
     await prisma.session.update({ where: { id: session.id }, data: { updatedAt: new Date() } });
 
     // Stills follow the form-video rules: explicit opt-in AND 18+.
@@ -613,7 +649,7 @@ router.get('/lift-diagnostics/:id/report', requireAuth, async (req, res) => {
     const verdict = await latestVerdict(session.id);
     if (!verdict) throw new HttpError(404, 'No verdict yet');
     const current = { ...verdict, missingLifts: missingNow(session.selectedLift, await turnRows(session.id)) };
-    res.json({ verdict: presentVerdict(current, { locked: await conversationLockedFor(req.user!.id) }), isPublic: session.isPublic });
+    res.json({ verdict: current, isPublic: session.isPublic });
   } catch (err) {
     sendError(res, err, 'report');
   }
@@ -640,12 +676,7 @@ router.get('/lift-diagnostics/:id/public', async (req, res) => {
     if (!session || !session.isPublic || session.flow !== 'conversation') throw new HttpError(404, 'Report not found');
     const verdict = await latestVerdict(id);
     if (!verdict) throw new HttpError(404, 'Report not found');
-    // Not a side door around the gate: a locked owner's link is locked too.
-    const owner = session.userId
-      ? await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true } })
-      : null;
-    const locked = owner ? await conversationLockedFor(owner.id) : true;
-    res.json({ verdict: presentVerdict(verdict, { locked, publicView: true }) });
+    res.json({ verdict: presentVerdict(verdict, { publicView: true }) });
   } catch (err) {
     sendError(res, err, 'public');
   }

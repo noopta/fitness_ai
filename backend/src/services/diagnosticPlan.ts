@@ -36,20 +36,12 @@ export async function prescriptionLockedFor(user: { id: string; email: string | 
  * targeted accessories are waiting). Never leaks exercise names or numbers.
  */
 /**
- * The conversational lift diagnostic gates by tier alone (handoff §8: "Free/
- * trial gates only the fix") — it is not behind the diagnostic-first rollout
- * flag the legacy wizard uses. Tier is read fresh from the DB for the same
- * JWT-staleness reason as above.
+ * Which gate applies to a session's plan, by the flow that produced it. The
+ * conversational diagnostic is never paywalled — diagnosis and fix are both
+ * free (product decision 2026-09-13); the legacy wizard keeps its funnel gate.
  */
-export async function conversationLockedFor(userId: string): Promise<boolean> {
-  const fresh = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
-  const tier = fresh?.tier ?? 'free';
-  return tier !== 'pro' && tier !== 'enterprise';
-}
-
-/** Which gate applies to a session's plan, by the flow that produced it. */
 export async function planLockedFor(user: { id: string; email: string | null }, flow: string | null | undefined): Promise<boolean> {
-  return flow === 'conversation' ? conversationLockedFor(user.id) : prescriptionLockedFor(user);
+  return flow === 'conversation' ? false : prescriptionLockedFor(user);
 }
 
 /**

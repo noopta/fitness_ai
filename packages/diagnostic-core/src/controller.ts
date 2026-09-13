@@ -126,14 +126,14 @@ export class DiagnosticController {
     this.dispatch({ type: 'unblock' });
   }
 
-  /** After a purchase: swap the locked fix for the protocol in place. */
+  /** Refetch the stored verdict (e.g. after a report changed server-side). */
   async refreshVerdict(): Promise<void> {
     if (!this.state.verdict) return;
     try {
       const verdict = await this.api.getReport(this.state.sessionId);
       this.dispatch({ type: 'verdictRefreshed', verdict });
     } catch {
-      /* the locked card stays; the report screen can refetch on focus */
+      /* the card on screen stays as it was */
     }
   }
 
@@ -200,7 +200,8 @@ export class DiagnosticController {
 
   private poll(turnId: string, startedAt: number) {
     if (this.pollTimer) clearTimeout(this.pollTimer);
-    const interval = this.opts.videoPollMs ?? 2500;
+    // The diagnostic's video pass is the fast one (~6–10s), so check often.
+    const interval = this.opts.videoPollMs ?? 1500;
     const timeout = this.opts.videoTimeoutMs ?? 180_000;
     const tick = async () => {
       if (this.disposed) return;

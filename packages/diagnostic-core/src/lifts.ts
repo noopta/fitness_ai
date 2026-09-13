@@ -7,17 +7,17 @@ export interface LiftInfo {
   short: string;
 }
 
-/** Chip order in the `lift` stage — 9 lifts (§4). */
+/**
+ * Chip order in the `lift` stage. The prototype showed 9 lifts; the Olympic
+ * lifts are left out here (product decision 2026-09-13) — these five are the
+ * lifts the engine's configs cover with accessory ratios.
+ */
 export const LIFTS: LiftInfo[] = [
   { id: 'flat_bench_press', name: 'Flat Bench Press', short: 'bench' },
   { id: 'incline_bench_press', name: 'Incline Bench Press', short: 'incline bench' },
   { id: 'deadlift', name: 'Deadlift', short: 'deadlift' },
   { id: 'barbell_back_squat', name: 'Back Squat', short: 'squat' },
   { id: 'barbell_front_squat', name: 'Front Squat', short: 'front squat' },
-  { id: 'clean_and_jerk', name: 'Clean & Jerk', short: 'clean & jerk' },
-  { id: 'snatch', name: 'Snatch', short: 'snatch' },
-  { id: 'power_clean', name: 'Power Clean', short: 'power clean' },
-  { id: 'hang_clean', name: 'Hang Clean', short: 'hang clean' },
 ];
 
 export function isLiftId(value: unknown): value is LiftId {
@@ -37,7 +37,7 @@ export function liftInfo(id: string): LiftInfo {
 /**
  * Accessory ladders, ordered by diagnostic value (§5).
  *
- * Flat Bench is the only ladder the design spec pins down. The other eight
+ * Flat Bench is the only ladder the design spec pins down. The other four
  * are ranked from the engine's own configs (index-mapping weights first, then
  * the ratio rules) and are OPEN QUESTION (1) for the science team — change
  * the order here and both apps follow.
@@ -48,10 +48,6 @@ export const ACCESSORY_LADDERS: Record<LiftId, string[]> = {
   deadlift: ['romanian_deadlift', 'barbell_back_squat', 'rack_pull', 'barbell_row', 'deficit_deadlift'],
   barbell_back_squat: ['barbell_front_squat', 'romanian_deadlift', 'pause_squat', 'leg_press', 'hip_thrust'],
   barbell_front_squat: ['barbell_back_squat', 'leg_press', 'barbell_row', 'romanian_deadlift'],
-  clean_and_jerk: ['power_clean', 'barbell_front_squat', 'push_press', 'deadlift'],
-  snatch: ['overhead_squat', 'snatch_pull', 'barbell_back_squat', 'power_clean'],
-  power_clean: ['barbell_front_squat', 'deadlift', 'hang_clean', 'push_press'],
-  hang_clean: ['power_clean', 'barbell_front_squat', 'deadlift', 'push_press'],
 };
 
 const EXERCISE_NAMES: Record<string, string> = {
@@ -70,12 +66,7 @@ const EXERCISE_NAMES: Record<string, string> = {
   pause_squat: 'Pause Squat',
   leg_press: 'Leg Press',
   hip_thrust: 'Hip Thrust',
-  power_clean: 'Power Clean',
-  hang_clean: 'Hang Clean',
-  push_press: 'Push Press',
   deadlift: 'Deadlift',
-  overhead_squat: 'Overhead Squat',
-  snatch_pull: 'Snatch Pull',
 };
 
 export function exerciseName(id: string): string {
@@ -106,25 +97,14 @@ const PHASES: Record<string, Record<string, { label: string; short: string }>> =
     bottom: { label: 'Strength out of the hole', short: 'out of the hole' },
     ascent: { label: 'Mid-range drive', short: 'mid-range' },
   },
-  olympic: {
-    first_pull: { label: 'First-pull position', short: 'first pull' },
-    second_pull: { label: 'Second-pull power', short: 'second pull' },
-    catch: { label: 'Catch position', short: 'the catch' },
-    catch_clean: { label: 'Catch position', short: 'the catch' },
-    jerk: { label: 'Jerk lockout', short: 'the jerk' },
-    hang_position: { label: 'Hang position', short: 'the hang' },
-    transition: { label: 'Turnover speed', short: 'the turnover' },
-    overhead_squat: { label: 'Overhead stability', short: 'overhead' },
-  },
 };
 
-export type LiftFamily = 'press' | 'deadlift' | 'squat' | 'olympic';
+export type LiftFamily = 'press' | 'deadlift' | 'squat';
 
 export function liftFamily(lift: string): LiftFamily {
   if (lift === 'flat_bench_press' || lift === 'incline_bench_press') return 'press';
   if (lift === 'deadlift') return 'deadlift';
-  if (lift === 'barbell_back_squat' || lift === 'barbell_front_squat') return 'squat';
-  return 'olympic';
+  return 'squat';
 }
 
 export function phaseCopy(lift: string, phase: string): { label: string; short: string } | null {

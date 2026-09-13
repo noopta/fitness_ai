@@ -13,7 +13,7 @@ const [x1, y1, x2, y2] = DX.motion.sheetEasing;
 
 interface Props {
   visible: boolean;
-  source: 'diagnostic_limit' | 'diagnostic_report';
+  source: 'diagnostic_limit' | 'diagnostic_home';
   onClose: () => void;
   onSuccess: () => void;
 }

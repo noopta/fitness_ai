@@ -9,11 +9,7 @@ export type LiftId =
   | 'incline_bench_press'
   | 'deadlift'
   | 'barbell_back_squat'
-  | 'barbell_front_squat'
-  | 'clean_and_jerk'
-  | 'snatch'
-  | 'power_clean'
-  | 'hang_clean';
+  | 'barbell_front_squat';
 
 /** The 12 stage values (§4). q0/q1/q2 share one row in the spec table. */
 export type Stage =
@@ -114,14 +110,12 @@ export interface ProtocolAccessory {
   why: string;
 }
 
-export type Fix =
-  | { locked: true; accessoryCount: number }
-  | {
-      locked: false;
-      primary: { name: string; sets: number; reps: string; intensity: string; restMinutes: number };
-      accessories: ProtocolAccessory[];
-      progression: string[];
-    };
+/** The protocol that fixes the limiter. Free, like the diagnosis — no paywall on this analysis. */
+export interface Fix {
+  primary: { name: string; sets: number; reps: string; intensity: string; restMinutes: number };
+  accessories: ProtocolAccessory[];
+  progression: string[];
+}
 
 /**
  * The graded output of one diagnosis (§7, §10 "Graded output"). The engine
@@ -143,7 +137,8 @@ export interface Verdict {
   charts: { indices: RadarIndices; efficiency: number } | null;
   video: VideoResult | null;
   validationTest: { description: string; howToRun: string } | null;
-  fix: Fix;
+  /** Null only if plan writing produced no protocol. */
+  fix: Fix | null;
   trackNextTime: string[];
   /** Ladder lifts not yet logged — drives "Add the missing numbers". */
   missingLifts: string[];

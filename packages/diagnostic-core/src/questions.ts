@@ -118,138 +118,13 @@ const SQUAT: Question[] = [
   },
 ];
 
-const OLYMPIC: Record<string, Question[]> = {
-  clean_and_jerk: [
-    {
-      id: 'q0',
-      text: 'Where does the lift break down most often?',
-      options: [
-        { id: 'first', label: 'First pull', flags: ['hips_rise_first'], phase: 'first_pull' },
-        { id: 'second', label: 'Second pull', flags: ['insufficient_extension'], phase: 'second_pull' },
-        { id: 'catch', label: 'The catch', flags: ['front_rack_limited'], phase: 'catch_clean' },
-        { id: 'jerk', label: 'The jerk', flags: ['elbow_lockout_incomplete'], phase: 'jerk' },
-      ],
-    },
-    {
-      id: 'q1',
-      text: 'What do you notice in the pull?',
-      options: [
-        { id: 'arms', label: 'Arms pull early', flags: ['early_arm_pull'] },
-        { id: 'out_front', label: 'Bar swings out front', flags: ['bar_out_front'] },
-        { id: 'back', label: 'Back rounds', flags: ['back_rounds'] },
-        { id: 'none', label: 'Nothing obvious', flags: [] },
-      ],
-    },
-    {
-      id: 'q2',
-      text: 'And in the catch?',
-      options: [
-        { id: 'elbows', label: 'Elbows drop', flags: ['elbows_drop'] },
-        { id: 'feet', label: 'Feet land inconsistently', flags: ['footwork_inconsistent'] },
-        { id: 'solid', label: 'Feels solid', flags: [] },
-      ],
-    },
-  ],
-  snatch: [
-    {
-      id: 'q0',
-      text: 'Where does the lift break down most often?',
-      options: [
-        { id: 'first', label: 'First pull', flags: ['back_rounds'], phase: 'first_pull' },
-        { id: 'second', label: 'Second pull', flags: ['insufficient_bar_height'], phase: 'second_pull' },
-        { id: 'turnover', label: 'The turnover', flags: ['no_scoop'], phase: 'transition' },
-        { id: 'overhead', label: 'Overhead', flags: ['overhead_unstable'], phase: 'overhead_squat' },
-      ],
-    },
-    {
-      id: 'q1',
-      text: 'What do you notice in the pull?',
-      options: [
-        { id: 'arms', label: 'Arms pull early', flags: ['early_arm_pull'] },
-        { id: 'heels', label: 'Heels come up early', flags: ['heels_rise'] },
-        { id: 'drift', label: 'Bar drifts forward', flags: ['bar_drifts_forward'] },
-        { id: 'none', label: 'Nothing obvious', flags: [] },
-      ],
-    },
-    {
-      id: 'q2',
-      text: 'How does the catch feel overhead?',
-      options: [
-        { id: 'unstable', label: 'Wobbly', flags: ['overhead_unstable'] },
-        { id: 'low', label: 'Bar never gets high enough', flags: ['insufficient_bar_height'] },
-        { id: 'solid', label: 'Solid', flags: [] },
-      ],
-    },
-  ],
-  power_clean: [
-    {
-      id: 'q0',
-      text: 'Where does the lift break down most often?',
-      options: [
-        { id: 'first', label: 'First pull', flags: ['hips_rise_first'], phase: 'first_pull' },
-        { id: 'second', label: 'Second pull', flags: ['no_shrug'], phase: 'second_pull' },
-        { id: 'catch', label: 'The catch', flags: ['elbows_drop'], phase: 'catch' },
-      ],
-    },
-    {
-      id: 'q1',
-      text: 'What do you notice in the pull?',
-      options: [
-        { id: 'arms', label: 'Arms pull early', flags: ['early_arm_pull'] },
-        { id: 'drift', label: 'Bar drifts forward', flags: ['bar_drifts_forward'] },
-        { id: 'back', label: 'Back rounds', flags: ['back_rounds'] },
-        { id: 'none', label: 'Nothing obvious', flags: [] },
-      ],
-    },
-    {
-      id: 'q2',
-      text: 'How does the rack position feel?',
-      options: [
-        { id: 'wrists', label: 'Wrists complain', flags: ['wrist_pain'] },
-        { id: 'elbows', label: 'Elbows sit low', flags: ['elbows_drop'] },
-        { id: 'solid', label: 'Solid', flags: [] },
-      ],
-    },
-  ],
-  hang_clean: [
-    {
-      id: 'q0',
-      text: 'Where does the lift break down most often?',
-      options: [
-        { id: 'hang', label: 'Setting the hang', flags: ['forward_lean'], phase: 'hang_position' },
-        { id: 'second', label: 'Second pull', flags: ['insufficient_extension'], phase: 'second_pull' },
-        { id: 'catch', label: 'The catch', flags: ['elbows_drop'], phase: 'catch' },
-      ],
-    },
-    {
-      id: 'q1',
-      text: 'What do you notice from the hang?',
-      options: [
-        { id: 'arms', label: 'Arms pull early', flags: ['early_arm_pull'] },
-        { id: 'upright', label: 'I stay too upright', flags: ['too_upright'] },
-        { id: 'back', label: 'Back rounds', flags: ['back_rounds'] },
-        { id: 'none', label: 'Nothing obvious', flags: [] },
-      ],
-    },
-    {
-      id: 'q2',
-      text: 'Does the bar stay close?',
-      options: [
-        { id: 'drift', label: 'It drifts forward', flags: ['bar_drifts_forward'] },
-        { id: 'close', label: 'Stays close', flags: [] },
-        { id: 'unsure', label: 'Not sure', flags: [] },
-      ],
-    },
-  ],
-};
-
 export function questionsFor(lift: string): Question[] {
   switch (liftFamily(lift)) {
     case 'press':
       return PRESS;
     case 'deadlift':
       return DEADLIFT;
-    case 'squat':
+    default:
       // Front squats don't have hips shooting; back squats rarely drop elbows.
       return SQUAT.map((q) =>
         q.id !== 'q1'
@@ -261,8 +136,6 @@ export function questionsFor(lift: string): Question[] {
               ),
             },
       );
-    default:
-      return OLYMPIC[lift] ?? OLYMPIC.power_clean;
   }
 }
 

@@ -505,7 +505,7 @@ model DiagnosticTurn {
   session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, clientTurnId])
-  @@index([sessionId, seq])
+  @@unique([sessionId, seq])
 }
 
 model VideoCache {

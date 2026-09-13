@@ -38,9 +38,8 @@ const AXES: Record<string, { key: keyof RadarIndices; label: string }[]> = {
 };
 
 /** Index 100 = at the norm midpoint; values are capped at 130 for display. */
-export function radarGeometry(lift: string, indices: RadarIndices, size = 200): RadarGeometry | null {
+export function radarGeometry(lift: string, indices: RadarIndices, size = 200): RadarGeometry {
   const family = liftFamily(lift);
-  if (family === 'olympic') return null;
   const axisDefs = AXES[family === 'press' ? 'press' : 'lower'];
   const center = size / 2;
   const radius = size * 0.34;

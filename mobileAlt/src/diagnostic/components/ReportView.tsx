@@ -15,7 +15,7 @@ import {
 import { shareDiagnostic } from '../api';
 import { DiagnosticRadar, EfficiencyGauge } from './Charts';
 import { VideoCard, tagStyle } from './ThreadItems';
-import { Eyebrow, InkButton, OutlineButton } from './primitives';
+import { Eyebrow, OutlineButton } from './primitives';
 
 const C = DX.color;
 
@@ -30,14 +30,13 @@ const RANK_LABEL: Record<Candidate['rank'], string> = {
 interface Props {
   verdict: Verdict;
   onClose: () => void;
-  onUpgrade: () => void;
   /** Present only when re-scoring is possible from here. */
   onAddNumbers?: () => void;
   readOnly?: boolean;
 }
 
 /** Header (share · close) / verdict / evidence / charts / video / fix / track (§3). */
-export function ReportView({ verdict, onClose, onUpgrade, onAddNumbers, readOnly }: Props) {
+export function ReportView({ verdict, onClose, onAddNumbers, readOnly }: Props) {
   const insets = useSafeAreaInsets();
   const { eyebrow, headline } = verdictHeadline(verdict);
   const sections = reportSections(verdict);
@@ -153,7 +152,7 @@ export function ReportView({ verdict, onClose, onUpgrade, onAddNumbers, readOnly
 
         {verdict.video ? <VideoCard result={verdict.video} animate={false} /> : null}
 
-        <FixSection verdict={verdict} onUpgrade={onUpgrade} readOnly={readOnly} />
+        {verdict.fix ? <FixSection fix={verdict.fix} /> : null}
 
         {verdict.trackNextTime.length ? (
           <Section title={COPY.trackNextTime}>
@@ -170,26 +169,8 @@ export function ReportView({ verdict, onClose, onUpgrade, onAddNumbers, readOnly
   );
 }
 
-function FixSection({ verdict, onUpgrade, readOnly }: { verdict: Verdict; onUpgrade: () => void; readOnly?: boolean }) {
-  const fix = verdict.fix;
-  if (fix.locked) {
-    // 0 ratios: the paywall sells the confirmation test, not a protocol (§7).
-    const title = verdict.grade === 0 ? COPY.confirmLockedTitle : COPY.fixLockedTitle;
-    const body = verdict.grade === 0 ? COPY.confirmLockedBody : COPY.fixLockedBody(fix.accessoryCount);
-    return (
-      <View style={styles.inverse}>
-        <Ionicons name="lock-closed-outline" size={18} color={C.white} />
-        <Text style={styles.inverseTitle}>{title}</Text>
-        <Text style={styles.inverseBody}>{body}</Text>
-        {!readOnly ? (
-          <>
-            <InkButton label={COPY.startFreeMonth} onPress={onUpgrade} inverse style={{ marginTop: 6 }} />
-            <Text style={styles.inverseFine}>{COPY.freeMonthFine}</Text>
-          </>
-        ) : null}
-      </View>
-    );
-  }
+/** The protocol — free, like the diagnosis above it. */
+function FixSection({ fix }: { fix: NonNullable<Verdict['fix']> }) {
   return (
     <Section title={COPY.fixTitle}>
       <View style={styles.protocolRow}>
@@ -250,10 +231,6 @@ const styles = StyleSheet.create({
   bodyText: { flex: 1, fontSize: 14, lineHeight: 20, color: C.body },
   bulletRow: { flexDirection: 'row', gap: 8 },
   bullet: { fontSize: 14, lineHeight: 20, color: C.disabled },
-  inverse: { borderRadius: DX.card.radiusLarge, backgroundColor: C.ink, padding: DX.card.padLarge, gap: 8 },
-  inverseTitle: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5, color: C.white },
-  inverseBody: { fontSize: 14, lineHeight: 20, color: C.inverseBody },
-  inverseFine: { fontSize: 12, color: C.inverseBody, textAlign: 'center' },
   protocolRow: { gap: 3, paddingVertical: 8 },
   protocolMeta: { fontSize: 13, fontWeight: '600', color: C.muted },
 });

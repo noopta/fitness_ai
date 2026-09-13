@@ -19,7 +19,7 @@ function applePayAvailable(): boolean {
 
 interface Props {
   open: boolean;
-  source: 'diagnostic_limit' | 'diagnostic_report' | 'diagnostic_home';
+  source: 'diagnostic_limit' | 'diagnostic_home';
   onClose: () => void;
 }
 

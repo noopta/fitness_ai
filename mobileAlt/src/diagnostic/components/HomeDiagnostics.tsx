@@ -102,7 +102,7 @@ export function HomeDiagnostics({ isPro, proHero }: { isPro: boolean; proHero: R
 
       <DiagnosticPaywall
         visible={paywall}
-        source="diagnostic_report"
+        source="diagnostic_home"
         onClose={() => setPaywall(false)}
         onSuccess={async () => {
           setPaywall(false);

@@ -2,7 +2,7 @@
  * Grading rules for the conversational lift diagnostic (handoff §5–§7):
  * evidence is assembled only from what the user gave, 0/1/2+ ratios grade
  * differently, charts are suppressed below 2, confidence never reaches 100,
- * and the fix is gated without touching the diagnosis.
+ * and the fix ships with the diagnosis (never paywalled).
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -174,18 +174,16 @@ describe('presentVerdict', () => {
   };
   const full = buildVerdict(gatherInputs('s', 'flat_bench_press', BENCH_2_RATIOS), SIGNALS, plan);
 
-  it('locks only the fix — diagnosis, evidence and charts stay free', () => {
-    const locked = presentVerdict(full, { locked: true });
-    expect(locked.fix).toEqual({ locked: true, accessoryCount: 2 });
-    expect(locked.evidence).toEqual(full.evidence);
-    expect(locked.charts).toEqual(full.charts);
-    expect(JSON.stringify(locked)).not.toContain('JM Press');
-    expect(presentVerdict(full, { locked: false }).fix.locked).toBe(false);
+  it('the fix is part of the free verdict — never paywalled', () => {
+    expect(full.fix?.accessories.map((a) => a.name)).toEqual(['Close Grip Bench Press', 'JM Press']);
+    expect(presentVerdict(full)).toBe(full);
   });
 
   it('public links never carry the lifter still', () => {
     const withFrame = { ...full, video: { stickingPhase: 'lockout', stickingPointSec: 0.4, elbowFlareDeg: 12, barDriftCm: 4, frameUrl: 'data:image/jpeg;base64,AAA' } };
-    expect(presentVerdict(withFrame, { locked: false, publicView: true }).video?.frameUrl).toBeNull();
+    const pub = presentVerdict(withFrame, { publicView: true });
+    expect(pub.video?.frameUrl).toBeNull();
+    expect(pub.fix).toEqual(full.fix);
   });
 });
 

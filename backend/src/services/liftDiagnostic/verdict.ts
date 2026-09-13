@@ -36,14 +36,12 @@ export interface EvidenceRow { tag: EvidenceTag; text: string }
 export type CandidateRank = 'primary' | 'secondary' | 'ruled_out' | 'leading' | 'open';
 export interface Candidate { key: string; label: string; score: number | null; rank: CandidateRank }
 
-export type Fix =
-  | { locked: true; accessoryCount: number }
-  | {
-      locked: false;
-      primary: { name: string; sets: number; reps: string; intensity: string; restMinutes: number };
-      accessories: { exerciseId: string; name: string; sets: number; reps: string; why: string }[];
-      progression: string[];
-    };
+/** The protocol. Free, like the diagnosis — this analysis is never paywalled. */
+export interface Fix {
+  primary: { name: string; sets: number; reps: string; intensity: string; restMinutes: number };
+  accessories: { exerciseId: string; name: string; sets: number; reps: string; why: string }[];
+  progression: string[];
+}
 
 export interface Verdict {
   sessionId: string;
@@ -59,7 +57,7 @@ export interface Verdict {
   charts: { indices: Record<string, number>; efficiency: number } | null;
   video: VideoResult | null;
   validationTest: { description: string; howToRun: string } | null;
-  fix: Fix;
+  fix: Fix | null;
   trackNextTime: string[];
   missingLifts: string[];
   createdAt: string;
@@ -275,9 +273,8 @@ export function buildVerdict(
   for (const [k, v] of Object.entries(signals.indices)) if (v) indices[k] = v.value;
 
   const bench = plan?.bench_day_plan;
-  const fix: Fix = bench
+  const fix: Fix | null = bench
     ? {
-        locked: false,
         primary: {
           name: bench.primary_lift.exercise_name,
           sets: bench.primary_lift.sets,
@@ -294,7 +291,7 @@ export function buildVerdict(
         })),
         progression: plan?.progression_rules ?? [],
       }
-    : { locked: true, accessoryCount: 0 };
+    : null;
 
   return {
     sessionId: inputs.sessionId,
@@ -323,17 +320,14 @@ export function buildVerdict(
   };
 }
 
-/** Apply the tier gate and audience rules to a stored verdict. */
-export function presentVerdict(v: Verdict, opts: { locked: boolean; publicView?: boolean }): Verdict {
-  let out = v;
-  if (opts.locked && !v.fix.locked) {
-    out = { ...out, fix: { locked: true, accessoryCount: v.fix.accessories.length } };
-  }
-  if (opts.publicView && out.video?.frameUrl) {
-    // A still of the lifter's body never rides along on a public link.
-    out = { ...out, video: { ...out.video, frameUrl: null } };
-  }
-  return out;
+/**
+ * Audience rules for a stored verdict. There is no tier gate — the diagnosis
+ * and the fix are both free (product decision 2026-09-13) — but a still of the
+ * lifter's body never rides along on a public link.
+ */
+export function presentVerdict(v: Verdict, opts: { publicView?: boolean } = {}): Verdict {
+  if (opts.publicView && v.video?.frameUrl) return { ...v, video: { ...v.video, frameUrl: null } };
+  return v;
 }
 
 /** Plain-language conversation for the plan writer, rebuilt from the transcript. */

@@ -62,7 +62,7 @@ function verdict(grade: 0 | 1 | 2, over: Partial<Verdict> = {}): Verdict {
     charts: grade === 2 ? { indices: { triceps_index: 78 }, efficiency: 71 } : null,
     video: null,
     validationTest: grade < 2 ? { description: 'Paused close-grip test', howToRun: 'Work up to a 3RM.' } : null,
-    fix: { locked: true, accessoryCount: 3 },
+    fix: null,
     trackNextTime: [],
     missingLifts: ['overhead_press'],
     createdAt: '2026-09-13T00:00:00Z',
@@ -146,17 +146,16 @@ describe('diagnostic chat page', () => {
 describe('report view grades', () => {
   const noop = () => {};
 
-  it('2+ ratios: "Lockout strength." with charts and the locked fix', () => {
-    render(<ReportView verdict={verdict(2)} onClose={noop} onUpgrade={noop} />);
+  it('2+ ratios: "Lockout strength." with charts', () => {
+    render(<ReportView verdict={verdict(2)} onClose={noop} />);
     expect(screen.getByRole('heading', { name: 'Lockout strength.' })).toBeInTheDocument();
     expect(screen.getByLabelText('Strength profile')).toBeInTheDocument();
-    expect(screen.getByText('Your fix is ready')).toBeInTheDocument();
     expect(screen.queryByText(/Not enough lifts logged/)).not.toBeInTheDocument();
   });
 
   it('1 ratio: "Likely lockout strength." — charts replaced by the note, validation + sharpen shown', () => {
     const onAdd = vi.fn();
-    render(<ReportView verdict={verdict(1)} onClose={noop} onUpgrade={noop} onAddNumbers={onAdd} />);
+    render(<ReportView verdict={verdict(1)} onClose={noop} onAddNumbers={onAdd} />);
     expect(screen.getByRole('heading', { name: 'Likely lockout strength.' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Strength profile')).not.toBeInTheDocument();
     expect(screen.getByText(/Not enough lifts logged/)).toBeInTheDocument();
@@ -166,30 +165,28 @@ describe('report view grades', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
-  it('0 ratios: "Probably lockout — untested." under Closest read, selling the confirmation test', () => {
-    render(<ReportView verdict={verdict(0)} onClose={noop} onUpgrade={noop} />);
+  it('0 ratios: "Probably lockout — untested." under Closest read', () => {
+    render(<ReportView verdict={verdict(0)} onClose={noop} />);
     expect(screen.getByRole('heading', { name: 'Probably lockout — untested.' })).toBeInTheDocument();
     expect(screen.getByText('Closest read')).toBeInTheDocument();
-    expect(screen.getByText('Confirm it first')).toBeInTheDocument();
   });
 
   it('confidence is displayed as a number', () => {
-    render(<ReportView verdict={verdict(2, { confidence: 76 })} onClose={noop} onUpgrade={noop} />);
+    render(<ReportView verdict={verdict(2, { confidence: 76 })} onClose={noop} />);
     expect(screen.getByText(/76% confidence/)).toBeInTheDocument();
   });
 
-  it('an unlocked fix shows the protocol in place', () => {
+  it('the fix is free: the protocol renders with the diagnosis, no paywall anywhere in the report', () => {
     const v = verdict(2, {
       fix: {
-        locked: false,
         primary: { name: 'Flat Bench Press', sets: 4, reps: '5', intensity: 'RIR 2', restMinutes: 3 },
         accessories: [{ exerciseId: 'jm_press', name: 'JM Press', sets: 3, reps: '8', why: 'Lockout' }],
         progression: ['Add 5 lb'],
       },
     });
-    render(<ReportView verdict={v} onClose={noop} onUpgrade={noop} />);
+    render(<ReportView verdict={v} onClose={noop} />);
     const fix = screen.getByText('Your fix').closest('section')!;
     expect(within(fix).getByText('JM Press')).toBeInTheDocument();
-    expect(screen.queryByText('Your fix is ready')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Start your free month|Go unlimited/)).not.toBeInTheDocument();
   });
 });

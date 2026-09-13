@@ -30,25 +30,22 @@ export default function DiagnosticChatPage() {
   const [initialId] = useState(params.id);
   const { controller, state } = useDiagnostic(initialId, isMetric ? 'kg' : 'lb');
   const [reportOpen, setReportOpen] = useState(false);
-  const [paywall, setPaywall] = useState<null | 'diagnostic_limit' | 'diagnostic_report'>(null);
+  const [paywall, setPaywall] = useState(false);
   const [animateFrom, setAnimateFrom] = useState<number | null>(initialId ? null : 0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const addDone = useRef(false);
 
   useEffect(() => trackPageTime('lift_diagnostic'), []);
 
-  // Returning from Checkout: the reload already replays an unblocked thread
-  // and an unlocked fix; the user record just needs to catch up.
+  // Returning from Checkout (opened from the daily-limit card). If the webhook
+  // beat the reload the replay is already unblocked; otherwise wait for it,
+  // then clear the block in place.
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('checkout') !== 'success') return;
     window.history.replaceState(null, '', window.location.pathname);
-    // If the webhook beat the reload, the replay is already unblocked/unlocked;
-    // otherwise wait for it, then clear the block and swap the fix in place.
     void waitForPro().then(async (pro) => {
       await refreshUser();
-      if (!pro) return;
-      controller.unblock();
-      await controller.refreshVerdict();
+      if (pro) controller.unblock();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -83,7 +80,7 @@ export default function DiagnosticChatPage() {
   const exit = useCallback(() => setLocation('/diagnostics'), [setLocation]);
   const openReport = useCallback(() => {
     if (!state.verdict) return;
-    WebAnalytics.diagnosticVerdictViewed(state.verdict.fix.locked);
+    WebAnalytics.diagnosticVerdictViewed(false);
     setReportOpen(true);
   }, [state.verdict]);
 
@@ -102,7 +99,7 @@ export default function DiagnosticChatPage() {
       case 'verdict':
         return <VerdictCard key={item.id} verdict={item.verdict} animate={animate} onOpen={openReport} />;
       case 'limit':
-        return <LimitCard key={item.id} animate={animate} onUpgrade={() => setPaywall('diagnostic_limit')} onLater={exit} />;
+        return <LimitCard key={item.id} animate={animate} onUpgrade={() => setPaywall(true)} onLater={exit} />;
     }
   };
 
@@ -147,7 +144,6 @@ export default function DiagnosticChatPage() {
           <ReportView
             verdict={state.verdict}
             onClose={() => setReportOpen(false)}
-            onUpgrade={() => setPaywall('diagnostic_report')}
             onAddNumbers={
               controller.canAct({ type: 'addNumbers' })
                 ? () => {
@@ -160,7 +156,8 @@ export default function DiagnosticChatPage() {
         </div>
       ) : null}
 
-      <DiagnosticPaywall open={paywall !== null} source={paywall ?? 'diagnostic_report'} onClose={() => setPaywall(null)} />
+      {/* The only paywall in the flow: the daily limit (never on onboarding). */}
+      <DiagnosticPaywall open={paywall} source="diagnostic_limit" onClose={() => setPaywall(false)} />
     </div>
   );
 }

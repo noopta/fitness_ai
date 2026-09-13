@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Check, Lock, Share, X } from 'lucide-react';
+import { Check, Share, X } from 'lucide-react';
 import {
   COPY,
   reportSections,
@@ -12,7 +12,7 @@ import { shareDiagnostic } from '@/lib/diagnosticApi';
 import { cn } from '@/lib/utils';
 import { DiagnosticRadar, EfficiencyGauge } from './Charts';
 import { VideoCard } from './ThreadItems';
-import { Eyebrow, InkButton, OutlineButton, Tag } from './primitives';
+import { Eyebrow, OutlineButton, Tag } from './primitives';
 
 const RANK_LABEL: Record<Candidate['rank'], string> = {
   primary: COPY.primary,
@@ -25,13 +25,12 @@ const RANK_LABEL: Record<Candidate['rank'], string> = {
 interface Props {
   verdict: Verdict;
   onClose: () => void;
-  onUpgrade: () => void;
   onAddNumbers?: () => void;
   readOnly?: boolean;
 }
 
 /** Header (share · close) / verdict / evidence / charts / video / fix / track. */
-export function ReportView({ verdict, onClose, onUpgrade, onAddNumbers, readOnly }: Props) {
+export function ReportView({ verdict, onClose, onAddNumbers, readOnly }: Props) {
   const { eyebrow, headline } = verdictHeadline(verdict);
   const sections = reportSections(verdict);
   const [copied, setCopied] = useState(false);
@@ -148,7 +147,7 @@ export function ReportView({ verdict, onClose, onUpgrade, onAddNumbers, readOnly
 
         {verdict.video ? <VideoCard result={verdict.video} animate={false} /> : null}
 
-        <Fix verdict={verdict} onUpgrade={onUpgrade} readOnly={readOnly} />
+        {verdict.fix ? <Fix fix={verdict.fix} /> : null}
 
         {verdict.trackNextTime.length ? (
           <Section title={COPY.trackNextTime}>
@@ -167,24 +166,8 @@ export function ReportView({ verdict, onClose, onUpgrade, onAddNumbers, readOnly
   );
 }
 
-function Fix({ verdict, onUpgrade, readOnly }: { verdict: Verdict; onUpgrade: () => void; readOnly?: boolean }) {
-  const fix = verdict.fix;
-  if (fix.locked) {
-    const zero = verdict.grade === 0;
-    return (
-      <div className="flex flex-col gap-2 rounded-[18px] bg-zinc-950 p-5 text-white">
-        <Lock size={18} />
-        <div className="text-xl font-bold tracking-[-0.02em]">{zero ? COPY.confirmLockedTitle : COPY.fixLockedTitle}</div>
-        <p className="text-sm leading-5 text-white/[.72]">{zero ? COPY.confirmLockedBody : COPY.fixLockedBody(fix.accessoryCount)}</p>
-        {!readOnly ? (
-          <>
-            <InkButton inverse className="mt-1.5" onClick={onUpgrade}>{COPY.startFreeMonth}</InkButton>
-            <p className="text-center text-xs text-white/[.72]">{COPY.freeMonthFine}</p>
-          </>
-        ) : null}
-      </div>
-    );
-  }
+/** The protocol — free, like the diagnosis above it. */
+function Fix({ fix }: { fix: NonNullable<Verdict['fix']> }) {
   return (
     <Section title={COPY.fixTitle}>
       <div className="flex flex-col gap-0.5 py-2">
