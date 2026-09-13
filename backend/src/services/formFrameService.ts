@@ -238,6 +238,34 @@ async function annotate(
 }
 
 /**
+ * One clean still at a timestamp, base64 JPEG (no data: prefix). Used by the
+ * conversational lift diagnostic's video card. Best-effort: null on any
+ * failure, never throws.
+ */
+export async function extractStillAt(
+  videoBuffer: Buffer,
+  mimeType: string,
+  timestampSec: number,
+): Promise<string | null> {
+  let workDir: string | null = null;
+  try {
+    workDir = await mkdtemp(path.join(tmpdir(), 'diag-still-'));
+    const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+    const videoPath = path.join(workDir, `clip.${ext}`);
+    await writeFile(videoPath, videoBuffer);
+    const duration = await probeDurationSec(videoPath);
+    const at = duration != null ? Math.min(Math.max(0, timestampSec), Math.max(0, duration - 0.05)) : Math.max(0, timestampSec);
+    const stillPath = await extractClean(videoPath, workDir, at);
+    return stillPath ? (await readFile(stillPath)).toString('base64') : null;
+  } catch (err: any) {
+    console.warn(`[form-frames] still extraction skipped: ${err?.message ?? err}`);
+    return null;
+  } finally {
+    if (workDir) await rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/**
  * Extract reference stills for the anchored weaknesses in an analysis.
  *
  * Best-effort throughout: any failure yields fewer frames (or none), never a

@@ -12,7 +12,8 @@ import { getExerciseVideo } from '../services/youtubeService.js';
 import posthog from '../services/posthogClient.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 import { bounded } from '../validation/physiologicalBounds.js';
-import { diagnosticFirstAvailableFor } from '../services/featureFlags.js';
+import { prescriptionLockedFor, stripPrescription, formatPlanAsText } from '../services/diagnosticPlan.js';
+import { parseSessionFlags } from '../services/sessionFlags.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -50,61 +51,6 @@ async function loadOwnedSession(
     return null;
   }
   return session;
-}
-
-// ── Diagnostic-first prescription gate ────────────────────────────────────────
-//
-// Under the diagnostic-first funnel the free tier gets the diagnosis (what's
-// weak and why) but not the prescription (the protocol that fixes it) — the
-// paywall sells the fix right after the verdict. The full plan is always
-// generated and persisted; only the RESPONSE is stripped, so starting a trial
-// unlocks it with a plain refetch, no regeneration (and no second LLM spend).
-//
-// The strip happens server-side because a client-side gate would ship the
-// entire prescription in the JSON for anyone to read in a proxy.
-
-/**
- * Whether this user should receive plans with the prescription stripped.
- * Tier is read fresh from the DB, NOT from the JWT — the JWT's tier is known
- * to go stale across an upgrade, and a just-paid user staring at a still-
- * locked plan is the one outcome this screen must never produce.
- */
-async function prescriptionLockedFor(user: { id: string; email: string | null }): Promise<boolean> {
-  if (!diagnosticFirstAvailableFor(user.id, user.email)) return false;
-  const fresh = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { tier: true },
-  });
-  const tier = fresh?.tier ?? 'free';
-  return tier !== 'pro' && tier !== 'enterprise';
-}
-
-/**
- * The locked response shape: diagnosis and signals intact, prescription
- * replaced by a marker plus just enough of a silhouette to sell it (how many
- * targeted accessories are waiting). Never leaks exercise names or numbers.
- */
-function stripPrescription(plan: any): any {
-  if (!plan || typeof plan !== 'object') return plan;
-  const {
-    bench_day_plan: prescription,
-    benchDayPlan: prescriptionCamel,
-    // Top-level too, not just nested: generateWorkoutPlan emits
-    // progression_rules at the plan root, and the locked card promises them
-    // behind the trial — they must not ride along in the free payload.
-    // track_next_time stays: it's observational ("watch your bar speed"),
-    // not the fix.
-    progression_rules: _progressionRules,
-    ...rest
-  } = plan;
-  const accessories = prescription?.accessories ?? prescriptionCamel?.accessories ?? [];
-  return {
-    ...rest,
-    prescription_locked: true,
-    prescription_preview: {
-      accessory_count: Array.isArray(accessories) ? accessories.length : 0,
-    },
-  };
 }
 
 /**
@@ -256,6 +202,7 @@ router.get('/sessions/history', requireAuth, async (req, res) => {
         selectedLift: s.selectedLift,
         createdAt: s.createdAt,
         isPublic: s.isPublic,
+        flow: s.flow,
         primaryLimiter: plan?.diagnosis?.[0]?.limiterName || null,
         confidence: plan?.diagnosis?.[0]?.confidence || null
       };
@@ -687,111 +634,6 @@ router.get('/sessions/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Parse conversational text into structured SessionFlags for the diagnostic engine.
-// Patterns are order-independent — keyword proximity matters, not word order.
-function parseSessionFlags(text: string): Record<string, boolean> {
-  const flags: Record<string, boolean> = {};
-  const t = text.toLowerCase();
-
-  // ── hard_off_floor ─────────────────────────────────────────────────────────
-  // Catches: "hard off the floor", "off the floor is hard", "struggle off the floor",
-  //          "hardest off the floor", "hard to get off the floor", "hard from the floor",
-  //          "hard at the start", "hardest at the start", "hard leaving the ground"
-  if (
-    /hard.{0,25}(off|from|at|on).{0,15}(floor|ground|start|bottom)/i.test(t) ||
-    /(off|from).{0,15}(floor|ground).{0,25}(hard|difficult|struggle|tough)/i.test(t) ||
-    /(floor|ground|start|initial).{0,25}(hard|difficult|struggle|tough|worst|hardest)/i.test(t) ||
-    /(struggle|difficult|tough|hardest|worst).{0,30}(floor|ground|off|start|initial.pull)/i.test(t) ||
-    /\b(off the floor|off the ground|from the floor|from the ground)\b.{0,30}(hard|difficult|struggle|issue|problem)/i.test(t) ||
-    /(hard|difficult|struggle|issue|problem).{0,30}\b(off the floor|off the ground|from the floor)\b/i.test(t)
-  ) flags.hard_off_floor = true;
-
-  // ── hard_off_chest (bench/press specific) ──────────────────────────────────
-  if (
-    /hard.{0,20}(off|from|at|on).{0,10}(chest|bottom|start)/i.test(t) ||
-    /(chest|bottom).{0,20}(hard|difficult|struggle|tough|worst)/i.test(t) ||
-    /(struggle|difficult|tough).{0,20}(chest|bottom|off chest)/i.test(t)
-  ) flags.hard_off_chest = true;
-
-  // ── hard_mid_range ─────────────────────────────────────────────────────────
-  if (
-    /hard.{0,20}(mid|middle|halfway|half.?way)/i.test(t) ||
-    /(mid|middle|halfway).{0,20}(hard|difficult|struggle|sticking|stall)/i.test(t) ||
-    /sticking.{0,15}point.{0,20}(mid|middle|halfway)/i.test(t)
-  ) flags.hard_mid_range = true;
-
-  // ── hard_at_lockout ────────────────────────────────────────────────────────
-  if (
-    /(hard|fail|struggle|difficult).{0,20}lock(out|ing)/i.test(t) ||
-    /lock(out|ing).{0,20}(hard|fail|struggle|difficult|weak)/i.test(t) ||
-    /can.t.{0,10}lock(out| it| them)/i.test(t)
-  ) flags.hard_at_lockout = true;
-
-  // ── hips_shoot_up ──────────────────────────────────────────────────────────
-  if (
-    /hip.{0,15}shoot/i.test(t) ||
-    /hips.{0,10}(rise|come up|go up|shoot|high|pop)/i.test(t) ||
-    /(hips|butt|posterior).{0,20}(rise|shoot|come up|go up|first|before)/i.test(t)
-  ) flags.hips_shoot_up = true;
-
-  // ── back_rounds ────────────────────────────────────────────────────────────
-  if (
-    /back.{0,15}round/i.test(t) ||
-    /round.{0,15}back/i.test(t) ||
-    /spine.{0,15}(round|flex|bend|lose)/i.test(t) ||
-    /(lose|losing|lost).{0,15}(back|spinal).{0,10}(position|neutral|flat)/i.test(t)
-  ) flags.back_rounds = true;
-
-  // ── bar_drifts / bar_drifts_forward ────────────────────────────────────────
-  if (/bar.{0,15}drift/i.test(t)) flags.bar_drifts = true;
-  if (/bar.{0,15}(drift|move|shift|swing).{0,15}forward/i.test(t) ||
-      /bar.{0,15}(away|out|forward).{0,15}(body|legs|me)/i.test(t)) flags.bar_drifts_forward = true;
-
-  // ── tension loss (new) — maps to hard_off_floor for deadlift / setup issues
-  // "hard to maintain tension", "lose tension", "can't keep tension", "tension breaks"
-  if (
-    /(maintain|keep|hold|create).{0,20}tension/i.test(t) ||
-    /tension.{0,20}(hard|difficult|issue|problem|lose|lost|breaks|gone)/i.test(t) ||
-    /(lose|losing|lost|break|breaking).{0,20}tension/i.test(t) ||
-    /can.t.{0,20}(maintain|keep|hold|create|get).{0,20}tension/i.test(t)
-  ) {
-    // Tension issues on deadlift → setup/initial pull problem
-    flags.hard_off_floor = true;
-  }
-
-  // ── feel_lower_back ────────────────────────────────────────────────────────
-  if (
-    /lower back.{0,20}(pain|sore|tight|feel|strain|stress|work|pump)/i.test(t) ||
-    /(feel|feeling|feel it).{0,20}lower back/i.test(t)
-  ) flags.feel_lower_back = true;
-
-  // ── elbows_flare_early ─────────────────────────────────────────────────────
-  if (
-    /chest.{0,15}drop/i.test(t) ||
-    /elbows.{0,15}(flare|out|wide|up)/i.test(t) ||
-    /(flare|flaring).{0,15}elbow/i.test(t)
-  ) flags.elbows_flare_early = true;
-
-  // ── shoulder_discomfort ────────────────────────────────────────────────────
-  if (/shoulder.{0,15}(pain|discomfort|hurt|ache|issue)/i.test(t)) flags.shoulder_discomfort = true;
-
-  // ── mobility_restriction ───────────────────────────────────────────────────
-  if (/mobility.{0,15}(issue|problem|limit|restrict)/i.test(t) ||
-      /(tight|stiff).{0,15}(hip|ankle|shoulder|wrist)/i.test(t)) flags.mobility_restriction = true;
-
-  // ── grip_limiting ──────────────────────────────────────────────────────────
-  if (/grip.{0,15}(limit|fail|slip|weak|issue|problem)/i.test(t) ||
-      /(hand|hands|wrist).{0,15}(slip|fail|weak|give)/i.test(t)) flags.grip_limiting = true;
-
-  // ── pause_much_harder ──────────────────────────────────────────────────────
-  if (/pause.{0,20}(harder|much harder|worse|difficult)/i.test(t)) flags.pause_much_harder = true;
-
-  // ── touch_point_inconsistent ───────────────────────────────────────────────
-  if (/touch.{0,20}(inconsistent|vary|different|spot|point)/i.test(t)) flags.touch_point_inconsistent = true;
-
-  return flags;
-}
-
 // ─── POST /sessions/:id/chat ───────────────────────────────────────────────────
 const chatMessageSchema = z.object({
   message: z.string().min(1).max(2000),
@@ -949,33 +791,5 @@ router.get('/exercises/:exerciseId/video', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch video' });
   }
 });
-
-function formatPlanAsText(plan: any): string {
-  let text = `# ${plan.bench_day_plan.primary_lift.exercise_name} Training Plan\n\n`;
-  
-  text += `## Diagnosis\n`;
-  plan.diagnosis.forEach((d: any) => {
-    text += `- **${d.limiterName}** (${Math.round(d.confidence * 100)}% confidence)\n`;
-    d.evidence.forEach((e: string) => text += `  - ${e}\n`);
-  });
-  
-  text += `\n## Primary Lift\n`;
-  const pl = plan.bench_day_plan.primary_lift;
-  text += `**${pl.exercise_name}**: ${pl.sets} sets × ${pl.reps} reps @ ${pl.intensity}, ${pl.rest_minutes}min rest\n`;
-  
-  text += `\n## Accessories\n`;
-  plan.bench_day_plan.accessories.forEach((acc: any) => {
-    text += `**${acc.exercise_name}**: ${acc.sets} sets × ${acc.reps} reps\n`;
-    text += `  *Why: ${acc.why}*\n\n`;
-  });
-  
-  text += `\n## Progression\n`;
-  plan.progression_rules.forEach((rule: string) => text += `- ${rule}\n`);
-  
-  text += `\n## Track Next Time\n`;
-  plan.track_next_time.forEach((item: string) => text += `- ${item}\n`);
-  
-  return text;
-}
 
 export default router;

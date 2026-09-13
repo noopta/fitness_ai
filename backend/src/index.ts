@@ -14,6 +14,7 @@ import posthog from './services/posthogClient.js';
 import { errorReporting, reportServerError } from './middleware/errorReporting.js';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
+import liftDiagnosticsRoutes from './routes/liftDiagnostics.js';
 import waitlistRoutes from './routes/waitlist.js';
 import authRoutes from './routes/auth.js';
 import paymentsRoutes from './routes/payments.js';
@@ -201,6 +202,8 @@ app.use('/api', adaptationRoutes);
 app.use('/api', strengthRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
+// Conversational lift diagnostic (single-thread flow, turn transcript).
+app.use('/api', liftDiagnosticsRoutes);
 app.use('/api', waitlistRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', adminRoutes);

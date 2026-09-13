@@ -471,10 +471,41 @@ model Session {
   threadId     String?
   isPublic     Boolean             @default(false)
   createdAt    DateTime            @default(now())
+  // "wizard" = the legacy 4-screen flow; "conversation" = the single-thread
+  // lift diagnostic, whose transcript of record is DiagnosticTurn.
+  flow         String              @default("wizard")
+  // Training-log row the diagnostic's working sets were written through to,
+  // so late accessory numbers update it instead of creating a second log.
+  workoutLogId String?
+  updatedAt    DateTime            @default(now()) @updatedAt
   messages     DiagnosticMessage[]
   snapshots    ExerciseSnapshot[]
   plans        GeneratedPlan[]
+  turns        DiagnosticTurn[]
   user         User?               @relation(fields: [userId], references: [id])
+
+  @@index([userId, updatedAt])
+}
+
+// One user action in the conversational lift diagnostic (lift chip, a set,
+// Skip, Move on, an answer, the verdict tap...). Keyed by the client's turn
+// id so a retry after a failed send replays the stored result instead of
+// double-logging a set. Clients rebuild the thread by replaying these in seq
+// order through the shared reducer.
+model DiagnosticTurn {
+  id           String   @id @default(uuid())
+  sessionId    String
+  clientTurnId String
+  seq          Int
+  type         String
+  payloadJson  String
+  resultJson   String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, clientTurnId])
+  @@index([sessionId, seq])
 }
 
 model VideoCache {
