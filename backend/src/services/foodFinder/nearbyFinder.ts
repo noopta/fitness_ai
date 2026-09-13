@@ -19,6 +19,7 @@ import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fo
 import { type ShownRecord } from '../../engine/foodVariety.js';
 import { priceForIngredient, priceFromMenu } from './pricing.js';
 import { formatMoney } from '../../engine/currency.js';
+import { dishPriceBand } from '../../engine/budget.js';
 import { matchChains, chainCandidates, CHAIN_PLACE_TYPES } from './chainMenu.js';
 import { composeMeals, servingText, type ComposedMeal } from '../../engine/mealComposer.js';
 import { buildFinderGap, arbitrate } from '../../engine/foodFinderRanker.js';
@@ -207,6 +208,9 @@ export function takeoutCandidates(restaurants: NearbyPlace[]): Candidate[] {
           category: 'Takeout',
           vendor: { id: place.id, name: place.name, distanceM: place.distanceM, openNow: place.openNow, rating: place.rating },
           lean: dish.lean ?? false,
+          // Places' price tier for the venue — the only price signal we have
+          // for an independent, since there is no menu to read.
+          priceLevel: place.priceLevel ?? null,
           // Consumed by the route to build copy that never overclaims.
           typicalFor: place.primaryType ?? 'restaurant',
         },
@@ -398,11 +402,17 @@ async function attachPrices(candidates: Candidate[], opts: NearbyOptions): Promi
       out.push({ ...c, price, placeKey: store?.id ?? null });
     } else {
       const vendor = meta.vendor as { id: string } | null | undefined;
-      out.push({
-        ...c,
-        price: priceFromMenu(meta.priceCents ?? null, currency),
-        placeKey: vendor?.id ?? null,
-      });
+      // A listed menu price if we parsed one; otherwise a bracket from the
+      // restaurant's Places price tier. Showing nothing at all was the worse
+      // option — the user cannot tell "we don't know" from "we forgot".
+      const listed = priceFromMenu(meta.priceCents ?? null, currency);
+      // Band only inside a metro we actually know. Outside one the currency is
+      // a default, not a fact, and a USD bracket for a Sydney restaurant is the
+      // same wrong-economy error the grocery table refuses to make.
+      const price = listed.confidence !== 'unknown'
+        ? listed
+        : (opts.metro ? dishPriceBand(meta.priceLevel as string | null | undefined, currency) : listed);
+      out.push({ ...c, price, placeKey: vendor?.id ?? null });
     }
   }
   return out;

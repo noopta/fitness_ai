@@ -45,7 +45,7 @@ const response = (over: Record<string, unknown> = {}) => ({
       warns: [], mechanism: '', score: 0.25,
       where: { name: 'Loblaws', distanceM: 350, openNow: true, rating: 4.1 },
       note: 'Usually carried at Loblaws.', confidence: 'usda',
-      price: { cents: 1582, currency: 'CAD', display: '≈$15.82', estimated: true },
+      price: { cents: 1582, currency: 'CAD', display: '≈$15.82', estimated: true, band: null },
       overBudget: false, dietWarning: null,
       directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Loblaws&destination_place_id=store-1',
     },
@@ -481,5 +481,46 @@ describe('FoodFinderPage — the Apply-without-Go bug', () => {
     const url = new URL(finderCall!, 'http://x');
     expect(url.searchParams.get('place')).toBe('172 Farley Drive, Guelph');
     expect(url.searchParams.get('budget')).toBe('100');
+  });
+});
+
+describe('FoodFinderPage — macro amounts and missing prices', () => {
+  const show = async (over: Record<string, unknown> = {}) => {
+    mockGeolocation('grant');
+    if (Object.keys(over).length) mockAuthFetch.mockImplementation(() => ok(response(over)));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    // Wait on the remaining-macros line: present in every response, and unique
+    // (the mode label and the `why` sentence both say "macros lead"). The
+    // default fixture's meal card is absent when a test replaces the list.
+    await screen.findByText(/Left today:/);
+  };
+
+  it('gives the grams, not just a percentage', async () => {
+    await show();
+    // "Protein 9%" alone is unanswerable — 9% of a number you have to go find.
+    expect(screen.getByText('34 g')).toBeTruthy();
+  });
+
+  it('still shows the share of what is left, as context', async () => {
+    await show();
+    expect(screen.getByText(/31% of what's left/)).toBeTruthy();
+  });
+
+  it('shows a price bracket for a restaurant we have no menu for', async () => {
+    await show({
+      recommendations: [{
+        ...response().recommendations[1],
+        price: { cents: 3000, currency: 'CAD', display: '≈$22–38', estimated: true, band: { lowCents: 2200, highCents: 3800 } },
+      }],
+    });
+    expect(await screen.findByText('≈$22–38')).toBeTruthy();
+  });
+
+  it('says "no price" rather than leaving a blank', async () => {
+    await show();
+    // The takeout fixture has price: null. A blank read as an oversight;
+    // "no price" says we have no menu for that place.
+    expect(screen.getByText('no price')).toBeTruthy();
   });
 });

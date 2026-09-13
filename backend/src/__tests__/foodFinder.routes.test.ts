@@ -231,11 +231,26 @@ describe('GET /nutrition-profile/food-finder — budget, diet, directions', () =
     expect(priced[0].price.display).toMatch(/^≈/);
   });
 
-  it('distinguishes an unknown price from a free one', async () => {
+  it('brackets a dish from the venue price tier when there is no menu', async () => {
     const res = await get(TORONTO);
     const takeout = res.body.recommendations.find((r: any) => r.kind === 'takeout');
-    // We have not parsed this restaurant's menu, so there is no price to quote.
-    if (takeout) expect(takeout.price).toBeNull();
+    if (takeout?.price) {
+      // A range, never a point — a single number would imply we read the menu.
+      expect(takeout.price.estimated).toBe(true);
+      expect(takeout.price.band).toBeTruthy();
+      expect(takeout.price.display).toMatch(/–/);
+    }
+  });
+
+  it('quotes nothing for a venue with no price tier at all', async () => {
+    mockSearchNearby.mockImplementation(async ({ includedTypes }: { includedTypes: string[] }) =>
+      includedTypes.includes('supermarket')
+        ? [store]
+        : [{ ...restaurant, priceLevel: null }]);
+    const res = await get(TORONTO);
+    const takeout = res.body.recommendations.filter((r: any) => r.kind === 'takeout');
+    // An absent price must never render as a cheap one.
+    for (const t of takeout) expect(t.price).toBeNull();
   });
 
   it('flags options over an explicit budget without hiding them', async () => {

@@ -31,7 +31,9 @@ async function main() {
     console.log(`${t.padEnd(24)} ${res.length ? `OK  ${res.length} hits` : 'no hits (invalid, or genuinely none nearby)'}`);
     // The normalised form is what brand matching actually sees, so printing it
     // is the fastest way to diagnose a chain that should have matched but did not.
-    for (const p of res) console.log(`    ${p.name.slice(0, 34).padEnd(36)} -> "${normaliseVenueName(p.name)}"`);
+    for (const p of res) {
+      console.log(`    ${p.name.slice(0, 32).padEnd(34)} -> "${normaliseVenueName(p.name)}"  [${p.priceLevel ?? 'no price level'}]`);
+    }
   }
 }
 main().catch(e => { console.error(e); process.exit(1); });

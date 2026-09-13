@@ -83,3 +83,73 @@ export function budgetFactor(price: PricedAmount | null | undefined, budgetCents
 /** True when a priced option is over budget by enough to warn about it. */
 export const isOverBudget = (price: PricedAmount | null | undefined, budgetCents: number | null): boolean =>
   !!price && !!budgetCents && budgetCents > 0 && price.confidence !== 'unknown' && price.cents > budgetCents;
+
+// ---------------------------------------------------------------------------
+// Restaurant price bands
+// ---------------------------------------------------------------------------
+
+/**
+ * Typical cost of one main dish, by the restaurant's Places price tier.
+ *
+ * We have no menu for an independent, so there is no listed price to quote. But
+ * Places does tell us the tier, and "a moderate sushi place in Guelph" bounds a
+ * dish far better than showing nothing — which is what we were doing, leaving
+ * Cherry Blossom and Kenzo with a blank where a number should be.
+ *
+ * Presented as a RANGE, never a point. A single number implies we looked at
+ * their menu; a range says what it is — a bracket derived from how expensive
+ * the restaurant is. Budget scoring uses the midpoint.
+ *
+ * Denominated per currency rather than converted, for the same reason the
+ * grocery table is: no exchange rate is allowed in the request path.
+ */
+const DISH_BANDS: Record<string, Record<string, [number, number]>> = {
+  USD: {
+    PRICE_LEVEL_INEXPENSIVE: [1000, 1600],
+    PRICE_LEVEL_MODERATE: [1600, 2800],
+    PRICE_LEVEL_EXPENSIVE: [2800, 4500],
+    PRICE_LEVEL_VERY_EXPENSIVE: [4500, 8000],
+  },
+  CAD: {
+    PRICE_LEVEL_INEXPENSIVE: [1400, 2200],
+    PRICE_LEVEL_MODERATE: [2200, 3800],
+    PRICE_LEVEL_EXPENSIVE: [3800, 6000],
+    PRICE_LEVEL_VERY_EXPENSIVE: [6000, 11000],
+  },
+  GBP: {
+    PRICE_LEVEL_INEXPENSIVE: [800, 1300],
+    PRICE_LEVEL_MODERATE: [1300, 2200],
+    PRICE_LEVEL_EXPENSIVE: [2200, 3600],
+    PRICE_LEVEL_VERY_EXPENSIVE: [3600, 6500],
+  },
+};
+
+export interface BandedPrice extends PricedAmount {
+  /** Present when the figure is a tier-derived bracket rather than a listed price. */
+  band?: { lowCents: number; highCents: number };
+}
+
+/**
+ * A dish price bracket from the restaurant's price tier.
+ *
+ * Returns `unknown` when Places gives no tier, or the currency has no band
+ * table — an absent price must never read as a cheap one.
+ */
+export function dishPriceBand(priceLevel: string | null | undefined, currency: string): BandedPrice {
+  const unknown: BandedPrice = { cents: 0, currency, confidence: 'unknown', display: 'price unknown' };
+  if (!priceLevel) return unknown;
+  const table = DISH_BANDS[currency];
+  const band = table?.[priceLevel];
+  if (!band) return unknown;
+
+  const [low, high] = band;
+  const mid = Math.round((low + high) / 2);
+  return {
+    cents: mid,
+    currency,
+    confidence: 'estimated',
+    // Symbol once: "$22–38", not "$22–$38".
+    display: `≈${formatMoney(low, currency)}–${formatMoney(high, currency).replace(/^[^0-9]+/, '')}`,
+    band: { lowCents: low, highCents: high },
+  };
+}

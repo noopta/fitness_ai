@@ -57,7 +57,11 @@ interface Recommendation {
   note: string | null;
   confidence: 'usda' | 'published' | 'inferred' | 'estimated';
   /** Null means we do not know the price — which is NOT the same as free. */
-  price: { cents: number; currency: string; display: string; estimated: boolean } | null;
+  price: {
+    cents: number; currency: string; display: string; estimated: boolean;
+    /** Present when the figure is a bracket from the venue's price tier. */
+    band: { lowCents: number; highCents: number } | null;
+  } | null;
   overBudget: boolean;
   /** Present when a declared allergy cannot be verified from a menu listing. */
   dietWarning: string | null;
@@ -116,6 +120,14 @@ type Where =
   | { lat: number; lng: number }
   | { place: string; placeId?: string }
   | null;
+
+/** 34.2 -> "34", 1.75 -> "1.8". Whole grams read better than false precision. */
+function formatAmount(n: number): string {
+  if (!Number.isFinite(n)) return '0';
+  if (Math.abs(n) >= 10) return String(Math.round(n));
+  if (Math.abs(n) >= 1) return (Math.round(n * 10) / 10).toString();
+  return (Math.round(n * 100) / 100).toString();
+}
 
 function geoErrorMessage(err: GeolocationPositionError): string {
   switch (err.code) {
@@ -474,11 +486,15 @@ export default function FoodFinderPage() {
                 <span style={{ fontSize: 13, color: '#666' }}>
                   {r.prepMinutes != null ? `${r.prepMinutes} min to cook` : r.serving}
                 </span>
-                {r.price && (
+                {r.price ? (
                   <span style={{ fontSize: 13, fontWeight: 600, color: r.overBudget ? '#a94442' : '#2e6b32' }}>
                     {r.price.display}
                     {r.overBudget && ' · over budget'}
                   </span>
+                ) : (
+                  /* Saying nothing let a missing price read as an oversight.
+                     "No price" is information: we have no menu for this place. */
+                  <span style={{ fontSize: 12, color: '#aaa' }}>no price</span>
                 )}
                 {CONFIDENCE_BADGE[r.confidence] && (
                   <span style={{
@@ -527,11 +543,15 @@ export default function FoodFinderPage() {
                 </div>
               )}
 
+              {/* Grams lead, share follows. "Protein 9%" alone is unanswerable —
+                  9% of a number the user has to go and find. The absolute
+                  amount is what they log and what they can sanity-check. */}
               {r.closes.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                   {r.closes.map(c => (
                     <span key={c.key} style={{ fontSize: 12, background: '#eef4ff', color: '#24417a', borderRadius: 20, padding: '4px 9px' }}>
-                      {c.label} {c.pctOfRemaining}%
+                      {c.label} <strong>{formatAmount(c.amount)} {c.unit}</strong>
+                      <span style={{ opacity: 0.65 }}> · {c.pctOfRemaining}% of what's left</span>
                     </span>
                   ))}
                 </div>

@@ -205,6 +205,7 @@ export function chainCandidates(matches: ChainMatch[]): Candidate[] {
           category: 'Takeout',
           vendor: { id: place.id, name: place.name, distanceM: place.distanceM, openNow: place.openNow, rating: place.rating },
           brand: { slug: brand.slug, name: brand.name },
+          priceLevel: place.priceLevel ?? null,
           dietTags: item.dietTags,
           priceCents: item.priceCents,
           sourceUrl: item.sourceUrl,

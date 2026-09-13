@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { budgetFactor, costPerMeal, isOverBudget, tierMultiplier, type PricedAmount } from '../engine/budget.js';
+import { budgetFactor, costPerMeal, isOverBudget, tierMultiplier, dishPriceBand, type PricedAmount } from '../engine/budget.js';
 import { nearestMetro, currencyFor, formatMoney, haversineM, DEFAULT_CURRENCY } from '../engine/currency.js';
 import { varietyFactor, venueSpreadFactor } from '../engine/foodVariety.js';
 
@@ -157,5 +157,33 @@ describe('venue spread', () => {
 
   it('is inert when a candidate has no venue', () => {
     expect(venueSpreadFactor(null, ['place-1', 'place-1'])).toBe(1);
+  });
+});
+
+describe('dishPriceBand', () => {
+  it('brackets a dish from the venue price tier, symbol once', () => {
+    const b = dishPriceBand('PRICE_LEVEL_MODERATE', 'CAD');
+    expect(b.confidence).toBe('estimated');
+    expect(b.display).toBe('≈$22–38');
+    expect(b.band).toEqual({ lowCents: 2200, highCents: 3800 });
+  });
+
+  it('uses the midpoint for budget scoring', () => {
+    const b = dishPriceBand('PRICE_LEVEL_MODERATE', 'CAD');
+    expect(b.cents).toBe(3000);
+    expect(budgetFactor(b, 5000)).toBe(1);
+    expect(budgetFactor(b, 1500)).toBeLessThan(0.5);
+  });
+
+  it('scales with the local economy without converting anything', () => {
+    expect(dishPriceBand('PRICE_LEVEL_MODERATE', 'GBP').display).toBe('≈£13–22');
+    expect(dishPriceBand('PRICE_LEVEL_MODERATE', 'USD').display).toBe('≈$16–28');
+  });
+
+  it('quotes nothing when there is no tier or no band table', () => {
+    // An absent price must never read as a cheap one.
+    expect(dishPriceBand(null, 'CAD').confidence).toBe('unknown');
+    expect(dishPriceBand('PRICE_LEVEL_MODERATE', 'AUD').confidence).toBe('unknown');
+    expect(budgetFactor(dishPriceBand(null, 'CAD'), 1000)).toBe(1);
   });
 });

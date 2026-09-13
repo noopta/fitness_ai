@@ -813,7 +813,14 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
           // Null price means we do not know it, which is NOT the same as free —
           // the client must render the difference.
           price: r.price && r.price.confidence !== 'unknown'
-            ? { cents: r.price.cents, currency: r.price.currency, display: r.price.display, estimated: r.price.confidence === 'estimated' }
+            ? {
+                cents: r.price.cents,
+                currency: r.price.currency,
+                display: r.price.display,
+                estimated: r.price.confidence === 'estimated',
+                /** Set when the figure is a bracket from the venue's price tier. */
+                band: (r.price as { band?: { lowCents: number; highCents: number } }).band ?? null,
+              }
             : null,
           overBudget: isOverBudget(r.price, budgetCents),
           /** Set when a declared allergy cannot be verified from a menu listing. */
