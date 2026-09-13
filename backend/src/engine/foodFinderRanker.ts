@@ -13,6 +13,8 @@
 
 import { getNutrient } from './nutrientRegistry.js';
 import { scoreAgainstGap, type GapVector } from './nutritionGap.js';
+import { budgetFactor, type PricedAmount } from './budget.js';
+import { varietyFactor, venueSpreadFactor, type ShownRecord } from './foodVariety.js';
 import type { DayRemaining, MacroKey, MicroRemaining } from '../services/nutritionRemaining.js';
 
 export type FinderMode =
@@ -22,7 +24,7 @@ export type FinderMode =
   | 'tight_budget'
   | 'on_track';
 
-export type Confidence = 'usda' | 'published' | 'estimated';
+export type Confidence = 'usda' | 'published' | 'inferred' | 'estimated';
 
 export interface Candidate {
   id: string;
@@ -34,7 +36,15 @@ export interface Candidate {
   provides: Record<string, number>;
   /** Metres from the user. Null/undefined means "no distance known" → no penalty. */
   distanceM?: number | null;
-  priceUsd?: number | null;
+  /**
+   * Cost of THIS eating occasion, already normalised to cost-per-meal by the
+   * caller. Never a raw basket price — see engine/budget.ts for why.
+   */
+  price?: PricedAmount | null;
+  /** Measured relative error on kcal for this dish class, from calibration. */
+  kcalErrPct?: number | null;
+  /** Stable venue id, so the list does not pile every option onto one shop. */
+  placeKey?: string | null;
   confidence: Confidence;
   /** Opaque passthrough (vendor, serving text, source URL…). Never scored. */
   meta?: Record<string, unknown>;
@@ -63,6 +73,8 @@ export interface RankedCandidate extends Candidate {
   effort: number;
   overflow: number;
   confidenceFactor: number;
+  budgetFit: number;
+  variety: number;
   closes: CloseLine[];
   warns: WarnLine[];
 }
@@ -298,8 +310,28 @@ export function fitCurve(kcal: number, remainingKcal: number): number {
 const CONFIDENCE_FACTOR: Record<Confidence, number> = {
   usda: 1.0,
   published: 0.85,
+  // We know the dish and its description at this specific restaurant, but a
+  // model estimated the macros. Better than a cuisine guess, worse than a
+  // published table. Superseded per-item by kcalErrPct once calibrated.
+  inferred: 0.78,
   estimated: 0.7,
 };
+
+/**
+ * Confidence discount, preferring a MEASURED error bar over the class default.
+ *
+ * Once the calibration harness has run an item's dish class against chain ground
+ * truth we know its real error, and a measured 12% beats a hand-picked constant.
+ * The mapping is deliberately gentle — a 25% error is a usable number, not a
+ * disqualifying one — and it can never exceed the class default, so calibration
+ * only ever makes us more careful.
+ */
+export function confidenceFactorFor(c: Candidate): number {
+  const base = CONFIDENCE_FACTOR[c.confidence] ?? 0.7;
+  if (c.kcalErrPct == null || !Number.isFinite(c.kcalErrPct) || c.kcalErrPct < 0) return base;
+  const measured = 1 / (1 + c.kcalErrPct / 100);
+  return Math.min(base, measured);
+}
 
 /** Distance decay. 3 km is the half-ish point; unknown distance is not penalised. */
 export function effortFactor(distanceM?: number | null): number {
@@ -399,6 +431,7 @@ export function scoreCandidate(
   gap: GapVector,
   remaining: DayRemaining,
   _arb: Arbitration,
+  opts: { budgetCents?: number | null; history?: ShownRecord[]; now?: Date } = {},
 ): RankedCandidate {
   // Calories participate in the gain term (being 1,200 kcal short is a real gap)
   // while fitCurve independently punishes overshoot. The two are complementary,
@@ -409,10 +442,21 @@ export function scoreCandidate(
   const { score: gain } = scoreAgainstGap(provides, gap);
   const kcalFit = fitCurve(candidate.kcal, remaining.macros.kcal.remaining);
   const effort = effortFactor(candidate.distanceM);
-  const confidenceFactor = CONFIDENCE_FACTOR[candidate.confidence] ?? 0.7;
+  const confidenceFactor = confidenceFactorFor(candidate);
   const { overflow, warns } = overflowOf(provides, remaining);
 
-  const score = gain * kcalFit * effort * confidenceFactor - CEILING_WEIGHT * overflow;
+  // Budget joins the multiplier chain for the same reason calorie fit does: as
+  // an additive term it would be out-argued by a large nutrient gain, and a $45
+  // steak would win a $15 budget.
+  const budgetFit = budgetFactor(candidate.price, opts.budgetCents ?? null);
+  // Recency is a penalty, never a filter — yesterday's best answer can still be
+  // today's, it just has to win by more.
+  const variety = opts.history?.length
+    ? varietyFactor(candidate.id, opts.history, opts.now ?? new Date())
+    : 1;
+
+  const score =
+    gain * kcalFit * effort * confidenceFactor * budgetFit * variety - CEILING_WEIGHT * overflow;
 
   return {
     ...candidate,
@@ -421,7 +465,9 @@ export function scoreCandidate(
     kcalFit: round3(kcalFit),
     effort: round3(effort),
     overflow: round3(overflow),
-    confidenceFactor,
+    confidenceFactor: round3(confidenceFactor),
+    budgetFit: round3(budgetFit),
+    variety: round3(variety),
     closes: closeLinesFor(provides, gap),
     warns,
   };
@@ -448,13 +494,28 @@ export function diversify(
 ): RankedCandidate[] {
   const seen = new Set<string>();
   const picked: RankedCandidate[] = [];
+  const pickedVenues: Array<string | null | undefined> = [];
 
-  for (const c of ranked) {
-    const sig = signatureOf(c);
-    if (seen.has(sig)) continue;
-    seen.add(sig);
-    picked.push(c);
-    if (picked.length >= limit) break;
+  // Venue spread is applied HERE rather than in scoreCandidate because it
+  // depends on what has already been chosen, which is not knowable while
+  // scoring each candidate independently. Without it, distance decay makes the
+  // single nearest grocer win every ingredient and the list reads as one shop's
+  // inventory instead of a set of real choices.
+  const remainingPool = [...ranked];
+  while (picked.length < limit && remainingPool.length > 0) {
+    let bestIdx = -1;
+    let bestScore = -Infinity;
+    for (let i = 0; i < remainingPool.length; i++) {
+      const c = remainingPool[i];
+      if (seen.has(signatureOf(c))) continue;
+      const adjusted = c.score * venueSpreadFactor(c.placeKey, pickedVenues);
+      if (adjusted > bestScore) { bestScore = adjusted; bestIdx = i; }
+    }
+    if (bestIdx < 0) break;
+    const [chosen] = remainingPool.splice(bestIdx, 1);
+    seen.add(signatureOf(chosen));
+    picked.push(chosen);
+    pickedVenues.push(chosen.placeKey);
   }
 
   if (guaranteeBothKinds && picked.length >= 2) {
@@ -474,6 +535,12 @@ export interface RankOptions {
   limit?: number;
   /** Skip the both-kinds guarantee when the caller asked for a single path. */
   guaranteeBothKinds?: boolean;
+  /** Per-outing budget in minor units. Null/absent disables budget scoring. */
+  budgetCents?: number | null;
+  /** What this user has already been shown, for the recency penalty. */
+  history?: ShownRecord[];
+  /** Injectable clock, for deterministic tests. */
+  now?: Date;
 }
 
 export interface RankResult {
@@ -497,7 +564,11 @@ export function rankCandidates(
   if (gap.size === 0) return { arbitration, results: [] };
 
   const scored = candidates
-    .map(c => scoreCandidate(c, gap, remaining, arbitration))
+    .map(c => scoreCandidate(c, gap, remaining, arbitration, {
+      budgetCents: opts.budgetCents ?? null,
+      history: opts.history,
+      now: opts.now,
+    }))
     .filter(c => c.score > 0)
     .sort((a, b) => b.score - a.score);
 

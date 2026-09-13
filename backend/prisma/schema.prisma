@@ -8,165 +8,181 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(uuid())
-  heightCm            Float?
-  weightKg            Float?
+  id                              String                  @id @default(uuid())
+  heightCm                        Float?
+  weightKg                        Float?
   // Display-unit preference for body/lift weights: "imperial" (lbs) or
   // "metric" (kg). Storage is ALWAYS canonical kg regardless of this; clients
   // convert at the edges and the server formats LLM/notification copy with it.
   // Defaults to imperial (US-first); set to metric at signup when we detect an
   // EU/metric locale, and user-overridable in Settings.
-  unitPreference      String            @default("imperial")
+  unitPreference                  String                  @default("imperial")
   // Which food-composition data and prompt vocabulary to use when logging
   // meals: "global" (USDA-first, US portion anchors) | "ng" | "gm" | "wa".
   // USDA has near-zero coverage of West African foods, so a Nigerian user on
   // the default would get pure LLM guesswork for egusi soup. Detected from
   // locale at signup where available, and user-overridable in Settings.
-  foodRegion          String            @default("global")
-  bodyCompTag         String?
-  trainingAge         String?
-  equipment           String?
-  constraintsText     String?
-  createdAt           DateTime          @default(now())
-  name                String?
-  email               String?           @unique
-  hashedPassword      String?
-  googleId            String?           @unique
-  appleId             String?           @unique
+  foodRegion                      String                  @default("global")
+  // Food Finder hard filters. JSON string arrays, all optional.
+  // These are FILTERS, never ranking weights: a recommendation that violates an
+  // allergy is not a worse suggestion, it is a dangerous one. Empty/null means
+  // "no restriction" — we never infer a restriction the user did not state.
+  //   dietaryRestrictions: ["vegetarian","vegan","halal","kosher","pescatarian","no-pork","no-beef","gluten-free","dairy-free"]
+  //   allergies:           ["peanut","tree-nut","shellfish","fish","egg","soy","sesame","wheat","milk"]
+  //   dislikedFoods:       free-form folded names the user never wants suggested
+  dietaryRestrictions             String?
+  allergies                       String?
+  dislikedFoods                   String?
+  // Default per-outing spend for the Food Finder, in minor units of
+  // budgetCurrency (cents/pence). Null = no budget expressed; the finder then
+  // ranks on nutrition and distance alone rather than inventing a ceiling.
+  budgetCents                     Int?
+  budgetCurrency                  String?
+  bodyCompTag                     String?
+  trainingAge                     String?
+  equipment                       String?
+  constraintsText                 String?
+  createdAt                       DateTime                @default(now())
+  name                            String?
+  email                           String?                 @unique
+  hashedPassword                  String?
+  googleId                        String?                 @unique
+  appleId                         String?                 @unique
   // True for OAuth signups (Google/Apple confirm the email for us) and for
   // email+password signups that have entered the 6-digit OTP we mail them.
   // Existing rows are grandfathered to true so they aren't locked out.
-  emailVerified       Boolean           @default(false)
-  emailVerifiedAt     DateTime?
-  dateOfBirth         DateTime?
-  tier                        String            @default("free")
-  stripeCustomerId            String?
-  stripeSubStatus             String?
-  appleOriginalTransactionId  String?           @unique
+  emailVerified                   Boolean                 @default(false)
+  emailVerifiedAt                 DateTime?
+  dateOfBirth                     DateTime?
+  tier                            String                  @default("free")
+  stripeCustomerId                String?
+  stripeSubStatus                 String?
+  appleOriginalTransactionId      String?                 @unique
   // Google Play subscription tracking. purchaseToken is the long opaque string
   // returned by Play Billing; productId pins the SKU so renewals can be matched
   // against the right plan if we ever sell multiple products.
-  googlePurchaseToken         String?           @unique
-  googleProductId             String?
-  googleSubExpiresAt          DateTime?
-  dailyAnalysisCount  Int               @default(0)
-  dailyAnalysisDate   DateTime?
-  dailyPhotoScanCount Int               @default(0)
-  dailyPhotoScanDate  String?
+  googlePurchaseToken             String?                 @unique
+  googleProductId                 String?
+  googleSubExpiresAt              DateTime?
+  dailyAnalysisCount              Int                     @default(0)
+  dailyAnalysisDate               DateTime?
+  dailyPhotoScanCount             Int                     @default(0)
+  dailyPhotoScanDate              String?
   // Agentic Anakin per-day usage (cost control). Mirrors the analysis
   // counter pattern. agentic-main only; additive.
-  agentTurnsCount     Int               @default(0)
-  agentTurnsDate      DateTime?
-  coachThreadId       String?
-  savedProgram        String?
+  agentTurnsCount                 Int                     @default(0)
+  agentTurnsDate                  DateTime?
+  coachThreadId                   String?
+  savedProgram                    String?
   // Last generated-but-unsaved program (POST /coach/program output). The
   // client only persists via PUT /coach/program after the reveal→walkthrough
   // Save tap; abandoning there used to lose the generation entirely. The
   // rescue sweep promotes a stale draft to savedProgram instead of paying
   // for a fresh LLM generation. Cleared on save.
-  draftProgram        String?
-  draftProgramAt      DateTime?
-  coachGoal           String?
-  coachBudget         String?
-  coachOnboardingDone Boolean           @default(false)
-  updatedAt           DateTime          @default(now()) @updatedAt
-  coachProfile        String?
-  programStartDate    DateTime?
-  expoPushToken       String?
-  reengagementOptOut  Boolean           @default(false)
+  draftProgram                    String?
+  draftProgramAt                  DateTime?
+  coachGoal                       String?
+  coachBudget                     String?
+  coachOnboardingDone             Boolean                 @default(false)
+  updatedAt                       DateTime                @default(now()) @updatedAt
+  coachProfile                    String?
+  programStartDate                DateTime?
+  expoPushToken                   String?
+  reengagementOptOut              Boolean                 @default(false)
   /// Set once the one-time welcome email has been sent (or deliberately skipped).
-  welcomeEmailSentAt  DateTime?
+  welcomeEmailSentAt              DateTime?
   /// True after the user clicks the unsubscribe link in a blog/update email.
   /// Transactional mail (verification codes, welcome) is unaffected.
-  marketingEmailsOptOut Boolean         @default(false)
-  lastActiveAt        DateTime?
-  lastWorkoutNudgeAt  DateTime?
-  lastNutritionNudgeAt DateTime?
-  lastInactivityNudgeAt DateTime?
-  currentStreak       Int               @default(0)
-  longestStreak       Int               @default(0)
-  lastWorkoutDate     String?
+  marketingEmailsOptOut           Boolean                 @default(false)
+  lastActiveAt                    DateTime?
+  lastWorkoutNudgeAt              DateTime?
+  lastNutritionNudgeAt            DateTime?
+  lastInactivityNudgeAt           DateTime?
+  currentStreak                   Int                     @default(0)
+  longestStreak                   Int                     @default(0)
+  lastWorkoutDate                 String?
   // Nutrition logging streak — separate from workout streak so loss-aversion
   // signals are clear about *which* habit is at risk.
-  nutritionStreak           Int      @default(0)
-  longestNutritionStreak    Int      @default(0)
-  lastNutritionLogDate      String?
+  nutritionStreak                 Int                     @default(0)
+  longestNutritionStreak          Int                     @default(0)
+  lastNutritionLogDate            String?
   // Streak protection: 1 freeze granted per 7 logged days of either kind, max 2.
   // Consumed on a single-day miss before resetting the streak.
-  streakFreezes             Int      @default(0)
+  streakFreezes                   Int                     @default(0)
   // Personalize at-risk push timing — exponentially-smoothed hour-of-day (0-23 EST)
-  typicalWorkoutLogHour     Int?
-  typicalNutritionLogHour   Int?
+  typicalWorkoutLogHour           Int?
+  typicalNutritionLogHour         Int?
   // Subtract workout calorie burn from the day's calorie target. Default on.
   // Users whose nutrition plan already assumes a high activity multiplier can
   // turn this off in Settings to avoid double-counting their training.
-  subtractWorkoutBurnFromCalories Boolean @default(true)
+  subtractWorkoutBurnFromCalories Boolean                 @default(true)
   // Track when we last sent each kind of streak-reinforcement notification so
   // we don't spam the user (one per kind per day max).
-  lastStreakAtRiskAt        DateTime?
-  lastSurpriseRewardAt      DateTime?
-  username            String?           @unique
-  avatarBase64        String?
-  dailyCalorieTarget  Float?            // user-declared calorie target (overrides TDEE-computed)
-  bodyWeightLogs           BodyWeightLog[]
-  mealEntries              MealEntry[]
-  savedFoods               SavedFood[]
-  recipes                  Recipe[]
-  nutritionPlans           NutritionPlan[]
-  nutritionLogs            NutritionLog[]
-  sessions                 Session[]
-  wellnessCheckins         WellnessCheckin[]
-  workoutLogs              WorkoutLog[]
-  adaptationProposals      AdaptationProposal[]
-  scheduleOverrides        ScheduleOverride[]
-  activityLogs             ActivityLog[]
+  lastStreakAtRiskAt              DateTime?
+  lastSurpriseRewardAt            DateTime?
+  username                        String?                 @unique
+  avatarBase64                    String?
+  dailyCalorieTarget              Float? // user-declared calorie target (overrides TDEE-computed)
+  bodyWeightLogs                  BodyWeightLog[]
+  mealEntries                     MealEntry[]
+  savedFoods                      SavedFood[]
+  recipes                         Recipe[]
+  nutritionPlans                  NutritionPlan[]
+  nutritionLogs                   NutritionLog[]
+  sessions                        Session[]
+  wellnessCheckins                WellnessCheckin[]
+  workoutLogs                     WorkoutLog[]
+  adaptationProposals             AdaptationProposal[]
+  scheduleOverrides               ScheduleOverride[]
+  activityLogs                    ActivityLog[]
   // Social
-  sentFriendRequests       Friendship[]          @relation("SentRequests")
-  receivedFriendRequests   Friendship[]          @relation("ReceivedRequests")
-  conversationsAsA         DirectConversation[]  @relation("ConversationsAsA")
-  conversationsAsB         DirectConversation[]  @relation("ConversationsAsB")
-  sentMessages             Message[]             @relation("SentMessages")
-  sharedByMe               SharedItem[]          @relation("SharedByMe")
-  sharedWithMe             SharedItem[]          @relation("SharedWithMe")
-  postReactions            PostReaction[]        @relation("UserReactions")
-  postComments             PostComment[]         @relation("UserComments")
-  invitesSent              UserInvite[]          @relation("InvitesSent")
-  inviteUsed               UserInvite?           @relation("InviteUsed")
-  feedViews                UserFeedView[]
-  savedArticles            SavedArticle[]
-  agentMemory              AgentMemory?
-  agentConversation        AgentConversation?
+  sentFriendRequests              Friendship[]            @relation("SentRequests")
+  receivedFriendRequests          Friendship[]            @relation("ReceivedRequests")
+  conversationsAsA                DirectConversation[]    @relation("ConversationsAsA")
+  conversationsAsB                DirectConversation[]    @relation("ConversationsAsB")
+  sentMessages                    Message[]               @relation("SentMessages")
+  sharedByMe                      SharedItem[]            @relation("SharedByMe")
+  sharedWithMe                    SharedItem[]            @relation("SharedWithMe")
+  postReactions                   PostReaction[]          @relation("UserReactions")
+  postComments                    PostComment[]           @relation("UserComments")
+  invitesSent                     UserInvite[]            @relation("InvitesSent")
+  inviteUsed                      UserInvite?             @relation("InviteUsed")
+  feedViews                       UserFeedView[]
+  savedArticles                   SavedArticle[]
+  agentMemory                     AgentMemory?
+  agentConversation               AgentConversation?
   // Group chats (#4)
-  groupsCreated            GroupChat[]    @relation("GroupCreator")
-  groupMemberships         GroupMember[]  @relation("GroupMemberships")
-  groupMessagesSent        GroupMessage[] @relation("GroupMessagesSent")
+  groupsCreated                   GroupChat[]             @relation("GroupCreator")
+  groupMemberships                GroupMember[]           @relation("GroupMemberships")
+  groupMessagesSent               GroupMessage[]          @relation("GroupMessagesSent")
   // Finished-programs archive — populated when a program is replaced by a new
   // one (or when the user explicitly archives), so users can see their full
   // training history with stats.
-  completedPrograms        CompletedProgram[]
+  completedPrograms               CompletedProgram[]
   // Which free-tier feature the user picked first on the onboarding selector
   // (lift_diagnostic | form_video | meal_photo). Drives default landing and
   // is captured for funnel analytics.
-  firstFeatureChoice       String?
+  firstFeatureChoice              String?
   // Generic per-day quota counters, one row per (userId, feature, day).
   // Used for AI-cost-heavy free-tier features (currently form_video; meal
   // logging + lift diagnostic still use their dedicated User counters). Pro
   // tier bypasses these entirely.
-  featureUsage             FeatureUsage[]
+  featureUsage                    FeatureUsage[]
   // Stored workout-form video analyses so users can revisit past critiques.
-  formAnalyses             FormAnalysis[]
-  referredByCode           String?
+  formAnalyses                    FormAnalysis[]
+  referredByCode                  String?
   // Institution
-  institutionMemberships   InstitutionMember[]
+  institutionMemberships          InstitutionMember[]
   // Train Together: consent flag — friends can see this user's training
   // calendar (session types + rest days only) in the overlap finder. Off by
   // default; the finder returns nothing for users who haven't opted in.
-  scheduleSharing          Boolean           @default(false)
+  scheduleSharing                 Boolean                 @default(false)
   // Short split label derived from savedProgram at save time (PPL, UL, FB,
   // Arnold, Bro, ...). Display-only context for the overlap calendar header.
-  splitLabel               String?
-  partnerWorkoutsCreated   PartnerWorkout[]       @relation("PartnerWorkoutsCreated")
-  partnerWorkoutMembers    PartnerWorkoutMember[] @relation("PartnerWorkoutMemberships")
+  splitLabel                      String?
+  partnerWorkoutsCreated          PartnerWorkout[]        @relation("PartnerWorkoutsCreated")
+  partnerWorkoutMembers           PartnerWorkoutMember[]  @relation("PartnerWorkoutMemberships")
+  foodRecLogs                     FoodRecommendationLog[]
 }
 
 // ─── Train Together ───────────────────────────────────────────────────────────
@@ -176,41 +192,41 @@ model User {
 // (a member's schedule for that date drifted after pinning; members re-confirm
 // or cancel) / cancelled. Past pins are resolved by date at read time.
 model PartnerWorkout {
-  id          String                 @id @default(uuid())
-  date        String                 // YYYY-MM-DD (EST), matches ScheduleOverride convention
-  creatorId   String
-  note        String?                // free text: time/place ("6pm at Crunch")
-  status      String                 @default("pending")
+  id                String                 @id @default(uuid())
+  date              String // YYYY-MM-DD (EST), matches ScheduleOverride convention
+  creatorId         String
+  note              String? // free text: time/place ("6pm at Crunch")
+  status            String                 @default("pending")
   // Match tier at pin time (exact|strong|flexible|none) — the premise the pin
   // was made on; the pin-break watcher compares the recomputed tier to this.
-  pinnedTier  String
+  pinnedTier        String
   // "Build us a shared workout" (spec §10): one generated session that fits
   // every member, plus per-member fit explanations. Generated once on demand.
   sharedSessionJson String?
-  sharedFitJson     String?          // { [userId]: [{heading, body} x3] }
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @default(now()) @updatedAt
-  creator     User                   @relation("PartnerWorkoutsCreated", fields: [creatorId], references: [id])
-  members     PartnerWorkoutMember[]
+  sharedFitJson     String? // { [userId]: [{heading, body} x3] }
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @default(now()) @updatedAt
+  creator           User                   @relation("PartnerWorkoutsCreated", fields: [creatorId], references: [id])
+  members           PartnerWorkoutMember[]
 
   @@index([date])
   @@index([creatorId])
 }
 
 model PartnerWorkoutMember {
-  id        String         @id @default(uuid())
-  workoutId String
-  userId    String
+  id                String         @id @default(uuid())
+  workoutId         String
+  userId            String
   // pending | accepted | declined. The creator's row is auto-accepted.
-  response  String         @default("pending")
+  response          String         @default("pending")
   // Shared-session response: none | accepted | declined. Accepting writes a
   // ScheduleOverride for THIS member on the pin date only; declining changes
   // nothing — the pin stands.
-  sharedResponse    String    @default("none")
+  sharedResponse    String         @default("none")
   sharedRespondedAt DateTime?
-  createdAt DateTime       @default(now())
-  workout   PartnerWorkout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
-  user      User           @relation("PartnerWorkoutMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime       @default(now())
+  workout           PartnerWorkout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  user              User           @relation("PartnerWorkoutMemberships", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([workoutId, userId])
   @@index([userId])
@@ -233,38 +249,38 @@ model NutritionLog {
 }
 
 model MealEntry {
-  id        String   @id @default(uuid())
-  userId    String
-  date      String
-  name      String
-  mealType  String   @default("meal")
-  calories  Float    @default(0)
-  proteinG  Float    @default(0)
-  carbsG    Float    @default(0)
-  fatG      Float    @default(0)
-  ingredientsJson String?
-  tagsJson        String?
-  nutrientsJson   String?
+  id                      String   @id @default(uuid())
+  userId                  String
+  date                    String
+  name                    String
+  mealType                String   @default("meal")
+  calories                Float    @default(0)
+  proteinG                Float    @default(0)
+  carbsG                  Float    @default(0)
+  fatG                    Float    @default(0)
+  ingredientsJson         String?
+  tagsJson                String?
+  nutrientsJson           String?
   // OPEN nutrient vector: { [nutrientKey]: amount } with no fixed key set — the
   // Nutrition Profile effects engine reads this, not the legacy nutrientsJson.
-  nutrientMapJson String?
+  nutrientMapJson         String?
   // Per-ingredient open nutrient vectors: [{ name, nutrients:{key:amt} }].
   // Powers the Meal Breakdown "what each ingredient carries" subscreen.
   ingredientNutrientsJson String?
   // Gut-pillar fields (gut-health feature) — parse-time estimates.
-  plantsJson      String?
-  fermentedJson   String?
-  ultraProcessed  Boolean  @default(false)
-  source          String   @default("manual")
-  parseConfidence String?
-  notes     String?
+  plantsJson              String?
+  fermentedJson           String?
+  ultraProcessed          Boolean  @default(false)
+  source                  String   @default("manual")
+  parseConfidence         String?
+  notes                   String?
   // Provenance link when this entry was logged from a saved recipe. SetNull so
   // deleting a recipe never erases log history (entries are snapshots).
-  recipeId  String?
-  servings  Float?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  recipeId                String?
+  servings                Float?
+  createdAt               DateTime @default(now())
+  user                    User     @relation(fields: [userId], references: [id])
+  recipe                  Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
 }
@@ -275,23 +291,23 @@ model MealEntry {
 // re-sum itemsJson. Logging a recipe snapshots macros into MealEntry, so
 // editing a recipe never rewrites past logs.
 model Recipe {
-  id            String   @id @default(uuid())
+  id            String      @id @default(uuid())
   userId        String
   name          String
-  servings      Float    @default(1)
+  servings      Float       @default(1)
   // [{ name, quantity?, calories, proteinG, carbsG, fatG }] — quantities are
   // free text ("2 lbs", "1 can"); macros are per-ingredient whole-recipe totals.
   itemsJson     String
   // Per-serving denormalized totals:
-  calories      Float    @default(0)
-  proteinG      Float    @default(0)
-  carbsG        Float    @default(0)
-  fatG          Float    @default(0)
+  calories      Float       @default(0)
+  proteinG      Float       @default(0)
+  carbsG        Float       @default(0)
+  fatG          Float       @default(0)
   nutrientsJson String?
-  useCount      Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  useCount      Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   mealEntries   MealEntry[]
 
   @@index([userId, useCount])
@@ -333,38 +349,39 @@ model SavedFood {
 // log dishes. Without the dish layer "egusi soup" resolves to "egusi seed, raw"
 // at ~590 kcal/100 g and the calorie-to-grams estimate goes badly wrong.
 model FoodComposition {
-  id                String   @id @default(uuid())
+  id                String        @id @default(uuid())
   // (source, sourceCode) is the idempotency key: an ingest run replaces its own
   // source wholesale and never touches another's.
-  source            String   // "FAO_INFOODS_WA_2019" | "NG_FCT_2017" | "CURATED_DISH_V1"
-  sourceCode        String   // FAO food code, or a slug for curated dishes
-  region            String   @default("WA") // "WA" | "NG" | "GM" | "GLOBAL"
+  source            String // "FAO_INFOODS_WA_2019" | "NG_FCT_2017" | "CURATED_DISH_V1"
+  sourceCode        String // FAO food code, or a slug for curated dishes
+  region            String        @default("WA") // "WA" | "NG" | "GM" | "GLOBAL"
   name              String
   // Diacritic-folded, lowercased search key (Ẹ̀bà → "eba"). Queries must be
   // folded too — Prisma `contains` on SQLite is case-SENSITIVE.
   foldedName        String
-  foodGroup         String?  // "cereals" | "roots-tubers" | "legumes" | "oils" | "composite-dish" …
-  preparation       String?  // "raw" | "boiled" | "fried" | "fermented" | "dried" | "as-consumed"
-  isComposite       Boolean  @default(false)
+  foodGroup         String? // "cereals" | "roots-tubers" | "legumes" | "oils" | "composite-dish" …
+  preparation       String? // "raw" | "boiled" | "fried" | "fermented" | "dried" | "as-consumed"
+  isComposite       Boolean       @default(false)
   // FAO's refuse/inedible percentage. Stored for portion math ("half a tuber of
   // yam" is gross weight) — NOT applied to the per-100 g values below, which are
   // already edible-portion.
   edibleFractionPct Float?
-  caloriesPer100g   Float    @default(0)
-  proteinG          Float    @default(0)
-  carbsG            Float    @default(0)
-  fatG              Float    @default(0)
+  caloriesPer100g   Float         @default(0)
+  proteinG          Float         @default(0)
+  carbsG            Float         @default(0)
+  fatG              Float         @default(0)
   // Open nutrient vector, same convention as SavedFood.nutrientsJson — keeps the
   // 18 Micronutrients keys plus FAO extras (retinolMcg, thiaminMg, phytateMg)
   // without adding 30 columns. A key is OMITTED when the source is blank;
   // writing 0 would corrupt hasUsableMicros() and the enrichment blend.
   nutrientsJson     String?
-  dataQuality       String   @default("analysed") // "analysed" | "borrowed" | "calculated" | "estimated"
+  dataQuality       String        @default("analysed") // "analysed" | "borrowed" | "calculated" | "estimated"
   notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @default(now()) @updatedAt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now()) @updatedAt
   aliases           FoodAlias[]
   portions          FoodPortion[]
+  menuItems         MenuItem[]
 
   @@unique([source, sourceCode])
   @@index([foldedName])
@@ -392,12 +409,12 @@ model FoodAlias {
 model FoodPortion {
   id          String          @id @default(uuid())
   foodId      String
-  label       String          // "wrap" | "derica cup" | "mudu" | "ladle" | "half tuber"
+  label       String // "wrap" | "derica cup" | "mudu" | "ladle" | "half tuber"
   foldedLabel String
   grams       Float
   region      String          @default("WA")
   isDefault   Boolean         @default(false)
-  note        String?         // "street-vendor wrap, Lagos, ~180 g"
+  note        String? // "street-vendor wrap, Lagos, ~180 g"
   food        FoodComposition @relation(fields: [foodId], references: [id], onDelete: Cascade)
 
   @@index([foodId])
@@ -513,16 +530,16 @@ model DiagnosticMessage {
 // DB leak doesn't hand attackers a working code. Expired/used rows are
 // kept briefly for audit; a periodic cleanup can prune them.
 model EmailVerificationCode {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  codeHash     String
-  expiresAt    DateTime
-  attempts     Int      @default(0)
+  id         String    @id @default(uuid())
+  email      String    @unique
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
   // Soft cap so we don't spam users — last send time is checked before a
   // resend; the route enforces a 60s cooldown.
-  lastSentAt   DateTime @default(now())
-  consumedAt   DateTime?
-  createdAt    DateTime @default(now())
+  lastSentAt DateTime  @default(now())
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
 
   @@index([email])
 }
@@ -543,8 +560,8 @@ model GeneratedPlan {
 model FeatureUsage {
   id        String   @id @default(uuid())
   userId    String
-  feature   String   // e.g. "form_video", "meal_photo", "lift_diagnostic"
-  day       String   // YYYY-MM-DD UTC
+  feature   String // e.g. "form_video", "meal_photo", "lift_diagnostic"
+  day       String // YYYY-MM-DD UTC
   count     Int      @default(0)
   updatedAt DateTime @default(now()) @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -566,11 +583,11 @@ model FormAnalysis {
   id           String   @id @default(uuid())
   userId       String
   status       String   @default("complete") // 'pending' | 'complete' | 'failed'
-  errorMessage String?  // populated when status='failed'
-  exercise     String   // detected lift, e.g. "Back squat" (or "unknown" / "pending")
-  formScore    Float?   // holistic 1-10, null when exercise couldn't be read
+  errorMessage String? // populated when status='failed'
+  exercise     String // detected lift, e.g. "Back squat" (or "unknown" / "pending")
+  formScore    Float? // holistic 1-10, null when exercise couldn't be read
   repCount     Int?
-  exerciseHint String?  // what the user said they were doing, if provided
+  exerciseHint String? // what the user said they were doing, if provided
   // Full WorkoutVideoAnalysis JSON (strengths, weaknesses, drills, etc.)
   // serialized — SQLite has no JSON column type so we store a string.
   // Populated when status='complete'; '{}' while pending.
@@ -590,30 +607,30 @@ model FormAnalysis {
 // volume, body-weight change, days active, etc.) so the screen can render
 // without re-querying every related log.
 model CompletedProgram {
-  id             String   @id @default(uuid())
-  userId         String
-  programJson    String   // the saved program at archival
-  startDate      DateTime
-  endDate        DateTime @default(now())
-  goal           String?
-  durationWeeks  Int?
-  daysPerWeek    Int?
-  stats          String?  // JSON: { workoutsLogged, totalVolumeLb, bodyWeightStart, ... }
-  reason         String?  // 'replaced' | 'completed' — why it was archived
-  createdAt      DateTime @default(now())
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  userId        String
+  programJson   String // the saved program at archival
+  startDate     DateTime
+  endDate       DateTime @default(now())
+  goal          String?
+  durationWeeks Int?
+  daysPerWeek   Int?
+  stats         String? // JSON: { workoutsLogged, totalVolumeLb, bodyWeightStart, ... }
+  reason        String? // 'replaced' | 'completed' — why it was archived
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, endDate])
 }
 
 model WorkoutLog {
-  id        String   @id @default(uuid())
-  userId    String
-  date      String
-  title     String?
-  exercises String
-  notes     String?
-  duration  Int?
+  id                 String   @id @default(uuid())
+  userId             String
+  date               String
+  title              String?
+  exercises          String
+  notes              String?
+  duration           Int?
   // Estimated kcal burned for the session. Computed server-side at log time
   // from exercises + the user's bodyweight (MET × kg × hours). Nullable so
   // pre-migration rows stay valid.
@@ -622,10 +639,10 @@ model WorkoutLog {
   // {"phaseIndex","dayIndex","weekNumber","day"}. Set by the client when the
   // log was opened from a program session; null for ad-hoc workouts. This is
   // the planned-vs-actual link the adaptation engine scores against.
-  programDayRef String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  programDayRef      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
+  user               User     @relation(fields: [userId], references: [id])
 
   // Hot read paths: strength-profile, agent read_recent_workouts, today's
   // burn computation, history. All scope by userId and order/window on
@@ -679,11 +696,12 @@ model AdaptationProposal {
 model ScheduleOverride {
   id          String   @id @default(uuid())
   userId      String
-  date        String   // YYYY-MM-DD (EST)
-  sessionJson String?  // serialized ProgramDay; null = rest day
+  date        String // YYYY-MM-DD (EST)
+  sessionJson String? // serialized ProgramDay; null = rest day
   reason      String?
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
+
   @@unique([userId, date])
   @@index([userId, date])
 }
@@ -711,13 +729,13 @@ model Affiliate {
   id              String                @id @default(uuid())
   name            String
   email           String                @unique
-  referralCode    String                @unique   // e.g. "JAAFAR30" — used in ?ref= links
-  stripeAccountId String?               @unique   // Stripe Connect acct_xxx
-  onboarded       Boolean               @default(false)  // completed Stripe Connect onboarding
-  active          Boolean               @default(false)  // admin activates after onboarding
-  commissionRate  Float                 @default(0.40)   // 40% of the pre-discount price
-  discountRate    Float                 @default(0.20)   // 20% off for referred users
-  inviteToken     String?               @unique   // one-time setup link token
+  referralCode    String                @unique // e.g. "JAAFAR30" — used in ?ref= links
+  stripeAccountId String?               @unique // Stripe Connect acct_xxx
+  onboarded       Boolean               @default(false) // completed Stripe Connect onboarding
+  active          Boolean               @default(false) // admin activates after onboarding
+  commissionRate  Float                 @default(0.40) // 40% of the pre-discount price
+  discountRate    Float                 @default(0.20) // 20% off for referred users
+  inviteToken     String?               @unique // one-time setup link token
   inviteUsedAt    DateTime?
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @default(now()) @updatedAt
@@ -729,12 +747,12 @@ model AffiliateCommission {
   id                   String           @id @default(uuid())
   affiliateId          String
   stripeSubscriptionId String
-  stripeInvoiceId      String           @unique   // idempotency — one commission per invoice
+  stripeInvoiceId      String           @unique // idempotency — one commission per invoice
   stripeCustomerId     String
-  originalAmountCents  Int              // price before discount
-  commissionCents      Int              // commissionRate × original
+  originalAmountCents  Int // price before discount
+  commissionCents      Int // commissionRate × original
   currency             String           @default("cad")
-  status               String           @default("pending")  // pending | paid | cancelled
+  status               String           @default("pending") // pending | paid | cancelled
   payoutId             String?
   createdAt            DateTime         @default(now())
   affiliate            Affiliate        @relation(fields: [affiliateId], references: [id])
@@ -749,7 +767,7 @@ model AffiliatePayout {
   currency         String                @default("cad")
   periodStart      DateTime
   periodEnd        DateTime
-  status           String                @default("pending")  // pending | completed | failed
+  status           String                @default("pending") // pending | completed | failed
   createdAt        DateTime              @default(now())
   affiliate        Affiliate             @relation(fields: [affiliateId], references: [id])
   commissions      AffiliateCommission[]
@@ -764,8 +782,9 @@ model Friendship {
   status      String   @default("pending")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
-  requester   User     @relation("SentRequests",     fields: [requesterId], references: [id])
+  requester   User     @relation("SentRequests", fields: [requesterId], references: [id])
   addressee   User     @relation("ReceivedRequests", fields: [addresseeId], references: [id])
+
   @@unique([requesterId, addresseeId])
   @@index([addresseeId])
 }
@@ -779,6 +798,7 @@ model DirectConversation {
   participantA   User      @relation("ConversationsAsA", fields: [participantAId], references: [id])
   participantB   User      @relation("ConversationsAsB", fields: [participantBId], references: [id])
   messages       Message[]
+
   @@unique([participantAId, participantBId])
 }
 
@@ -791,11 +811,12 @@ model Message {
   createdAt      DateTime           @default(now())
   conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User               @relation("SentMessages", fields: [senderId], references: [id])
+
   @@index([conversationId, createdAt])
 }
 
 model SharedItem {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   sharerId    String
   recipientId String
   itemType    String
@@ -806,12 +827,13 @@ model SharedItem {
   // behavior) or "public" (visible to any user on the feed). Only meaningful
   // for broadcast posts (recipientId === sharerId); direct shares stay private
   // to the recipient regardless.
-  visibility  String   @default("friends")
-  createdAt   DateTime @default(now())
-  sharer      User     @relation("SharedByMe",   fields: [sharerId],    references: [id])
-  recipient   User     @relation("SharedWithMe", fields: [recipientId], references: [id])
+  visibility  String         @default("friends")
+  createdAt   DateTime       @default(now())
+  sharer      User           @relation("SharedByMe", fields: [sharerId], references: [id])
+  recipient   User           @relation("SharedWithMe", fields: [recipientId], references: [id])
   reactions   PostReaction[]
   comments    PostComment[]
+
   @@index([recipientId, createdAt])
   @@index([visibility, createdAt])
 }
@@ -822,8 +844,9 @@ model PostReaction {
   userId    String
   type      String     @default("heart")
   createdAt DateTime   @default(now())
-  post      SharedItem @relation(fields: [postId],  references: [id], onDelete: Cascade)
+  post      SharedItem @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User       @relation("UserReactions", fields: [userId], references: [id])
+
   @@unique([postId, userId])
 }
 
@@ -833,25 +856,25 @@ model PostComment {
   authorId  String
   text      String
   createdAt DateTime   @default(now())
-  post      SharedItem @relation(fields: [postId],   references: [id], onDelete: Cascade)
+  post      SharedItem @relation(fields: [postId], references: [id], onDelete: Cascade)
   author    User       @relation("UserComments", fields: [authorId], references: [id])
 }
 
 model UserInvite {
-  code         String   @id @default(uuid())
+  code         String    @id @default(uuid())
   inviterId    String
-  usedByUserId String?  @unique
-  createdAt    DateTime @default(now())
+  usedByUserId String?   @unique
+  createdAt    DateTime  @default(now())
   usedAt       DateTime?
-  inviter      User     @relation("InvitesSent", fields: [inviterId],     references: [id])
-  usedBy       User?    @relation("InviteUsed",  fields: [usedByUserId],  references: [id])
+  inviter      User      @relation("InvitesSent", fields: [inviterId], references: [id])
+  usedBy       User?     @relation("InviteUsed", fields: [usedByUserId], references: [id])
 }
 
 model ActivityLog {
   id        String   @id @default(uuid())
   userId    String
-  date      String   // YYYY-MM-DD
-  type      String   // "workout" | "nutrition" | "wellness" | "analysis"
+  date      String // YYYY-MM-DD
+  type      String // "workout" | "nutrition" | "wellness" | "analysis"
   count     Int      @default(1)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -882,7 +905,8 @@ model InstitutionMember {
   active        Boolean     @default(true)
   joinedAt      DateTime    @default(now())
   institution   Institution @relation(fields: [institutionId], references: [id])
-  user          User        @relation(fields: [userId],        references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+
   @@unique([institutionId, userId])
   @@index([userId])
 }
@@ -904,16 +928,16 @@ model InstitutionInvite {
 // ─── Research / Article Feed Items ───────────────────────────────────────────
 
 model FeedItem {
-  id          String    @id @default(uuid())
-  externalId  String    @unique  // PMID or article URL (dedup key)
-  type        String             // "research" | "article"
+  id          String         @id @default(uuid())
+  externalId  String         @unique // PMID or article URL (dedup key)
+  type        String // "research" | "article"
   title       String
-  summary     String             // GPT-generated plain-English summary
+  summary     String // GPT-generated plain-English summary
   url         String
-  source      String             // "PubMed", "Harvard Health", etc.
-  tags        String             // JSON array e.g. ["strength","fat_loss"]
+  source      String // "PubMed", "Harvard Health", etc.
+  tags        String // JSON array e.g. ["strength","fat_loss"]
   publishedAt DateTime?
-  fetchedAt   DateTime  @default(now())
+  fetchedAt   DateTime       @default(now())
   views       UserFeedView[]
   saves       SavedArticle[]
 
@@ -987,8 +1011,8 @@ model AgentConversation {
 model GroupChat {
   id                 String         @id @default(uuid())
   name               String
-  groupGoal          String?        // optional shared group goal
-  anakinDailyEnabled Boolean        @default(false)  // opt-in daily check-in
+  groupGoal          String? // optional shared group goal
+  anakinDailyEnabled Boolean        @default(false) // opt-in daily check-in
   createdAt          DateTime       @default(now())
   createdById        String
   createdBy          User           @relation("GroupCreator", fields: [createdById], references: [id])
@@ -1000,7 +1024,7 @@ model GroupMember {
   id       String    @id @default(uuid())
   groupId  String
   userId   String
-  goal     String?   // each member's shared workout goal
+  goal     String? // each member's shared workout goal
   joinedAt DateTime  @default(now())
   group    GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user     User      @relation("GroupMemberships", fields: [userId], references: [id], onDelete: Cascade)
@@ -1012,7 +1036,7 @@ model GroupMember {
 model GroupMessage {
   id        String    @id @default(uuid())
   groupId   String
-  senderId  String?   // null = Anakin (system / accountability post)
+  senderId  String? // null = Anakin (system / accountability post)
   text      String
   createdAt DateTime  @default(now())
   group     GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -1031,18 +1055,18 @@ model GroupMessage {
 model PodcastChunk {
   id               String   @id @default(uuid())
   source           String   @default("HubermanLab")
-  subtopic         String   // the subtopic page this episode came from (topic)
-  episodeSlug      String   // hubermanlab.com /episode/<slug> (stable id)
+  subtopic         String // the subtopic page this episode came from (topic)
+  episodeSlug      String // hubermanlab.com /episode/<slug> (stable id)
   episodeTitle     String
-  youtubeId        String?  // for citation deep-links (?t=startSeconds)
-  guestName        String?  // null for solo (Huberman-only) episodes
+  youtubeId        String? // for citation deep-links (?t=startSeconds)
+  guestName        String? // null for solo (Huberman-only) episodes
   guestCredentials String?
-  chapterTitle     String?  // episode chapter the chunk falls in (subtopic)
-  startSeconds     Int?     // approximate; interpolated (page has no per-line ts)
-  speaker          String?  // dominant speaker of the chunk (attribution)
-  content          String   // cleaned, speaker-tagged chunk text
-  contextHeader    String?  // situating prefix embedded with the chunk
-  embedding        String   // JSON number[] (Vertex text-embedding-005, 768-d)
+  chapterTitle     String? // episode chapter the chunk falls in (subtopic)
+  startSeconds     Int? // approximate; interpolated (page has no per-line ts)
+  speaker          String? // dominant speaker of the chunk (attribution)
+  content          String // cleaned, speaker-tagged chunk text
+  contextHeader    String? // situating prefix embedded with the chunk
+  embedding        String // JSON number[] (Vertex text-embedding-005, 768-d)
   embeddingModel   String   @default("text-embedding-005")
   tokenCount       Int      @default(0)
   createdAt        DateTime @default(now())
@@ -1074,16 +1098,16 @@ model NutritionPlan {
 // dynamically by index.ts when present). Declared here so `db push` from this
 // branch can never drop them — see the prod-schema-growth landmine.
 model DailyDigest {
-  id               String    @id @default(uuid())
-  date             String    @unique
+  id               String           @id @default(uuid())
+  date             String           @unique
   metricsJson      String
   digestMarkdown   String
   modelUsed        String
   promptTokens     Int?
   completionTokens Int?
-  sentToTelegram   Boolean   @default(false)
+  sentToTelegram   Boolean          @default(false)
   sentAt           DateTime?
-  createdAt        DateTime  @default(now())
+  createdAt        DateTime         @default(now())
   recommendations  Recommendation[]
 
   @@index([date])
@@ -1148,7 +1172,7 @@ model ContentFlag {
 /// A user-submitted report against content or another user. The queue an
 /// operator works through; `status` drives the 24h takedown SLA.
 model ContentReport {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   reporterId     String
   /// What's being reported: post | comment | message | user | avatar
   targetType     String
@@ -1158,15 +1182,15 @@ model ContentReport {
   reason         String
   details        String?
   /// pending | reviewing | actioned | dismissed
-  status         String   @default("pending")
+  status         String    @default("pending")
   resolvedAt     DateTime?
   resolvedBy     String?
   resolutionNote String?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
+  @@unique([reporterId, targetType, targetId])
   @@index([status, createdAt])
   @@index([reportedUserId])
-  @@unique([reporterId, targetType, targetId])
 }
 
 /// Enforcement state on an account. Separate from User so the moderation
@@ -1189,22 +1213,22 @@ model UserSuspension {
 /// (/admin/blog, ADMIN_EMAILS only); read publicly at /blog and /blog/:slug.
 /// Body is Markdown; readingMinutes is derived at read time, not stored.
 model BlogPost {
-  id          String    @id @default(uuid())
-  slug        String    @unique
-  title       String
-  excerpt     String    @default("")
-  content     String    @default("")
+  id           String    @id @default(uuid())
+  slug         String    @unique
+  title        String
+  excerpt      String    @default("")
+  content      String    @default("")
   /// Free-text label shown as the post's pill, e.g. "Update", "Product", "Training"
-  category    String    @default("Update")
-  published   Boolean   @default(false)
+  category     String    @default("Update")
+  published    Boolean   @default(false)
   /// Set the first time a post is published; drives public ordering.
-  publishedAt DateTime?
-  authorEmail String?
+  publishedAt  DateTime?
+  authorEmail  String?
   /// When the post was emailed to all opted-in users (once per post).
-  emailedAt   DateTime?
-  emailedCount Int      @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+  emailedAt    DateTime?
+  emailedCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
 
   @@index([published, publishedAt])
 }
@@ -1222,4 +1246,158 @@ model BlogSubscriber {
   /// Set when they click unsubscribe; never emailed again unless cleared.
   unsubscribedAt DateTime?
   createdAt      DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Food Finder corpus.
+//
+// Everything below is WORLD data, not user data: it is shared across every user
+// in a metro, written only by offline acquisition jobs, and read-only in the
+// request path. That is what makes the hot path cheap — one fetch of a corner
+// serves everyone who stands on it.
+//
+// Nutrition itself is NOT duplicated here. A menu item with a published
+// nutrition table is a FoodComposition row like any other (source =
+// "CHAIN_<SLUG>_<YEAR>"); MenuItem points at it. Only when nutrition is
+// model-inferred rather than published does MenuItem carry its own macros.
+// ---------------------------------------------------------------------------
+
+/// A physical place, cached from the Places API so that ranking never waits on it.
+model FoodPlace {
+  id            String     @id @default(uuid())
+  /// Google Places resource id — the join key to every live lookup.
+  placeId       String     @unique
+  name          String
+  foldedName    String
+  lat           Float
+  lng           Float
+  primaryType   String?
+  /// JSON array of raw Places types, kept for re-classification without a refetch.
+  typesJson     String?
+  /// "grocery" | "specialty" | "restaurant" — our classification, not Google's.
+  /// Google tags coffee shops and petrol stations as food_store, so primaryType
+  /// is gated through a genuine-retailer check before it lands here.
+  kind          String
+  /// PRICE_LEVEL_* from Places. A coarse tier, used to scale staple prices.
+  priceLevel    String?
+  websiteUri    String?
+  /// Set when this place is a branch of a known chain, so it inherits the brand menu.
+  brandId       String?
+  /// Coarse locality label ("toronto-on-ca") for price-table lookup.
+  metro         String?
+  /// Null until the menu pipeline has looked; distinguishes "no menu" from "not yet tried".
+  menuFetchedAt DateTime?
+  /// Why the menu pipeline stopped: "ordering_json" | "html" | "pdf" | "image" | "none" | "failed"
+  menuSource    String?
+  lastSeenAt    DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  brand         FoodBrand? @relation(fields: [brandId], references: [id])
+  menuItems     MenuItem[]
+
+  /// Bounding-box prefilter runs on these; haversine refines in application code.
+  @@index([lat, lng])
+  @@index([kind, lat, lng])
+  @@index([brandId])
+  @@index([metro])
+}
+
+/// A restaurant chain whose menu is published once and shared by every branch.
+model FoodBrand {
+  id            String      @id @default(uuid())
+  slug          String      @unique
+  name          String
+  /// JSON array of folded name variants seen on Places listings
+  /// ("mcdonalds", "mcdonald's", "McDonalds Restaurant #4412").
+  aliasesJson   String?
+  cuisine       String?
+  /// Where the nutrition came from, for provenance in the UI.
+  nutritionUrl  String?
+  /// "published" when we parsed a real nutrition table, "inferred" otherwise.
+  nutritionKind String      @default("inferred")
+  lastScrapedAt DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
+  places        FoodPlace[]
+  menuItems     MenuItem[]
+
+  @@index([slug])
+}
+
+/// One sellable dish. Attached to a brand (every branch sells it) or to a single
+/// independent place. Exactly one of brandId/placeId is set.
+model MenuItem {
+  id            String           @id @default(uuid())
+  brandId       String?
+  placeId       String?
+  name          String
+  foldedName    String
+  description   String?
+  section       String?
+  /// Listed price in minor units. Exact when parsed from a menu, null when unknown.
+  priceCents    Int?
+  currency      String?
+  /// Set when nutrition is PUBLISHED and lives in the shared composition table.
+  compositionId String?
+  /// Denormalised macros for ranking. Populated either from the composition row
+  /// or by inference; the ranker reads these and never joins.
+  kcal          Float            @default(0)
+  proteinG      Float            @default(0)
+  carbsG        Float            @default(0)
+  fatG          Float            @default(0)
+  nutrientsJson String?
+  servingGrams  Float?
+  /// "published" | "inferred" | "estimated" — see docs/food-finder-architecture.md D5.
+  confidence    String           @default("estimated")
+  /// Measured relative error for this dish class, from the calibration harness.
+  /// Drives the ranker discount and the "±N%" the UI shows. Null until calibrated.
+  kcalErrPct    Float?
+  /// JSON array of allergen/diet tags derived at ingest: drives HARD filtering.
+  dietTagsJson  String?
+  source        String
+  sourceUrl     String?
+  fetchedAt     DateTime         @default(now())
+  brand         FoodBrand?       @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  place         FoodPlace?       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  composition   FoodComposition? @relation(fields: [compositionId], references: [id])
+
+  @@index([brandId])
+  @@index([placeId])
+  @@index([foldedName])
+}
+
+/// Regional price for a staple ingredient. There is no per-store catalogue to
+/// buy, so this is a metro-level estimate scaled by the store's price tier — and
+/// it is always surfaced as an estimate, never as the shelf price.
+model IngredientPrice {
+  id         String   @id @default(uuid())
+  /// Folded ingredient name, joining to FoodComposition.foldedName.
+  foldedName String
+  metro      String
+  currency   String
+  /// Price in minor units for `unitGrams` of the ingredient.
+  priceCents Int
+  unitGrams  Float
+  source     String
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@unique([foldedName, metro])
+  @@index([metro])
+}
+
+/// What we have already shown this user, so the finder does not say salmon every
+/// day. Recency is a ranking penalty, not a filter — a genuinely best option can
+/// still repeat, it just has to earn it.
+model FoodRecommendationLog {
+  id      String    @id @default(uuid())
+  userId  String
+  /// Stable candidate id ("ingredient:wild-salmon", "dish:<placeId>:pad-thai").
+  itemKey String
+  shownAt DateTime  @default(now())
+  /// Set when the user later logged something matching this suggestion — the
+  /// signal that turns inferred nutrition into observed nutrition over time.
+  actedAt DateTime?
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, shownAt])
+  @@index([userId, itemKey])
 }
