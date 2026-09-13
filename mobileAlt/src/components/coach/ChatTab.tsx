@@ -14,6 +14,7 @@ import { colors, fontSize, fontWeight, spacing, radius } from '../../constants/t
 import { KeyboardAvoider } from '../ui/KeyboardAvoider';
 import { coachApi, getToken } from '../../lib/api';
 import { Analytics } from '../../lib/analytics';
+import { recoverAgentReply } from '../../lib/agentRecovery';
 import { invalidateCache } from '../../lib/cache';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { MarkdownText } from '../ui/MarkdownText';
@@ -319,6 +320,28 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
         )
       );
     } catch (err: any) {
+      // Network-shaped failure (no HTTP status): the request died in transit,
+      // NOT on the server. ~10% of agent calls end this way (nginx 499 — OS
+      // kills the long-held socket mid tool-loop) while the server finishes
+      // the turn and persists the reply anyway. Poll history before telling
+      // the user Anakin was unreachable; the typing indicator stays up while
+      // we look, and `sending` stays true so a second send can't interleave.
+      if (!err?.status) {
+        const recoveryStart = Date.now();
+        const recovered = await recoverAgentReply(text);
+        if (recovered) {
+          Analytics.agentReplyRecovered(Date.now() - recoveryStart);
+          // The lost response also carried toolsUsed; we can't know whether
+          // the turn mutated state, so drop the coach cache defensively.
+          invalidateCache('coach:');
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamId ? { ...m, content: recovered, _isTemp: false } : m
+            )
+          );
+          return; // finally still runs setSending(false)
+        }
+      }
       // Surface the actual error message + log to the JS console so we can
       // diagnose remote failures (PostHog $exception via the global handler
       // in app/_layout.tsx will also pick it up). Generic "Something went

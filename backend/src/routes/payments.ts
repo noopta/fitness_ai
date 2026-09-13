@@ -2,13 +2,40 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { recordCommission, getOrCreateAffiliateCoupon } from '../services/affiliateService.js';
+import { recordCommission, getOrCreateAffiliateCoupon, renewalCommissionBaseCents } from '../services/affiliateService.js';
 import posthog from '../services/posthogClient.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// GET /api/payments/referral-code/:code — validate a referral code before
+// checkout so the paywall can show real feedback instead of a silent no-op.
+// Public by design: codes are meant to be shared (?ref= links); this returns
+// only that the code exists and the generic discount — never affiliate PII.
+router.get('/payments/referral-code/:code', async (req, res) => {
+  try {
+    const code = String(req.params.code ?? '').trim().toUpperCase();
+    if (!code || code.length > 32) return res.json({ valid: false });
+    const affiliate = await prisma.affiliate.findUnique({ where: { referralCode: code } });
+    if (!affiliate) return res.json({ valid: false });
+    res.json({ valid: true, code, discountPercent: Math.round((affiliate.discountRate ?? 0.2) * 100) });
+  } catch (err) {
+    console.error('Referral code check error:', err);
+    res.status(500).json({ error: 'Failed to check code' });
+  }
+});
+
+// GET /api/payments/return?status=success|cancelled — Checkout's success/
+// cancel URLs must be https, so mobile sessions land here and get bounced
+// into the app's custom scheme. The in-app browser tab (ASWebAuthentication
+// Session / Chrome Custom Tabs) intercepts the axiom:// navigation, closes
+// itself, and hands the URL back to the upgrade sheet.
+router.get('/payments/return', (req, res) => {
+  const status = req.query.status === 'success' ? 'success' : 'cancelled';
+  res.redirect(302, `axiom://checkout?status=${status}`);
+});
 
 // GET /api/payments/status
 router.get('/payments/status', requireAuth, async (req, res) => {
@@ -143,11 +170,16 @@ router.post('/payments/webhook', async (req, res) => {
       // ── Record affiliate commission on initial purchase ───────────────────
       // affiliateId is set in session.metadata when checkout was created via /create-checkout
       const affiliateId = (session.metadata as any)?.affiliateId as string | undefined;
-      if (affiliateId && session.subscription && session.amount_total) {
-        // amount_total is after discount — we commission on original (pre-discount) amount
-        // Retrieve subscription to get the plan amount
+      if (affiliateId && session.subscription) {
+        // Trialing referrals complete checkout with amount_total 0 — no money
+        // moved, so no commission yet. Record a 0¢ marker anyway: renewals
+        // attribute by looking up prior commission rows for the subscription,
+        // and the first PAID invoice (subscription_cycle) then records the
+        // real commission on the pre-discount price.
         const sub = await stripe.subscriptions.retrieve(session.subscription as string);
-        const originalAmountCents = sub.items.data[0]?.price?.unit_amount ?? session.amount_total;
+        const originalAmountCents = session.amount_total
+          ? (sub.items.data[0]?.price?.unit_amount ?? session.amount_total)
+          : 0;
         await recordCommission({
           affiliateId,
           stripeSubscriptionId: session.subscription as string,
@@ -171,7 +203,9 @@ router.post('/payments/webhook', async (req, res) => {
             stripeSubscriptionId: invoice.subscription,
             stripeInvoiceId: invoice.id,
             stripeCustomerId: invoice.customer,
-            originalAmountCents: invoice.amount_paid,
+            // Pre-discount basis — the affiliate's commissionRate applies to
+            // the original price, not what the discounted user actually paid.
+            originalAmountCents: renewalCommissionBaseCents(invoice),
           });
         }
       }
@@ -338,7 +372,13 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
 // Supports optional referral code (affiliate discount coupon applied automatically)
 router.post('/payments/create-checkout', requireAuth, async (req, res) => {
   try {
-    const { referralCode } = req.body as { referralCode?: string };
+    const { referralCode, platform } = req.body as { referralCode?: string; platform?: string };
+    // Mobile opens Checkout in an in-app browser tab and needs to be sent back
+    // into the app on completion; web keeps the site redirect.
+    const publicApi = process.env.PUBLIC_API_URL || 'https://api.airthreads.ai/api';
+    const returnUrls = platform === 'mobile'
+      ? { success_url: `${publicApi}/payments/return?status=success`, cancel_url: `${publicApi}/payments/return?status=cancelled` }
+      : { success_url: `${FRONTEND_URL}?checkout=success`, cancel_url: `${FRONTEND_URL}?checkout=cancelled` };
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
@@ -372,7 +412,11 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
       const affiliate = await prisma.affiliate.findUnique({
         where: { referralCode: referralCode.trim().toUpperCase() },
       });
-      if (affiliate?.active) {
+      // The user's discount applies for ANY real code — a referred customer
+      // shouldn't lose 20% because their affiliate hasn't finished Stripe
+      // onboarding yet. Commission stays gated on affiliate.active inside
+      // recordCommission; the attribution metadata is set either way.
+      if (affiliate) {
         const couponId = await getOrCreateAffiliateCoupon();
         discounts = [{ coupon: couponId }];
         affiliateId = affiliate.id;
@@ -384,14 +428,19 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: req.user!.id,
-      success_url: `${FRONTEND_URL}?checkout=success`,
-      cancel_url: `${FRONTEND_URL}?checkout=cancelled`,
+      ...returnUrls,
       metadata: {
         userId: req.user!.id,
         ...(affiliateId ? { affiliateId } : {}),
         ...(referralCode ? { referralCode: referralCode.trim().toUpperCase() } : {}),
       },
-      ...(discounts ? { discounts } : { allow_promotion_codes: true }),
+      // A referral stacks BOTH perks: 30-day trial (what AXIOMTRIAL grants)
+      // plus the 20% coupon on every invoice after it. Stripe forbids
+      // combining `discounts` with user-typed promo codes, so the trial is
+      // set server-side instead of asking the user to also enter AXIOMTRIAL.
+      ...(discounts
+        ? { discounts, subscription_data: { trial_period_days: 30 } }
+        : { allow_promotion_codes: true }),
     });
 
     res.json({ url: session.url });

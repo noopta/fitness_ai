@@ -59,6 +59,13 @@ model User {
   agentTurnsDate      DateTime?
   coachThreadId       String?
   savedProgram        String?
+  // Last generated-but-unsaved program (POST /coach/program output). The
+  // client only persists via PUT /coach/program after the reveal→walkthrough
+  // Save tap; abandoning there used to lose the generation entirely. The
+  // rescue sweep promotes a stale draft to savedProgram instead of paying
+  // for a fresh LLM generation. Cleared on save.
+  draftProgram        String?
+  draftProgramAt      DateTime?
   coachGoal           String?
   coachBudget         String?
   coachOnboardingDone Boolean           @default(false)
@@ -67,6 +74,11 @@ model User {
   programStartDate    DateTime?
   expoPushToken       String?
   reengagementOptOut  Boolean           @default(false)
+  /// Set once the one-time welcome email has been sent (or deliberately skipped).
+  welcomeEmailSentAt  DateTime?
+  /// True after the user clicks the unsubscribe link in a blog/update email.
+  /// Transactional mail (verification codes, welcome) is unaffected.
+  marketingEmailsOptOut Boolean         @default(false)
   lastActiveAt        DateTime?
   lastWorkoutNudgeAt  DateTime?
   lastNutritionNudgeAt DateTime?
@@ -105,6 +117,7 @@ model User {
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
   workoutLogs              WorkoutLog[]
+  adaptationProposals      AdaptationProposal[]
   scheduleOverrides        ScheduleOverride[]
   activityLogs             ActivityLog[]
   // Social
@@ -605,6 +618,11 @@ model WorkoutLog {
   // from exercises + the user's bodyweight (MET × kg × hours). Nullable so
   // pre-migration rows stay valid.
   caloriesBurnedKcal Int?
+  // Which planned program day this log fulfilled, as JSON
+  // {"phaseIndex","dayIndex","weekNumber","day"}. Set by the client when the
+  // log was opened from a program session; null for ad-hoc workouts. This is
+  // the planned-vs-actual link the adaptation engine scores against.
+  programDayRef String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   user      User     @relation(fields: [userId], references: [id])
@@ -621,6 +639,43 @@ model WorkoutLog {
 // re-balanced. The underlying savedProgram template is never mutated — reads
 // (today + schedule) check for an override for the date first and fall back to
 // the index lookup. sessionJson null = an explicit rest day for that date.
+// ─── Adaptive progression ────────────────────────────────────────────────────
+// One row per change the adaptation engine PROPOSED. Nothing in the program is
+// ever changed without a row here moving to status=applied by an explicit user
+// decision — this table is the audit trail ("what did Axiom suggest, what did
+// I say") and what makes snooze / "declined three times" semantics possible.
+//
+// evidence / proposal / inverse are JSON strings (SQLite). `inverse` is the
+// patch that undoes `proposal` and is filled in at apply time.
+model AdaptationProposal {
+  id          String    @id @default(uuid())
+  userId      String
+  // retrofit | load_change | calibration | deload | rep_range_shift | ...
+  kind        String
+  // Stable key for dedupe + snooze: e.g. "load_change:bench press". A new
+  // proposal with the same key while one is pending is not created.
+  dedupeKey   String
+  title       String
+  evidence    String
+  reasoning   String
+  proposal    String
+  inverse     String?
+  confidence  Float     @default(0.6)
+  // pending | applied | declined | snoozed | superseded | undone
+  status      String    @default("pending")
+  decidedAt   DateTime?
+  snoozeUntil DateTime?
+  // What produced it: post_workout | bootstrap | weekly | manual
+  trigger     String    @default("post_workout")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@index([userId, dedupeKey, status])
+  @@index([userId, createdAt])
+}
+
 model ScheduleOverride {
   id          String   @id @default(uuid())
   userId      String
@@ -660,7 +715,7 @@ model Affiliate {
   stripeAccountId String?               @unique   // Stripe Connect acct_xxx
   onboarded       Boolean               @default(false)  // completed Stripe Connect onboarding
   active          Boolean               @default(false)  // admin activates after onboarding
-  commissionRate  Float                 @default(0.30)   // 30% of original price
+  commissionRate  Float                 @default(0.40)   // 40% of the pre-discount price
   discountRate    Float                 @default(0.20)   // 20% off for referred users
   inviteToken     String?               @unique   // one-time setup link token
   inviteUsedAt    DateTime?
@@ -677,7 +732,7 @@ model AffiliateCommission {
   stripeInvoiceId      String           @unique   // idempotency — one commission per invoice
   stripeCustomerId     String
   originalAmountCents  Int              // price before discount
-  commissionCents      Int              // 30% of original
+  commissionCents      Int              // commissionRate × original
   currency             String           @default("cad")
   status               String           @default("pending")  // pending | paid | cancelled
   payoutId             String?
@@ -1057,4 +1112,114 @@ model Recommendation {
 
   @@index([status])
   @@index([digestId])
+}
+
+// ─── Trust & Safety ──────────────────────────────────────────────────────────
+//
+// Added by the 2026-08 security hardening pass. Before it the app had no
+// moderation, no report path and no takedown record — all three are required
+// by App Store Guideline 1.2 for an app that ships user-to-user content.
+
+/// Every classifier hit, blocked or not. Near-miss rows (flagged but allowed)
+/// are what let the sexual-content threshold be tuned against real traffic
+/// rather than guessed, and the blocked rows are the evidence trail behind a
+/// repeat-offender suspension.
+model ContentFlag {
+  id         String   @id @default(uuid())
+  /// Null for pre-auth surfaces. Not an FK: flags must outlive account deletion
+  /// for abuse-pattern analysis, and a cascade would erase exactly the history
+  /// a serial abuser wants erased.
+  userId     String?
+  /// Which surface produced it — dm | comment | post_caption | avatar | ...
+  surface    String
+  /// Truncated sample of the offending content, for human review.
+  excerpt    String
+  /// True when the write was rejected; false when flagged-but-allowed.
+  blocked    Boolean  @default(false)
+  /// Comma-separated classifier categories.
+  categories String
+  topScore   Float    @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([blocked, createdAt])
+}
+
+/// A user-submitted report against content or another user. The queue an
+/// operator works through; `status` drives the 24h takedown SLA.
+model ContentReport {
+  id             String   @id @default(uuid())
+  reporterId     String
+  /// What's being reported: post | comment | message | user | avatar
+  targetType     String
+  targetId       String
+  /// Reported user, when resolvable. Enables "show me every report against X".
+  reportedUserId String?
+  reason         String
+  details        String?
+  /// pending | reviewing | actioned | dismissed
+  status         String   @default("pending")
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  resolutionNote String?
+  createdAt      DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([reportedUserId])
+  @@unique([reporterId, targetType, targetId])
+}
+
+/// Enforcement state on an account. Separate from User so the moderation
+/// surface can be reasoned about (and audited) on its own.
+model UserSuspension {
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  /// write_ban (can read, cannot post/DM) | full (cannot use the app)
+  level     String    @default("write_ban")
+  reason    String
+  /// Null means indefinite, pending manual review.
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  createdBy String?
+
+  @@index([expiresAt])
+}
+
+/// Founder blog + startup-update posts. Written from the web admin editor
+/// (/admin/blog, ADMIN_EMAILS only); read publicly at /blog and /blog/:slug.
+/// Body is Markdown; readingMinutes is derived at read time, not stored.
+model BlogPost {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  title       String
+  excerpt     String    @default("")
+  content     String    @default("")
+  /// Free-text label shown as the post's pill, e.g. "Update", "Product", "Training"
+  category    String    @default("Update")
+  published   Boolean   @default(false)
+  /// Set the first time a post is published; drives public ordering.
+  publishedAt DateTime?
+  authorEmail String?
+  /// When the post was emailed to all opted-in users (once per post).
+  emailedAt   DateTime?
+  emailedCount Int      @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([published, publishedAt])
+}
+
+/// Email-only blog/update subscribers who are not (or not yet) Axiom accounts.
+/// Added by an admin; merged into every blog broadcast alongside opted-in users
+/// (deduped by email, the account wins). Unsubscribe links work for them too.
+model BlogSubscriber {
+  id             String    @id @default(uuid())
+  /// Stored lowercased + trimmed; unique.
+  email          String    @unique
+  /// Where the address came from, e.g. "admin".
+  source         String    @default("admin")
+  addedBy        String?
+  /// Set when they click unsubscribe; never emailed again unless cleared.
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
 }

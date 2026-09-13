@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -57,6 +57,14 @@ export interface AuthUser {
   coachGoal?: string | null;
   coachBudget?: string | null;
   coachOnboardingDone?: boolean;
+  /**
+   * ISO date string, or null for accounts created before the age-check screen
+   * existed. /auth/me returns it; it gates age-restricted features (18+ for
+   * form-analysis reference stills). Existing accounts are deliberately NOT
+   * prompted at launch — the form-analysis screen asks for it in context, only
+   * when the user reaches for something that needs it.
+   */
+  dateOfBirth?: string | null;
   coachProfile?: string | null;
   savedProgram?: string | null;
   institutions?: InstitutionMembership[];
@@ -87,9 +95,21 @@ interface AuthContextType {
   verifyEmail: (email: string, code: string) => Promise<void>;
   resendVerification: (email: string) => Promise<{ sent: boolean; cooldownRemainingSec?: number; reason?: string }>;
   logout: () => Promise<void>;
-  googleLogin: () => Promise<void>;
-  appleLogin: () => Promise<void>;
+  // Resolve true only when a session was actually established. A cancelled /
+  // dismissed provider sheet resolves false — callers must NOT fire success
+  // analytics or navigate on false (doing so used to silently dump users on
+  // the Coach tab with no session).
+  googleLogin: () => Promise<boolean>;
+  appleLogin: () => Promise<boolean>;
   refreshUser: () => Promise<void>;
+  /**
+   * The current user, readable synchronously — including immediately after an
+   * `await login()/register()`, when the caller's `user` is still stale.
+   * Post-auth routing depends on this; see postAuthRoute.
+   */
+  getLatestUser: () => AuthUser | null;
+  /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
+  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -104,6 +124,37 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+
+  // A synchronously-readable mirror of `user`.
+  //
+  // Post-auth routing needs the user the instant `await login()` returns, and
+  // React state is not available to the caller's closure at that point — the
+  // screen still sees the stale value it rendered with. Reading a ref avoids
+  // both a duplicate /auth/me round-trip on the critical path and the class
+  // of bug where a screen routes on a user it hasn't been told about yet.
+  const userRef = useRef<AuthUser | null>(null);
+  const commitUser = useCallback((u: AuthUser | null) => {
+    userRef.current = u;
+    setUser(u);
+  }, []);
+  const getLatestUser = useCallback(() => userRef.current, []);
+
+  // Server-owned feature flags from /auth/me. Kept in a ref for the same
+  // reason as the user: post-auth routing reads them synchronously, before
+  // any re-render has happened. Defaults to everything off, so a server that
+  // does not send the block (or a request that failed) leaves gated features
+  // dark rather than showing a flow the backend will refuse.
+  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean }>({
+    onboardingFormHook: false,
+    diagnosticFirstOnboarding: false,
+  });
+  const commitFeatures = useCallback((f: any) => {
+    featuresRef.current = {
+      onboardingFormHook: f?.onboardingFormHook === true,
+      diagnosticFirstOnboarding: f?.diagnosticFirstOnboarding === true,
+    };
+  }, []);
+  const getFeatures = useCallback(() => featuresRef.current, []);
   const [loading, setLoading] = useState(true);
   const [needsDobCheck, setNeedsDobCheck] = useState(false);
 
@@ -112,12 +163,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refreshUser() {
     try {
       const data = await authApi.getMe();
-      setUser(data.user);
+      commitUser(data.user);
+      commitFeatures(data.features);
     } catch (err: any) {
       // Only clear user on explicit auth rejection (401/403), not network errors
       if (err?.status === 401 || err?.status === 403) {
         await clearToken();
-        setUser(null);
+        commitUser(null);
       }
       // On network errors, keep the current user state intact
     }
@@ -129,11 +181,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const data = await authApi.getMe();
-          setUser(data.user);
+          commitUser(data.user);
+          commitFeatures(data.features);
         } catch (err: any) {
           if (err?.status === 401 || err?.status === 403) {
             await clearToken();
-            setUser(null);
+            commitUser(null);
           }
           // Network/server errors: still allow app to load (user stays null → redirect to login)
         }
@@ -182,11 +235,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, []);
 
+  // Every sign-in path must end with a /auth/me pass BEFORE the caller
+  // routes: the login/register/apple/google responses carry a minimal user
+  // and NO `features` block, and postAuthDestination runs the moment these
+  // functions return. Without this, server feature flags read as all-off on
+  // every fresh sign-in — new users were routed into the intake with the
+  // diagnostic-first flag on because getFeatures() still held the defaults.
+  // refreshUser() commits both the full user and the features, and tolerates
+  // a network blip by keeping the state we already committed.
   async function login(email: string, password: string): Promise<AuthVerifyPending | null> {
     const data = await authApi.login(email, password);
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
-    setUser(data.user);
+    commitUser(data.user);
+    await refreshUser();
     return null;
   }
 
@@ -194,14 +256,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await authApi.register(name, email, password, dateOfBirth);
     if (isVerifyPending(data)) return data;
     if (data.token) await setToken(data.token);
-    setUser(data.user);
+    commitUser(data.user);
+    await refreshUser();
     return null;
   }
 
   async function verifyEmail(email: string, code: string) {
     const data = await authApi.verifyEmail(email, code);
     if (data.token) await setToken(data.token);
-    setUser(data.user);
+    commitUser(data.user);
+    await refreshUser();
   }
 
   async function resendVerification(email: string) {
@@ -211,7 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     try { await authApi.logout(); } catch { /* ignore */ }
     await clearToken();
-    setUser(null);
+    commitUser(null);
   }
 
   /**
@@ -243,7 +307,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         handledToken = null; // release the guard so a retry can run
         return false;
       }
-      setUser(data.user);
+      commitUser(data.user);
+      // This IS the /auth/me payload — commit the features it carries, or
+      // post-auth routing runs on the all-off defaults.
+      commitFeatures(data.features);
       if (opts?.needsDob) setNeedsDobCheck(true);
       return true;
     } catch {
@@ -256,7 +323,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function googleLogin() {
+  async function googleLogin(): Promise<boolean> {
     try {
       const redirectUri = Linking.createURL('/auth/callback');
       console.log('[Auth] Google OAuth redirect URI:', redirectUri);
@@ -287,8 +354,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               await clearToken();
               Alert.alert('Sign In Failed', `Verification failed (${res.status}: ${data.error ?? 'unknown'}). Please try again.`);
             } else {
-              setUser(data.user);
+              commitUser(data.user);
+              // Same /auth/me payload — features must land before routing.
+              commitFeatures(data.features);
               if (dobRequired) setNeedsDobCheck(true);
+              return true;
             }
           } catch (err: any) {
             // Network error — still store token, let user proceed
@@ -315,7 +385,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await new Promise(r => setTimeout(r, 2500));
         if (!handledToken) {
           console.log('[Auth] no deep link arrived after dismiss — treating as cancelled');
+          return false;
         }
+        // The deep link landed while we waited — completeAuthCallback owns the
+        // session; report success so the caller's analytics reflect reality.
+        return true;
       } else {
         Alert.alert('Sign In Failed', `Unexpected result: ${result.type}. Please try again.`);
       }
@@ -323,9 +397,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[Auth] Google OAuth error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Google sign-in.');
     }
+    return false;
   }
 
-  async function appleLogin() {
+  async function appleLogin(): Promise<boolean> {
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -346,21 +421,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         Alert.alert('Sign In Failed', data.error ?? 'Apple sign-in failed. Please try again.');
-        return;
+        return false;
       }
 
       if (data.token) await setToken(data.token);
-      setUser(data.user);
+      commitUser(data.user);
+      // The /auth/apple response has no `features` block — refresh from
+      // /auth/me so feature-gated routing (diagnostic-first, form hook)
+      // sees real flags instead of the all-off defaults.
+      await refreshUser();
       if (data.needsDobCheck) setNeedsDobCheck(true);
+      return true;
     } catch (err: any) {
-      if (err?.code === 'ERR_REQUEST_CANCELED') return; // user dismissed sheet
+      if (err?.code === 'ERR_REQUEST_CANCELED') return false; // user dismissed sheet
       console.log('[Auth] Apple sign-in error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Apple sign-in.');
+      return false;
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, completeAuthCallback }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, getLatestUser, getFeatures, completeAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );

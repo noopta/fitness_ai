@@ -133,6 +133,31 @@ export const Analytics = {
   firstScreenAfterAuth: (screen: string) =>
     posthog.capture('first_screen_after_auth', { screen }),
 
+  // ── First-run form-analysis hook ─────────────────────────────────────────
+  // The signup → intake funnel now has a step between the two. These four
+  // events are what make the "does the aha moment actually earn the intake"
+  // question answerable: shown → submitted → result → finished(reason), with
+  // `reason` separating users who completed it from those who skipped (no
+  // gym, no barbell) and those whose clip failed to read.
+  formHookShown: () => posthog.capture('onboarding_form_hook_shown'),
+
+  // Separate from 'submitted' on purpose: consent given and a clip actually
+  // uploaded are different events, and the gap between them is the number
+  // that tells us whether the consent screen is doing its job or being
+  // clicked through.
+  formHookConsented: () => posthog.capture('onboarding_form_hook_consented'),
+
+  formHookSubmitted: () => posthog.capture('onboarding_form_hook_submitted'),
+
+  formHookResult: (exercise: string, formScore: number) =>
+    posthog.capture('onboarding_form_hook_result', { exercise, form_score: formScore }),
+
+  // 'age_ineligible' is kept distinct from 'skipped' on purpose: an under-18
+  // user redirected to the intake did not decline anything, and folding them
+  // into the skip rate would quietly understate how well the hook converts.
+  formHookFinished: (reason: 'completed' | 'skipped' | 'failed' | 'age_ineligible') =>
+    posthog.capture('onboarding_form_hook_finished', { reason }),
+
   socialProofShown: (count: number) =>
     posthog.capture('signup_social_proof_shown', { user_count: count }),
 
@@ -158,6 +183,19 @@ export const Analytics = {
 
   intakeCompleted: () => posthog.capture('intake_completed'),
 
+  // Fires when a COMPLETED intake fails to persist. Previously this path was
+  // swallowed silently and the user was pushed on to Build Your Program with
+  // nothing saved, so a lost intake looked identical to a completed one in the
+  // funnel. status 0 = network/unreachable.
+  intakeSaveFailed: (status: number) =>
+    posthog.capture('intake_save_failed', { status }),
+
+  // Fires when the Coach screen sits on the loading skeleton long enough that
+  // the watchdog has to force it forward. Any occurrence means a user saw an
+  // unresponsive screen — the 2026-08-16 stall produced no event at all.
+  coachStageStuck: (stage: string) =>
+    posthog.capture('coach_stage_stuck', { stage }),
+
   programGenerateStarted: (auto: boolean) =>
     posthog.capture('program_generate_started', { auto }),
 
@@ -182,6 +220,19 @@ export const Analytics = {
     // value from the app for the first time.
     logFirebaseEvent('tutorial_complete', { lift });
   },
+
+  // The diagnostic-first funnel's core beat: the user saw their verdict.
+  // `locked` distinguishes the funnel cohort (prescription withheld, paywall
+  // on this screen) from legacy/pro users seeing the full plan, so
+  // verdict→trial conversion is measurable without a separate cohort flag.
+  diagnosticVerdictViewed: (props: { locked: boolean }) =>
+    posthog.capture('diagnostic_verdict_viewed', props),
+
+  // The agent turn's HTTP response was lost (socket died mid tool-loop) but
+  // the reply was found in server-side history and rendered anyway. Every
+  // one of these is a "couldn't reach Anakin" error a user did NOT see.
+  agentReplyRecovered: (waitedMs: number) =>
+    posthog.capture('agent_reply_recovered', { waited_ms: waitedMs }),
 
   // ── Coach — Life Happened ─────────────────────────────────────────────────
   lifeHappenedSubmitted: (disruptionType?: string) =>
@@ -271,7 +322,7 @@ export const Analytics = {
     // Google's bidding uses this as the highest-value conversion. We
     // approximate value (in CAD); the actual price is set on the IAP/Stripe
     // side. Currency is required by Firebase's purchase schema.
-    const valueCAD = source === 'stripe' ? 11.99 : 12.99;
+    const valueCAD = 12.99; // Stripe and Apple monthly are both $12.99 now
     logFirebaseEvent('purchase', {
       currency: 'CAD',
       value: valueCAD,

@@ -14,6 +14,7 @@
 import { PrismaClient } from '@prisma/client';
 import { computePhaseState, parseSavedProgram, type SavedProgram } from './programPhaseService.js';
 import { sendPushToUser } from './notificationService.js';
+import { parseJsonObjectColumn } from './jsonColumn.js';
 
 const prisma = new PrismaClient();
 
@@ -148,7 +149,7 @@ export function resolveCalendar(
 
     if (overridesByDate.has(date)) {
       const json = overridesByDate.get(date);
-      session = json ? JSON.parse(json) : null;
+      session = parseJsonObjectColumn<any>(json);
     } else if (program) {
       const now = new Date(date + 'T12:00:00Z');
       const state = computePhaseState(program, programStartDate, now);

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { outboundNotifyLimiter } from '../middleware/rateLimiter.js';
 import { z } from 'zod';
 import twilio from 'twilio';
 import * as nodemailer from 'nodemailer';
@@ -89,7 +90,7 @@ async function sendEmail(to: string, subject: string, html: string, from?: strin
 }
 
 // POST /api/waitlist - Join waitlist
-router.post('/waitlist', async (req, res) => {
+router.post('/waitlist', outboundNotifyLimiter, async (req, res) => {
   try {
     const data = joinWaitlistSchema.parse(req.body);
     

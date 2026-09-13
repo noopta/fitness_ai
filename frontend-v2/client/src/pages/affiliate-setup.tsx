@@ -31,7 +31,9 @@ export default function AffiliateSetupPage() {
         setAffiliateName(d.affiliate.name);
         setAffiliateId(d.affiliate.id);
         setOnboardingUrl(d.onboardingUrl);
-        localStorage.setItem('affiliateId', d.affiliate.id);
+        // The invite token is the affiliate's credential — keep it so the
+        // dashboard page can authenticate without re-opening the invite link.
+        localStorage.setItem('affiliateToken', token);
         localStorage.setItem('affiliateEmail', d.affiliate.email);
         setStatus('ready');
       })
@@ -74,7 +76,7 @@ export default function AffiliateSetupPage() {
             <ul className="space-y-1.5 list-disc list-inside">
               <li>You'll be taken to Stripe to set up your payout account (5 min)</li>
               <li>Once complete, you'll get your referral link in your dashboard</li>
-              <li>Every subscriber you refer earns you 30% recurring commission</li>
+              <li>Every subscriber you refer earns you 40% recurring commission</li>
               <li>Payouts hit your Stripe account on the 1st of each month</li>
             </ul>
           </div>

@@ -11,6 +11,16 @@
 
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
+import { parseJsonObjectColumn } from '../services/jsonColumn.js';
+
+// A corrupt savedProgram must surface as something the agent can say out loud,
+// not a raw SyntaxError. Everything here already throws domain errors for the
+// missing case; this keeps the malformed case in the same shape.
+function requireProgram(raw: string, action: string): any {
+  const program = parseJsonObjectColumn<any>(raw);
+  if (!program) throw new Error(`Your saved program is corrupted and can't be ${action}. Regenerate it first.`);
+  return program;
+}
 
 const prisma = new PrismaClient();
 
@@ -39,7 +49,7 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to adjust. Generate a program first.');
 
-  const program = JSON.parse(user.savedProgram);
+  const program = requireProgram(user.savedProgram, 'adjusted');
   const macros = program?.nutritionPlan?.macros;
   if (!macros) throw new Error('Saved program has no nutrition plan to adjust.');
 
@@ -311,7 +321,7 @@ export async function applyExerciseSwap(
 ) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
-  const program = JSON.parse(user.savedProgram);
+  const program = requireProgram(user.savedProgram, 'updated');
 
   const toLabel = toName.trim();
   if (!fromName.trim() || !toLabel) throw new Error('fromExerciseName and toExerciseName are both required.');
@@ -387,7 +397,7 @@ export async function applyExerciseSwap(
 export async function applyProgramUpdate(userId: string, updatedProgram: any) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
-  const current = JSON.parse(user.savedProgram);
+  const current = requireProgram(user.savedProgram, 'updated');
 
   validateProgram(updatedProgram, current?.goal ?? null);
 

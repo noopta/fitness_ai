@@ -6,14 +6,14 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Navbar } from '@/components/Navbar';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, postAuthDestination, DEFAULT_FEATURES } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 
 export default function Register() {
-  const { register, googleLogin, user, loading } = useAuth();
+  const { register, googleLogin, refreshUser, user, features, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,24 +27,54 @@ export default function Register() {
   useEffect(() => {
     if (!loading && user && !redirected.current) {
       redirected.current = true;
-      setLocation('/coach');
+      setLocation(postAuthDestination(user, features ?? DEFAULT_FEATURES));
     }
     // Capture ?ref= or stored referral code
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     const storedRef = localStorage.getItem('axiom_referral');
     referralCode.current = urlRef || storedRef || null;
-  }, [user, loading]);
+  }, [user, features, loading]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     if (!name || !email || !password) return;
+    // The backend has required dateOfBirth since the 13+ age gate (a9ecd3d,
+    // 2026-04-23). This form went on calling it optional, so anyone who left
+    // it blank got a bare "Invalid request" toast and could not sign up.
+    if (!dateOfBirth) {
+      toast.error('Please enter your date of birth.');
+      return;
+    }
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) {
+      toast.error('Please enter a valid date of birth.');
+      return;
+    }
+    // Mirrors the mobile check so both clients fail the same way, before the
+    // request rather than after.
+    const ageYears = (Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (ageYears < 13) {
+      toast.error('You must be 13 or older to create an account.');
+      return;
+    }
     setSubmitting(true);
     try {
-      await register(name, email, password, dateOfBirth || undefined, referralCode.current || undefined);
+      const pending = await register(name, email, password, dateOfBirth, referralCode.current || undefined);
       if (referralCode.current) localStorage.removeItem('axiom_referral');
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
-      setLocation('/coach');
+      if (pending) {
+        // Email verification is on — the account exists but needs the 6-digit
+        // code before a session is issued.
+        const params = new URLSearchParams({ email: pending.email });
+        if (pending.codeSent === false) params.set('codeSent', '0');
+        setLocation(`/verify-email?${params.toString()}`);
+      } else {
+        // The register response carries no feature flags — ask /auth/me so a
+        // diagnostic-first user cold-starts in the diagnostic flow.
+        const refreshed = await Promise.resolve(refreshUser()).catch(() => null);
+        setLocation(postAuthDestination(refreshed?.user ?? null, refreshed?.features ?? DEFAULT_FEATURES));
+      }
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');
     } finally {
@@ -131,12 +161,16 @@ export default function Register() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Date of Birth (optional)</Label>
+              <Label>Date of Birth</Label>
               <Input
                 type="date"
                 value={dateOfBirth}
                 onChange={e => setDateOfBirth(e.target.value)}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Required — we use this to confirm you're 13 or older.
+              </p>
             </div>
             <p className="text-xs text-muted-foreground">
               By creating an account, you agree to our{" "}

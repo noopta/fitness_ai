@@ -16,6 +16,7 @@ import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel 
 import { latestNutritionPlan } from '../services/nutritionPlanService.js';
 import { computeMicroTargets, statusFor } from '../services/microTargetsService.js';
 import { scoreGutWeek, distinctPlants } from '../services/gutHealthScoreService.js';
+import { freeTextToExercises } from '../services/workoutExercises.js';
 import type { AgentTool } from './types.js';
 
 /** Look up a user's display-unit preference (defaults imperial). */
@@ -417,7 +418,8 @@ const logWorkout: AgentTool = {
       data: {
         userId, date,
         title: (input.title as string) || 'Workout',
-        exercises: String(input.exercises ?? ''),
+        // The column holds JSON (routes/workouts.ts parses it) — never raw text
+        exercises: JSON.stringify(freeTextToExercises(String(input.exercises ?? ''))),
         duration: input.durationMin != null ? Number(input.durationMin) : null,
       },
       select: { id: true, date: true, title: true, duration: true },
@@ -761,6 +763,44 @@ const swapExerciseInProgram: AgentTool = {
   },
 };
 
+const readAdaptation: AgentTool = {
+  name: 'read_adaptation',
+  description:
+    "Read Axiom's adaptive-progression state: pending proposals (load bumps, history-derived targets, inferred programs) with their evidence + reasoning, recently decided ones, and the target loads currently on the program. Call this whenever the user mentions targets, a suggestion/proposal, the adaptation card, 'you suggested', or a proposed weight change — that card lives here, not in chat history. Weights are canonical kg; format them in the user's unit when replying.",
+  input_schema: { type: 'object', properties: {} },
+  execute: async (_input, userId) => {
+    const { adaptationEnabledFor, listPending, listRecent } = await import('../adaptation/proposalService.js');
+    if (!adaptationEnabledFor(userId)) return { enabled: false, note: 'Adaptive progression is not enabled for this user.' };
+    const [pending, recent, u] = await Promise.all([
+      listPending(userId),
+      listRecent(userId, 5),
+      prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, unitPreference: true } }),
+    ]);
+    const targets: any[] = [];
+    try {
+      const prog = JSON.parse(u?.savedProgram ?? 'null');
+      for (const ph of prog?.phases ?? [])
+        for (const d of ph?.trainingDays ?? [])
+          for (const ex of d?.exercises ?? [])
+            if (ex?.targetWeightKg != null)
+              targets.push({ exercise: ex.exercise ?? ex.name, day: d.day, targetWeightKg: ex.targetWeightKg, targetRPE: ex.targetRPE ?? null, basis: ex.targetBasis ?? null, setAt: ex.targetSetAt ?? null });
+    } catch { /* no program */ }
+    const compact = (p: any) => ({
+      id: p.id, kind: p.kind, status: p.status, title: p.title, confidence: p.confidence,
+      reasoning: p.reasoning, evidence: p.evidence,
+      proposal: JSON.stringify(p.proposal).slice(0, 2500),
+      decidedAt: p.decidedAt ?? null,
+    });
+    return {
+      enabled: true,
+      unitPreference: u?.unitPreference ?? 'imperial',
+      pendingProposals: pending.map(compact),
+      recentlyDecided: recent.map(compact),
+      currentTargets: targets.slice(0, 40),
+    };
+  },
+};
+
 // ─── Registry ───────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS: AgentTool[] = [
@@ -776,6 +816,7 @@ export const AGENT_TOOLS: AgentTool[] = [
   queryResearch,
   readMicroStatus,
   readNutritionPlanTool,
+  readAdaptation,
   // Writes
   logMeal,
   logBodyWeight,

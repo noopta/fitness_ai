@@ -81,6 +81,14 @@ export const WebAnalytics = {
   diagnosticCompleted: (lift: string) =>
     posthog.capture('diagnostic_completed', { lift }),
 
+  // Fired once per plan render on the diagnostic results page. `locked` marks
+  // the diagnostic-first funnel where the prescription is withheld.
+  diagnosticVerdictViewed: (locked: boolean) =>
+    posthog.capture('diagnostic_verdict_viewed', { locked }),
+
+  paywallViewed: (source: string) =>
+    posthog.capture('paywall_viewed', { source }),
+
   // ── Coach dashboard ───────────────────────────────────────────────────────
   coachTabSwitched: (tab: string) =>
     posthog.capture('coach_tab_switched', { tab }),

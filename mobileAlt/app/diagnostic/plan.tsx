@@ -25,6 +25,9 @@ import { PhaseBreakdown } from '../../src/components/PhaseBreakdown';
 import { HypothesisRankings } from '../../src/components/HypothesisRankings';
 import { EfficiencyGauge } from '../../src/components/EfficiencyGauge';
 import { useAuth } from '../../src/context/AuthContext';
+import { UpgradeSheet } from '../../src/components/UpgradeSheet';
+import { Analytics } from '../../src/lib/analytics';
+import { markDiagnosticFirstSeen } from '../../src/onboarding/diagnosticFirst';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../src/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -81,6 +84,11 @@ interface Plan {
   diagnosis: DiagnosisEntry[];
   bench_day_plan: BenchDayPlan;
   diagnosticSignals: DiagnosticSignals;
+  // Diagnostic-first funnel: the server strips the prescription for free
+  // users and sends these instead. The client renders what it's given — the
+  // lock decision is never made here.
+  prescription_locked?: boolean;
+  prescription_preview?: { accessory_count?: number };
 }
 
 // ─── Normalization ────────────────────────────────────────────────────────────
@@ -200,6 +208,7 @@ export default function PlanScreen() {
   const [rateLimited, setRateLimited] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   // ── Load plan on mount ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -275,6 +284,16 @@ export default function PlanScreen() {
       normalized.bench_day_plan = { ...normalized.bench_day_plan, accessories: withVideos };
 
       setPlan(normalized);
+
+      // Reaching the verdict is the diagnostic-first funnel's "seen it" line:
+      // later cold starts route to Home instead of back into the diagnostic.
+      // Fired regardless of lock state — a pro user's verdict counts too.
+      void markDiagnosticFirstSeen();
+      Analytics.diagnosticVerdictViewed({ locked: !!normalized.prescription_locked });
+      if (normalized.prescription_locked) {
+        // The locked card below IS the paywall surface on this screen.
+        Analytics.paywallViewed('diagnostic_verdict');
+      }
     } catch (err: any) {
       setError((err as Error).message || 'Something went wrong');
     } finally {
@@ -481,6 +500,42 @@ export default function PlanScreen() {
           </Card>
         )}
 
+        {/* ── D2) Locked prescription — the diagnostic-first paywall beat ──
+            The diagnosis above is free; the protocol that fixes it is what
+            the trial unlocks. Rendered only when the server stripped the
+            prescription, so pro users and legacy users never see it. */}
+        {plan.prescription_locked && (
+          <Card style={[styles.card, styles.lockedCard]}>
+            <CardContent style={styles.lockedContent}>
+              <View style={styles.lockedIconWrap}>
+                <Ionicons name="lock-closed" size={22} color={colors.primary} />
+              </View>
+              <Text style={styles.lockedTitle}>Your fix is ready</Text>
+              <Text style={styles.lockedTeaser}>
+                {`A targeted protocol built around this weak link${
+                  plan.prescription_preview?.accessory_count
+                    ? ` — ${plan.prescription_preview.accessory_count} accessories chosen for you`
+                    : ''
+                }, with sets, loads and progression rules.`}
+              </Text>
+              <Text style={styles.lockedPromise}>
+                Unlock the adaptive program + AI coach that fixes this and keeps adjusting.
+              </Text>
+              <Button
+                fullWidth
+                onPress={() => {
+                  Analytics.upgradeTapped('diagnostic_verdict');
+                  setUpgradeVisible(true);
+                }}
+                style={styles.lockedCta}
+              >
+                Start your free month
+              </Button>
+              <Text style={styles.lockedFinePrint}>First month free · cancel anytime</Text>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ── E) Primary Lift Card ────────────────────────────────────────── */}
         {primaryLift && (
           <Card style={styles.card}>
@@ -619,6 +674,19 @@ export default function PlanScreen() {
         </View>
 
       </ScrollView>
+
+      {/* Purchase → refetch: the server serves the full plan the moment the
+          DB tier says pro, so unlocking is a reload, not a regeneration. */}
+      <UpgradeSheet
+        visible={upgradeVisible}
+        onClose={() => setUpgradeVisible(false)}
+        promise="Unlock the adaptive program + AI coach that fixes this and keeps adjusting."
+        onSuccess={() => {
+          setUpgradeVisible(false);
+          void refreshUser();
+          void loadPlan();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -752,6 +820,52 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+
+  // ── D2) Locked prescription ───────────────────────────────────────────────
+  lockedCard: {
+    borderColor: `${colors.primary}66`,
+    borderWidth: 1.5,
+  },
+  lockedContent: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  lockedIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: `${colors.primary}1A`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockedTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.foreground,
+  },
+  lockedTeaser: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  lockedPromise: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.foreground,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginTop: spacing.xs,
+  },
+  lockedCta: {
+    marginTop: spacing.sm,
+  },
+  lockedFinePrint: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
   },
 
   // ── C) Phase ──────────────────────────────────────────────────────────────

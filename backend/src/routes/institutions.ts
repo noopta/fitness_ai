@@ -98,6 +98,21 @@ router.post('/invite/:token/claim', requireAuth, async (req, res) => {
       if (invite.usedAt) throw Object.assign(new Error('Invite already used'), { status: 400 });
       if (invite.expiresAt < new Date()) throw Object.assign(new Error('Invite expired'), { status: 400 });
 
+      // Bind the invite to the address it was issued to. Without this, whoever
+      // held the link got the role — including role:'coach', which grants the
+      // member roster (names and email addresses) for the whole institution.
+      // A forwarded or leaked link was a privilege grant to a stranger.
+      if (invite.email) {
+        const claimer = await tx.user.findUnique({ where: { id: userId }, select: { email: true } });
+        const claimerEmail = claimer?.email?.toLowerCase().trim();
+        if (!claimerEmail || claimerEmail !== invite.email.toLowerCase().trim()) {
+          throw Object.assign(
+            new Error('This invite was issued to a different email address.'),
+            { status: 403 },
+          );
+        }
+      }
+
       // Create or reactivate member
       const member = await tx.institutionMember.upsert({
         where: { institutionId_userId: { institutionId: invite.institutionId, userId } },
@@ -176,7 +191,23 @@ router.post('/:slug/invite', requireAuth, requireInstitutionRole('coach'), async
   const institution = (req as any).institution;
   const { email, role = 'athlete', expiresIn = 72 } = req.body;
 
-  const expiresAt = new Date(Date.now() + expiresIn * 60 * 60 * 1000);
+  // `role` came straight from the body — anything at all could be written into
+  // the membership row, and requireInstitutionRole compares that value to
+  // decide access later.
+  if (role !== 'athlete' && role !== 'coach') {
+    return res.status(400).json({ error: 'role must be "athlete" or "coach"' });
+  }
+  // `expiresIn` was unvalidated, so `expiresIn: 1e9` minted an invite that
+  // never expired. Cap at 30 days.
+  const hours = Number(expiresIn);
+  if (!Number.isFinite(hours) || hours <= 0 || hours > 24 * 30) {
+    return res.status(400).json({ error: 'expiresIn must be between 1 and 720 hours' });
+  }
+  if (email !== undefined && (typeof email !== 'string' || email.length > 255)) {
+    return res.status(400).json({ error: 'email must be a string' });
+  }
+
+  const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
 
   try {
     const invite = await prisma.institutionInvite.create({

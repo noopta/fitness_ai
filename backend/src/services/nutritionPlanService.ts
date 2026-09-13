@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { chatComplete } from './chatClient.js';
 import { buildRAGContext } from './ragService.js';
 import { buildPodcastContext, type PodcastReference } from './podcast/podcastRagService.js';
+import { parseJsonObjectColumn } from './jsonColumn.js';
 import {
   computeMicroTargets,
   type MicroTargetInput,
@@ -177,7 +178,7 @@ export async function generateNutritionPlan(userId: string): Promise<{
 
   let trainingDays: number | null = null;
   try {
-    const program = user.savedProgram ? JSON.parse(user.savedProgram) : null;
+    const program = parseJsonObjectColumn<any>(user.savedProgram);
     const days = program?.week?.length ?? program?.days?.length;
     if (Number.isFinite(days)) trainingDays = Number(days);
   } catch { /* tolerate */ }

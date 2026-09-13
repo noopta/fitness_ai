@@ -9,6 +9,7 @@ import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import { FloatingCoachChat } from "@/components/FloatingCoachChat";
 import NotFound from "@/pages/not-found";
 import FoodFinderPage from "./pages/food-finder";
@@ -19,6 +20,7 @@ import Diagnostic from "./pages/diagnostic";
 import Plan from "./pages/plan";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import VerifyEmail from "./pages/verify-email";
 import HistoryPage from "./pages/history";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
@@ -30,6 +32,7 @@ import SettingsPage from "./pages/settings";
 import WorkoutsPage from "./pages/workouts";
 import StrengthProfilePage from "./pages/strength-profile";
 import AdminAffiliatesPage from "./pages/admin-affiliates";
+import AdminBlogPage from "./pages/admin-blog";
 import AffiliatePage from "./pages/affiliate";
 import AffiliateSetupPage from "./pages/affiliate-setup";
 import FriendsPage from "./pages/friends";
@@ -69,6 +72,7 @@ import FixWeakQuadsSquat from "./pages/fix/weak-quads-squat";
 
 // Blog pages
 import BlogIndexPage from "./pages/blog/index";
+import BlogDynamicPostPage from "./pages/blog/post";
 import BlogBenchPressPlateau from "./pages/blog/how-to-break-a-bench-press-plateau";
 import BlogProgressiveOverload from "./pages/blog/progressive-overload-guide";
 import BlogBeginners from "./pages/blog/strength-training-for-beginners";
@@ -136,7 +140,8 @@ const ProtectedCoach      = () => <ProtectedRoute component={CoachPage} />;
 const ProtectedSettings   = () => <ProtectedRoute component={SettingsPage} />;
 const ProtectedWorkouts        = () => <ProtectedRoute component={WorkoutsPage} />;
 const ProtectedStrengthProfile = () => <ProtectedRoute component={StrengthProfilePage} />;
-const ProtectedAdminAffiliates        = () => <ProtectedRoute component={AdminAffiliatesPage} />;
+const AdminOnlyAffiliates             = () => <AdminRoute component={AdminAffiliatesPage} />;
+const AdminOnlyBlog                   = () => <AdminRoute component={AdminBlogPage} />;
 const ProtectedFriends                = () => <ProtectedRoute component={FriendsPage} />;
 const ProtectedMessages               = () => <ProtectedRoute component={MessagesPage} />;
 const ProtectedSocialFeed             = () => <ProtectedRoute component={SocialFeedPage} />;
@@ -176,6 +181,7 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/food-finder" component={FoodFinderPage} />
@@ -193,7 +199,8 @@ function Router() {
       <Route path="/workouts" component={ProtectedWorkouts} />
       <Route path="/strength-profile" component={ProtectedStrengthProfile} />
       <Route path="/settings" component={ProtectedSettings} />
-      <Route path="/admin/affiliates" component={ProtectedAdminAffiliates} />
+      <Route path="/admin/affiliates" component={AdminOnlyAffiliates} />
+      <Route path="/admin/blog" component={AdminOnlyBlog} />
       <Route path="/affiliate/setup" component={AffiliateSetupPage} />
       <Route path="/affiliate" component={AffiliatePage} />
       <Route path="/friends" component={ProtectedFriends} />
@@ -240,6 +247,8 @@ function Router() {
       <Route path="/blog/squat-depth-guide" component={BlogSquatDepth} />
       <Route path="/blog/how-to-increase-deadlift" component={BlogIncreaseDeadlift} />
       <Route path="/blog/powerlifting-vs-bodybuilding" component={BlogPowerliftingVsBodybuilding} />
+      {/* Founder posts live in the DB; static guides above win first, so this only catches new slugs. */}
+      <Route path="/blog/:slug" component={BlogDynamicPostPage} />
 
       {/* Vs pages */}
       <Route path="/vs/personal-trainer" component={VsPersonalTrainer} />

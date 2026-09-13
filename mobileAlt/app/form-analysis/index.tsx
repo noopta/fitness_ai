@@ -8,8 +8,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Alert, TextInput,
+  Alert, TextInput, Switch, Image, Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -17,7 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
-import { formAnalysisApi, type WorkoutVideoAnalysis } from '../../src/lib/api';
+import { formAnalysisApi, authApi, type FormAnalysisPayload, type FormReferenceFrame } from '../../src/lib/api';
 import { posthog } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
@@ -38,15 +39,26 @@ const SEVERITY_COLOR: Record<string, string> = {
   major: colors.destructive,
 };
 
+// Remembers the last choice so a regular user isn't re-deciding every upload.
+// It seeds the toggle only — the flag is still sent explicitly on every request
+// and the server stores nothing without it, so a stale local value can't cause
+// stills to be kept for someone who has since turned them off.
+const SAVE_FRAMES_KEY = 'form_analysis_save_frames';
+
+function timecode(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
 export default function FormAnalysisScreen() {
   const router = useRouter();
   const { id: deepLinkId } = useLocalSearchParams<{ id?: string }>();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const isPro = user?.tier === 'pro' || user?.tier === 'enterprise';
 
   const [stage, setStage] = useState<Stage>('capture');
   const [hint, setHint] = useState('');
-  const [analysis, setAnalysis] = useState<WorkoutVideoAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<FormAnalysisPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   // Persisted across the in-flight analysis so the submitted-state CTA can
@@ -56,6 +68,76 @@ export default function FormAnalysisScreen() {
   // background Gemini analysis. 'uploading' → upload still in flight,
   // 'pending' → uploaded and being analyzed.
   const [progressLabel, setProgressLabel] = useState<string>('Uploading your clip…');
+  // Reference stills: off until the user turns them on. Seeded from their last
+  // choice once AsyncStorage resolves.
+  const [saveFrames, setSaveFrames] = useState(false);
+  // The id of the analysis on screen, so the result view can offer a delete.
+  const [viewingId, setViewingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(SAVE_FRAMES_KEY)
+      .then((v) => { if (v === '1') setSaveFrames(true); })
+      .catch(() => {});
+  }, []);
+
+  // Stills are 18+, which needs a date of birth we may not have: accounts
+  // predating the age-check screen have none, and they are deliberately not
+  // prompted at launch. So we ask here instead — only when someone actually
+  // reaches for the feature that needs it.
+  const [dobPrompt, setDobPrompt] = useState(false);
+  const [dobInput, setDobInput] = useState('');
+  const [dobSaving, setDobSaving] = useState(false);
+
+  const toggleSaveFrames = (next: boolean) => {
+    if (next && !user?.dateOfBirth) {
+      setDobInput('');
+      setDobPrompt(true);
+      return; // stays off until we know how old they are
+    }
+    setSaveFrames(next);
+    AsyncStorage.setItem(SAVE_FRAMES_KEY, next ? '1' : '0').catch(() => {});
+  };
+
+  // Same YYYY-MM-DD auto-formatting as the age-check and register screens.
+  const formatDob = (input: string) => {
+    const digits = input.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+  };
+
+  const submitDob = async () => {
+    const value = dobInput.trim();
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime()) || value.length !== 10) {
+      Alert.alert('Invalid date', 'Please enter your date of birth as YYYY-MM-DD.');
+      return;
+    }
+    const years = (Date.now() - parsed.getTime()) / (365.25 * 86400000);
+    setDobSaving(true);
+    try {
+      // Server validates the 13+ minimum and is the source of truth; this call
+      // is what actually persists the date regardless of the 18+ outcome.
+      await authApi.setDob(value);
+      await refreshUser();
+      setDobPrompt(false);
+      if (years < 18) {
+        // Saved, but stills stay off. Say so plainly rather than leaving a
+        // toggle that silently refuses to move.
+        Alert.alert(
+          'Thanks — stills stay off',
+          'Saved reference stills are only available to users 18 and over. You\u2019ll still get the full written breakdown of your lift.',
+        );
+        return;
+      }
+      setSaveFrames(true);
+      AsyncStorage.setItem(SAVE_FRAMES_KEY, '1').catch(() => {});
+    } catch (err: any) {
+      Alert.alert('Could not save', err?.message ?? 'Please try again.');
+    } finally {
+      setDobSaving(false);
+    }
+  };
 
   const ensurePermission = async (kind: 'camera' | 'library'): Promise<boolean> => {
     const req = kind === 'camera'
@@ -103,12 +185,12 @@ export default function FormAnalysisScreen() {
     try {
       // Backend returns 202 the moment the upload + GCS save are done,
       // before Gemini runs. Usually 5-20s.
-      const started = await formAnalysisApi.start(uri, mimeType, hint);
+      const started = await formAnalysisApi.start(uri, mimeType, hint, saveFrames);
       // Remember the in-flight analysis id so we can deep-link to the
       // detail screen if the user taps "Track progress" below.
       setSubmittedId(started.id);
       setStage('submitted');
-      posthog.capture('form_video_submitted', { analysisId: started.id });
+      posthog.capture('form_video_submitted', { analysisId: started.id, saveFrames });
     } catch (err: any) {
       if (err?.status === 429) {
         setStage('capture');
@@ -127,7 +209,33 @@ export default function FormAnalysisScreen() {
     }
   };
 
-  const reset = () => { setAnalysis(null); setError(null); setStage('capture'); };
+  const reset = () => { setAnalysis(null); setError(null); setViewingId(null); setStage('capture'); };
+
+  // Per-analysis erasure. The account-wide delete was the only way to remove
+  // stills before this, which is not a real choice to offer someone who wants
+  // one clip gone.
+  const confirmDelete = (id: string) => {
+    Alert.alert(
+      'Delete this analysis?',
+      'The breakdown and any saved stills are removed for good. This can’t be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await formAnalysisApi.remove(id);
+              posthog.capture('form_video_deleted', { analysisId: id });
+              reset();
+            } catch (err: any) {
+              Alert.alert('Could not delete', err?.message ?? 'Try again in a moment.');
+            }
+          },
+        },
+      ],
+    );
+  };
 
   // Deep-link entry: tapping the "analysis ready" push opens this screen with
   // ?id=<rowId>. Load that specific analysis straight into the result view
@@ -148,6 +256,7 @@ export default function FormAnalysisScreen() {
           return;
         }
         setAnalysis(detail.analysis);
+        setViewingId(detail.id);
         setStage('result');
       } catch (err: any) {
         if (cancelled) return;
@@ -187,6 +296,23 @@ export default function FormAnalysisScreen() {
               placeholderTextColor={colors.mutedForeground}
               accessibilityLabel="Exercise hint"
             />
+            {/* Retained imagery of the user's body, in a pipeline that
+                otherwise keeps nothing — so the ask is explicit, states what
+                is kept and for how long, and defaults to off. */}
+            <View style={styles.consentCard}>
+              <View style={styles.consentText}>
+                <Text style={styles.consentTitle}>Save reference stills</Text>
+                <Text style={styles.consentBody}>
+                  Keeps up to 3 frames from your clip — the exact moments Anakin is critiquing, with the area marked. Stored with this analysis and deleted whenever you delete it. Your video itself is never kept.
+                </Text>
+              </View>
+              <Switch
+                value={saveFrames}
+                onValueChange={toggleSaveFrames}
+                trackColor={{ false: colors.border, true: colors.foreground }}
+                accessibilityLabel="Save reference stills from this video"
+              />
+            </View>
             <View style={styles.captureRow}>
               <TouchableOpacity style={styles.tile} onPress={() => pickAndAnalyze('camera')} accessibilityRole="button" accessibilityLabel="Record a video">
                 <Ionicons name="videocam-outline" size={28} color={colors.foreground} />
@@ -272,7 +398,11 @@ export default function FormAnalysisScreen() {
         )}
 
         {stage === 'result' && analysis && (
-          <ResultView analysis={analysis} onAnother={reset} />
+          <ResultView
+            analysis={analysis}
+            onAnother={reset}
+            onDelete={viewingId ? () => confirmDelete(viewingId) : undefined}
+          />
         )}
       </ScrollView>
       </KeyboardAvoider>
@@ -282,12 +412,64 @@ export default function FormAnalysisScreen() {
         onClose={() => setShowUpgrade(false)}
         onSuccess={() => setShowUpgrade(false)}
       />
+
+      {/* Asked in context, not at launch: only someone who just reached for an
+          18+ feature sees this, and dismissing it costs them nothing but the
+          stills. */}
+      <Modal visible={dobPrompt} transparent animationType="fade" onRequestClose={() => setDobPrompt(false)}>
+        <View style={styles.dobBackdrop}>
+          <View style={styles.dobCard}>
+            <Text style={styles.dobTitle}>One thing first</Text>
+            <Text style={styles.dobBody}>
+              Saved stills are only available to users 18 and over, and we don’t have your date of birth on file. Add it once and it’s done.
+            </Text>
+            <TextInput
+              style={styles.dobInput}
+              value={dobInput}
+              onChangeText={(t) => setDobInput(formatDob(t))}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.mutedForeground}
+              keyboardType="number-pad"
+              maxLength={10}
+              autoFocus
+              accessibilityLabel="Date of birth"
+            />
+            <TouchableOpacity
+              style={[styles.dobPrimary, dobSaving && { opacity: 0.6 }]}
+              onPress={submitDob}
+              disabled={dobSaving}
+              accessibilityRole="button"
+            >
+              {dobSaving
+                ? <ActivityIndicator color={colors.primaryForeground} />
+                : <Text style={styles.dobPrimaryText}>Save</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dobSkip} onPress={() => setDobPrompt(false)} accessibilityRole="button">
+              <Text style={styles.dobSkipText}>Not now — analyze without stills</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-function ResultView({ analysis, onAnother }: { analysis: WorkoutVideoAnalysis; onAnother: () => void }) {
+function ResultView({
+  analysis,
+  onAnother,
+  onDelete,
+}: {
+  analysis: FormAnalysisPayload;
+  onAnother: () => void;
+  onDelete?: () => void;
+}) {
   const unknown = (analysis.exercise || '').toLowerCase() === 'unknown';
+  // Stills are keyed to the fault they illustrate. Older analyses (and every
+  // one where the user declined) simply carry none.
+  const framesByWeakness = new Map<number, FormReferenceFrame>();
+  for (const frame of analysis.referenceFrames ?? []) {
+    if (!framesByWeakness.has(frame.weaknessIndex)) framesByWeakness.set(frame.weaknessIndex, frame);
+  }
   return (
     <View style={{ gap: spacing.lg }}>
       <View style={styles.scoreCard}>
@@ -305,41 +487,75 @@ function ResultView({ analysis, onAnother }: { analysis: WorkoutVideoAnalysis; o
         )}
       </View>
 
+      {/* The one-line verdict. Present on a quick (onboarding) row as
+          headline/cue, and carried onto the full report as onboarding* so the
+          full view opens with the same line the user first read rather than
+          silently replacing it. */}
+      {(analysis.headline ?? analysis.onboardingHeadline) ? (
+        <View style={styles.headlineCard}>
+          <Text style={styles.headlineText}>{analysis.headline ?? analysis.onboardingHeadline}</Text>
+          {(analysis.cue ?? analysis.onboardingCue) ? (
+            <Text style={styles.headlineCue}>{analysis.cue ?? analysis.onboardingCue}</Text>
+          ) : null}
+        </View>
+      ) : null}
+
       {analysis.summary ? <Text style={styles.summary}>{analysis.summary}</Text> : null}
 
-      {analysis.safetyFlags?.length > 0 && (
+      {/* The full report lands ~20s after the quick one on onboarding rows. */}
+      {analysis.mode === 'quick' ? (
+        <Text style={styles.pendingFull}>Your full breakdown is still being written — check back in a moment.</Text>
+      ) : null}
+
+      {(analysis.safetyFlags?.length ?? 0) > 0 && (
         <Section title="Safety" tone="danger">
-          {analysis.safetyFlags.map((s, i) => (
+          {(analysis.safetyFlags ?? []).map((s, i) => (
             <Bullet key={i} icon="warning" tone="danger" text={s} />
           ))}
         </Section>
       )}
 
-      {analysis.strengths?.length > 0 && (
+      {(analysis.strengths?.length ?? 0) > 0 && (
         <Section title="What’s working">
-          {analysis.strengths.map((s, i) => (
+          {(analysis.strengths ?? []).map((s, i) => (
             <Bullet key={i} icon="checkmark-circle" tone="success" text={s} />
           ))}
         </Section>
       )}
 
-      {analysis.weaknesses?.length > 0 && (
+      {(analysis.weaknesses?.length ?? 0) > 0 && (
         <Section title="What to fix">
-          {analysis.weaknesses.map((w, i) => (
-            <View key={i} style={styles.weakItem}>
-              <View style={styles.weakHead}>
-                <View style={[styles.sevDot, { backgroundColor: SEVERITY_COLOR[w.severity] ?? colors.warning }]} />
-                <Text style={styles.weakIssue}>{w.issue}</Text>
+          {(analysis.weaknesses ?? []).map((w, i) => {
+            const frame = framesByWeakness.get(i);
+            return (
+              <View key={i} style={styles.weakItem}>
+                <View style={styles.weakHead}>
+                  <View style={[styles.sevDot, { backgroundColor: SEVERITY_COLOR[w.severity] ?? colors.warning }]} />
+                  <Text style={styles.weakIssue}>{w.issue}</Text>
+                </View>
+                <Text style={styles.weakCue}>Cue: {w.cue}</Text>
+                {frame ? (
+                  <View style={styles.frameWrap}>
+                    <Image
+                      source={{ uri: `data:image/jpeg;base64,${frame.b64}` }}
+                      style={styles.frameImage}
+                      resizeMode="contain"
+                      accessibilityLabel={`Still from your video at ${timecode(frame.timestampSec)} showing: ${w.issue}`}
+                    />
+                    <Text style={styles.frameCaption}>
+                      At {timecode(frame.timestampSec)} in your clip
+                    </Text>
+                  </View>
+                ) : null}
               </View>
-              <Text style={styles.weakCue}>Cue: {w.cue}</Text>
-            </View>
-          ))}
+            );
+          })}
         </Section>
       )}
 
-      {analysis.recommendedDrills?.length > 0 && (
+      {(analysis.recommendedDrills?.length ?? 0) > 0 && (
         <Section title="Drills to fix it">
-          {analysis.recommendedDrills.map((d, i) => (
+          {(analysis.recommendedDrills ?? []).map((d, i) => (
             <View key={i} style={styles.drillItem}>
               <Text style={styles.drillName}>{d.name}{d.setsReps ? `  ·  ${d.setsReps}` : ''}</Text>
               <Text style={styles.drillWhy}>{d.why}</Text>
@@ -348,9 +564,9 @@ function ResultView({ analysis, onAnother }: { analysis: WorkoutVideoAnalysis; o
         </Section>
       )}
 
-      {analysis.programmingNotes?.length > 0 && (
+      {(analysis.programmingNotes?.length ?? 0) > 0 && (
         <Section title="Programming notes">
-          {analysis.programmingNotes.map((n, i) => (
+          {(analysis.programmingNotes ?? []).map((n, i) => (
             <Bullet key={i} icon="arrow-forward-circle" text={n} />
           ))}
         </Section>
@@ -359,6 +575,13 @@ function ResultView({ analysis, onAnother }: { analysis: WorkoutVideoAnalysis; o
       <TouchableOpacity style={styles.againButton} onPress={onAnother} accessibilityRole="button">
         <Text style={styles.againText}>Analyze another</Text>
       </TouchableOpacity>
+
+      {onDelete ? (
+        <TouchableOpacity style={styles.deleteButton} onPress={onDelete} accessibilityRole="button">
+          <Ionicons name="trash-outline" size={15} color={colors.destructive} />
+          <Text style={styles.deleteText}>Delete this analysis</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -399,6 +622,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: 12,
     fontSize: fontSize.base, color: colors.foreground,
   },
+  consentCard: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    marginTop: spacing.md, padding: spacing.md,
+    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border,
+  },
+  consentText: { flex: 1, gap: 3 },
+  consentTitle: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
+  consentBody: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 18 },
+
+  // DOB prompt. Modals never inherit keyboard avoidance from the screen behind
+  // them, so the card is centred with room for the keypad rather than pinned low.
+  dobBackdrop: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center', justifyContent: 'center', padding: spacing.lg,
+  },
+  dobCard: {
+    width: '100%', maxWidth: 380, backgroundColor: colors.background,
+    borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm,
+  },
+  dobTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.foreground },
+  dobBody: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 19 },
+  dobInput: {
+    backgroundColor: colors.muted, borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: 12, marginTop: spacing.xs,
+    fontSize: fontSize.base, color: colors.foreground, letterSpacing: 1,
+  },
+  dobPrimary: {
+    height: 48, borderRadius: radius.full, backgroundColor: colors.foreground,
+    alignItems: 'center', justifyContent: 'center', marginTop: spacing.xs,
+  },
+  dobPrimaryText: { color: colors.primaryForeground, fontWeight: fontWeight.semibold, fontSize: fontSize.base },
+  dobSkip: { alignItems: 'center', paddingVertical: spacing.sm },
+  dobSkipText: { color: colors.mutedForeground, fontSize: fontSize.sm },
+
   captureRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   tile: {
     flex: 1, height: 120, borderRadius: radius.lg,
@@ -437,6 +694,15 @@ const styles = StyleSheet.create({
   scoreBadge: { flexDirection: 'row', alignItems: 'baseline' },
   scoreValue: { fontSize: fontSize.display, fontWeight: fontWeight.bold, color: colors.foreground },
   scoreOutOf: { fontSize: fontSize.lg, color: colors.mutedForeground, fontWeight: fontWeight.semibold },
+  headlineCard: {
+    padding: 14, borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1, borderColor: colors.border,
+    gap: 6,
+  },
+  headlineText: { color: colors.foreground, fontSize: 16, fontWeight: '700', lineHeight: 22 },
+  headlineCue: { color: colors.mutedForeground, fontSize: 14, lineHeight: 20 },
+  pendingFull: { color: colors.mutedForeground, fontSize: 13, fontStyle: 'italic' },
   summary: { fontSize: fontSize.base, color: colors.foreground, lineHeight: 23 },
   section: { gap: spacing.sm },
   sectionTitle: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.mutedForeground, letterSpacing: 0.8, textTransform: 'uppercase' },
@@ -447,6 +713,16 @@ const styles = StyleSheet.create({
   sevDot: { width: 8, height: 8, borderRadius: 4 },
   weakIssue: { flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   weakCue: { fontSize: fontSize.sm, color: colors.mutedForeground, marginLeft: 16, lineHeight: 19 },
+  // Reference stills. Portrait clips are the norm, so the frame is given a
+  // tall aspect and letterboxed with resizeMode="contain" rather than cropped —
+  // cropping a body shot is how you cut off the thing being pointed at.
+  frameWrap: { marginTop: spacing.sm, marginLeft: 16, gap: 4 },
+  frameImage: {
+    width: '100%', aspectRatio: 3 / 4,
+    borderRadius: radius.md, backgroundColor: colors.muted,
+  },
+  frameCaption: { fontSize: fontSize.xs, color: colors.mutedForeground },
+
   drillItem: { gap: 2 },
   drillName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
   drillWhy: { fontSize: fontSize.sm, color: colors.mutedForeground, lineHeight: 19 },
@@ -455,4 +731,9 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginTop: spacing.sm,
   },
   againText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
+  deleteButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 12,
+  },
+  deleteText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.destructive },
 });

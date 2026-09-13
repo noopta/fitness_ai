@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#09090b"
     },
     "scheme": "axiom",
     "updates": {
@@ -54,8 +54,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
-          "color": "#000000",
+          "icon": "./assets/notification-icon.png",
+          "color": "#09090b",
           "sounds": [],
           "mode": "production"
         }
@@ -79,7 +79,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#09090b"
       },
       "package": "io.axiomtraining.app",
       "intentFilters": [

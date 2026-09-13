@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, unitLabel, type UnitPreference } from './weightUnits.js';
+import { parseJsonObjectColumn } from './jsonColumn.js';
 
 const prisma = new PrismaClient();
 
@@ -180,7 +181,7 @@ export async function runNightlyNotifications(): Promise<void> {
     // Program session reminder: notify only when today is a scheduled training day
     if (user.savedProgram && user.programStartDate) {
       try {
-        const program = JSON.parse(user.savedProgram);
+        const program = parseJsonObjectColumn<any>(user.savedProgram) ?? {};
         const start = new Date(user.programStartDate);
         start.setHours(0, 0, 0, 0);
         const today = new Date();

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Linking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator,
-  ScrollView, Animated, Dimensions, Alert, TextInput,
+  ScrollView, Animated, Dimensions, Alert,
 } from 'react-native';
 import { KeyboardAvoider } from './ui/KeyboardAvoider';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,7 @@ import {
   restorePurchases as restoreGoogle,
 } from '../lib/googleIap';
 import type { ProductSubscription, Purchase } from 'react-native-iap';
+import { presentCodeRedemptionSheetIOS } from 'react-native-iap';
 import { Analytics } from '../lib/analytics';
 import { apiFetch } from '../lib/api';
 
@@ -38,24 +40,38 @@ export const PRO_PRICE_FALLBACK = '$12.99';
 // math beats the App Store / Play 30% cut + still lets us net more per
 // sub. The exact value here must match the Stripe Product configuration
 // referenced from /payments/create-checkout — keep them in sync.
-export const STRIPE_PRICE_DISPLAY = '$11.99';
-// AXIOMTRIAL promo code applies in Stripe checkout — 1 month free trial.
-// Backend already accepts promotion_code via allow_promotion_codes on
-// the session (payments.ts), this string is the user-facing surface.
-export const TRIAL_PROMO_CODE = 'AXIOMTRIAL';
+export const STRIPE_PRICE_CENTS = 1299;
+export const STRIPE_PRICE_DISPLAY = '$12.99';
+// 1-month free trial is included on BOTH payment rails with no code:
+// Apple applies its introductory offer at the StoreKit sheet, and the Stripe
+// price now carries a free-trial offer so Checkout applies it automatically.
+// (The old AXIOMTRIAL promo code is no longer surfaced to users.)
 
 interface Props {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /**
+   * One clear promise shown under the title in place of the generic
+   * subtitle. The diagnostic-first surfaces pass the funnel's single sell —
+   * "Unlock the adaptive program + AI coach that fixes this and keeps
+   * adjusting." — so the sheet continues the sentence the verdict started
+   * instead of pivoting to a feature list.
+   */
+  promise?: string;
 }
 
+// Kept in step with the capability card on the Coach screen, and with what the
+// server actually enforces. Note "Unlimited AI coach chat" was wrong: pro is
+// capped at AGENT_PRO_DAILY_LIMIT (200/day) by checkAgentRateLimit, vs 10/day
+// free. Claiming unlimited is both untrue and the kind of thing App Store
+// review flags, so it now says what it is — a ceiling nobody realistically hits.
 const PERKS = [
-  { icon: 'infinite-outline',              text: 'Unlimited daily analyses' },
-  { icon: 'barbell-outline',               text: 'Full diagnostic interview + AI plan' },
-  { icon: 'chatbubble-ellipses-outline',   text: 'Unlimited AI coach chat' },
-  { icon: 'stats-chart-outline',           text: 'Strength profile & history' },
-  { icon: 'nutrition-outline',             text: 'Nutrition intelligence & tracking' },
+  { icon: 'chatbubble-ellipses-outline',   text: 'A coach that logs, adjusts and edits your plan for you' },
+  { icon: 'nutrition-outline',             text: 'Nutrition profiling — micros, gut health, photo & barcode logging' },
+  { icon: 'stats-chart-outline',           text: 'Strength profiling — 1RM estimates, PRs, weak-point diagnosis' },
+  { icon: 'videocam-outline',              text: 'Unlimited video form analysis (free: 1 per day)' },
+  { icon: 'infinite-outline',              text: 'Unlimited daily analyses + 200 coach messages a day' },
 ];
 
 // ── Inner content — mounts only when sheet is open ────────────────────────────
@@ -83,11 +99,13 @@ function PaymentSheetContent({
   // Pre-fills with the user's stored referredByCode (set at signup via ?ref=).
   // Hidden behind a toggle so users who don't have a code aren't prompted.
   const [referralCode, setReferralCode] = useState<string>(user?.referredByCode ?? '');
-  const [showRefInput, setShowRefInput] = useState<boolean>(!!user?.referredByCode);
+  // Referral attribution only comes from the signup-time code on the user
+  // record. The in-sheet code input was removed — it confused people and the
+  // Stripe page has its own promo-code field.
+
   useEffect(() => {
     if (user?.referredByCode && !referralCode) {
       setReferralCode(user.referredByCode);
-      setShowRefInput(true);
     }
   }, [user?.referredByCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -178,6 +196,32 @@ function PaymentSheetContent({
     }
   }, [iapPurchasing, product]);
 
+/**
+ * Android: prefer Chrome to host the Custom Tab for checkout.
+ *
+ * Google Pay's support in a Custom Tab is only reliable in Chrome — some OEM
+ * defaults (Samsung Internet et al.) either drop the wallet button or handle
+ * the redirect back to the app differently. Returns undefined when Chrome
+ * can't host a Custom Tab (not installed / disabled), which lets
+ * expo-web-browser fall back to the user's preferred browser rather than
+ * failing the purchase.
+ *
+ * iOS ignores this entirely — Apple only permits its own SFSafariViewController,
+ * so "Chrome" there would still be WebKit, and Google Pay never renders on iOS.
+ */
+async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
+  if (Platform.OS !== 'android') return undefined;
+  try {
+    const { browserPackages, servicePackages } = await WebBrowser.getCustomTabsSupportingBrowsersAsync();
+    const CHROME = 'com.android.chrome';
+    // servicePackages = can host the Custom Tabs *service* (what we need).
+    if (servicePackages?.includes(CHROME) || browserPackages?.includes(CHROME)) return CHROME;
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
   const handleStripeCheckout = useCallback(async () => {
     Analytics.upgradeTapped('stripe');
     try {
@@ -185,18 +229,59 @@ function PaymentSheetContent({
       // affiliate (sets affiliateId in Stripe session metadata; commission then
       // fires from /payments/webhook on checkout.session.completed).
       const code = (referralCode.trim() || user?.referredByCode || '').toUpperCase();
-      const body = code ? { referralCode: code } : {};
+      const body = { platform: 'mobile', ...(code ? { referralCode: code } : {}) };
       const d = await apiFetch('/payments/create-checkout', {
         method: 'POST',
         body: JSON.stringify(body),
       });
       if (!d?.url) throw new Error('Could not create checkout session');
-      await Linking.openURL(d.url);
-      setStripeOpened(true);
+
+      // In-app browser tab (SFSafariViewController / Chrome Custom Tabs) so the
+      // user never leaves the app — and unlike a WebView, Apple Pay, Google
+      // Pay and Link all still work. Checkout's success/cancel URLs bounce to
+      // axiom://checkout?status=…, which closes the tab and resolves here.
+      const browserPackage = await resolveAndroidBrowserPackage();
+      const result = await WebBrowser.openAuthSessionAsync(
+        d.url,
+        'axiom://checkout',
+        browserPackage ? { browserPackage } : undefined,
+      );
+      // Regex rather than URL.searchParams — React Native's built-in
+      // URLSearchParams.get() throws 'not implemented' without a polyfill.
+      const returnedStatus = result.type === 'success'
+        ? (/[?&]status=([^&#]+)/.exec(result.url)?.[1] ?? 'cancelled')
+        : null;
+
+      if (returnedStatus === 'cancelled') return;
+
+      // Either Stripe sent us back with success, or the user closed the tab
+      // themselves (maybe after paying). Poll briefly — the webhook that flips
+      // the tier can land a beat after the redirect.
+      setStripeConfirming(true);
+      try {
+        let pro = false;
+        for (let i = 0; i < (returnedStatus === 'success' ? 8 : 2); i++) {
+          const st: any = await apiFetch('/payments/status').catch(() => null);
+          if (st?.tier === 'pro') { pro = true; break; }
+          await new Promise<void>(r => setTimeout(r, 1500));
+        }
+        if (pro) {
+          await refreshUser();
+          Analytics.upgradeCompleted('stripe');
+          onClose();
+          await new Promise<void>(r => setTimeout(r, 300));
+          onSuccessRef.current();
+        } else if (returnedStatus === 'success') {
+          // Paid but the webhook is slow — leave the manual confirm as a fallback.
+          setStripeOpened(true);
+        }
+      } finally {
+        setStripeConfirming(false);
+      }
     } catch (err: any) {
       Alert.alert('Could not start checkout', err?.message ?? 'Please visit axiomtraining.io to upgrade.');
     }
-  }, [referralCode, user?.referredByCode]);
+  }, [referralCode, user?.referredByCode, refreshUser, onClose]);
 
   const handleStripeConfirm = useCallback(async () => {
     setStripeConfirming(true);
@@ -252,28 +337,21 @@ function PaymentSheetContent({
 
       {!stripeOpened ? (
         <>
-          <TouchableOpacity style={styles.stripeBtn} onPress={handleStripeCheckout} activeOpacity={0.85}>
-            <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.stripeBtnText}>Subscribe · {STRIPE_PRICE_DISPLAY}/mo</Text>
+          <TouchableOpacity
+            style={[styles.stripeBtn, stripeConfirming && styles.btnDisabled]}
+            onPress={handleStripeCheckout}
+            disabled={stripeConfirming}
+            activeOpacity={0.85}
+          >
+            {stripeConfirming ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="card-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.stripeBtnText}>Subscribe · {STRIPE_PRICE_DISPLAY}/mo</Text>
+              </>
+            )}
           </TouchableOpacity>
-
-          {!showRefInput ? (
-            <TouchableOpacity onPress={() => setShowRefInput(true)} style={styles.refToggle} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-              <Text style={styles.refToggleText}>Have a referral code?</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.refRow}>
-              <TextInput
-                value={referralCode}
-                onChangeText={(t) => setReferralCode(t.toUpperCase())}
-                placeholder="Referral code"
-                placeholderTextColor={colors.mutedForeground}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                style={styles.refInput}
-              />
-            </View>
-          )}
         </>
       ) : (
         <View style={styles.stripeConfirmBox}>
@@ -317,15 +395,14 @@ function PaymentSheetContent({
         ))}
       </View>
 
-      {/* Risk-free trial callout — shown on every paywall surface. Apple now has
-          a native introductory offer (1 month free) that StoreKit applies
-          automatically at the sheet for eligible Apple IDs — no code. Stripe
-          checkout has allow_promotion_codes enabled, so card payers paste the
-          AXIOMTRIAL code on the Stripe page. */}
+      {/* Risk-free trial callout — shown on every paywall surface. Apple applies
+          its native introductory offer (1 month free) at the StoreKit sheet, and
+          the Stripe price carries a free-trial offer, so card checkout gets the
+          same month free automatically — no promo code on either rail. */}
       <View style={styles.promoBanner}>
         <Ionicons name="gift-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
         <Text style={styles.promoText}>
-          <Text style={{ fontWeight: fontWeight.bold }}>Start with 1 month free</Text> — risk-free, no commitment. Applied automatically with Apple; paying by card, enter code <Text style={styles.promoCode}>{TRIAL_PROMO_CODE}</Text> at checkout.
+          <Text style={{ fontWeight: fontWeight.bold }}>1 month free included.</Text> {IS_IOS ? 'Whether you pay with Apple Pay or by card, your first month is free.' : 'Pay by card and your first month is free.'} Cancel anytime from your account settings.
         </Text>
       </View>
 
@@ -371,6 +448,21 @@ function PaymentSheetContent({
               )}
             </TouchableOpacity>
           )}
+
+          {/* Apple offer codes (KAVI10 etc.) have no visible entry point unless
+              the app presents StoreKit's redemption sheet. iOS only — Google
+              Play promo codes redeem through the Play Store app. */}
+          {!IS_ANDROID && (
+            <TouchableOpacity
+              onPress={() => {
+                void presentCodeRedemptionSheetIOS().catch(() => {});
+              }}
+              style={styles.refToggle}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.refToggleText}>Have an Apple promo code? Redeem it</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -405,7 +497,7 @@ function PaymentSheetContent({
 }
 
 // ── Outer shell ───────────────────────────────────────────────────────────────
-export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
+export function UpgradeSheet({ visible, onClose, onSuccess, promise }: Props) {
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
   useEffect(() => {
@@ -425,9 +517,11 @@ export function UpgradeSheet({ visible, onClose, onSuccess }: Props) {
         <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.handle} />
           <View style={styles.header}>
-            <View>
+            {/* flex:1 so a multi-line promise wraps instead of pushing the
+                close button off the sheet. */}
+            <View style={{ flex: 1, paddingRight: spacing.sm }}>
               <Text style={styles.title}>Upgrade to Pro</Text>
-              <Text style={styles.subtitle}>Everything Axiom has to offer</Text>
+              <Text style={styles.subtitle}>{promise ?? 'Everything Axiom has to offer'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="close" size={22} color={colors.mutedForeground} />
@@ -466,7 +560,7 @@ const styles = StyleSheet.create({
   perksCard: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md, gap: spacing.sm },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
-  // AXIOMTRIAL promo banner (shown on every paywall surface)
+  // Free-trial banner (shown on every paywall surface)
   promoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -479,7 +573,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   promoText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1, lineHeight: 18 },
-  promoCode: { fontWeight: fontWeight.bold, color: colors.primary, letterSpacing: 0.5 },
   perkIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center' },
   perkText: { fontSize: fontSize.sm, color: colors.foreground, flex: 1 },
 
@@ -490,8 +583,6 @@ const styles = StyleSheet.create({
   stripeBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: '#fff' },
   refToggle: { alignSelf: 'center', paddingVertical: 4 },
   refToggleText: { fontSize: fontSize.sm, color: colors.mutedForeground, textDecorationLine: 'underline' },
-  refRow: { paddingTop: 2 },
-  refInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: fontSize.sm, color: colors.foreground, backgroundColor: colors.card, letterSpacing: 1 },
   stripeConfirmBox: { gap: spacing.sm },
   stripeConfirmMsg: { fontSize: fontSize.sm, color: colors.mutedForeground, textAlign: 'center', lineHeight: 20 },
   reopenLink: { alignSelf: 'center', paddingVertical: 4 },

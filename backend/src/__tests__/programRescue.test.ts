@@ -102,4 +102,42 @@ describe('runProgramRescueSweep', () => {
     expect(result).toEqual({ rescued: 1, failed: 0 });
     expect(mockUpdate).toHaveBeenCalled();
   });
+
+  it('promotes a stored draft without spending on generation and clears it', async () => {
+    const draft = { phases: [{ weeks: [] }], goal: 'strength' };
+    mockFindMany.mockResolvedValue([stranded({ draftProgram: JSON.stringify(draft) })]);
+    const result = await runProgramRescueSweep();
+
+    expect(result).toEqual({ rescued: 1, failed: 0 });
+    expect(mockGenerate).not.toHaveBeenCalled();
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'u1' },
+        data: expect.objectContaining({
+          savedProgram: JSON.stringify(draft),
+          draftProgram: null,
+          draftProgramAt: null,
+        }),
+      }),
+    );
+    expect(mockPush).toHaveBeenCalledWith('u1', 'Your program is ready', expect.any(String), { type: 'program_rescued' });
+  });
+
+  it('regenerates when the draft is corrupt or not a real program', async () => {
+    mockFindMany.mockResolvedValue([
+      stranded({ draftProgram: 'not json' }),
+      stranded({ id: 'u2', email: 'b@x.com', draftProgram: JSON.stringify({ phases: [] }) }),
+    ]);
+    const result = await runProgramRescueSweep();
+    expect(result).toEqual({ rescued: 2, failed: 0 });
+    expect(mockGenerate).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips a draft-less user with no intake profile instead of generating blind', async () => {
+    mockFindMany.mockResolvedValue([stranded({ coachProfile: null, draftProgram: 'not json' })]);
+    const result = await runProgramRescueSweep();
+    expect(result).toEqual({ rescued: 0, failed: 0 });
+    expect(mockGenerate).not.toHaveBeenCalled();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
 });

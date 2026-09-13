@@ -5,6 +5,7 @@ import { fetchClinicalTrials } from './feed/clinicalTrials.js';
 import { fetchPubMedCentral } from './feed/pubmedCentral.js';
 import { fetchHubermanLab } from './feed/huberman.js';
 import { fetchAllUniversityFeeds } from './feed/universityRss.js';
+import { parseJsonObjectColumn } from './jsonColumn.js';
 
 const prisma = new PrismaClient();
 
@@ -89,7 +90,7 @@ export async function getUserGoalTags(userId: string): Promise<FeedTag[]> {
 
   if (user.savedProgram) {
     try {
-      const prog = JSON.parse(user.savedProgram);
+      const prog = parseJsonObjectColumn<any>(user.savedProgram) ?? {};
       savedProgramGoal = prog.goal ?? null;
     } catch { /* ignore */ }
   }

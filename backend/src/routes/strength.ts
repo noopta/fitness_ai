@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { optionalAuth } from '../middleware/optionalAuth.js';
 import { bodyWeightKg, kgToLb, normalizePreference } from '../services/weightUnits.js';
 import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
@@ -345,17 +346,46 @@ router.get('/strength/profile', requireAuth, async (req, res) => {
 });
 
 // ─── GET /api/strength/share-card ─────────────────────────────────────────────
-// Returns a public-friendly PR summary for a user — used to populate shareable
-// PR cards on web and mobile. No auth required so the card link works publicly.
+// Returns a PR summary used to populate shareable PR cards on web and mobile.
+//
+// Was fully unauthenticated and returned the user's real name to anyone who
+// asked — an endpoint that hands out PII for any user id, with no signal that
+// the user ever agreed to be shared. Now: the owner can always fetch their own
+// card (that's the share-sheet path), and anyone else must be signed in and
+// either a friend/colleague or looking at a user who has opted into sharing.
+//
+// optionalAuth rather than requireAuth so an unauthenticated request still gets
+// a clean 403 with an explanation instead of a bare 401.
 
-router.get('/strength/share-card/:userId', async (req, res) => {
+router.get('/strength/share-card/:userId', optionalAuth, async (req, res) => {
   try {
     const { userId } = req.params;
+    const viewerId = req.user?.id ?? null;
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, weightKg: true },
+      select: { name: true, weightKg: true, scheduleSharing: true },
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (viewerId !== userId) {
+      if (!viewerId) {
+        return res.status(403).json({ error: 'Sign in to view this athlete\'s card.' });
+      }
+      const friendship = await prisma.friendship.findFirst({
+        where: {
+          status: 'accepted',
+          OR: [
+            { requesterId: viewerId, addresseeId: userId },
+            { requesterId: userId, addresseeId: viewerId },
+          ],
+        },
+        select: { id: true },
+      });
+      if (!friendship) {
+        return res.status(403).json({ error: 'This athlete\'s card isn\'t shared with you.' });
+      }
+    }
 
     const logs = await prisma.workoutLog.findMany({
       where: { userId },

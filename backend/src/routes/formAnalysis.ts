@@ -7,6 +7,22 @@
 //   Free tier capped at FEATURE.FORM_VIDEO daily quota; pro unmetered.
 // GET  /api/form-analysis        — history (newest first).
 // GET  /api/form-analysis/:id    — status + analysis when complete.
+// DELETE /api/form-analysis/:id  — remove one analysis and its stills.
+//
+// ── Reference stills ────────────────────────────────────────────────────────
+// When the model anchors a fault to a moment and a region, we cut that frame
+// out of the clip, bracket the region, and store it with the analysis so the
+// feedback can point at what it means. See formFrameService for why the JPEGs
+// live in the row rather than in object storage.
+//
+// Stills are strictly opt-in per upload (`saveFrames=1`), because they are
+// retained imagery of the user's body and the rest of this pipeline retains
+// nothing. Two consequences follow, both deliberate:
+//   - The installed build never sends the field, so it never gets stills and
+//     its behaviour is unchanged.
+//   - Consent is re-affirmed on every upload and recorded on the row itself,
+//     rather than being a profile flag set once and forgotten.
+// Under-18 accounts never get stills regardless of the flag.
 //
 // The async pattern was added after live testing surfaced 60-90s sync
 // round-trips that timed out RN's default 60s fetch (and would also kill
@@ -21,7 +37,16 @@ import { Router } from 'express';
 import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { analyzeWorkoutVideo } from '../services/geminiService.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
+import { screenFormVideo, recordScreenVerdict } from '../services/formVideoScreeningService.js';
+import {
+  analyzeWorkoutVideo,
+  uploadFormVideo,
+  analyzeFormVideoQuick,
+  analyzeFormVideoFull,
+} from '../services/geminiService.js';
+import { extractReferenceFrames } from '../services/formFrameService.js';
+import { onboardingHookAvailableFor } from '../services/featureFlags.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import {
   consumeDailyQuota,
@@ -51,6 +76,59 @@ const upload = multer({
   },
 });
 
+// Retaining stills of a minor's body is a materially different proposition to
+// retaining an adult's, and the app's floor is 13. Under-18 accounts get the
+// full written analysis and no imagery. An unknown date of birth is treated as
+// under-18: the safe default when we cannot tell is the one that stores less.
+const FRAME_MIN_AGE_YEARS = 18;
+
+/** Minimum age for the onboarding video hook. See the gate in the route. */
+const ONBOARDING_MIN_AGE_YEARS = 18;
+
+/**
+ * Kill switch for the onboarding hook, default OFF.
+ *
+ * The code ships dark. The DPIA addendum lists three conditions that are not
+ * engineering work and were not met at deploy time — a named owner for
+ * quarantine alerts, a written NCMEC procedure, and a privacy policy that
+ * describes this processing — and none of them are things a deploy can
+ * satisfy. Shipping the route disabled means the mobile build can go out,
+ * the backend can be verified in place, and the feature turns on with one
+ * env var once those are signed off, rather than a second risky deploy.
+ *
+ * Disabled returns 403 `not_enabled`, which the client already treats the
+ * same way as the age gate: skip quietly to the intake. So with the flag off
+ * the app behaves exactly as it did before the hook existed.
+ */
+
+function isAtLeast(dateOfBirth: Date | null | undefined, years: number): boolean {
+  if (!dateOfBirth) return false;
+  const time = dateOfBirth.getTime();
+  if (!Number.isFinite(time)) return false;
+  const threshold = new Date();
+  threshold.setFullYear(threshold.getFullYear() - years);
+  return time <= threshold.getTime();
+}
+
+/**
+ * Whether this upload may keep reference stills: the client asked for them AND
+ * the account is old enough. Never throws — if the age lookup fails we fall
+ * through to "no stills" rather than failing an analysis over it.
+ */
+async function mayStoreFrames(userId: string, requested: boolean): Promise<boolean> {
+  if (!requested) return false;
+  try {
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { dateOfBirth: true },
+    });
+    return isAtLeast(row?.dateOfBirth, FRAME_MIN_AGE_YEARS);
+  } catch (err) {
+    console.warn('[form-analysis] age check failed, withholding stills:', err);
+    return false;
+  }
+}
+
 // Wrap multer so its errors become clean JSON (it throws MulterError, e.g.
 // LIMIT_FILE_SIZE, which would otherwise hit the generic 500 handler).
 const uploadVideo = (req: any, res: any, next: any) =>
@@ -62,7 +140,7 @@ const uploadVideo = (req: any, res: any, next: any) =>
     return res.status(400).json({ error: err?.message || 'Invalid video upload' });
   });
 
-router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) => {
+router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
   const userId = req.user!.id;
   const tier = req.user!.tier;
 
@@ -114,12 +192,27 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
   const videoBuffer = req.file.buffer;
   const mimeType = req.file.mimetype;
 
+  // Opt-in, so anything other than an explicit '1' means no stills.
+  const framesRequested = String(req.body?.saveFrames ?? '') === '1';
+  const framesAllowed = await mayStoreFrames(userId, framesRequested);
+
   // Shared work: run the analysis, write the row's terminal state, optionally
   // push. Returns the analysis on success; on failure it marks the row failed,
   // refunds the credit, then rethrows so the sync caller can 502.
   const finalize = async (notify: boolean) => {
     try {
       const analysis = await analyzeWorkoutVideo(videoBuffer, mimeType, exerciseHint);
+
+      // Reference stills, if the user asked for them. Best-effort by design:
+      // extractReferenceFrames swallows its own failures and returns [], so a
+      // bad clip or a missing ffmpeg costs the pictures, never the analysis.
+      // `framesConsent` is persisted alongside so the row records the choice
+      // that produced it, not just the result.
+      const referenceFrames = framesAllowed
+        ? await extractReferenceFrames(videoBuffer, mimeType, analysis.weaknesses)
+        : [];
+      const stored = { ...analysis, framesConsent: framesAllowed, referenceFrames };
+
       await prisma.formAnalysis.update({
         where: { id: pending.id },
         data: {
@@ -127,7 +220,7 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
           exercise: analysis.exercise || 'unknown',
           formScore: Number.isFinite(analysis.formScore) ? analysis.formScore : null,
           repCount: typeof analysis.repCount === 'number' ? analysis.repCount : null,
-          analysisJson: JSON.stringify(analysis),
+          analysisJson: JSON.stringify(stored),
           errorMessage: null,
         },
       });
@@ -141,7 +234,7 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
           { screen: 'form-analysis', id: pending.id },
         ).catch(() => {});
       }
-      return analysis;
+      return stored;
     } catch (err: any) {
       console.error('Form video analysis error:', err);
       // Refund the credit — the user shouldn't lose it to a failure they didn't cause.
@@ -174,9 +267,247 @@ router.post('/form-analysis/video', requireAuth, uploadVideo, async (req, res) =
   try {
     const analysis = await finalize(false);
     return res.json({ id: pending.id, createdAt: pending.createdAt, analysis, usage });
-  } catch {
+  } catch (err: any) {
+    // A safety refusal is the user's problem to fix, not ours — tell them what
+    // happened instead of the generic "couldn't analyze" that used to cover it.
+    if (err?.isContentBlocked) {
+      return res.status(400).json({ error: err.message });
+    }
     return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
   }
+});
+
+// ─── Onboarding hook ────────────────────────────────────────────────────────
+//
+// POST /api/form-analysis/onboarding — the first-run "taste of Axiom" pass.
+//
+// Differs from the main route in three deliberate ways:
+//
+//  1. It does NOT consume the free daily quota. The whole point is that a
+//     brand-new user's first clip is free and, critically, RETRYABLE — the
+//     most likely first-clip outcome is a bad angle or a dark gym, and
+//     spending their one daily credit on that would turn the aha moment into
+//     a 429 paywall. Abuse exposure is bounded instead by (a) eligibility
+//     below and (b) aiLimiter, and the pass costs well under a cent.
+//
+//  2. It runs the quick model (~6s) so the user is looking at feedback before
+//     they lose interest, then upgrades the same row to the full report in
+//     the background off the SAME GCS upload.
+//
+//  3. Eligibility is "this user has never run an analysis", which needs no
+//     schema column — the FormAnalysis row count IS the flag. A second call
+//     404s back to the metered route rather than handing out free passes.
+router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
+  const userId = req.user!.id;
+
+  if (!onboardingHookAvailableFor(userId, req.user!.email)) {
+    return res.status(403).json({
+      error: 'The onboarding form check is not available.',
+      reason: 'not_enabled',
+    });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
+  }
+
+  // ── Age gate. The onboarding hook is 18+ ────────────────────────────────
+  //
+  // Not the app's 13+ minimum. Three reasons, in order of weight:
+  //  - It is the same line already drawn for retained stills, and it is not
+  //    coherent to refuse to STORE imagery of a 15-year-old while making
+  //    filming themselves the first thing we ask them to do.
+  //  - The UK Age Appropriate Design Code treats a flow designed to maximise
+  //    data provision as a prohibited nudge when children can reach it.
+  //  - It removes the largest part of the CSAM surface at the door, which is
+  //    worth more than any downstream classifier.
+  //
+  // Unknown DOB fails closed. A user with no date of birth on file is not
+  // assumed adult — they skip the hook and go straight to intake, which is a
+  // strictly better outcome than guessing.
+  const dobRow = await prisma.user.findUnique({ where: { id: userId }, select: { dateOfBirth: true } });
+  if (!isAtLeast(dobRow?.dateOfBirth, ONBOARDING_MIN_AGE_YEARS)) {
+    return res.status(403).json({
+      error: 'The onboarding form check is available to users 18 and over.',
+      reason: 'age_restricted',
+    });
+  }
+
+  // The eligibility gate. Note this is a count, not a boolean flag: it is
+  // self-healing (deleting your analyses makes you eligible again, which is
+  // fine — you also deleted your history) and needs no migration.
+  const priorAnalyses = await prisma.formAnalysis.count({ where: { userId } });
+  if (priorAnalyses > 0) {
+    return res.status(409).json({
+      error: 'The onboarding analysis is only available on your first clip.',
+      useInstead: '/api/form-analysis/video',
+    });
+  }
+
+  const exerciseHint =
+    typeof req.body?.exerciseHint === 'string' && req.body.exerciseHint.trim()
+      ? req.body.exerciseHint.trim().slice(0, 120)
+      : null;
+
+  // Stills are opt-in here exactly as on the main route: the stills DPIA's
+  // basis is Art. 9(2)(a) explicit consent, and a default-on toggle in a
+  // first-run flow is not explicit consent. The age half of mayStoreFrames is
+  // already satisfied — this route 403s anyone under 18 above — but we call it
+  // anyway rather than duplicating the rule in a second place.
+  const framesRequested = String(req.body?.saveFrames ?? '') === '1';
+  const framesAllowed = await mayStoreFrames(userId, framesRequested);
+
+  const pending = await prisma.formAnalysis.create({
+    data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
+    select: { id: true, createdAt: true },
+  });
+
+  // req.file goes out of scope once we respond; the background work needs
+  // its own references.
+  const videoBuffer = req.file.buffer;
+  const mimeType = req.file.mimetype;
+
+  // Two passes, one upload. The user waits only for the first.
+  const runBothPasses = async () => {
+    const t0 = Date.now();
+    let upload: { fileUri: string; cleanup: () => void } | null = null;
+    // Set by a quarantine verdict. When true the GCS object is deliberately
+    // NOT deleted in the finally — see formVideoScreeningService for why
+    // preservation beats privacy in exactly this one case.
+    let preserveObject = false;
+    try {
+      upload = await uploadFormVideo(videoBuffer, mimeType);
+      const uploadMs = Date.now() - t0;
+
+      // Screening runs CONCURRENTLY with the analysis, not in front of it.
+      // It is a tiny-output call and lands well inside the analysis window,
+      // so in the common case it adds no wall-clock at all — but nothing is
+      // written to the row or shown to the user until it comes back clean.
+      const tQuick = Date.now();
+      const [screen, quick] = await Promise.all([
+        screenFormVideo(upload.fileUri, mimeType),
+        analyzeFormVideoQuick(upload.fileUri, mimeType, exerciseHint),
+      ]);
+      const quickMs = Date.now() - tQuick;
+
+      if (screen.action !== 'allow') {
+        preserveObject = screen.action === 'quarantine';
+        await recordScreenVerdict({
+          userId,
+          surface: 'form_video_onboarding',
+          verdict: screen,
+          preservedObject: preserveObject ? upload.fileUri : null,
+        });
+        // The analysis is discarded unread. Storing coaching feedback derived
+        // from a clip we just refused would defeat the point of refusing it.
+        await prisma.formAnalysis.update({
+          where: { id: pending.id },
+          data: {
+            status: 'failed',
+            exercise: 'unknown',
+            errorMessage: screen.userMessage ?? 'This video could not be processed.',
+          },
+        });
+        console.log(`[form-analysis] onboarding screened out ${pending.id}: ${screen.concern} (${screen.action})`);
+        return;
+      }
+
+      // One still, from the quick pass's own anchor. It has to come from THIS
+      // pass rather than the full one: the full report lands ~20s later, and a
+      // picture that arrives after the user has moved on is not the feature.
+      // Best-effort by design — extractReferenceFrames swallows its own
+      // failures and returns [], so a missing ffmpeg or an unanchored fault
+      // costs the picture and never the analysis.
+      const quickFrames = framesAllowed
+        ? await extractReferenceFrames(videoBuffer, mimeType, [{
+            issue: quick.headline,
+            severity: 'major',
+            cue: quick.cue,
+            timestampSec: quick.timestampSec ?? null,
+            focusTarget: quick.focusTarget ?? null,
+          }])
+        : [];
+
+      await prisma.formAnalysis.update({
+        where: { id: pending.id },
+        data: {
+          status: 'complete',
+          exercise: quick.exercise || 'unknown',
+          formScore: Number.isFinite(quick.formScore) ? quick.formScore : null,
+          repCount: typeof quick.repCount === 'number' ? quick.repCount : null,
+          // `mode` is what tells the client which shape it is holding. It
+          // lives inside the JSON rather than in a column so this whole
+          // feature ships without a migration (and therefore OTA-able).
+          analysisJson: JSON.stringify({
+            ...quick, mode: 'quick',
+            framesConsent: framesAllowed,
+            referenceFrames: quickFrames,
+          }),
+          errorMessage: null,
+        },
+      });
+      console.log(`[form-analysis] onboarding quick pass ${pending.id}: gcs=${uploadMs}ms quick=${quickMs}ms`);
+
+      // ── Second pass. The user already has their result; from here on every
+      // failure is silent. Never downgrade a delivered 'complete' row to
+      // 'failed' because the bonus report didn't land.
+      try {
+        const tFull = Date.now();
+        const full = await analyzeFormVideoFull(upload.fileUri, mimeType, quick.exercise || exerciseHint);
+        await prisma.formAnalysis.update({
+          where: { id: pending.id },
+          data: {
+            exercise: full.exercise || quick.exercise || 'unknown',
+            formScore: Number.isFinite(full.formScore) ? full.formScore : null,
+            repCount: typeof full.repCount === 'number' ? full.repCount : null,
+            analysisJson: JSON.stringify({
+              ...full,
+              mode: 'full',
+              framesConsent: framesAllowed,
+              referenceFrames: framesAllowed
+                ? await extractReferenceFrames(videoBuffer, mimeType, full.weaknesses)
+                : [],
+              // Keep the line the user actually read on screen, so the full
+              // report can open with it instead of contradicting it.
+              onboardingHeadline: quick.headline,
+              onboardingCue: quick.cue,
+            }),
+          },
+        });
+        console.log(`[form-analysis] onboarding full pass ${pending.id}: ${Date.now() - tFull}ms`);
+      } catch (err) {
+        console.warn(`[form-analysis] onboarding full pass failed for ${pending.id} (quick result stands):`, err);
+      }
+    } catch (err: any) {
+      console.error('[form-analysis] onboarding analysis error:', err);
+      await prisma.formAnalysis
+        .update({
+          where: { id: pending.id },
+          data: {
+            status: 'failed',
+            exercise: 'unknown',
+            errorMessage: err?.message?.slice(0, 300) ?? 'Analysis failed',
+          },
+        })
+        .catch(() => {});
+    } finally {
+      // Quarantined objects are left in place on purpose. The bucket's 1-day
+      // lifecycle rule would still reap them, so acting on a quarantine alert
+      // is time-bound — that window is the reason the log line is an error.
+      if (preserveObject) {
+        console.error(`[form-analysis] object preserved for review, cleanup skipped: ${upload?.fileUri}`);
+      } else {
+        upload?.cleanup();
+      }
+    }
+  };
+
+  // Fire and forget — the client polls GET /:id. No push notification here:
+  // unlike the main route the user is staring at the screen, and a push for
+  // something already on screen reads as a bug.
+  runBothPasses().catch(() => {});
+
+  return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending' });
 });
 
 router.get('/form-analysis', requireAuth, async (req, res) => {
@@ -218,6 +549,32 @@ router.get('/form-analysis/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Form analysis fetch error:', err);
     res.status(500).json({ error: 'Failed to load analysis' });
+  }
+});
+
+/**
+ * Delete one analysis, and with it any reference stills — they live inside
+ * analysisJson, so removing the row removes the imagery in the same statement
+ * with nothing left to orphan.
+ *
+ * This exists because the feature now retains pictures of the user. "Delete
+ * your whole account" was the only erasure path before, which is not a real
+ * choice to offer someone who wants one clip gone.
+ *
+ * deleteMany, not delete, so the userId predicate is part of the write: a
+ * findFirst-then-delete pair would be racy and would leak row existence
+ * through the 404. Zero rows deleted is reported as not found either way.
+ */
+router.delete('/form-analysis/:id', requireAuth, async (req, res) => {
+  try {
+    const { count } = await prisma.formAnalysis.deleteMany({
+      where: { id: req.params.id, userId: req.user!.id },
+    });
+    if (count === 0) return res.status(404).json({ error: 'Analysis not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Form analysis delete error:', err);
+    res.status(500).json({ error: 'Failed to delete analysis' });
   }
 });
 

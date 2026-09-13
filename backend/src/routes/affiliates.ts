@@ -14,7 +14,17 @@ import {
 const router = Router();
 const prisma = new PrismaClient();
 
-// ─── Self-service routes (affiliate identified by invite token or email) ───────
+// ─── Self-service routes ──────────────────────────────────────────────────────
+// Affiliates aren't app users; their invite token IS their credential — the
+// setup link doubles as their permanent dashboard link. Every self-service
+// route requires it. Never accept a bare email or affiliateId here: email is
+// public knowledge, and an affiliateId unlocks a Stripe Express login link.
+
+async function affiliateByToken(raw: unknown) {
+  const token = typeof raw === 'string' ? raw.trim() : '';
+  if (!token) return null;
+  return prisma.affiliate.findUnique({ where: { inviteToken: token } });
+}
 
 // POST /api/affiliate/setup — complete onboarding from invite link
 // Body: { token } — matches inviteToken on Affiliate record
@@ -23,7 +33,7 @@ router.post('/affiliate/setup', async (req, res) => {
   if (!token) return res.status(400).json({ error: 'token is required' });
 
   try {
-    const affiliate = await prisma.affiliate.findUnique({ where: { inviteToken: token } });
+    const affiliate = await affiliateByToken(token);
     if (!affiliate) return res.status(404).json({ error: 'Invalid or expired invite token' });
 
     if (affiliate.inviteUsedAt) {
@@ -48,14 +58,11 @@ router.post('/affiliate/setup', async (req, res) => {
   }
 });
 
-// GET /api/affiliate/me?email=... — get affiliate by email (used by dashboard page)
+// GET /api/affiliate/me?token=... — the affiliate's own dashboard
 router.get('/affiliate/me', async (req, res) => {
-  const email = (req.query.email as string)?.toLowerCase().trim();
-  if (!email) return res.status(400).json({ error: 'email query param is required' });
-
   try {
-    const affiliate = await prisma.affiliate.findUnique({ where: { email } });
-    if (!affiliate) return res.status(404).json({ error: 'Affiliate not found' });
+    const affiliate = await affiliateByToken(req.query.token);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to view your dashboard.' });
 
     // Refresh onboarding status from Stripe
     await checkAndUpdateOnboardingStatus(affiliate.id);
@@ -70,11 +77,10 @@ router.get('/affiliate/me', async (req, res) => {
 
 // POST /api/affiliate/onboard — get/refresh Stripe Connect onboarding link
 router.post('/affiliate/onboard', async (req, res) => {
-  const { affiliateId } = req.body;
-  if (!affiliateId) return res.status(400).json({ error: 'affiliateId is required' });
-
   try {
-    const url = await generateOnboardingLink(affiliateId);
+    const affiliate = await affiliateByToken(req.body?.token);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    const url = await generateOnboardingLink(affiliate.id);
     res.json({ url });
   } catch (err: any) {
     console.error('[affiliates] onboard error:', err);
@@ -82,14 +88,14 @@ router.post('/affiliate/onboard', async (req, res) => {
   }
 });
 
-// GET /api/affiliate/dashboard-url?affiliateId=... — Stripe Express login link
+// GET /api/affiliate/dashboard-url?token=... — Stripe Express login link.
+// Token-gated: this link is a full login to the affiliate's Stripe account.
 router.get('/affiliate/dashboard-url', async (req, res) => {
-  const affiliateId = req.query.affiliateId as string;
-  if (!affiliateId) return res.status(400).json({ error: 'affiliateId is required' });
-
   try {
-    await checkAndUpdateOnboardingStatus(affiliateId);
-    const url = await generateDashboardLink(affiliateId);
+    const affiliate = await affiliateByToken(req.query.token);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    await checkAndUpdateOnboardingStatus(affiliate.id);
+    const url = await generateDashboardLink(affiliate.id);
     res.json({ url });
   } catch (err: any) {
     console.error('[affiliates] dashboard-url error:', err);
@@ -99,11 +105,10 @@ router.get('/affiliate/dashboard-url', async (req, res) => {
 
 // POST /api/affiliate/onboarding-complete — poll after Stripe Connect return
 router.post('/affiliate/onboarding-complete', async (req, res) => {
-  const { affiliateId } = req.body;
-  if (!affiliateId) return res.status(400).json({ error: 'affiliateId is required' });
-
   try {
-    const ready = await checkAndUpdateOnboardingStatus(affiliateId);
+    const affiliate = await affiliateByToken(req.body?.token);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    const ready = await checkAndUpdateOnboardingStatus(affiliate.id);
     res.json({ onboarded: ready });
   } catch (err: any) {
     console.error('[affiliates] onboarding-complete error:', err);

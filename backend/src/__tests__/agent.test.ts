@@ -221,6 +221,16 @@ describe('tool registry', () => {
     );
     expect(out.logged.title).toBe('Push');
     expect(out.logged.duration).toBe(50);
+
+    // The column MUST hold JSON. This test previously passed free text in and
+    // asserted only title/duration — so when the tool wrote that text straight
+    // to the column, every reader's JSON.parse threw and a Pro user's workout
+    // history 500'd for a full day (2026-08-07) with the suite green.
+    expect(typeof out.logged.exercises).toBe('string');
+    const stored = JSON.parse(out.logged.exercises);
+    expect(Array.isArray(stored)).toBe(true);
+    expect(stored.length).toBeGreaterThan(0);
+    expect(stored[0]).toMatchObject({ name: expect.any(String), freeform: true });
   });
 
   it('read_latest_diagnostic returns the most recent session + plan', async () => {
@@ -435,6 +445,41 @@ describe('runAgentTurn (mocked client)', () => {
     const res = await runAgentTurn(USER, 'loop forever', [], client);
     expect(res.iterations).toBeLessThanOrEqual(8);
     expect(res.reply).toContain('ran out of steps');
+  });
+
+  it('retries once when a max_tokens stop yields no text (cap hit mid-tool-call)', async () => {
+    const client = mockClient([
+      // Turn 1: normal tool call.
+      { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'tu_1', name: 'read_nutrition_today', input: {} }] },
+      // Turn 2: token cap landed mid-way through emitting ANOTHER tool call —
+      // no text blocks at all. This used to return the literal "(no reply)".
+      { stop_reason: 'max_tokens', content: [{ type: 'tool_use', id: 'tu_trunc', name: 'read_profile', input: {} }] },
+      // Turn 3 (the retry): prose answer.
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'You are 55 lb from the 1000 lb club.' }] },
+    ]);
+    mocks.mealEntry.findMany.mockResolvedValue([]);
+    const res = await runAgentTurn(USER, 'how far am I from 1000 lb club?', [], client);
+
+    expect(res.reply).toContain('55 lb');
+    expect(res.reply).not.toContain('(no reply)');
+    // The retry call must NOT contain the truncated assistant turn (its
+    // dangling tool_use has no tool_result and would 400 the API), and must
+    // end with the retry nudge.
+    const retryCall = client.snapshots[2];
+    const roles = retryCall.messages.map((m: any) => m.role);
+    expect(roles.filter((r: string) => r === 'assistant').length).toBe(1); // only turn 1's
+    const last = retryCall.messages[retryCall.messages.length - 1];
+    expect(last.role).toBe('user');
+    expect(String(last.content)).toContain('cut off');
+  });
+
+  it('returns a human fallback, never "(no reply)", when end_turn has no text', async () => {
+    const client = mockClient([
+      { stop_reason: 'end_turn', content: [] },
+    ]);
+    const res = await runAgentTurn(USER, 'hi', [], client);
+    expect(res.reply).not.toContain('(no reply)');
+    expect(res.reply.length).toBeGreaterThan(10);
   });
 });
 

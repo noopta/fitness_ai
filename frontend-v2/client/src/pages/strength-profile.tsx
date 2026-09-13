@@ -15,6 +15,7 @@ import {
   Lightbulb, Utensils, RefreshCw,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
+import { useUnits } from '@/lib/units';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 

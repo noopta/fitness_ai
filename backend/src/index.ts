@@ -11,6 +11,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import posthog from './services/posthogClient.js';
+import { errorReporting, reportServerError } from './middleware/errorReporting.js';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import waitlistRoutes from './routes/waitlist.js';
@@ -25,9 +26,12 @@ import recipesRoutes from './routes/recipes.js';
 import nutritionProfileRoutes from './routes/nutritionProfile.js';
 import wellnessRoutes from './routes/wellness.js';
 import workoutsRoutes from './routes/workouts.js';
+import adaptationRoutes from './routes/adaptation.js';
 import strengthRoutes from './routes/strength.js';
 import affiliatesRoutes from './routes/affiliates.js';
 import adminRoutes from './routes/admin.js';
+import blogRoutes from './routes/blog.js';
+import emailRoutes from './routes/email.js';
 import socialRoutes from './routes/social.js';
 import agentRoutes from './routes/agent.js';
 import groupsRoutes from './routes/groups.js';
@@ -66,7 +70,9 @@ import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
 import { runAnakinGroupSweep } from './services/groupAccountability.js';
 import { runProgramRescueSweep } from './services/programRescueService.js';
-import { alertServerError, alertUncaughtException } from './services/errorAlertService.js';
+import { alertUncaughtException } from './services/errorAlertService.js';
+import { securityHeaders } from './middleware/securityHeaders.js';
+import { globalLimiter } from './middleware/rateLimiter.js';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -74,7 +80,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// nginx terminates TLS and proxies to us, so without this req.ip is always
+// nginx's address — which would make every IP-keyed rate limit below a single
+// global bucket shared by the entire internet.
+app.set('trust proxy', 1);
+
+// No ETags on API responses.
+//
+// Express sends a weak ETag on every res.json, so a repeat request answers
+// 304 with an empty body. The mobile client's apiFetch treats any response
+// where `!res.ok` as a failure — and res.ok is false for 304 — so a normal
+// cache revalidation is thrown as an error inside the app.
+//
+// This is reachable on the brand-new-user path: after POST /auth/set-dob the
+// app re-requests /coach/program, /coach/messages, /social/notifications/counts
+// and /form-analysis, and prod answered 304 to all four for the signups that
+// stalled before the intake quiz (2026-08-16 onward, 0/6 converted).
+//
+// The payloads here are small since the feed slimming work, so conditional
+// revalidation buys little; correctness on a shipped client that mishandles
+// 304 is worth more than the bytes. Fixing apiFetch is the real fix, but that
+// needs an app release — this reaches every install already out there.
+app.set('etag', false);
+
 // Middleware
+app.use(securityHeaders);
 app.use(cookieParser());
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'https://axiomtraining.io',
@@ -112,19 +142,48 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-app.use(express.json({
-  limit: '10mb',
-  verify: (req: any, _res, buf) => {
-    if (req.url === '/api/payments/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
-      req.rawBody = buf;
-    }
-  },
-}));
+// Body size. The 10MB ceiling exists for base64 image payloads (meal photos,
+// post images, avatars) and is applied only to the routes that need it; every
+// other endpoint gets a 1MB limit, so a JSON flood against, say, /auth/login
+// can't push 10MB per request through the parser.
+const jsonVerify = (req: any, _res: any, buf: Buffer) => {
+  // Stripe and Meta both sign the raw bytes, so those two need the untouched
+  // buffer stashed before JSON.parse gets to it.
+  if (req.url === '/api/payments/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
+    req.rawBody = buf;
+  }
+};
 
-// Health check
+const LARGE_BODY_PATHS = [
+  '/api/nutrition/analyze-photo',
+  '/api/nutrition/transcribe',
+  '/api/social/share',
+  '/api/auth/avatar',
+  '/api/recipes',
+];
+
+const largeJson = express.json({ limit: '10mb', verify: jsonVerify });
+const standardJson = express.json({ limit: '1mb', verify: jsonVerify });
+
+app.use((req, res, next) => {
+  const parser = LARGE_BODY_PATHS.some((p) => req.path.startsWith(p)) ? largeJson : standardJson;
+  return parser(req, res, next);
+});
+
+// Catch 5xx responses that routes send themselves. Sits above every handler
+// (health check and rate limiter included) so nothing can answer 5xx without
+// being reported; see middleware/errorReporting.ts for why the central error
+// handler below isn't sufficient on its own.
+app.use(errorReporting);
+
+// Health check — before the rate limiter so uptime probes are never throttled.
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Axiom API is running' });
 });
+
+// Global backstop on the whole API surface. Per-route limiters (auth, register,
+// AI, social writes) are stricter and applied at their own definitions.
+app.use('/api', globalLimiter);
 
 // Routes
 app.use('/api', authRoutes);
@@ -138,12 +197,15 @@ app.use('/api', recipesRoutes);
 app.use('/api', nutritionProfileRoutes);
 app.use('/api', wellnessRoutes);
 app.use('/api', workoutsRoutes);
+app.use('/api', adaptationRoutes);
 app.use('/api', strengthRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 app.use('/api', waitlistRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', adminRoutes);
+app.use('/api', blogRoutes);
+app.use('/api', emailRoutes);
 app.use('/', adminRoutes);
 app.use('/api', socialRoutes);
 // Agentic Anakin (flag-gated via AGENT_ENABLED; 404s when off).
@@ -168,16 +230,16 @@ Sentry.setupExpressErrorHandler(app);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const userId = (req as any).user?.id;
   const status: number = err?.status ?? err?.statusCode ?? 500;
 
   // CORS rejections + other expected 4xx errors don't need Sentry/PostHog
   // noise or a stack trace in the logs — they're constant scanner traffic.
   const noisy = !err?._isCors && status >= 500;
   if (noisy) {
-    posthog.captureException(err, userId);
-    console.error('Error:', err);
-    alertServerError(err, req.path, req.method, status).catch(() => {});
+    // Goes through the shared latch so the res.json interceptor doesn't
+    // report this same response a second time. Errors that reach here still
+    // carry their real stack, unlike ones a route already swallowed.
+    reportServerError(err, req, res, status);
   }
 
   res.status(status).json({ error: err?.message ?? 'Internal server error' });
@@ -303,6 +365,21 @@ function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
 }
 
 scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
+// Affiliate payouts — 1st of each month, 14:00 UTC (10am ET). Idempotent:
+// commissions flip to 'paid' as they're bundled into a payout, so a re-run
+// (or the admin pressing the button the same day) can never pay twice.
+scheduleAt(14, null, () => {
+  if (new Date().getDate() !== 1) return;
+  import('./services/affiliateService.js')
+    .then(m => m.runMonthlyPayouts())
+    .then(r => {
+      if (r.affiliatesPaid === 0 && r.errors.length === 0) return;
+      const msg = `[affiliates] monthly payout run: ${r.affiliatesPaid} affiliate(s) paid, $${(r.totalCents / 100).toFixed(2)} total${r.errors.length ? `, ERRORS: ${r.errors.join('; ')}` : ''}`;
+      console.log(msg);
+      import('./services/smsService.js').then(sms => sms.sendCoachSMS(`💸 ${msg}`)).catch(() => {});
+    })
+    .catch(err => console.error('[scheduler] affiliate payout error:', err));
+});
 scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
 scheduleAt(18, null, () => runReengagementCheck().catch(err => console.error('[scheduler] reengagement error:', err)));
 // Streak-at-risk loss-aversion pass — runs at 7pm and 9pm so we cover both

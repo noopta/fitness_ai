@@ -17,7 +17,10 @@ import type { AgentTool, AgentTurnResult, AgentProposal } from './types.js';
 // overkill for "read my macros and advise", and the latency is better. Pin
 // the id so a model alias change doesn't silently shift behaviour.
 const MODEL = process.env.AGENT_MODEL || 'claude-sonnet-5';
-const MAX_TOKENS = 1024;
+// 1024 was too tight: a data-heavy answer (tables) or a tool call emitted
+// after a fat tool_result could hit the cap mid-generation. A max_tokens stop
+// mid-tool-call yields NO text blocks — which used to surface as "(no reply)".
+const MAX_TOKENS = 4096;
 // Hard ceiling on tool round-trips so a misbehaving loop can't run up an
 // unbounded API bill or hang a request. 8 is generous — most turns need 1-3.
 const MAX_ITERATIONS = 8;
@@ -134,6 +137,10 @@ export async function runAgentTurn(
   // Captured the last time the agent called a propose_* tool — surfaced on
   // the turn result so the client can render a confirm-before-apply UI.
   let proposal: AgentProposal | undefined;
+  // One-shot guard for a max_tokens stop that produced no text (typically the
+  // cap landing mid-tool-call): retry once, telling the model to answer in
+  // prose with what it already has instead of surfacing an empty reply.
+  let truncationRetried = false;
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
@@ -156,7 +163,24 @@ export async function runAgentTurn(
         .map((b) => b.text)
         .join('')
         .trim();
-      return { reply: reply || '(no reply)', toolsUsed, iterations, proposal };
+      if (!reply && res.stop_reason === 'max_tokens' && !truncationRetried) {
+        truncationRetried = true;
+        // The truncated turn may end in a partial tool_use with no paired
+        // tool_result — leaving it in history makes the next call invalid.
+        messages.pop();
+        messages.push({
+          role: 'user',
+          content: '(Your previous attempt was cut off before any text was produced. Answer the question now in concise prose using the information you already gathered — do not call more tools.)',
+        });
+        continue;
+      }
+      if (!reply) console.warn(`[agent] empty reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
+      return {
+        reply: reply || "I lost my train of thought there — mind asking that again?",
+        toolsUsed,
+        iterations,
+        proposal,
+      };
     }
 
     // Execute every requested tool, collecting results for the next turn.
@@ -281,6 +305,8 @@ export async function streamAgentTurn(
   let iterations = 0;
   let finalText = '';
   let proposal: AgentProposal | undefined;
+  // Mirrors runAgentTurn: one retry when a max_tokens stop yields no text.
+  let truncationRetried = false;
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
@@ -302,9 +328,20 @@ export async function streamAgentTurn(
     messages.push({ role: 'assistant', content: res.content });
 
     if (res.stop_reason !== 'tool_use') {
-      const reply = res.content
+      const text = res.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-        .map((b) => b.text).join('').trim() || finalText.trim() || '(no reply)';
+        .map((b) => b.text).join('').trim() || finalText.trim();
+      if (!text && res.stop_reason === 'max_tokens' && !truncationRetried) {
+        truncationRetried = true;
+        messages.pop(); // drop the truncated turn (may hold a partial tool_use)
+        messages.push({
+          role: 'user',
+          content: '(Your previous attempt was cut off before any text was produced. Answer the question now in concise prose using the information you already gathered — do not call more tools.)',
+        });
+        continue;
+      }
+      if (!text) console.warn(`[agent] empty streamed reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
+      const reply = text || "I lost my train of thought there — mind asking that again?";
       onEvent({ type: 'done', reply, toolsUsed, iterations });
       return { reply, toolsUsed, iterations, proposal };
     }

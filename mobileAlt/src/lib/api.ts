@@ -96,6 +96,13 @@ export async function apiFetch(
     });
     console.log(`[API] ${path} -> ${res.status}`);
 
+    // 304 is a SUCCESS, not a failure — but res.ok is false for it, so the
+    // block below would throw on a routine cache revalidation. The body is
+    // empty by definition, so return an empty object and let the caller fall
+    // back to what it already had. Prod also has ETags disabled now; this
+    // stays so a proxy or CDN adding them later can't resurrect the bug.
+    if (res.status === 304) return {};
+
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
       let parsed: any = {};
@@ -383,6 +390,13 @@ export const coachApi = {
   },
   // Messages / chat thread
   getMessages: () => apiFetch('/coach/messages'),
+  // The agent's server-side transcript. Used by the chat's reply-recovery
+  // path: ~10% of /coach/agent calls die client-side (OS kills the long-held
+  // socket mid tool-loop; nginx logs a 499) while the server finishes the
+  // turn and persists the reply anyway — so on a network error the chat polls
+  // this before telling the user Anakin was unreachable.
+  agentHistory: (): Promise<{ messages?: Array<{ role: string; content: string }> }> =>
+    apiFetch('/coach/agent/history'),
   // Try the agentic Anakin first; the backend allowlist (AGENT_USER_ALLOWLIST)
   // decides who gets it. A 404 means "not enabled for this user" → fall back
   // to the classic coach so everyone else is unaffected. Both endpoints return
@@ -895,8 +909,48 @@ export const workoutsApi = {
     }>;
     notes?: string;
     duration?: number;
+    // Which planned program day this log fulfils (from /coach/today). Lets the
+    // adaptation engine score the session against the plan. Omit for ad-hoc.
+    programDayRef?: { phaseIndex: number; dayIndex: number; weekNumber?: number; day?: string | null } | null;
   }) => apiFetch('/workouts', { method: 'POST', body: JSON.stringify(data) }),
   deleteWorkout: (id: string) => apiFetch(`/workouts/${id}`, { method: 'DELETE' }),
+  // "Last time" for a whole session's exercises in one round-trip: recent
+  // exposures, the program target, and how the last session scored.
+  lastForExercises: (names: string[]): Promise<{ results: ExerciseLast[] }> =>
+    apiFetch('/workouts/exercises/last', { method: 'POST', body: JSON.stringify({ names }) }),
+};
+
+export interface ExerciseLast {
+  name: string;
+  key: string | null;
+  exposures: Array<{
+    date: string;
+    sets: Array<{ weightKg: number | null; reps: number; rpe: number | null }>;
+    top: { weightKg: number | null; reps: number; rpe: number | null } | null;
+    e1rmKg: number;
+    confidence: number;
+  }>;
+  target: { targetWeightKg: number | null; targetRPE: number | null; reps: string; sets: number } | null;
+  lastScore: { result: string; note: string; rpeDelta: number | null; loadDeltaKg: number | null } | null;
+  unitPref: 'metric' | 'imperial';
+}
+
+// ─── Adaptive progression ─────────────────────────────────────────────────────
+// Proposals Axiom makes about a program. Nothing is applied without `decide`.
+
+export const adaptationApi = {
+  pending: (): Promise<{ enabled: boolean; proposals: any[] }> => apiFetch('/adaptation/pending'),
+  history: (): Promise<{ proposals: any[] }> => apiFetch('/adaptation/history'),
+  // Idempotent: existing users get a one-time "we looked back at your
+  // history" proposal; everyone else gets a cohort label and nothing pending.
+  bootstrap: (): Promise<{ enabled: boolean; cohort: string; proposal?: any }> =>
+    apiFetch('/adaptation/bootstrap', { method: 'POST' }),
+  decide: (
+    id: string,
+    action: 'apply' | 'decline' | 'snooze',
+    opts: { edits?: Array<{ key: string; targetWeightKg: number | null }>; snoozeDays?: number } = {},
+  ) => apiFetch(`/adaptation/${id}/decide`, { method: 'POST', body: JSON.stringify({ action, ...opts }) }),
+  undo: (id: string) => apiFetch(`/adaptation/${id}/undo`, { method: 'POST' }),
 };
 
 // ─── Social API ───────────────────────────────────────────────────────────────
@@ -1187,6 +1241,19 @@ export async function apiUpload(path: string, form: FormData, extraHeaders?: Rec
 
 export interface FormWeakness { issue: string; severity: 'minor' | 'moderate' | 'major'; cue: string }
 export interface FormDrill { name: string; why: string; setsReps?: string }
+/**
+ * A still cut from the clip at the moment a fault happens, with the relevant
+ * region bracketed. `weaknessIndex` points back into `weaknesses` so the image
+ * renders beside the fault it illustrates.
+ */
+export interface FormReferenceFrame {
+  weaknessIndex: number;
+  timestampSec: number;
+  /** Base64 JPEG without the data: prefix. */
+  b64: string;
+  box2d?: number[];
+}
+
 export interface WorkoutVideoAnalysis {
   exercise: string;
   formScore: number;
@@ -1197,6 +1264,10 @@ export interface WorkoutVideoAnalysis {
   programmingNotes: string[];
   safetyFlags: string[];
   summary: string;
+  /** Present only when the user opted into keeping stills; absent on older analyses. */
+  referenceFrames?: FormReferenceFrame[];
+  /** What the user chose for this specific upload. */
+  framesConsent?: boolean;
 }
 export type FormAnalysisStatus = 'pending' | 'complete' | 'failed';
 
@@ -1221,7 +1292,57 @@ export interface FormAnalysisDetail {
   repCount: number | null;
   exerciseHint: string | null;
   createdAt: string;
-  analysis: WorkoutVideoAnalysis;
+  analysis: FormAnalysisPayload;
+}
+
+/**
+ * What `analysis` actually holds over a row's life.
+ *
+ * Modelled as one shape with two optional halves rather than a union,
+ * because that is how consumers already read it — every section in the
+ * viewer is optional-chained and renders nothing when its array is absent.
+ * A union would force a narrowing rewrite at every call site to express a
+ * distinction the UI doesn't care about.
+ *
+ * An onboarding row is written twice: mode='quick' (headline/cue, no arrays)
+ * within ~8s, then mode='full' (the arrays, plus onboardingHeadline/Cue
+ * carrying over the line the user actually read) ~20s later. Rows from the
+ * main route are only ever mode='full'; rows predating this feature have no
+ * `mode` at all and must keep rendering.
+ */
+export interface FormAnalysisPayload extends Partial<WorkoutVideoAnalysis> {
+  exercise: string;
+  formScore: number;
+  repCount: number | null;
+  summary: string;
+  mode?: 'quick' | 'full';
+  /** Quick pass only: the single biggest fix. */
+  headline?: string;
+  /** Quick pass only: the cue that fixes it. */
+  cue?: string;
+  /** Full pass on an onboarding row: what the quick pass told the user. */
+  onboardingHeadline?: string;
+  onboardingCue?: string;
+}
+
+/**
+ * The onboarding hook's payload. A `mode` discriminator rides inside
+ * `analysis` because the row upgrades in place: the quick pass writes
+ * mode='quick', then the background full pass rewrites the same row as
+ * mode='full'. Anything reading an analysis must tolerate both shapes.
+ */
+export interface QuickVideoAnalysis {
+  mode: 'quick';
+  framesConsent?: boolean;
+  referenceFrames?: FormReferenceFrame[];
+  timestampSec?: number | null;
+  focusTarget?: string | null;
+  exercise: string;
+  formScore: number;
+  repCount: number | null;
+  headline: string;
+  cue: string;
+  summary: string;
 }
 
 export interface FormAnalysisListItem {
@@ -1244,19 +1365,54 @@ export const formAnalysisApi = {
     uri: string,
     mimeType: string,
     exerciseHint?: string,
+    saveFrames?: boolean,
   ): Promise<FormAnalysisStarted> => {
     const form = new FormData();
     const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
     form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
     if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
+    // Reference stills are opt-in per upload: the server keeps none unless this
+    // is an explicit '1'. Sent every time rather than remembered server-side so
+    // the choice travels with the analysis it produced.
+    form.append('saveFrames', saveFrames ? '1' : '0');
     // Opt into the async/poll flow — the backend defaults to the legacy
     // synchronous 200 for clients that don't send this header.
     return apiUpload('/form-analysis/video', form, { 'X-Form-Analysis-Async': '1' });
   },
 
+  /**
+   * The first-run onboarding pass. Same upload contract as `start`, but hits
+   * the route that skips the daily quota and runs the ~6s quick model, so a
+   * brand-new user sees feedback before they lose interest — and can retry a
+   * bad clip without burning their one free credit.
+   *
+   * 409 means they've already run an analysis; callers should fall back to
+   * `start`. Reference stills are never requested here (no consent UI in the
+   * onboarding flow), so no saveFrames field is sent.
+   */
+  startOnboarding: (
+    uri: string,
+    mimeType: string,
+    saveFrames: boolean,
+    exerciseHint?: string,
+  ): Promise<FormAnalysisStarted> => {
+    const form = new FormData();
+    const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+    form.append('video', { uri, name: `form.${ext}`, type: mimeType } as any);
+    if (exerciseHint?.trim()) form.append('exerciseHint', exerciseHint.trim());
+    // Sent explicitly every time rather than remembered server-side, so the
+    // choice travels with the upload it authorised.
+    form.append('saveFrames', saveFrames ? '1' : '0');
+    return apiUpload('/form-analysis/onboarding', form, { 'X-Form-Analysis-Async': '1' });
+  },
+
   list: (): Promise<{ analyses: FormAnalysisListItem[] }> => apiFetch('/form-analysis'),
 
   get: (id: string): Promise<FormAnalysisDetail> => apiFetch(`/form-analysis/${id}`),
+
+  /** Delete one analysis and any reference stills stored with it. */
+  remove: (id: string): Promise<{ success: true }> =>
+    apiFetch(`/form-analysis/${id}`, { method: 'DELETE' }),
 
   /**
    * Poll GET /:id every `intervalMs` until status is terminal (complete or
