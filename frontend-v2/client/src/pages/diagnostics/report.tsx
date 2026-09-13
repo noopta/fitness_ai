@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams } from 'wouter';
 import type { Verdict } from '@axiom/diagnostic-core';
 import { useAuth } from '@/context/AuthContext';
-import { diagnosticApi, getPublicReport } from '@/lib/diagnosticApi';
+import { diagnosticApi, getPublicReport, waitForPro } from '@/lib/diagnosticApi';
 import { WebAnalytics } from '@/lib/analytics';
 import { ReportView } from '@/components/diagnostic/ReportView';
 import { DiagnosticPaywall } from '@/components/diagnostic/Paywall';
@@ -52,7 +52,7 @@ export default function DiagnosticReportPage() {
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('checkout') !== 'success') return;
     window.history.replaceState(null, '', window.location.pathname);
-    void refreshUser().then(() => load());
+    void waitForPro().then(() => refreshUser()).then(() => load());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

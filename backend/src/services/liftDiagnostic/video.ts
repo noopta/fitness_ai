@@ -119,10 +119,15 @@ export async function runDiagnosticVideo(opts: {
   let preserve = false;
   try {
     upload = await uploadFormVideo(opts.videoBuffer, opts.mimeType);
-    const [screen, measurement] = await Promise.all([
+    // allSettled, and screening acted on first: a safety block makes the
+    // measurement call THROW — exactly the clip whose screening verdict must
+    // still be recorded (and, for a quarantine, preserved).
+    const [screened, measured] = await Promise.allSettled([
       screenFormVideo(upload.fileUri, opts.mimeType),
       measureDiagnosticVideo(upload.fileUri, opts.mimeType, opts.lift),
     ]);
+    if (screened.status === 'rejected') throw screened.reason;
+    const screen = screened.value;
     if (screen.action !== 'allow') {
       preserve = screen.action === 'quarantine';
       await recordScreenVerdict({
@@ -133,6 +138,8 @@ export async function runDiagnosticVideo(opts: {
       });
       return null;
     }
+    if (measured.status === 'rejected') throw measured.reason;
+    const measurement = measured.value;
     const frame =
       opts.framesAllowed && measurement?.liftVisible && typeof measurement.stickingTimestampSec === 'number'
         ? await extractStillAt(opts.videoBuffer, opts.mimeType, measurement.stickingTimestampSec)

@@ -72,7 +72,8 @@ function Mode({ view, stage, controller: c, onOpenReport, onDone }: Props) {
 
 function ChipsComposer({ view, stage, controller }: { view: Extract<ComposerView, { mode: 'chips' }>; stage: Stage; controller: DiagnosticController }) {
   const [pressed, setPressed] = useState<string | null>(null);
-  useEffect(() => setPressed(null), [stage]);
+  // Cleared when the stage moves on or a failed send is settled.
+  useEffect(() => setPressed(null), [stage, view.disabled]);
   const pick = (o: { id: string; label: string; flags: string[] }) => {
     setPressed(o.id);
     if (stage === 'lift') controller.act({ type: 'lift', lift: o.id as never });

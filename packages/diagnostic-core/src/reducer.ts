@@ -375,7 +375,7 @@ function resolveVideo(s: DiagnosticState, turnId: string, result: VideoResult | 
   if (!option) {
     // A readable clip that didn't pin the phase still counts as video; the
     // phase question stays in (never dead-end, never guess).
-    return askQuestion(anakin({ ...withCard, questionOrder: ALL_QUESTIONS }, COPY.videoSkipped), 'q0');
+    return askQuestion(anakin({ ...withCard, questionOrder: ALL_QUESTIONS }, COPY.videoNoPhase), 'q0');
   }
   // "A successful video answers the phase question" — stored as if given.
   const answers = { ...withCard.answers, q0: { source: 'video' as const, optionId: option.id, text: option.label, flags: option.flags } };
@@ -406,6 +406,9 @@ export function hydrate(sessionId: string, data: LoadResponse): DiagnosticState 
   const ordered = [...data.turns].sort((a, b) => a.seq - b.seq);
   for (const rec of ordered) {
     const turn: Turn = { id: rec.clientTurnId, input: rec.input };
+    // A turn after a block means the block was lifted live (purchase, or a
+    // new day) — replay the same "You're clear" beat the user saw.
+    if (s.stage === 'blocked') s = unblock(s);
     s = succeeded(submit(s, turn), turn.id, rec.result ?? {});
   }
   if (s.stage === 'blocked' && !data.limit.reached) s = unblock(s);

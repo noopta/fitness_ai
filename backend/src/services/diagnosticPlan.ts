@@ -35,6 +35,36 @@ export async function prescriptionLockedFor(user: { id: string; email: string | 
  * replaced by a marker plus just enough of a silhouette to sell it (how many
  * targeted accessories are waiting). Never leaks exercise names or numbers.
  */
+/**
+ * The conversational lift diagnostic gates by tier alone (handoff §8: "Free/
+ * trial gates only the fix") — it is not behind the diagnostic-first rollout
+ * flag the legacy wizard uses. Tier is read fresh from the DB for the same
+ * JWT-staleness reason as above.
+ */
+export async function conversationLockedFor(userId: string): Promise<boolean> {
+  const fresh = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
+  const tier = fresh?.tier ?? 'free';
+  return tier !== 'pro' && tier !== 'enterprise';
+}
+
+/** Which gate applies to a session's plan, by the flow that produced it. */
+export async function planLockedFor(user: { id: string; email: string | null }, flow: string | null | undefined): Promise<boolean> {
+  return flow === 'conversation' ? conversationLockedFor(user.id) : prescriptionLockedFor(user);
+}
+
+/**
+ * Plan JSON as the legacy /sessions routes may return it. A conversational
+ * session stores its graded verdict (with the unlocked fix and, for adults
+ * who opted in, a still of the lifter) under `conversation_verdict`; those
+ * routes predate it and have no business returning it — /lift-diagnostics
+ * serves it with its own gate and audience rules.
+ */
+export function legacyPlanView(plan: any): any {
+  if (!plan || typeof plan !== 'object' || !('conversation_verdict' in plan)) return plan;
+  const { conversation_verdict: _verdict, ...rest } = plan;
+  return rest;
+}
+
 export function stripPrescription(plan: any): any {
   if (!plan || typeof plan !== 'object') return plan;
   const {

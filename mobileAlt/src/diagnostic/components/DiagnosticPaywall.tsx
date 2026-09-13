@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, Animated, Easing, Dimensions, TouchableOpacity, Platform, Linking, ActivityIndicator,
 } from 'react-native';
@@ -46,17 +46,26 @@ export function DiagnosticPaywall({ visible, source, onClose, onSuccess }: Props
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} accessibilityLabel={COPY.close} />
       </Animated.View>
       <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 20, transform: [{ translateY: slide }] }]}>
-        {visible ? <PaywallBody onClose={onClose} onSuccess={onSuccess} source={source} /> : null}
+        {visible ? <PaywallBody onClose={onClose} onSuccess={onSuccess} /> : null}
       </Animated.View>
     </Modal>
   );
 }
 
-function PaywallBody({ onClose, onSuccess, source }: { onClose: () => void; onSuccess: () => void; source: string }) {
-  const p = useProPurchase(onClose, onSuccess);
+function PaywallBody({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  // Stable callbacks: the purchase listener effect depends on onClose, and a
+  // re-subscribe on every parent render could drop a purchase event.
+  const closeRef = useRef(onClose);
+  const successRef = useRef(onSuccess);
+  closeRef.current = onClose;
+  successRef.current = onSuccess;
+  const close = useCallback(() => closeRef.current(), []);
+  const succeed = useCallback(() => successRef.current(), []);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+  const p = useProPurchase(close, succeed, (_title, message) => setInlineError(message));
   const storeLabel = Platform.OS === 'android' ? 'Subscribe with Google Play' : 'Subscribe with Apple';
   const busy = p.iapPurchasing || p.iapLoading || p.stripeConfirming;
-  const message = p.iapError ?? p.restoreMsg;
+  const message = p.iapError ?? inlineError ?? p.restoreMsg;
 
   return (
     <View style={{ gap: 14 }}>
@@ -74,7 +83,7 @@ function PaywallBody({ onClose, onSuccess, source }: { onClose: () => void; onSu
         <TouchableOpacity
           style={[styles.primary, (busy || !p.product) && { opacity: DX.send.disabledOpacity }]}
           disabled={busy || !p.product}
-          onPress={() => { Analytics.upgradeTapped(source); void p.handleNativeSubscribe(); }}
+          onPress={() => void p.handleNativeSubscribe()}
           accessibilityRole="button"
         >
           {p.iapPurchasing || p.iapLoading ? (
@@ -91,7 +100,7 @@ function PaywallBody({ onClose, onSuccess, source }: { onClose: () => void; onSu
       <TouchableOpacity
         style={[styles.secondary, p.stripeConfirming && { opacity: DX.send.disabledOpacity }]}
         disabled={p.stripeConfirming}
-        onPress={() => { Analytics.upgradeTapped(source); void (p.stripeOpened ? p.handleStripeConfirm() : p.handleStripeCheckout()); }}
+        onPress={() => { setInlineError(null); void (p.stripeOpened ? p.handleStripeConfirm() : p.handleStripeCheckout()); }}
         accessibilityRole="button"
       >
         <Ionicons name="card-outline" size={18} color={C.body} />

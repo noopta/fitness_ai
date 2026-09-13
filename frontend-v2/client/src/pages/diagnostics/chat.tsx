@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useUnits } from '@/lib/units';
 import { WebAnalytics, trackPageTime } from '@/lib/analytics';
 import { useDiagnostic } from '@/hooks/useDiagnostic';
+import { waitForPro } from '@/lib/diagnosticApi';
 import { Composer } from '@/components/diagnostic/Composer';
 import { ReportView } from '@/components/diagnostic/ReportView';
 import { DiagnosticPaywall } from '@/components/diagnostic/Paywall';
@@ -39,11 +40,18 @@ export default function DiagnosticChatPage() {
   // Returning from Checkout: the reload already replays an unblocked thread
   // and an unlocked fix; the user record just needs to catch up.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('checkout') === 'success') {
-      void refreshUser();
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-  }, [refreshUser]);
+    if (new URLSearchParams(window.location.search).get('checkout') !== 'success') return;
+    window.history.replaceState(null, '', window.location.pathname);
+    // If the webhook beat the reload, the replay is already unblocked/unlocked;
+    // otherwise wait for it, then clear the block and swap the fix in place.
+    void waitForPro().then(async (pro) => {
+      await refreshUser();
+      if (!pro) return;
+      controller.unblock();
+      await controller.refreshVerdict();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keep the URL resumable once the lift chip has created the session.
   useEffect(() => {
@@ -60,6 +68,8 @@ export default function DiagnosticChatPage() {
     const wantsAdd = new URLSearchParams(window.location.search).get('add') === '1';
     if (wantsAdd && !addDone.current && state.stage === 'verdict' && state.loadStatus === 'ready') {
       addDone.current = true;
+      // One-shot: a reload must not re-open the thread for numbers again.
+      window.history.replaceState(null, '', window.location.pathname);
       controller.act({ type: 'addNumbers' });
     }
   }, [state.stage, state.loadStatus, controller]);

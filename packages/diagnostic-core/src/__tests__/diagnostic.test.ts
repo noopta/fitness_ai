@@ -495,3 +495,38 @@ describe('home + markup', () => {
     ]);
   });
 });
+
+describe('review fixes', () => {
+  it('formats clip length as m:ss', () => {
+    expect(COPY.attachedSet(60)).toBe('Attached a set · 1:00');
+    expect(COPY.attachedSet(9)).toBe('Attached a set · 0:09');
+  });
+
+  it('a readable clip that does not pin the phase says so, and keeps all three questions', () => {
+    let s = act(logOffer(logOffer(toAcc())), { type: 'moveOn' });
+    s = act(s, { type: 'video', durationSec: 8 }, { video: { status: 'pending' } });
+    s = diagnosticReducer(s, { type: 'videoResolved', turnId: s.video.turnId!, result: { ...VIDEO_OK, stickingPhase: null } });
+    expect(s.stage).toBe('q0');
+    expect(s.thread.some((t) => t.kind === 'anakin' && t.text === COPY.videoNoPhase)).toBe(true);
+  });
+
+  it('replay of a thread unblocked live (verdict after a limit) shows the same "You\'re clear" beat', () => {
+    const SETR = { weight: 225, sets: 3, reps: 5, unit: 'lb' as const };
+    const t = (clientTurnId: string, seq: number, input: TurnInput, result: TurnResult = {}): TurnRecord => ({ clientTurnId, seq, input, result, createdAt: '' });
+    const turns: TurnRecord[] = [
+      t('a', 0, { type: 'lift', lift: 'flat_bench_press' }),
+      t('b', 1, { type: 'main', set: SETR }),
+      t('c', 2, { type: 'accessory', exerciseId: 'close_grip_bench_press', set: SETR }),
+      t('d', 3, { type: 'accessory', exerciseId: 'paused_bench_press', set: SETR }),
+      t('e', 4, { type: 'moveOn' }),
+      t('f', 5, { type: 'skipVideo' }),
+      t('g', 6, { type: 'answer', question: 'q0', text: 'x', flags: [] }),
+      t('h', 7, { type: 'answer', question: 'q1', text: 'x', flags: [] }),
+      t('i', 8, { type: 'answer', question: 'q2', text: 'x', flags: [] }, { limitReached: true }),
+      t('j', 9, { type: 'verdict' }, { verdict: verdict(2) }),
+    ];
+    const s = hydrate('s1', { session: { id: 's1', lift: 'flat_bench_press', flow: 'conversation', createdAt: '' }, turns, limit: { reached: false } });
+    expect(s.stage).toBe('verdict');
+    expect(s.thread.some((x) => x.kind === 'anakin' && x.text === COPY.unblocked)).toBe(true);
+  });
+});

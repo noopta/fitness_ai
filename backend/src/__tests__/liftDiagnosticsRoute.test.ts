@@ -56,7 +56,25 @@ const db = vi.hoisted(() => {
         const k = where.sessionId_clientTurnId;
         return tables.turn.find((t) => t.sessionId === k.sessionId && t.clientTurnId === k.clientTurnId) ?? null;
       }),
-      findMany: vi.fn(async ({ where, orderBy }: any) => sortBy(tables.turn.filter((t) => byKey(t, where)), orderBy)),
+      findMany: vi.fn(async ({ where, orderBy }: any) =>
+        sortBy(
+          tables.turn.filter((t) =>
+            Object.entries(where).every(([k, v]: [string, any]) => {
+              if (v && typeof v === 'object' && 'in' in v) return v.in.includes(t[k]);
+              if (v && typeof v === 'object' && 'lt' in v) return t[k] < v.lt;
+              return t[k] === v;
+            }),
+          ),
+          orderBy,
+        )),
+      updateMany: vi.fn(async ({ where, data }: any) => {
+        const rows = tables.turn.filter((t) => byKey(t, where));
+        rows.forEach((r) => Object.assign(r, data, { updatedAt: now() }));
+        return { count: rows.length };
+      }),
+      deleteMany: vi.fn(async ({ where }: any) => {
+        tables.turn = tables.turn.filter((t) => !where.id.in.includes(t.id));
+      }),
       findFirst: vi.fn(async ({ where, orderBy }: any) => sortBy(tables.turn.filter((t) => byKey(t, where)), orderBy)[0] ?? null),
       create: vi.fn(async ({ data }: any) => {
         if (tables.turn.some((t) => t.sessionId === data.sessionId && t.clientTurnId === data.clientTurnId)) throw new Error('Unique constraint');
@@ -145,7 +163,7 @@ app.use(express.json());
 app.use('/api', router);
 
 const token = (id: string, email: string) => `Bearer ${jwt.sign({ id, email, tier: 'free' }, process.env.JWT_SECRET!)}`;
-const FREE = token('u1', 'free@axiom.io');
+const FREE = token('u1', 'free@axiom.io'); // tier 'pro' in the DB rows below — sees the fix
 const LOCKED = token('u2', 'locked@axiom.io');
 let turnN = 0;
 const turn = (auth: string, input: any, clientTurnId = `turn-${String(++turnN).padStart(4, '0')}`, sid = SID) =>
@@ -168,7 +186,7 @@ async function toReady(auth = FREE) {
 beforeEach(() => {
   db.reset();
   db.tables.user.push(
-    { id: 'u1', email: 'free@axiom.io', tier: 'free', unitPreference: 'imperial', trainingAge: 'intermediate' },
+    { id: 'u1', email: 'free@axiom.io', tier: 'pro', unitPreference: 'imperial', trainingAge: 'intermediate' },
     { id: 'u2', email: 'locked@axiom.io', tier: 'free', unitPreference: 'metric' },
   );
   quota.allowed = true;
@@ -297,7 +315,7 @@ describe('verdict + re-score', () => {
     expect(consumeDailyQuota).toHaveBeenCalledTimes(1);
   });
 
-  it('locks only the fix for a diagnostic-first free user, in the turn and on reload', async () => {
+  it('locks only the fix for a free user — by tier, not the diagnostic-first flag — in the turn and on reload', async () => {
     const sid = '99999999-2222-4333-8444-555555555555';
     await turn(LOCKED, { type: 'lift', lift: 'flat_bench_press' }, undefined, sid);
     await turn(LOCKED, { type: 'main', set: SET(100) }, undefined, sid);
@@ -310,6 +328,49 @@ describe('verdict + re-score', () => {
     expect(load.body.unit).toBe('kg');
     const report = await request(app).get(`/api/lift-diagnostics/${sid}/report`).set('Authorization', LOCKED);
     expect(report.body.verdict.fix.locked).toBe(true);
+  });
+});
+
+describe('robustness', () => {
+  it('a turn stranded by a restart is released so Retry works, and a stranded verdict refunds', async () => {
+    const { refundDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(refundDailyQuota).mockClear();
+    await toReady();
+    db.tables.turn.push({
+      id: 'stuck', sessionId: SID, clientTurnId: 'verdict-stuck', seq: 99, type: 'verdict', payloadJson: '{}',
+      resultJson: '{"__pending":true}', createdAt: new Date(0), updatedAt: new Date(0),
+    });
+    const res = await turn(FREE, { type: 'verdict' }, 'verdict-stuck');
+    expect(res.status).toBe(200);
+    expect(res.body.result.verdict).toBeDefined();
+    expect(refundDailyQuota).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-sending a lift that already had numbers does not regenerate the plan', async () => {
+    await toReady();
+    await turn(FREE, { type: 'verdict' });
+    await turn(FREE, { type: 'addNumbers' });
+    const again = await turn(FREE, { type: 'accessory', exerciseId: 'close_grip_bench_press', set: SET(170) });
+    expect(again.body.result.verdict).toBeDefined();
+    expect(generateWorkoutPlan).toHaveBeenCalledTimes(1);
+  });
+
+  it('an interrupted "Add the missing numbers" lists as in progress; the report recomputes what is missing', async () => {
+    await toReady();
+    await turn(FREE, { type: 'verdict' });
+    await turn(FREE, { type: 'addNumbers' });
+    await turn(FREE, { type: 'untrained', exerciseId: 'overhead_press' });
+    const list = await request(app).get('/api/lift-diagnostics').set('Authorization', FREE);
+    expect(list.body.diagnostics[0].status).toBe('in_progress');
+    const report = await request(app).get(`/api/lift-diagnostics/${SID}/report`).set('Authorization', FREE);
+    expect(report.body.verdict.missingLifts).toEqual(['tricep_pushdown']);
+  });
+});
+
+describe('legacy /sessions routes never return the conversation verdict', () => {
+  it('strips conversation_verdict from plan views', async () => {
+    const { legacyPlanView } = await import('../services/diagnosticPlan.js');
+    expect(legacyPlanView({ diagnosis: [], conversation_verdict: { fix: { locked: false } } })).toEqual({ diagnosis: [] });
   });
 });
 

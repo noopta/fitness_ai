@@ -85,3 +85,21 @@ export function readVideoDuration(file: File): Promise<number | null> {
     video.src = url;
   });
 }
+
+/**
+ * After Stripe Checkout returns, the webhook that flips the tier can land a
+ * beat later. Poll briefly so the purchase can land in place (mobile does the
+ * same in useProPurchase). Resolves true once the account is Pro.
+ */
+export async function waitForPro(tries = 8, intervalMs = 1500): Promise<boolean> {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await authFetch(`${API_BASE}/payments/status`);
+      if (res.ok && (await res.json())?.tier === 'pro') return true;
+    } catch {
+      /* keep trying */
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  return false;
+}

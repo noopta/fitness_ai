@@ -23,7 +23,7 @@ import { aiLimiter } from '../middleware/rateLimiter.js';
 import posthog from '../services/posthogClient.js';
 import { generateWorkoutPlan } from '../services/llmService.js';
 import { kgToLb } from '../services/weightUnits.js';
-import { prescriptionLockedFor, formatPlanAsText } from '../services/diagnosticPlan.js';
+import { conversationLockedFor, formatPlanAsText } from '../services/diagnosticPlan.js';
 import { consumeDailyQuota, peekDailyQuota, refundDailyQuota, FEATURE } from '../services/featureUsageService.js';
 import {
   KNOWN_FLAGS,
@@ -51,7 +51,13 @@ const prisma = new PrismaClient();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_CLIP_SECONDS = 60;
 const CLIP_GRACE_SECONDS = 5;
-const VIDEO_STALE_MS = 5 * 60 * 1000;
+// Shorter than the client's 180s poll timeout, so the server always decides a
+// slow job's outcome before the client gives up — the thread the user saw and
+// the transcript a resume replays can never disagree.
+const VIDEO_STALE_MS = 150 * 1000;
+// A claimed turn whose request died with the process (deploy restart mid
+// verdict). Longer than the slowest legitimate turn (LONG_TIMEOUT 180s).
+const TURN_STALE_MS = 10 * 60 * 1000;
 const PENDING = '{"__pending":true}';
 
 class HttpError extends Error {
@@ -169,6 +175,34 @@ async function turnRows(
     }));
 }
 
+/**
+ * Free turns whose request never finished (the process died mid-apply). Left
+ * claimed, Retry would 409 forever and a verdict turn would have spent the
+ * day's diagnosis for nothing — so they're dropped, and a verdict that never
+ * produced a plan gives its credit back.
+ */
+async function releaseStrandedTurns(sessionId: string, userId: string) {
+  const cutoff = new Date(Date.now() - TURN_STALE_MS);
+  const stranded = await prisma.diagnosticTurn.findMany({
+    where: { sessionId, resultJson: PENDING, updatedAt: { lt: cutoff } },
+    select: { id: true, type: true },
+  });
+  if (!stranded.length) return;
+  await prisma.diagnosticTurn.deleteMany({ where: { id: { in: stranded.map((t) => t.id) } } });
+  if (stranded.some((t) => t.type === 'verdict') && !(await latestVerdict(sessionId))) {
+    await refundDailyQuota(userId, await freshTier(userId), FEATURE.LIFT_DIAGNOSTIC).catch(() => {});
+  }
+}
+
+/** Ladder lifts still without numbers, from the transcript as it stands now. */
+function missingNow(lift: ConversationLift, turns: TurnRow[]): string[] {
+  const inputs = gatherInputs('', lift, turns);
+  return ladderIds(lift).filter((id) => {
+    const status = inputs.accessories.get(id)?.status;
+    return status !== 'logged' && status !== 'untrained';
+  });
+}
+
 /** Tier-gate any verdict riding inside a stored turn result. */
 function presentResult(result: any, locked: boolean): any {
   if (!result?.verdict) return result;
@@ -275,9 +309,14 @@ async function applyTurn(
       return {};
 
     case 'accessory': {
+      const verdict = await latestVerdict(session.id);
+      // Only a NEW ratio re-scores; re-sending a lift that already had numbers
+      // at the verdict just updates the set. Bounds plan generation per
+      // session to the ladder's length.
+      const wasMissing = !verdict || verdict.missingLifts.includes(input.exerciseId);
       await recordSet(session, userId, input.exerciseId, input.set);
       // A set after a verdict is a late ratio: re-score the SAME session (§7).
-      if (await latestVerdict(session.id)) return { verdict: await generateVerdict(session, userId) };
+      if (verdict) return { verdict: wasMissing ? await generateVerdict(session, userId) : verdict };
       return {};
     }
 
@@ -319,6 +358,21 @@ router.get('/lift-diagnostics', requireAuth, async (req, res) => {
       take: 30,
       select: { id: true, selectedLift: true, flow: true, updatedAt: true, plans: { orderBy: { createdAt: 'desc' }, take: 1, select: { planJson: true } } },
     });
+    // A thread that re-opened for "Add the missing numbers" and hasn't closed
+    // again is in progress, so Home offers Resume rather than the old report.
+    const conversationIds = sessions.filter((s) => s.flow === 'conversation').map((s) => s.id);
+    const turnTypes = conversationIds.length
+      ? await prisma.diagnosticTurn.findMany({
+          where: { sessionId: { in: conversationIds } },
+          orderBy: { seq: 'asc' },
+          select: { sessionId: true, type: true },
+        })
+      : [];
+    const rescoring = new Set<string>();
+    for (const t of turnTypes) {
+      if (t.type === 'addNumbers') rescoring.add(t.sessionId);
+      else if (t.type === 'accessory' || t.type === 'skip' || t.type === 'moveOn') rescoring.delete(t.sessionId);
+    }
     const rows = sessions.map((s) => {
       const plan = parseJson<any>(s.plans[0]?.planJson, null);
       const v: Verdict | undefined = plan?.conversation_verdict;
@@ -327,7 +381,7 @@ router.get('/lift-diagnostics', requireAuth, async (req, res) => {
         id: s.id,
         lift: s.selectedLift,
         flow: s.flow === 'conversation' ? 'conversation' : 'wizard',
-        status: plan ? 'complete' : 'in_progress',
+        status: plan && !rescoring.has(s.id) ? 'complete' : 'in_progress',
         grade: v?.grade ?? null,
         confidence: v?.confidence ?? (typeof legacy?.confidence === 'number' ? Math.round(legacy.confidence * 100) : null),
         limiter: v?.limiter ?? (legacy ? { phase: 'unknown', hypothesisKey: legacy.limiter ?? null, hypothesisLabel: legacy.limiterName ?? null } : null),
@@ -345,7 +399,7 @@ router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
     const session = await loadConversation(req);
     const [turns, locked, verdict, prefs] = await Promise.all([
       turnRows(session.id),
-      prescriptionLockedFor(req.user!),
+      conversationLockedFor(req.user!.id),
       latestVerdict(session.id),
       prisma.user.findUnique({ where: { id: req.user!.id }, select: { unitPreference: true } }),
     ]);
@@ -393,13 +447,15 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
     }
     const session = await loadConversation(req);
 
+    await releaseStrandedTurns(id, userId);
+
     // Idempotency: a retry of a turn the server already has replays its result.
     const prior = await prisma.diagnosticTurn.findUnique({
       where: { sessionId_clientTurnId: { sessionId: id, clientTurnId } },
     });
     if (prior) {
       if (prior.resultJson === PENDING) throw new HttpError(409, 'That message is still sending');
-      const locked = await prescriptionLockedFor(req.user!);
+      const locked = await conversationLockedFor(req.user!.id);
       return res.json({ result: presentResult(parseJson(prior.resultJson, {}), locked) });
     }
 
@@ -417,9 +473,10 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
         data: { sessionId: id, clientTurnId, seq: (last?.seq ?? -1) + 1, type, payloadJson: JSON.stringify(payload), resultJson: PENDING },
         select: { id: true },
       })
-      .catch(() => {
+      .catch((err: any) => {
         // Unique (sessionId, clientTurnId): the same turn is being applied by a concurrent request.
-        throw new HttpError(409, 'That message is still sending');
+        if (err?.code === 'P2002') throw new HttpError(409, 'That message is still sending');
+        throw err;
       });
     claimedId = claimed.id;
 
@@ -428,7 +485,7 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
     claimedId = null;
     await prisma.session.update({ where: { id }, data: { updatedAt: new Date() } });
 
-    const locked = await prescriptionLockedFor(req.user!);
+    const locked = await conversationLockedFor(req.user!.id);
     if (result.verdict) {
       const v = result.verdict as Verdict;
       posthog.capture({
@@ -510,8 +567,10 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
     // Fire-and-forget; MUST be caught — an unhandled rejection can kill the process.
     runDiagnosticVideo({ userId, lift: session.selectedLift, videoBuffer, mimeType, framesAllowed: wantsFrame && isAdult(dob) })
       .then((result) =>
-        prisma.diagnosticTurn.update({
-          where: { id: turn.id },
+        // Only while still pending: a job that outlived the stale window was
+        // already reported failed, and the user has moved on to the interview.
+        prisma.diagnosticTurn.updateMany({
+          where: { id: turn.id, resultJson: JSON.stringify(pending) },
           data: { resultJson: JSON.stringify({ video: result ? { status: 'complete', result } : { status: 'failed', result: null } }) },
         }),
       )
@@ -537,7 +596,10 @@ router.get('/lift-diagnostics/:id/video/:clientTurnId', requireAuth, async (req,
     // interview can take over instead of spinning forever.
     if (video.status === 'pending' && Date.now() - turn.updatedAt.getTime() > VIDEO_STALE_MS) {
       video = { status: 'failed', result: null };
-      await prisma.diagnosticTurn.update({ where: { id: turn.id }, data: { resultJson: JSON.stringify({ video }) } });
+      await prisma.diagnosticTurn.updateMany({
+        where: { id: turn.id, resultJson: turn.resultJson },
+        data: { resultJson: JSON.stringify({ video }) },
+      });
     }
     res.json(video);
   } catch (err) {
@@ -550,7 +612,8 @@ router.get('/lift-diagnostics/:id/report', requireAuth, async (req, res) => {
     const session = await loadConversation(req);
     const verdict = await latestVerdict(session.id);
     if (!verdict) throw new HttpError(404, 'No verdict yet');
-    res.json({ verdict: presentVerdict(verdict, { locked: await prescriptionLockedFor(req.user!) }), isPublic: session.isPublic });
+    const current = { ...verdict, missingLifts: missingNow(session.selectedLift, await turnRows(session.id)) };
+    res.json({ verdict: presentVerdict(current, { locked: await conversationLockedFor(req.user!.id) }), isPublic: session.isPublic });
   } catch (err) {
     sendError(res, err, 'report');
   }
@@ -579,9 +642,9 @@ router.get('/lift-diagnostics/:id/public', async (req, res) => {
     if (!verdict) throw new HttpError(404, 'Report not found');
     // Not a side door around the gate: a locked owner's link is locked too.
     const owner = session.userId
-      ? await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true, email: true } })
+      ? await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true } })
       : null;
-    const locked = owner ? await prescriptionLockedFor(owner) : true;
+    const locked = owner ? await conversationLockedFor(owner.id) : true;
     res.json({ verdict: presentVerdict(verdict, { locked, publicView: true }) });
   } catch (err) {
     sendError(res, err, 'public');

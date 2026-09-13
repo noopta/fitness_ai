@@ -12,7 +12,7 @@ import { getExerciseVideo } from '../services/youtubeService.js';
 import posthog from '../services/posthogClient.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 import { bounded } from '../validation/physiologicalBounds.js';
-import { prescriptionLockedFor, stripPrescription, formatPlanAsText } from '../services/diagnosticPlan.js';
+import { planLockedFor, stripPrescription, formatPlanAsText, legacyPlanView } from '../services/diagnosticPlan.js';
 import { parseSessionFlags } from '../services/sessionFlags.js';
 
 const router = Router();
@@ -41,10 +41,10 @@ const prisma = new PrismaClient();
 async function loadOwnedSession(
   req: import('express').Request,
   res: import('express').Response,
-): Promise<{ id: string; userId: string | null } | null> {
+): Promise<{ id: string; userId: string | null; flow: string } | null> {
   const session = await prisma.session.findUnique({
     where: { id: req.params.id },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, flow: true },
   });
   if (!session || session.userId !== req.user!.id) {
     res.status(404).json({ error: 'Session not found' });
@@ -539,7 +539,7 @@ router.post('/sessions/:id/generate', requireAuth, checkAnalysisRateLimit, async
       }
     }
     
-    const locked = await prescriptionLockedFor(req.user!);
+    const locked = await planLockedFor(req.user!, session.flow);
 
     const planUserId = session.userId;
     if (planUserId) {
@@ -580,8 +580,8 @@ router.get('/sessions/:id/plan', requireAuth, async (req, res) => {
     if (!plan) {
       return res.status(404).json({ error: 'No plan found for this session' });
     }
-    const parsed = JSON.parse(plan.planJson);
-    const locked = await prescriptionLockedFor(req.user!);
+    const parsed = legacyPlanView(JSON.parse(plan.planJson));
+    const locked = await planLockedFor(req.user!, owned.flow);
     res.json({ plan: locked ? stripPrescription(parsed) : parsed });
   } catch (err) {
     console.error('Get plan error:', err);
@@ -618,12 +618,16 @@ router.get('/sessions/:id', requireAuth, async (req, res) => {
 
     // Same gate as the plan endpoints — this route embeds the raw plan rows,
     // so leaving it open would hand a locked user the prescription anyway.
-    if (session.plans.length > 0 && await prescriptionLockedFor(req.user!)) {
-      session.plans = session.plans.map((p) => ({
-        ...p,
-        planJson: JSON.stringify(stripPrescription(JSON.parse(p.planJson))),
-        planText: '',
-      }));
+    if (session.plans.length > 0) {
+      const locked = await planLockedFor(req.user!, session.flow);
+      session.plans = session.plans.map((p) => {
+        const view = legacyPlanView(JSON.parse(p.planJson));
+        return {
+          ...p,
+          planJson: JSON.stringify(locked ? stripPrescription(view) : view),
+          planText: locked ? '' : p.planText,
+        };
+      });
     }
 
     res.json({ session });
@@ -667,7 +671,7 @@ router.post('/sessions/:id/chat', requireAuth, checkAnalysisRateLimit, async (re
 
     // Create thread on first chat message
     if (!threadId) {
-      const latestPlan = session.plans[0] ? JSON.parse(session.plans[0].planJson) : null;
+      const latestPlan = session.plans[0] ? legacyPlanView(JSON.parse(session.plans[0].planJson)) : null;
 
       threadId = await createChatThread({
         selectedLift: session.selectedLift,
@@ -720,7 +724,7 @@ router.get('/sessions/:id/public', async (req, res) => {
       return res.status(404).json({ error: 'Plan not found or not public' });
     }
 
-    let plan = session.plans[0] ? JSON.parse(session.plans[0].planJson) : null;
+    let plan = session.plans[0] ? legacyPlanView(JSON.parse(session.plans[0].planJson)) : null;
     // The share link is public, but it must not be a side door around the
     // prescription gate: if the OWNER is locked (free tier under the
     // diagnostic-first funnel), viewers — including the owner in a private
@@ -730,7 +734,7 @@ router.get('/sessions/:id/public', async (req, res) => {
         where: { id: session.userId },
         select: { id: true, email: true },
       });
-      if (owner && await prescriptionLockedFor(owner)) {
+      if (owner && await planLockedFor(owner, session.flow)) {
         plan = stripPrescription(plan);
       }
     }

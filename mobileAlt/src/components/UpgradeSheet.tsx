@@ -106,7 +106,16 @@ async function resolveAndroidBrowserPackage(): Promise<string | undefined> {
  * Play), Stripe card checkout in an in-app browser tab, and restore. Surfaces
  * differ only in layout, so the purchase paths stay verified in one place.
  */
-export function useProPurchase(onClose: () => void, onSuccess: () => void) {
+export function useProPurchase(
+  onClose: () => void,
+  onSuccess: () => void,
+  /**
+   * Surfaces that render errors inline (the lift diagnostic has no alerts
+   * anywhere in its flow) pass this; UpgradeSheet keeps the native Alert.
+   */
+  onError?: (title: string, message: string) => void,
+) {
+  const showError = (title: string, message: string) => (onError ? onError(title, message) : Alert.alert(title, message));
   const { user, refreshUser } = useAuth();
 
   // ── Native IAP state (Apple on iOS / Google Play on Android) ──
@@ -278,7 +287,7 @@ export function useProPurchase(onClose: () => void, onSuccess: () => void) {
         setStripeConfirming(false);
       }
     } catch (err: any) {
-      Alert.alert('Could not start checkout', err?.message ?? 'Please visit axiomtraining.io to upgrade.');
+      showError('Could not start checkout', err?.message ?? 'Please visit axiomtraining.io to upgrade.');
     }
   }, [referralCode, user?.referredByCode, refreshUser, onClose]);
 
@@ -291,7 +300,7 @@ export function useProPurchase(onClose: () => void, onSuccess: () => void) {
       await new Promise<void>(resolve => setTimeout(resolve, 300));
       onSuccessRef.current();
     } catch {
-      Alert.alert('Could not verify', 'If your payment completed, please close and reopen the app.');
+      showError('Could not verify', 'If your payment completed, please close and reopen the app.');
     } finally {
       setStripeConfirming(false);
     }

@@ -48,8 +48,11 @@ export const COPY = {
     "Last thing, and it's optional: one working rep on video, filmed side-on. I'll measure where it stalls. 60 seconds max.",
   askVideoThin: 'Thin on ratios, so the video matters more than usual here. One rep, side-on?',
   attachSet: 'Attach a set',
-  attachedSet: (durationSec: number | null) =>
-    durationSec ? `Attached a set · 0:${String(Math.round(durationSec)).padStart(2, '0')}` : 'Attached a set',
+  attachedSet: (durationSec: number | null) => {
+    if (!durationSec) return 'Attached a set';
+    const total = Math.round(durationSec);
+    return `Attached a set · ${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  },
   trackingBar: 'Tracking the bar…',
   videoCardTitle: 'From your video',
   stickingPoint: 'Sticking point',
@@ -58,6 +61,7 @@ export const COPY = {
   phaseSettled: 'The phase is settled — so two questions instead of three.',
   videoFailed: "I couldn't get a clean read on that clip, so I'll ask instead. Three quick questions.",
   videoSkipped: 'No problem. Three quick questions.',
+  videoNoPhase: "Good clip, but it doesn't pin down where the bar stalls — so three quick questions.",
 
   // Interview
   typeInstead: 'Type instead',

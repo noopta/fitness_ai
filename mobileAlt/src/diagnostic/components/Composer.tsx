@@ -78,7 +78,8 @@ function renderMode(view: ComposerView, c: DiagnosticController, onOpenReport: (
 function ChipsComposer({ view, controller }: { view: Extract<ComposerView, { mode: 'chips' }>; controller: DiagnosticController }) {
   const state = controller.getState();
   const [pressed, setPressed] = useState<string | null>(null);
-  useEffect(() => setPressed(null), [state.stage]);
+  // Cleared when the stage moves on or a failed send is settled.
+  useEffect(() => setPressed(null), [state.stage, view.disabled]);
 
   const pick = (opt: { id: string; label: string; flags: string[] }) => {
     setPressed(opt.id);
