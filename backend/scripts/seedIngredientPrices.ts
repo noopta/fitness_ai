@@ -23,6 +23,7 @@ import { PrismaClient } from '@prisma/client';
 import { FOOD_SOURCES } from '../src/engine/nutritionRecommendations.js';
 import { METROS } from '../src/engine/currency.js';
 import { fold } from '../src/engine/dietaryFilter.js';
+import { PRICE_PER_KG_USD } from '../src/services/foodFinder/staplePrices.js';
 
 const prisma = new PrismaClient();
 
@@ -69,10 +70,19 @@ async function main() {
     const source = `${SOURCE_TAG} idx=${idx.groceryIndex} ${idx.rateNote}`;
 
     for (const food of FOOD_SOURCES) {
-      const usd = food.retail?.typicalPriceUsd;
+      const foldedName = fold(food.name);
+
+      // Prefer a per-kilo reference where we have one and the serving is
+      // gram-denominated: that is the unit groceries are actually priced in,
+      // and it stays correct when a portion is scaled. The per-serving
+      // catalogue figures are unsourced round numbers and ran 2-4x high.
+      const perKg = PRICE_PER_KG_USD[foldedName];
+      const gramsMatch = /^(\d+(?:\.\d+)?)\s*g\b/.exec(food.serving);
+      const usd = perKg != null && gramsMatch
+        ? perKg * (Number(gramsMatch[1]) / 1000)
+        : food.retail?.typicalPriceUsd;
       if (usd == null || !(usd > 0)) continue;
       const priceCents = Math.round(usd * idx.groceryIndex * idx.fxFromUsd * 100);
-      const foldedName = fold(food.name);
 
       if (dry) {
         console.log(`  ${metro.slug}  ${foldedName.padEnd(28)} ${(priceCents / 100).toFixed(2)} ${metro.currency}`);
