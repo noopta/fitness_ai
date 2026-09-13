@@ -30,8 +30,17 @@ const response = (over: Record<string, unknown> = {}) => ({
   diet: { active: false, restrictions: [], allergies: [], excluded: 0 },
   recommendations: [
     {
-      id: 'ingredient:wild-salmon', kind: 'ingredient', name: 'Wild salmon',
-      serving: '150 g', category: 'Fatty fish', kcal: 273, gain: '+34 g protein',
+      id: 'meal:plate:wild-salmon+rolled-oats+spinach', kind: 'meal',
+      name: 'Wild salmon with rolled oats and spinach',
+      serving: '3 items · 25 min', category: 'Meal', kcal: 897, gain: '+34 g protein',
+      components: [
+        { name: 'Wild salmon', serving: '300 g', kcal: 546, category: 'Fatty fish', atStore: true },
+        { name: 'Rolled oats', serving: '60 g dry', kcal: 228, category: 'Whole grain', atStore: true },
+        { name: 'Spinach', serving: '3 cups cooked', kcal: 123, category: 'Leafy green', atStore: false },
+      ],
+      steps: ['Season the wild salmon and cook it through.', 'Cook the rolled oats to packet timing.'],
+      prepMinutes: 25,
+      storeCoverage: { covers: 2, of: 3 },
       closes: [{ key: 'proteinG', label: 'Protein', amount: 34, unit: 'g', pctOfRemaining: 31 }],
       warns: [], mechanism: '', score: 0.25,
       where: { name: 'Loblaws', distanceM: 350, openNow: true, rating: 4.1 },
@@ -49,6 +58,7 @@ const response = (over: Record<string, unknown> = {}) => ({
       where: { name: 'Poke Place', distanceM: 220, openNow: true, rating: 4.6 },
       note: 'Typical for japanese restaurant — estimated, not their menu.', confidence: 'estimated',
       price: null, overBudget: false, dietWarning: null,
+      components: null, steps: null, prepMinutes: null, storeCoverage: null,
       directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Poke%20Place&destination_place_id=r1',
     },
   ],
@@ -137,7 +147,7 @@ describe('FoodFinderPage', () => {
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     // Denial is a choice, not an error — still a real answer, no lat/lng sent.
-    expect(await screen.findByText('Wild salmon')).toBeTruthy();
+    expect(await screen.findByText(/Wild salmon with rolled oats/)).toBeTruthy();
     expect(mockAuthFetch.mock.calls[0][0]).not.toContain('lat=');
   });
 
@@ -296,7 +306,7 @@ describe('FoodFinderPage — budget, price and provenance', () => {
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     expect(await screen.findByText(/over budget/i)).toBeTruthy();
-    expect(screen.getByText('Wild salmon')).toBeTruthy();
+    expect(screen.getByText(/Wild salmon with rolled oats/)).toBeTruthy();
   });
 
   it('says when it has no price data rather than pretending', async () => {
@@ -351,5 +361,125 @@ describe('FoodFinderPage — budget, price and provenance', () => {
     expect(links.length).toBeGreaterThan(0);
     expect(links[0].getAttribute('href')).toMatch(/^https:\/\/www\.google\.com\/maps\/dir/);
     expect(links[0].getAttribute('target')).toBe('_blank');
+  });
+});
+
+describe('FoodFinderPage — meals', () => {
+  const show = async () => {
+    // Installed per-test rather than in a nested beforeEach: vi.clearAllMocks()
+    // in the outer hook strips the implementation off a spy created earlier.
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    await screen.findByText(/Wild salmon with rolled oats/);
+  };
+
+  it('shows the whole plate, not a loose ingredient', async () => {
+    await show();
+    // The complaint that prompted this: "Pumpkin seeds, 30 g" is not dinner.
+    expect(screen.getByText('Wild salmon')).toBeTruthy();
+    expect(screen.getByText('Rolled oats')).toBeTruthy();
+    expect(screen.getByText('Spinach')).toBeTruthy();
+  });
+
+  it('gives an amount for every component', async () => {
+    await show();
+    expect(screen.getByText('300 g')).toBeTruthy();
+    expect(screen.getByText('60 g dry')).toBeTruthy();
+    expect(screen.getByText('3 cups cooked')).toBeTruthy();
+  });
+
+  it('leads with cooking time rather than a serving string', async () => {
+    await show();
+    expect(screen.getByText('25 min to cook')).toBeTruthy();
+  });
+
+  it('keeps the method behind a tap, and shows it on request', async () => {
+    await show();
+    expect(screen.queryByText(/packet timing/i)).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /how to make it/i }));
+    expect(screen.getByText(/packet timing/i)).toBeTruthy();
+  });
+
+  it('flags the item the attached shop probably lacks', async () => {
+    await show();
+    // Better than a clean list that sends someone home one ingredient short.
+    expect(screen.getByText('elsewhere')).toBeTruthy();
+    expect(screen.getByText(/2\/3 items/)).toBeTruthy();
+  });
+
+  it('still renders a takeout dish as a single item with no shopping list', async () => {
+    await show();
+    expect(screen.getByText('Salmon poke bowl')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /how to make it/i })).toBeTruthy();
+  });
+});
+
+describe('FoodFinderPage — address autocomplete', () => {
+  const SUGGESTIONS = [
+    { placeId: 'p1', primary: '172 Farley Dr', secondary: 'Guelph, ON, Canada', text: '172 Farley Dr, Guelph, ON, Canada' },
+    { placeId: 'p2', primary: '172 Farley Rd', secondary: 'Toronto, ON, Canada', text: '172 Farley Rd, Toronto, ON, Canada' },
+  ];
+
+  const withSuggest = () => {
+    mockAuthFetch.mockImplementation((url: string) =>
+      url.includes('place-suggest')
+        ? ok({ suggestions: SUGGESTIONS })
+        : ok(response()));
+  };
+
+  it('suggests addresses as you type', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    withSuggest();
+    render(<FoodFinderPage />);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.type(screen.getByLabelText(/enter a location/i), '172 Farley');
+    await act(async () => { vi.advanceTimersByTime(400); });
+    expect(await screen.findByText('172 Farley Dr')).toBeTruthy();
+  });
+
+  it('does not fire a request per keystroke', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    withSuggest();
+    render(<FoodFinderPage />);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.type(screen.getByLabelText(/enter a location/i), '172 Farley');
+    await act(async () => { vi.advanceTimersByTime(400); });
+    // Autocomplete is billed per request; ten keystrokes must not be ten calls.
+    const suggestCalls = mockAuthFetch.mock.calls.filter(c => String(c[0]).includes('place-suggest'));
+    expect(suggestCalls.length).toBeLessThanOrEqual(2);
+  });
+
+  it('searches the exact place you picked, by id', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    withSuggest();
+    render(<FoodFinderPage />);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.type(screen.getByLabelText(/enter a location/i), '172 Farley');
+    await act(async () => { vi.advanceTimersByTime(400); });
+    await user.click(await screen.findByText('172 Farley Dr'));
+
+    const finderCall = mockAuthFetch.mock.calls.map(c => String(c[0])).find(u => u.includes('food-finder'));
+    const url = new URL(finderCall!, 'http://x');
+    // The id, not the text — the user already disambiguated Guelph from Toronto.
+    expect(url.searchParams.get('placeId')).toBe('p1');
+  });
+});
+
+describe('FoodFinderPage — the Apply-without-Go bug', () => {
+  it('keeps a typed address when the budget is applied first', async () => {
+    // Reported from a real session: typing an address then hitting Apply
+    // replayed the previous, location-free search — no shops, no prices, and
+    // USD while standing in Canada.
+    render(<FoodFinderPage />);
+    await userEvent.type(screen.getByLabelText(/enter a location/i), '172 Farley Drive, Guelph');
+    await userEvent.type(screen.getByLabelText(/budget per meal/i), '100');
+    await userEvent.click(screen.getByRole('button', { name: /apply/i }));
+    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+
+    const finderCall = mockAuthFetch.mock.calls.map(c => String(c[0])).find(u => u.includes('food-finder'));
+    const url = new URL(finderCall!, 'http://x');
+    expect(url.searchParams.get('place')).toBe('172 Farley Drive, Guelph');
+    expect(url.searchParams.get('budget')).toBe('100');
   });
 });

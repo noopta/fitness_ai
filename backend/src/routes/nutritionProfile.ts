@@ -34,8 +34,8 @@ import { foodSourceCandidates, recommendFoods } from '../engine/nutritionRecomme
 import { gainTextFor } from '../engine/nutritionGap.js';
 import { rankCandidates } from '../engine/foodFinderRanker.js';
 import { remainingForDay } from '../services/nutritionRemaining.js';
-import { findNearby } from '../services/foodFinder/nearbyFinder.js';
-import { geocodePlace } from '../services/places/placesClient.js';
+import { findNearby, mealCandidates } from '../services/foodFinder/nearbyFinder.js';
+import { geocodePlace, autocompletePlaces, placeDetails } from '../services/places/placesClient.js';
 import { nearestMetro, currencyFor, formatMoney } from '../engine/currency.js';
 import { parseDietProfile, hasAnyRestriction } from '../engine/dietaryFilter.js';
 import { isOverBudget } from '../engine/budget.js';
@@ -584,6 +584,31 @@ router.get('/nutrition-profile/recommendations', requireAuth, async (req, res) =
 //
 // Degrades rather than fails: with no lat/lng, or when Places is unreachable,
 // it still answers with whole foods and says so via `degraded`.
+/**
+ * Address suggestions for the Food Finder's location box.
+ *
+ * Proxied rather than called from the browser: the Places credentials are
+ * workload-identity server-side, and there is no browser key to expose.
+ */
+router.get('/nutrition-profile/place-suggest', requireAuth, async (req, res) => {
+  try {
+    const input = typeof req.query.q === 'string' ? req.query.q : '';
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const suggestions = await autocompletePlaces(input, {
+      lat: Number.isFinite(lat) ? lat : null,
+      lng: Number.isFinite(lng) ? lng : null,
+      // Groups one lookup's keystrokes into a single billable session.
+      sessionToken: typeof req.query.session === 'string' ? req.query.session : undefined,
+    });
+    res.json({ suggestions });
+  } catch (err) {
+    console.error('Place suggest error:', err);
+    // Never an error to the client: the user can always type it out in full.
+    res.json({ suggestions: [] });
+  }
+});
+
 router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
@@ -600,8 +625,15 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
     // browser's location prompt, which can be blocked or silently dismissed
     // with no way for the user to recover. Explicit coords still win.
     let resolvedPlace: { name: string; address: string } | null = null;
-    if (!validCoords(lat, lng) && typeof req.query.place === 'string' && req.query.place.trim()) {
-      const geo = await geocodePlace(req.query.place);
+    if (!validCoords(lat, lng)) {
+      // A placeId from autocomplete is exact — the user already told us which
+      // place they meant, so re-geocoding the text could land somewhere else.
+      const placeId = typeof req.query.placeId === 'string' ? req.query.placeId.trim() : '';
+      const geo = placeId
+        ? await placeDetails(placeId)
+        : (typeof req.query.place === 'string' && req.query.place.trim()
+            ? await geocodePlace(req.query.place)
+            : null);
       if (geo) {
         lat = geo.lat;
         lng = geo.lng;
@@ -618,6 +650,11 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
     const include = typeof req.query.include === 'string' ? req.query.include.split(',') : null;
     const includeGroceries = !include || include.includes('groceries');
     const includeTakeout = !include || include.includes('takeout');
+
+    // "I have 25 minutes" is a real constraint at 4pm, and a plate that needs
+    // 45 genuinely loses to a dish you can collect.
+    const prepRaw = Number(req.query.maxPrep);
+    const maxPrepMinutes = Number.isFinite(prepRaw) && prepRaw > 0 ? Math.min(prepRaw, 180) : undefined;
 
     const remaining = await remainingForDay(userId, date);
 
@@ -658,6 +695,7 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
           includeGroceries,
           includeTakeout,
           openNowOnly: req.query.openNow === '1',
+          maxPrepMinutes,
           metro: metro?.slug ?? null,
           currency,
           budgetCents,
@@ -665,7 +703,9 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
           history,
         })
       : {
-          ...rankCandidates(foodSourceCandidates(), remaining, {
+          // Still whole meals without a location — you can cook dinner without
+          // telling us where you are; you just do not get a shop to buy it at.
+          ...rankCandidates(mealCandidates(remaining, [], { lat: 0, lng: 0, maxPrepMinutes }), remaining, {
             limit: 8, guaranteeBothKinds: false, budgetCents, history,
           }),
           storesFound: 0,
@@ -721,7 +761,8 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
         excluded: found.dietExcluded,
       },
       recommendations: found.results.map(r => {
-        const store = r.meta?.store as { name: string; distanceM: number; openNow: boolean | null } | null | undefined;
+        const store = r.meta?.store as
+          { id?: string; name: string; distanceM: number; openNow: boolean | null; covers?: number; of?: number } | null | undefined;
         const vendor = r.meta?.vendor as { name: string; distanceM: number; openNow: boolean | null; rating: number | null } | undefined;
         return {
           id: r.id,
@@ -752,9 +793,23 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
                 ? `Published nutrition from ${(r.meta?.brand as { name?: string } | undefined)?.name ?? vendor.name}.`
                 : `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`)
             : store
-              ? `Usually carried at ${store.name}.`
+              ? (store.covers != null && store.of != null && store.covers < store.of
+                  ? `${store.covers} of ${store.of} items usually carried at ${store.name} — you may need one more stop.`
+                  : `Usually carried at ${store.name}.`)
               : null,
           confidence: r.confidence,
+          /** Present on composed meals: what to buy, and roughly how to cook it. */
+          components: (r.meta?.components as Array<Record<string, unknown>> | undefined) ?? null,
+          steps: (r.meta?.steps as string[] | undefined) ?? null,
+          prepMinutes: (r.meta?.prepMinutes as number | undefined) ?? null,
+          /**
+           * How much of the plate this one shop covers. Surfaced so a partial
+           * run reads as a partial run — "4 of 5 items here" is honest, and
+           * silently listing five is not.
+           */
+          storeCoverage: store?.covers != null && store?.of != null
+            ? { covers: store.covers, of: store.of }
+            : null,
           // Null price means we do not know it, which is NOT the same as free —
           // the client must render the difference.
           price: r.price && r.price.confidence !== 'unknown'

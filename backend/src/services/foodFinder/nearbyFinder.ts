@@ -18,7 +18,10 @@ import { dishesForPlace, DISH_PLACE_TYPES, type CuisineDish } from '../../engine
 import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fold } from '../../engine/dietaryFilter.js';
 import { type ShownRecord } from '../../engine/foodVariety.js';
 import { priceForIngredient, priceFromMenu } from './pricing.js';
+import { formatMoney } from '../../engine/currency.js';
 import { matchChains, chainCandidates, CHAIN_PLACE_TYPES } from './chainMenu.js';
+import { composeMeals, servingText, type ComposedMeal } from '../../engine/mealComposer.js';
+import { buildFinderGap, arbitrate } from '../../engine/foodFinderRanker.js';
 import calibration from './calibration.json' with { type: 'json' };
 import { calibrationKeyFor } from '../../engine/cuisineDishes.js';
 import { rankCandidates, type Candidate, type RankResult } from '../../engine/foodFinderRanker.js';
@@ -55,6 +58,15 @@ const STORE_TYPES: Record<RetailAvailability, string[]> = {
  * it IS where you'd buy the specialty items — so once a place is known to be a
  * real food retailer, its secondary types are informative again.
  */
+/**
+ * Shops where a whole meal's worth of ingredients can realistically be bought
+ * in one trip. Narrower than GENUINE_RETAILER_PRIMARY: no convenience store
+ * stocks fresh produce and dry legumes reliably, and no butcher stocks either.
+ */
+const MEAL_CAPABLE_PRIMARY = new Set([
+  'supermarket', 'grocery_store', 'asian_grocery_store', 'market', 'health_food_store',
+]);
+
 const GENUINE_RETAILER_PRIMARY = new Set([
   'supermarket', 'grocery_store', 'asian_grocery_store', 'market',
   'health_food_store', 'butcher_shop', 'convenience_store',
@@ -90,6 +102,11 @@ export interface NearbyOptions {
   diet?: DietProfile;
   /** What this user was shown recently, for the recency penalty. */
   history?: ShownRecord[];
+  /**
+   * Cap on cooking time. The real 4pm constraint is often "I have 25 minutes",
+   * and a plate that needs 45 loses to a rotisserie chicken at worse macros.
+   */
+  maxPrepMinutes?: number;
   /** Search radius in metres. */
   radiusM?: number;
   limit?: number;
@@ -266,7 +283,7 @@ export async function findNearby(
   const unchainedRestaurants = openRestaurants.filter(p => !chainedPlaceIds.has(p.id));
 
   const raw: Candidate[] = [
-    ...(wantGroceries ? groceryCandidates(openStores) : []),
+    ...(wantGroceries ? mealCandidates(remaining, openStores, opts) : []),
     ...(wantTakeout ? chainCandidates(chainMatches) : []),
     ...(wantTakeout ? takeoutCandidates(unchainedRestaurants) : []),
   ];
@@ -348,7 +365,29 @@ async function attachPrices(candidates: Candidate[], opts: NearbyOptions): Promi
 
   for (const c of candidates) {
     const meta = (c.meta ?? {}) as Record<string, any>;
-    if (c.kind === 'ingredient') {
+    if (c.kind === 'meal') {
+      // A meal's price is its basket: the sum of what each component costs at
+      // the attached store. If we cannot price a single component the total
+      // stays unknown rather than silently under-reporting the shop.
+      const store = meta.store as { id: string } | null | undefined;
+      const components = (meta.components ?? []) as Array<{ foldedName: string }>;
+      let total = 0;
+      let known = 0;
+      let currencyOut = currency;
+      for (const comp of components) {
+        const p = await priceForIngredient({
+          foldedName: comp.foldedName,
+          metro: opts.metro ?? null,
+          currency,
+          priceLevel: meta.priceLevel ?? null,
+        });
+        if (p.confidence !== 'unknown') { total += p.cents; known++; currencyOut = p.currency; }
+      }
+      const price = known === components.length && known > 0
+        ? { cents: total, currency: currencyOut, confidence: 'estimated' as const, display: `≈${formatMoney(total, currencyOut)}` }
+        : { cents: 0, currency, confidence: 'unknown' as const, display: 'price unknown' };
+      out.push({ ...c, price, placeKey: store?.id ?? null });
+    } else if (c.kind === 'ingredient') {
       const store = meta.store as { id: string; name: string } | null | undefined;
       const price = await priceForIngredient({
         foldedName: fold(c.name),
@@ -385,4 +424,107 @@ function measuredErrPctFor(primaryType: string | null | undefined): number | und
   const key = calibrationKeyFor(primaryType);
   const c = (calibration.corrections as Record<string, { errPct: number; n: number }>)[key];
   return c && c.n >= MIN_N ? c.errPct : undefined;
+}
+
+
+// ---------------------------------------------------------------------------
+// Meals
+// ---------------------------------------------------------------------------
+
+/**
+ * Which store to send someone to for a whole meal.
+ *
+ * One shop, not one per ingredient. The right store is the nearest that can
+ * plausibly carry the MOST of the plate — a slightly further supermarket that
+ * has everything beats a corner shop that has the rice and nothing else.
+ * Distance breaks ties, so we never send someone across town for one item.
+ */
+function storeForMeal(meal: ComposedMeal, stores: NearbyPlace[]): { place: NearbyPlace; covered: number } | null {
+  // A convenience store passes the single-ingredient retailer gate, which is
+  // defensible for one banana and wrong for a shop. It produced "buy lentils,
+  // spinach and broccoli at KWIK-E-MART" — technically a food retailer, not
+  // somewhere you can actually do this shop. Meals need a full grocer; fall
+  // back to the wider set only if there is no real one nearby.
+  const fullGrocers = stores.filter(p => p.primaryType && MEAL_CAPABLE_PRIMARY.has(p.primaryType));
+  const pool = fullGrocers.length > 0 ? fullGrocers : stores;
+
+  let best: { place: NearbyPlace; covered: number } | null = null;
+  for (const place of pool) {
+    let covered = 0;
+    for (const c of meal.components) if (storeCarries(c.food, place)) covered++;
+    if (covered === 0) continue;
+    if (
+      !best ||
+      covered > best.covered ||
+      (covered === best.covered && (place.distanceM ?? Infinity) < (best.place.distanceM ?? Infinity))
+    ) {
+      best = { place, covered };
+    }
+  }
+  return best;
+}
+
+/**
+ * Composed meals as ranker candidates.
+ *
+ * The calorie budget for one meal is deliberately not the whole day's
+ * remainder: someone with 2,000 kcal left is not eating them in one sitting.
+ * Two thirds, capped, approximates "the next meal, generously" — and the
+ * ranker's own fit curve still punishes anything that overshoots.
+ */
+export function mealCandidates(
+  remaining: DayRemaining,
+  stores: NearbyPlace[],
+  opts: NearbyOptions,
+): Candidate[] {
+  const arb = arbitrate(remaining);
+  const gap = buildFinderGap(remaining, arb);
+  if (gap.size === 0) return [];
+
+  const kcalLeft = remaining.macros.kcal.remaining;
+  const kcalBudget = Math.min(1100, Math.max(250, Math.round(kcalLeft * 0.66)));
+
+  const meals = composeMeals(gap, { kcalBudget, maxPrepMinutes: opts.maxPrepMinutes });
+
+  return meals.map(meal => {
+    const attached = storeForMeal(meal, stores);
+    return {
+      id: meal.id,
+      name: meal.name,
+      kind: 'meal' as const,
+      kcal: meal.kcal,
+      provides: meal.provides,
+      distanceM: attached?.place.distanceM ?? null,
+      // Every component is a curated USDA composition, so a composed plate can
+      // state exact macros where a restaurant dish can only estimate them.
+      confidence: 'usda' as const,
+      placeKey: attached?.place.id ?? null,
+      meta: {
+        serving: `${meal.components.length} items · ${meal.prepMinutes} min`,
+        category: 'Meal',
+        prepMinutes: meal.prepMinutes,
+        steps: meal.steps,
+        components: meal.components.map(c => ({
+          name: c.food.name,
+          serving: servingText(c.food, c.multiplier),
+          kcal: Math.round(c.kcal),
+          category: c.food.category,
+          foldedName: fold(c.food.name),
+          // Whether THIS store plausibly stocks it, so the UI can flag the one
+          // item you may have to get elsewhere instead of implying a clean run.
+          atStore: attached ? storeCarries(c.food, attached.place) : false,
+        })),
+        store: attached
+          ? {
+              id: attached.place.id,
+              name: attached.place.name,
+              distanceM: attached.place.distanceM,
+              openNow: attached.place.openNow,
+              covers: attached.covered,
+              of: meal.components.length,
+            }
+          : null,
+      },
+    };
+  });
 }

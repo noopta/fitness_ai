@@ -39,6 +39,9 @@ vi.mock('../services/places/placesClient.js', async (importOriginal) => {
 });
 
 import { clearChainCorpus } from '../services/foodFinder/chainMenu.js';
+import { FOOD_SOURCES } from '../engine/nutritionRecommendations.js';
+import { fold } from '../engine/dietaryFilter.js';
+import { clearPriceCache } from '../services/foodFinder/pricing.js';
 
 const ME = 'u-1';
 const token = jwt.sign({ id: ME, email: 'me@axiom.io', tier: 'free' }, process.env.JWT_SECRET!, { expiresIn: '1h' });
@@ -94,12 +97,18 @@ beforeEach(() => {
   mocks.foodBrand.findMany.mockResolvedValue([]);
   mocks.menuItem.findMany.mockResolvedValue([]);
   clearChainCorpus();
+  clearPriceCache();
   // A Toronto price table, so grocery options carry an estimated price.
-  mocks.ingredientPrice.findMany.mockResolvedValue([
-    { foldedName: 'wild salmon', priceCents: 1582, unitGrams: null, currency: 'CAD' },
-    { foldedName: 'whole eggs', priceCents: 173, unitGrams: null, currency: 'CAD' },
-    { foldedName: 'greek yogurt', priceCents: 205, unitGrams: null, currency: 'CAD' },
-  ]);
+  // A composed meal is priced only when EVERY component is, so the table has to
+  // cover the whole catalogue for the pricing assertions to mean anything.
+  mocks.ingredientPrice.findMany.mockResolvedValue(
+    FOOD_SOURCES.map(f => ({
+      foldedName: fold(f.name),
+      priceCents: Math.round((f.retail?.typicalPriceUsd ?? 2) * 137),
+      unitGrams: null,
+      currency: 'CAD',
+    })),
+  );
   mockSearchNearby.mockImplementation(async ({ includedTypes }: { includedTypes: string[] }) =>
     includedTypes.includes('supermarket') ? [store] : [restaurant]);
 });
@@ -110,7 +119,7 @@ describe('GET /nutrition-profile/food-finder', () => {
     expect(res.status).toBe(200);
     expect(res.body.nearby).toMatchObject({ used: true, degraded: false, storesFound: 1, restaurantsFound: 1 });
     expect(res.body.recommendations.length).toBeGreaterThan(0);
-    expect(new Set(res.body.recommendations.map((r: any) => r.kind))).toEqual(new Set(['ingredient', 'takeout']));
+    expect(new Set(res.body.recommendations.map((r: any) => r.kind))).toEqual(new Set(['meal', 'takeout']));
   });
 
   it('exposes the mode and a plain-language reason', async () => {
@@ -144,7 +153,7 @@ describe('GET /nutrition-profile/food-finder', () => {
 
   it('says "usually carried" for groceries rather than claiming stock', async () => {
     const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832');
-    const withStore = res.body.recommendations.find((r: any) => r.kind === 'ingredient' && r.where);
+    const withStore = res.body.recommendations.find((r: any) => r.kind === 'meal' && r.where);
     expect(withStore.note).toMatch(/usually carried/i);
     expect(withStore.note).not.toMatch(/in stock/i);
   });
@@ -154,7 +163,7 @@ describe('GET /nutrition-profile/food-finder', () => {
     expect(res.status).toBe(200);
     expect(res.body.nearby).toMatchObject({ used: false, degraded: true });
     expect(res.body.recommendations.length).toBeGreaterThan(0);
-    expect(res.body.recommendations.every((r: any) => r.kind === 'ingredient')).toBe(true);
+    expect(res.body.recommendations.every((r: any) => r.kind === 'meal')).toBe(true);
     expect(mockSearchNearby).not.toHaveBeenCalled();
   });
 
@@ -179,7 +188,7 @@ describe('GET /nutrition-profile/food-finder', () => {
 
   it('honours include=groceries', async () => {
     const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832&include=groceries');
-    expect(res.body.recommendations.every((r: any) => r.kind === 'ingredient')).toBe(true);
+    expect(res.body.recommendations.every((r: any) => r.kind === 'meal')).toBe(true);
   });
 
   it('clamps an absurd radius instead of forwarding it', async () => {
@@ -269,7 +278,7 @@ describe('GET /nutrition-profile/food-finder — budget, diet, directions', () =
     // Restaurant dishes survive, but carry the caveat instead of a false all-clear.
     for (const t of takeout) expect(t.dietWarning).toMatch(/can't verify/i);
     // USDA ingredients are real knowledge, so they need no caveat.
-    const ingredients = res.body.recommendations.filter((r: any) => r.kind === 'ingredient');
+    const ingredients = res.body.recommendations.filter((r: any) => r.kind === 'meal');
     expect(ingredients.every((r: any) => r.dietWarning === null)).toBe(true);
   });
 

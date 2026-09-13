@@ -294,3 +294,133 @@ export async function searchNearby(q: NearbyQuery): Promise<NearbyPlace[]> {
     return [];
   }
 }
+
+
+// ---------------------------------------------------------------------------
+// Autocomplete
+// ---------------------------------------------------------------------------
+
+export interface PlaceSuggestion {
+  /** Places resource id, passed straight back to us so we never re-guess the text. */
+  placeId: string;
+  /** "172 Farley Drive" — the bold half in Google's own UI. */
+  primary: string;
+  /** "Guelph, ON, Canada" */
+  secondary: string;
+  /** Full single-line label, for a plain list. */
+  text: string;
+}
+
+/**
+ * Address suggestions as the user types.
+ *
+ * Typing a full address blind is the worst part of the current flow: you cannot
+ * tell whether we understood you until after the search runs, and a near-miss
+ * ("Farley Dr" vs "Farley Drive") silently searches the wrong town. Suggestions
+ * turn that into a choice made before anything is searched.
+ *
+ * Autocomplete is billed per request, not per keystroke-worth-of-value, so the
+ * caller MUST debounce. A `sessionToken` groups the keystrokes of one lookup
+ * into a single billable session — omitting it is the expensive mistake here.
+ */
+export async function autocompletePlaces(
+  input: string,
+  opts: { lat?: number | null; lng?: number | null; sessionToken?: string } = {},
+): Promise<PlaceSuggestion[]> {
+  const q = input.trim();
+  if (q.length < 3) return [];
+
+  const token = await bearer();
+  if (!token) return [];
+
+  try {
+    const body: Record<string, unknown> = { input: q };
+    if (opts.sessionToken) body.sessionToken = opts.sessionToken;
+    // Bias toward where the user already is, when we know — "main street" means
+    // the one in their city, not the first one on earth.
+    if (typeof opts.lat === 'number' && typeof opts.lng === 'number') {
+      body.locationBias = {
+        circle: { center: { latitude: opts.lat, longitude: opts.lng }, radius: 50_000 },
+      };
+    }
+
+    const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Goog-User-Project': QUOTA_PROJECT,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(4000),
+    });
+
+    if (!res.ok) {
+      console.warn(`[places] autocomplete ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return [];
+    }
+
+    const json = await res.json() as { suggestions?: any[] };
+    return (json.suggestions ?? [])
+      .map(s => s.placePrediction)
+      .filter(Boolean)
+      .map((p: any): PlaceSuggestion => ({
+        placeId: p.placeId,
+        primary: p.structuredFormat?.mainText?.text ?? p.text?.text ?? '',
+        secondary: p.structuredFormat?.secondaryText?.text ?? '',
+        text: p.text?.text ?? '',
+      }))
+      .filter(s => s.placeId && s.text);
+  } catch (err) {
+    // Same contract as the rest of this module: degrade to typing it yourself.
+    console.warn('[places] autocomplete failed:', (err as Error).message);
+    return [];
+  }
+}
+
+/**
+ * Resolve a placeId chosen from autocomplete straight to coordinates.
+ *
+ * Preferred over re-geocoding the text: the user already told us exactly which
+ * place they meant, and round-tripping through free text can land somewhere else
+ * entirely.
+ */
+export async function placeDetails(placeId: string): Promise<GeocodedPlace | null> {
+  if (!placeId) return null;
+  const cacheKey = `id:${placeId}`;
+  if (geocodeCache.has(cacheKey)) return geocodeCache.get(cacheKey) ?? null;
+
+  const token = await bearer();
+  if (!token) return null;
+
+  try {
+    const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Goog-User-Project': QUOTA_PROJECT,
+        'X-Goog-FieldMask': 'displayName,formattedAddress,location',
+      },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) {
+      console.warn(`[places] details ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return null;
+    }
+    const p = await res.json() as any;
+    const lat = p?.location?.latitude;
+    const lng = p?.location?.longitude;
+    if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+
+    const out: GeocodedPlace = {
+      name: p.displayName?.text ?? p.formattedAddress ?? '',
+      address: p.formattedAddress ?? '',
+      lat,
+      lng,
+    };
+    if (geocodeCache.size < CACHE_MAX_ENTRIES) geocodeCache.set(cacheKey, out);
+    return out;
+  } catch (err) {
+    console.warn('[places] details failed:', (err as Error).message);
+    return null;
+  }
+}

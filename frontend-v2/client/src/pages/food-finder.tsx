@@ -25,9 +25,25 @@ interface CloseLine {
 
 interface WarnLine { key: string; label: string; text: string }
 
+interface MealComponent {
+  name: string;
+  serving: string;
+  kcal: number;
+  category: string;
+  /** False when this one item probably is not at the attached shop. */
+  atStore: boolean;
+}
+
+interface PlaceSuggestion {
+  placeId: string;
+  primary: string;
+  secondary: string;
+  text: string;
+}
+
 interface Recommendation {
   id: string;
-  kind: 'ingredient' | 'takeout';
+  kind: 'meal' | 'ingredient' | 'takeout';
   name: string;
   serving: string;
   category: string;
@@ -46,6 +62,11 @@ interface Recommendation {
   /** Present when a declared allergy cannot be verified from a menu listing. */
   dietWarning: string | null;
   directionsUrl: string | null;
+  /** Composed meals only. */
+  components: MealComponent[] | null;
+  steps: string[] | null;
+  prepMinutes: number | null;
+  storeCoverage: { covers: number; of: number } | null;
 }
 
 interface FinderResponse {
@@ -90,6 +111,12 @@ const CONFIDENCE_BADGE: Record<Recommendation['confidence'], { label: string; bg
  * can be blocked, dismissed, or disabled at the OS level, and every one of
  * those looks identical from inside the page unless we say which it was.
  */
+/** Where a search is anchored. A chosen suggestion carries its exact place id. */
+type Where =
+  | { lat: number; lng: number }
+  | { place: string; placeId?: string }
+  | null;
+
 function geoErrorMessage(err: GeolocationPositionError): string {
   switch (err.code) {
     case 1: return 'Location permission was denied. Enable it in Settings → Safari → Location, or type where you are below.';
@@ -128,13 +155,20 @@ export default function FoodFinderPage() {
   const [locNote, setLocNote] = useState<string | null>(null);
   const [placeInput, setPlaceInput] = useState('');
   const [budgetInput, setBudgetInput] = useState('');
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [openMeal, setOpenMeal] = useState<string | null>(null);
+  // One token groups a whole lookup's keystrokes into a single billable
+  // autocomplete session; a fresh one starts after each selection.
+  const sessionRef = useRef<string>(Math.random().toString(36).slice(2));
+  /** Set when the user picked a suggestion, so we skip re-geocoding the text. */
+  const chosenPlaceIdRef = useRef<string | null>(null);
   // Also held in a ref so `load` can read the current value without being
   // re-created on every keystroke, which would re-trigger its callers.
   const budgetRef = useRef('');
   budgetRef.current = budgetInput;
   // The last place we searched, so changing the budget re-asks about the SAME
   // corner instead of silently falling back to a location-free answer.
-  const lastWhereRef = useRef<{ lat: number; lng: number } | { place: string } | null>(null);
+  const lastWhereRef = useRef<Where>(null);
 
   // Same bootstrap the OAuth redirect uses, so a single link works on a phone
   // without a separate login round-trip.
@@ -146,14 +180,19 @@ export default function FoodFinderPage() {
     }
   }, []);
 
-  const load = useCallback(async (where: { lat: number; lng: number } | { place: string } | null) => {
+  const load = useCallback(async (where: Where) => {
     lastWhereRef.current = where;
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       if (where && 'lat' in where) { params.set('lat', String(where.lat)); params.set('lng', String(where.lng)); }
-      else if (where) params.set('place', where.place);
+      else if (where) {
+        params.set('place', where.place);
+        // A chosen suggestion is exact; sending it stops the server
+        // re-geocoding text the user already disambiguated for us.
+        if (where.placeId) params.set('placeId', where.placeId);
+      }
       const budget = Number(budgetRef.current);
       if (Number.isFinite(budget) && budget > 0) params.set('budget', String(budget));
       const qs = params.toString() ? `?${params}` : '';
@@ -173,8 +212,53 @@ export default function FoodFinderPage() {
     }
   }, []);
 
-  /** Re-run the last search with whatever the budget field now says. */
-  const reload = useCallback(() => load(lastWhereRef.current), [load]);
+  /**
+   * Re-run the last search with whatever the budget field now says.
+   *
+   * Falls back to whatever is typed in the location box. Without that, typing
+   * an address and then hitting Apply replayed the PREVIOUS search — which was
+   * location-free — and silently threw the address away: no shops, no prices,
+   * and a currency from the wrong country.
+   */
+  const reload = useCallback(() => {
+    const typed = placeInput.trim();
+    if (!lastWhereRef.current && typed) {
+      return load({ place: typed, placeId: chosenPlaceIdRef.current ?? undefined });
+    }
+    return load(lastWhereRef.current);
+  }, [load, placeInput]);
+
+  // Address suggestions, debounced. Autocomplete is billed per request, so this
+  // must never fire per keystroke.
+  useEffect(() => {
+    const q = placeInput.trim();
+    if (q.length < 3 || chosenPlaceIdRef.current) { setSuggestions([]); return; }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ q, session: sessionRef.current });
+        const here = data?.nearby.coords;
+        if (here) { params.set('lat', String(here.lat)); params.set('lng', String(here.lng)); }
+        const res = await authFetch(`${API_BASE}/nutrition-profile/place-suggest?${params}`);
+        if (!res.ok || cancelled) return;
+        const body = await res.json() as { suggestions: PlaceSuggestion[] };
+        if (!cancelled) setSuggestions(body.suggestions ?? []);
+      } catch {
+        // Suggestions are a convenience; typing the address still works.
+        if (!cancelled) setSuggestions([]);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [placeInput, data?.nearby.coords]);
+
+  const chooseSuggestion = useCallback((sug: PlaceSuggestion) => {
+    setPlaceInput(sug.text);
+    setSuggestions([]);
+    chosenPlaceIdRef.current = sug.placeId;
+    // A new session token for the next lookup — this one is now billed.
+    sessionRef.current = Math.random().toString(36).slice(2);
+    void load({ place: sug.text, placeId: sug.placeId });
+  }, [load]);
 
   const useMyLocation = useCallback(() => {
     setError(null);
@@ -259,7 +343,7 @@ export default function FoodFinderPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
         <input
           value={placeInput}
-          onChange={e => setPlaceInput(e.target.value)}
+          onChange={e => { setPlaceInput(e.target.value); chosenPlaceIdRef.current = null; }}
           onKeyDown={e => { if (e.key === 'Enter') submitPlace(); }}
           placeholder="Or type an address, or 43.65, -79.38"
           aria-label="Enter a location"
@@ -275,6 +359,25 @@ export default function FoodFinderPage() {
           Go
         </button>
       </div>
+
+      {suggestions.length > 0 && (
+        <ul
+          aria-label="Address suggestions"
+          style={{ listStyle: 'none', margin: '-8px 0 14px', padding: 0, border: '1px solid #eee', borderRadius: 10, overflow: 'hidden' }}
+        >
+          {suggestions.map(sug => (
+            <li key={sug.placeId}>
+              <button
+                onClick={() => chooseSuggestion(sug)}
+                style={{ width: '100%', textAlign: 'left', padding: '10px 12px', fontSize: 14, background: '#fff', border: 'none', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}
+              >
+                <span style={{ fontWeight: 600 }}>{sug.primary}</span>
+                {sug.secondary && <span style={{ color: '#888' }}> · {sug.secondary}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {/* Budget is optional and stays empty by default. An invented ceiling
           would silently suppress good food, so no budget means no budget. */}
@@ -362,13 +465,15 @@ export default function FoodFinderPage() {
           {data.recommendations.map(r => (
             <div key={r.id} style={{ border: '1px solid #eee', borderRadius: 12, padding: 14, marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: 17 }}>{r.kind === 'takeout' ? '🍽' : '🛒'}</span>
+                <span style={{ fontSize: 17 }}>{r.kind === 'takeout' ? '🍽' : '🍳'}</span>
                 <span style={{ fontSize: 16, fontWeight: 650, flex: 1 }}>{r.name}</span>
                 <span style={{ fontSize: 13, color: '#777' }}>{r.kcal} kcal</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 13, color: '#666' }}>{r.serving}</span>
+                <span style={{ fontSize: 13, color: '#666' }}>
+                  {r.prepMinutes != null ? `${r.prepMinutes} min to cook` : r.serving}
+                </span>
                 {r.price && (
                   <span style={{ fontSize: 13, fontWeight: 600, color: r.overBudget ? '#a94442' : '#2e6b32' }}>
                     {r.price.display}
@@ -386,6 +491,42 @@ export default function FoodFinderPage() {
                 )}
               </div>
 
+              {/* The shopping list. This is the actual answer to "what do I
+                  eat" — a name alone sends someone to a shop with no plan. */}
+              {r.components && r.components.length > 0 && (
+                <div style={{ marginTop: 10, borderTop: '1px solid #f2f2f2', paddingTop: 10 }}>
+                  {r.components.map(c => (
+                    <div key={c.name} style={{ display: 'flex', gap: 8, fontSize: 14, padding: '3px 0', alignItems: 'baseline' }}>
+                      <span style={{ color: '#999', minWidth: 92, fontVariantNumeric: 'tabular-nums' }}>{c.serving}</span>
+                      <span style={{ flex: 1 }}>{c.name}</span>
+                      {/* Flagging the one item this shop may not have is more
+                          useful than a clean list that sends you home short. */}
+                      {!c.atStore && r.where && (
+                        <span style={{ fontSize: 11, color: '#8a6d3b' }}>elsewhere</span>
+                      )}
+                      <span style={{ color: '#aaa', fontSize: 12 }}>{c.kcal}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {r.steps && r.steps.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    onClick={() => setOpenMeal(openMeal === r.id ? null : r.id)}
+                    aria-expanded={openMeal === r.id}
+                    style={{ background: 'none', border: 'none', padding: 0, fontSize: 13, fontWeight: 600, color: '#24417a', cursor: 'pointer' }}
+                  >
+                    {openMeal === r.id ? 'Hide method' : 'How to make it'}
+                  </button>
+                  {openMeal === r.id && (
+                    <ol style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: '#444', lineHeight: 1.55 }}>
+                      {r.steps.map((step, i) => <li key={i} style={{ marginBottom: 4 }}>{step}</li>)}
+                    </ol>
+                  )}
+                </div>
+              )}
+
               {r.closes.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                   {r.closes.map(c => (
@@ -399,6 +540,9 @@ export default function FoodFinderPage() {
               {r.where && (
                 <div style={{ fontSize: 13, color: '#333', marginTop: 10 }}>
                   <strong>{r.where.name}</strong> · {distance(r.where.distanceM)}
+                  {r.storeCoverage && r.storeCoverage.covers < r.storeCoverage.of && (
+                    <span style={{ color: '#8a6d3b' }}> · {r.storeCoverage.covers}/{r.storeCoverage.of} items</span>
+                  )}
                   {r.where.openNow === false && <span style={{ color: '#a94442' }}> · closed</span>}
                   {r.where.rating != null && <span style={{ color: '#777' }}> · ★ {r.where.rating}</span>}
                 </div>

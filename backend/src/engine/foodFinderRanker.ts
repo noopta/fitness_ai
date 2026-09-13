@@ -29,7 +29,11 @@ export type Confidence = 'usda' | 'published' | 'inferred' | 'estimated';
 export interface Candidate {
   id: string;
   name: string;
-  kind: 'ingredient' | 'takeout';
+  /**
+   * 'meal' is a composed plate of several ingredients; 'ingredient' is a single
+   * food (still used by the legacy recommender); 'takeout' is one restaurant dish.
+   */
+  kind: 'meal' | 'ingredient' | 'takeout';
   /** Calories in the serving being proposed. */
   kcal: number;
   /** Nutrient key → amount in that serving. Macro keys included. */
@@ -526,9 +530,14 @@ export function diversify(
 
   if (guaranteeBothKinds && picked.length >= 2) {
     const kinds = new Set(picked.map(c => c.kind));
-    const missing = (['ingredient', 'takeout'] as const).find(k => !kinds.has(k));
+    // 'meal' covers the cook-at-home path; 'ingredient' only appears from the
+    // legacy single-food caller, so either satisfies the home side.
+    const hasHome = kinds.has('meal') || kinds.has('ingredient');
+    const missing = !hasHome ? 'meal' : (!kinds.has('takeout') ? 'takeout' : undefined);
     if (missing) {
-      const best = ranked.find(c => c.kind === missing && !picked.includes(c));
+      const best = ranked.find(
+        c => (missing === 'meal' ? (c.kind === 'meal' || c.kind === 'ingredient') : c.kind === missing)
+          && !picked.includes(c));
       // Displace the weakest pick rather than growing past the caller's limit.
       if (best) picked.splice(picked.length - 1, 1, best);
     }
