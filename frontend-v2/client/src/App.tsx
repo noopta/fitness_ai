@@ -1,5 +1,5 @@
 import { Component, ReactNode, useEffect } from "react";
-import { Switch, Route, Redirect, useLocation } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { posthog, identifyUser, resetUser, trackPageView } from "./lib/analytics";
 import { useAuth } from "@/context/AuthContext";
 import { queryClient } from "./lib/queryClient";
@@ -16,6 +16,7 @@ import Signup from "./pages/signup";
 import DiagnosticsHome from "./pages/diagnostics";
 import DiagnosticChat from "./pages/diagnostics/chat";
 import DiagnosticReport from "./pages/diagnostics/report";
+import DiagnosticEntry from "./pages/diagnostics/entry";
 import Snapshot from "./pages/snapshot";
 import Diagnostic from "./pages/diagnostic";
 import Plan from "./pages/plan";
@@ -135,7 +136,7 @@ class ErrorBoundary extends Component<
 // /mvp are its first-run entry points and forward into it.
 const ProtectedDiagnosticsHome = () => <ProtectedRoute component={DiagnosticsHome} />;
 const ProtectedDiagnosticChat  = () => <ProtectedRoute component={DiagnosticChat} />;
-const ToDiagnosticChat = () => <Redirect to="/diagnostics/chat" replace />;
+const ProtectedDiagnosticEntry = () => <ProtectedRoute component={DiagnosticEntry} />;
 const ProtectedSnapshot   = () => <ProtectedRoute component={Snapshot} />;
 const ProtectedDiagnostic = () => <ProtectedRoute component={Diagnostic} />;
 const ProtectedPlan       = () => <ProtectedRoute component={Plan} />;
@@ -191,8 +192,8 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/delete-account" component={DeleteAccount} />
-      <Route path="/mvp" component={ToDiagnosticChat} />
-      <Route path="/onboarding" component={ToDiagnosticChat} />
+      <Route path="/mvp" component={ProtectedDiagnosticEntry} />
+      <Route path="/onboarding" component={ProtectedDiagnosticEntry} />
       <Route path="/diagnostics" component={ProtectedDiagnosticsHome} />
       <Route path="/diagnostics/chat/:id?" component={ProtectedDiagnosticChat} />
       <Route path="/diagnostics/:id" component={DiagnosticReport} />

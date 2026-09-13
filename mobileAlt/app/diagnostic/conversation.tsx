@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -15,6 +15,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { Analytics, trackScreen } from '../../src/lib/analytics';
 import { useDiagnostic } from '../../src/diagnostic/useDiagnostic';
+import { markDiagnosticFirstSeen } from '../../src/onboarding/diagnosticFirst';
 import { Composer } from '../../src/diagnostic/components/Composer';
 import { ReportView } from '../../src/diagnostic/components/ReportView';
 import { DiagnosticPaywall } from '../../src/diagnostic/components/DiagnosticPaywall';
@@ -47,6 +48,7 @@ export default function DiagnosticConversation() {
   const [reportOpen, setReportOpen] = useState(false);
   const [paywall, setPaywall] = useState<null | 'diagnostic_limit' | 'diagnostic_report'>(null);
   const listRef = useRef<FlatList<ThreadItem>>(null);
+  const insets = useSafeAreaInsets();
   // Items already on screen when the thread (re)loads don't animate in.
   const [animateFrom, setAnimateFrom] = useState<number | null>(params.sessionId ? null : 0);
   const addNumbersDone = useRef(false);
@@ -65,7 +67,13 @@ export default function DiagnosticConversation() {
     }
   }, [params.action, state.stage, state.loadStatus, controller]);
 
-  const exit = useCallback(() => router.replace('/(tabs)'), [router]);
+  // Exit always lands on Home, where the hero offers Resume. It also ends the
+  // first-run routing: the next cold start goes Home rather than into a fresh
+  // thread next to the saved one.
+  const exit = useCallback(() => {
+    void markDiagnosticFirstSeen();
+    router.replace('/(tabs)');
+  }, [router]);
 
   const openReport = useCallback(() => {
     if (!state.verdict) return;
@@ -117,7 +125,8 @@ export default function DiagnosticConversation() {
         </View>
       </View>
 
-      <KeyboardAvoider style={{ flex: 1 }}>
+      {/* iOS offset = what sits above the avoider: safe area + the 57px header. */}
+      <KeyboardAvoider style={{ flex: 1 }} iosOffset={insets.top + 57}>
         {state.loadStatus === 'loading' ? (
           <View style={styles.center}>
             <ActivityIndicator color={C.ink} />

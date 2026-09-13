@@ -246,6 +246,10 @@ async function generateVerdict(session: OwnedSession & { selectedLift: Conversat
 }
 
 async function recordSet(session: OwnedSession & { selectedLift: ConversationLift }, userId: string, exercise: string, set: z.infer<typeof setSchema>) {
+  // One snapshot per exercise per session — the latest set wins. This also
+  // keeps a retried turn (whose first attempt logged the set, then failed
+  // re-scoring) from leaving a duplicate row behind.
+  await prisma.exerciseSnapshot.deleteMany({ where: { sessionId: session.id, exerciseId: exercise } });
   await prisma.exerciseSnapshot.create({
     data: { sessionId: session.id, exerciseId: exercise, weight: toLbs(set), sets: set.sets, repsSchema: String(set.reps) },
   });
@@ -286,6 +290,9 @@ async function applyTurn(
     }
 
     case 'verdict': {
+      // A second tap (or a replayed client) never spends another diagnosis.
+      const existing = await latestVerdict(session.id);
+      if (existing) return { verdict: existing };
       const tier = await freshTier(userId);
       const quota = await consumeDailyQuota(userId, tier, FEATURE.LIFT_DIAGNOSTIC);
       if (!quota.allowed) return { limitReached: true };
@@ -405,10 +412,15 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
 
     const last = await prisma.diagnosticTurn.findFirst({ where: { sessionId: id }, orderBy: { seq: 'desc' }, select: { seq: true } });
     const { type, ...payload } = input;
-    const claimed = await prisma.diagnosticTurn.create({
-      data: { sessionId: id, clientTurnId, seq: (last?.seq ?? -1) + 1, type, payloadJson: JSON.stringify(payload), resultJson: PENDING },
-      select: { id: true },
-    });
+    const claimed = await prisma.diagnosticTurn
+      .create({
+        data: { sessionId: id, clientTurnId, seq: (last?.seq ?? -1) + 1, type, payloadJson: JSON.stringify(payload), resultJson: PENDING },
+        select: { id: true },
+      })
+      .catch(() => {
+        // Unique (sessionId, clientTurnId): the same turn is being applied by a concurrent request.
+        throw new HttpError(409, 'That message is still sending');
+      });
     claimedId = claimed.id;
 
     const result = await applyTurn(session, userId, input);

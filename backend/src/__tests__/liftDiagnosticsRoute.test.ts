@@ -78,6 +78,9 @@ const db = vi.hoisted(() => {
       }),
     },
     exerciseSnapshot: {
+      deleteMany: vi.fn(async ({ where }: any) => {
+        tables.snapshot = tables.snapshot.filter((r) => !(r.sessionId === where.sessionId && r.exerciseId === where.exerciseId));
+      }),
       create: vi.fn(async ({ data }: any) => {
         tables.snapshot.push(data);
         return data;
@@ -223,6 +226,27 @@ describe('turns', () => {
     const retried = await turn(FREE, { type: 'verdict' }, 'verdict-turn');
     expect(retried.status).toBe(200);
     expect(retried.body.result.verdict.grade).toBe(2);
+  });
+
+  it('a re-score that fails and is retried leaves one snapshot for the lift', async () => {
+    await toReady();
+    await turn(FREE, { type: 'verdict' });
+    await turn(FREE, { type: 'addNumbers' });
+    generateWorkoutPlan.mockRejectedValueOnce(new Error('LLM down'));
+    expect((await turn(FREE, { type: 'accessory', exerciseId: 'overhead_press', set: SET(150) }, 'late-set')).status).toBe(500);
+    expect((await turn(FREE, { type: 'accessory', exerciseId: 'overhead_press', set: SET(150) }, 'late-set')).status).toBe(200);
+    expect(db.tables.snapshot.filter((r) => r.exerciseId === 'overhead_press')).toHaveLength(1);
+  });
+
+  it('a second verdict tap returns the existing verdict without spending another diagnosis', async () => {
+    const { consumeDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(consumeDailyQuota).mockClear();
+    await toReady();
+    await turn(FREE, { type: 'verdict' });
+    const again = await turn(FREE, { type: 'verdict' });
+    expect(again.body.result.verdict.grade).toBe(2);
+    expect(consumeDailyQuota).toHaveBeenCalledTimes(1);
+    expect(generateWorkoutPlan).toHaveBeenCalledTimes(1);
   });
 });
 
