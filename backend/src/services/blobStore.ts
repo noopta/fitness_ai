@@ -218,3 +218,40 @@ export async function putImageBase64(
     return null;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Non-image artifacts
+// ---------------------------------------------------------------------------
+
+/**
+ * Store an arbitrary object under an explicit key.
+ *
+ * Distinct from putImageBase64 in two ways that matter. It does NOT sniff or
+ * dedup by content hash — these are named artifacts (a calibration report, a
+ * scraped menu snapshot, a metro corpus dump) where the caller's path IS the
+ * identity, and two runs producing byte-identical output should still be two
+ * dated objects rather than collapsing into one.
+ *
+ * This is the food-finder corpus's home: large, immutable, written by offline
+ * jobs, and never read in a request path — which is exactly why it belongs in
+ * object storage instead of the hot SQLite index.
+ *
+ * Returns null rather than throwing when the store is disabled or the upload
+ * fails; an offline job logs and carries on.
+ */
+export async function putObject(
+  key: string,
+  body: Buffer | string,
+  contentType = 'application/octet-stream',
+): Promise<{ key: string; bytes: number } | null> {
+  const b = bucket();
+  if (!b || !key) return null;
+  try {
+    const bytes = Buffer.isBuffer(body) ? body : Buffer.from(body);
+    await b.file(key).save(bytes, { contentType, resumable: false });
+    return { key, bytes: bytes.length };
+  } catch (err) {
+    console.warn(`[blobStore] putObject ${key} failed: ${(err as Error).message}`);
+    return null;
+  }
+}

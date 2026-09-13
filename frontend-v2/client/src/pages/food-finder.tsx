@@ -10,7 +10,7 @@
 // carried at …"). This page renders that note verbatim rather than writing its
 // own claim, and shows the confidence tier on estimated items.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
@@ -39,7 +39,13 @@ interface Recommendation {
   score: number;
   where: { name: string; distanceM: number; openNow: boolean | null; rating: number | null } | null;
   note: string | null;
-  confidence: 'usda' | 'published' | 'estimated';
+  confidence: 'usda' | 'published' | 'inferred' | 'estimated';
+  /** Null means we do not know the price — which is NOT the same as free. */
+  price: { cents: number; currency: string; display: string; estimated: boolean } | null;
+  overBudget: boolean;
+  /** Present when a declared allergy cannot be verified from a menu listing. */
+  dietWarning: string | null;
+  directionsUrl: string | null;
 }
 
 interface FinderResponse {
@@ -55,9 +61,28 @@ interface FinderResponse {
     restaurantsFound: number;
     resolvedPlace: { name: string; address: string } | null;
     coords: { lat: number; lng: number } | null;
+    metro: { slug: string; label: string } | null;
+    chainsMatched: number;
   };
+  budget: { cents: number | null; currency: string; display: string | null; pricesAvailable: boolean };
+  diet: { active: boolean; restrictions: string[]; allergies: string[]; excluded: number };
   recommendations: Recommendation[];
 }
+
+/**
+ * How much to trust a number, said plainly.
+ *
+ * The confidence ladder is the product's spine, so it is shown rather than
+ * buried: a USDA composition and a model's guess about an unnamed kitchen must
+ * not look alike on screen. USDA gets no badge — the absence of a hedge is the
+ * signal.
+ */
+const CONFIDENCE_BADGE: Record<Recommendation['confidence'], { label: string; bg: string; fg: string } | null> = {
+  usda: null,
+  published: { label: 'published', bg: '#e8f5e9', fg: '#2e6b32' },
+  inferred: { label: 'estimated', bg: '#fff4e5', fg: '#8a5a00' },
+  estimated: { label: 'estimated', bg: '#fff4e5', fg: '#8a5a00' },
+};
 
 /**
  * Turn a GeolocationPositionError into something a user can act on.
@@ -102,6 +127,14 @@ export default function FoodFinderPage() {
   const [locState, setLocState] = useState<'idle' | 'asking' | 'granted' | 'denied'>('idle');
   const [locNote, setLocNote] = useState<string | null>(null);
   const [placeInput, setPlaceInput] = useState('');
+  const [budgetInput, setBudgetInput] = useState('');
+  // Also held in a ref so `load` can read the current value without being
+  // re-created on every keystroke, which would re-trigger its callers.
+  const budgetRef = useRef('');
+  budgetRef.current = budgetInput;
+  // The last place we searched, so changing the budget re-asks about the SAME
+  // corner instead of silently falling back to a location-free answer.
+  const lastWhereRef = useRef<{ lat: number; lng: number } | { place: string } | null>(null);
 
   // Same bootstrap the OAuth redirect uses, so a single link works on a phone
   // without a separate login round-trip.
@@ -114,12 +147,16 @@ export default function FoodFinderPage() {
   }, []);
 
   const load = useCallback(async (where: { lat: number; lng: number } | { place: string } | null) => {
+    lastWhereRef.current = where;
     setLoading(true);
     setError(null);
     try {
-      let qs = '';
-      if (where && 'lat' in where) qs = `?lat=${where.lat}&lng=${where.lng}`;
-      else if (where) qs = `?place=${encodeURIComponent(where.place)}`;
+      const params = new URLSearchParams();
+      if (where && 'lat' in where) { params.set('lat', String(where.lat)); params.set('lng', String(where.lng)); }
+      else if (where) params.set('place', where.place);
+      const budget = Number(budgetRef.current);
+      if (Number.isFinite(budget) && budget > 0) params.set('budget', String(budget));
+      const qs = params.toString() ? `?${params}` : '';
       const res = await authFetch(`${API_BASE}/nutrition-profile/food-finder${qs}`);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const body: FinderResponse = await res.json();
@@ -135,6 +172,9 @@ export default function FoodFinderPage() {
       setLoading(false);
     }
   }, []);
+
+  /** Re-run the last search with whatever the budget field now says. */
+  const reload = useCallback(() => load(lastWhereRef.current), [load]);
 
   const useMyLocation = useCallback(() => {
     setError(null);
@@ -236,6 +276,32 @@ export default function FoodFinderPage() {
         </button>
       </div>
 
+      {/* Budget is optional and stays empty by default. An invented ceiling
+          would silently suppress good food, so no budget means no budget. */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center' }}>
+        <label htmlFor="ff-budget" style={{ fontSize: 14, color: '#555', whiteSpace: 'nowrap' }}>Budget</label>
+        <input
+          id="ff-budget"
+          value={budgetInput}
+          onChange={e => setBudgetInput(e.target.value.replace(/[^0-9.]/g, ''))}
+          onKeyDown={e => { if (e.key === 'Enter') void reload(); }}
+          placeholder="any"
+          inputMode="decimal"
+          aria-label="Budget per meal"
+          style={{ width: 90, padding: '9px 10px', fontSize: 15, borderRadius: 10, border: '1px solid #ddd' }}
+        />
+        {data?.budget.currency && <span style={{ fontSize: 13, color: '#888' }}>{data.budget.currency}</span>}
+        {budgetInput && (
+          <button
+            onClick={() => void reload()}
+            disabled={loading}
+            style={{ padding: '9px 14px', fontSize: 14, fontWeight: 600, borderRadius: 10, border: '1px solid #ddd', background: '#fff' }}
+          >
+            Apply
+          </button>
+        )}
+      </div>
+
       {locNote && (
         <p style={{ fontSize: 13, color: '#8a6d3b', background: '#fcf8e3', padding: 10, borderRadius: 8, marginTop: 0 }}>{locNote}</p>
       )}
@@ -268,6 +334,25 @@ export default function FoodFinderPage() {
             {data.nearby.used && data.nearby.degraded && (
               <div style={{ fontSize: 12, color: '#8a6d3b', marginTop: 6 }}>Couldn't reach nearby data — showing foods only.</div>
             )}
+            {data.nearby.chainsMatched > 0 && (
+              <div style={{ fontSize: 12, color: '#2e6b32', marginTop: 6 }}>
+                {data.nearby.chainsMatched} nearby {data.nearby.chainsMatched === 1 ? 'chain has' : 'chains have'} published nutrition — those figures are exact.
+              </div>
+            )}
+            {data.nearby.used && !data.budget.pricesAvailable && (
+              /* We would rather show no prices than prices from another
+                 economy, and the user should know which of the two is
+                 happening. */
+              <div style={{ fontSize: 12, color: '#8a6d3b', marginTop: 6 }}>
+                No price data for this area yet — ranking on nutrition and distance only.
+              </div>
+            )}
+            {data.diet.active && (
+              <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                Filtered for {[...data.diet.restrictions, ...data.diet.allergies].join(', ')}
+                {data.diet.excluded > 0 && ` · ${data.diet.excluded} option${data.diet.excluded === 1 ? '' : 's'} hidden`}
+              </div>
+            )}
           </div>
 
           {data.recommendations.length === 0 && (
@@ -282,7 +367,24 @@ export default function FoodFinderPage() {
                 <span style={{ fontSize: 13, color: '#777' }}>{r.kcal} kcal</span>
               </div>
 
-              <div style={{ fontSize: 13, color: '#666', marginTop: 2 }}>{r.serving}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, color: '#666' }}>{r.serving}</span>
+                {r.price && (
+                  <span style={{ fontSize: 13, fontWeight: 600, color: r.overBudget ? '#a94442' : '#2e6b32' }}>
+                    {r.price.display}
+                    {r.overBudget && ' · over budget'}
+                  </span>
+                )}
+                {CONFIDENCE_BADGE[r.confidence] && (
+                  <span style={{
+                    fontSize: 11, borderRadius: 20, padding: '2px 8px',
+                    background: CONFIDENCE_BADGE[r.confidence]!.bg,
+                    color: CONFIDENCE_BADGE[r.confidence]!.fg,
+                  }}>
+                    {CONFIDENCE_BADGE[r.confidence]!.label}
+                  </span>
+                )}
+              </div>
 
               {r.closes.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
@@ -306,11 +408,30 @@ export default function FoodFinderPage() {
                   stronger claim than the data supports. */}
               {r.note && <div style={{ fontSize: 12, color: '#888', marginTop: 4, fontStyle: 'italic' }}>{r.note}</div>}
 
+              {/* An allergy we cannot verify is stated, never silently
+                  resolved in either direction — see the three-verdict filter. */}
+              {r.dietWarning && (
+                <div style={{ fontSize: 12, color: '#a94442', background: '#f2dede', borderRadius: 8, padding: '7px 9px', marginTop: 8 }}>
+                  ⚠ {r.dietWarning}
+                </div>
+              )}
+
               {r.warns.map(w => (
                 <div key={w.key} style={{ fontSize: 12, color: '#8a6d3b', background: '#fcf8e3', borderRadius: 8, padding: '7px 9px', marginTop: 8 }}>
                   ⚠ {w.text}
                 </div>
               ))}
+
+              {r.directionsUrl && (
+                <a
+                  href={r.directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-block', marginTop: 10, fontSize: 13, fontWeight: 600, color: '#24417a', textDecoration: 'none' }}
+                >
+                  Directions →
+                </a>
+              )}
             </div>
           ))}
         </>

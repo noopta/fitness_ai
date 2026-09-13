@@ -21,7 +21,13 @@ const response = (over: Record<string, unknown> = {}) => ({
   why: '110 g of protein and 1400 kcal still to go — macros lead.',
   pressures: { macro: 0.7, micro: 0.4 },
   remaining: { kcal: 1400, proteinG: 110, carbsG: 150, fatG: 40 },
-  nearby: { used: true, degraded: false, storesFound: 3, restaurantsFound: 2, resolvedPlace: null, coords: { lat: 43.65, lng: -79.38 } },
+  nearby: {
+    used: true, degraded: false, storesFound: 3, restaurantsFound: 2,
+    resolvedPlace: null, coords: { lat: 43.65, lng: -79.38 },
+    metro: { slug: 'toronto-on-ca', label: 'Toronto' }, chainsMatched: 0,
+  },
+  budget: { cents: null, currency: 'CAD', display: null, pricesAvailable: true },
+  diet: { active: false, restrictions: [], allergies: [], excluded: 0 },
   recommendations: [
     {
       id: 'ingredient:wild-salmon', kind: 'ingredient', name: 'Wild salmon',
@@ -30,6 +36,9 @@ const response = (over: Record<string, unknown> = {}) => ({
       warns: [], mechanism: '', score: 0.25,
       where: { name: 'Loblaws', distanceM: 350, openNow: true, rating: 4.1 },
       note: 'Usually carried at Loblaws.', confidence: 'usda',
+      price: { cents: 1582, currency: 'CAD', display: '≈$15.82', estimated: true },
+      overBudget: false, dietWarning: null,
+      directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Loblaws&destination_place_id=store-1',
     },
     {
       id: 'dish:r1:salmon-poke-bowl', kind: 'takeout', name: 'Salmon poke bowl',
@@ -39,6 +48,8 @@ const response = (over: Record<string, unknown> = {}) => ({
       mechanism: '', score: 0.14,
       where: { name: 'Poke Place', distanceM: 220, openNow: true, rating: 4.6 },
       note: 'Typical for japanese restaurant — estimated, not their menu.', confidence: 'estimated',
+      price: null, overBudget: false, dietWarning: null,
+      directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Poke%20Place&destination_place_id=r1',
     },
   ],
   ...over,
@@ -122,7 +133,7 @@ describe('FoodFinderPage', () => {
   it('falls back to a location-free answer when permission is denied', async () => {
     mockGeolocation('deny');
     mockAuthFetch.mockImplementation(() =>
-      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null } })));
+      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null, metro: null, chainsMatched: 0 } })));
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     // Denial is a choice, not an error — still a real answer, no lat/lng sent.
@@ -159,7 +170,12 @@ describe('FoodFinderPage', () => {
     await userEvent.type(screen.getByLabelText(/enter a location/i), 'King and Spadina');
     await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
     await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
-    expect(mockAuthFetch.mock.calls[0][0]).toContain('place=King%20and%20Spadina');
+    // Assert on the decoded value, not the encoding: URLSearchParams writes a
+    // space as '+', encodeURIComponent writes '%20', and both decode to the
+    // same thing server-side. Pinning the spelling makes this test fail on a
+    // change that is invisible to the server.
+    const url = new URL(mockAuthFetch.mock.calls[0][0] as string, 'http://x');
+    expect(url.searchParams.get('place')).toBe('King and Spadina');
   });
 
   it('sends pasted coordinates directly rather than geocoding them', async () => {
@@ -175,7 +191,7 @@ describe('FoodFinderPage', () => {
 
   it('says so when a typed place cannot be found', async () => {
     mockAuthFetch.mockImplementation(() =>
-      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null } })));
+      ok(response({ nearby: { used: false, degraded: true, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null, metro: null, chainsMatched: 0 } })));
     render(<FoodFinderPage />);
     await userEvent.type(screen.getByLabelText(/enter a location/i), 'asdkjhasd');
     await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
@@ -222,5 +238,118 @@ describe('FoodFinderPage', () => {
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     expect(await screen.findByText(/you're on track/i)).toBeTruthy();
+  });
+});
+
+describe('FoodFinderPage — budget, price and provenance', () => {
+  it('sends no budget when the field is empty', async () => {
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    // An invented ceiling would silently suppress good food.
+    const url = new URL(mockAuthFetch.mock.calls[0][0] as string, 'http://x');
+    expect(url.searchParams.has('budget')).toBe(false);
+  });
+
+  it('re-asks about the SAME place when a budget is applied', async () => {
+    render(<FoodFinderPage />);
+    await userEvent.type(screen.getByLabelText(/enter a location/i), 'King and Spadina');
+    await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
+    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+
+    await userEvent.type(screen.getByLabelText(/budget per meal/i), '15');
+    await userEvent.click(screen.getByRole('button', { name: /apply/i }));
+    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalledTimes(2));
+
+    const url = new URL(mockAuthFetch.mock.calls[1][0] as string, 'http://x');
+    expect(url.searchParams.get('budget')).toBe('15');
+    // The location must survive — not silently fall back to no-location.
+    expect(url.searchParams.get('place')).toBe('King and Spadina');
+  });
+
+  it('shows an estimated price with its hedge intact', async () => {
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(await screen.findByText('≈$15.82')).toBeTruthy();
+  });
+
+  it('renders no price rather than a zero when the price is unknown', async () => {
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    await screen.findByText('Salmon poke bowl');
+    // The takeout fixture has price: null. Unknown must never render as free.
+    expect(screen.queryByText(/\$0\b/)).toBeNull();
+  });
+
+  it('flags an option that breaks the budget without hiding it', async () => {
+    mockGeolocation('grant');
+    mockAuthFetch.mockImplementation(() => ok(response({
+      budget: { cents: 500, currency: 'CAD', display: '$5', pricesAvailable: true },
+      recommendations: [{
+        ...response().recommendations[0],
+        overBudget: true,
+      }],
+    })));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(await screen.findByText(/over budget/i)).toBeTruthy();
+    expect(screen.getByText('Wild salmon')).toBeTruthy();
+  });
+
+  it('says when it has no price data rather than pretending', async () => {
+    mockGeolocation('grant');
+    mockAuthFetch.mockImplementation(() => ok(response({
+      nearby: { used: true, degraded: false, storesFound: 2, restaurantsFound: 1, resolvedPlace: null, coords: null, metro: null, chainsMatched: 0 },
+      budget: { cents: null, currency: 'USD', display: null, pricesAvailable: false },
+    })));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(await screen.findByText(/no price data for this area/i)).toBeTruthy();
+  });
+
+  it('distinguishes a published chain figure from an estimate on screen', async () => {
+    mockGeolocation('grant');
+    mockAuthFetch.mockImplementation(() => ok(response({
+      nearby: { used: true, degraded: false, storesFound: 1, restaurantsFound: 1, resolvedPlace: null, coords: null, metro: { slug: 'toronto-on-ca', label: 'Toronto' }, chainsMatched: 1 },
+      recommendations: [{
+        ...response().recommendations[1],
+        confidence: 'published',
+        note: "From Nando's published nutrition.",
+      }],
+    })));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    // The badge on the card, distinct from the header count line.
+    expect(await screen.findByText('published')).toBeTruthy();
+    expect(screen.getByText(/^From Nando's published nutrition\.$/)).toBeTruthy();
+    expect(screen.getByText(/1 nearby chain has published nutrition/i)).toBeTruthy();
+  });
+
+  it('states an unverifiable allergy instead of resolving it either way', async () => {
+    mockGeolocation('grant');
+    mockAuthFetch.mockImplementation(() => ok(response({
+      diet: { active: true, restrictions: [], allergies: ['peanut'], excluded: 2 },
+      recommendations: [{
+        ...response().recommendations[1],
+        dietWarning: "We can't verify peanut from a menu listing — check with the restaurant.",
+      }],
+    })));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    expect(await screen.findByText(/can't verify peanut/i)).toBeTruthy();
+    expect(screen.getByText(/2 options hidden/i)).toBeTruthy();
+  });
+
+  it('offers directions to every attached venue', async () => {
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    const links = await screen.findAllByRole('link', { name: /directions/i });
+    expect(links.length).toBeGreaterThan(0);
+    expect(links[0].getAttribute('href')).toMatch(/^https:\/\/www\.google\.com\/maps\/dir/);
+    expect(links[0].getAttribute('target')).toBe('_blank');
   });
 });

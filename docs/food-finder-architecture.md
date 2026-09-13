@@ -113,6 +113,28 @@ a hand-picked 0.7 into a measured number, and lets the UI say "≈620 kcal, ±25
 A macro-tracking app that is silently off by 400 kcal is worse than one that declines to
 answer, so this is a correctness feature, not a polish feature.
 
+**What it actually measured** (39 chain items, gemini-2.5-flash, 2026-09-13). The raw
+estimator ran hot — it over-estimated almost everything, and by wildly different amounts
+per cuisine:
+
+| | raw | after correction |
+|---|---|---|
+| median \|kcal error\| | 20.0% | **9.4%** |
+| mean signed bias | +37.6% | +5.2% |
+| burger | 3.6% | 2.5% |
+| salad | 14.3% | 3.7% |
+| sandwich | 37.0% | 9.2% |
+| cafe | 51.0% | 14.4% |
+| chicken | 91.9% | 36.7% |
+
+Two things follow. First, this had to be measured — nobody would have guessed that
+McDonald's items estimate to within 4% while Nando's portions are off by 92%, and a single
+global discount would have been wrong nearly everywhere. Second, `chicken` is still poor
+after correction, which the ranker handles on its own: a 36.7% error yields a confidence
+factor of 0.73, below the 0.78 `inferred` default, so the evidence makes us more careful
+rather than less. The correction is applied per cuisine and only where enough items were
+measured to mean anything.
+
 ## D6 — Price, and the budget-comparability trap
 
 Grocery prices are not purchasable per-store at any sane cost. A regional staple price

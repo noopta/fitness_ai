@@ -673,6 +673,7 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
           degraded: true,
           dietExcluded: 0,
           dietWarnings: {} as Record<string, string>,
+          chainsMatched: 0,
         };
 
     // Record what we showed, so tomorrow's list is not today's list.
@@ -694,6 +695,8 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
         degraded: found.degraded,
         storesFound: found.storesFound,
         restaurantsFound: found.restaurantsFound,
+        /** Of those restaurants, how many we hold a real published menu for. */
+        chainsMatched: found.chainsMatched,
         // Echo back what a typed place resolved to, so the user can see we
         // understood "king and spadina" as the right corner of the right city.
         resolvedPlace,
@@ -741,7 +744,11 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
               ? { name: store.name, distanceM: store.distanceM, openNow: store.openNow, rating: null }
               : null,
           note: vendor
-            ? `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`
+            ? (r.meta?.published
+                // We hold this chain's own published nutrition, so there is
+                // nothing to hedge — say where the number came from instead.
+                ? `From ${(r.meta?.brand as { name?: string } | undefined)?.name ?? vendor.name}'s published nutrition.`
+                : `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`)
             : store
               ? `Usually carried at ${store.name}.`
               : null,

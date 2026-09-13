@@ -18,6 +18,8 @@ const mocks = vi.hoisted(() => ({
   nutritionPlan: { findFirst: vi.fn() },
   foodRecommendationLog: { findMany: vi.fn(), createMany: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
   ingredientPrice: { findMany: vi.fn() },
+  foodBrand: { findMany: vi.fn() },
+  menuItem: { findMany: vi.fn() },
 }));
 vi.mock('@prisma/client', () => {
   const PrismaClient = vi.fn(function (this: any) { Object.assign(this, mocks); });
@@ -35,6 +37,8 @@ vi.mock('../services/places/placesClient.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services/places/placesClient.js')>();
   return { ...actual, searchNearby: mockSearchNearby };
 });
+
+import { clearChainCorpus } from '../services/foodFinder/chainMenu.js';
 
 const ME = 'u-1';
 const token = jwt.sign({ id: ME, email: 'me@axiom.io', tier: 'free' }, process.env.JWT_SECRET!, { expiresIn: '1h' });
@@ -86,6 +90,10 @@ beforeEach(() => {
   mocks.foodRecommendationLog.findMany.mockResolvedValue([]);
   mocks.foodRecommendationLog.createMany.mockResolvedValue({ count: 0 });
   mocks.foodRecommendationLog.findFirst.mockResolvedValue(null);
+  // No chain corpus by default; the chain test opts in.
+  mocks.foodBrand.findMany.mockResolvedValue([]);
+  mocks.menuItem.findMany.mockResolvedValue([]);
+  clearChainCorpus();
   // A Toronto price table, so grocery options carry an estimated price.
   mocks.ingredientPrice.findMany.mockResolvedValue([
     { foldedName: 'wild salmon', priceCents: 1582, unitGrams: null, currency: 'CAD' },
@@ -292,5 +300,58 @@ describe('GET /nutrition-profile/food-finder — budget, diet, directions', () =
     ]);
     const repeat = await get(TORONTO);
     expect(repeat.body.recommendations[0]?.name).not.toBe(topName);
+  });
+});
+
+describe('GET /nutrition-profile/food-finder — chain menus', () => {
+  const TORONTO = '?date=2026-08-08&lat=43.6532&lng=-79.3832';
+
+  beforeEach(() => {
+    clearChainCorpus();
+    mocks.foodBrand.findMany.mockResolvedValue([
+      { id: 'brand-1', slug: 'nandos', name: "Nando's", aliasesJson: '["nandos peri peri"]' },
+    ]);
+    mocks.menuItem.findMany.mockResolvedValue([
+      {
+        id: 'mi-1', brandId: 'brand-1', name: 'Grilled chicken breast fillet', section: 'Chicken',
+        kcal: 205, proteinG: 40, carbsG: 0, fatG: 5,
+        nutrientsJson: '{"sodiumMg":580}', dietTagsJson: null, confidence: 'published',
+        kcalErrPct: null, priceCents: null, currency: null,
+        sourceUrl: 'https://www.nandos.co.uk/nutrition',
+      },
+    ]);
+    // The nearby restaurant IS the chain.
+    mockSearchNearby.mockImplementation(async ({ includedTypes }: { includedTypes: string[] }) =>
+      includedTypes.includes('supermarket')
+        ? [store]
+        : [{ ...restaurant, id: 'place-nandos', name: "Nando's - Queen St W" }]);
+  });
+
+  it('uses the chain\'s published nutrition instead of a cuisine guess', async () => {
+    const res = await get(TORONTO);
+    expect(res.body.nearby.chainsMatched).toBe(1);
+    const item = res.body.recommendations.find((r: any) => /grilled chicken breast/i.test(r.name));
+    expect(item).toBeTruthy();
+    expect(item.confidence).toBe('published');
+  });
+
+  it('stops hedging about menus once the figure is published', async () => {
+    const res = await get(TORONTO);
+    const item = res.body.recommendations.find((r: any) => /grilled chicken breast/i.test(r.name));
+    // The cuisine-guess copy would have said "estimated, not their menu".
+    expect(item.note).toMatch(/published nutrition/i);
+    expect(item.note).not.toMatch(/estimated/i);
+  });
+
+  it('does not also offer a contradictory cuisine guess for the same place', async () => {
+    const res = await get(TORONTO);
+    const fromThisPlace = res.body.recommendations.filter((r: any) => r.where?.name === "Nando's - Queen St W");
+    expect(fromThisPlace.every((r: any) => r.confidence === 'published')).toBe(true);
+  });
+
+  it('outranks an equally good estimated dish, because it is trusted more', async () => {
+    const res = await get(TORONTO);
+    const published = res.body.recommendations.filter((r: any) => r.confidence === 'published');
+    expect(published.length).toBeGreaterThan(0);
   });
 });

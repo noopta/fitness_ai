@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-09-13T13:13:37.673Z",
+  "model": "gemini-2.5-flash",
+  "itemsMeasured": 39,
+  "globalBiasPct": 20,
+  "corrections": {
+    "mexican": {
+      "biasPct": 17.6,
+      "errPct": 17.6,
+      "n": 8
+    },
+    "sandwich": {
+      "biasPct": 37,
+      "errPct": 37,
+      "n": 6
+    },
+    "cafe": {
+      "biasPct": 50.96,
+      "errPct": 50.96,
+      "n": 6
+    },
+    "burger": {
+      "biasPct": 0,
+      "errPct": 3.57,
+      "n": 8
+    },
+    "chicken": {
+      "biasPct": 91.87,
+      "errPct": 91.87,
+      "n": 6
+    },
+    "salad": {
+      "biasPct": 14.29,
+      "errPct": 14.29,
+      "n": 5
+    }
+  }
+}

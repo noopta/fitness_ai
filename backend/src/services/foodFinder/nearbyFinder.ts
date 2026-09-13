@@ -18,6 +18,7 @@ import { dishesForPlace, DISH_PLACE_TYPES, type CuisineDish } from '../../engine
 import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fold } from '../../engine/dietaryFilter.js';
 import { type ShownRecord } from '../../engine/foodVariety.js';
 import { priceForIngredient, priceFromMenu } from './pricing.js';
+import { matchChains, chainCandidates } from './chainMenu.js';
 import { rankCandidates, type Candidate, type RankResult } from '../../engine/foodFinderRanker.js';
 import type { DayRemaining } from '../nutritionRemaining.js';
 import { searchNearby, type NearbyPlace } from '../places/placesClient.js';
@@ -196,6 +197,8 @@ export interface NearbyResult extends RankResult {
   dietExcluded: number;
   /** Candidate id -> the caveat to show alongside it. */
   dietWarnings: Record<string, string>;
+  /** Nearby restaurants we hold a published menu for. */
+  chainsMatched: number;
   /** True when Places returned nothing — the client should say so plainly. */
   degraded: boolean;
 }
@@ -230,9 +233,18 @@ export async function findNearby(
   const openStores = stores.filter(openFilter);
   const openRestaurants = restaurants.filter(openFilter);
 
+  // Chains we hold a published menu for replace the cuisine guess entirely for
+  // those places: a real nutrition table beats a typical-for-this-cuisine
+  // estimate, and offering both would put two contradictory answers for the
+  // same restaurant in one list.
+  const chainMatches = wantTakeout ? await matchChains(openRestaurants) : [];
+  const chainedPlaceIds = new Set(chainMatches.map(m => m.place.id));
+  const unchainedRestaurants = openRestaurants.filter(p => !chainedPlaceIds.has(p.id));
+
   const raw: Candidate[] = [
     ...(wantGroceries ? groceryCandidates(openStores) : []),
-    ...(wantTakeout ? takeoutCandidates(openRestaurants) : []),
+    ...(wantTakeout ? chainCandidates(chainMatches) : []),
+    ...(wantTakeout ? takeoutCandidates(unchainedRestaurants) : []),
   ];
 
   // Price before ranking, because budget is a scoring input rather than a
@@ -269,6 +281,7 @@ export async function findNearby(
     degraded: stores.length === 0 && restaurants.length === 0,
     dietExcluded,
     dietWarnings,
+    chainsMatched: chainMatches.length,
   };
 }
 
