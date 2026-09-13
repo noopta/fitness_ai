@@ -1,0 +1,9 @@
+{
+  "name": "@axiom/diagnostic-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Platform-agnostic core of the conversational lift diagnostic: stage machine, accessory policy, confidence grading and every copy string. Consumed as TypeScript source by mobileAlt (Metro) and frontend-v2 (Vite).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false
+}
