@@ -12,6 +12,8 @@ import { Badge } from '../../src/components/ui/Badge';
 import { LoadingSpinner } from '../../src/components/ui/LoadingSpinner';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime } from '../../src/lib/analytics';
+import { useAuth } from '../../src/context/AuthContext';
+import { diagnosticEntryRoute } from '../../src/diagnostic/entry';
 
 const LIFT_NAMES: Record<string, string> = {
   flat_bench_press: 'Flat Bench Press',
@@ -164,6 +166,7 @@ function FormAnalysisCard({ item }: { item: FormAnalysisListItem }) {
 }
 
 export default function HistoryScreen() {
+  const { getFeatures } = useAuth();
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -247,7 +250,7 @@ export default function HistoryScreen() {
           <TouchableOpacity
             style={styles.newButton}
             activeOpacity={0.82}
-            onPress={() => router.push('/diagnostic/conversation')}
+            onPress={() => router.push(diagnosticEntryRoute(getFeatures()))}
           >
             <Ionicons name="add" size={18} color={colors.primaryForeground} />
             <Text style={styles.newButtonText}>New</Text>
@@ -267,7 +270,7 @@ export default function HistoryScreen() {
           <TouchableOpacity
             style={styles.startButton}
             activeOpacity={0.82}
-            onPress={() => router.push('/diagnostic/conversation')}
+            onPress={() => router.push(diagnosticEntryRoute(getFeatures()))}
           >
             <Text style={styles.startButtonText}>Start Analysis</Text>
           </TouchableOpacity>

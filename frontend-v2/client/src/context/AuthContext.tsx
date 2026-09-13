@@ -41,17 +41,21 @@ export interface AuthUser {
 export interface AuthFeatures {
   onboardingFormHook: boolean;
   diagnosticFirstOnboarding: boolean;
+  /** Conversational lift diagnostic rollout; off = the 4-screen wizard. */
+  liftDiagnosticConversation: boolean;
 }
 
 export const DEFAULT_FEATURES: AuthFeatures = {
   onboardingFormHook: false,
   diagnosticFirstOnboarding: false,
+  liftDiagnosticConversation: false,
 };
 
 function normalizeFeatures(raw: any): AuthFeatures {
   return {
     onboardingFormHook: raw?.onboardingFormHook === true,
     diagnosticFirstOnboarding: raw?.diagnosticFirstOnboarding === true,
+    liftDiagnosticConversation: raw?.liftDiagnosticConversation === true,
   };
 }
 

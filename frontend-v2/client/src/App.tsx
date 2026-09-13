@@ -1,7 +1,6 @@
 import { Component, ReactNode, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { posthog, identifyUser, resetUser, trackPageView } from "./lib/analytics";
-import { useAuth } from "@/context/AuthContext";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,6 +12,9 @@ import AdminRoute from "@/components/AdminRoute";
 import { FloatingCoachChat } from "@/components/FloatingCoachChat";
 import NotFound from "@/pages/not-found";
 import Signup from "./pages/signup";
+import Onboarding from "./pages/onboarding";
+import HistoryPage from "./pages/history";
+import { useAuth } from "@/context/AuthContext";
 import DiagnosticsHome from "./pages/diagnostics";
 import DiagnosticChat from "./pages/diagnostics/chat";
 import DiagnosticReport from "./pages/diagnostics/report";
@@ -136,7 +138,12 @@ class ErrorBoundary extends Component<
 // /mvp are its first-run entry points and forward into it.
 const ProtectedDiagnosticsHome = () => <ProtectedRoute component={DiagnosticsHome} />;
 const ProtectedDiagnosticChat  = () => <ProtectedRoute component={DiagnosticChat} />;
-const ProtectedDiagnosticEntry = () => <ProtectedRoute component={DiagnosticEntry} />;
+// Rollout: the conversational flow replaces the wizard entry points only for
+// users the server flags; everyone else keeps /onboarding and /history as-is.
+const OnboardingOrDiagnostic = () => (useAuth().features.liftDiagnosticConversation ? <DiagnosticEntry /> : <Onboarding />);
+const HistoryOrDiagnostics = () => (useAuth().features.liftDiagnosticConversation ? <DiagnosticsHome /> : <HistoryPage />);
+const ProtectedDiagnosticEntry = () => <ProtectedRoute component={OnboardingOrDiagnostic} />;
+const ProtectedHistory = () => <ProtectedRoute component={HistoryOrDiagnostics} />;
 const ProtectedSnapshot   = () => <ProtectedRoute component={Snapshot} />;
 const ProtectedDiagnostic = () => <ProtectedRoute component={Diagnostic} />;
 const ProtectedPlan       = () => <ProtectedRoute component={Plan} />;
@@ -200,7 +207,7 @@ function Router() {
       <Route path="/snapshot" component={ProtectedSnapshot} />
       <Route path="/diagnostic" component={ProtectedDiagnostic} />
       <Route path="/plan" component={ProtectedPlan} />
-      <Route path="/history" component={ProtectedDiagnosticsHome} />
+      <Route path="/history" component={ProtectedHistory} />
       <Route path="/coach" component={ProtectedCoach} />
       <Route path="/workouts" component={ProtectedWorkouts} />
       <Route path="/strength-profile" component={ProtectedStrengthProfile} />

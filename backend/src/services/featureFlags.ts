@@ -67,3 +67,26 @@ export function diagnosticFirstAvailableFor(userId: string, email?: string | nul
   if (DIAGNOSTIC_FIRST_ALLOWLIST.has(userId.toLowerCase())) return true;
   return !!email && DIAGNOSTIC_FIRST_ALLOWLIST.has(email.toLowerCase());
 }
+
+/** Global switch for the conversational lift diagnostic. Off unless '1'. */
+const LIFT_CONVERSATION_ENABLED = process.env.LIFT_DIAGNOSTIC_CONVERSATION_ENABLED === '1';
+
+/** Per-user allowlist (ids and/or emails), same shape as the flags above. */
+const LIFT_CONVERSATION_ALLOWLIST = new Set(
+  (process.env.LIFT_DIAGNOSTIC_CONVERSATION_USERS ?? '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+/**
+ * Whether the conversational lift diagnostic (single Anakin thread, handoff
+ * "Axiom form diagnostic flow") replaces the 4-screen wizard for this user.
+ * Off = today's wizard everywhere. /auth/me advertises it and the
+ * /lift-diagnostics routes enforce it, from this one predicate.
+ */
+export function liftConversationAvailableFor(userId: string, email?: string | null): boolean {
+  if (LIFT_CONVERSATION_ENABLED) return true;
+  if (LIFT_CONVERSATION_ALLOWLIST.has(userId.toLowerCase())) return true;
+  return !!email && LIFT_CONVERSATION_ALLOWLIST.has(email.toLowerCase());
+}

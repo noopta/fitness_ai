@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/context/AuthContext';
+import { diagnosticEntryRoute } from '../../src/diagnostic/entry';
 import { useUnits } from '../../src/context/UnitsContext';
 import { coachApi, authApi } from '../../src/lib/api';
 import { getCached, setCached, invalidateCache } from '../../src/lib/cache';
@@ -413,7 +414,7 @@ function CoachScreenInner() {
               <Text style={styles.lockedIntakeCtaText}>Start your free month</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push('/diagnostic/conversation' as any)}
+              onPress={() => router.push(diagnosticEntryRoute(getFeatures()) as any)}
               style={styles.lockedIntakeSecondary}
             >
               <Text style={styles.lockedIntakeSecondaryText}>Run another lift diagnostic</Text>

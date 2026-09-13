@@ -16,6 +16,7 @@ vi.hoisted(() => {
   delete process.env.DIAGNOSTIC_FIRST_ONBOARDING_ENABLED;
   process.env.DIAGNOSTIC_FIRST_ONBOARDING_USERS = 'locked@axiom.io';
   process.env.FRONTEND_URL = 'https://axiomtraining.io';
+  process.env.LIFT_DIAGNOSTIC_CONVERSATION_ENABLED = '1';
 });
 
 const db = vi.hoisted(() => {

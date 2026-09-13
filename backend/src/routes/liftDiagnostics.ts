@@ -19,6 +19,7 @@ import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { liftConversationAvailableFor } from '../services/featureFlags.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
 import posthog from '../services/posthogClient.js';
 import { generateWorkoutPlan } from '../services/llmService.js';
@@ -47,6 +48,21 @@ import { writeThroughWorkingSets } from '../services/liftDiagnostic/writeThrough
 
 const router = Router();
 const prisma = new PrismaClient();
+
+/**
+ * Rollout gate: the flow is dark unless the flag (or the user's allowlist
+ * entry) is on. 404 rather than 403, so the surface doesn't advertise itself.
+ * The public share view is exempt — a link someone was given keeps working.
+ */
+router.use('/lift-diagnostics', (req, res, next) => {
+  if (req.method === 'GET' && /^\/[^/]+\/public$/.test(req.path)) return next();
+  return requireAuth(req, res, () => {
+    if (!liftConversationAvailableFor(req.user!.id, req.user!.email)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    next();
+  });
+});
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_CLIP_SECONDS = 60;

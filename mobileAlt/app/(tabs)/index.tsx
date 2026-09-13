@@ -13,6 +13,7 @@ import { DailyQuoteCard } from '../../src/components/home/DailyQuoteCard';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
 import { HomeDiagnostics } from '../../src/diagnostic/components/HomeDiagnostics';
+import { diagnosticEntryRoute } from '../../src/diagnostic/entry';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,9 @@ function derivePhaseLabel(maturity?: string, sessionCount?: number): string {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, getFeatures } = useAuth();
+  // Conversational diagnostic rollout (server flag); off = Home exactly as before.
+  const conversational = getFeatures().liftDiagnosticConversation;
   const [sessions, setSessions] = useState<any[]>([]);
   const [strengthProfile, setStrengthProfile] = useState<any>(null);
   const [welcomeMessage, setWelcomeMessage] = useState<string | null>(null);
@@ -74,6 +77,28 @@ export default function HomeScreen() {
   const phaseLabel = derivePhaseLabel(strengthProfile?.maturityTier, sessions.length);
   const firstName = user?.name?.split(' ')[0] ?? 'Athlete';
 
+  /* Paid: Coach Anakin card */
+  const coachHero = (
+    <TouchableOpacity
+      style={styles.heroCard}
+      activeOpacity={0.85}
+      onPress={() => { Analytics.coachDashboardOpened('home_cta'); router.push('/(tabs)/coach'); }}
+    >
+      <View style={styles.heroIconBox}>
+        <Ionicons name="sparkles" size={22} color={colors.primaryForeground} />
+      </View>
+      <View style={styles.heroBottom}>
+        <View style={styles.heroTextCol}>
+          <Text style={styles.heroTitle}>Coach{'\n'}Anakin</Text>
+          <Text style={styles.heroSubtitle}>Open Dashboard</Text>
+        </View>
+        <View style={styles.heroArrowBtn}>
+          <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
@@ -92,36 +117,46 @@ export default function HomeScreen() {
           {greeting}{'\n'}{firstName}.
         </Text>
 
-        {/* ── Hero → Diagnostics → upgrade card (free) ──
-            The hero is context-aware: an unfinished lift diagnostic takes it
-            over with Resume; otherwise free users start one and Pro users
-            keep Coach Anakin. */}
-        <HomeDiagnostics
-          isPro={isPro}
-          proHero={
+        {conversational ? (
+          <>
+            {/* ── Hero → Diagnostics → upgrade card (free) ──
+                The hero is context-aware: an unfinished lift diagnostic takes it
+                over with Resume; otherwise free users start one and Pro users
+                keep Coach Anakin. */}
+            <HomeDiagnostics isPro={isPro} proHero={coachHero} />
+            <DailyQuoteCard />
+          </>
+        ) : (
+          <>
+            {/* ── Daily motivational quote ── */}
+            <DailyQuoteCard />
+
+            {/* ── Hero card ── */}
+            {isPro ? (
+              coachHero
+            ) : (
+              /* Free: New Analysis card */
               <TouchableOpacity
                 style={styles.heroCard}
                 activeOpacity={0.85}
-                onPress={() => { Analytics.coachDashboardOpened('home_cta'); router.push('/(tabs)/coach'); }}
+                onPress={() => router.push('/diagnostic/onboarding')}
               >
                 <View style={styles.heroIconBox}>
-                  <Ionicons name="sparkles" size={22} color={colors.primaryForeground} />
+                  <Ionicons name="barbell-outline" size={22} color={colors.primaryForeground} />
                 </View>
                 <View style={styles.heroBottom}>
                   <View style={styles.heroTextCol}>
-                    <Text style={styles.heroTitle}>Coach{'\n'}Anakin</Text>
-                    <Text style={styles.heroSubtitle}>Open Dashboard</Text>
+                    <Text style={styles.heroTitle}>New{'\n'}Analysis</Text>
+                    <Text style={styles.heroSubtitle}>Begin Session</Text>
                   </View>
                   <View style={styles.heroArrowBtn}>
                     <Ionicons name="arrow-forward" size={18} color={colors.foreground} />
                   </View>
                 </View>
               </TouchableOpacity>
-          }
-        />
-
-        {/* ── Daily motivational quote ── */}
-        <DailyQuoteCard />
+            )}
+          </>
+        )}
 
         {/* ── Secondary card — Anakin's Note, pro only and not dismissed ── */}
         {isPro && !welcomeDismissed && welcomeMessage ? (
@@ -141,7 +176,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.rowAction}
             activeOpacity={0.8}
-            onPress={() => router.push('/diagnostic/conversation')}
+            onPress={() => router.push(diagnosticEntryRoute(getFeatures()))}
           >
             <View style={styles.rowActionIcon}>
               <Ionicons name="barbell-outline" size={18} color={colors.foreground} />

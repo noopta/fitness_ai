@@ -1,5 +1,6 @@
 import { hasSeenFormHook, isOldEnoughForFormHook } from './storage';
 import { hasSeenDiagnosticFirst } from '../diagnosticFirst';
+import { diagnosticEntryRoute } from '../../diagnostic/entry';
 
 /**
  * Where a freshly-authenticated user belongs.
@@ -28,7 +29,7 @@ import { hasSeenDiagnosticFirst } from '../diagnosticFirst';
  */
 export async function postAuthDestination(
   user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
-  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean },
+  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
   if (user.coachOnboardingDone) return '/(tabs)';
@@ -39,7 +40,7 @@ export async function postAuthDestination(
   // who already reached a verdict and declined lands on Home, where the
   // coach tab shows the locked upsell rather than a free full-program intake.
   if (features?.diagnosticFirstOnboarding) {
-    return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : '/diagnostic/conversation';
+    return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : diagnosticEntryRoute(features);
   }
   // The server's kill switch, checked BEFORE we route anyone into the hook.
   // Without this the feature being dark would still show the whole capture

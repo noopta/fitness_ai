@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor } from '../services/featureFlags.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
@@ -823,6 +823,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
       features: {
         onboardingFormHook: onboardingHookAvailableFor(user.id, user.email),
         diagnosticFirstOnboarding: diagnosticFirstAvailableFor(user.id, user.email),
+        liftDiagnosticConversation: liftConversationAvailableFor(user.id, user.email),
       },
     });
   } catch (err) {
