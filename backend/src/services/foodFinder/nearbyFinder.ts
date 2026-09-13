@@ -19,6 +19,8 @@ import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fo
 import { type ShownRecord } from '../../engine/foodVariety.js';
 import { priceForIngredient, priceFromMenu } from './pricing.js';
 import { matchChains, chainCandidates } from './chainMenu.js';
+import calibration from './calibration.json' with { type: 'json' };
+import { calibrationKeyFor } from '../../engine/cuisineDishes.js';
 import { rankCandidates, type Candidate, type RankResult } from '../../engine/foodFinderRanker.js';
 import type { DayRemaining } from '../nutritionRemaining.js';
 import { searchNearby, type NearbyPlace } from '../places/placesClient.js';
@@ -176,6 +178,13 @@ export function takeoutCandidates(restaurants: NearbyPlace[]): Candidate[] {
         provides: dish.provides,
         distanceM: place.distanceM,
         confidence: 'estimated',
+        // Measured error for this kind of restaurant, where calibration has
+        // seen enough of them. The ranker prefers this over the class default,
+        // so a cuisine we know we estimate badly is discounted by evidence
+        // rather than by a constant — and one we estimate well is not
+        // over-penalised. Undefined means unmeasured, which keeps the default.
+        kcalErrPct: measuredErrPctFor(place.primaryType),
+        placeKey: place.id,
         meta: {
           serving: dish.portion,
           category: 'Takeout',
@@ -346,3 +355,19 @@ async function attachPrices(candidates: Candidate[], opts: NearbyOptions): Promi
 }
 
 export { hasAnyRestriction };
+
+
+/**
+ * Measured kcal error for a Places cuisine type, or undefined when we have not
+ * measured enough of that kind of restaurant to say anything.
+ *
+ * Undefined rather than a global fallback: the ranker's class default already
+ * IS the "we don't know" answer, and substituting a global figure would pretend
+ * to a precision we did not earn for this cuisine.
+ */
+const MIN_N = 4;
+function measuredErrPctFor(primaryType: string | null | undefined): number | undefined {
+  const key = calibrationKeyFor(primaryType);
+  const c = (calibration.corrections as Record<string, { errPct: number; n: number }>)[key];
+  return c && c.n >= MIN_N ? c.errPct : undefined;
+}

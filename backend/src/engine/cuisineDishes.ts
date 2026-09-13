@@ -129,3 +129,36 @@ export function dishesForPlace(place: { primaryType: string | null; types: strin
   }
   return [];
 }
+
+// ---------------------------------------------------------------------------
+// Calibration linkage
+// ---------------------------------------------------------------------------
+
+/**
+ * Places cuisine type → the calibration bucket measured against chain ground
+ * truth (see scripts/calibrateDishEstimator.ts).
+ *
+ * The buckets are coarse on purpose. Calibration needs enough measured items per
+ * bucket to mean anything, and splitting `sandwich` into nine national cuisines
+ * would give every bucket an n of two and a meaningless error bar.
+ *
+ * A type absent from this map falls back to the global figure, which is the
+ * honest default: we have not measured that kind of restaurant.
+ */
+export const CUISINE_CALIBRATION_KEY: Record<string, string> = {
+  mexican_restaurant: 'mexican',
+  sandwich_shop: 'sandwich',
+  breakfast_restaurant: 'cafe',
+  juice_shop: 'cafe',
+  american_restaurant: 'burger',
+  steak_house: 'burger',
+  vegetarian_restaurant: 'salad',
+  vegan_restaurant: 'salad',
+  mediterranean_restaurant: 'chicken',
+  greek_restaurant: 'chicken',
+  middle_eastern_restaurant: 'chicken',
+  korean_restaurant: 'chicken',
+};
+
+export const calibrationKeyFor = (primaryType: string | null | undefined): string =>
+  (primaryType && CUISINE_CALIBRATION_KEY[primaryType]) || 'unknown';
