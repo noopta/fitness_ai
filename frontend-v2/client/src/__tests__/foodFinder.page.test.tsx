@@ -7,7 +7,7 @@
  * fallback, which has to stay a real answer rather than an error state.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FoodFinderPage from '@/pages/food-finder';
@@ -62,6 +62,12 @@ beforeEach(() => {
   sessionStorage.clear();
   window.history.replaceState({}, '', '/food-finder');
   mockAuthFetch.mockImplementation(() => ok(response()));
+});
+
+afterEach(() => {
+  // Unconditionally — a test that throws before its own cleanup must not
+  // strand fake timers in every test that follows it.
+  vi.useRealTimers();
 });
 
 describe('FoodFinderPage', () => {
@@ -135,7 +141,7 @@ describe('FoodFinderPage', () => {
   });
 
   it('does not sit silently when the device never calls back', async () => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     // Neither callback ever fires — the iOS case the built-in timeout misses.
     Object.defineProperty(globalThis.navigator, 'geolocation', {
       value: { getCurrentPosition: vi.fn() }, configurable: true, writable: true,
@@ -146,7 +152,6 @@ describe('FoodFinderPage', () => {
     expect(screen.getByText(/waiting for your device/i)).toBeTruthy();
     await act(async () => { vi.advanceTimersByTime(13000); });
     expect(screen.getByText(/no response from your device/i)).toBeTruthy();
-    vi.useRealTimers();
   });
 
   it('geocodes a typed place', async () => {
