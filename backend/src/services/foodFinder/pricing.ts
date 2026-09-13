@@ -28,7 +28,7 @@ const prisma = new PrismaClient();
 // Staple price lookup
 // ---------------------------------------------------------------------------
 
-type PriceRow = { foldedName: string; priceCents: number; unitGrams: number; currency: string };
+type PriceRow = { foldedName: string; priceCents: number; unitGrams: number | null; currency: string };
 
 /**
  * Per-metro table, loaded once. The corpus is small (hundreds of rows per metro)
@@ -65,19 +65,25 @@ export function clearPriceCache(metro?: string): void {
  */
 export async function priceForIngredient(params: {
   foldedName: string;
-  grams: number;
+  /** Grams being proposed, when the candidate asserts a weight. */
+  grams?: number | null;
   metro: string | null;
   currency: string;
   priceLevel?: string | null;
 }): Promise<PricedAmount> {
   const { foldedName, grams, metro, currency, priceLevel } = params;
-  if (!metro || grams <= 0) return { cents: 0, currency, confidence: 'unknown', display: 'price unknown' };
+  const unknown: PricedAmount = { cents: 0, currency, confidence: 'unknown', display: 'price unknown' };
+  if (!metro) return unknown;
 
   const table = await loadMetroPrices(metro);
   const row = table.get(foldedName);
-  if (!row) return { cents: 0, currency, confidence: 'unknown', display: 'price unknown' };
+  if (!row) return unknown;
 
-  const cents = Math.round((row.priceCents / row.unitGrams) * grams * tierMultiplier(priceLevel));
+  // Scale by weight only when BOTH sides assert one. Otherwise the stored price
+  // already covers exactly the serving the finder is proposing, and inventing a
+  // grams ratio would be fake precision.
+  const scale = row.unitGrams && grams && grams > 0 ? grams / row.unitGrams : 1;
+  const cents = Math.round(row.priceCents * scale * tierMultiplier(priceLevel));
   return {
     cents,
     currency: row.currency,

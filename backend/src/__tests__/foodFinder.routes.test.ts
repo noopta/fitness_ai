@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   mealEntry: { findMany: vi.fn(), findFirst: vi.fn() },
   workoutLog: { findMany: vi.fn() },
   nutritionPlan: { findFirst: vi.fn() },
+  foodRecommendationLog: { findMany: vi.fn(), createMany: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
+  ingredientPrice: { findMany: vi.fn() },
 }));
 vi.mock('@prisma/client', () => {
   const PrismaClient = vi.fn(function (this: any) { Object.assign(this, mocks); });
@@ -79,6 +81,17 @@ beforeEach(() => {
   ]);
   mocks.workoutLog.findMany.mockResolvedValue([]);
   mocks.nutritionPlan.findFirst.mockResolvedValue(null);
+  // No suggestion history and no restrictions by default: each test opts into
+  // the behaviour it is about.
+  mocks.foodRecommendationLog.findMany.mockResolvedValue([]);
+  mocks.foodRecommendationLog.createMany.mockResolvedValue({ count: 0 });
+  mocks.foodRecommendationLog.findFirst.mockResolvedValue(null);
+  // A Toronto price table, so grocery options carry an estimated price.
+  mocks.ingredientPrice.findMany.mockResolvedValue([
+    { foldedName: 'wild salmon', priceCents: 1582, unitGrams: null, currency: 'CAD' },
+    { foldedName: 'whole eggs', priceCents: 173, unitGrams: null, currency: 'CAD' },
+    { foldedName: 'greek yogurt', priceCents: 205, unitGrams: null, currency: 'CAD' },
+  ]);
   mockSearchNearby.mockImplementation(async ({ includedTypes }: { includedTypes: string[] }) =>
     includedTypes.includes('supermarket') ? [store] : [restaurant]);
 });
@@ -171,5 +184,113 @@ describe('GET /nutrition-profile/food-finder', () => {
   it('requires auth', async () => {
     const res = await request(await makeApp()).get('/api/nutrition-profile/food-finder');
     expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /nutrition-profile/food-finder — budget, diet, directions', () => {
+  const TORONTO = '?date=2026-08-08&lat=43.6532&lng=-79.3832';
+
+  it('derives currency and metro from where the user is standing', async () => {
+    const res = await get(TORONTO);
+    expect(res.body.nearby.metro.slug).toBe('toronto-on-ca');
+    expect(res.body.budget.currency).toBe('CAD');
+    expect(res.body.budget.pricesAvailable).toBe(true);
+  });
+
+  it('quotes no prices at all outside a seeded metro', async () => {
+    // Better to say nothing than to quote Toronto prices in Sydney.
+    const res = await get('?date=2026-08-08&lat=-33.8688&lng=151.2093');
+    expect(res.body.nearby.metro).toBeNull();
+    expect(res.body.budget.pricesAvailable).toBe(false);
+    expect(res.body.recommendations.every((r: any) => r.price === null)).toBe(true);
+  });
+
+  it('prices grocery options from the metro table', async () => {
+    const res = await get(TORONTO);
+    const priced = res.body.recommendations.filter((r: any) => r.price);
+    expect(priced.length).toBeGreaterThan(0);
+    expect(priced[0].price.currency).toBe('CAD');
+    expect(priced[0].price.estimated).toBe(true);
+    expect(priced[0].price.display).toMatch(/^≈/);
+  });
+
+  it('distinguishes an unknown price from a free one', async () => {
+    const res = await get(TORONTO);
+    const takeout = res.body.recommendations.find((r: any) => r.kind === 'takeout');
+    // We have not parsed this restaurant's menu, so there is no price to quote.
+    if (takeout) expect(takeout.price).toBeNull();
+  });
+
+  it('flags options over an explicit budget without hiding them', async () => {
+    const res = await get(`${TORONTO}&budget=3`);
+    expect(res.body.budget.cents).toBe(300);
+    expect(res.body.budget.display).toBe('$3');
+    // Salmon at ~$15.82 cannot fit a $3 budget.
+    const over = res.body.recommendations.filter((r: any) => r.overBudget);
+    expect(over.every((r: any) => r.price.cents > 300)).toBe(true);
+  });
+
+  it('lets a cheap option beat an expensive one once a budget is set', async () => {
+    const rich = await get(TORONTO);
+    const tight = await get(`${TORONTO}&budget=3`);
+    const salmonRich = rich.body.recommendations.findIndex((r: any) => /salmon/i.test(r.name));
+    const salmonTight = tight.body.recommendations.findIndex((r: any) => /salmon/i.test(r.name));
+    if (salmonRich >= 0 && salmonTight >= 0) expect(salmonTight).toBeGreaterThanOrEqual(salmonRich);
+  });
+
+  it('excludes food a vegetarian cannot eat, and says how many', async () => {
+    mocks.user.findUnique.mockResolvedValue({
+      id: ME, weightKg: 80, savedProgram: SAVED_PROGRAM,
+      dailyCalorieTarget: null, subtractWorkoutBurnFromCalories: false,
+      dietaryRestrictions: '["vegetarian"]',
+    });
+    const res = await get(TORONTO);
+    expect(res.body.diet.active).toBe(true);
+    expect(res.body.diet.excluded).toBeGreaterThan(0);
+    expect(res.body.recommendations.some((r: any) => /salmon|chicken|beef|liver/i.test(r.name))).toBe(false);
+  });
+
+  it('warns rather than certifies when an allergy cannot be verified on a menu', async () => {
+    mocks.user.findUnique.mockResolvedValue({
+      id: ME, weightKg: 80, savedProgram: SAVED_PROGRAM,
+      dailyCalorieTarget: null, subtractWorkoutBurnFromCalories: false,
+      allergies: '["peanut"]',
+    });
+    const res = await get(TORONTO);
+    const takeout = res.body.recommendations.filter((r: any) => r.kind === 'takeout');
+    // Restaurant dishes survive, but carry the caveat instead of a false all-clear.
+    for (const t of takeout) expect(t.dietWarning).toMatch(/can't verify/i);
+    // USDA ingredients are real knowledge, so they need no caveat.
+    const ingredients = res.body.recommendations.filter((r: any) => r.kind === 'ingredient');
+    expect(ingredients.every((r: any) => r.dietWarning === null)).toBe(true);
+  });
+
+  it('hands every attached venue a working directions link', async () => {
+    const res = await get(TORONTO);
+    const withVenue = res.body.recommendations.filter((r: any) => r.where);
+    expect(withVenue.length).toBeGreaterThan(0);
+    for (const r of withVenue) {
+      expect(r.directionsUrl).toMatch(/^https:\/\/www\.google\.com\/maps\/dir\/\?api=1/);
+      expect(r.directionsUrl).toContain('destination_place_id=');
+    }
+  });
+
+  it('records what it showed, so tomorrow is not a repeat of today', async () => {
+    await get(TORONTO);
+    expect(mocks.foodRecommendationLog.createMany).toHaveBeenCalled();
+    const arg = mocks.foodRecommendationLog.createMany.mock.calls[0][0];
+    expect(arg.data.length).toBeGreaterThan(0);
+    expect(arg.data[0]).toMatchObject({ userId: ME });
+  });
+
+  it('demotes something it suggested an hour ago', async () => {
+    const fresh = await get(TORONTO);
+    const topName = fresh.body.recommendations[0]?.name;
+    const topId = fresh.body.recommendations[0]?.id;
+    mocks.foodRecommendationLog.findMany.mockResolvedValue([
+      { itemKey: topId, shownAt: new Date(Date.now() - 3600_000), actedAt: null },
+    ]);
+    const repeat = await get(TORONTO);
+    expect(repeat.body.recommendations[0]?.name).not.toBe(topName);
   });
 });

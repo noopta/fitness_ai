@@ -15,6 +15,9 @@ import {
   type RetailAvailability,
 } from '../../engine/nutritionRecommendations.js';
 import { dishesForPlace, DISH_PLACE_TYPES, type CuisineDish } from '../../engine/cuisineDishes.js';
+import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fold } from '../../engine/dietaryFilter.js';
+import { type ShownRecord } from '../../engine/foodVariety.js';
+import { priceForIngredient, priceFromMenu } from './pricing.js';
 import { rankCandidates, type Candidate, type RankResult } from '../../engine/foodFinderRanker.js';
 import type { DayRemaining } from '../nutritionRemaining.js';
 import { searchNearby, type NearbyPlace } from '../places/placesClient.js';
@@ -74,6 +77,16 @@ export const GROCERY_PLACE_TYPES = [...new Set(Object.values(STORE_TYPES).flat()
 export interface NearbyOptions {
   lat: number;
   lng: number;
+  /** Metro slug for the staple price table. Null = quote no grocery prices. */
+  metro?: string | null;
+  /** Currency of this location, already resolved from the coordinates. */
+  currency?: string;
+  /** Per-outing budget in minor units of `currency`. */
+  budgetCents?: number | null;
+  /** Hard dietary filters. Applied BEFORE ranking, never as a weight. */
+  diet?: DietProfile;
+  /** What this user was shown recently, for the recency penalty. */
+  history?: ShownRecord[];
   /** Search radius in metres. */
   radiusM?: number;
   limit?: number;
@@ -179,6 +192,10 @@ export function takeoutCandidates(restaurants: NearbyPlace[]): Candidate[] {
 export interface NearbyResult extends RankResult {
   storesFound: number;
   restaurantsFound: number;
+  /** How many candidates a dietary restriction removed, so the UI can say so. */
+  dietExcluded: number;
+  /** Candidate id -> the caveat to show alongside it. */
+  dietWarnings: Record<string, string>;
   /** True when Places returned nothing — the client should say so plainly. */
   degraded: boolean;
 }
@@ -213,15 +230,36 @@ export async function findNearby(
   const openStores = stores.filter(openFilter);
   const openRestaurants = restaurants.filter(openFilter);
 
-  const candidates: Candidate[] = [
+  const raw: Candidate[] = [
     ...(wantGroceries ? groceryCandidates(openStores) : []),
     ...(wantTakeout ? takeoutCandidates(openRestaurants) : []),
   ];
 
-  const ranked = rankCandidates(candidates, remaining, {
+  // Price before ranking, because budget is a scoring input rather than a
+  // post-filter — an option the user cannot afford should lose, not be hidden
+  // after the fact with a gap where it used to be.
+  const priced = await attachPrices(raw, opts);
+
+  // Dietary filtering happens BEFORE ranking and is never traded against score.
+  const diet = opts.diet ?? emptyProfile();
+  const kept = filterCandidates(priced, dietFactsFor, diet);
+  const dietExcluded = priced.length - kept.length;
+  const dietWarnings: Record<string, string> = {};
+  for (const { item, decision } of kept) {
+    if (decision.verdict === 'unverifiable' && decision.reason) dietWarnings[item.id] = decision.reason;
+  }
+
+  const survivors = kept.map(k => k.item);
+  const ranked = rankCandidates(survivors, remaining, {
     limit: opts.limit ?? 8,
-    // Only promise both paths when we actually searched for both.
-    guaranteeBothKinds: wantGroceries && wantTakeout && openRestaurants.length > 0,
+    // Only promise both paths when we actually searched for both AND something
+    // from each survived the diet filter — otherwise the guarantee would
+    // resurrect an item the user cannot eat.
+    guaranteeBothKinds:
+      wantGroceries && wantTakeout &&
+      survivors.some(c => c.kind === 'takeout') && survivors.some(c => c.kind === 'ingredient'),
+    budgetCents: opts.budgetCents ?? null,
+    history: opts.history,
   });
 
   return {
@@ -229,5 +267,69 @@ export async function findNearby(
     storesFound: openStores.length,
     restaurantsFound: openRestaurants.length,
     degraded: stores.length === 0 && restaurants.length === 0,
+    dietExcluded,
+    dietWarnings,
   };
 }
+
+
+// ---------------------------------------------------------------------------
+// Pricing + diet glue
+// ---------------------------------------------------------------------------
+
+/**
+ * What the dietary filter needs to know about a candidate.
+ *
+ * Ingredients are USDA compositions, so their confidence is real knowledge of
+ * what the food IS. A takeout dish is a cuisine guess attached to a real place,
+ * which is exactly the case the filter must refuse to certify.
+ */
+function dietFactsFor(c: Candidate) {
+  const meta = c.meta ?? {};
+  return {
+    name: c.name,
+    description: [meta.category, meta.serving].filter(Boolean).join(' ') || null,
+    tags: Array.isArray(meta.dietTags) ? (meta.dietTags as string[]) : null,
+    confidence: c.confidence,
+  };
+}
+
+/**
+ * Attach a price to every candidate.
+ *
+ * Groceries are priced from the metro staple table, scaled by how expensive the
+ * attached store is. Takeout keeps whatever the menu listed, and stays `unknown`
+ * when we have not parsed a menu for that place — an unknown price is excluded
+ * from budget scoring entirely rather than guessed at.
+ *
+ * `placeKey` is set here too: it is what stops the list piling every option onto
+ * the single nearest grocer.
+ */
+async function attachPrices(candidates: Candidate[], opts: NearbyOptions): Promise<Candidate[]> {
+  const currency = opts.currency ?? 'USD';
+  const out: Candidate[] = [];
+
+  for (const c of candidates) {
+    const meta = (c.meta ?? {}) as Record<string, any>;
+    if (c.kind === 'ingredient') {
+      const store = meta.store as { id: string; name: string } | null | undefined;
+      const price = await priceForIngredient({
+        foldedName: fold(c.name),
+        metro: opts.metro ?? null,
+        currency,
+        priceLevel: meta.priceLevel ?? null,
+      });
+      out.push({ ...c, price, placeKey: store?.id ?? null });
+    } else {
+      const vendor = meta.vendor as { id: string } | null | undefined;
+      out.push({
+        ...c,
+        price: priceFromMenu(meta.priceCents ?? null, currency),
+        placeKey: vendor?.id ?? null,
+      });
+    }
+  }
+  return out;
+}
+
+export { hasAnyRestriction };

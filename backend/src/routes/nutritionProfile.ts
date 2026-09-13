@@ -36,6 +36,11 @@ import { rankCandidates } from '../engine/foodFinderRanker.js';
 import { remainingForDay } from '../services/nutritionRemaining.js';
 import { findNearby } from '../services/foodFinder/nearbyFinder.js';
 import { geocodePlace } from '../services/places/placesClient.js';
+import { nearestMetro, currencyFor, formatMoney } from '../engine/currency.js';
+import { parseDietProfile, hasAnyRestriction } from '../engine/dietaryFilter.js';
+import { isOverBudget } from '../engine/budget.js';
+import { directionsUrl } from '../services/foodFinder/directions.js';
+import { recentlyShown, logShown } from '../services/foodFinder/recommendationLog.js';
 import {
   NUTRIENTS, BODY_SYSTEMS, getNutrient, driversForSystem, type BodySystemId,
 } from '../engine/nutrientRegistry.js';
@@ -616,6 +621,36 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
 
     const remaining = await remainingForDay(userId, date);
 
+    // The user's standing profile. Dietary restrictions are hard filters and
+    // budget is a scoring input, so both must be loaded before ranking.
+    const profile = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        dietaryRestrictions: true, allergies: true, dislikedFoods: true,
+        budgetCents: true, budgetCurrency: true,
+      },
+    });
+    const diet = parseDietProfile(profile ?? {});
+
+    // Currency follows the ground the user is standing on, not a setting.
+    const metro = hasLocation ? nearestMetro(lat, lng) : null;
+    const currency = hasLocation ? currencyFor(lat, lng) : (profile?.budgetCurrency ?? 'USD');
+
+    // ?budget= overrides the stored default for this request only. A budget in a
+    // different currency than the user is standing in is ignored rather than
+    // converted — see engine/currency.ts on why there is no FX in this path.
+    const budgetRaw = Number(req.query.budget);
+    const queryBudgetCents = Number.isFinite(budgetRaw) && budgetRaw > 0
+      ? Math.round(budgetRaw * 100)
+      : null;
+    const storedBudgetCents =
+      profile?.budgetCents && (!profile.budgetCurrency || profile.budgetCurrency === currency)
+        ? profile.budgetCents
+        : null;
+    const budgetCents = queryBudgetCents ?? storedBudgetCents;
+
+    const history = await recentlyShown(userId);
+
     const found = hasLocation
       ? await findNearby(remaining, {
           lat, lng, radiusM,
@@ -623,13 +658,25 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
           includeGroceries,
           includeTakeout,
           openNowOnly: req.query.openNow === '1',
+          metro: metro?.slug ?? null,
+          currency,
+          budgetCents,
+          diet,
+          history,
         })
       : {
-          ...rankCandidates(foodSourceCandidates(), remaining, { limit: 8, guaranteeBothKinds: false }),
+          ...rankCandidates(foodSourceCandidates(), remaining, {
+            limit: 8, guaranteeBothKinds: false, budgetCents, history,
+          }),
           storesFound: 0,
           restaurantsFound: 0,
           degraded: true,
+          dietExcluded: 0,
+          dietWarnings: {} as Record<string, string>,
         };
+
+    // Record what we showed, so tomorrow's list is not today's list.
+    await logShown(userId, found.results.map(r => r.id));
 
     res.json({
       date,
@@ -653,6 +700,22 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
         // Rounded to the ~1 km cache grid — enough to confirm the right area,
         // without reflecting a precise position back over the wire.
         coords: hasLocation ? { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 } : null,
+        metro: metro ? { slug: metro.slug, label: metro.label } : null,
+      },
+      budget: {
+        cents: budgetCents,
+        currency,
+        display: budgetCents ? formatMoney(budgetCents, currency) : null,
+        // Outside a seeded metro we have no price table, so we quote no grocery
+        // prices at all rather than numbers from the wrong economy.
+        pricesAvailable: !!metro,
+      },
+      diet: {
+        active: hasAnyRestriction(diet),
+        restrictions: diet.restrictions,
+        allergies: diet.allergies,
+        /** How many options a restriction removed, so the UI can be honest about it. */
+        excluded: found.dietExcluded,
       },
       recommendations: found.results.map(r => {
         const store = r.meta?.store as { name: string; distanceM: number; openNow: boolean | null } | null | undefined;
@@ -683,6 +746,22 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
               ? `Usually carried at ${store.name}.`
               : null,
           confidence: r.confidence,
+          // Null price means we do not know it, which is NOT the same as free —
+          // the client must render the difference.
+          price: r.price && r.price.confidence !== 'unknown'
+            ? { cents: r.price.cents, currency: r.price.currency, display: r.price.display, estimated: r.price.confidence === 'estimated' }
+            : null,
+          overBudget: isOverBudget(r.price, budgetCents),
+          /** Set when a declared allergy cannot be verified from a menu listing. */
+          dietWarning: found.dietWarnings[r.id] ?? null,
+          // Places ids are always present on an attached venue, and they beat
+          // coordinates: a pin on a rooftop is not the business.
+          directionsUrl: vendor || store
+            ? directionsUrl({
+                name: vendor?.name ?? store!.name,
+                placeId: (vendor as { id?: string } | undefined)?.id ?? (store as { id?: string } | undefined)?.id ?? null,
+              })
+            : null,
           prefill: { name: `${r.name} (${r.meta?.serving ?? ''})`, source: 'food-finder' },
         };
       }),

@@ -1374,9 +1374,12 @@ model IngredientPrice {
   foldedName String
   metro      String
   currency   String
-  /// Price in minor units for `unitGrams` of the ingredient.
+  /// Price in minor units. Covers `unitGrams` when that is known, otherwise one
+  /// serving as the food catalogue defines it ("1 medium", "150 g").
   priceCents Int
-  unitGrams  Float
+  /// Grams this price covers, when the source asserts a weight. Null means the
+  /// price is per catalogue serving — we do not invent a gram figure to look precise.
+  unitGrams  Float?
   source     String
   updatedAt  DateTime @default(now()) @updatedAt
 
