@@ -764,6 +764,11 @@ router.post('/auth/logout', (req, res) => {
 
 // GET /api/auth/me
 router.get('/auth/me', requireAuth, async (req, res) => {
+  // Per-account payload (user + feature flags) behind a Bearer token on a URL
+  // that never changes. Without this, iOS's URL cache answered a sign-in's
+  // /auth/me with the PREVIOUS account's response — flags included — so a
+  // freshly allowlisted tester was routed as if every flag were off.
+  res.set('Cache-Control', 'no-store, private');
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
