@@ -15,7 +15,7 @@ import {
   type RetailAvailability,
 } from '../../engine/nutritionRecommendations.js';
 import { dishesForPlace, DISH_PLACE_TYPES, type CuisineDish } from '../../engine/cuisineDishes.js';
-import { filterCandidates, type DietProfile, emptyProfile, hasAnyRestriction, fold } from '../../engine/dietaryFilter.js';
+import { filterCandidates, checkCandidate, type DietProfile, emptyProfile, hasAnyRestriction, fold } from '../../engine/dietaryFilter.js';
 import { type ShownRecord } from '../../engine/foodVariety.js';
 import { priceForIngredient, priceFromMenu } from './pricing.js';
 import { formatMoney } from '../../engine/currency.js';
@@ -27,7 +27,7 @@ import calibration from './calibration.json' with { type: 'json' };
 import { calibrationKeyFor } from '../../engine/cuisineDishes.js';
 import { rankCandidates, type Candidate, type RankResult } from '../../engine/foodFinderRanker.js';
 import type { DayRemaining } from '../nutritionRemaining.js';
-import { searchNearby, type NearbyPlace } from '../places/placesClient.js';
+import { searchNearbyResult, type NearbyPlace, type NearbySearchResult } from '../places/placesClient.js';
 
 // Grocery-ish Places types, grouped by how specialised the shop is. A food
 // tagged `specialty` (beef liver, oysters) may only be claimed at a shop that
@@ -229,8 +229,12 @@ export interface NearbyResult extends RankResult {
   dietWarnings: Record<string, string>;
   /** Nearby restaurants we hold a published menu for. */
   chainsMatched: number;
-  /** True when Places returned nothing — the client should say so plainly. */
+  /** True when the nearby search itself failed — we could not look. */
   degraded: boolean;
+  /** True when the search worked and found no shops or restaurants in range. */
+  empty: boolean;
+  /** Search radius actually used, so "nothing within 2.5 km" can be said. */
+  radiusM: number;
 }
 
 /**
@@ -252,17 +256,23 @@ export async function findNearby(
   // Both are capped at 20 results, so sharing a query would have chains and
   // independents crowd each other out — and in a dense downtown the cuisine
   // types alone fill all 20 slots before a single McDonald's appears.
-  const [stores, restaurants, chainPlaces] = await Promise.all([
-    wantGroceries
-      ? searchNearby({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes: GROCERY_PLACE_TYPES, maxResults: 20 })
-      : Promise.resolve([]),
-    wantTakeout
-      ? searchNearby({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes: DISH_PLACE_TYPES, maxResults: 20 })
-      : Promise.resolve([]),
-    wantTakeout
-      ? searchNearby({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes: [...CHAIN_PLACE_TYPES], maxResults: 20 })
-      : Promise.resolve([]),
+  const skipped: NearbySearchResult = { places: [], failed: false };
+  const search = (includedTypes: string[]) =>
+    searchNearbyResult({ lat: opts.lat, lng: opts.lng, radiusM, includedTypes, maxResults: 20 });
+  const [storeRes, restaurantRes, chainRes] = await Promise.all([
+    wantGroceries ? search(GROCERY_PLACE_TYPES) : Promise.resolve(skipped),
+    wantTakeout ? search(DISH_PLACE_TYPES) : Promise.resolve(skipped),
+    wantTakeout ? search([...CHAIN_PLACE_TYPES]) : Promise.resolve(skipped),
   ]);
+  const stores = storeRes.places;
+  const restaurants = restaurantRes.places;
+  const chainPlaces = chainRes.places;
+  const attempted = [wantGroceries && storeRes, wantTakeout && restaurantRes, wantTakeout && chainRes]
+    .filter((r): r is NearbySearchResult => !!r);
+  // Degraded = we could not look. Empty = we looked and there is nothing here.
+  // Conflating them told a user in a quiet area that our data was broken.
+  const allFailed = attempted.length > 0 && attempted.every(r => r.failed);
+  const nothingThere = !attempted.some(r => r.failed) && stores.length + restaurants.length + chainPlaces.length === 0;
 
   // openNow is null when Places has no hours for a place. Treat unknown as
   // open — dropping every place with missing hours would quietly gut the list.
@@ -323,7 +333,9 @@ export async function findNearby(
     ...ranked,
     storesFound: openStores.length,
     restaurantsFound: uniqueTakeout.length,
-    degraded: stores.length === 0 && restaurants.length === 0,
+    degraded: allFailed,
+    empty: nothingThere,
+    radiusM,
     dietExcluded,
     dietWarnings,
     chainsMatched: chainMatches.length,
@@ -494,7 +506,17 @@ export function mealCandidates(
   const kcalLeft = remaining.macros.kcal.remaining;
   const kcalBudget = Math.min(1100, Math.max(250, Math.round(kcalLeft * 0.66)));
 
-  const meals = composeMeals(gap, { kcalBudget, maxPrepMinutes: opts.maxPrepMinutes });
+  // Compose FROM the foods this user can eat. Filtering only the finished
+  // plates meant the composer kept building salmon stir-fries for a vegan and
+  // the filter then threw them away — a vegan got one meal instead of vegan
+  // meals. Excluded foods never reach a slot; unverifiable ones cannot occur
+  // here, since every catalogue food is a known composition.
+  const diet = opts.diet ?? emptyProfile();
+  const foods = hasAnyRestriction(diet)
+    ? FOOD_SOURCES.filter(f => checkCandidate({ name: f.name, description: f.category, confidence: 'usda' }, diet).verdict !== 'exclude')
+    : FOOD_SOURCES;
+
+  const meals = composeMeals(gap, { kcalBudget, maxPrepMinutes: opts.maxPrepMinutes, foods });
 
   return meals.map(meal => {
     const attached = storeForMeal(meal, stores);

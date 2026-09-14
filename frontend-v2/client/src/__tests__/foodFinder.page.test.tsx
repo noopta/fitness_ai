@@ -67,6 +67,11 @@ const response = (over: Record<string, unknown> = {}) => ({
 
 const ok = (body: unknown) => Promise.resolve({ ok: true, status: 200, json: async () => body } as Response);
 
+/** Finder searches only — the page also fetches /diet on load and posts /acted. */
+const finderCalls = () =>
+  mockAuthFetch.mock.calls.map(c => String(c[0])).filter(u => u.includes('/food-finder') && !u.includes('/acted'));
+const waitForFinder = (n = 1) => waitFor(() => expect(finderCalls().length).toBeGreaterThanOrEqual(n));
+
 function mockGeolocation(impl: 'grant' | 'deny') {
   const getCurrentPosition = vi.fn((success: any, failure: any) => {
     if (impl === 'grant') success({ coords: { latitude: 43.6532, longitude: -79.3832 } });
@@ -96,9 +101,9 @@ describe('FoodFinderPage', () => {
     mockGeolocation('grant');
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
-    expect(mockAuthFetch.mock.calls[0][0]).toContain('lat=43.6532');
-    expect(mockAuthFetch.mock.calls[0][0]).toContain('lng=-79.3832');
+    await waitForFinder();
+    expect(finderCalls()[0]).toContain('lat=43.6532');
+    expect(finderCalls()[0]).toContain('lng=-79.3832');
   });
 
   it('renders the mode reason and what is left in the day', async () => {
@@ -148,7 +153,7 @@ describe('FoodFinderPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
     // Denial is a choice, not an error — still a real answer, no lat/lng sent.
     expect(await screen.findByText(/Wild salmon with rolled oats/)).toBeTruthy();
-    expect(mockAuthFetch.mock.calls[0][0]).not.toContain('lat=');
+    expect(finderCalls()[0]).not.toContain('lat=');
   });
 
   it('says WHY location failed instead of doing nothing', async () => {
@@ -179,12 +184,12 @@ describe('FoodFinderPage', () => {
     render(<FoodFinderPage />);
     await userEvent.type(screen.getByLabelText(/enter a location/i), 'King and Spadina');
     await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    await waitForFinder();
     // Assert on the decoded value, not the encoding: URLSearchParams writes a
     // space as '+', encodeURIComponent writes '%20', and both decode to the
     // same thing server-side. Pinning the spelling makes this test fail on a
     // change that is invisible to the server.
-    const url = new URL(mockAuthFetch.mock.calls[0][0] as string, 'http://x');
+    const url = new URL(finderCalls()[0], 'http://x');
     expect(url.searchParams.get('place')).toBe('King and Spadina');
   });
 
@@ -192,8 +197,8 @@ describe('FoodFinderPage', () => {
     render(<FoodFinderPage />);
     await userEvent.type(screen.getByLabelText(/enter a location/i), '43.65, -79.38');
     await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
-    const url = mockAuthFetch.mock.calls[0][0];
+    await waitForFinder();
+    const url = finderCalls()[0];
     expect(url).toContain('lat=43.65');
     expect(url).toContain('lng=-79.38');
     expect(url).not.toContain('place=');
@@ -256,9 +261,9 @@ describe('FoodFinderPage — budget, price and provenance', () => {
     mockGeolocation('grant');
     render(<FoodFinderPage />);
     await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    await waitForFinder();
     // An invented ceiling would silently suppress good food.
-    const url = new URL(mockAuthFetch.mock.calls[0][0] as string, 'http://x');
+    const url = new URL(finderCalls()[0], 'http://x');
     expect(url.searchParams.has('budget')).toBe(false);
   });
 
@@ -266,13 +271,13 @@ describe('FoodFinderPage — budget, price and provenance', () => {
     render(<FoodFinderPage />);
     await userEvent.type(screen.getByLabelText(/enter a location/i), 'King and Spadina');
     await userEvent.click(screen.getByRole('button', { name: /^go$/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    await waitForFinder();
 
     await userEvent.type(screen.getByLabelText(/budget per meal/i), '15');
     await userEvent.click(screen.getByRole('button', { name: /apply/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalledTimes(2));
+    await waitForFinder(2);
 
-    const url = new URL(mockAuthFetch.mock.calls[1][0] as string, 'http://x');
+    const url = new URL(finderCalls()[1], 'http://x');
     expect(url.searchParams.get('budget')).toBe('15');
     // The location must survive — not silently fall back to no-location.
     expect(url.searchParams.get('place')).toBe('King and Spadina');
@@ -335,7 +340,8 @@ describe('FoodFinderPage — budget, price and provenance', () => {
     // The badge on the card, distinct from the header count line.
     expect(await screen.findByText('published')).toBeTruthy();
     expect(screen.getByText(/^Published nutrition from Nando's\.$/)).toBeTruthy();
-    expect(screen.getByText(/1 nearby chain has published nutrition/i)).toBeTruthy();
+    // Not "exact" — the chain corpus is curated and unverified.
+    expect(screen.getByText(/1 nearby chain matched to its menu — figures estimated/i)).toBeTruthy();
   });
 
   it('states an unverifiable allergy instead of resolving it either way', async () => {
@@ -459,7 +465,7 @@ describe('FoodFinderPage — address autocomplete', () => {
     await act(async () => { vi.advanceTimersByTime(400); });
     await user.click(await screen.findByText('172 Farley Dr'));
 
-    const finderCall = mockAuthFetch.mock.calls.map(c => String(c[0])).find(u => u.includes('food-finder'));
+    const finderCall = finderCalls()[0];
     const url = new URL(finderCall!, 'http://x');
     // The id, not the text — the user already disambiguated Guelph from Toronto.
     expect(url.searchParams.get('placeId')).toBe('p1');
@@ -475,9 +481,9 @@ describe('FoodFinderPage — the Apply-without-Go bug', () => {
     await userEvent.type(screen.getByLabelText(/enter a location/i), '172 Farley Drive, Guelph');
     await userEvent.type(screen.getByLabelText(/budget per meal/i), '100');
     await userEvent.click(screen.getByRole('button', { name: /apply/i }));
-    await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+    await waitForFinder();
 
-    const finderCall = mockAuthFetch.mock.calls.map(c => String(c[0])).find(u => u.includes('food-finder'));
+    const finderCall = finderCalls()[0];
     const url = new URL(finderCall!, 'http://x');
     expect(url.searchParams.get('place')).toBe('172 Farley Drive, Guelph');
     expect(url.searchParams.get('budget')).toBe('100');
@@ -522,5 +528,119 @@ describe('FoodFinderPage — macro amounts and missing prices', () => {
     // The takeout fixture has price: null. A blank read as an oversight;
     // "no price" says we have no menu for that place.
     expect(screen.getByText('no price')).toBeTruthy();
+  });
+});
+
+describe('FoodFinderPage — dietary needs', () => {
+  const DIET = (over: Record<string, unknown> = {}) => ({
+    restrictions: [], allergies: [], dislikes: [], unspecifiedAllergy: false,
+    halalKosherAmbiguous: false, sources: [], explicit: false, ...over,
+  });
+  const routeFetch = (diet: unknown, onPut?: (body: any) => unknown) =>
+    mockAuthFetch.mockImplementation((url: string, init?: RequestInit) => {
+      if (url.includes('/nutrition-profile/diet')) {
+        if (init?.method === 'PUT') {
+          const body = JSON.parse(String(init.body));
+          return ok(onPut ? onPut(body) : DIET({ ...body, explicit: true, sources: ['food_finder'] }));
+        }
+        return ok(diet);
+      }
+      return ok(response());
+    });
+
+  it('pre-fills what the user told the coach, and asks them to confirm', async () => {
+    routeFetch(DIET({ restrictions: ['halal', 'kosher'], halalKosherAmbiguous: true, sources: ['coach_intake'] }));
+    render(<FoodFinderPage />);
+    // Opens itself: there is something to confirm.
+    expect(await screen.findByText(/filtering for both/i)).toBeTruthy();
+    expect(screen.getByText(/pre-filled from what you told your coach/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Halal' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Kosher' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('asks which allergies when onboarding only said "food allergies"', async () => {
+    routeFetch(DIET({ unspecifiedAllergy: true, sources: ['coach_intake'] }));
+    render(<FoodFinderPage />);
+    expect(await screen.findByText(/which ones\?/i)).toBeTruthy();
+  });
+
+  it('saves chips plus free-text allergies and foods to avoid', async () => {
+    let saved: any = null;
+    routeFetch(DIET(), body => { saved = body; return DIET({ ...body, explicit: true }); });
+    render(<FoodFinderPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /dietary needs/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Kosher' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Peanuts' }));
+    await userEvent.type(screen.getByLabelText(/other allergies/i), 'mango, kiwi');
+    await userEvent.type(screen.getByLabelText(/foods to avoid/i), 'olives');
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }));
+    await waitFor(() => expect(saved).not.toBeNull());
+    expect(saved).toEqual({ restrictions: ['kosher'], allergies: ['peanut', 'mango', 'kiwi'], dislikes: ['olives'] });
+    expect(await screen.findByText(/saved/i)).toBeTruthy();
+  });
+
+  it('lets a user untick an intake restriction and save the result', async () => {
+    let saved: any = null;
+    routeFetch(DIET({ restrictions: ['halal', 'kosher'], halalKosherAmbiguous: true, sources: ['coach_intake'] }),
+      body => { saved = body; return DIET({ ...body, explicit: true }); });
+    render(<FoodFinderPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Kosher' }));
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }));
+    await waitFor(() => expect(saved).not.toBeNull());
+    expect(saved.restrictions).toEqual(['halal']);
+  });
+
+  it('re-runs the search with the new filters after saving', async () => {
+    routeFetch(DIET());
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    await waitForFinder(1);
+    await userEvent.click(screen.getByRole('button', { name: /dietary needs/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Vegan' }));
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }));
+    await waitForFinder(2);
+    expect(finderCalls()[1]).toContain('lat=43.6532');
+  });
+});
+
+describe('FoodFinderPage — honest empty states', () => {
+  const show = async (over: Record<string, unknown>) => {
+    mockGeolocation('grant');
+    mockAuthFetch.mockImplementation((url: string) => ok(url.includes('/diet') ? {} : response(over)));
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    await screen.findByText(/Left today:/);
+  };
+
+  it('calls an empty area empty rather than blaming the data', async () => {
+    await show({ nearby: { used: true, degraded: false, empty: true, radiusKm: 2.5, storesFound: 0, restaurantsFound: 0, resolvedPlace: null, coords: null, metro: null, chainsMatched: 0 } });
+    expect(screen.getByText(/no shops or restaurants found within 2.5 km/i)).toBeTruthy();
+    expect(screen.queryByText(/couldn't reach nearby data/i)).toBeNull();
+  });
+
+  it('says when nothing actually fits, instead of passing off the closest as a match', async () => {
+    await show({ fit: { nothingFits: true } });
+    expect(screen.getByText(/nothing here fully fits/i)).toBeTruthy();
+  });
+
+  it('stays quiet when options fit', async () => {
+    await show({ fit: { nothingFits: false } });
+    expect(screen.queryByText(/nothing here fully fits/i)).toBeNull();
+  });
+});
+
+describe("FoodFinderPage — I'm having this", () => {
+  it('records the choice against the suggestion id and confirms it', async () => {
+    mockGeolocation('grant');
+    render(<FoodFinderPage />);
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    await screen.findByText(/Wild salmon with rolled oats/);
+    const [first] = screen.getAllByRole('button', { name: /i'm having this/i });
+    await userEvent.click(first);
+    await waitFor(() => expect(mockAuthFetch.mock.calls.some(c => String(c[0]).includes('/food-finder/acted'))).toBe(true));
+    const call = mockAuthFetch.mock.calls.find(c => String(c[0]).includes('/food-finder/acted'))!;
+    expect(JSON.parse(String((call[1] as RequestInit).body))).toEqual({ itemKey: 'meal:plate:wild-salmon+rolled-oats+spinach' });
+    expect(await screen.findByText(/✓ Noted/)).toBeTruthy();
   });
 });

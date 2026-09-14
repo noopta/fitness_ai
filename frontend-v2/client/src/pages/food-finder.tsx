@@ -88,9 +88,16 @@ interface FinderResponse {
     coords: { lat: number; lng: number } | null;
     metro: { slug: string; label: string } | null;
     chainsMatched: number;
+    /** The search worked and found nothing in range — geography, not an outage. */
+    empty?: boolean;
+    radiusKm?: number | null;
   };
+  fit?: { nothingFits: boolean };
   budget: { cents: number | null; currency: string; display: string | null; pricesAvailable: boolean };
-  diet: { active: boolean; restrictions: string[]; allergies: string[]; excluded: number };
+  diet: {
+    active: boolean; restrictions: string[]; allergies: string[]; excluded: number;
+    dislikes?: string[]; unspecifiedAllergy?: boolean; halalKosherAmbiguous?: boolean; sources?: DietSource[];
+  };
   recommendations: Recommendation[];
 }
 
@@ -115,6 +122,46 @@ const CONFIDENCE_BADGE: Record<Recommendation['confidence'], { label: string; bg
  * can be blocked, dismissed, or disabled at the OS level, and every one of
  * those looks identical from inside the page unless we say which it was.
  */
+type DietSource = 'food_finder' | 'coach_intake' | 'nutrition_assessment';
+
+interface DietProfile {
+  restrictions: string[];
+  allergies: string[];
+  dislikes: string[];
+  unspecifiedAllergy: boolean;
+  halalKosherAmbiguous: boolean;
+  sources: DietSource[];
+  explicit: boolean;
+}
+
+/** What the server filter can enforce. Labels are the user's words, values the filter's. */
+const RESTRICTION_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'pescatarian', label: 'Pescatarian' },
+  { value: 'halal', label: 'Halal' },
+  { value: 'kosher', label: 'Kosher' },
+  { value: 'no-pork', label: 'No pork' },
+  { value: 'no-beef', label: 'No beef' },
+  { value: 'gluten-free', label: 'Gluten-free' },
+  { value: 'dairy-free', label: 'Dairy-free' },
+];
+
+const ALLERGY_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'peanut', label: 'Peanuts' },
+  { value: 'tree-nut', label: 'Tree nuts' },
+  { value: 'shellfish', label: 'Shellfish' },
+  { value: 'fish', label: 'Fish' },
+  { value: 'egg', label: 'Egg' },
+  { value: 'milk', label: 'Milk' },
+  { value: 'soy', label: 'Soy' },
+  { value: 'wheat', label: 'Wheat' },
+  { value: 'sesame', label: 'Sesame' },
+];
+const KNOWN_ALLERGIES = new Set(ALLERGY_OPTIONS.map(a => a.value));
+
+const splitList = (text: string) => text.split(/[,;\n]/).map(t => t.trim()).filter(Boolean);
+
 /** Where a search is anchored. A chosen suggestion carries its exact place id. */
 type Where =
   | { lat: number; lng: number }
@@ -169,6 +216,14 @@ export default function FoodFinderPage() {
   const [budgetInput, setBudgetInput] = useState('');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [openMeal, setOpenMeal] = useState<string | null>(null);
+  const [dietOpen, setDietOpen] = useState(false);
+  const [diet, setDiet] = useState<DietProfile | null>(null);
+  const [otherAllergies, setOtherAllergies] = useState('');
+  const [dislikesText, setDislikesText] = useState('');
+  const [dietSaving, setDietSaving] = useState(false);
+  const [dietNote, setDietNote] = useState<string | null>(null);
+  /** Suggestions the user said they are having, so the button reads "Noted". */
+  const [chosen, setChosen] = useState<Set<string>>(new Set());
   // One token groups a whole lookup's keystrokes into a single billable
   // autocomplete session; a fresh one starts after each selection.
   const sessionRef = useRef<string>(Math.random().toString(36).slice(2));
@@ -190,6 +245,27 @@ export default function FoodFinderPage() {
       sessionStorage.setItem('liftoff_bearer_token', t);
       window.history.replaceState({}, '', window.location.pathname);
     }
+  }, []);
+
+  // The resolved diet — pre-filled from the coach intake and nutrition
+  // assessment until the user saves it here, so they confirm rather than
+  // re-enter what they already told us.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch(`${API_BASE}/nutrition-profile/diet`);
+        if (!res.ok || cancelled) return;
+        const body = await res.json() as DietProfile;
+        if (cancelled || !body || !Array.isArray(body.restrictions)) return;
+        setDiet(body);
+        setOtherAllergies(body.allergies.filter(a => !KNOWN_ALLERGIES.has(a)).join(', '));
+        setDislikesText(body.dislikes.join(', '));
+        // Something needs confirming — open the panel instead of hiding it.
+        if (!body.explicit && (body.halalKosherAmbiguous || body.unspecifiedAllergy)) setDietOpen(true);
+      } catch { /* the finder still works; the panel just starts empty */ }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const load = useCallback(async (where: Where) => {
@@ -222,6 +298,49 @@ export default function FoodFinderPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const toggle = (field: 'restrictions' | 'allergies', value: string) => {
+    setDiet(d => {
+      const base: DietProfile = d ?? { restrictions: [], allergies: [], dislikes: [], unspecifiedAllergy: false, halalKosherAmbiguous: false, sources: [], explicit: false };
+      const has = base[field].includes(value);
+      return { ...base, [field]: has ? base[field].filter(v => v !== value) : [...base[field], value] };
+    });
+  };
+
+  const saveDiet = useCallback(async () => {
+    const current: DietProfile = diet ?? { restrictions: [], allergies: [], dislikes: [], unspecifiedAllergy: false, halalKosherAmbiguous: false, sources: [], explicit: false };
+    setDietSaving(true);
+    setDietNote(null);
+    try {
+      const allergies = [...current.allergies.filter(a => KNOWN_ALLERGIES.has(a)), ...splitList(otherAllergies)];
+      const res = await authFetch(`${API_BASE}/nutrition-profile/diet`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restrictions: current.restrictions, allergies, dislikes: splitList(dislikesText) }),
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const saved = await res.json() as DietProfile;
+      setDiet(saved);
+      setDietNote('Saved — results now respect these.');
+      // Re-ask about wherever we last searched, now with the new filters.
+      if (data) void load(lastWhereRef.current);
+    } catch (e) {
+      setDietNote(`Couldn't save: ${(e as Error).message}`);
+    } finally {
+      setDietSaving(false);
+    }
+  }, [diet, otherAllergies, dislikesText, data, load]);
+
+  const markChosen = useCallback(async (itemKey: string) => {
+    setChosen(prev => new Set(prev).add(itemKey));
+    try {
+      await authFetch(`${API_BASE}/nutrition-profile/food-finder/acted`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemKey }),
+      });
+    } catch { /* a lost tap costs one data point, not the user's flow */ }
   }, []);
 
   /**
@@ -417,6 +536,89 @@ export default function FoodFinderPage() {
         )}
       </div>
 
+      <div style={{ border: '1px solid #eee', borderRadius: 10, marginBottom: 14 }}>
+        <button
+          onClick={() => setDietOpen(o => !o)}
+          aria-expanded={dietOpen}
+          style={{ width: '100%', textAlign: 'left', padding: '10px 12px', fontSize: 14, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          Dietary needs
+          <span style={{ fontWeight: 400, color: '#888' }}>
+            {diet && (diet.restrictions.length + diet.allergies.length) > 0
+              ? ` · ${[...diet.restrictions, ...diet.allergies].length} set`
+              : diet?.unspecifiedAllergy ? ' · allergies to confirm' : ' · none'}
+          </span>
+          <span style={{ float: 'right', color: '#888' }}>{dietOpen ? '−' : '+'}</span>
+        </button>
+
+        {dietOpen && (
+          <div style={{ padding: '0 12px 12px' }}>
+            {diet && !diet.explicit && diet.sources.length > 0 && (
+              <p style={{ fontSize: 12, color: '#666', margin: '0 0 8px' }}>
+                Pre-filled from what you told your coach. Check it and save.
+              </p>
+            )}
+            {diet?.halalKosherAmbiguous && !diet.explicit && (
+              /* The intake has one combined option. Filtering for both is the
+                 safe default; only the user can say which applies. */
+              <p style={{ fontSize: 12, color: '#8a6d3b', background: '#fcf8e3', padding: 8, borderRadius: 6, margin: '0 0 8px' }}>
+                You chose "Halal / Kosher" in onboarding, so we're filtering for both. Untick the one that doesn't apply.
+              </p>
+            )}
+            {diet?.unspecifiedAllergy && !diet.explicit && (
+              <p style={{ fontSize: 12, color: '#a94442', background: '#f2dede', padding: 8, borderRadius: 6, margin: '0 0 8px' }}>
+                You mentioned food allergies in onboarding. Which ones? We can't filter allergens we don't know about.
+              </p>
+            )}
+
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '4px 0 6px' }}>I eat</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {RESTRICTION_OPTIONS.map(o => {
+                const on = !!diet?.restrictions.includes(o.value);
+                return (
+                  <button key={o.value} onClick={() => toggle('restrictions', o.value)} aria-pressed={on}
+                    style={{ fontSize: 13, padding: '5px 10px', borderRadius: 16, border: `1px solid ${on ? '#24417a' : '#ddd'}`, background: on ? '#eef4ff' : '#fff', color: on ? '#24417a' : '#333', cursor: 'pointer' }}>
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '12px 0 6px' }}>Allergies</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {ALLERGY_OPTIONS.map(o => {
+                const on = !!diet?.allergies.includes(o.value);
+                return (
+                  <button key={o.value} onClick={() => toggle('allergies', o.value)} aria-pressed={on}
+                    style={{ fontSize: 13, padding: '5px 10px', borderRadius: 16, border: `1px solid ${on ? '#a94442' : '#ddd'}`, background: on ? '#f2dede' : '#fff', color: on ? '#a94442' : '#333', cursor: 'pointer' }}>
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
+            <input value={otherAllergies} onChange={e => setOtherAllergies(e.target.value)} aria-label="Other allergies"
+              placeholder="Other allergies, comma-separated"
+              style={{ width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid #ddd' }} />
+
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '12px 0 6px' }}>Foods to avoid</div>
+            <input value={dislikesText} onChange={e => setDislikesText(e.target.value)} aria-label="Foods to avoid"
+              placeholder="e.g. olives, mushrooms"
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid #ddd' }} />
+
+            <p style={{ fontSize: 11, color: '#999', margin: '8px 0' }}>
+              Restaurant dishes can't be checked for allergens — they'll carry a warning to confirm with the restaurant.
+            </p>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <button onClick={() => void saveDiet()} disabled={dietSaving}
+                style={{ padding: '8px 16px', fontSize: 14, fontWeight: 600, borderRadius: 8, border: 'none', background: '#111', color: '#fff', opacity: dietSaving ? 0.6 : 1 }}>
+                {dietSaving ? 'Saving…' : 'Save'}
+              </button>
+              {dietNote && <span style={{ fontSize: 12, color: dietNote.startsWith('Saved') ? '#2e6b32' : '#a94442' }}>{dietNote}</span>}
+            </div>
+          </div>
+        )}
+      </div>
+
       {locNote && (
         <p style={{ fontSize: 13, color: '#8a6d3b', background: '#fcf8e3', padding: 10, borderRadius: 8, marginTop: 0 }}>{locNote}</p>
       )}
@@ -447,11 +649,19 @@ export default function FoodFinderPage() {
               </div>
             )}
             {data.nearby.used && data.nearby.degraded && (
-              <div style={{ fontSize: 12, color: '#8a6d3b', marginTop: 6 }}>Couldn't reach nearby data — showing foods only.</div>
+              <div style={{ fontSize: 12, color: '#8a6d3b', marginTop: 6 }}>Couldn't reach nearby data — showing meals you can make, without shops.</div>
+            )}
+            {/* Geography, not an outage: say so, and say how far we looked. */}
+            {data.nearby.used && data.nearby.empty && (
+              <div style={{ fontSize: 12, color: '#8a6d3b', marginTop: 6 }}>
+                No shops or restaurants found within {data.nearby.radiusKm ?? 2.5} km of here — showing meals you can make.
+              </div>
             )}
             {data.nearby.chainsMatched > 0 && (
-              <div style={{ fontSize: 12, color: '#2e6b32', marginTop: 6 }}>
-                {data.nearby.chainsMatched} nearby {data.nearby.chainsMatched === 1 ? 'chain has' : 'chains have'} published nutrition — those figures are exact.
+              /* Not "exact": the chain corpus is curated and not yet verified
+                 against each chain's published table. */
+              <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                {data.nearby.chainsMatched} nearby {data.nearby.chainsMatched === 1 ? 'chain' : 'chains'} matched to {data.nearby.chainsMatched === 1 ? 'its' : 'their'} menu — figures estimated.
               </div>
             )}
             {data.nearby.used && !data.budget.pricesAvailable && (
@@ -464,11 +674,18 @@ export default function FoodFinderPage() {
             )}
             {data.diet.active && (
               <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                Filtered for {[...data.diet.restrictions, ...data.diet.allergies].join(', ')}
+                Filtered for {[...data.diet.restrictions, ...data.diet.allergies, ...(data.diet.unspecifiedAllergy ? ['food allergies'] : [])].join(', ')}
                 {data.diet.excluded > 0 && ` · ${data.diet.excluded} option${data.diet.excluded === 1 ? '' : 's'} hidden`}
               </div>
             )}
           </div>
+
+          {/* Closest is not the same as fits. Say which one this list is. */}
+          {data.fit?.nothingFits && data.recommendations.length > 0 && (
+            <p style={{ fontSize: 13, color: '#8a6d3b', background: '#fcf8e3', padding: 10, borderRadius: 8, marginTop: 0 }}>
+              Nothing here fully fits what's left today — these are the closest options.
+            </p>
+          )}
 
           {data.recommendations.length === 0 && (
             <p style={{ fontSize: 15, color: '#444' }}>Nothing needs closing right now — you're on track.</p>
@@ -586,16 +803,27 @@ export default function FoodFinderPage() {
                 </div>
               ))}
 
-              {r.directionsUrl && (
-                <a
-                  href={r.directionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'inline-block', marginTop: 10, fontSize: 13, fontWeight: 600, color: '#24417a', textDecoration: 'none' }}
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginTop: 10 }}>
+                {r.directionsUrl && (
+                  <a
+                    href={r.directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: 13, fontWeight: 600, color: '#24417a', textDecoration: 'none' }}
+                  >
+                    Directions →
+                  </a>
+                )}
+                {/* Pairs what we suggested with what the user chose — the
+                    signal that eventually turns estimates into observations. */}
+                <button
+                  onClick={() => void markChosen(r.id)}
+                  disabled={chosen.has(r.id)}
+                  style={{ background: 'none', border: 'none', padding: 0, fontSize: 13, fontWeight: 600, color: chosen.has(r.id) ? '#2e6b32' : '#555', cursor: chosen.has(r.id) ? 'default' : 'pointer' }}
                 >
-                  Directions →
-                </a>
-              )}
+                  {chosen.has(r.id) ? '✓ Noted' : "I'm having this"}
+                </button>
+              </div>
             </div>
           ))}
         </>

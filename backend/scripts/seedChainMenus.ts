@@ -14,6 +14,11 @@ import { fold } from '../src/engine/dietaryFilter.js';
 
 const prisma = new PrismaClient();
 
+type Seed = (typeof CHAIN_SEEDS)[number];
+/** 'curated' until someone has checked the figures against the chain's own table. */
+const kindOf = (seed: Seed) => (seed.verification === 'unverified' ? 'curated' : 'published');
+const checkedOn = (seed: Seed) => (seed.verification === 'unverified' ? null : new Date(seed.verification.checkedOn));
+
 async function main() {
   const dry = process.argv.includes('--dry');
   let brands = 0, items = 0;
@@ -33,16 +38,16 @@ async function main() {
         aliasesJson: JSON.stringify(seed.aliases),
         cuisine: seed.cuisine,
         nutritionUrl: seed.nutritionUrl,
-        nutritionKind: 'published',
-        lastScrapedAt: new Date(seed.verifiedOn),
+        nutritionKind: kindOf(seed),
+        lastScrapedAt: checkedOn(seed),
       },
       update: {
         name: seed.name,
         aliasesJson: JSON.stringify(seed.aliases),
         cuisine: seed.cuisine,
         nutritionUrl: seed.nutritionUrl,
-        nutritionKind: 'published',
-        lastScrapedAt: new Date(seed.verifiedOn),
+        nutritionKind: kindOf(seed),
+        lastScrapedAt: checkedOn(seed),
       },
     });
     brands++;
@@ -66,10 +71,11 @@ async function main() {
           ...(it.sodiumMg != null ? { sodiumMg: it.sodiumMg } : {}),
           ...(it.fiberG != null ? { fiberG: it.fiberG } : {}),
         }),
-        // The chain published these, so they are the strongest non-USDA tier.
-        confidence: 'published',
+        // Only a seed actually checked against the chain's table earns
+        // `published`. Unverified figures are served as `inferred`.
+        confidence: kindOf(seed) === 'published' ? 'published' : 'inferred',
         dietTagsJson: it.dietTags ? JSON.stringify(it.dietTags) : null,
-        source: `CHAIN_SEED_${seed.slug.toUpperCase()}`,
+        source: `CHAIN_CURATED_${seed.slug.toUpperCase()}`,
         sourceUrl: seed.nutritionUrl,
       })),
     });

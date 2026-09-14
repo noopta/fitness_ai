@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { matchLoggedMeal } from '../services/foodFinder/recommendationLog.js';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheGet, cacheSet, cacheDelete, cacheGetWithMeta, cacheMarkStale } from '../services/cacheService.js';
@@ -252,6 +253,12 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
         notes: data.notes,
       },
     });
+
+    // Did this meal come from a Food Finder suggestion? Fire-and-forget: the
+    // matcher never throws, and crediting a suggestion must never slow or fail
+    // the log the user is waiting on. Placed before the recipe early-return so
+    // both paths are covered.
+    void matchLoggedMeal(userId, data.name);
 
     // Auto-upsert into saved foods library for quick re-use and richer future
     // analysis. Skipped for recipe-sourced entries: recipes live in their own

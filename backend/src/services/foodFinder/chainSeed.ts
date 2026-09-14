@@ -1,20 +1,26 @@
 /**
- * Curated chain menu corpus.
+ * Curated chain menu corpus — UNVERIFIED.
  *
- * These figures are transcribed from each chain's own published nutrition
- * tables. They are the ground truth the whole confidence ladder rests on: the
- * calibration harness measures the dish-name estimator against THESE numbers,
- * so an error here does not merely mis-state one burrito, it mis-calibrates
- * every independent restaurant estimate in the system.
+ * Read this before trusting any number below. These figures were written from
+ * general knowledge of each chain's menu, NOT transcribed from a fetched
+ * nutrition table: when the corpus was built, McDonald's and Subway blocked the
+ * request and Chipotle's calculator is a client-rendered app with nothing in the
+ * HTML. An earlier version of this header claimed they were transcribed and
+ * stamped every brand as verified on 2026-09-13. That was false, and is
+ * corrected here rather than quietly edited away.
  *
- * Consequences of that, deliberately:
- *   - every item carries the URL it came from and a `verifiedOn` date
- *   - coverage is narrow and popular rather than broad and thin; a chain's ten
- *     most-ordered items answer most real "what can I eat right now" questions
- *   - scripts/scrapeChainNutrition.ts re-checks these against the live source,
- *     because a hand-transcribed table silently drifts as menus change
+ * Why it matters beyond one burrito:
+ *   - They are served at `inferred` confidence, not `published`, and the UI
+ *     does not call them published.
+ *   - They were ALSO the ground truth the dish-estimator calibration measured
+ *     against (scripts/calibrateDishEstimator.ts). Those error figures are
+ *     therefore provisional — only as good as numbers nobody has checked.
  *
- * Portions are the chain's own standard serving. Macros are grams, sodium mg.
+ * To promote a brand to `published`: fetch its real nutrition table, correct
+ * the items, set `verification` to the date and URL you checked, and re-run
+ * calibration.
+ *
+ * Portions are each chain's standard serving. Macros are grams, sodium mg.
  */
 
 export interface ChainItemSeed {
@@ -27,7 +33,7 @@ export interface ChainItemSeed {
   sodiumMg?: number;
   fiberG?: number;
   servingGrams?: number;
-  /** Diet/allergen tags asserted by the chain, not inferred by us. */
+  /** Diet tags as we understand the chain's menu — unverified, like the macros. */
   dietTags?: string[];
 }
 
@@ -37,7 +43,8 @@ export interface ChainSeed {
   aliases: string[];
   cuisine: string;
   nutritionUrl: string;
-  verifiedOn: string;
+  /** 'unverified', or the date + URL of an actual check against the chain's table. */
+  verification: 'unverified' | { checkedOn: string; against: string };
   items: ChainItemSeed[];
 }
 
@@ -48,7 +55,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
     aliases: ['chipotle mexican grill', 'chipotle'],
     cuisine: 'mexican',
     nutritionUrl: 'https://www.chipotle.com/nutrition-calculator',
-    verifiedOn: '2026-09-13',
+    verification: 'unverified',
     items: [
       { name: 'Chicken burrito bowl (white rice, black beans, salsa)', section: 'Bowls', kcal: 625, proteinG: 45, carbsG: 66, fatG: 18, sodiumMg: 1500, fiberG: 12 },
       { name: 'Chicken salad (no rice, black beans, fajita veg)', section: 'Salads', kcal: 405, proteinG: 43, carbsG: 30, fatG: 13, sodiumMg: 1265, fiberG: 11 },
@@ -66,7 +73,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
     aliases: ['subway restaurants', 'subway sandwiches'],
     cuisine: 'sandwich',
     nutritionUrl: 'https://www.subway.com/en-US/MenuNutrition/Nutrition',
-    verifiedOn: '2026-09-13',
+    verification: 'unverified',
     items: [
       { name: 'Oven roasted turkey 6" (9-grain wheat, no cheese/sauce)', section: '6-inch subs', kcal: 250, proteinG: 18, carbsG: 40, fatG: 3.5, sodiumMg: 600, fiberG: 5 },
       { name: 'Rotisserie-style chicken 6" (9-grain wheat)', section: '6-inch subs', kcal: 320, proteinG: 29, carbsG: 41, fatG: 6, sodiumMg: 610, fiberG: 5 },
@@ -82,7 +89,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
     aliases: ['tims', 'timmies', 'tim hortons'],
     cuisine: 'cafe',
     nutritionUrl: 'https://www.timhortons.ca/nutrition',
-    verifiedOn: '2026-09-13',
+    verification: 'unverified',
     items: [
       { name: 'Farmer’s Wrap with bacon', section: 'Breakfast', kcal: 550, proteinG: 25, carbsG: 48, fatG: 29, sodiumMg: 1310 },
       { name: 'Bacon breakfast sandwich on English muffin', section: 'Breakfast', kcal: 370, proteinG: 20, carbsG: 32, fatG: 18, sodiumMg: 810 },
@@ -98,7 +105,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
     aliases: ['mcdonald s', 'mcdonalds', 'mc donalds'],
     cuisine: 'burger',
     nutritionUrl: 'https://www.mcdonalds.com/us/en-us/full-menu-explorer.html',
-    verifiedOn: '2026-09-13',
+    verification: 'unverified',
     items: [
       { name: 'Big Mac', section: 'Burgers', kcal: 590, proteinG: 25, carbsG: 46, fatG: 34, sodiumMg: 1050, servingGrams: 219 },
       { name: 'Quarter Pounder with Cheese', section: 'Burgers', kcal: 520, proteinG: 30, carbsG: 42, fatG: 26, sodiumMg: 1140, servingGrams: 202 },
@@ -107,7 +114,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
       { name: 'Hamburger', section: 'Burgers', kcal: 250, proteinG: 12, carbsG: 31, fatG: 9, sodiumMg: 510, servingGrams: 100 },
       { name: 'Filet-O-Fish', section: 'Fish', kcal: 390, proteinG: 16, carbsG: 39, fatG: 19, sodiumMg: 580, servingGrams: 142 },
       { name: 'Egg McMuffin', section: 'Breakfast', kcal: 310, proteinG: 17, carbsG: 30, fatG: 13, sodiumMg: 770, servingGrams: 136 },
-      { name: 'Medium French fries', section: 'Sides', kcal: 320, proteinG: 5, carbsG: 43, fatG: 15, sodiumMg: 260, servingGrams: 111, dietTags: ['vegetarian'] },
+      { name: 'Medium French fries', section: 'Sides', kcal: 320, proteinG: 5, carbsG: 43, fatG: 15, sodiumMg: 260, servingGrams: 111 },
     ],
   },
   {
@@ -116,7 +123,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
     aliases: ['nando s', 'nandos peri peri', 'nandos'],
     cuisine: 'chicken',
     nutritionUrl: 'https://www.nandos.co.uk/nutrition',
-    verifiedOn: '2026-09-13',
+    verification: 'unverified',
     items: [
       { name: '1/4 chicken breast (skin on)', section: 'Chicken', kcal: 285, proteinG: 43, carbsG: 0, fatG: 13, sodiumMg: 690 },
       { name: '1/2 chicken', section: 'Chicken', kcal: 615, proteinG: 84, carbsG: 0, fatG: 31, sodiumMg: 1370 },
@@ -132,7 +139,7 @@ export const CHAIN_SEEDS: ChainSeed[] = [
     aliases: ['sweet green', 'sweetgreen'],
     cuisine: 'salad',
     nutritionUrl: 'https://www.sweetgreen.com/menu',
-    verifiedOn: '2026-09-13',
+    verification: 'unverified',
     items: [
       { name: 'Harvest Bowl', section: 'Bowls', kcal: 685, proteinG: 30, carbsG: 70, fatG: 32, sodiumMg: 1100, fiberG: 9 },
       { name: 'Chicken Pesto Parm', section: 'Bowls', kcal: 700, proteinG: 43, carbsG: 51, fatG: 36, sodiumMg: 1400 },

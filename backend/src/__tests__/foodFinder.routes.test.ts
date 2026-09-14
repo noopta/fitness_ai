@@ -33,9 +33,17 @@ vi.mock('../services/llmService.js', () => ({
 vi.mock('../services/ragService.js', () => ({ buildRAGContext: vi.fn().mockResolvedValue('') }));
 
 const mockSearchNearby = vi.fn();
+// Lets a test simulate the search itself failing, as opposed to succeeding
+// with no results — the two used to be indistinguishable.
+const placesState = vi.hoisted(() => ({ fail: false }));
 vi.mock('../services/places/placesClient.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services/places/placesClient.js')>();
-  return { ...actual, searchNearby: mockSearchNearby };
+  return {
+    ...actual,
+    searchNearby: mockSearchNearby,
+    searchNearbyResult: async (q: unknown) =>
+      placesState.fail ? { places: [], failed: true } : { places: (await mockSearchNearby(q)) ?? [], failed: false },
+  };
 });
 
 import { clearChainCorpus } from '../services/foodFinder/chainMenu.js';
@@ -77,6 +85,7 @@ const get = async (qs: string) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  placesState.fail = false;
   mocks.user.findUnique.mockResolvedValue({
     id: ME, weightKg: 80, savedProgram: SAVED_PROGRAM,
     dailyCalorieTarget: null, subtractWorkoutBurnFromCalories: false,
@@ -167,11 +176,23 @@ describe('GET /nutrition-profile/food-finder', () => {
     expect(mockSearchNearby).not.toHaveBeenCalled();
   });
 
-  it('degrades rather than failing when Places returns nothing', async () => {
-    mockSearchNearby.mockResolvedValue([]);
+  it('degrades rather than failing when the Places search fails', async () => {
+    placesState.fail = true;
     const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832');
     expect(res.status).toBe(200);
     expect(res.body.nearby.degraded).toBe(true);
+    expect(res.body.nearby.empty).toBe(false);
+    expect(res.body.recommendations.length).toBeGreaterThan(0);
+  });
+
+  it('calls an empty area empty, not an outage', async () => {
+    // The bug: a quiet rural area was told "couldn't reach nearby data".
+    mockSearchNearby.mockResolvedValue([]);
+    const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832');
+    expect(res.status).toBe(200);
+    expect(res.body.nearby.degraded).toBe(false);
+    expect(res.body.nearby.empty).toBe(true);
+    expect(res.body.nearby.radiusKm).toBe(2.5);
     expect(res.body.recommendations.length).toBeGreaterThan(0);
   });
 
@@ -377,5 +398,118 @@ describe('GET /nutrition-profile/food-finder — chain menus', () => {
     const res = await get(TORONTO);
     const published = res.body.recommendations.filter((r: any) => r.confidence === 'published');
     expect(published.length).toBeGreaterThan(0);
+  });
+});
+
+describe('GET /nutrition-profile/food-finder — diet from the coach intake', () => {
+  const TORONTO = '?date=2026-08-08&lat=43.6532&lng=-79.3832';
+  const withCoach = (coachProfile: unknown, extra: Record<string, unknown> = {}) =>
+    mocks.user.findUnique.mockResolvedValue({
+      id: ME, weightKg: 80, savedProgram: SAVED_PROGRAM,
+      dailyCalorieTarget: null, subtractWorkoutBurnFromCalories: false,
+      coachProfile: JSON.stringify(coachProfile), ...extra,
+    });
+
+  it('filters for a halal/kosher answer the user only ever gave the coach', async () => {
+    withCoach({ dietaryRestrictions: ['halal_kosher'] });
+    const res = await get(TORONTO);
+    expect(res.body.diet.active).toBe(true);
+    expect(res.body.diet.restrictions).toEqual(['halal', 'kosher']);
+    expect(res.body.diet.halalKosherAmbiguous).toBe(true);
+    expect(res.body.diet.sources).toEqual(['coach_intake']);
+    const names = JSON.stringify(res.body.recommendations.map((r: any) => [r.name, r.components]));
+    expect(names).not.toMatch(/pork|shrimp|bacon|ham\b/i);
+  });
+
+  it('warns on restaurant dishes when the intake said "food allergies"', async () => {
+    withCoach({ dietaryRestrictions: ['allergies'] });
+    const res = await get(TORONTO);
+    expect(res.body.diet.unspecifiedAllergy).toBe(true);
+    for (const t of res.body.recommendations.filter((r: any) => r.kind === 'takeout')) {
+      expect(t.dietWarning).toMatch(/food allergies/i);
+    }
+  });
+});
+
+describe('GET /nutrition-profile/food-finder — nothing fits', () => {
+  it('says when the closest options still do not fit the budget', async () => {
+    const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832&budget=0.5');
+    expect(res.body.recommendations.length).toBeGreaterThan(0);
+    const priced = res.body.recommendations.filter((r: any) => r.price);
+    if (priced.length === res.body.recommendations.length) expect(res.body.fit.nothingFits).toBe(true);
+  });
+
+  it('does not cry wolf when options fit', async () => {
+    const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832');
+    expect(res.body.fit).toBeTruthy();
+    expect(res.body.fit.nothingFits).toBe(false);
+  });
+});
+
+describe('/nutrition-profile/diet', () => {
+  const put = async (body: unknown) =>
+    request(await makeApp()).put('/api/nutrition-profile/diet').set('Authorization', `Bearer ${token}`).send(body as object);
+
+  it('pre-fills from the coach intake until the user saves', async () => {
+    mocks.user.findUnique.mockResolvedValue({ dietaryRestrictions: null, allergies: null, dislikedFoods: null,
+      coachProfile: JSON.stringify({ dietaryRestrictions: ['vegetarian'] }) });
+    const res = await request(await makeApp()).get('/api/nutrition-profile/diet').set('Authorization', `Bearer ${token}`);
+    expect(res.body).toMatchObject({ restrictions: ['vegetarian'], explicit: false, sources: ['coach_intake'] });
+  });
+
+  it('saves, canonicalising allergy aliases and keeping custom ones', async () => {
+    const res = await put({ restrictions: ['Halal'], allergies: ['Dairy', 'mango'], dislikes: ['Olives'] });
+    expect(res.status).toBe(200);
+    expect(mocks.user.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { dietaryRestrictions: '["halal"]', allergies: '["milk","mango"]', dislikedFoods: '["olives"]' },
+    }));
+    expect(res.body.explicit).toBe(true);
+  });
+
+  it('refuses a restriction the filter cannot enforce, instead of storing a filter that silently does nothing', async () => {
+    const res = await put({ restrictions: ['keto'] });
+    expect(res.status).toBe(400);
+    expect(mocks.user.update).not.toHaveBeenCalled();
+  });
+
+  it('can explicitly clear what the intake recorded', async () => {
+    const res = await put({ restrictions: [], allergies: [], dislikes: [] });
+    expect(res.status).toBe(200);
+    expect(mocks.user.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { dietaryRestrictions: '[]', allergies: '[]', dislikedFoods: '[]' },
+    }));
+  });
+});
+
+describe('POST /nutrition-profile/food-finder/acted', () => {
+  const post = async (body: unknown) =>
+    request(await makeApp()).post('/api/nutrition-profile/food-finder/acted').set('Authorization', `Bearer ${token}`).send(body as object);
+
+  it('marks the most recent showing of a suggestion', async () => {
+    mocks.foodRecommendationLog.findFirst.mockResolvedValue({ id: 'row-1' });
+    mocks.foodRecommendationLog.update.mockResolvedValue({});
+    const res = await post({ itemKey: 'meal:plate:wild-salmon+rolled-oats+spinach' });
+    expect(res.body).toEqual({ marked: true });
+    expect(mocks.foodRecommendationLog.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'row-1' } }));
+  });
+
+  it('rejects something that is not a suggestion id', async () => {
+    expect((await post({ itemKey: 'DROP TABLE' })).status).toBe(400);
+    expect((await post({})).status).toBe(400);
+  });
+});
+
+describe('GET /nutrition-profile/food-finder — meals built for the diet', () => {
+  it('composes vegan meals for a vegan instead of discarding meat ones', async () => {
+    mocks.user.findUnique.mockResolvedValue({
+      id: ME, weightKg: 80, savedProgram: SAVED_PROGRAM,
+      dailyCalorieTarget: null, subtractWorkoutBurnFromCalories: false,
+      dietaryRestrictions: '["vegan"]', allergies: '[]', dislikedFoods: '[]',
+    });
+    const res = await get('?date=2026-08-08&lat=43.6532&lng=-79.3832');
+    const meals = res.body.recommendations.filter((r: any) => r.kind === 'meal');
+    expect(meals.length).toBeGreaterThanOrEqual(2);
+    const parts = JSON.stringify(meals.map((m: any) => m.components)).toLowerCase();
+    expect(parts).not.toMatch(/salmon|chicken|beef|egg|yogurt|skyr|kefir|whey|cheese|milk"|tuna|shrimp/);
   });
 });

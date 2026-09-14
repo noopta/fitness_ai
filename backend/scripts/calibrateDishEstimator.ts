@@ -74,11 +74,16 @@ async function main() {
   const verify = args.includes('--verify');
 
   const brands = await prisma.foodBrand.findMany({
-    where: { nutritionKind: 'published' },
-    select: { id: true, name: true, cuisine: true },
+    // `curated` chains are UNVERIFIED (see chainSeed.ts). Calibrating against
+    // them is still more informative than a hand-picked constant, but the
+    // artifact records which kind of ground truth it used.
+    where: { nutritionKind: { in: ['published', 'curated'] } },
+    select: { id: true, name: true, cuisine: true, nutritionKind: true },
   });
+  const unverified = brands.filter(b => b.nutritionKind !== 'published').length;
+  if (unverified) console.warn(`! ${unverified}/${brands.length} brands are UNVERIFIED curated data — results are provisional`);
   if (brands.length === 0) {
-    console.error('No published chain corpus. Run scripts/seedChainMenus.ts first.');
+    console.error('No chain corpus. Run scripts/seedChainMenus.ts first.');
     process.exit(1);
   }
 
@@ -87,7 +92,7 @@ async function main() {
 
   for (const brand of brands) {
     const items = await prisma.menuItem.findMany({
-      where: { brandId: brand.id, confidence: 'published' },
+      where: { brandId: brand.id, source: { startsWith: 'CHAIN_' } },
       select: { name: true, section: true, kcal: true, proteinG: true },
     });
 
@@ -173,19 +178,10 @@ async function main() {
     return;
   }
 
-  // Stamp the measured error onto every inferred item of that cuisine, so the
-  // ranker discounts by evidence rather than by a constant.
-  let stamped = 0;
-  for (const [cuisine, errs] of byCuisine) {
-    const errPct = Number(medianAbs(errs).toFixed(2));
-    const brandIds = brands.filter(b => (b.cuisine ?? 'unknown') === cuisine).map(b => b.id);
-    const res = await prisma.menuItem.updateMany({
-      where: { confidence: 'inferred', OR: [{ brandId: { in: brandIds } }, { brandId: null }] },
-      data: { kcalErrPct: errPct },
-    });
-    stamped += res.count;
-  }
-  console.log(`\nstamped kcalErrPct on ${stamped} inferred items`);
+  // No per-row stamping. MenuItem has no cuisine column, so a per-cuisine
+  // updateMany rewrote every row on each pass and the last cuisine won. The
+  // ranker reads the per-cuisine error from calibration.json at request time
+  // (nearbyFinder.measuredErrPctFor), which is the single source of truth.
 
   const json = JSON.stringify(report, null, 2);
   const { writeFileSync } = await import('node:fs');
@@ -198,6 +194,7 @@ async function main() {
     model: report.model,
     itemsMeasured: report.itemsMeasured,
     globalBiasPct: report.globalBiasPct,
+    groundTruth: unverified ? 'curated-unverified' : 'published',
     corrections,
   }, null, 2) + '\n');
   console.log(`artifact: ${artifact}`);

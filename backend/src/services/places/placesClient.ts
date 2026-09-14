@@ -237,19 +237,28 @@ export async function geocodePlace(query: string): Promise<GeocodedPlace | null>
   }
 }
 
+export interface NearbySearchResult {
+  places: NearbyPlace[];
+  /**
+   * True when the search itself did not succeed (no credentials, HTTP error,
+   * timeout). Distinct from a successful search that found nothing: an empty
+   * rural area and a Places outage both used to return [], and the UI blamed
+   * the API for the user's geography.
+   */
+  failed: boolean;
+}
+
 /**
- * Nearby search. Returns [] on any failure — see the module header.
- *
- * Results are sorted nearest-first; the ranker applies its own distance decay,
- * so this ordering is only a tiebreak for the truncation below.
+ * Nearby search. Results are sorted nearest-first; the ranker applies its own
+ * distance decay, so this ordering is only a tiebreak for the truncation below.
  */
-export async function searchNearby(q: NearbyQuery): Promise<NearbyPlace[]> {
+export async function searchNearbyResult(q: NearbyQuery): Promise<NearbySearchResult> {
   const key = cacheKeyFor(q);
   const cached = cacheGet(key);
-  if (cached) return cached;
+  if (cached) return { places: cached, failed: false };
 
   const token = await bearer();
-  if (!token) return [];
+  if (!token) return { places: [], failed: true };
 
   try {
     const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
@@ -276,7 +285,7 @@ export async function searchNearby(q: NearbyQuery): Promise<NearbyPlace[]> {
     if (!res.ok) {
       // Log the grid cell, never the caller's exact position.
       console.warn(`[places] searchNearby ${res.status} @ ${gridKey(q.lat, q.lng)}: ${(await res.text()).slice(0, 200)}`);
-      return [];
+      return { places: [], failed: true };
     }
 
     const json = await res.json() as { places?: unknown[] };
@@ -288,11 +297,16 @@ export async function searchNearby(q: NearbyQuery): Promise<NearbyPlace[]> {
       .sort((a, b) => a.distanceM - b.distanceM);
 
     cacheSet(key, places);
-    return places;
+    return { places, failed: false };
   } catch (err) {
     console.warn('[places] searchNearby failed:', (err as Error).message);
-    return [];
+    return { places: [], failed: true };
   }
+}
+
+/** Places only, [] on any failure — for callers that do not need to tell the two apart. */
+export async function searchNearby(q: NearbyQuery): Promise<NearbyPlace[]> {
+  return (await searchNearbyResult(q)).places;
 }
 
 

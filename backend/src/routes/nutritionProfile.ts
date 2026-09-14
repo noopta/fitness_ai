@@ -37,10 +37,10 @@ import { remainingForDay } from '../services/nutritionRemaining.js';
 import { findNearby, mealCandidates } from '../services/foodFinder/nearbyFinder.js';
 import { geocodePlace, autocompletePlaces, placeDetails } from '../services/places/placesClient.js';
 import { nearestMetro, currencyFor, formatMoney } from '../engine/currency.js';
-import { parseDietProfile, hasAnyRestriction } from '../engine/dietaryFilter.js';
+import { resolveDietProfile, hasAnyRestriction, canonicalAllergen, fold } from '../engine/dietaryFilter.js';
 import { isOverBudget } from '../engine/budget.js';
 import { directionsUrl } from '../services/foodFinder/directions.js';
-import { recentlyShown, logShown } from '../services/foodFinder/recommendationLog.js';
+import { recentlyShown, logShown, markActedOn } from '../services/foodFinder/recommendationLog.js';
 import {
   NUTRIENTS, BODY_SYSTEMS, getNutrient, driversForSystem, type BodySystemId,
 } from '../engine/nutrientRegistry.js';
@@ -585,6 +585,22 @@ router.get('/nutrition-profile/recommendations', requireAuth, async (req, res) =
 // Degrades rather than fails: with no lat/lng, or when Places is unreachable,
 // it still answers with whole foods and says so via `degraded`.
 /**
+ * The user chose a suggestion ("I'm having this").
+ *
+ * Pairs what we proposed with what the user decided — the seed of the loop in
+ * the architecture doc where logged meals eventually become menu data nobody
+ * can buy. Only the most recent unacted showing is marked.
+ */
+router.post('/nutrition-profile/food-finder/acted', requireAuth, async (req, res) => {
+  const itemKey = typeof req.body?.itemKey === 'string' ? req.body.itemKey.trim() : '';
+  if (!itemKey || itemKey.length > 300 || !/^(meal|menu|dish|ingredient):/.test(itemKey)) {
+    return res.status(400).json({ error: 'itemKey required' });
+  }
+  const marked = await markActedOn(req.user!.id, itemKey);
+  res.json({ marked });
+});
+
+/**
  * Address suggestions for the Food Finder's location box.
  *
  * Proxied rather than called from the browser: the Places credentials are
@@ -606,6 +622,76 @@ router.get('/nutrition-profile/place-suggest', requireAuth, async (req, res) => 
     console.error('Place suggest error:', err);
     // Never an error to the client: the user can always type it out in full.
     res.json({ suggestions: [] });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Diet profile for the Food Finder
+// ---------------------------------------------------------------------------
+
+/** Restrictions the filter actually knows how to enforce. */
+const KNOWN_RESTRICTIONS = new Set([
+  'vegetarian', 'vegan', 'pescatarian', 'halal', 'kosher',
+  'no-pork', 'no-beef', 'gluten-free', 'dairy-free',
+]);
+
+/**
+ * Read the resolved diet profile, with where each part came from.
+ *
+ * Returns the RESOLVED view, not the raw columns: a user who has never opened
+ * this screen still sees what they told the coach, pre-filled, so saving is a
+ * confirmation rather than re-entering it from scratch.
+ */
+router.get('/nutrition-profile/diet', requireAuth, async (req, res) => {
+  try {
+    const u = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { dietaryRestrictions: true, allergies: true, dislikedFoods: true, coachProfile: true },
+    });
+    const r = resolveDietProfile(u ?? {});
+    res.json({ ...r.profile, sources: r.sources, explicit: r.explicit, halalKosherAmbiguous: r.halalKosherAmbiguous });
+  } catch (err) {
+    console.error('Diet profile read error:', err);
+    res.status(500).json({ error: 'Failed to load diet profile' });
+  }
+});
+
+/**
+ * Save the diet profile. Saving makes it explicit: from then on these columns
+ * are the truth, including an empty list, so a user can clear a restriction the
+ * intake recorded.
+ *
+ * Restrictions are validated against what the filter can enforce, because an
+ * unknown restriction would be stored and then silently not applied — a filter
+ * the user believes is on. Allergies and dislikes are free: an allergen outside
+ * the known list still matches by its own name.
+ */
+router.put('/nutrition-profile/diet', requireAuth, async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    const list = (v: unknown, max: number) =>
+      Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').map(x => x.trim()).filter(Boolean).slice(0, max) : [];
+
+    const restrictions = [...new Set(list(body.restrictions, 12).map(r => fold(r).replace(/ /g, '-')))];
+    const unknown = restrictions.filter(r => !KNOWN_RESTRICTIONS.has(r));
+    if (unknown.length) {
+      return res.status(400).json({ error: `Unsupported restriction: ${unknown.join(', ')}`, supported: [...KNOWN_RESTRICTIONS] });
+    }
+    const allergies = [...new Set(list(body.allergies, 20).map(a => canonicalAllergen(a.slice(0, 40))))];
+    const dislikes = [...new Set(list(body.dislikes, 30).map(d => fold(d.slice(0, 40))).filter(Boolean))];
+
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: {
+        dietaryRestrictions: JSON.stringify(restrictions),
+        allergies: JSON.stringify(allergies),
+        dislikedFoods: JSON.stringify(dislikes),
+      },
+    });
+    res.json({ restrictions, allergies, dislikes, unspecifiedAllergy: false, sources: ['food_finder'], explicit: true, halalKosherAmbiguous: false });
+  } catch (err) {
+    console.error('Diet profile save error:', err);
+    res.status(500).json({ error: 'Failed to save diet profile' });
   }
 });
 
@@ -665,9 +751,13 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
       select: {
         dietaryRestrictions: true, allergies: true, dislikedFoods: true,
         budgetCents: true, budgetCurrency: true,
+        // The coach intake and nutrition assessment already ask about diet.
+        // Ignoring them offered pork to users who told the coach halal/kosher.
+        coachProfile: true,
       },
     });
-    const diet = parseDietProfile(profile ?? {});
+    const resolvedDiet = resolveDietProfile(profile ?? {});
+    const diet = resolvedDiet.profile;
 
     // Currency follows the ground the user is standing on, not a setting.
     const metro = hasLocation ? nearestMetro(lat, lng) : null;
@@ -705,12 +795,14 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
       : {
           // Still whole meals without a location — you can cook dinner without
           // telling us where you are; you just do not get a shop to buy it at.
-          ...rankCandidates(mealCandidates(remaining, [], { lat: 0, lng: 0, maxPrepMinutes }), remaining, {
+          ...rankCandidates(mealCandidates(remaining, [], { lat: 0, lng: 0, maxPrepMinutes, diet }), remaining, {
             limit: 8, guaranteeBothKinds: false, budgetCents, history,
           }),
           storesFound: 0,
           restaurantsFound: 0,
           degraded: true,
+          empty: false,
+          radiusM: 0,
           dietExcluded: 0,
           dietWarnings: {} as Record<string, string>,
           chainsMatched: 0,
@@ -718,6 +810,12 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
 
     // Record what we showed, so tomorrow's list is not today's list.
     await logShown(userId, found.results.map(r => r.id));
+
+    // "Nothing nearby fits" is information, not an empty screen. The ranker
+    // still returns the closest options; this says none of them actually fit
+    // what is left today — too many calories for the gap, or over budget.
+    const nothingFits = found.results.length > 0 &&
+      found.results.every(r => r.kcalFit < 1 || isOverBudget(r.price, budgetCents));
 
     res.json({
       date,
@@ -733,9 +831,12 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
       nearby: {
         used: hasLocation,
         degraded: found.degraded,
+        /** Search succeeded and found nothing in range — geography, not an outage. */
+        empty: found.empty,
+        radiusKm: found.radiusM ? Math.round(found.radiusM / 100) / 10 : null,
         storesFound: found.storesFound,
         restaurantsFound: found.restaurantsFound,
-        /** Of those restaurants, how many we hold a real published menu for. */
+        /** Of those restaurants, how many matched a chain in our menu corpus. */
         chainsMatched: found.chainsMatched,
         // Echo back what a typed place resolved to, so the user can see we
         // understood "king and spadina" as the right corner of the right city.
@@ -745,6 +846,7 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
         coords: hasLocation ? { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 } : null,
         metro: metro ? { slug: metro.slug, label: metro.label } : null,
       },
+      fit: { nothingFits },
       budget: {
         cents: budgetCents,
         currency,
@@ -757,6 +859,11 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
         active: hasAnyRestriction(diet),
         restrictions: diet.restrictions,
         allergies: diet.allergies,
+        dislikes: diet.dislikes,
+        unspecifiedAllergy: diet.unspecifiedAllergy,
+        halalKosherAmbiguous: resolvedDiet.halalKosherAmbiguous,
+        /** Where these came from — the UI says "from your coach intake". */
+        sources: resolvedDiet.sources,
         /** How many options a restriction removed, so the UI can be honest about it. */
         excluded: found.dietExcluded,
       },
@@ -786,12 +893,15 @@ router.get('/nutrition-profile/food-finder', requireAuth, async (req, res) => {
               : null,
           note: vendor
             ? (r.meta?.published
-                // We hold this chain's own published nutrition, so there is
-                // nothing to hedge — say where the number came from instead.
+                // Verified against the chain's own table: nothing to hedge.
                 // No possessive: "Tim Hortons's" and "Nando's's" are both wrong,
                 // and brand names ending in s are common enough to matter.
                 ? `Published nutrition from ${(r.meta?.brand as { name?: string } | undefined)?.name ?? vendor.name}.`
-                : `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`)
+                : r.meta?.chainMenu
+                  // A real item on this chain's menu, but our figures for it
+                  // have not been checked against their published table.
+                  ? `On the ${(r.meta?.brand as { name?: string } | undefined)?.name ?? vendor.name} menu — nutrition estimated, not yet checked against their published figures.`
+                  : `Typical for ${(r.meta?.typicalFor as string ?? 'restaurant').replace(/_/g, ' ')} — estimated, not their menu.`)
             : store
               ? (store.covers != null && store.of != null && store.covers < store.of
                   ? `${store.covers} of ${store.of} items usually carried at ${store.name} — you may need one more stop.`

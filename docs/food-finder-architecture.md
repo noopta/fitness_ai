@@ -113,7 +113,14 @@ a hand-picked 0.7 into a measured number, and lets the UI say "≈620 kcal, ±25
 A macro-tracking app that is silently off by 400 kcal is worse than one that declines to
 answer, so this is a correctness feature, not a polish feature.
 
-**What it actually measured** (39 chain items, gemini-2.5-flash, 2026-09-13). The raw
+> **Provisional.** The "ground truth" below is the curated chain corpus in
+> `chainSeed.ts`, which was written from general knowledge, not transcribed from
+> fetched nutrition tables (the fetches were blocked or client-rendered). An
+> earlier version of this doc and that file presented it as verified. Until each
+> brand is checked against its published table and calibration is re-run, read
+> these as the estimator's disagreement with our best guess, not measured error.
+
+**What it measured** (39 chain items, gemini-2.5-flash, 2026-09-13). The raw
 estimator ran hot — it over-estimated almost everything, and by wildly different amounts
 per cuisine:
 
@@ -182,3 +189,34 @@ permanently.
 4. **Indie menu pipeline** — tiered acquisition, GCS artifacts, Gemini structuring/vision.
 5. **Calibration harness** — estimator vs chain ground truth, per-cuisine error bars.
 6. **Web UI** — budget/diet controls, provenance and confidence surfaced, directions.
+
+
+---
+
+## D9 — One diet profile, from everywhere the user told us
+
+The coach intake has always asked "Any dietary restrictions or preferences?"
+(vegetarian, vegan, gluten-free, dairy-free, halal/kosher, food allergies), and
+the nutrition assessment asks how the user eats and what they cannot digest. The
+Food Finder originally read only its own new columns, so users who had answered
+halal/kosher in onboarding were offered pork. `resolveDietProfile` merges all of
+it:
+
+- Until the user saves their diet in the Food Finder, intake and assessment
+  answers are **unioned** — a filter should err toward hiding.
+- The intake's combined "Halal / Kosher" option resolves to **both**, and the UI
+  asks which applies. Hiding shellfish from a halal user is recoverable; showing
+  it to someone who keeps kosher is not.
+- "Food allergies" with no specifics becomes `unspecifiedAllergy`: nothing can be
+  excluded on an allergen we were not told, so every unverifiable dish carries a
+  warning and the UI asks which.
+- Once saved in the Food Finder, that profile is the truth — including an explicit
+  empty list, so a user can clear what onboarding recorded.
+
+## D10 — Outage is not the same as an empty area
+
+A failed Places search and a successful one that found nothing both used to
+return `[]`, so a user in a quiet area was told "couldn't reach nearby data".
+`searchNearbyResult` reports `failed` separately; the finder returns `degraded`
+(we could not look) and `empty` (we looked; nothing within N km) as distinct
+states.

@@ -1,5 +1,5 @@
 /**
- * Turn nearby restaurants into menu candidates using real published nutrition
+ * Turn nearby restaurants into menu candidates using each chain's menu
  * where the restaurant is a chain we know.
  *
  * This is the upgrade path for the takeout half of the finder. An unmatched
@@ -209,8 +209,10 @@ export function chainCandidates(matches: ChainMatch[]): Candidate[] {
           dietTags: item.dietTags,
           priceCents: item.priceCents,
           sourceUrl: item.sourceUrl,
-          // Consumed by the route: a published figure needs no hedge.
+          // Consumed by the route: only a verified published figure goes
+          // unhedged. The curated corpus is unverified and says so.
           published: item.confidence === 'published',
+          chainMenu: true,
         },
       });
     }

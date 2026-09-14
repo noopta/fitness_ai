@@ -3,6 +3,7 @@
   "model": "gemini-2.5-flash",
   "itemsMeasured": 39,
   "globalBiasPct": 20,
+  "groundTruth": "curated-unverified",
   "corrections": {
     "mexican": {
       "biasPct": 17.6,
