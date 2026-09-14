@@ -43,7 +43,7 @@ import {
   type TurnRow,
   type Verdict,
 } from '../services/liftDiagnostic/verdict.js';
-import { probeBufferDurationSec, runDiagnosticVideo } from '../services/liftDiagnostic/video.js';
+import { parseTrimWindow, probeBufferDurationSec, runDiagnosticVideo, trimVideoBuffer } from '../services/liftDiagnostic/video.js';
 import { writeThroughWorkingSets } from '../services/liftDiagnostic/writeThrough.js';
 
 const router = Router();
@@ -75,6 +75,9 @@ const VIDEO_STALE_MS = 150 * 1000;
 // verdict). Longer than the slowest legitimate turn (LONG_TIMEOUT 180s).
 const TURN_STALE_MS = 10 * 60 * 1000;
 const PENDING = '{"__pending":true}';
+const VIDEO_PENDING = JSON.stringify({ video: { status: 'pending' } });
+/** In-flight video jobs by session, so a Skip can abandon the analysis. */
+const videoJobs = new Map<string, AbortController>();
 
 class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -392,6 +395,19 @@ async function applyTurn(
         }
       });
 
+    case 'skipVideo': {
+      // Skipped while the clip was uploading or being analyzed: abandon the
+      // job and mark its turn aborted, so a late result can never land in a
+      // transcript the user has already moved past.
+      videoJobs.get(session.id)?.abort();
+      videoJobs.delete(session.id);
+      await prisma.diagnosticTurn.updateMany({
+        where: { sessionId: session.id, type: 'video', resultJson: VIDEO_PENDING },
+        data: { resultJson: JSON.stringify({ video: { status: 'aborted', result: null } }) },
+      });
+      return {};
+    }
+
     default:
       return {};
   }
@@ -582,9 +598,20 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
     if (!req.file) throw new HttpError(400, 'Attach a clip as the "video" field');
     const turns = await turnRows(session.id);
     if (!turns.some((t) => t.type === 'main')) throw new HttpError(409, 'Log a working set first');
-    if (turns.some((t) => t.type === 'video')) throw new HttpError(409, 'This diagnostic already has a video');
+    if (turns.some((t) => t.type === 'video' && t.result?.video?.status !== 'aborted')) {
+      throw new HttpError(409, 'This diagnostic already has a video');
+    }
 
-    const durationSec = await probeBufferDurationSec(req.file.buffer, req.file.mimetype);
+    // Trim window from the in-app trimmer (Android/web; iOS trims natively
+    // before upload). Cut first, so every later step sees only the chosen rep.
+    let videoBuffer = req.file.buffer;
+    const trim = parseTrimWindow(req.body?.trimStart, req.body?.trimEnd, MAX_CLIP_SECONDS + CLIP_GRACE_SECONDS);
+    if (trim) {
+      const trimmed = await trimVideoBuffer(videoBuffer, req.file.mimetype, trim.startSec, trim.endSec);
+      if (trimmed) videoBuffer = trimmed;
+    }
+
+    const durationSec = await probeBufferDurationSec(videoBuffer, req.file.mimetype);
     if (durationSec != null && durationSec > MAX_CLIP_SECONDS + CLIP_GRACE_SECONDS) {
       throw new HttpError(400, 'Keep the clip under 60 seconds — one working rep is plenty');
     }
@@ -613,11 +640,16 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
     // Stills follow the form-video rules: explicit opt-in AND 18+.
     const wantsFrame = String(req.body?.saveFrames ?? '') === '1';
     const dob = wantsFrame ? (await prisma.user.findUnique({ where: { id: userId }, select: { dateOfBirth: true } }))?.dateOfBirth : null;
-    const videoBuffer = req.file.buffer;
     const mimeType = req.file.mimetype;
+    const job = new AbortController();
+    videoJobs.get(session.id)?.abort();
+    videoJobs.set(session.id, job);
 
     // Fire-and-forget; MUST be caught — an unhandled rejection can kill the process.
-    runDiagnosticVideo({ userId, lift: session.selectedLift, videoBuffer, mimeType, framesAllowed: wantsFrame && isAdult(dob) })
+    runDiagnosticVideo({ userId, lift: session.selectedLift, videoBuffer, mimeType, framesAllowed: wantsFrame && isAdult(dob), signal: job.signal })
+      .finally(() => {
+        if (videoJobs.get(session.id) === job) videoJobs.delete(session.id);
+      })
       .then((result) =>
         // Only while still pending: a job that outlived the stale window was
         // already reported failed, and the user has moved on to the interview.

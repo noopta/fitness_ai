@@ -26,6 +26,7 @@ import { runBootPrefetch } from '../src/lib/prefetch';
 import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
 import { hasSeenFormHook } from '../src/onboarding/formhook/storage';
 import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
+import { hasSeenDiagnosticFirst } from '../src/onboarding/diagnosticFirst';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
 // it captures module-load startup errors. Here we only wrap the root component.
@@ -166,6 +167,24 @@ function RootNavigator() {
   const [seenFormHook, setSeenFormHook] = useState<boolean | null>(null);
   const refreshFormHook = useCallback(() => { void hasSeenFormHook().then(setSeenFormHook); }, []);
   useEffect(() => { refreshFormHook(); }, [refreshFormHook]);
+
+  // Fresh installs run the App Store bundle on their FIRST launch, and that
+  // bundle predates the conversational diagnostic — it signs a new user in
+  // and drops them into the coach intake. The first launch that runs this
+  // (updated) bundle catches them: a signed-in user who hasn't finished the
+  // intake and hasn't seen the diagnostic goes there once, before anything else.
+  const diagnosticCatchDone = useRef(false);
+  useEffect(() => {
+    if (loading || !user || needsDobCheck || diagnosticCatchDone.current) return;
+    // Already routed into (or through) the diagnostic this launch — never bounce back.
+    if ((segments[0] as string) === 'diagnostic') { diagnosticCatchDone.current = true; return; }
+    if ((segments[0] as string) !== '(tabs)') return;
+    diagnosticCatchDone.current = true;
+    if (user.coachOnboardingDone || !getFeatures().liftDiagnosticConversation) return;
+    void hasSeenDiagnosticFirst().then((seen) => {
+      if (!seen) router.replace('/diagnostic/conversation' as any);
+    });
+  }, [user, loading, needsDobCheck, segments]);
 
   useEffect(() => {
     if (loading || seenCinematic === null || seenFormHook === null) return;

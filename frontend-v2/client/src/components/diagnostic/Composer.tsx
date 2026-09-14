@@ -53,9 +53,12 @@ function Mode({ view, stage, controller: c, onOpenReport, onDone }: Props) {
       );
     case 'waiting':
       return (
-        <div className="flex min-h-12 items-center justify-center gap-2.5 text-sm font-semibold text-zinc-500" role="status">
-          <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
-          {view.label}
+        <div className="flex min-h-12 items-center justify-center gap-4">
+          <div className="flex items-center gap-2.5 text-sm font-semibold text-zinc-500" role="status">
+            <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+            {view.label}
+          </div>
+          {view.canSkip ? <QuietButton onClick={() => c.skipVideo()}>{COPY.skip}</QuietButton> : null}
         </div>
       );
     case 'done':
@@ -218,6 +221,9 @@ function VideoComposer({ disabled, controller }: { disabled: boolean; controller
   const recordRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [picked, setPicked] = useState<{ file: File; url: string; duration: number } | null>(null);
+
+  useEffect(() => () => { if (picked) URL.revokeObjectURL(picked.url); }, [picked]);
 
   const onFile = async (file: File | undefined) => {
     setNote(null);
@@ -227,12 +233,32 @@ function VideoComposer({ disabled, controller }: { disabled: boolean; controller
       return;
     }
     const duration = await readVideoDuration(file);
-    if (duration != null && duration > MAX_CLIP_SECONDS + 2) {
-      setNote('Keep it under 60 seconds — one working rep is plenty.');
+    if (duration == null) {
+      // Can't read its length in this browser — send as-is; the server caps it.
+      controller.act({ type: 'video', durationSec: null, file: { file } });
       return;
     }
-    controller.act({ type: 'video', durationSec: duration != null ? Math.round(duration) : null, file });
+    setPicked({ file, url: URL.createObjectURL(file), duration });
   };
+
+  if (picked) {
+    return (
+      <TrimPanel
+        url={picked.url}
+        duration={picked.duration}
+        onCancel={() => setPicked(null)}
+        onUse={(trim) => {
+          const whole = trim.startSec <= 0.05 && trim.endSec >= picked.duration - 0.05;
+          controller.act({
+            type: 'video',
+            durationSec: Math.round(trim.endSec - trim.startSec),
+            file: whole ? { file: picked.file } : { file: picked.file, trim },
+          });
+          setPicked(null);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -247,9 +273,65 @@ function VideoComposer({ disabled, controller }: { disabled: boolean; controller
         <OutlineButton className="px-4 md:hidden" disabled={disabled} onClick={() => recordRef.current?.click()} aria-label="Record a set">
           <Video size={18} strokeWidth={2} />
         </OutlineButton>
-        <QuietButton disabled={disabled} onClick={() => controller.act({ type: 'skipVideo' })}>
-          {COPY.skip}
-        </QuietButton>
+        <QuietButton onClick={() => controller.skipVideo()}>{COPY.skip}</QuietButton>
+      </div>
+    </div>
+  );
+}
+
+const MAX_WINDOW = 60;
+
+/** Trim to one rep: preview + start/end handles. The server cuts the clip to this window. */
+function TrimPanel({ url, duration, onCancel, onUse }: { url: string; duration: number; onCancel: () => void; onUse: (t: { startSec: number; endSec: number }) => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [start, setStart] = useState(0);
+  const [end, setEnd] = useState(Math.min(duration, MAX_WINDOW));
+  const length = end - start;
+  const fmt = (t: number) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+
+  const move = (which: 'start' | 'end', value: number) => {
+    let s = which === 'start' ? value : start;
+    let e = which === 'end' ? value : end;
+    if (e - s < 0.5) (which === 'start' ? (s = Math.max(0, e - 0.5)) : (e = Math.min(duration, s + 0.5)));
+    if (e - s > MAX_WINDOW) (which === 'start' ? (e = s + MAX_WINDOW) : (s = e - MAX_WINDOW));
+    setStart(s);
+    setEnd(e);
+    if (videoRef.current) videoRef.current.currentTime = which === 'start' ? s : e;
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <div className="text-[15px] font-semibold text-zinc-950">{COPY.trimTitle}</div>
+        <p className="text-[13px] text-zinc-500">{COPY.trimHint}</p>
+      </div>
+      <video
+        ref={videoRef}
+        src={url}
+        playsInline
+        muted
+        className="max-h-[38vh] w-full rounded-xl bg-zinc-100 object-contain"
+        onClick={(e) => {
+          const v = e.currentTarget;
+          if (v.paused) { v.currentTime = start; void v.play(); } else v.pause();
+        }}
+        onTimeUpdate={(e) => { if (e.currentTarget.currentTime >= end) e.currentTarget.pause(); }}
+      />
+      <label className="flex items-center gap-3 text-xs font-semibold text-zinc-500">
+        <span className="w-10">Start</span>
+        <input type="range" min={0} max={duration} step={0.1} value={start} onChange={(e) => move('start', +e.target.value)} className="flex-1 accent-zinc-950" aria-label="Trim start" />
+        <span className="w-12 text-right tabular-nums">{fmt(start)}</span>
+      </label>
+      <label className="flex items-center gap-3 text-xs font-semibold text-zinc-500">
+        <span className="w-10">End</span>
+        <input type="range" min={0} max={duration} step={0.1} value={end} onChange={(e) => move('end', +e.target.value)} className="flex-1 accent-zinc-950" aria-label="Trim end" />
+        <span className="w-12 text-right tabular-nums">{fmt(end)}</span>
+      </label>
+      <div className="flex gap-2.5">
+        <OutlineButton className="flex-1" onClick={onCancel}>{COPY.trimCancel}</OutlineButton>
+        <InkButton className="flex-1" disabled={length < 0.5 || length > MAX_WINDOW + 0.05} onClick={() => onUse({ startSec: start, endSec: end })}>
+          {COPY.trimUse} · {fmt(length)}
+        </InkButton>
       </div>
     </div>
   );

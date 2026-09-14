@@ -45,7 +45,7 @@ export interface DiagnosticState {
   pushedBack: boolean;
   /** Came back from the report via "Add the missing numbers". */
   rescoring: boolean;
-  video: { status: 'none' | 'skipped' | 'analyzing' | 'done' | 'failed'; turnId?: string; result?: VideoResult };
+  video: { status: 'none' | 'skipped' | 'uploading' | 'analyzing' | 'aborted' | 'done' | 'failed'; turnId?: string; result?: VideoResult };
   questionOrder: QuestionId[];
   answers: Partial<Record<QuestionId, Answer>>;
   verdict: Verdict | null;
@@ -132,8 +132,10 @@ export function canSubmit(s: DiagnosticState, input: TurnInput): boolean {
     case 'moveOn':
       return s.stage === 'acc' && canMoveOn(s.accessories);
     case 'video':
-    case 'skipVideo':
       return s.stage === 'video';
+    case 'skipVideo':
+      // Skip stays available while the clip is being analyzed (§6: never blocking).
+      return s.stage === 'video' || s.stage === 'analyzing';
     case 'answer':
       return isQuestionStage(s.stage) && input.question === s.stage && input.text.trim().length > 0;
     case 'verdict':
@@ -193,7 +195,7 @@ function submit(s: DiagnosticState, turn: Turn, bubbleId?: string): DiagnosticSt
   // (a spinner) is what the user sees while the request is in flight.
   const input = turn.input;
   if (input.type === 'verdict') next = toStage(next, 'generating');
-  if (input.type === 'video') next = toStage({ ...next, video: { status: 'analyzing', turnId: turn.id } }, 'analyzing');
+  if (input.type === 'video') next = toStage({ ...next, video: { status: 'uploading', turnId: turn.id } }, 'analyzing');
   if (input.type === 'accessory' && s.rescoring) {
     next = toStage(anakin(next, COPY.rescoring(loggedCount(s.accessories) + 1)), 'generating');
   }
@@ -279,15 +281,22 @@ function applyTurn(s: DiagnosticState, turn: Turn, result: TurnResult): Diagnost
       return s.rescoring ? keepVerdict(s) : toVideo(s);
 
     case 'video': {
-      const withTurn = { ...s, video: { status: 'analyzing' as const, turnId: turn.id } };
       const v = result.video;
-      if (v?.status === 'complete') return resolveVideo(toStage(withTurn, 'analyzing'), turn.id, v.result ?? null);
-      if (v?.status === 'failed') return resolveVideo(toStage(withTurn, 'analyzing'), turn.id, null);
-      return toStage(withTurn, 'analyzing');
+      // Skipped mid-upload: nothing reached analysis, so no "measuring" beat.
+      if (v?.status === 'aborted') return toStage({ ...s, video: { status: 'aborted', turnId: turn.id } }, 'analyzing');
+      const waiting = toStage(anakin({ ...s, video: { status: 'analyzing' as const, turnId: turn.id } }, COPY.videoWait), 'analyzing');
+      if (v?.status === 'complete') return resolveVideo(waiting, turn.id, v.result ?? null);
+      if (v?.status === 'failed') return resolveVideo(waiting, turn.id, null);
+      return waiting;
     }
 
-    case 'skipVideo':
-      return askQuestion(anakin({ ...s, video: { status: 'skipped' }, questionOrder: ALL_QUESTIONS }, COPY.videoSkipped), 'q0');
+    case 'skipVideo': {
+      const midAnalysis = s.stage === 'analyzing';
+      return askQuestion(
+        anakin({ ...s, video: { status: 'skipped' }, questionOrder: ALL_QUESTIONS }, midAnalysis ? COPY.videoSkippedMid : COPY.videoSkipped),
+        'q0',
+      );
+    }
 
     case 'answer': {
       const answer: Answer = {

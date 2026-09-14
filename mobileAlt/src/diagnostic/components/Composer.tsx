@@ -15,6 +15,7 @@ import {
 } from '@axiom/diagnostic-core';
 import { Chip, InkButton, OutlineButton, QuietButton, SendButton } from './primitives';
 import type { PickedClip } from '../api';
+import { TrimSheet } from './TrimSheet';
 
 const C = DX.color;
 const MAX_CLIP_SECONDS = 60;
@@ -58,9 +59,13 @@ function renderMode(view: ComposerView, c: DiagnosticController, onOpenReport: (
       return <InkButton label={view.label} disabled={view.disabled} onPress={() => c.act({ type: 'verdict' })} />;
     case 'waiting':
       return (
-        <View style={styles.waiting} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={C.ink} />
-          <Text style={styles.waitingText}>{view.label}</Text>
+        <View style={styles.waitingRow}>
+          <View style={styles.waiting} accessibilityLiveRegion="polite">
+            <ActivityIndicator color={C.ink} />
+            <Text style={styles.waitingText}>{view.label}</Text>
+          </View>
+          {/* Video only: skipping abandons the upload/analysis and moves on. */}
+          {view.canSkip ? <QuietButton label={COPY.skip} onPress={() => c.skipVideo()} /> : null}
         </View>
       );
     case 'done':
@@ -215,34 +220,53 @@ function AccessoryComposer({ view, controller }: { view: Extract<ComposerView, {
 function VideoComposer({ disabled, controller }: { disabled: boolean; controller: DiagnosticController }) {
   const [choosing, setChoosing] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [trimming, setTrimming] = useState<PickedClip | null>(null);
+
+  const send = (clip: PickedClip) => {
+    const seconds = clip.trim ? clip.trim.endSec - clip.trim.startSec : clip.durationSec;
+    setChoosing(false);
+    controller.act({ type: 'video', durationSec: seconds ? Math.round(seconds) : null, file: clip });
+  };
 
   const pick = async (source: 'camera' | 'library') => {
     setNote(null);
-    const perm = source === 'camera'
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setNote(source === 'camera' ? 'Camera access is off — choose a clip instead.' : 'Photo access is off — record one instead.');
-      return;
+    try {
+      const perm = source === 'camera'
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        setNote(source === 'camera' ? 'Camera access is off — choose a clip instead.' : 'Photo access is off — record one instead.');
+        return;
+      }
+      const options: ImagePicker.ImagePickerOptions = {
+        mediaTypes: ['videos'],
+        videoMaxDuration: MAX_CLIP_SECONDS,
+        quality: 0.7,
+        // iOS: the system editor lets the user trim, and enforces the 60s cap.
+        // Android's picker has no video editor — TrimSheet covers that below.
+        allowsEditing: Platform.OS === 'ios',
+        videoQuality: ImagePicker.UIImagePickerControllerQualityType.IFrame1280x720,
+      };
+      const res = source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
+      if (res.canceled || !res.assets?.[0]) return;
+      const asset = res.assets[0];
+      const durationSec = asset.duration ? asset.duration / 1000 : null;
+      const saveFrames = (await AsyncStorage.getItem(SAVE_FRAMES_KEY).catch(() => null)) === '1';
+      const clip: PickedClip = { uri: asset.uri, mimeType: asset.mimeType ?? 'video/mp4', durationSec, saveFrames };
+      if (Platform.OS !== 'ios' && durationSec) {
+        setTrimming(clip);
+        return;
+      }
+      if (durationSec != null && durationSec > MAX_CLIP_SECONDS + 2) {
+        setNote(COPY.trimTooLong);
+        return;
+      }
+      send(clip);
+    } catch {
+      // Picker/export failures (iCloud-only clips, codec exports) used to vanish
+      // silently. Say so, and keep Skip one tap away.
+      setNote(COPY.clipPickFailed);
     }
-    const options: ImagePicker.ImagePickerOptions = {
-      mediaTypes: ['videos'],
-      videoMaxDuration: MAX_CLIP_SECONDS,
-      quality: 0.7,
-      videoQuality: ImagePicker.UIImagePickerControllerQualityType.IFrame1280x720,
-    };
-    const res = source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
-    if (res.canceled || !res.assets?.[0]) return;
-    const asset = res.assets[0];
-    const durationSec = asset.duration ? asset.duration / 1000 : null;
-    if (durationSec != null && durationSec > MAX_CLIP_SECONDS + 2) {
-      setNote('Keep it under 60 seconds — one working rep is plenty.');
-      return;
-    }
-    const saveFrames = (await AsyncStorage.getItem(SAVE_FRAMES_KEY).catch(() => null)) === '1';
-    const clip: PickedClip = { uri: asset.uri, mimeType: asset.mimeType ?? 'video/mp4', durationSec, saveFrames };
-    setChoosing(false);
-    controller.act({ type: 'video', durationSec: durationSec ? Math.round(durationSec) : null, file: clip });
   };
 
   return (
@@ -256,10 +280,24 @@ function VideoComposer({ disabled, controller }: { disabled: boolean; controller
       ) : (
         <View style={styles.row}>
           <InkButton label={COPY.attachSet} icon="attach-outline" disabled={disabled} onPress={() => setChoosing(true)} style={{ flex: 1 }} />
-          <QuietButton label={COPY.skip} disabled={disabled} onPress={() => controller.act({ type: 'skipVideo' })} />
+          <QuietButton label={COPY.skip} onPress={() => controller.skipVideo()} />
         </View>
       )}
-      {choosing ? <QuietButton label={COPY.skip} disabled={disabled} onPress={() => controller.act({ type: 'skipVideo' })} /> : null}
+      {choosing ? <QuietButton label={COPY.skip} onPress={() => controller.skipVideo()} /> : null}
+      {trimming && trimming.durationSec ? (
+        <TrimSheet
+          key={trimming.uri}
+          visible
+          uri={trimming.uri}
+          durationSec={trimming.durationSec}
+          onCancel={() => setTrimming(null)}
+          onDone={(trim) => {
+            const clip = { ...trimming, trim };
+            setTrimming(null);
+            send(clip);
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -274,6 +312,7 @@ const styles = StyleSheet.create({
   inner: { paddingHorizontal: 16, paddingTop: 12 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: DX.chip.gap },
+  waitingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   waiting: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 48 },
   waitingText: { fontSize: 14, fontWeight: '600', color: C.muted },
   caption: { fontSize: 13, fontWeight: '500', color: C.muted, textAlign: 'center', paddingVertical: 12 },

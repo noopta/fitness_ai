@@ -23,7 +23,7 @@ export type ComposerView =
     }
   | { mode: 'video'; disabled: boolean }
   | { mode: 'generate'; label: string; disabled: boolean }
-  | { mode: 'waiting'; label: string }
+  | { mode: 'waiting'; label: string; canSkip: boolean }
   | { mode: 'done' }
   | { mode: 'blocked'; caption: string };
 
@@ -66,7 +66,10 @@ export function composerView(s: DiagnosticState): ComposerView {
     case 'generate':
       return { mode, label: COPY.getVerdict, disabled };
     case 'waiting':
-      return { mode, label: s.stage === 'analyzing' ? COPY.trackingBar : COPY.writingVerdict };
+      if (s.stage === 'analyzing') {
+        return { mode, label: s.video.status === 'uploading' ? COPY.uploadingSet : COPY.measuringSet, canSkip: true };
+      }
+      return { mode, label: COPY.writingVerdict, canSkip: false };
     case 'done':
       return { mode };
     case 'blocked':

@@ -7,8 +7,8 @@ export interface DiagnosticApi {
   load(sessionId: string): Promise<LoadResponse>;
   sendTurn(sessionId: string, clientTurnId: string, input: TurnInput): Promise<TurnResult>;
   /** Multipart upload of the clip; resolves once the server has accepted the job. */
-  uploadVideo(sessionId: string, clientTurnId: string, file: unknown, durationSec: number | null): Promise<TurnResult>;
-  videoStatus(sessionId: string, clientTurnId: string): Promise<{ status: 'pending' | 'complete' | 'failed'; result?: VideoResult | null }>;
+  uploadVideo(sessionId: string, clientTurnId: string, file: unknown, durationSec: number | null, signal?: AbortSignal): Promise<TurnResult>;
+  videoStatus(sessionId: string, clientTurnId: string): Promise<{ status: 'pending' | 'complete' | 'failed' | 'aborted'; result?: VideoResult | null }>;
   getReport(sessionId: string): Promise<Verdict>;
 }
 
@@ -51,6 +51,8 @@ export class DiagnosticController {
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly resuming: boolean;
   private started = false;
+  private uploadAbort: AbortController | null = null;
+  private cancelledUploads = new Set<string>();
 
   constructor(private readonly api: DiagnosticApi, private readonly opts: ControllerOptions = {}) {
     this.resuming = !!opts.sessionId;
@@ -117,6 +119,23 @@ export class DiagnosticController {
     void this.send(pending.turn.id, pending.turn.input);
   }
 
+  /**
+   * Skip the video from wherever it is: before attaching, mid-upload, after a
+   * failed upload, or while the server is analyzing. An in-flight upload is
+   * aborted; the server abandons any analysis when the skip turn lands.
+   */
+  skipVideo(): boolean {
+    const pending = this.state.pending;
+    if (pending && pending.turn.input.type === 'video') {
+      this.cancelledUploads.add(pending.turn.id);
+      if (pending.status === 'sending') this.uploadAbort?.abort();
+      this.dispatch({ type: 'succeeded', turnId: pending.turn.id, result: { video: { status: 'aborted' } } });
+    }
+    if (this.pollTimer) clearTimeout(this.pollTimer);
+    this.pollTimer = null;
+    return this.act({ type: 'skipVideo' });
+  }
+
   setTypeInstead(value: boolean): void {
     this.dispatch({ type: 'setTypeInstead', value });
   }
@@ -150,7 +169,10 @@ export class DiagnosticController {
     try {
       let result: TurnResult;
       if (input.type === 'video') {
-        result = await this.api.uploadVideo(sessionId, turnId, input.file, input.durationSec);
+        this.uploadAbort = new AbortController();
+        result = await this.api.uploadVideo(sessionId, turnId, input.file, input.durationSec, this.uploadAbort.signal);
+        this.uploadAbort = null;
+        if (this.cancelledUploads.has(turnId)) return;
       } else {
         result = await this.api.sendTurn(sessionId, turnId, stripLocal(input));
       }
@@ -161,6 +183,7 @@ export class DiagnosticController {
       this.afterSuccess(before, input, result);
       if (input.type === 'video' && (!result.video || result.video.status === 'pending')) this.poll(turnId, Date.now());
     } catch (err) {
+      if (this.cancelledUploads.has(turnId)) return; // the user skipped; not a failure
       const status = (err as { status?: number }).status ?? null;
       if (status === 429 && input.type === 'verdict') {
         this.dispatch({ type: 'succeeded', turnId, result: { limitReached: true } });
@@ -210,6 +233,7 @@ export class DiagnosticController {
         const status = await this.api.videoStatus(this.state.sessionId, turnId);
         if (status.status === 'complete') return this.resolveVideo(turnId, status.result ?? null);
         if (status.status === 'failed') return this.resolveVideo(turnId, null);
+        if (status.status === 'aborted') return;
       } catch {
         /* transient — keep polling until the timeout */
       }

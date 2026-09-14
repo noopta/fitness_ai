@@ -15,6 +15,8 @@ export interface PickedClip {
   durationSec: number | null;
   /** The user's stills preference from Form Analysis — stills stay opt-in. */
   saveFrames: boolean;
+  /** In-app trim window (Android); iOS trims natively before we ever see the file. */
+  trim?: { startSec: number; endSec: number };
 }
 
 const base = (id: string) => `/lift-diagnostics/${id}`;
@@ -35,7 +37,7 @@ export const diagnosticApi: DiagnosticApi = {
     return res?.result ?? {};
   },
 
-  async uploadVideo(sessionId, clientTurnId, file, durationSec) {
+  async uploadVideo(sessionId, clientTurnId, file, durationSec, signal) {
     const clip = file as PickedClip;
     const form = new FormData();
     const ext = clip.mimeType.split('/')[1]?.replace('quicktime', 'mov') ?? 'mp4';
@@ -43,7 +45,11 @@ export const diagnosticApi: DiagnosticApi = {
     form.append('clientTurnId', clientTurnId);
     if (durationSec != null) form.append('durationSec', String(durationSec));
     form.append('saveFrames', clip.saveFrames ? '1' : '0');
-    const res = await apiUpload(`${base(sessionId)}/video`, form);
+    if (clip.trim) {
+      form.append('trimStart', clip.trim.startSec.toFixed(2));
+      form.append('trimEnd', clip.trim.endSec.toFixed(2));
+    }
+    const res = await apiUpload(`${base(sessionId)}/video`, form, undefined, signal);
     return res?.result ?? { video: { status: 'pending' } };
   },
 

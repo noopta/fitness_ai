@@ -11,7 +11,9 @@ import { Type } from '@google/genai';
 import { client, assertNotBlocked, SAFETY_SETTINGS, uploadFormVideo } from '../geminiService.js';
 import { screenFormVideo, recordScreenVerdict } from '../formVideoScreeningService.js';
 import { extractStillAt, probeDurationSec } from '../formFrameService.js';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, rm, readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { LIFT_NAMES, LIFT_PHASES, liftFamily, type ConversationLift } from './policy.js';
@@ -72,10 +74,12 @@ export async function measureDiagnosticVideo(
   fileUri: string,
   mimeType: string,
   lift: ConversationLift,
+  signal?: AbortSignal,
 ): Promise<Measurement> {
   const res = await client().models.generateContent({
     model: MODEL,
     config: {
+      abortSignal: signal,
       systemInstruction: SYSTEM,
       responseMimeType: 'application/json',
       responseSchema: schemaFor(lift),
@@ -126,6 +130,8 @@ export async function runDiagnosticVideo(opts: {
   videoBuffer: Buffer;
   mimeType: string;
   framesAllowed: boolean;
+  /** The user skipped: stop spending on this clip. Screening still completes. */
+  signal?: AbortSignal;
 }): Promise<VideoResult | null> {
   let upload: { fileUri: string; cleanup: () => void } | null = null;
   let preserve = false;
@@ -136,7 +142,7 @@ export async function runDiagnosticVideo(opts: {
     // still be recorded (and, for a quarantine, preserved).
     const [screened, measured] = await Promise.allSettled([
       screenFormVideo(upload.fileUri, opts.mimeType),
-      measureDiagnosticVideo(upload.fileUri, opts.mimeType, opts.lift),
+      measureDiagnosticVideo(upload.fileUri, opts.mimeType, opts.lift, opts.signal),
     ]);
     if (screened.status === 'rejected') throw screened.reason;
     const screen = screened.value;
@@ -150,6 +156,7 @@ export async function runDiagnosticVideo(opts: {
       });
       return null;
     }
+    if (opts.signal?.aborted) return null;
     if (measured.status === 'rejected') throw measured.reason;
     const measurement = measured.value;
     const frame =
@@ -180,4 +187,50 @@ export async function probeBufferDurationSec(videoBuffer: Buffer, mimeType: stri
   } finally {
     if (workDir) await rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+const execFileAsync = promisify(execFile);
+
+/**
+ * Cut the clip to the user's trim window before anything else sees it.
+ * Stream copy (no re-encode) keeps this ~instant on the shared 2-vCPU box;
+ * the cut snaps to the keyframe at or before `startSec`, which only ever adds
+ * a moment of lead-in. Null on any ffmpeg failure.
+ */
+export async function trimVideoBuffer(
+  videoBuffer: Buffer,
+  mimeType: string,
+  startSec: number,
+  endSec: number,
+): Promise<Buffer | null> {
+  let workDir: string | null = null;
+  try {
+    workDir = await mkdtemp(path.join(tmpdir(), 'diag-trim-'));
+    const ext = (mimeType.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+    const inPath = path.join(workDir, `in.${ext}`);
+    const outPath = path.join(workDir, `out.${ext}`);
+    await writeFile(inPath, videoBuffer);
+    await execFileAsync(
+      'ffmpeg',
+      ['-v', 'error', '-ss', startSec.toFixed(3), '-i', inPath, '-t', (endSec - startSec).toFixed(3),
+        '-c', 'copy', '-avoid_negative_ts', 'make_zero', '-movflags', '+faststart', outPath],
+      { timeout: 60_000 },
+    );
+    const out = await readFile(outPath);
+    return out.length > 0 ? out : null;
+  } catch (err: any) {
+    console.warn(`[lift-diagnostic] trim failed: ${err?.message ?? err}`);
+    return null;
+  } finally {
+    if (workDir) await rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/** Parse and validate a client trim window. Null = no (usable) window. */
+export function parseTrimWindow(rawStart: unknown, rawEnd: unknown, maxSeconds: number): { startSec: number; endSec: number } | null {
+  const startSec = Number(rawStart);
+  const endSec = Number(rawEnd);
+  if (!Number.isFinite(startSec) || !Number.isFinite(endSec)) return null;
+  if (startSec < 0 || endSec - startSec < 0.5 || endSec - startSec > maxSeconds) return null;
+  return { startSec, endSec };
 }

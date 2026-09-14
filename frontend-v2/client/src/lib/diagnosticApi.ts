@@ -33,9 +33,14 @@ export const diagnosticApi: DiagnosticApi = {
     return (await json<{ result?: TurnResult }>(res)).result ?? {};
   },
 
-  async uploadVideo(sessionId, clientTurnId, file, durationSec) {
+  async uploadVideo(sessionId, clientTurnId, file, durationSec, signal) {
+    const clip = file as { file: File; trim?: { startSec: number; endSec: number } };
     const form = new FormData();
-    form.append('video', file as File);
+    form.append('video', clip.file);
+    if (clip.trim) {
+      form.append('trimStart', clip.trim.startSec.toFixed(2));
+      form.append('trimEnd', clip.trim.endSec.toFixed(2));
+    }
     form.append('clientTurnId', clientTurnId);
     if (durationSec != null) form.append('durationSec', String(durationSec));
     // authFetch forces JSON content-type, which breaks multipart — send it by hand.
@@ -45,6 +50,7 @@ export const diagnosticApi: DiagnosticApi = {
       body: form,
       credentials: 'include',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      signal,
     });
     return (await json<{ result?: TurnResult }>(res)).result ?? { video: { status: 'pending' } };
   },

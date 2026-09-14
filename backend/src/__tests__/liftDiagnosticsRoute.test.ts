@@ -150,7 +150,15 @@ const PLAN = {
 };
 const generateWorkoutPlan = vi.hoisted(() => vi.fn());
 vi.mock('../services/llmService.js', () => ({ generateWorkoutPlan }));
-vi.mock('../services/liftDiagnostic/video.js', () => ({ runDiagnosticVideo: vi.fn(), probeBufferDurationSec: vi.fn(async () => 8) }));
+const videoMocks = vi.hoisted(() => ({
+  runDiagnosticVideo: vi.fn(),
+  probeBufferDurationSec: vi.fn(async () => 8),
+  trimVideoBuffer: vi.fn(async () => Buffer.from('trimmed')),
+}));
+vi.mock('../services/liftDiagnostic/video.js', async () => {
+  const actual = await vi.importActual<any>('../services/liftDiagnostic/video.js');
+  return { ...videoMocks, parseTrimWindow: actual.parseTrimWindow };
+});
 const writeThrough = vi.hoisted(() => vi.fn(async () => 'log-1'));
 vi.mock('../services/liftDiagnostic/writeThrough.js', () => ({ writeThroughWorkingSets: writeThrough }));
 vi.mock('../middleware/rateLimiter.js', () => ({ aiLimiter: (_q: any, _s: any, next: any) => next() }));
@@ -401,6 +409,53 @@ describe('robustness', () => {
     expect(list.body.diagnostics[0].status).toBe('in_progress');
     const report = await request(app).get(`/api/lift-diagnostics/${SID}/report`).set('Authorization', FREE);
     expect(report.body.verdict.missingLifts).toEqual(['tricep_pushdown']);
+  });
+});
+
+describe('video: trim + skip', () => {
+  async function toVideo() {
+    await turn(FREE, { type: 'lift', lift: 'flat_bench_press' });
+    await turn(FREE, { type: 'main', set: SET(225) });
+    await turn(FREE, { type: 'accessory', exerciseId: 'close_grip_bench_press', set: SET(165) });
+    await turn(FREE, { type: 'accessory', exerciseId: 'paused_bench_press', set: SET(205) });
+    await turn(FREE, { type: 'moveOn' });
+  }
+
+  it('cuts the clip to the trim window before analysis', async () => {
+    let seenSignal: AbortSignal | undefined;
+    videoMocks.runDiagnosticVideo.mockImplementation(async (o: any) => { seenSignal = o.signal; return null; });
+    await toVideo();
+    const res = await request(app)
+      .post(`/api/lift-diagnostics/${SID}/video`)
+      .set('Authorization', FREE)
+      .field('clientTurnId', 'video-turn-1')
+      .field('trimStart', '12.5')
+      .field('trimEnd', '31')
+      .attach('video', Buffer.from('fake-video-bytes'), { filename: 'set.mp4', contentType: 'video/mp4' });
+    expect(res.status).toBe(202);
+    expect(videoMocks.trimVideoBuffer).toHaveBeenCalledWith(expect.any(Buffer), 'video/mp4', 12.5, 31);
+    expect(videoMocks.runDiagnosticVideo).toHaveBeenCalledWith(expect.objectContaining({ videoBuffer: Buffer.from('trimmed') }));
+    expect(seenSignal).toBeDefined();
+  });
+
+  it('Skip during analysis aborts the job and marks the video turn aborted so a late result is dropped', async () => {
+    let signal: AbortSignal | undefined;
+    let finish: (v: any) => void = () => {};
+    videoMocks.runDiagnosticVideo.mockImplementation((o: any) => { signal = o.signal; return new Promise((r) => { finish = r; }); });
+    await toVideo();
+    await request(app)
+      .post(`/api/lift-diagnostics/${SID}/video`)
+      .set('Authorization', FREE)
+      .field('clientTurnId', 'video-turn-2')
+      .attach('video', Buffer.from('fake'), { filename: 'set.mp4', contentType: 'video/mp4' });
+    expect((await turn(FREE, { type: 'skipVideo' })).status).toBe(200);
+    expect(signal?.aborted).toBe(true);
+    finish({ stickingPhase: 'lockout', stickingPointSec: 1, elbowFlareDeg: null, barDriftCm: null, frameUrl: null });
+    await new Promise((r) => setTimeout(r, 10));
+    const videoRow = db.tables.turn.find((t) => t.type === 'video');
+    expect(JSON.parse(videoRow.resultJson).video.status).toBe('aborted');
+    const status = await request(app).get(`/api/lift-diagnostics/${SID}/video/video-turn-2`).set('Authorization', FREE);
+    expect(status.body.status).toBe('aborted');
   });
 });
 

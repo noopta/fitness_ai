@@ -207,9 +207,11 @@ describe('optional video (§6)', () => {
     let s = toVideoStage();
     s = diagnosticReducer(s, { type: 'submit', turn: { id: 'v1', input: { type: 'video', durationSec: 12 } } });
     expect(s.stage).toBe('analyzing');
-    expect(composerView(s)).toEqual({ mode: 'waiting', label: COPY.trackingBar });
+    expect(composerView(s)).toEqual({ mode: 'waiting', label: COPY.uploadingSet, canSkip: true });
     s = diagnosticReducer(s, { type: 'succeeded', turnId: 'v1', result: { video: { status: 'pending' } } });
     expect(s.stage).toBe('analyzing');
+    expect(composerView(s)).toEqual({ mode: 'waiting', label: COPY.measuringSet, canSkip: true });
+    expect(s.thread.at(-1)).toMatchObject({ kind: 'anakin', text: COPY.videoWait });
     s = diagnosticReducer(s, { type: 'videoResolved', turnId: 'v1', result: VIDEO_OK });
     expect(s.stage).toBe('q1');
     expect(s.questionOrder).toEqual(['q1', 'q2']);
@@ -224,6 +226,32 @@ describe('optional video (§6)', () => {
     s = diagnosticReducer(s, { type: 'videoResolved', turnId: s.video.turnId!, result: null });
     expect(s.stage).toBe('q0');
     expect(s.questionOrder).toEqual(['q0', 'q1', 'q2']);
+  });
+
+  it('Skip while the clip is being analyzed abandons it and goes to the interview; a late result is ignored', () => {
+    let s = toVideoStage();
+    s = act(s, { type: 'video', durationSec: 12 }, { video: { status: 'pending' } });
+    const videoTurn = s.video.turnId!;
+    s = act(s, { type: 'skipVideo' });
+    expect(s.stage).toBe('q0');
+    expect(s.questionOrder).toEqual(['q0', 'q1', 'q2']);
+    expect(s.thread.some((t) => t.kind === 'anakin' && t.text === COPY.videoSkippedMid)).toBe(true);
+    const after = diagnosticReducer(s, { type: 'videoResolved', turnId: videoTurn, result: VIDEO_OK });
+    expect(after).toBe(s);
+  });
+
+  it('a transcript with an aborted upload then Skip replays to the same place', () => {
+    const turns: TurnRecord[] = [
+      { clientTurnId: 'a', seq: 0, input: { type: 'lift', lift: 'flat_bench_press' }, result: {}, createdAt: '' },
+      { clientTurnId: 'b', seq: 1, input: { type: 'main', set: SET }, result: {}, createdAt: '' },
+      { clientTurnId: 'c', seq: 2, input: { type: 'accessory', exerciseId: 'close_grip_bench_press', set: SET }, result: {}, createdAt: '' },
+      { clientTurnId: 'd', seq: 3, input: { type: 'accessory', exerciseId: 'paused_bench_press', set: SET }, result: {}, createdAt: '' },
+      { clientTurnId: 'e', seq: 4, input: { type: 'moveOn' }, result: {}, createdAt: '' },
+      { clientTurnId: 'f', seq: 5, input: { type: 'video', durationSec: 9 }, result: { video: { status: 'aborted' } }, createdAt: '' },
+      { clientTurnId: 'g', seq: 6, input: { type: 'skipVideo' }, result: {}, createdAt: '' },
+    ];
+    const s = hydrate('s1', { session: { id: 's1', lift: 'flat_bench_press', flow: 'conversation', createdAt: '' }, turns, limit: { reached: false } });
+    expect(s.stage).toBe('q0');
   });
 
   it('skipping goes straight to q0', () => {
@@ -256,7 +284,7 @@ describe('interview, verdict, limits', () => {
     expect(s.stage).toBe('ready');
     s = diagnosticReducer(s, { type: 'submit', turn: { id: 'g', input: { type: 'verdict' } } });
     expect(s.stage).toBe('generating');
-    expect(composerView(s)).toEqual({ mode: 'waiting', label: COPY.writingVerdict });
+    expect(composerView(s)).toEqual({ mode: 'waiting', label: COPY.writingVerdict, canSkip: false });
     s = diagnosticReducer(s, { type: 'succeeded', turnId: 'g', result: { verdict: verdict(2) } });
     expect(s.stage).toBe('verdict');
     expect(s.thread.at(-1)!.kind).toBe('verdict');
@@ -442,10 +470,38 @@ describe('controller: one shared send path', () => {
     await flush();
     c.act({ type: 'video', durationSec: 10, file: { uri: 'file://clip.mov' } });
     await flush();
-    expect(api.uploadVideo).toHaveBeenCalledWith(c.sessionId, expect.any(String), { uri: 'file://clip.mov' }, 10);
+    expect(api.uploadVideo).toHaveBeenCalledWith(c.sessionId, expect.any(String), { uri: 'file://clip.mov' }, 10, expect.any(AbortSignal));
     await new Promise((r) => setTimeout(r, 20));
     expect(c.getState().stage).toBe('q1');
     c.dispose();
+  });
+
+  it('Skip mid-upload aborts the upload, never shows "Didn\'t send", and continues to the interview', async () => {
+    let signal: AbortSignal | undefined;
+    const uploadVideo = vi.fn((_s: string, _t: string, _f: unknown, _d: number | null, sig?: AbortSignal) => {
+      signal = sig;
+      return new Promise<TurnResult>((_, reject) => sig?.addEventListener('abort', () => reject(new Error('aborted'))));
+    });
+    const api = fakeApi({ uploadVideo: uploadVideo as any });
+    const c = new DiagnosticController(api);
+    c.act({ type: 'lift', lift: 'flat_bench_press' });
+    await flush();
+    c.act({ type: 'main', set: SET });
+    await flush();
+    for (let i = 0; i < 2; i++) {
+      c.act({ type: 'accessory', exerciseId: c.getState().offer!, set: SET });
+      await flush();
+    }
+    c.act({ type: 'moveOn' });
+    await flush();
+    c.act({ type: 'video', durationSec: 40, file: {} });
+    expect(c.getState().video.status).toBe('uploading');
+    expect(c.skipVideo()).toBe(true);
+    expect(signal?.aborted).toBe(true);
+    await flush();
+    expect(c.getState().stage).toBe('q0');
+    expect(c.getState().thread.some((t) => t.kind === 'user' && t.status === 'failed')).toBe(false);
+    expect((api.sendTurn as any).mock.calls.at(-1)[2]).toEqual({ type: 'skipVideo' });
   });
 
   it('never sends the clip inside a JSON turn body', async () => {

@@ -42,6 +42,12 @@ export async function postAuthDestination(
   if (features?.diagnosticFirstOnboarding) {
     return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : diagnosticEntryRoute(features);
   }
+  // Conversational lift diagnostic: a new user's first stop after sign-in,
+  // ahead of the form hook and the intake. Once they've reached a verdict or
+  // exited it, later sign-ins fall through to the chain below as before.
+  if (features?.liftDiagnosticConversation && !(await hasSeenDiagnosticFirst())) {
+    return '/diagnostic/conversation';
+  }
   // The server's kill switch, checked BEFORE we route anyone into the hook.
   // Without this the feature being dark would still show the whole capture
   // flow and only fail on upload — the user films a set for nothing. Omitted

@@ -17,7 +17,7 @@ import {
   type SignalsSubset,
   type TurnRow,
 } from '../services/liftDiagnostic/verdict.js';
-import { toVideoResult } from '../services/liftDiagnostic/video.js';
+import { parseTrimWindow, toVideoResult } from '../services/liftDiagnostic/video.js';
 import { computeConfidence, flagsForPhase, LADDERS, LIFT_PHASES, CONVERSATION_LIFTS } from '../services/liftDiagnostic/policy.js';
 import { exercisesFor } from '../services/liftDiagnostic/writeThrough.js';
 
@@ -221,5 +221,15 @@ describe('write-through', () => {
     expect(ex.map((e) => e.name)).toEqual(['Flat Bench Press', 'Close Grip Bench Press', 'Paused Bench Press']);
     expect(ex[0]).toMatchObject({ sets: 3, reps: '5', weightKg: 102.1 });
     expect(ex[0].setEntries).toHaveLength(3);
+  });
+});
+
+describe('trim window', () => {
+  it('accepts a sane window within the cap and rejects everything else', () => {
+    expect(parseTrimWindow('3', '14.2', 65)).toEqual({ startSec: 3, endSec: 14.2 });
+    expect(parseTrimWindow('0', '70', 65)).toBeNull();
+    expect(parseTrimWindow('5', '5.2', 65)).toBeNull();
+    expect(parseTrimWindow('-1', '4', 65)).toBeNull();
+    expect(parseTrimWindow(undefined, '4', 65)).toBeNull();
   });
 });

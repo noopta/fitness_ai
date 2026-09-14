@@ -182,7 +182,8 @@ export interface Turn {
 export interface TurnResult {
   limitReached?: boolean;
   verdict?: Verdict;
-  video?: { status: 'pending' | 'complete' | 'failed'; result?: VideoResult | null };
+  /** 'aborted' = the user skipped while the clip was uploading or being analyzed. */
+  video?: { status: 'pending' | 'complete' | 'failed' | 'aborted'; result?: VideoResult | null };
 }
 
 /** A turn as persisted server-side — the transcript of record. */

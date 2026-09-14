@@ -1196,7 +1196,7 @@ export const paymentsApi = {
 // multipart bodies (RN must set the multipart boundary itself). This is a
 // thin sibling that attaches the Bearer token but lets fetch own the
 // Content-Type for a FormData body. Used by form-video upload.
-export async function apiUpload(path: string, form: FormData, extraHeaders?: Record<string, string>): Promise<any> {
+export async function apiUpload(path: string, form: FormData, extraHeaders?: Record<string, string>, signal?: AbortSignal): Promise<any> {
   const headers: Record<string, string> = { ...(extraHeaders ?? {}) };
   const token = await getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -1208,6 +1208,8 @@ export async function apiUpload(path: string, form: FormData, extraHeaders?: Rec
   // which was causing "Network req failed" 499s — extend to 3 min.
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 180_000);
+  // A caller-owned signal (e.g. the user skipping mid-upload) cancels too.
+  signal?.addEventListener('abort', () => controller.abort());
   try {
     const res = await fetch(url, { method: 'POST', headers, body: form, signal: controller.signal });
     clearTimeout(timeoutId);
