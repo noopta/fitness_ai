@@ -27,6 +27,7 @@ import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
 import { hasSeenFormHook } from '../src/onboarding/formhook/storage';
 import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 import { hasSeenDiagnosticFirst } from '../src/onboarding/diagnosticFirst';
+import { applyPendingUpdateWhileSignedOut } from '../src/lib/launchUpdate';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
 // it captures module-load startup errors. Here we only wrap the root component.
@@ -117,6 +118,12 @@ function RootNavigator() {
     // else void cancelDailyReminder();
   }, [loading, user?.id]);
 
+  // Signed out (intro slides / sign-in): get onto the latest OTA before the
+  // user signs in, so first-run routing never runs stale store-bundle code.
+  useEffect(() => {
+    if (!loading && !user) void applyPendingUpdateWhileSignedOut();
+  }, [loading, user]);
+
   // First launch of this build version → show the What's New modal once.
   // Gated on `user` so new sign-ups go through onboarding before being
   // interrupted; once they hit the tabs and the WHATS_NEW_VERSION key
@@ -124,7 +131,10 @@ function RootNavigator() {
   useEffect(() => {
     // coachOnboardingDone === false → brand-new user mid-intake; wait until
     // they finish so the tour lands on the dashboard, not over onboarding.
-    if (loading || !user || needsDobCheck || (user as any).coachOnboardingDone === false) return;
+    // `!== true`, not `=== false`: the sign-in responses carry a partial user
+    // with the field absent, and a brand-new account was getting the tour
+    // over its first screen before /auth/me filled it in.
+    if (loading || !user || needsDobCheck || (user as any).coachOnboardingDone !== true) return;
     let cancelled = false;
     void shouldShowWhatsNew().then(should => {
       if (!cancelled && should) setWhatsNewOpen(true);

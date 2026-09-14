@@ -40,6 +40,14 @@ const expo = JSON.parse(fs.readFileSync(appJsonPath, 'utf8')).expo;
 const localVersion = expo.version;
 const policy = expo.runtimeVersion && expo.runtimeVersion.policy;
 
+if (typeof expo.runtimeVersion === 'string') {
+  // Pinned runtime (3.1.1 shipped with 3.1.0's native layer): one OTA stream
+  // serves every binary on that runtime, so there is no version to compare.
+  // Bump the pin whenever a native module or native config changes.
+  console.log(`[preflight-ota] runtimeVersion pinned to "${expo.runtimeVersion}" — OTA reaches every binary built on it`);
+  process.exit(0);
+}
+
 if (policy !== 'appVersion') {
   // Guard is specific to the appVersion policy. Any other policy (or an
   // explicit runtimeVersion string) has different delivery rules, so rather
