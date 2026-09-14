@@ -136,6 +136,11 @@ export class DiagnosticController {
     return this.act({ type: 'skipVideo' });
   }
 
+  /** lb/kg switch in the numbers composer. */
+  setUnit(unit: WeightUnit): void {
+    this.dispatch({ type: 'setUnit', unit });
+  }
+
   setTypeInstead(value: boolean): void {
     this.dispatch({ type: 'setTypeInstead', value });
   }

@@ -20,29 +20,35 @@ interface Props {
   controller: DiagnosticController;
   onOpenReport: () => void;
   onDone: () => void;
+  /** Persist an lb/kg switch to the user's profile. */
+  onUnitChange?: (unit: WeightUnit) => void;
 }
 
 /** Sticky footer, 94% white + blur. Its controls are a pure function of the stage. */
-export function Composer({ view, stage, controller, onOpenReport, onDone }: Props) {
+export function Composer({ view, stage, controller, onOpenReport, onDone, onUnitChange }: Props) {
   return (
     <div className="sticky bottom-0 border-t border-zinc-200 bg-white/95 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur">
       <div className="mx-auto w-full max-w-[640px] px-4 pt-3">
-        <Mode view={view} stage={stage} controller={controller} onOpenReport={onOpenReport} onDone={onDone} />
+        <Mode view={view} stage={stage} controller={controller} onOpenReport={onOpenReport} onDone={onDone} onUnitChange={onUnitChange} />
       </div>
     </div>
   );
 }
 
-function Mode({ view, stage, controller: c, onOpenReport, onDone }: Props) {
+function Mode({ view, stage, controller: c, onOpenReport, onDone, onUnitChange }: Props) {
+  const setUnit = (u: WeightUnit) => {
+    c.setUnit(u);
+    onUnitChange?.(u);
+  };
   switch (view.mode) {
     case 'chips':
       return <ChipsComposer view={view} stage={stage} controller={c} />;
     case 'typing':
       return <TypingComposer view={view} stage={stage} controller={c} />;
     case 'numbers':
-      return <NumbersComposer unit={view.unit as WeightUnit} disabled={view.disabled} onSend={(set) => c.act({ type: 'main', set })} />;
+      return <NumbersComposer unit={view.unit as WeightUnit} onUnit={setUnit} disabled={view.disabled} onSend={(set) => c.act({ type: 'main', set })} />;
     case 'accessory':
-      return <AccessoryComposer view={view} controller={c} />;
+      return <AccessoryComposer view={view} controller={c} onUnit={setUnit} />;
     case 'video':
       return <VideoComposer disabled={view.disabled} controller={c} />;
     case 'generate':
@@ -150,9 +156,29 @@ function NumericField({ label, value, onChange, className }: { label: string; va
   );
 }
 
+/** lb | kg segmented switch. Values already typed stay as typed — the label is what changes. */
+function UnitToggle({ unit, onUnit }: { unit: WeightUnit; onUnit: (u: WeightUnit) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Weight unit" className="inline-flex self-start rounded-full bg-zinc-100 p-[3px]">
+      {(['lb', 'kg'] as const).map((u) => (
+        <button
+          key={u}
+          type="button"
+          role="radio"
+          aria-checked={unit === u}
+          onClick={() => onUnit(u)}
+          className={unit === u ? 'rounded-full bg-zinc-950 px-3.5 py-1 text-[13px] font-semibold text-white' : 'rounded-full px-3.5 py-1 text-[13px] font-semibold text-zinc-500'}
+        >
+          {u}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function NumbersComposer({
-  unit, disabled, onSend, resetKey,
-}: { unit: WeightUnit; disabled: boolean; onSend: (set: { weight: number; sets: number; reps: number; unit: WeightUnit }) => boolean; resetKey?: string }) {
+  unit, onUnit, disabled, onSend, resetKey,
+}: { unit: WeightUnit; onUnit: (u: WeightUnit) => void; disabled: boolean; onSend: (set: { weight: number; sets: number; reps: number; unit: WeightUnit }) => boolean; resetKey?: string }) {
   const [weight, setWeight] = useState('');
   const [sets, setSets] = useState('');
   const [reps, setReps] = useState('');
@@ -167,16 +193,19 @@ function NumbersComposer({
     if (valid) onSend({ weight: parseNumber(weight)!, sets: parseNumber(sets)!, reps: parseNumber(reps)!, unit });
   };
   return (
-    <form onSubmit={submit} className="flex items-end gap-2.5">
+    <form onSubmit={submit} className="flex flex-col gap-2">
+      <UnitToggle unit={unit} onUnit={onUnit} />
+      <div className="flex items-end gap-2.5">
       <NumericField label={COPY.weightLabel(unit)} value={weight} onChange={setWeight} className="min-w-0 flex-1" />
       <NumericField label={COPY.setsLabel} value={sets} onChange={setSets} className="w-14" />
       <NumericField label={COPY.repsLabel} value={reps} onChange={setReps} className="w-14" />
       <SendButton disabled={disabled || !valid} />
+      </div>
     </form>
   );
 }
 
-function AccessoryComposer({ view, controller }: { view: Extract<ComposerView, { mode: 'accessory' }>; controller: DiagnosticController }) {
+function AccessoryComposer({ view, controller, onUnit }: { view: Extract<ComposerView, { mode: 'accessory' }>; controller: DiagnosticController; onUnit: (u: WeightUnit) => void }) {
   const id = view.exerciseId;
   return (
     <div className="flex flex-col gap-3">
@@ -195,6 +224,7 @@ function AccessoryComposer({ view, controller }: { view: Extract<ComposerView, {
       </div>
       <NumbersComposer
         unit={view.unit as WeightUnit}
+        onUnit={onUnit}
         disabled={view.disabled}
         resetKey={id}
         onSend={(set) => controller.act({ type: 'accessory', exerciseId: id, set })}

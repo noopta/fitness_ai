@@ -597,3 +597,21 @@ describe('review fixes', () => {
     expect(s.thread.some((x) => x.kind === 'anakin' && x.text === COPY.unblocked)).toBe(true);
   });
 });
+
+describe('unit switch', () => {
+  it('switches lb/kg on the numbers and accessory composers without a bubble; logged sets keep their unit', () => {
+    let s = act(initialState('s1', 'kg'), { type: 'lift', lift: 'flat_bench_press' });
+    expect(composerView(s)).toMatchObject({ mode: 'numbers', unit: 'kg' });
+    const threadLen = s.thread.length;
+    s = diagnosticReducer(s, { type: 'setUnit', unit: 'lb' });
+    expect(composerView(s)).toMatchObject({ mode: 'numbers', unit: 'lb' });
+    expect(s.thread).toHaveLength(threadLen);
+    s = act(s, { type: 'main', set: SET });
+    expect(composerView(s)).toMatchObject({ mode: 'accessory', unit: 'lb' });
+    s = diagnosticReducer(s, { type: 'setUnit', unit: 'kg' });
+    s = act(s, { type: 'accessory', exerciseId: s.offer!, set: { weight: 80, sets: 3, reps: 5, unit: 'kg' } });
+    expect(s.main).toEqual(SET);
+    expect(userBubbles(s).map((b) => b.text).slice(-2)).toEqual(['225 lb · 3 × 5', '80 kg · 3 × 5']);
+    expect(diagnosticReducer({ ...s, stage: 'q0' }, { type: 'setUnit', unit: 'lb' }).unit).toBe('kg');
+  });
+});

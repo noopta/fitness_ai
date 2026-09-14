@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, Platform, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,32 +27,38 @@ interface Props {
   controller: DiagnosticController;
   onOpenReport: () => void;
   onDone: () => void;
+  /** Persist an lb/kg switch to the user's profile. */
+  onUnitChange?: (unit: WeightUnit) => void;
 }
 
 /**
  * The composer is the only input surface in the flow (§1). Its control set is
  * a pure function of the stage — see composerView() in the shared core.
  */
-export function Composer({ view, controller, onOpenReport, onDone }: Props) {
+export function Composer({ view, controller, onOpenReport, onDone, onUnitChange }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       {Platform.OS === 'ios' ? <BlurView intensity={30} tint="light" style={StyleSheet.absoluteFill} /> : null}
-      <View style={styles.inner}>{renderMode(view, controller, onOpenReport, onDone)}</View>
+      <View style={styles.inner}>{renderMode(view, controller, onOpenReport, onDone, onUnitChange)}</View>
     </View>
   );
 }
 
-function renderMode(view: ComposerView, c: DiagnosticController, onOpenReport: () => void, onDone: () => void) {
+function renderMode(view: ComposerView, c: DiagnosticController, onOpenReport: () => void, onDone: () => void, onUnitChange?: (u: WeightUnit) => void) {
+  const setUnit = (u: WeightUnit) => {
+    c.setUnit(u);
+    onUnitChange?.(u);
+  };
   switch (view.mode) {
     case 'chips':
       return <ChipsComposer view={view} controller={c} />;
     case 'typing':
       return <TypingComposer view={view} controller={c} />;
     case 'numbers':
-      return <NumbersComposer unit={view.unit as WeightUnit} disabled={view.disabled} onSend={(set) => c.act({ type: 'main', set })} />;
+      return <NumbersComposer unit={view.unit as WeightUnit} onUnit={setUnit} disabled={view.disabled} onSend={(set) => c.act({ type: 'main', set })} />;
     case 'accessory':
-      return <AccessoryComposer view={view} controller={c} />;
+      return <AccessoryComposer view={view} controller={c} onUnit={setUnit} />;
     case 'video':
       return <VideoComposer disabled={view.disabled} controller={c} />;
     case 'generate':
@@ -157,9 +163,29 @@ function NumericField({
   );
 }
 
+/** lb | kg segmented switch. Values already typed stay as typed — the label is what changes. */
+function UnitToggle({ unit, onUnit }: { unit: WeightUnit; onUnit: (u: WeightUnit) => void }) {
+  return (
+    <View style={styles.unitToggle} accessibilityRole="radiogroup">
+      {(['lb', 'kg'] as const).map((u) => (
+        <TouchableOpacity
+          key={u}
+          onPress={() => onUnit(u)}
+          style={[styles.unitOption, unit === u && styles.unitOptionActive]}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: unit === u }}
+          hitSlop={6}
+        >
+          <Text style={[styles.unitText, unit === u && styles.unitTextActive]}>{u}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 function NumbersComposer({
-  unit, disabled, onSend, resetKey,
-}: { unit: WeightUnit; disabled: boolean; onSend: (set: { weight: number; sets: number; reps: number; unit: WeightUnit }) => boolean; resetKey?: string }) {
+  unit, onUnit, disabled, onSend, resetKey,
+}: { unit: WeightUnit; onUnit: (u: WeightUnit) => void; disabled: boolean; onSend: (set: { weight: number; sets: number; reps: number; unit: WeightUnit }) => boolean; resetKey?: string }) {
   const [weight, setWeight] = useState('');
   const [sets, setSets] = useState('');
   const [reps, setReps] = useState('');
@@ -177,16 +203,19 @@ function NumbersComposer({
     onSend({ weight: parseNumber(weight)!, sets: parseNumber(sets)!, reps: parseNumber(reps)!, unit });
   };
   return (
+    <View style={{ gap: 8 }}>
+    <UnitToggle unit={unit} onUnit={onUnit} />
     <View style={[styles.row, { alignItems: 'flex-end' }]}>
       <NumericField label={COPY.weightLabel(unit)} value={weight} onChange={setWeight} width="flex" onSubmit={() => setsRef.current?.focus()} />
       <NumericField label={COPY.setsLabel} value={sets} onChange={setSets} width={56} inputRef={setsRef} onSubmit={() => repsRef.current?.focus()} />
       <NumericField label={COPY.repsLabel} value={reps} onChange={setReps} width={56} inputRef={repsRef} onSubmit={send} />
       <SendButton onPress={send} disabled={disabled || !valid} />
     </View>
+    </View>
   );
 }
 
-function AccessoryComposer({ view, controller }: { view: Extract<ComposerView, { mode: 'accessory' }>; controller: DiagnosticController }) {
+function AccessoryComposer({ view, controller, onUnit }: { view: Extract<ComposerView, { mode: 'accessory' }>; controller: DiagnosticController; onUnit: (u: WeightUnit) => void }) {
   const id = view.exerciseId;
   return (
     <View style={{ gap: 12 }}>
@@ -201,6 +230,7 @@ function AccessoryComposer({ view, controller }: { view: Extract<ComposerView, {
       </View>
       <NumbersComposer
         unit={view.unit as WeightUnit}
+        onUnit={onUnit}
         disabled={view.disabled}
         resetKey={id}
         onSend={(set) => controller.act({ type: 'accessory', exerciseId: id, set })}
@@ -311,6 +341,11 @@ const styles = StyleSheet.create({
   },
   inner: { paddingHorizontal: 16, paddingTop: 12 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  unitToggle: { flexDirection: 'row', alignSelf: 'flex-start', backgroundColor: C.surface, borderRadius: 999, padding: 3 },
+  unitOption: { paddingHorizontal: 14, paddingVertical: 5, borderRadius: 999 },
+  unitOptionActive: { backgroundColor: C.ink },
+  unitText: { fontSize: 13, fontWeight: '600', color: C.muted },
+  unitTextActive: { color: C.white },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: DX.chip.gap },
   waitingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   waiting: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 48 },

@@ -24,7 +24,7 @@ export default function DiagnosticChatPage() {
   const params = useParams<{ id?: string }>();
   const [, setLocation] = useLocation();
   const { refreshUser } = useAuth();
-  const { isMetric } = useUnits();
+  const { isMetric, setUnit: setUnitPref } = useUnits();
   // The id in the URL changes once a new thread gets its session; the thread
   // itself must not remount when it does.
   const [initialId] = useState(params.id);
@@ -136,7 +136,14 @@ export default function DiagnosticChatPage() {
       </div>
 
       {state.loadStatus === 'ready' ? (
-        <Composer view={view} stage={state.stage} controller={controller} onOpenReport={openReport} onDone={exit} />
+        <Composer
+          view={view}
+          stage={state.stage}
+          controller={controller}
+          onOpenReport={openReport}
+          onDone={exit}
+          onUnitChange={(u) => void setUnitPref(u === 'kg' ? 'metric' : 'imperial').catch(() => {})}
+        />
       ) : null}
 
       {reportOpen && state.verdict ? (

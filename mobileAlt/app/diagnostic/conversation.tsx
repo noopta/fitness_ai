@@ -42,7 +42,7 @@ const C = DX.color;
 export default function DiagnosticConversation() {
   const router = useRouter();
   const params = useLocalSearchParams<{ sessionId?: string; action?: string }>();
-  const { unit } = useUnits();
+  const { unit, setUnitPref } = useUnits();
   const { refreshUser } = useAuth();
   const { controller, state } = useDiagnostic(params.sessionId, unit === 'kg' ? 'kg' : 'lb');
   const [reportOpen, setReportOpen] = useState(false);
@@ -149,7 +149,13 @@ export default function DiagnosticConversation() {
           />
         )}
         {state.loadStatus === 'ready' ? (
-          <Composer view={view} controller={controller} onOpenReport={openReport} onDone={exit} />
+          <Composer
+            view={view}
+            controller={controller}
+            onOpenReport={openReport}
+            onDone={exit}
+            onUnitChange={(u) => setUnitPref(u === 'kg' ? 'kg' : 'lbs')}
+          />
         ) : null}
       </KeyboardAvoider>
 

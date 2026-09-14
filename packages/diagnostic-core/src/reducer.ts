@@ -66,6 +66,7 @@ export type DiagnosticAction =
   | { type: 'videoResolved'; turnId: string; result: VideoResult | null }
   | { type: 'unblock' }
   | { type: 'setTypeInstead'; value: boolean }
+  | { type: 'setUnit'; unit: WeightUnit }
   | { type: 'verdictRefreshed'; verdict: Verdict };
 
 const ALL_QUESTIONS: QuestionId[] = ['q0', 'q1', 'q2'];
@@ -247,6 +248,7 @@ function applyTurn(s: DiagnosticState, turn: Turn, result: TurnResult): Diagnost
 
     case 'accessory': {
       const records = [...s.accessories, { exerciseId: input.exerciseId, status: 'logged' as const, set: input.set }];
+      s = { ...s, unit: input.set.unit };
       if (s.rescoring) {
         if (result.verdict) return showVerdict({ ...s, accessories: records, rescoring: false, offer: null }, result.verdict);
         // Re-score came back without a verdict — keep the old one rather than strand the thread.
@@ -451,6 +453,9 @@ export function diagnosticReducer(s: DiagnosticState, action: DiagnosticAction):
       return unblock(s);
     case 'setTypeInstead':
       return isQuestionStage(s.stage) ? { ...s, typeInstead: action.value } : s;
+    case 'setUnit':
+      // A setting, not an answer: no bubble. Sets already logged keep their own unit.
+      return (s.stage === 'numbers' || s.stage === 'acc') && s.unit !== action.unit ? { ...s, unit: action.unit } : s;
     case 'verdictRefreshed': {
       if (!s.verdict) return s;
       const thread = s.thread.map((t) => (t.kind === 'verdict' ? { ...t, verdict: action.verdict } : t));
