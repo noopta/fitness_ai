@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { reportServerError } from '../middleware/errorReporting.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
 import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor } from '../services/featureFlags.js';
@@ -1165,9 +1166,20 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
     // Clear the auth cookie
     res.clearCookie('liftoff_jwt', { httpOnly: true, sameSite: 'none', secure: true });
     res.json({ success: true });
-  } catch (err) {
-    posthog.captureException(err, userId);
-    console.error('Account deletion error:', err);
+  } catch (err: any) {
+    // P2025 on the final user.delete means the row is already gone: a second
+    // DELETE (double tap, or a retry after the first response was lost)
+    // landing after the first one succeeded. requireAuth only verifies the
+    // JWT, so the stale token still gets this far. The user asked for their
+    // account to be gone and it is — answer success, not a scary 500.
+    if (err?.code === 'P2025') {
+      res.clearCookie('liftoff_jwt', { httpOnly: true, sameSite: 'none', secure: true });
+      res.json({ success: true });
+      return;
+    }
+    // reportServerError sets the per-response latch, so the 5xx interceptor
+    // doesn't file a second, stackless copy of the same failure.
+    reportServerError(err, req, res);
     res.status(500).json({ error: 'Failed to delete account. Please try again.' });
   }
 });

@@ -62,6 +62,8 @@ YOU MUST:
 - Tag every recommendation with a FALSIFICATION condition. "If we ship this and X doesn't change in 14 days, we were wrong."
 - Prefer changes that move LEADING-QUALITY metrics (D7 retention, % of users hitting first-value moments, NPS) over LAGGING-VOLUME metrics (DAU). Optimizing the wrong metric is worse than no change.
 - Be honest. If the data doesn't support strong claims, say so. Hedge proportionally.
+- "n/a" means the metric could not be fetched. It is NOT zero. Never describe an n/a as 0, never infer a broken funnel or broken telemetry from one, and never compare it against another number. At most note that it was unavailable.
+- Server exceptions are backend 5xx responses, not app crashes. Only "Coach ErrorBoundary trips" means the coach screen actually crashed.
 
 DO NOT:
 - Cite fake studies. If you reference research, name the actual paper/author honestly. Better to skip a citation than fabricate one.
@@ -108,8 +110,10 @@ FEATURE ADOPTION (last 7d)
 - Social posts: ${m.features.socialPosts7d ?? 'n/a'}
 
 ERRORS
-- JS exceptions last 24h: ${m.errors.jsExceptionsLast24h ?? 'n/a'}
-- Coach ErrorBoundary trips last 7d: ${m.errors.coachErrorBoundaryLast7d ?? 'n/a'}`;
+- App exceptions (mobile + web, all screens) last 24h: ${m.errors.appExceptionsLast24h ?? 'n/a'}
+- App exceptions last 7d: ${m.errors.appExceptionsLast7d ?? 'n/a'}
+- Coach ErrorBoundary trips last 7d: ${m.errors.coachErrorBoundaryLast7d ?? 'n/a'}
+- Server exceptions (backend 5xx) last 7d: ${m.errors.serverExceptionsLast7d ?? 'n/a'}`;
 }
 
 // Response JSON schema — Gemini enforces structure when responseSchema is set.

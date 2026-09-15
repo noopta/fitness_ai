@@ -88,8 +88,13 @@ interface FeatureAdoptionSnapshot {
 }
 
 interface ErrorsSnapshot {
-  jsExceptionsLast24h: number | null;
+  /** Client-side (mobile + web) exceptions, including every ErrorBoundary trip. */
+  appExceptionsLast24h: number | null;
+  appExceptionsLast7d: number | null;
+  /** Only boundaries labelled coach-tab / coach:<tab>. */
   coachErrorBoundaryLast7d: number | null;
+  /** Backend 5xx reports from posthog-node. Not a client crash. */
+  serverExceptionsLast7d: number | null;
 }
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
@@ -130,7 +135,7 @@ async function hogql<T = any>(query: string): Promise<T | null> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query: { kind: 'HogQLQuery', query } }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(45000),
     });
     if (!res.ok) {
       console.warn(`[metrics] PostHog HogQL ${res.status}: ${await res.text().catch(() => '')}`);
@@ -143,22 +148,79 @@ async function hogql<T = any>(query: string): Promise<T | null> {
   }
 }
 
-// Counts a single event over a window. Returns null when PostHog is
-// unconfigured (so the digest can still render with explicit "n/a" markers).
-async function countEvent(eventName: string, days: number): Promise<number | null> {
-  const sql = `SELECT count() FROM events WHERE event = '${eventName.replace(/'/g, "''")}' AND timestamp >= now() - INTERVAL ${days} DAY`;
-  const r = await hogql<{ results: any[][] }>(sql);
-  if (!r?.results?.[0]?.[0]) return r === null ? null : 0;
-  const v = Number(r.results[0][0]);
-  return Number.isFinite(v) ? v : 0;
+// Every PostHog metric the digest needs, computed in ONE query.
+//
+// This used to be 17 separate HogQL requests fired in parallel at 13:00. PostHog
+// throttles concurrent queries per project, so a few of them timed out most
+// days and came back null — and the digest LLM read those "n/a"s as zeros
+// ("0 diagnostic completions, the funnel is broken") when PostHog actually had
+// the completions. One scan over 7 days of the relevant events is cheaper for
+// PostHog and fails all-or-nothing, which is much easier to reason about.
+export interface EventMetric {
+  key: string;
+  event: string;
+  days: 1 | 7;
+  agg: 'count' | 'users';
+  /** Extra HogQL predicate, trusted (static strings only). */
+  where?: string;
 }
 
-async function distinctUsers(eventName: string, days: number): Promise<number | null> {
-  const sql = `SELECT uniq(distinct_id) FROM events WHERE event = '${eventName.replace(/'/g, "''")}' AND timestamp >= now() - INTERVAL ${days} DAY`;
-  const r = await hogql<{ results: any[][] }>(sql);
-  if (!r?.results?.[0]?.[0]) return r === null ? null : 0;
-  const v = Number(r.results[0][0]);
-  return Number.isFinite(v) ? v : 0;
+const APP_LIB = `properties.$lib != 'posthog-node'`;
+
+export const EVENT_METRICS: EventMetric[] = [
+  { key: 'dau',          event: 'Application Opened',      days: 1, agg: 'users' },
+  { key: 'wau',          event: 'Application Opened',      days: 7, agg: 'users' },
+  { key: 'appOpens',     event: 'Application Opened',      days: 1, agg: 'count' },
+  { key: 'formAnalyzed', event: 'form_video_analyzed',     days: 7, agg: 'count' },
+  { key: 'barcodeScans', event: 'food_barcode_logged',     days: 7, agg: 'count' },
+  { key: 'coachMessages',event: 'coach_chat_message_sent', days: 7, agg: 'count' },
+  { key: 'workouts',     event: 'workout_logged',          days: 7, agg: 'count' },
+  { key: 'foodPhoto',    event: 'food_scanned_logged',     days: 7, agg: 'count' },
+  { key: 'posts',        event: 'text_post_made',          days: 7, agg: 'count' },
+  { key: 'authShown',    event: 'auth_screen_shown',       days: 7, agg: 'count' },
+  { key: 'authTapped',   event: 'auth_provider_tapped',    days: 7, agg: 'count' },
+  { key: 'register',     event: 'register',                days: 7, agg: 'count' },
+  { key: 'diagStart',    event: 'diagnostic_started',      days: 7, agg: 'count' },
+  { key: 'diagDone',     event: 'diagnostic_completed',    days: 7, agg: 'count' },
+  { key: 'planGen',      event: 'workout_plan_generated',  days: 7, agg: 'count' },
+  { key: 'appExc24h',    event: '$exception', days: 1, agg: 'count', where: APP_LIB },
+  { key: 'appExc7d',     event: '$exception', days: 7, agg: 'count', where: APP_LIB },
+  { key: 'coachBoundary',event: '$exception', days: 7, agg: 'count',
+    where: `${APP_LIB} AND (properties.boundary_label = 'coach-tab' OR startsWith(toString(properties.boundary_label), 'coach:'))` },
+  { key: 'serverExc7d',  event: '$exception', days: 7, agg: 'count', where: `properties.$lib = 'posthog-node'` },
+];
+
+const q = (s: string) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+
+export function buildEventMetricsQuery(metrics: EventMetric[]): string {
+  const cols = metrics.map((m) => {
+    const cond = [`event = ${q(m.event)}`, `timestamp >= now() - INTERVAL ${m.days} DAY`, m.where ? `(${m.where})` : '']
+      .filter(Boolean).join(' AND ');
+    return m.agg === 'users' ? `uniqIf(distinct_id, ${cond})` : `countIf(${cond})`;
+  });
+  const events = [...new Set(metrics.map((m) => q(m.event)))].join(', ');
+  const maxDays = Math.max(...metrics.map((m) => m.days));
+  return `SELECT ${cols.join(', ')} FROM events WHERE event IN (${events}) AND timestamp >= now() - INTERVAL ${maxDays} DAY`;
+}
+
+/** Map a result row back to keys. A failed query yields null for every key — never 0. */
+export function parseEventMetrics(metrics: EventMetric[], row: unknown[] | null | undefined): Record<string, number | null> {
+  const out: Record<string, number | null> = {};
+  metrics.forEach((m, i) => {
+    const v = row ? Number(row[i]) : NaN;
+    out[m.key] = Number.isFinite(v) ? v : null;
+  });
+  return out;
+}
+
+async function eventMetrics(): Promise<Record<string, number | null>> {
+  const sql = buildEventMetricsQuery(EVENT_METRICS);
+  // One retry: a single timeout shouldn't blank the whole digest.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await hogql<{ results: any[][] }>(sql);
+    if (r?.results?.[0]) return parseEventMetrics(EVENT_METRICS, r.results[0]);
+  }
+  return parseEventMetrics(EVENT_METRICS, null);
 }
 
 // ─── DB helpers ─────────────────────────────────────────────────────────────
@@ -265,26 +327,10 @@ export async function collectDailyMetrics(): Promise<MetricsSnapshot> {
   const now = new Date();
   const yesterdayDate = new Date(now.getTime() - 86400_000);
 
-  const [users, revenue, dau, wau, appOpens, formAnalyzed, barcodeScans, coachMessages, workouts, foodPhoto, posts, authShown, authTapped, register, diagStart, diagDone, planGen, jsExc, errBoundary] = await Promise.all([
+  const [users, revenue, ev] = await Promise.all([
     usersSnapshot(),
     revenueSnapshot(),
-    distinctUsers('Application Opened', 1),
-    distinctUsers('Application Opened', 7),
-    countEvent('Application Opened', 1),
-    countEvent('form_video_analyzed', 7),
-    countEvent('food_barcode_logged', 7),
-    countEvent('coach_chat_message_sent', 7),
-    countEvent('workout_logged', 7),
-    countEvent('food_scanned_logged', 7),
-    countEvent('text_post_made', 7),
-    countEvent('auth_screen_shown', 7),
-    countEvent('auth_provider_tapped', 7),
-    countEvent('register', 7),
-    countEvent('diagnostic_started', 7),
-    countEvent('diagnostic_completed', 7),
-    countEvent('workout_plan_generated', 7),
-    countEvent('$exception', 1),
-    countEvent('$exception', 7),
+    eventMetrics(),
   ]);
 
   const snapshot: MetricsSnapshot = {
@@ -298,32 +344,34 @@ export async function collectDailyMetrics(): Promise<MetricsSnapshot> {
     },
     users,
     engagement: {
-      dauYesterday: dau,
-      wauLast7d: wau,
+      dauYesterday: ev.dau,
+      wauLast7d: ev.wau,
       d1Retention7dCohort: null,  // requires cohort query; add later
       d7Retention30dCohort: null,
-      appOpensYesterday: appOpens,
+      appOpensYesterday: ev.appOpens,
     },
     funnel: {
-      authScreenShown7d: authShown,
-      authProviderTapped7d: authTapped,
-      registerCompleted7d: register,
-      diagnosticStarted7d: diagStart,
-      diagnosticCompleted7d: diagDone,
-      workoutPlanGenerated7d: planGen,
+      authScreenShown7d: ev.authShown,
+      authProviderTapped7d: ev.authTapped,
+      registerCompleted7d: ev.register,
+      diagnosticStarted7d: ev.diagStart,
+      diagnosticCompleted7d: ev.diagDone,
+      workoutPlanGenerated7d: ev.planGen,
     },
     revenue,
     features: {
-      formVideoAnalyzed7d: formAnalyzed,
-      barcodeScans7d: barcodeScans,
-      coachMessagesSent7d: coachMessages,
-      workoutsLogged7d: workouts,
-      foodPhotoLogged7d: foodPhoto,
-      socialPosts7d: posts,
+      formVideoAnalyzed7d: ev.formAnalyzed,
+      barcodeScans7d: ev.barcodeScans,
+      coachMessagesSent7d: ev.coachMessages,
+      workoutsLogged7d: ev.workouts,
+      foodPhotoLogged7d: ev.foodPhoto,
+      socialPosts7d: ev.posts,
     },
     errors: {
-      jsExceptionsLast24h: jsExc,
-      coachErrorBoundaryLast7d: errBoundary,
+      appExceptionsLast24h: ev.appExc24h,
+      appExceptionsLast7d: ev.appExc7d,
+      coachErrorBoundaryLast7d: ev.coachBoundary,
+      serverExceptionsLast7d: ev.serverExc7d,
     },
   };
 
