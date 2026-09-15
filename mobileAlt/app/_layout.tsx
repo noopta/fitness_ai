@@ -27,6 +27,7 @@ import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
 import { hasSeenFormHook } from '../src/onboarding/formhook/storage';
 import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 import { hasSeenDiagnosticFirst } from '../src/onboarding/diagnosticFirst';
+import { firstRunDiagnosticHref } from '../src/diagnostic/firstRun';
 import { applyPendingUpdateWhileSignedOut } from '../src/lib/launchUpdate';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
@@ -191,8 +192,10 @@ function RootNavigator() {
     if ((segments[0] as string) !== '(tabs)') return;
     diagnosticCatchDone.current = true;
     if (user.coachOnboardingDone || !getFeatures().liftDiagnosticConversation) return;
-    void hasSeenDiagnosticFirst().then((seen) => {
-      if (!seen) router.replace('/diagnostic/conversation' as any);
+    void hasSeenDiagnosticFirst().then(async (seen) => {
+      // Not a bare '/diagnostic/conversation': a phone that died mid-thread
+      // relaunches here, and a fresh thread would bury the saved one.
+      if (!seen) router.replace((await firstRunDiagnosticHref()) as any);
     });
   }, [user, loading, needsDobCheck, segments]);
 

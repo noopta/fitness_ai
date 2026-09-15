@@ -126,6 +126,8 @@ export const COPY = {
   fixTitle: 'Your fix',
   startFreeMonth: 'Start your free month',
   freeMonthFine: 'First month free · cancel anytime',
+  fuelTitle: 'Fuel for this fix',
+  fuelFoundation: 'Start here',
   trackNextTime: 'Track next time',
   share: 'Share',
   linkCopied: 'Link copied',

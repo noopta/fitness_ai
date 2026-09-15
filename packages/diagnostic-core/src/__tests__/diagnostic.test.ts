@@ -17,6 +17,10 @@ import {
   reportSections,
   verdictHeadline,
   homeHero,
+  firstRunTarget,
+  fuelFor,
+  fuelTheme,
+  type DiagnosticListRow,
   type DiagnosticApi,
   type DiagnosticState,
   type TurnInput,
@@ -613,5 +617,65 @@ describe('unit switch', () => {
     expect(s.main).toEqual(SET);
     expect(userBubbles(s).map((b) => b.text).slice(-2)).toEqual(['225 lb · 3 × 5', '80 kg · 3 × 5']);
     expect(diagnosticReducer({ ...s, stage: 'q0' }, { type: 'setUnit', unit: 'lb' }).unit).toBe('kg');
+  });
+});
+
+describe('fuel for this fix', () => {
+  it('maps every limiter the five lifts can produce to a theme', () => {
+    expect(fuelTheme('triceps_deficit')).toBe('build');
+    expect(fuelTheme('glute_hip_deficit')).toBe('build');
+    expect(fuelTheme('leg_volume')).toBe('build');
+    expect(fuelTheme(null)).toBe('build');
+    expect(fuelTheme('shoulder_health')).toBe('joint');
+    expect(fuelTheme('mobility_restriction')).toBe('joint');
+    for (const k of ['bracing_deficit', 'core_bracing_deficit', 'scap_stability_deficit', 'upper_back_rack_deficit', 'elbow_flare_technique', 'touch_point_technique', 'stretch_reflex_reliance', 'grip_limiter', 'lat_tension_deficit', 'wedge_setup_deficit']) {
+      expect(fuelTheme(k)).toBe('skill');
+    }
+  });
+
+  it('names the region the fix builds, falling back to the lift family', () => {
+    expect(fuelFor(verdict(2)).lead).toContain('your triceps');
+    const squat = fuelFor(verdict(2, { lift: 'barbell_back_squat', limiter: { phase: 'unknown', hypothesisKey: null, hypothesisLabel: null } }));
+    expect(squat.lead).toContain('your legs');
+    expect(squat.nutrients.map((n) => n.name)).toEqual(['Vitamin D', 'Magnesium', 'Zinc']);
+  });
+
+  it('joint and skill limiters get their own nutrients', () => {
+    const shoulder = fuelFor(verdict(2, { limiter: { phase: 'bottom', hypothesisKey: 'shoulder_health', hypothesisLabel: 'Shoulder' } }));
+    expect(shoulder.nutrients.map((n) => n.name)).toEqual(['Vitamin C', 'Omega-3 (EPA and DHA)', 'Vitamin D']);
+    const brace = fuelFor(verdict(2, { lift: 'deadlift', limiter: { phase: 'initial_pull', hypothesisKey: 'bracing_deficit', hypothesisLabel: 'Bracing' } }));
+    expect(brace.nutrients.map((n) => n.name)).toEqual(['Iron', 'Magnesium', 'Sodium and potassium']);
+  });
+
+  it('is always framed as general guidance with a clinician caveat', () => {
+    for (const key of ['triceps_deficit', 'shoulder_health', 'grip_limiter']) {
+      const f = fuelFor(verdict(2, { limiter: { phase: 'lockout', hypothesisKey: key, hypothesisLabel: key } }));
+      expect(f.caveat).toMatch(/not a read of your diet/);
+      expect(f.caveat).toMatch(/clinician/);
+      expect(f.foundation).toMatch(/protein/);
+    }
+  });
+});
+
+describe('first-run target (phone died mid-diagnostic)', () => {
+  const row = (over: Partial<DiagnosticListRow>): DiagnosticListRow => ({
+    id: 'x', lift: 'flat_bench_press', flow: 'conversation', status: 'in_progress', grade: null, confidence: null, limiter: null, updatedAt: '2026-09-15T10:00:00Z', ...over,
+  });
+
+  it('resumes the newest unfinished conversation instead of starting a second one', () => {
+    expect(firstRunTarget([
+      row({ id: 'old', updatedAt: '2026-09-14T10:00:00Z' }),
+      row({ id: 'new', updatedAt: '2026-09-15T10:00:00Z' }),
+      row({ id: 'done', status: 'complete', updatedAt: '2026-09-15T11:00:00Z' }),
+    ])).toEqual({ kind: 'resume', sessionId: 'new' });
+  });
+
+  it('opens a verdict that finished while the app was closed', () => {
+    expect(firstRunTarget([row({ id: 'done', status: 'complete' })])).toEqual({ kind: 'review', sessionId: 'done' });
+  });
+
+  it('ignores wizard sessions and starts fresh when there is nothing to resume', () => {
+    expect(firstRunTarget([])).toEqual({ kind: 'new' });
+    expect(firstRunTarget([row({ id: 'w', flow: 'wizard' }), row({ id: 'w2', flow: 'wizard', status: 'complete' })])).toEqual({ kind: 'new' });
   });
 });

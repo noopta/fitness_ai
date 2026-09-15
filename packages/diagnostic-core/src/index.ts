@@ -5,6 +5,7 @@ export * from './copy';
 export * from './stages';
 export * from './accessories';
 export * from './grading';
+export * from './fuel';
 export * from './format';
 export {
   initialState,

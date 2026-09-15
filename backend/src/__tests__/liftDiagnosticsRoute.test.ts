@@ -391,6 +391,64 @@ describe('robustness', () => {
     expect(refundDailyQuota).toHaveBeenCalledTimes(1);
   });
 
+  it('a verdict orphaned by a restart moments ago is released at once: a new tap gets a verdict, not the daily limit', async () => {
+    const { refundDailyQuota, consumeDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(refundDailyQuota).mockClear();
+    vi.mocked(consumeDailyQuota).mockClear();
+    priorDiagnosis();
+    await toReady();
+    // Fresh (well inside the 10-minute stale window) but not live in this process.
+    db.tables.turn.push({
+      id: 'orphan', sessionId: SID, clientTurnId: 'verdict-orphan', seq: 99, type: 'verdict', payloadJson: '{}',
+      resultJson: '{"__pending":true}', createdAt: new Date(), updatedAt: new Date(),
+    });
+    const res = await turn(FREE, { type: 'verdict' }, 'verdict-new-tap');
+    expect(res.status).toBe(200);
+    expect(res.body.result.verdict).toBeDefined();
+    expect(db.tables.turn.some((t) => t.id === 'orphan')).toBe(false);
+    expect(refundDailyQuota).toHaveBeenCalledTimes(1);
+    const refundOrder = vi.mocked(refundDailyQuota).mock.invocationCallOrder[0];
+    expect(refundOrder).toBeLessThan(vi.mocked(consumeDailyQuota).mock.invocationCallOrder[0]);
+  });
+
+  it('resuming a thread releases an orphaned verdict before the limit is checked', async () => {
+    const { refundDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(refundDailyQuota).mockClear();
+    priorDiagnosis();
+    await toReady();
+    db.tables.turn.push({
+      id: 'orphan-load', sessionId: SID, clientTurnId: 'verdict-orphan-load', seq: 99, type: 'verdict', payloadJson: '{}',
+      resultJson: '{"__pending":true}', createdAt: new Date(), updatedAt: new Date(),
+    });
+    const load = await request(app).get(`/api/lift-diagnostics/${SID}`).set('Authorization', FREE);
+    expect(load.status).toBe(200);
+    expect(refundDailyQuota).toHaveBeenCalledTimes(1);
+    expect(db.tables.turn.some((t) => t.id === 'orphan-load')).toBe(false);
+  });
+
+  it('a verdict still being written in this process is never released by a second tap', async () => {
+    let finish: (v: any) => void = () => {};
+    generateWorkoutPlan.mockReset().mockImplementation(() => new Promise((r) => { finish = r; }));
+    const { refundDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(refundDailyQuota).mockClear();
+    priorDiagnosis();
+    await toReady();
+    // supertest is lazy: .then() fires the request now rather than at the await below.
+    const first = turn(FREE, { type: 'verdict' }, 'verdict-slow').then((r) => r);
+    await new Promise((r) => setTimeout(r, 20));
+    // The fake's clock starts in 1970, which would make the claim time-stale;
+    // stamp it fresh so only liveness can protect it.
+    const claim = db.tables.turn.find((t) => t.clientTurnId === 'verdict-slow');
+    expect(claim).toBeDefined();
+    claim.updatedAt = new Date();
+    const load = await request(app).get(`/api/lift-diagnostics/${SID}`).set('Authorization', FREE);
+    expect(load.status).toBe(200);
+    expect(db.tables.turn.some((t) => t.clientTurnId === 'verdict-slow')).toBe(true);
+    finish(PLAN);
+    expect((await first).body.result.verdict).toBeDefined();
+    expect(refundDailyQuota).not.toHaveBeenCalled();
+  });
+
   it('re-sending a lift that already had numbers does not regenerate the plan', async () => {
     await toReady();
     await turn(FREE, { type: 'verdict' });
@@ -456,6 +514,39 @@ describe('video: trim + skip', () => {
     expect(JSON.parse(videoRow.resultJson).video.status).toBe('aborted');
     const status = await request(app).get(`/api/lift-diagnostics/${SID}/video/video-turn-2`).set('Authorization', FREE);
     expect(status.body.status).toBe('aborted');
+  });
+});
+
+describe('video after a restart', () => {
+  it('a pending clip with no live job in this process fails at once instead of spinning for 150s', async () => {
+    await turn(FREE, { type: 'lift', lift: 'flat_bench_press' });
+    await turn(FREE, { type: 'main', set: SET(225) });
+    db.tables.turn.push({
+      id: 'video-orphan', sessionId: SID, clientTurnId: 'video-orphan-turn', seq: 50, type: 'video', payloadJson: '{}',
+      resultJson: JSON.stringify({ video: { status: 'pending' } }), createdAt: new Date(), updatedAt: new Date(),
+    });
+    const status = await request(app).get(`/api/lift-diagnostics/${SID}/video/video-orphan-turn`).set('Authorization', FREE);
+    expect(status.body.status).toBe('failed');
+  });
+
+  it('a clip still analyzing in this process stays pending', async () => {
+    let finish: (v: any) => void = () => {};
+    videoMocks.runDiagnosticVideo.mockImplementation(() => new Promise((r) => { finish = r; }));
+    await turn(FREE, { type: 'lift', lift: 'flat_bench_press' });
+    await turn(FREE, { type: 'main', set: SET(225) });
+    const up = await request(app)
+      .post(`/api/lift-diagnostics/${SID}/video`)
+      .set('Authorization', FREE)
+      .field('clientTurnId', 'video-live-turn')
+      .attach('video', Buffer.from('fake'), { filename: 'set.mp4', contentType: 'video/mp4' });
+    expect(up.status).toBe(202);
+    db.tables.turn.find((t) => t.clientTurnId === 'video-live-turn').updatedAt = new Date(); // fake clock is 1970
+    const pending = await request(app).get(`/api/lift-diagnostics/${SID}/video/video-live-turn`).set('Authorization', FREE);
+    expect(pending.body.status).toBe('pending');
+    finish({ stickingPhase: 'lockout', stickingPointSec: 1, elbowFlareDeg: null, barDriftCm: null, frameUrl: null });
+    await new Promise((r) => setTimeout(r, 10));
+    const done = await request(app).get(`/api/lift-diagnostics/${SID}/video/video-live-turn`).set('Authorization', FREE);
+    expect(done.body.status).toBe('complete');
   });
 });
 

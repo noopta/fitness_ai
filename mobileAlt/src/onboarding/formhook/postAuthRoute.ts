@@ -1,5 +1,6 @@
 import { hasSeenFormHook, isOldEnoughForFormHook } from './storage';
 import { hasSeenDiagnosticFirst } from '../diagnosticFirst';
+import { firstRunDiagnosticHref } from '../../diagnostic/firstRun';
 import { diagnosticEntryRoute } from '../../diagnostic/entry';
 
 /**
@@ -40,13 +41,17 @@ export async function postAuthDestination(
   // who already reached a verdict and declined lands on Home, where the
   // coach tab shows the locked upsell rather than a free full-program intake.
   if (features?.diagnosticFirstOnboarding) {
-    return (await hasSeenDiagnosticFirst()) ? '/(tabs)' : diagnosticEntryRoute(features);
+    if (await hasSeenDiagnosticFirst()) return '/(tabs)';
+    const entry = diagnosticEntryRoute(features);
+    return entry === '/diagnostic/conversation' ? firstRunDiagnosticHref() : entry;
   }
   // Conversational lift diagnostic: a new user's first stop after sign-in,
   // ahead of the form hook and the intake. Once they've reached a verdict or
   // exited it, later sign-ins fall through to the chain below as before.
   if (features?.liftDiagnosticConversation && !(await hasSeenDiagnosticFirst())) {
-    return '/diagnostic/conversation';
+    // Resume a saved thread (or show a verdict that landed while the app was
+    // closed) rather than opening a second one beside it.
+    return firstRunDiagnosticHref();
   }
   // The server's kill switch, checked BEFORE we route anyone into the hook.
   // Without this the feature being dark would still show the whole capture

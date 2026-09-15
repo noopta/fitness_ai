@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   COPY,
   DX,
+  fuelFor,
   reportSections,
   sharpenList,
   verdictHeadline,
@@ -154,6 +155,8 @@ export function ReportView({ verdict, onClose, onAddNumbers, readOnly }: Props) 
 
         {verdict.fix ? <FixSection fix={verdict.fix} /> : null}
 
+        <FuelSection verdict={verdict} />
+
         {verdict.trackNextTime.length ? (
           <Section title={COPY.trackNextTime}>
             {verdict.trackNextTime.map((t) => (
@@ -198,6 +201,28 @@ function FixSection({ fix }: { fix: NonNullable<Verdict['fix']> }) {
   );
 }
 
+/** General micronutrient guidance for this kind of fix — never a read of the user's diet. */
+function FuelSection({ verdict }: { verdict: Verdict }) {
+  const fuel = fuelFor(verdict);
+  return (
+    <Section title={COPY.fuelTitle}>
+      <Text style={styles.bodyText}>{fuel.lead}</Text>
+      {fuel.nutrients.map((n) => (
+        <View key={n.name} style={[styles.protocolRow, styles.divider]}>
+          <Text style={styles.cardTitle}>{n.name}</Text>
+          <Text style={styles.bodyText}>{n.why}</Text>
+          <Text style={styles.fuelFoods}>{n.foods}</Text>
+        </View>
+      ))}
+      <View style={[styles.protocolRow, styles.divider]}>
+        <Eyebrow>{COPY.fuelFoundation}</Eyebrow>
+        <Text style={styles.bodyText}>{fuel.foundation}</Text>
+      </View>
+      <Text style={styles.fuelCaveat}>{fuel.caveat}</Text>
+    </Section>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.card}>
@@ -233,4 +258,6 @@ const styles = StyleSheet.create({
   bullet: { fontSize: 14, lineHeight: 20, color: C.disabled },
   protocolRow: { gap: 3, paddingVertical: 8 },
   protocolMeta: { fontSize: 13, fontWeight: '600', color: C.muted },
+  fuelFoods: { fontSize: 13, lineHeight: 18, color: C.muted },
+  fuelCaveat: { fontSize: 12, lineHeight: 17, color: C.muted, marginTop: 4 },
 });

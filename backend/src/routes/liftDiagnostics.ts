@@ -78,6 +78,19 @@ const PENDING = '{"__pending":true}';
 const VIDEO_PENDING = JSON.stringify({ video: { status: 'pending' } });
 /** In-flight video jobs by session, so a Skip can abandon the analysis. */
 const videoJobs = new Map<string, AbortController>();
+/**
+ * Turns this process is working on right now, keyed `sessionId:clientTurnId`,
+ * and video turns whose job hasn't written its result yet. A pending row that
+ * is NOT in these sets was left behind by a process that died (deploy restart,
+ * crash), so it can be released immediately instead of after the stale window.
+ * That matters most for a verdict: the user comes back in a minute, taps again,
+ * and must not be told they've spent today's diagnosis on one that never
+ * arrived. The API runs as a single process (systemd fitness-ai.service); if
+ * it is ever scaled out, these become per-instance and only the stale windows
+ * remain authoritative.
+ */
+const liveTurns = new Set<string>();
+const liveVideoTurns = new Set<string>();
 
 class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -201,11 +214,14 @@ async function turnRows(
  * produced a plan gives its credit back.
  */
 async function releaseStrandedTurns(sessionId: string, userId: string) {
-  const cutoff = new Date(Date.now() - TURN_STALE_MS);
-  const stranded = await prisma.diagnosticTurn.findMany({
-    where: { sessionId, resultJson: PENDING, updatedAt: { lt: cutoff } },
-    select: { id: true, type: true },
+  const cutoff = Date.now() - TURN_STALE_MS;
+  const pending = await prisma.diagnosticTurn.findMany({
+    where: { sessionId, resultJson: PENDING },
+    select: { id: true, type: true, clientTurnId: true, updatedAt: true },
   });
+  const stranded = pending.filter(
+    (t) => !liveTurns.has(`${sessionId}:${t.clientTurnId}`) || t.updatedAt.getTime() < cutoff,
+  );
   if (!stranded.length) return;
   await prisma.diagnosticTurn.deleteMany({ where: { id: { in: stranded.map((t) => t.id) } } });
   if (stranded.some((t) => t.type === 'verdict') && !(await latestVerdict(sessionId)) && !(await isOnboarding(userId, sessionId))) {
@@ -462,6 +478,10 @@ router.get('/lift-diagnostics', requireAuth, async (req, res) => {
 router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
   try {
     const session = await loadConversation(req);
+    // A resume after the phone died mid-verdict: release what a dead process
+    // left behind (and refund it) before the limit is peeked, so the thread
+    // reopens at "get my verdict" rather than at a daily-limit card.
+    await releaseStrandedTurns(session.id, req.user!.id);
     const [turns, verdict, prefs] = await Promise.all([
       turnRows(session.id),
       latestVerdict(session.id),
@@ -493,6 +513,7 @@ router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
 router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
   const userId = req.user!.id;
   let claimedId: string | null = null;
+  let liveKey: string | null = null;
   try {
     const { clientTurnId, input } = turnBodySchema.parse(req.body);
     const id = req.params.id;
@@ -531,6 +552,10 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
 
     const last = await prisma.diagnosticTurn.findFirst({ where: { sessionId: id }, orderBy: { seq: 'desc' }, select: { seq: true } });
     const { type, ...payload } = input;
+    // Marked live BEFORE the row exists, so no concurrent request can ever see
+    // this claim as stranded between the insert and the bookkeeping.
+    liveKey = `${id}:${clientTurnId}`;
+    liveTurns.add(liveKey);
     const claimed = await prisma.diagnosticTurn
       .create({
         data: { sessionId: id, clientTurnId, seq: (last?.seq ?? -1) + 1, type, payloadJson: JSON.stringify(payload), resultJson: PENDING },
@@ -561,6 +586,8 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
   } catch (err) {
     if (claimedId) await prisma.diagnosticTurn.delete({ where: { id: claimedId } }).catch(() => {});
     sendError(res, err, 'turn');
+  } finally {
+    if (liveKey) liveTurns.delete(liveKey);
   }
 });
 
@@ -635,6 +662,8 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
         if (err?.code === 'P2002') throw new HttpError(409, 'That clip is still uploading');
         throw err;
       });
+    // Live from the moment the row exists; the job's final write clears it.
+    liveVideoTurns.add(turn.id);
     await prisma.session.update({ where: { id: session.id }, data: { updatedAt: new Date() } });
 
     // Stills follow the form-video rules: explicit opt-in AND 18+.
@@ -658,7 +687,10 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
           data: { resultJson: JSON.stringify({ video: result ? { status: 'complete', result } : { status: 'failed', result: null } }) },
         }),
       )
-      .catch((err) => console.error('[lift-diagnostic] video job error:', err));
+      .catch((err) => console.error('[lift-diagnostic] video job error:', err))
+      // Cleared only after the result is written, so a status poll can never
+      // see "pending with no job" in the gap between the job and its write.
+      .finally(() => liveVideoTurns.delete(turn.id));
 
     posthog.capture({ distinctId: userId, event: 'diagnostic_video_attached', properties: { session_id: session.id, duration_sec: durationSec } });
     res.status(202).json({ result: pending });
@@ -677,8 +709,10 @@ router.get('/lift-diagnostics/:id/video/:clientTurnId', requireAuth, async (req,
     const result = parseJson<any>(turn.resultJson, {});
     let video = result.video ?? { status: 'failed', result: null };
     // A job that outlived a restart never reports back — fail it so the
-    // interview can take over instead of spinning forever.
-    if (video.status === 'pending' && Date.now() - turn.updatedAt.getTime() > VIDEO_STALE_MS) {
+    // interview can take over instead of spinning forever. No live job in this
+    // process means it died with a previous one: fail it now, not in 150s.
+    const orphaned = !liveVideoTurns.has(turn.id);
+    if (video.status === 'pending' && (orphaned || Date.now() - turn.updatedAt.getTime() > VIDEO_STALE_MS)) {
       video = { status: 'failed', result: null };
       await prisma.diagnosticTurn.updateMany({
         where: { id: turn.id, resultJson: turn.resultJson },

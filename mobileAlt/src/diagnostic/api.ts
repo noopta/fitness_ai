@@ -61,8 +61,8 @@ export const diagnosticApi: DiagnosticApi = {
   },
 };
 
-export async function listDiagnostics(): Promise<DiagnosticListRow[]> {
-  const res = await apiFetch('/lift-diagnostics');
+export async function listDiagnostics(opts: { timeoutMs?: number } = {}): Promise<DiagnosticListRow[]> {
+  const res = await apiFetch('/lift-diagnostics', opts.timeoutMs ? { timeoutMs: opts.timeoutMs } : undefined);
   return res?.diagnostics ?? [];
 }
 

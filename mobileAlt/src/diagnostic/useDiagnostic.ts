@@ -38,5 +38,12 @@ export function useDiagnostic(sessionId: string | undefined, unit: WeightUnit) {
     return () => controller.dispose();
   }, [controller]);
   const state = useSyncExternalStore(controller.subscribe, controller.getState, controller.getState);
+  // A resumed thread that already holds a verdict (it finished while the app
+  // was closed) ends the first-run funnel too — the live path only marks it
+  // on diagnostic_completed, which a replay never emits.
+  const hasVerdict = !!state.verdict;
+  useEffect(() => {
+    if (hasVerdict) void markDiagnosticFirstSeen();
+  }, [hasVerdict]);
   return { controller, state };
 }

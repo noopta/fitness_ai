@@ -8,6 +8,7 @@ import { getExerciseById } from '../data/exercises.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAnalysisRateLimit } from '../middleware/rateLimit.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { getExerciseVideo } from '../services/youtubeService.js';
 import posthog from '../services/posthogClient.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
@@ -301,7 +302,13 @@ router.post('/sessions/:id/snapshots', requireAuth, async (req, res) => {
 });
 
 // POST /api/sessions/:id/messages - Add message and get AI response
-router.post('/sessions/:id/messages', requireAuth, checkAnalysisRateLimit, async (req, res) => {
+// Paced, not metered. The daily analysis count used to run here too, and it
+// charged every interview message: with FREE_TIER_DAILY_LIMIT=1 the hidden
+// opening trigger spent the day's diagnosis and a free user's first real
+// answer came back 429, so no free user could finish an interview (prod,
+// 7 Aug to 13 Sep 2026). The diagnosis is metered once, at /generate; this
+// route keeps ownership checks, the 8-question ceiling, and a per-minute cap.
+router.post('/sessions/:id/messages', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { id } = req.params;
     const data = addMessageSchema.parse(req.body);

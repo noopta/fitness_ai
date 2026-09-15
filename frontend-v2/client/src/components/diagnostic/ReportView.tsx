@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Check, Share, X } from 'lucide-react';
 import {
   COPY,
+  fuelFor,
   reportSections,
   sharpenList,
   verdictHeadline,
@@ -149,6 +150,8 @@ export function ReportView({ verdict, onClose, onAddNumbers, readOnly }: Props) 
 
         {verdict.fix ? <Fix fix={verdict.fix} /> : null}
 
+        <Fuel verdict={verdict} />
+
         {verdict.trackNextTime.length ? (
           <Section title={COPY.trackNextTime}>
             <ul className="flex flex-col gap-1.5">
@@ -191,6 +194,28 @@ function Fix({ fix }: { fix: NonNullable<Verdict['fix']> }) {
           ))}
         </div>
       ) : null}
+    </Section>
+  );
+}
+
+/** General micronutrient guidance for this kind of fix — never a read of the user's diet. */
+function Fuel({ verdict }: { verdict: Verdict }) {
+  const fuel = fuelFor(verdict);
+  return (
+    <Section title={COPY.fuelTitle}>
+      <p className="text-sm leading-5 text-zinc-700">{fuel.lead}</p>
+      {fuel.nutrients.map((n) => (
+        <div key={n.name} className="flex flex-col gap-0.5 border-t border-zinc-100 py-2">
+          <div className="text-[15px] font-semibold text-zinc-950">{n.name}</div>
+          <p className="text-sm leading-5 text-zinc-700">{n.why}</p>
+          <p className="text-[13px] leading-[18px] text-zinc-500">{n.foods}</p>
+        </div>
+      ))}
+      <div className="flex flex-col gap-1 border-t border-zinc-100 py-2">
+        <Eyebrow>{COPY.fuelFoundation}</Eyebrow>
+        <p className="text-sm leading-5 text-zinc-700">{fuel.foundation}</p>
+      </div>
+      <p className="mt-1 text-xs leading-[17px] text-zinc-500">{fuel.caveat}</p>
     </Section>
   );
 }
