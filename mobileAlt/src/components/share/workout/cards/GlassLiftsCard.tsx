@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import { ShareableWorkout, CropTransform } from '../types';
-import { cardColors } from '../tokens';
+import { ShareableWorkout, CropTransform, ShareTheme } from '../types';
+import { palette } from '../tokens';
 import { BrandLockup, Eyebrow, VerticalScrim, GlassPanel } from '../parts';
 import { PhotoWindow } from '../PhotoWindow';
 import { formatVolume, formatDuration, joinCaption } from '../format';
@@ -16,6 +16,7 @@ interface Props {
   width: number;
   height: number;
   data: ShareableWorkout;
+  theme: ShareTheme;
   uri: string;
   crop: CropTransform;
   interactive?: boolean;
@@ -23,12 +24,13 @@ interface Props {
   captureMode?: boolean;
 }
 
-export function GlassLiftsCard({ p, width, height, data, uri, crop, interactive, onCropChange, captureMode }: Props) {
+export function GlassLiftsCard({ p, width, height, data, theme, uri, crop, interactive, onCropChange, captureMode }: Props) {
   const inset = p(26);
   const panelPad = p(24);
-  const white = '#ffffff';
-  const muted = cardColors.onDarkMuted;
-  const success = cardColors.successOnDark;
+  const c = palette(theme);
+  const white = c.glassInk;     // panel ink — dark on a light panel
+  const muted = c.glassMuted;
+  const success = c.success;
   const { pr } = data;
   const lifts = data.exercises.slice(0, 4);
 
@@ -37,29 +39,29 @@ export function GlassLiftsCard({ p, width, height, data, uri, crop, interactive,
       <PhotoWindow uri={uri} crop={crop} width={width} height={height} interactive={interactive} onCropChange={onCropChange}>
         {/* slight top darken + heavy bottom scrim (≈165°) */}
         <VerticalScrim
-          id={`b5Scrim-${Math.round(width)}`}
+          id={`b5Scrim-${Math.round(width)}-${theme}`}
           width={width}
           height={height}
           stops={[
-            { offset: 0, color: '#09090b', opacity: 0.28 },
-            { offset: 0.4, color: '#09090b', opacity: 0 },
-            { offset: 0.62, color: '#09090b', opacity: 0 },
-            { offset: 1, color: '#09090b', opacity: 0.88 },
+            { offset: 0, color: c.scrim, opacity: 0.28 },
+            { offset: 0.4, color: c.scrim, opacity: 0 },
+            { offset: 0.62, color: c.scrim, opacity: 0 },
+            { offset: 1, color: c.scrim, opacity: 0.88 },
           ]}
         />
         <View style={{ position: 'absolute', top: p(30), left: inset, right: inset, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <BrandLockup p={p} mark={cardColors.ink} tileBg="#ffffff" wordmark={white} />
+          <BrandLockup p={p} mark={c.markFg} tileBg={c.markBg} wordmark={c.glassInk} />
           <Eyebrow p={p} color={muted}>Session logged</Eyebrow>
         </View>
       </PhotoWindow>
 
       <GlassPanel
         flat={captureMode}
-        fill={cardColors.glassFill}
+        fill={c.glassFill}
         blur={18}
         radius={p(22)}
         borderWidth={p(1)}
-        borderColor={cardColors.glassHairline}
+        borderColor={c.glassHairline}
         style={{ position: 'absolute', left: inset, right: inset, bottom: inset, padding: panelPad }}
       >
         {/* Head */}
@@ -85,7 +87,7 @@ export function GlassLiftsCard({ p, width, height, data, uri, crop, interactive,
         )}
 
         {/* Divider → the lifts */}
-        <View style={{ height: p(1), backgroundColor: cardColors.glassHairline, marginVertical: p(16) }} />
+        <View style={{ height: p(1), backgroundColor: c.glassHairline, marginVertical: p(16) }} />
         <Eyebrow p={p} color={muted} style={{ marginBottom: p(8) }}>The lifts</Eyebrow>
         {lifts.map((ex, i) => (
           <View key={`${ex.name}-${i}`} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: p(6) }}>

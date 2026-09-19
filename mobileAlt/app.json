@@ -71,7 +71,15 @@
         "NSPhotoLibraryAddUsageDescription": "Axiom saves your shareable workout cards to your photo library.",
         "NSMicrophoneUsageDescription": "Axiom uses your microphone to transcribe voice notes about meals you ate.",
         "NSLocationWhenInUseUsageDescription": "Axiom does not use your location. This purpose string is required only because one of our SDKs (react-native-vision-camera) references location APIs.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": [
+          "instagram",
+          "instagram-stories",
+          "twitter",
+          "tiktok",
+          "snapchat",
+          "whatsapp"
+        ]
       }
     },
     "android": {
@@ -96,7 +104,18 @@
         }
       ],
       "permissions": [],
-      "versionCode": 7
+      "versionCode": 7,
+      "queries": [
+        {
+          "package": "com.instagram.android"
+        },
+        {
+          "package": "com.zhiliaoapp.musically"
+        },
+        {
+          "package": "com.twitter.android"
+        }
+      ]
     },
     "experiments": {
       "typedRoutes": true

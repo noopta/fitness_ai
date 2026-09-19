@@ -24,7 +24,13 @@ import { displayShareable } from './format';
 import { useUnits } from '../../../context/UnitsContext';
 import { ShareCard } from './ShareCard';
 import { ThemeToggle, TemplatePicker } from './controls';
-import { captureCard, shareCardImage, saveToPhotos } from './captureAndExport';
+import { captureCard, captureCardBase64 } from './captureAndExport';
+import { normalizePickedPhoto } from './photoNormalize';
+import { ShareTargetRow } from './ShareTargetRow';
+import {
+  detectTargets, runTarget, needsBase64, resultMessage,
+  ShareTargetDef, ShareTargetId,
+} from './shareTargets';
 
 const THEME_KEY = '@axiom_share_theme';
 
@@ -59,9 +65,13 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
   );
 
   const [draft, setDraft] = useState<ShareDraft>({ template: 'hero', theme: 'dark', photo: null });
-  const [busy, setBusy] = useState<null | 'share' | 'save'>(null);
+  const [busy, setBusy] = useState<ShareTargetId | null>(null);
+  const [targets, setTargets] = useState<ShareTargetDef[]>([]);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [photoNote, setPhotoNote] = useState<string | null>(null);
+  // Normalizing a picked photo (EXIF bake + downscale) takes ~100-250ms; the
+  // photo button shows a spinner rather than appearing to do nothing.
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   // Reset + restore last theme choice each open.
   useEffect(() => {
@@ -73,6 +83,9 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
       setDraft({ template: 'hero', theme, photo: null });
     });
     AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
+    // Capability-detect per open: Save flips on the first launch of a binary
+    // that carries expo-media-library, without needing a restart.
+    detectTargets().then(setTargets).catch(() => setTargets([]));
   }, [visible]);
 
   if (!shareable || !display) return null;
@@ -121,11 +134,27 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
       mediaTypes: ['images'],
       quality: 1,
       allowsEditing: false,
+      // We do our own framing in PhotoWindow; EXIF is normalized away below, so
+      // there is nothing useful to carry through from the asset's metadata.
+      exif: false,
     });
     if (res.canceled || !res.assets?.[0]) return;
+    const asset = res.assets[0];
+
+    // Bake EXIF orientation into the pixels BEFORE the photo reaches the card
+    // (spec §6). Without this the preview and the exported PNG disagree about
+    // rotation — see photoNormalize.ts. Cheap (~100-250ms) and never throws.
+    setPhotoBusy(true);
+    let normalized;
+    try {
+      normalized = await normalizePickedPhoto(asset.uri, asset.width, asset.height);
+    } finally {
+      setPhotoBusy(false);
+    }
+
     setDraft((d) => ({
       ...d,
-      photo: { uri: res.assets[0].uri, crop: DEFAULT_CROP },
+      photo: { uri: normalized.uri, crop: DEFAULT_CROP },
       template: PHOTO_TEMPLATES.includes(d.template) ? d.template : 'heroPhoto',
     }));
   }
@@ -134,32 +163,24 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
     setDraft((d) => ({ ...d, photo: null, template: 'hero' }));
   }
 
-  async function onShare() {
+  async function onTarget(id: ShareTargetId) {
     if (shareDisabled || busy) return;
-    setBusy('share');
+    setBusy(id);
     try {
-      const uri = await captureCard(captureRefView, draft.template);
-      if (uri) await shareCardImage(uri);
-    } catch (err) {
-      console.warn('[celebration] share failed', err);
-      Alert.alert('Could not share', 'Something went wrong creating your card. Please try again.');
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onSave() {
-    if (shareDisabled || busy) return;
-    setBusy('save');
-    try {
+      // One capture per invocation. Clipboard needs the bytes inline; every
+      // other target works from the cache file.
       const uri = await captureCard(captureRefView, draft.template);
       if (!uri) return;
-      const result = await saveToPhotos(uri);
-      if (result === 'saved') Alert.alert('Saved', 'Your card was saved to Photos.');
-      else if (result === 'denied') Alert.alert('Photo access needed', 'Enable photo access in Settings to save your card.');
-      else Alert.alert('Save unavailable', 'Saving to Photos isn’t available yet on this build — you can still Share.');
+      const base64 = needsBase64(id)
+        ? (await captureCardBase64(captureRefView, draft.template)) ?? undefined
+        : undefined;
+
+      const result = await runTarget(id, { uri, base64 });
+      const msg = resultMessage(id, result);
+      if (msg) Alert.alert(msg.title, msg.body);
     } catch (err) {
-      console.warn('[celebration] save failed', err);
+      console.warn('[celebration] target failed', id, err);
+      Alert.alert('Could not share', 'Something went wrong creating your card. Please try again.');
     } finally {
       setBusy(null);
     }
@@ -233,9 +254,11 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
           <View style={styles.photoRow}>
             {hasPhoto ? (
               <>
-                <TouchableOpacity style={styles.ghostBtn} onPress={pickPhoto}>
-                  <Ionicons name="swap-horizontal" size={16} color={colors.foreground} />
-                  <Text style={styles.ghostBtnText}>Change photo</Text>
+                <TouchableOpacity style={styles.ghostBtn} onPress={pickPhoto} disabled={photoBusy}>
+                  {photoBusy
+                    ? <ActivityIndicator size="small" color={colors.foreground} />
+                    : <Ionicons name="swap-horizontal" size={16} color={colors.foreground} />}
+                  <Text style={styles.ghostBtnText}>{photoBusy ? 'Preparing…' : 'Change photo'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.ghostBtn} onPress={removePhoto}>
                   <Ionicons name="trash-outline" size={16} color={colors.foreground} />
@@ -243,43 +266,24 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
                 </TouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity style={styles.ghostBtn} onPress={pickPhoto}>
-                <Ionicons name="image-outline" size={16} color={colors.foreground} />
-                <Text style={styles.ghostBtnText}>Add a photo</Text>
+              <TouchableOpacity style={styles.ghostBtn} onPress={pickPhoto} disabled={photoBusy}>
+                {photoBusy
+                  ? <ActivityIndicator size="small" color={colors.foreground} />
+                  : <Ionicons name="image-outline" size={16} color={colors.foreground} />}
+                <Text style={styles.ghostBtnText}>{photoBusy ? 'Preparing…' : 'Add a photo'}</Text>
               </TouchableOpacity>
             )}
           </View>
         </ScrollView>
 
-        {/* Actions */}
+        {/* Export targets (spec §7) — one tap per destination. */}
         <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.shareBtn, (shareDisabled || busy) && styles.btnDisabled]}
-            onPress={onShare}
-            disabled={shareDisabled || !!busy}
-            activeOpacity={0.85}
-          >
-            {busy === 'share' ? (
-              <ActivityIndicator color={colors.primaryForeground} />
-            ) : (
-              <>
-                <Ionicons name="share-outline" size={18} color={colors.primaryForeground} />
-                <Text style={styles.shareBtnText}>Share</Text>
-              </>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.saveBtn, (shareDisabled || busy) && styles.btnDisabled]}
-            onPress={onSave}
-            disabled={shareDisabled || !!busy}
-            activeOpacity={0.7}
-          >
-            {busy === 'save' ? (
-              <ActivityIndicator color={colors.foreground} />
-            ) : (
-              <Text style={styles.saveBtnText}>Save to Photos</Text>
-            )}
-          </TouchableOpacity>
+          <ShareTargetRow
+            targets={targets}
+            busy={busy}
+            disabled={shareDisabled}
+            onPress={onTarget}
+          />
         </View>
 
         {/* Off-screen full-resolution capture card — only the card layers, no chrome. */}
@@ -324,13 +328,5 @@ const styles = StyleSheet.create({
   },
   ghostBtnText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.foreground },
   actions: { gap: spacing.sm, paddingTop: spacing.sm },
-  shareBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 16,
-  },
-  shareBtnText: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.primaryForeground },
-  saveBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
-  saveBtnText: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
-  btnDisabled: { opacity: 0.4 },
   offscreen: { position: 'absolute', left: -100000, top: 0, width: EXPORT_WIDTH },
 });
