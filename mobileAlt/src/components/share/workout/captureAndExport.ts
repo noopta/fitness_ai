@@ -1,14 +1,9 @@
-// Capture → share pipeline (spec §8). Rasterizes the card ref at the 1080px
-// export raster (1080×1920 story / 1080×1080 square), hands the PNG to the OS
-// share sheet, and optionally saves to the camera roll.
+// Capture half of the share pipeline (spec §7-8). Rasterizes the card ref at the
+// 1080px export raster (1080×1920 story / 1080×1080 square).
 //
-// `expo-media-library` is imported lazily so the JS bundle still runs on binaries
-// built before the native module was added — Save to Photos just reports
-// "unavailable" there and lights up on the next build.
+// Delivery lives in shareTargets.ts — this file only produces pixels.
 
 import { captureRef } from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
-import { Alert } from 'react-native';
 import { EXPORT_WIDTH, refFor } from './tokens';
 import { ShareTemplate } from './types';
 
@@ -19,37 +14,18 @@ export async function captureCard(ref: React.RefObject<any>, template: ShareTemp
   return captureRef(ref, { format: 'png', quality: 1, width: EXPORT_WIDTH, height, result: 'tmpfile' });
 }
 
-export async function shareCardImage(uri: string): Promise<boolean> {
-  const available = await Sharing.isAvailableAsync();
-  if (!available) {
-    Alert.alert('Sharing unavailable', 'Sharing is not available on this device.');
-    return false;
-  }
-  try {
-    await Sharing.shareAsync(uri, {
-      mimeType: 'image/png',
-      dialogTitle: 'Share your workout',
-      UTI: 'public.png',
-    });
-    return true;
-  } catch (err) {
-    // Cancelling the share sheet rejects on some platforms — stay quiet.
-    console.warn('[share] share failed', err);
-    return false;
-  }
-}
-
-export type SaveResult = 'saved' | 'denied' | 'unavailable';
-
-export async function saveToPhotos(uri: string): Promise<SaveResult> {
-  try {
-    const MediaLibrary = await import('expo-media-library');
-    const perm = await MediaLibrary.requestPermissionsAsync();
-    if (!perm.granted) return 'denied';
-    await MediaLibrary.saveToLibraryAsync(uri);
-    return 'saved';
-  } catch (err) {
-    console.warn('[share] saveToPhotos unavailable', err);
-    return 'unavailable';
-  }
+/**
+ * Capture the card as base64 as well as a file, for targets that need the bytes
+ * inline (clipboard). Two rasterizations rather than a file read, because
+ * expo-file-system's base64 read is the slower path for a ~1-2MB PNG and this
+ * keeps the capture parameters identical for both outputs.
+ */
+export async function captureCardBase64(
+  ref: React.RefObject<any>,
+  template: ShareTemplate,
+): Promise<string | null> {
+  if (!ref.current) return null;
+  const ref0 = refFor(template);
+  const height = Math.round(EXPORT_WIDTH * (ref0.h / ref0.w));
+  return captureRef(ref, { format: 'png', quality: 1, width: EXPORT_WIDTH, height, result: 'base64' });
 }

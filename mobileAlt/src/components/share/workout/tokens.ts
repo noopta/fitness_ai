@@ -36,6 +36,90 @@ export const cardColors = {
   darkSurface: '#09090b',
 } as const;
 
+/**
+ * Mode-aware palette. Every card resolves its colors through this rather than
+ * reaching into `cardColors` directly, so Light/Dark is one switch per card
+ * instead of a per-card re-derivation.
+ *
+ * Roles, not colors: a card asks for `ink` or `hairline`, never for a hex. The
+ * glass roles carry their own light/dark pair because a frosted panel over a
+ * photo can't just invert — a light panel needs to be *more* opaque than a dark
+ * one to hold ≥4.5:1 contrast over an arbitrary photo (spec §6).
+ */
+export interface CardPalette {
+  /** Page background. */
+  surface: string;
+  /** Raised plate on top of `surface` (the receipt slip). */
+  plate: string;
+  ink: string;
+  muted: string;
+  success: string;
+  hairline: string;
+  /** Dashed rule on the receipt. */
+  dash: string;
+  /** Brand lockup: glyph color and its tile. */
+  markFg: string;
+  markBg: string;
+  /** Frosted panel over a photo. */
+  glassFill: string;
+  glassFillStrong: string;
+  glassHairline: string;
+  /** Ink used *inside* a glass panel, and its secondary. */
+  glassInk: string;
+  glassMuted: string;
+  /** Scrim color burned into the photo behind a glass panel. */
+  scrim: string;
+  /** PR pill inside a glass panel: background + foreground. */
+  pillBg: string;
+  pillFg: string;
+}
+
+const LIGHT: CardPalette = {
+  surface: cardColors.background,
+  plate: '#ffffff',
+  ink: cardColors.ink,
+  muted: cardColors.mutedText,
+  success: cardColors.successInk,
+  hairline: cardColors.border,
+  dash: '#d4d4d8',
+  markFg: '#ffffff',
+  markBg: cardColors.ink,
+  // A light panel must be denser than its dark twin: dark ink over a bright
+  // photo loses contrast far faster than white ink over a dark one.
+  glassFill: 'rgba(255,255,255,0.74)',
+  glassFillStrong: 'rgba(255,255,255,0.80)',
+  glassHairline: 'rgba(9,9,11,0.12)',
+  glassInk: cardColors.ink,
+  glassMuted: 'rgba(9,9,11,0.60)',
+  scrim: '#ffffff',
+  pillBg: cardColors.successInk,
+  pillFg: '#ffffff',
+};
+
+const DARK: CardPalette = {
+  surface: cardColors.darkSurface,
+  plate: '#18181b',
+  ink: '#ffffff',
+  muted: cardColors.onDarkMuted,
+  success: cardColors.successOnDark,
+  hairline: cardColors.glassHairline,
+  dash: 'rgba(255,255,255,0.22)',
+  markFg: cardColors.ink,
+  markBg: '#ffffff',
+  glassFill: cardColors.glassFill,
+  glassFillStrong: cardColors.glassFillStrong,
+  glassHairline: cardColors.glassHairline,
+  glassInk: '#ffffff',
+  glassMuted: cardColors.onDarkMuted,
+  scrim: '#09090b',
+  pillBg: cardColors.successOnDark,
+  pillFg: cardColors.ink,
+};
+
+export function palette(theme: 'light' | 'dark'): CardPalette {
+  return theme === 'dark' ? DARK : LIGHT;
+}
+
 // Type scale in reference px (spec §5 "Type — Inter Variable").
 export const typeScale = {
   prHero: 82,        // 700 / -0.04em / tabular

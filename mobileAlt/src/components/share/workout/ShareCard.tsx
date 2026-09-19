@@ -5,8 +5,8 @@
 import React, { forwardRef } from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ShareableWorkout, ShareDraft, ShareTemplate, PHOTO_REQUIRED } from './types';
-import { scaler, cardColors } from './tokens';
+import { ShareableWorkout, ShareDraft, ShareTemplate, ShareTheme, PHOTO_REQUIRED } from './types';
+import { scaler, cardColors, palette } from './tokens';
 import { HeroCard } from './cards/HeroCard';
 import { ReceiptCard } from './cards/ReceiptCard';
 import { HeroPhotoCard } from './cards/HeroPhotoCard';
@@ -25,11 +25,16 @@ interface Props {
   captureMode?: boolean;
 }
 
-function PhotoPlaceholder({ p, width, height, square }: { p: (n: number) => number; width: number; height: number; square: boolean }) {
+function PhotoPlaceholder({ p, width, height, square, theme }: {
+  p: (n: number) => number; width: number; height: number; square: boolean; theme: ShareTheme;
+}) {
+  // The empty state is the flat surface, never a placeholder graphic (spec §6).
+  const c = palette(theme);
+  const bg = theme === 'dark' ? c.surface : cardColors.muted;
   return (
-    <View style={{ width, height, backgroundColor: cardColors.muted, alignItems: 'center', justifyContent: 'center', gap: p(10) }}>
-      <Ionicons name="image-outline" size={p(square ? 48 : 56)} color={cardColors.mutedText} />
-      <Text style={{ color: cardColors.mutedText, fontSize: p(15), fontWeight: '600' }}>Add a photo</Text>
+    <View style={{ width, height, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', gap: p(10) }}>
+      <Ionicons name="image-outline" size={p(square ? 48 : 56)} color={c.muted} />
+      <Text style={{ color: c.muted, fontSize: p(15), fontWeight: '600' }}>Add a photo</Text>
     </View>
   );
 }
@@ -44,14 +49,14 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard(
   let body: React.ReactNode;
 
   if (PHOTO_REQUIRED[template] && !draft.photo) {
-    body = <PhotoPlaceholder p={p} width={width} height={height} square={template === 'glassChip'} />;
+    body = <PhotoPlaceholder p={p} width={width} height={height} square={template === 'glassChip'} theme={draft.theme} />;
   } else {
     switch (template) {
       case 'hero':
         body = <HeroCard p={p} width={width} height={height} data={data} theme={draft.theme} />;
         break;
       case 'receipt':
-        body = <ReceiptCard p={p} width={width} height={height} data={data} />;
+        body = <ReceiptCard p={p} width={width} height={height} data={data} theme={draft.theme} />;
         break;
       case 'heroPhoto':
         body = (
@@ -65,7 +70,7 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard(
       case 'glassLifts':
         body = (
           <GlassLiftsCard
-            p={p} width={width} height={height} data={data}
+            p={p} width={width} height={height} data={data} theme={draft.theme}
             uri={draft.photo!.uri} crop={draft.photo!.crop}
             interactive={interactive} onCropChange={onCropChange} captureMode={captureMode}
           />
@@ -74,7 +79,7 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard(
       case 'glassChip':
         body = (
           <GlassChipCard
-            p={p} width={width} height={height} data={data}
+            p={p} width={width} height={height} data={data} theme={draft.theme}
             uri={draft.photo!.uri} crop={draft.photo!.crop}
             interactive={interactive} onCropChange={onCropChange} captureMode={captureMode}
           />

@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import { ShareableWorkout, CropTransform } from '../types';
-import { cardColors } from '../tokens';
+import { ShareableWorkout, CropTransform, ShareTheme } from '../types';
+import { palette } from '../tokens';
 import { BrandLockup, Eyebrow, VerticalScrim, GlassPanel, PRPill } from '../parts';
 import { PhotoWindow } from '../PhotoWindow';
 import { formatVolume, formatDuration, formatDateEyebrow } from '../format';
@@ -16,6 +16,7 @@ interface Props {
   width: number;
   height: number;
   data: ShareableWorkout;
+  theme: ShareTheme;
   uri: string;
   crop: CropTransform;
   interactive?: boolean;
@@ -23,20 +24,23 @@ interface Props {
   captureMode?: boolean;
 }
 
-function MiniStat({ p, value, label }: { p: (n: number) => number; value: string; label: string }) {
+function MiniStat({ p, value, label, ink, muted }: {
+  p: (n: number) => number; value: string; label: string; ink: string; muted: string;
+}) {
   return (
     <View style={{ gap: p(2) }}>
-      <Text style={{ color: '#ffffff', fontSize: p(18), fontWeight: '700', fontVariant: ['tabular-nums'] }} numberOfLines={1}>{value}</Text>
-      <Eyebrow p={p} color={cardColors.onDarkMuted}>{label}</Eyebrow>
+      <Text style={{ color: ink, fontSize: p(18), fontWeight: '700', fontVariant: ['tabular-nums'] }} numberOfLines={1}>{value}</Text>
+      <Eyebrow p={p} color={muted}>{label}</Eyebrow>
     </View>
   );
 }
 
-export function GlassChipCard({ p, width, height, data, uri, crop, interactive, onCropChange, captureMode }: Props) {
+export function GlassChipCard({ p, width, height, data, theme, uri, crop, interactive, onCropChange, captureMode }: Props) {
   const inset = p(26);
   const pad = p(22);
-  const white = '#ffffff';
-  const muted = cardColors.onDarkMuted;
+  const c = palette(theme);
+  const white = c.glassInk;
+  const muted = c.glassMuted;
   const { pr } = data;
 
   // Third mini-stat highlights the PR when present, else the lift count.
@@ -48,28 +52,28 @@ export function GlassChipCard({ p, width, height, data, uri, crop, interactive, 
     <View style={{ width, height, backgroundColor: '#000', overflow: 'hidden' }}>
       <PhotoWindow uri={uri} crop={crop} width={width} height={height} interactive={interactive} onCropChange={onCropChange}>
         <VerticalScrim
-          id={`b3Scrim-${Math.round(width)}`}
+          id={`b3Scrim-${Math.round(width)}-${theme}`}
           width={width}
           height={height}
           stops={[
-            { offset: 0, color: '#09090b', opacity: 0.3 },
-            { offset: 0.45, color: '#09090b', opacity: 0 },
-            { offset: 1, color: '#09090b', opacity: 0.85 },
+            { offset: 0, color: c.scrim, opacity: 0.3 },
+            { offset: 0.45, color: c.scrim, opacity: 0 },
+            { offset: 1, color: c.scrim, opacity: 0.85 },
           ]}
         />
         <View style={{ position: 'absolute', top: p(24), left: inset, right: inset, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <BrandLockup p={p} mark={cardColors.ink} tileBg="#ffffff" wordmark={white} />
+          <BrandLockup p={p} mark={c.markFg} tileBg={c.markBg} wordmark={c.glassInk} />
           <Eyebrow p={p} color={muted}>Session logged</Eyebrow>
         </View>
       </PhotoWindow>
 
       <GlassPanel
         flat={captureMode}
-        fill={cardColors.glassFillStrong}
+        fill={c.glassFillStrong}
         blur={16}
         radius={p(20)}
         borderWidth={p(1)}
-        borderColor={cardColors.glassHairline}
+        borderColor={c.glassHairline}
         style={{ position: 'absolute', left: inset, right: inset, bottom: inset, padding: pad }}
       >
         {/* Top row — volume + caption left, PR pill right */}
@@ -83,15 +87,15 @@ export function GlassChipCard({ p, width, height, data, uri, crop, interactive, 
               {data.title} · {formatDateEyebrow(data.loggedAt)}
             </Text>
           </View>
-          {pr ? <PRPill p={p} bg={cardColors.successOnDark} fg={cardColors.ink} /> : null}
+          {pr ? <PRPill p={p} bg={c.pillBg} fg={c.pillFg} /> : null}
         </View>
 
-        <View style={{ height: p(1), backgroundColor: cardColors.glassHairline, marginVertical: p(14) }} />
+        <View style={{ height: p(1), backgroundColor: c.glassHairline, marginVertical: p(14) }} />
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <MiniStat p={p} value={String(data.sets)} label="Sets" />
-          <MiniStat p={p} value={formatDuration(data.durationMin)} label="Time" />
-          <MiniStat p={p} value={third.value} label={third.label} />
+          <MiniStat p={p} value={String(data.sets)} label="Sets" ink={white} muted={muted} />
+          <MiniStat p={p} value={formatDuration(data.durationMin)} label="Time" ink={white} muted={muted} />
+          <MiniStat p={p} value={third.value} label={third.label} ink={white} muted={muted} />
         </View>
       </GlassPanel>
     </View>

@@ -39,8 +39,9 @@ export interface ShareableWorkout {
   pr: SharePR | null;      // null ⇒ use volume/title fallback
 }
 
-// The five card templates. Hero (A1b/A1c) and HeroPhoto (A1d) carry a theme;
-// the Receipt and both Glass cards are theme-fixed.
+// The five card templates. All five carry a Light/Dark theme — the Receipt
+// swaps its page + slip, and the Glass cards swap the frosted panel (a light
+// panel is denser to hold contrast over an arbitrary photo; see tokens.ts).
 export type ShareTemplate = 'hero' | 'receipt' | 'heroPhoto' | 'glassLifts' | 'glassChip';
 
 export type ShareTheme = 'light' | 'dark';
@@ -80,11 +81,11 @@ export const PHOTO_REQUIRED: Record<ShareTemplate, boolean> = {
   glassChip: true,
 };
 
-/** Does this template expose the Light/Dark toggle? */
+/** Does this template expose the Light/Dark toggle? Every template does. */
 export const HAS_THEME_TOGGLE: Record<ShareTemplate, boolean> = {
   hero: true,
-  receipt: false,
+  receipt: true,
   heroPhoto: true,
-  glassLifts: false,
-  glassChip: false,
+  glassLifts: true,
+  glassChip: true,
 };
