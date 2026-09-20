@@ -4,6 +4,7 @@ import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Alert, Platform } from 'react-native';
 import { authApi, getToken, setToken, clearToken, isVerifyPending, type AuthVerifyPending } from '../lib/api';
+import { clearLocalOnboardingState } from '../onboarding/testAccountReset';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -109,7 +110,7 @@ interface AuthContextType {
    */
   getLatestUser: () => AuthUser | null;
   /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
-  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean };
+  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -144,19 +145,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // any re-render has happened. Defaults to everything off, so a server that
   // does not send the block (or a request that failed) leaves gated features
   // dark rather than showing a flow the backend will refuse.
-  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean }>({
+  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean }>({
     onboardingFormHook: false,
     diagnosticFirstOnboarding: false,
     liftDiagnosticConversation: false,
+    onboardingTestAccount: false,
   });
   const commitFeatures = useCallback((f: any) => {
     featuresRef.current = {
       onboardingFormHook: f?.onboardingFormHook === true,
       diagnosticFirstOnboarding: f?.diagnosticFirstOnboarding === true,
       liftDiagnosticConversation: f?.liftDiagnosticConversation === true,
+      onboardingTestAccount: f?.onboardingTestAccount === true,
     };
   }, []);
   const getFeatures = useCallback(() => featuresRef.current, []);
+
+  // Device-side half of the onboarding-test-account reset. The server has
+  // already blanked the account by the time these features land; without this
+  // the phone's own first-run keys would still be set and the second sign-in
+  // would skip the very flow the account exists to exercise.
+  //
+  // Called from the sign-in paths ONLY, never from refreshUser(): a mid-session
+  // refresh clearing `axiom_session_id` would drop an in-flight diagnostic.
+  const applyTestAccountReset = useCallback(async () => {
+    if (featuresRef.current.onboardingTestAccount) await clearLocalOnboardingState();
+  }, []);
   const [loading, setLoading] = useState(true);
   const [needsDobCheck, setNeedsDobCheck] = useState(false);
 
@@ -251,6 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.token) await setToken(data.token);
     commitUser(data.user);
     await refreshUser();
+    await applyTestAccountReset();
     return null;
   }
 
@@ -260,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.token) await setToken(data.token);
     commitUser(data.user);
     await refreshUser();
+    await applyTestAccountReset();
     return null;
   }
 
@@ -268,6 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.token) await setToken(data.token);
     commitUser(data.user);
     await refreshUser();
+    await applyTestAccountReset();
   }
 
   async function resendVerification(email: string) {
@@ -313,6 +330,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // This IS the /auth/me payload — commit the features it carries, or
       // post-auth routing runs on the all-off defaults.
       commitFeatures(data.features);
+      await applyTestAccountReset();
       if (opts?.needsDob) setNeedsDobCheck(true);
       return true;
     } catch {
@@ -359,6 +377,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               commitUser(data.user);
               // Same /auth/me payload — features must land before routing.
               commitFeatures(data.features);
+              await applyTestAccountReset();
               if (dobRequired) setNeedsDobCheck(true);
               return true;
             }

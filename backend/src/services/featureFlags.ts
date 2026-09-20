@@ -90,3 +90,33 @@ export function liftConversationAvailableFor(userId: string, email?: string | nu
   if (LIFT_CONVERSATION_ALLOWLIST.has(userId.toLowerCase())) return true;
   return !!email && LIFT_CONVERSATION_ALLOWLIST.has(email.toLowerCase());
 }
+
+/**
+ * Onboarding test accounts: sign-in resets the account to brand-new.
+ *
+ * Allowlist ONLY — there is deliberately no global switch to pair with the
+ * flags above. Every other flag here fails toward "show an extra screen"; this
+ * one fails toward "destroy this user's profile, program and history on their
+ * next login". A global on-switch for that is a foot-gun with no legitimate
+ * use, so the env var takes ids/emails and nothing else.
+ *
+ * Comma-separated user ids and/or emails, same shape as the allowlists above.
+ */
+const ONBOARDING_TEST_ACCOUNTS = new Set(
+  (process.env.ONBOARDING_TEST_ACCOUNTS ?? '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+/**
+ * Whether this account is a disposable onboarding-test account. The login
+ * routes call it to decide whether to wipe the account back to new, and
+ * /auth/me advertises it so the client can clear its own device-local
+ * first-run keys — without that second half the server reset is invisible,
+ * because the gates that actually skip onboarding live in AsyncStorage.
+ */
+export function isOnboardingTestAccount(userId: string, email?: string | null): boolean {
+  if (ONBOARDING_TEST_ACCOUNTS.has(userId.toLowerCase())) return true;
+  return !!email && ONBOARDING_TEST_ACCOUNTS.has(email.toLowerCase());
+}
