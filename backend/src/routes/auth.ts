@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, isOnboardingTestAccount } from '../services/featureFlags.js';
+import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
@@ -362,6 +363,11 @@ router.post('/auth/login', authLimiter, async (req, res) => {
       user = { ...user, tier: 'pro' };
     }
 
+    // Onboarding test accounts restart the funnel on every sign-in. The
+    // allowlist check lives inside the helper, so this is a no-op for every
+    // real user and a forgotten guard here cannot wipe one.
+    await resetOnboardingTestAccount(user.id, user.email);
+
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     scheduleWelcomeEmail(user.id);
@@ -618,6 +624,11 @@ router.get('/auth/google/callback', async (req, res) => {
       });
     }
 
+    // Onboarding test accounts restart the funnel on every sign-in. The
+    // allowlist check lives inside the helper, so this is a no-op for every
+    // real user and a forgotten guard here cannot wipe one.
+    await resetOnboardingTestAccount(user.id, user.email);
+
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     scheduleWelcomeEmail(user.id);
@@ -711,6 +722,11 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
         },
       });
     }
+
+    // Onboarding test accounts restart the funnel on every sign-in. The
+    // allowlist check lives inside the helper, so this is a no-op for every
+    // real user and a forgotten guard here cannot wipe one.
+    await resetOnboardingTestAccount(user.id, user.email);
 
     const token = issueToken(user);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
@@ -829,6 +845,11 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         onboardingFormHook: onboardingHookAvailableFor(user.id, user.email),
         diagnosticFirstOnboarding: diagnosticFirstAvailableFor(user.id, user.email),
         liftDiagnosticConversation: liftConversationAvailableFor(user.id, user.email),
+        // Disposable onboarding-test account. The client clears its own
+        // device-local first-run keys when this is set — the server reset
+        // alone is invisible, because the gates that skip the cold start
+        // live in AsyncStorage, not in this payload.
+        onboardingTestAccount: isOnboardingTestAccount(user.id, user.email),
       },
     });
   } catch (err) {
