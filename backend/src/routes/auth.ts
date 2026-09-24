@@ -54,9 +54,14 @@ async function sendAuthSMS(body: string) {
 }
 
 // Emails that always receive pro tier (complimentary access)
+// Gmail ignores dots in the local part, so both spellings reach the same
+// inbox and either can arrive from Google sign-in. The lookup is a literal
+// string match, so comped Gmail addresses list both forms.
 const PRO_TIER_EMAILS = new Set([
   'brian62888@gmail.com',
   'safia.alif.sa@gmail.com',
+  'saeedabiissa@gmail.com',   // Saeed Abi-Issa (affiliate, UGC) — comped pro
+  'saeed.abiissa@gmail.com',
 ]);
 
 function tierForEmail(email: string | null | undefined): string {
