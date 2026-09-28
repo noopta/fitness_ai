@@ -56,7 +56,18 @@ interface Props {
   focused: boolean;
 }
 
-export function Orb({ mode, progress, working, focused }: Props) {
+class OrbBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(err: unknown) { console.warn('[v2] orb failed; rendering without it', err); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
+
+export function Orb(props: Props) {
+  return <OrbBoundary><OrbInner {...props} /></OrbBoundary>;
+}
+
+function OrbInner({ mode, progress, working, focused }: Props) {
   const { width: SW, height: SH } = useWindowDimensions();
   const s = SW / FRAME_W;
   const reduced = useReducedMotion();
@@ -173,9 +184,10 @@ export function Orb({ mode, progress, working, focused }: Props) {
   }), [ax, ay, k]);
   const sliceTransforms = slices.map((sl) => useDerivedValue(() => [{ translateY: dy.value * sl.weight * s * q.value }]));
 
-  if (hidden || !img) return null;
   const cxA = ax + A / 2, cyA = ay + A / 2;
   const artScale = useDerivedValue(() => [{ translateX: cxA }, { translateY: cyA }, { scale: 1 + 0.06 * artT.value }, { translateX: -cxA }, { translateY: -cyA }]);
+  // Every hook above this line, unconditionally — the image arrives after the first render.
+  if (hidden || !img) return null;
   return (
     <Canvas style={[StyleSheet.absoluteFill, { width: SW, height: SH }]} pointerEvents="none">
       <Group transform={artTransform} opacity={artOpacity}>
