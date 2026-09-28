@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, isOnboardingTestAccount } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, isOnboardingTestAccount, uiV2AvailableFor } from '../services/featureFlags.js';
 import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
@@ -855,6 +855,8 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         // alone is invisible, because the gates that skip the cold start
         // live in AsyncStorage, not in this payload.
         onboardingTestAccount: isOnboardingTestAccount(user.id, user.email),
+        // Agent-first v2 mobile shell (app/(v2)/). Allow-listed dogfood first.
+        uiV2: uiV2AvailableFor(user.id, user.email),
       },
     });
   } catch (err) {

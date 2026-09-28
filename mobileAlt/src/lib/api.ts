@@ -6,7 +6,7 @@ if (Platform.OS !== 'web') {
   SecureStore = require('expo-secure-store');
 }
 
-const API_BASE = 'https://api.airthreads.ai/api';
+export const API_BASE = 'https://api.airthreads.ai/api';
 const TOKEN_KEY = 'liftoff_auth_token';
 
 /**

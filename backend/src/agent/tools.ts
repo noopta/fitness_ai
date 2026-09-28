@@ -803,7 +803,48 @@ const readAdaptation: AgentTool = {
 
 // ─── Registry ───────────────────────────────────────────────────────────────
 
+// ─── read_lift_progress ──────────────────────────────────────────────────────
+// v2 "bench" chat card: a lift's weekly e1RM series plus a linear forecast.
+// Reads the cached strength profile (same source as the Strength page) so
+// the card and the page can never disagree.
+const readLiftProgress: AgentTool = {
+  name: 'read_lift_progress',
+  description:
+    "Read ONE lift's estimated-1RM history (weekly, oldest→newest, kg) with a linear forecast and the change over the window. Use when the user asks how a specific lift is going ('how's my bench?', 'is my squat moving?'). Input `lift` is matched loosely against canonical lift names (e.g. 'bench' → 'Bench Press'). Returns { lift, current1RMkg, deltaKg, weeks, series[{week, rm}], forecast{value, week} | null }.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      lift: { type: 'string', description: "Lift name or fragment, e.g. 'bench', 'deadlift', 'squat'." },
+    },
+    required: ['lift'],
+  },
+  execute: async (input, userId) => {
+    const q = String(input.lift ?? '').trim().toLowerCase();
+    if (!q) return { error: 'lift is required' };
+    const { computeStrengthProfile } = await import('../routes/strength.js');
+    const { cacheGet, cacheSet } = await import('../services/cacheService.js');
+    const key = `strength:profile:${userId}`;
+    let profile = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(key);
+    if (!profile) { profile = await computeStrengthProfile(userId); cacheSet(key, profile); }
+    const lifts = (profile as any)?.lifts ?? [];
+    const hit = lifts.find((l: any) => String(l.canonicalName ?? '').toLowerCase() === q)
+      ?? lifts.find((l: any) => String(l.canonicalName ?? '').toLowerCase().includes(q));
+    if (!hit) return { error: `No logged lift matches "${q}"`, available: lifts.map((l: any) => l.canonicalName) };
+    const series = (hit.weekSeries ?? []).map((p: any) => ({ week: p.week, rm: p.rm }));
+    const first = series[0]?.rm ?? null, last = series[series.length - 1]?.rm ?? null;
+    return {
+      lift: hit.canonicalName,
+      current1RMkg: hit.current1RMkg,
+      deltaKg: first != null && last != null ? Math.round((last - first) * 10) / 10 : null,
+      weeks: series.length,
+      series,
+      forecast: hit.forecast ?? null,
+    };
+  },
+};
+
 export const AGENT_TOOLS: AgentTool[] = [
+  readLiftProgress,
   // Reads
   readProfile,
   readNutritionToday,

@@ -12,6 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { assembleContext, renderContext } from './context.js';
 import { AGENT_TOOLS } from './tools.js';
 import type { AgentTool, AgentTurnResult, AgentProposal } from './types.js';
+import { receiptForCall, summarizeResult, cardForResult, type AgentCard, type ReceiptVerb } from './receipts.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -273,7 +274,14 @@ export async function runAgentTurn(
 export type AgentStreamEvent =
   | { type: 'status'; phase: 'thinking' | 'tool'; tool?: string }
   | { type: 'delta'; text: string }
-  | { type: 'done'; reply: string; toolsUsed: string[]; iterations: number }
+  // v2 receipts: one per tool call, keyed by `id`. Emitted once when the tool
+  // is called and again (same id, `final: true`) when its result sharpened
+  // the text. `indent` marks a sub-agent's tool. Verb is the tool class —
+  // see receipts.ts — never something the model wrote.
+  | { type: 'receipt'; id: string; verb: ReceiptVerb; text: string; indent?: boolean; final?: boolean }
+  // v2 inline card derived from tool results (week / bench / food / proposal).
+  | { type: 'card'; card: AgentCard }
+  | { type: 'done'; reply: string; toolsUsed: string[]; iterations: number; card?: AgentCard | null; proposal?: AgentProposal }
   | { type: 'error'; error: string };
 
 /**
@@ -305,6 +313,9 @@ export async function streamAgentTurn(
   let iterations = 0;
   let finalText = '';
   let proposal: AgentProposal | undefined;
+  // v2: the card the client renders under the reply (last relevant tool wins).
+  let card: AgentCard | null = null;
+  let receiptSeq = 0;
   // Mirrors runAgentTurn: one retry when a max_tokens stop yields no text.
   let truncationRetried = false;
 
@@ -342,7 +353,8 @@ export async function streamAgentTurn(
       }
       if (!text) console.warn(`[agent] empty streamed reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
       const reply = text || "I lost my train of thought there — mind asking that again?";
-      onEvent({ type: 'done', reply, toolsUsed, iterations });
+      if (card) onEvent({ type: 'card', card });
+      onEvent({ type: 'done', reply, toolsUsed, iterations, card, proposal });
       return { reply, toolsUsed, iterations, proposal };
     }
 
@@ -354,13 +366,30 @@ export async function streamAgentTurn(
       if (block.type !== 'tool_use') continue;
       toolsUsed.push(block.name);
       onEvent({ type: 'status', phase: 'tool', tool: block.name });
+      const toolInput = (block.input ?? {}) as Record<string, unknown>;
+      const receiptId = `r${iterations}-${receiptSeq++}`;
+      const callReceipt = receiptForCall(block.name, toolInput);
+      onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb, text: callReceipt.text });
       const tool = byName[block.name];
       if (!tool) {
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Unknown tool: ${block.name}`, is_error: true });
         continue;
       }
       try {
-        const result = await tool.execute(block.input as Record<string, unknown>, userId);
+        const result = await tool.execute(toolInput, userId);
+        // Sharpen the receipt with what the tool found, and surface nested
+        // (sub-agent) tool calls as indented receipts. Sub-agents run the
+        // non-streaming loop, so their receipts arrive when they return —
+        // still 1:1 with real tool calls, just late.
+        const refined = summarizeResult(block.name, result);
+        if (refined) onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb, text: refined, final: true });
+        if (block.name === 'delegate_task' && result && typeof result === 'object' && Array.isArray((result as any).toolsUsed)) {
+          for (const sub of (result as any).toolsUsed as string[]) {
+            const sr = receiptForCall(sub, {});
+            onEvent({ type: 'receipt', id: `${receiptId}-${receiptSeq++}`, verb: sr.verb, text: sr.text, indent: true, final: true });
+          }
+        }
+        card = cardForResult(block.name, toolInput, result, card);
         if (result && typeof result === 'object' && (result as any)._proposal) {
           const r = result as any;
           if (r.kind === 'workout_swap') {
@@ -407,6 +436,7 @@ export async function streamAgentTurn(
   }
 
   const reply = "I ran out of steps working through that. Could you narrow the question a bit?";
-  onEvent({ type: 'done', reply, toolsUsed, iterations });
+  if (card) onEvent({ type: 'card', card });
+  onEvent({ type: 'done', reply, toolsUsed, iterations, card, proposal });
   return { reply, toolsUsed, iterations, proposal };
 }

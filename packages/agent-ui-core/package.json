@@ -1,0 +1,12 @@
+{
+  "name": "@axiom/agent-ui-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Platform-agnostic core of the agent-first (v2) UI: the SSE stream parser, the receipt/turn reducer, the horizontal-track snap math, the live-workout state machine and the onboarding reducer. Consumed as TypeScript source by mobileAlt (Metro); tested with vitest.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "scripts": {
+    "test": "vitest run"
+  }
+}

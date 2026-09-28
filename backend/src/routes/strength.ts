@@ -131,6 +131,7 @@ export async function computeStrengthProfile(userId: string) {
       .map(([week, rm]) => ({ week, rm, rmLbs: kgToLbs(rm) }));
 
     const meta = liftMeta.get(canonical);
+    const forecast = forecastFromSeries(weekSeries);
 
     return {
       canonicalName: canonical,
@@ -143,6 +144,9 @@ export async function computeStrengthProfile(userId: string) {
       totalTonnageKg: Math.round(liftTonnage.get(canonical) ?? 0),
       sessionCount: sortedDays.length,
       weekSeries,
+      // v2 lift-history page + bench chat card: where the e1RM lands in six
+      // weeks if the current slope holds. Null with fewer than 4 weeks.
+      forecast,
     };
   });
 
@@ -318,6 +322,38 @@ export function recomputeStrengthProfileInBackground(userId: string): void {
     .catch(err => {
       console.error(`[strength] background recompute failed for user ${userId}:`, err);
     });
+}
+
+
+// ─── Forecast ────────────────────────────────────────────────────────────────
+// Ordinary least squares over the last ≤8 weekly bests, projected 6 weeks out.
+// Deliberately simple: the card shows a dashed line to a number, and a linear
+// fit is the only projection we can defend without a training model behind it.
+// Returns null when there is too little history to draw a slope, and never
+// projects a decline below the current best (a stall is shown flat, not sinking).
+export function forecastFromSeries(
+  weekSeries: { week: string; rm: number }[],
+  horizonWeeks = 6,
+): { value: number; week: string; slopePerWeek: number } | null {
+  const pts = weekSeries.filter((p) => p.rm > 0);
+  if (pts.length < 4) return null;
+  const n = pts.length;
+  const mx = (n - 1) / 2;
+  const my = pts.reduce((s, p) => s + p.rm, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (i - mx) * (pts[i].rm - my); den += (i - mx) ** 2; }
+  const slope = den === 0 ? 0 : num / den;
+  const last = pts[n - 1].rm;
+  const value = Math.round((last + Math.max(0, slope) * horizonWeeks) * 10) / 10;
+  // Week label: advance the ISO-ish "YYYY-Www" key by the horizon.
+  const m = /^(\d{4})-W(\d{2})$/.exec(pts[n - 1].week);
+  let week = pts[n - 1].week;
+  if (m) {
+    let y = Number(m[1]), w = Number(m[2]) + horizonWeeks;
+    while (w > 52) { w -= 52; y += 1; }
+    week = `${y}-W${String(w).padStart(2, '0')}`;
+  }
+  return { value, week, slopePerWeek: Math.round(slope * 100) / 100 };
 }
 
 // ─── GET /api/strength/profile ────────────────────────────────────────────────

@@ -8,6 +8,9 @@
       ],
       "@axiom/diagnostic-core": [
         "../packages/diagnostic-core/src/index.ts"
+      ],
+      "@axiom/agent-ui-core": [
+        "../packages/agent-ui-core/src/index.ts"
       ]
     }
   },

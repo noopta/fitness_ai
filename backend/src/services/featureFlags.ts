@@ -120,3 +120,26 @@ export function isOnboardingTestAccount(userId: string, email?: string | null): 
   if (ONBOARDING_TEST_ACCOUNTS.has(userId.toLowerCase())) return true;
   return !!email && ONBOARDING_TEST_ACCOUNTS.has(email.toLowerCase());
 }
+
+/** Global switch for the agent-first v2 mobile shell. Off unless '1'. */
+const UI_V2_ENABLED = process.env.UI_V2_ENABLED === '1';
+
+/** Per-user allowlist (ids and/or emails) for dogfooding the v2 shell. */
+const UI_V2_ALLOWLIST = new Set(
+  (process.env.UI_V2_USERS ?? '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+/**
+ * Whether this user gets the agent-first v2 mobile shell. The client routes
+ * into app/(v2)/ when true and into the existing tabs when false; the backend
+ * stream contract is additive so nothing here gates an endpoint — the flag
+ * only decides which UI a signed-in user lands in.
+ */
+export function uiV2AvailableFor(userId: string, email?: string | null): boolean {
+  if (UI_V2_ENABLED) return true;
+  if (UI_V2_ALLOWLIST.has(userId.toLowerCase())) return true;
+  return !!email && UI_V2_ALLOWLIST.has(email.toLowerCase());
+}

@@ -29,9 +29,14 @@ import { diagnosticEntryRoute } from '../../diagnostic/entry';
  */
 export async function postAuthDestination(
   user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
-  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean },
+  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
+  // Agent-first v2 shell: onboarded users land on the track; new users go
+  // straight into the v2 program onboarding (program-first — the diagnostic
+  // is offered inside it rather than gating it). Checked before every other
+  // funnel flag so the v1 funnels never fire for a v2 user.
+  if (features?.uiV2) return user.coachOnboardingDone ? '/(v2)' : '/(v2)/onboarding';
   if (user.coachOnboardingDone) return '/(tabs)';
   // Diagnostic-first funnel: the cold start is the lift diagnostic, not the
   // intake — verdict first, paywall on the verdict, intake only inside the

@@ -696,99 +696,67 @@ function inferGoalFromProfile(trainingPreference?: string, primaryGoal?: string)
   return 'strength';
 }
 
-router.post('/coach/program', requireAuth, async (req, res) => {
-  try {
-    const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
+// Shared generation: the same inputs POST /coach/program assembles from the
+// profile + latest diagnostic. Returns the full program (with nutritionPlan)
+// without persisting anything; callers decide draft vs. save.
+export async function generateProgramForUser(
+  userId: string,
+  opts: { goal?: string; bodyCompositionGoal?: 'fat_loss' | 'muscle_gain' | 'recomp' | 'maintenance'; daysPerWeek: number; durationWeeks: number; gender?: string | null; tier?: string; save?: boolean },
+): Promise<any> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { sessions: { orderBy: { createdAt: 'desc' }, take: 1, include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } } } },
+  });
+  if (!user) { const e: any = new Error('User not found'); e.status = 404; throw e; }
+  const isPaid = (opts.tier ?? user.tier) === 'pro' || (opts.tier ?? user.tier) === 'enterprise';
+  if (!isPaid && user.savedProgram) { const e: any = new Error('Pro feature'); e.status = 403; e.upgrade = true; throw e; }
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      include: {
-        sessions: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } }
-        }
-      }
-    });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+  const latestPlan = user.sessions[0]?.plans[0] ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
+  const accessories = latestPlan?.bench_day_plan?.accessories?.map((a: any) => a.exercise_name) || [];
+  const ds = latestPlan?.diagnostic_signals;
+  const diagnosticSignals = ds ? { primaryPhase: ds.primary_phase || null, hypothesisScores: ds.hypothesis_scores || [], efficiencyScore: ds.efficiency_score?.score ?? undefined, indices: ds.indices || {} } : null;
+  const coachProfileObj = user.coachProfile ? (() => { try { return JSON.parse(user.coachProfile!); } catch { return {}; } })() : {};
+  const resolvedGender = opts.gender || coachProfileObj?.gender || null;
+  const goal = opts.goal || inferGoalFromProfile(coachProfileObj?.trainingPreference, coachProfileObj?.primaryGoal);
+  const bodyCompositionGoal = opts.bodyCompositionGoal || extractBodyCompositionGoal(coachProfileObj?.primaryGoal);
 
-    // Free users get exactly one generated plan (the onboarding hook). Once
-    // they've saved a program (savedProgram set), regeneration / "New Program"
-    // is pro-only. Pro/enterprise generate freely. The dashboard also blocks
-    // regeneration client-side, so this is the server-side backstop.
-    const isPaid = req.user!.tier === 'pro' || req.user!.tier === 'enterprise';
-    if (!isPaid && user.savedProgram) {
-      return res.status(403).json({ error: 'Pro feature', upgrade: true });
-    }
-
-    const latestPlan = user.sessions[0]?.plans[0] ? JSON.parse(user.sessions[0].plans[0].planJson) : null;
-    const accessories = latestPlan?.bench_day_plan?.accessories?.map((a: any) => a.exercise_name) || [];
-
-    // Build diagnostic signals context from latest plan
-    const ds = latestPlan?.diagnostic_signals;
-    const diagnosticSignals = ds ? {
-      primaryPhase: ds.primary_phase || null,
-      hypothesisScores: ds.hypothesis_scores || [],
-      efficiencyScore: ds.efficiency_score?.score ?? undefined,
-      indices: ds.indices || {},
-    } : null;
-
-    // Resolve gender and goal: request param > coachProfile JSON > inferred
-    const coachProfileObj = user.coachProfile ? (() => { try { return JSON.parse(user.coachProfile); } catch { return {}; } })() : {};
-    const resolvedGender = gender || coachProfileObj?.gender || null;
-    const goal = requestedGoal || inferGoalFromProfile(coachProfileObj?.trainingPreference, coachProfileObj?.primaryGoal);
-    // Explicit picker value wins; otherwise infer from the onboarding free text.
-    const bodyCompositionGoal = requestedBodyComp || extractBodyCompositionGoal(coachProfileObj?.primaryGoal);
-
-    const [program, nutritionPlan] = await Promise.all([
-      generateTrainingProgram({
-        goal,
-        daysPerWeek,
-        durationWeeks,
-        trainingAge: user.trainingAge,
-        equipment: user.equipment,
-        primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
-        selectedLift: user.sessions[0]?.selectedLift || null,
-        accessories,
-        coachProfile: user.coachProfile,
-        diagnosticSignals,
-        gender: resolvedGender,
-      }),
-      generateNutritionPlan({
-        goal,
-        bodyCompositionGoal,
-        weightKg: user.weightKg || null,
-        heightCm: user.heightCm || null,
-        trainingAge: user.trainingAge,
-        primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
-        selectedLift: user.sessions[0]?.selectedLift || null,
-        budget: user.coachBudget || null,
-        gender: resolvedGender,
-        activityLevel: coachProfileObj?.activityLevel || null,
-        dietaryRestrictions: coachProfileObj?.dietaryRestrictions || null,
-        nutritionQuality: coachProfileObj?.nutritionQuality || null,
-        currentProteinIntake: coachProfileObj?.proteinIntake || null,
-      }).catch(() => null),
-    ]);
-
-    const fullProgram = { ...program, nutritionPlan: nutritionPlan ?? undefined };
-
-    // Persist the generation as a draft immediately. The client only saves
-    // via PUT /coach/program after the reveal→walkthrough Save tap, and users
-    // who abandon there used to lose the program (and the LLM spend) — the
-    // rescue sweep promotes stale drafts instead of regenerating. Best-effort:
-    // a draft-write failure must not fail the generation response.
+  const [program, nutritionPlan] = await Promise.all([
+    generateTrainingProgram({
+      goal, daysPerWeek: opts.daysPerWeek, durationWeeks: opts.durationWeeks,
+      trainingAge: user.trainingAge, equipment: user.equipment,
+      primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
+      selectedLift: user.sessions[0]?.selectedLift || null,
+      accessories, coachProfile: user.coachProfile, diagnosticSignals, gender: resolvedGender,
+    }),
+    generateNutritionPlan({
+      goal, bodyCompositionGoal, weightKg: user.weightKg || null, heightCm: user.heightCm || null,
+      trainingAge: user.trainingAge, primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
+      selectedLift: user.sessions[0]?.selectedLift || null, budget: user.coachBudget || null, gender: resolvedGender,
+      activityLevel: coachProfileObj?.activityLevel || null, dietaryRestrictions: coachProfileObj?.dietaryRestrictions || null,
+      nutritionQuality: coachProfileObj?.nutritionQuality || null, currentProteinIntake: coachProfileObj?.proteinIntake || null,
+    }).catch(() => null),
+  ]);
+  const fullProgram = { ...program, nutritionPlan: nutritionPlan ?? undefined };
+  if (opts.save) {
+    await saveProgramForUser(userId, fullProgram);
+  } else {
     try {
-      await prisma.user.update({
-        where: { id: req.user!.id },
-        data: { draftProgram: JSON.stringify(fullProgram), draftProgramAt: new Date() },
-      });
+      await prisma.user.update({ where: { id: userId }, data: { draftProgram: JSON.stringify(fullProgram), draftProgramAt: new Date() } });
     } catch (draftErr: any) {
       console.error('[coach] draft program save failed:', draftErr?.message ?? draftErr);
     }
+  }
+  return fullProgram;
+}
 
+router.post('/coach/program', requireAuth, async (req, res) => {
+  try {
+    const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
+    const fullProgram = await generateProgramForUser(req.user!.id, { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender, tier: req.user!.tier, save: false });
     res.json(fullProgram);
   } catch (err: any) {
+    if (err?.status === 403) return res.status(403).json({ error: 'Pro feature', upgrade: true });
+    if (err?.status === 404) return res.status(404).json({ error: 'User not found' });
     console.error('Program generation error:', err);
     res.status(500).json({ error: err.message || 'Failed to generate program' });
   }
@@ -819,99 +787,69 @@ router.get('/coach/program', requireAuth, async (req, res) => {
 });
 
 // PUT /api/coach/program - Save program
+// Shared save: archive the prior program, seed adaptive targets, persist,
+// invalidate caches. Used by PUT /coach/program (the v1 reveal → Save tap)
+// and by the v2 onboarding build, so both produce identical state.
+export async function saveProgramForUser(userId: string, program: any): Promise<{ isNewProgram: boolean }> {
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { savedProgram: true, programStartDate: true },
+  });
+  const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
+  if (!isNewProgram) {
+    try {
+      const priorProgram = parseSavedProgram(existing!.savedProgram ?? null);
+      const phaseState = computePhaseState(priorProgram, existing!.programStartDate ?? null);
+      await archiveProgram(userId, existing!.savedProgram ?? null, existing!.programStartDate ?? null, phaseState.isComplete ? 'completed' : 'replaced');
+    } catch (err) {
+      console.error('[coach] archive prior program failed:', (err as any)?.message ?? err);
+    }
+  }
+  const nutritionMacros = program?.nutritionPlan?.macros ?? program?.nutritionPlan ?? null;
+  const programCalories = nutritionMacros?.calories ?? null;
+  const nutritionUpdate = programCalories != null ? { dailyCalorieTarget: Math.round(programCalories) } : {};
+  let programToSave = program;
+  try {
+    if (adaptationEnabledFor(userId)) {
+      const seeded = await seedTargetsForNewProgram(userId, program);
+      programToSave = seeded.program;
+    }
+  } catch (err) {
+    console.error('[coach] seeding program targets failed:', (err as any)?.message ?? err);
+  }
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      savedProgram: JSON.stringify(programToSave),
+      draftProgram: null,
+      draftProgramAt: null,
+      programStartDate: new Date(),
+      splitLabel: deriveSplitLabel(program),
+      ...nutritionUpdate,
+    },
+    select: { name: true, email: true, tier: true },
+  });
+  void checkPinsAfterScheduleChange(userId);
+  if (isNewProgram) {
+    const goalLabel = program.goal || 'unknown';
+    const weeks = program.durationWeeks || '?';
+    const days = program.daysPerWeek || '?';
+    sendCoachSMS(`💪 Program created: ${updatedUser.name || 'User'} (${updatedUser.email}) — ${goalLabel}, ${weeks}wk, ${days}d/wk [${updatedUser.tier}]`);
+  }
+  cacheDelete(`program:${userId}`);
+  cacheClearByPrefix(`today:${userId}:`);
+  cacheClearByPrefix(`schedule:${userId}:`);
+  cacheClearByPrefix(`dashboard:${userId}:`);
+  cacheClearByPrefix(`brief:${userId}:`);
+  cacheDelete(`userctx:${userId}`);
+  return { isNewProgram };
+}
+
 router.put('/coach/program', requireAuth, async (req, res) => {
   try {
     const { program } = req.body;
     if (!program) return res.status(400).json({ error: 'program required' });
-
-    // Check if this is a new program (no existing savedProgram)
-    const existing = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      select: { savedProgram: true, programStartDate: true },
-    });
-    const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
-
-    // Archive the prior program before it's overwritten — this is the
-    // "Finished programs" history surface. We snapshot the JSON plus computed
-    // stats (workouts logged, total volume, BW change, etc.) so the history
-    // screen can render without re-querying. Errors here must NOT block the
-    // save; archiving is best-effort.
-    if (!isNewProgram) {
-      try {
-        // If we can tell the prior program ran its full duration, mark it
-        // completed; otherwise it's just being replaced mid-cycle.
-        const priorProgram = parseSavedProgram(existing!.savedProgram ?? null);
-        const phaseState = computePhaseState(priorProgram, existing!.programStartDate ?? null);
-        await archiveProgram(
-          req.user!.id,
-          existing!.savedProgram ?? null,
-          existing!.programStartDate ?? null,
-          phaseState.isComplete ? 'completed' : 'replaced',
-        );
-      } catch (err) {
-        console.error('[coach] archive prior program failed:', (err as any)?.message ?? err);
-      }
-    }
-
-    // Extract nutrition targets from the program's nutritionPlan so the
-    // Nutrition Tab uses the program's calorie goal instead of TDEE formula.
-    const nutritionMacros = program?.nutritionPlan?.macros ?? program?.nutritionPlan ?? null;
-    const programCalories = nutritionMacros?.calories ?? null;
-    const nutritionUpdate = programCalories != null
-      ? { dailyCalorieTarget: Math.round(programCalories) }
-      : {};
-
-    // Adaptive progression: a brand-new program inherits target loads from
-    // whatever this lifter has already logged, so "ahead of / behind plan"
-    // works from session one instead of after a calibration cycle.
-    let programToSave = program;
-    try {
-      if (adaptationEnabledFor(req.user!.id)) {
-        const seeded = await seedTargetsForNewProgram(req.user!.id, program);
-        programToSave = seeded.program;
-      }
-    } catch (err) {
-      console.error('[coach] seeding program targets failed:', (err as any)?.message ?? err);
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: req.user!.id },
-      data: {
-        savedProgram: JSON.stringify(programToSave),
-        // The explicit save supersedes any pending draft — clear it so the
-        // rescue sweep can't later overwrite this save with a stale draft.
-        draftProgram: null,
-        draftProgramAt: null,
-        // Whether this is the first program OR a replacement, reset the start
-        // date so the new program's week 1 starts today. Otherwise replacing
-        // a finished program would land the user mid-way through the new one.
-        programStartDate: new Date(),
-        // Train Together: split badge (PPL, UL, ...) shown next to this user
-        // in the overlap calendar header. Derived once at save time.
-        splitLabel: deriveSplitLabel(program),
-        ...nutritionUpdate,
-      },
-      select: { name: true, email: true, tier: true },
-    });
-
-    // A replaced program rewrites the whole calendar — re-score any Train
-    // Together pins this user is part of. Fire-and-forget.
-    void checkPinsAfterScheduleChange(req.user!.id);
-
-    if (isNewProgram) {
-      const goalLabel = program.goal || 'unknown';
-      const weeks = program.durationWeeks || '?';
-      const days = program.daysPerWeek || '?';
-      sendCoachSMS(`💪 Program created: ${updatedUser.name || 'User'} (${updatedUser.email}) — ${goalLabel}, ${weeks}wk, ${days}d/wk [${updatedUser.tier}]`);
-    }
-
-    // Invalidate caches since program changed
-    cacheDelete(`program:${req.user!.id}`);
-    cacheClearByPrefix(`today:${req.user!.id}:`);
-    cacheClearByPrefix(`schedule:${req.user!.id}:`);
-    cacheClearByPrefix(`dashboard:${req.user!.id}:`);
-    cacheDelete(`userctx:${req.user!.id}`);
-
+    await saveProgramForUser(req.user!.id, program);
     res.json({ success: true });
   } catch (err) {
     console.error('Save program error:', err);

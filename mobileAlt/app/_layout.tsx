@@ -186,6 +186,7 @@ function RootNavigator() {
   const diagnosticCatchDone = useRef(false);
   useEffect(() => {
     if (loading || !user || needsDobCheck || diagnosticCatchDone.current) return;
+    if (getFeatures().uiV2) return; // v2 users are program-first; the diagnostic is an offer, not a gate
     // Already routed into (or through) the diagnostic this launch — never bounce back.
     if ((segments[0] as string) === 'diagnostic') { diagnosticCatchDone.current = true; return; }
     if ((segments[0] as string) !== '(tabs)') return;
@@ -212,6 +213,16 @@ function RootNavigator() {
     // The callback screen routes itself out on both success and failure.
     const inAuthCallback = (segments[0] as string) === 'auth';
     const inFormHook = (segments[0] as string) === 'onboarding-form';
+    const inV2 = (segments[0] as string) === '(v2)';
+    const inTabs = segments[0] === '(tabs)';
+    // v2 shell: a signed-in, DOB-checked user on the flag who lands on the v1
+    // tabs (cold start, a stale router.replace) is moved to the track. Only
+    // from (tabs) — pushed v1 routes (form analysis, groups…) are reachable
+    // from v2 on purpose and must not bounce.
+    if (user && !needsDobCheck && getFeatures().uiV2 && inTabs && !inV2) {
+      router.replace(((user as any).coachOnboardingDone ? '/(v2)' : '/(v2)/onboarding') as any);
+      return;
+    }
     if (!user && !inAuthGroup && !inCinematic && !inAuthCallback && !inFormHook) {
       // Signed-out users: first-timers (downloaded the app, not signed in) get the
       // cinematic onboarding; users who've already seen it go straight to login.
