@@ -6,7 +6,7 @@ import React from 'react';
 import { View, Pressable, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Svg, { Path } from 'react-native-svg';
-import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, interpolateColor, type SharedValue } from 'react-native-reanimated';
 import { v2 } from '../theme';
 import { PAGE_COUNT } from '@axiom/agent-ui-core';
 import { haptics } from '../haptics';
@@ -34,9 +34,11 @@ interface Props {
   dark?: boolean;
   /** Slide the bar out (chat). */
   hidden?: SharedValue<number>;
+  /** 1 = dark frosted (home brief), 0 = white frosted. */
+  darkness?: SharedValue<number>;
 }
 
-export function TabBar({ position, active, onSelect, dark, hidden }: Props) {
+export function TabBar({ position, active, onSelect, dark, hidden, darkness }: Props) {
   // Inline: this runs on the UI thread, and only worklets may be called there.
   // Mirrors pillOffset() in @axiom/agent-ui-core/track (tested).
   const pill = useAnimatedStyle(() => {
@@ -44,13 +46,18 @@ export function TabBar({ position, active, onSelect, dark, hidden }: Props) {
     return { transform: [{ translateX: p * SLOT + (SLOT - PILL_W) / 2 }] };
   });
   const bar = useAnimatedStyle(() => ({ transform: [{ translateY: hidden ? hidden.value * 140 : 0 }] }));
-  const ground = dark ? v2.color.tabBarDark : v2.color.tabBarLight;
-  const border = dark ? 'rgba(255,255,255,.1)' : v2.color.hairline;
+  const frost = useAnimatedStyle(() => {
+    const d = darkness ? darkness.value : (dark ? 1 : 0);
+    return {
+      backgroundColor: interpolateColor(d, [0, 1], [v2.color.tabBarLight, v2.color.tabBarDark]),
+      borderColor: interpolateColor(d, [0, 1], [v2.color.hairline, 'rgba(255,255,255,.1)']),
+    };
+  });
   return (
     <Animated.View style={[styles.wrap, bar]} pointerEvents="box-none">
-      <View style={[styles.bar, { borderColor: border, backgroundColor: Platform.OS === 'ios' ? 'transparent' : ground }, v2.shadow.tabBar]}>
+      <Animated.View style={[styles.bar, v2.shadow.tabBar, frost]}>
         {Platform.OS === 'ios' ? (
-          <BlurView intensity={20} tint={dark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: v2.radius.pill, backgroundColor: ground }]} />
+          <BlurView intensity={20} tint={dark ? 'dark' : 'light'} style={[StyleSheet.absoluteFill, { borderRadius: v2.radius.pill }]} />
         ) : null}
         <Animated.View style={[styles.pill, pill]} />
         <View style={styles.icons}>
@@ -65,7 +72,7 @@ export function TabBar({ position, active, onSelect, dark, hidden }: Props) {
             );
           })}
         </View>
-      </View>
+      </Animated.View>
     </Animated.View>
   );
 }

@@ -8,11 +8,15 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
+import { v2 } from '../theme';
 
 export type HomeMode = 'brief' | 'chat';
 
 interface Shell {
   mode: HomeMode;
+  /** 0 = brief, 1 = chat. Drives the background, art, orb, text colours, tab bar and header — one value. */
+  progress: SharedValue<number>;
   setMode: (m: HomeMode) => void;
   busy: boolean;
   setBusy: (b: boolean) => void;
@@ -34,7 +38,12 @@ const Ctx = createContext<Shell | null>(null);
 
 export function ShellProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [mode, setMode] = useState<HomeMode>('brief');
+  const [mode, setModeState] = useState<HomeMode>('brief');
+  const progress = useSharedValue(0);
+  const setMode = useCallback((m: HomeMode) => {
+    setModeState(m);
+    progress.value = withTiming(m === 'chat' ? 1 : 0, { duration: v2.motion.briefChat, easing: v2.motion.easeIO });
+  }, [progress]);
   const [busy, setBusy] = useState(false);
   const [index, setIndex] = useState(0);
   const goToRef = useRef<(i: number) => void>(() => {});
@@ -56,7 +65,7 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
     goToRef.current(0);
   }, [router]);
 
-  const value = useMemo<Shell>(() => ({ mode, setMode, busy, setBusy, index, setIndex, goTo, registerGoTo, goHome, ask, registerAsk, pendingAsk }), [mode, busy, index, goTo, registerGoTo, goHome, ask, registerAsk]);
+  const value = useMemo<Shell>(() => ({ mode, progress, setMode, busy, setBusy, index, setIndex, goTo, registerGoTo, goHome, ask, registerAsk, pendingAsk }), [mode, progress, setMode, busy, index, goTo, registerGoTo, goHome, ask, registerAsk]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

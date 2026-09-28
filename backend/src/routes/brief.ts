@@ -42,11 +42,12 @@ interface Brief {
 }
 
 const TTL_MS = 6 * 60 * 60 * 1000; // sentence stays fresh for 6h or until a mutation clears it
-const MAX_SENTENCE = 110;
+const MAX_SENTENCE = 95;
 
 /** Plain text, at most two sentences, no markdown — whatever the model did. */
 export function tidySentence(raw: string): string {
   let t = String(raw ?? '')
+    .replace(/\s*\([^)]*\)/g, '')         // parentheticals
     .replace(/[*_`#>]+/g, '')            // markdown emphasis / headings / quotes
     .replace(/\[(.*?)\]\(.*?\)/g, '$1')  // links
     .replace(/\s+/g, ' ')

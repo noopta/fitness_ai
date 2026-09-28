@@ -31,7 +31,7 @@ export function Track({ pages }: Props) {
   const index = useSharedValue(0);
   const drag = useSharedValue(0);
   const startT = useSharedValue(0);
-  const chat = useSharedValue(0);
+  const chat = shell.progress;
   const [nearest, setNearest] = useState(0);
   const kb = useSharedValue(0);
   useEffect(() => {
@@ -42,7 +42,6 @@ export function Track({ pages }: Props) {
     return () => { a.remove(); b.remove(); c.remove(); d.remove(); };
   }, [kb]);
 
-  useEffect(() => { chat.value = withTiming(mode === 'chat' ? 1 : 0, { duration: 650, easing: v2.motion.easeEnter }); }, [mode, chat]);
 
   // Fractional position 0..4 (index minus drag/width).
   const pos = useDerivedValue(() => (W > 0 ? index.value - drag.value / W : index.value));
@@ -87,6 +86,12 @@ export function Track({ pages }: Props) {
 
   const track = useAnimatedStyle(() => ({ transform: [{ translateX: -index.value * W + drag.value }] }));
   const title = TABS[nearest];
+  const isDark = nearest === 0 && mode !== 'chat';
+  // 1 = fully dark (home, brief); fades with the swipe off home and with the brief → chat progress.
+  const darkness = useDerivedValue(() => (1 - chat.value) * interpolate(pos.value, [0, 1], [1, 0], Extrapolation.CLAMP));
+  const ground = useAnimatedStyle(() => ({ opacity: darkness.value }));
+  // The header mark appears only once the orb's flight has landed on it (or off home).
+  const markOpacity = useDerivedValue(() => Math.max(interpolate(pos.value, [0, 0.5], [0, 1], Extrapolation.CLAMP), interpolate(chat.value, [0.88, 1], [0, 1], Extrapolation.CLAMP)));
   const titleOpacity = useDerivedValue(() => {
     const n = Math.round(pos.value);
     return Math.max(0, 1 - Math.min(1, Math.abs(pos.value - n) * 2.2));
@@ -96,10 +101,11 @@ export function Track({ pages }: Props) {
 
   return (
     <View style={styles.root}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} animated />
       <GestureDetector gesture={pan}>
         <Animated.View style={styles.root}>
           <View style={[StyleSheet.absoluteFill, { backgroundColor: v2.color.white }]} />
+          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: v2.color.darkGround }, ground]} />
           <Animated.View style={[styles.track, { width: W * PAGE_COUNT }, track]}>
             {pages.map((p, i) => (
               <View key={TABS[i]} style={{ width: W, flex: 1 }} accessibilityLabel={`${TABS[i]} page`}>
@@ -107,8 +113,8 @@ export function Track({ pages }: Props) {
               </View>
             ))}
           </Animated.View>
-          <Header title={title} titleOpacity={titleOpacity} />
-          <TabBar position={pos} active={nearest} onSelect={goTo} hidden={barHidden} />
+          <Header title={title} titleOpacity={titleOpacity} markOpacity={markOpacity} dark={isDark} />
+          <TabBar position={pos} active={nearest} onSelect={goTo} hidden={barHidden} darkness={darkness} dark={isDark} />
         </Animated.View>
       </GestureDetector>
     </View>

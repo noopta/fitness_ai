@@ -22,10 +22,12 @@ export const v2 = {
     /** Macro chart encoding only — ring stroke and numerals, never in a row. */
     macro: { protein: '#3b82f6', carbs: '#f59e0b', fat: '#ec4899', fiber: '#22c55e' },
     /** The camera is the only dark surface. (Home is white; the engraving is vignetted onto it.) */
-    darkGround: '#272727',
+    /** Home brief ground. */
+    darkGround: '#2c2c2c',
     darkInk: '#fafafa',
     darkMuted: '#a1a1aa',
     darkHairline: 'rgba(255,255,255,.16)',
+    darkInputLine: 'rgba(255,255,255,.2)',
     cameraGround: '#09090b',
     tabBarLight: 'rgba(255,255,255,.82)',
     tabBarDark: 'rgba(58,58,58,.72)',
@@ -62,6 +64,11 @@ export const v2 = {
   motion: {
     easeEnter: Easing.bezier(0.16, 1, 0.3, 1),
     easeTrack: Easing.bezier(0.2, 0.9, 0.25, 1),
+    /** Brief ↔ chat: background 850 ms, art opacity 750 ms, art transform 1000 ms, all on this curve. */
+    easeIO: Easing.bezier(0.65, 0, 0.35, 1),
+    briefChat: 850,
+    artFade: 750,
+    artMove: 1000,
     press: 200,
     enter: 450,
     exit: 300,

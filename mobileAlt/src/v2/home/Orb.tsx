@@ -14,13 +14,13 @@
 // 690–1024), each offset by dy·weight(x) — the prototype's approach until a
 // layered export arrives. Time only advances while `paused` is false.
 //
-// The page is white, so the orb is ink (crimson while Anakin works); the
-// shipped PNG is an opaque engraving on a dark field, so its visible edges
-// are vignetted into the page until a transparent export lands.
+// Brief is dark (#2c2c2c): the orb is white, and as it flies into the header
+// it becomes ink — it IS the mark. Crimson while Anakin works. The art fades
+// (750 ms) and lifts/scales (1000 ms) on the same curve as the background.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, useWindowDimensions, AppState } from 'react-native';
-import { useSharedValue, useDerivedValue, useFrameCallback, withTiming, Easing, useReducedMotion, type SharedValue } from 'react-native-reanimated';
+import { useSharedValue, useDerivedValue, useFrameCallback, withTiming, useReducedMotion, type SharedValue } from 'react-native-reanimated';
 import {
   Canvas, Group, Image as SkImage, Circle, Points, Path, Rect, RadialGradient, LinearGradient, BlendColor, useImage, vec, rect,
 } from '@shopify/react-native-skia';
@@ -50,11 +50,13 @@ function rng(seed: number) { let x = seed; return () => { x = (x * 16807) % 2147
 
 interface Props {
   mode: 'brief' | 'chat';
+  /** The shell's brief → chat progress (0 → 1). */
+  progress: SharedValue<number>;
   working: boolean;
   focused: boolean;
 }
 
-export function Orb({ mode, working, focused }: Props) {
+export function Orb({ mode, progress, working, focused }: Props) {
   const { width: SW, height: SH } = useWindowDimensions();
   const s = SW / FRAME_W;
   const reduced = useReducedMotion();
@@ -63,13 +65,19 @@ export function Orb({ mode, working, focused }: Props) {
   const [appActive, setAppActive] = useState(true);
   useEffect(() => { const sub = AppState.addEventListener('change', (st) => setAppActive(st === 'active')); return () => sub.remove(); }, []);
 
-  // Progress brief(0) → chat(1), cubic ease-in-out over 750 ms.
-  const p = useSharedValue(mode === 'chat' ? 1 : 0);
-  useEffect(() => { p.value = withTiming(mode === 'chat' ? 1 : 0, { duration: reduced ? 150 : 750, easing: Easing.bezier(0.65, 0, 0.35, 1) }); }, [mode, p, reduced]);
+  // The orb's flight rides the shell's progress; the art has its own timings on the same curve.
+  const p = progress;
+  const artA = useSharedValue(mode === 'chat' ? 1 : 0);
+  const artT = useSharedValue(mode === 'chat' ? 1 : 0);
+  useEffect(() => {
+    const to = mode === 'chat' ? 1 : 0;
+    artA.value = withTiming(to, { duration: reduced ? 150 : v2.motion.artFade, easing: v2.motion.easeIO });
+    artT.value = withTiming(to, { duration: reduced ? 150 : v2.motion.artMove, easing: v2.motion.easeIO });
+  }, [mode, artA, artT, reduced]);
   const paused = useSharedValue(0);
   useEffect(() => { paused.value = (mode === 'chat' || !focused || !appActive || reduced) ? 1 : 0; }, [mode, focused, appActive, reduced, paused]);
   const [hidden, setHidden] = useState(false);
-  useEffect(() => { if (mode === 'chat') { const t = setTimeout(() => setHidden(true), 900); return () => clearTimeout(t); } setHidden(false); }, [mode]);
+  useEffect(() => { if (mode === 'chat') { const t = setTimeout(() => setHidden(true), 1100); return () => clearTimeout(t); } setHidden(false); }, [mode]);
   const energy = useSharedValue(1);
   const mix = useSharedValue(0);
   useEffect(() => { energy.value = withTiming(working ? 2.2 : 1, { duration: 600 }); mix.value = withTiming(working ? 1 : 0, { duration: 400 }); }, [working, energy, mix]);
@@ -92,12 +100,14 @@ export function Orb({ mode, working, focused }: Props) {
   const R = useDerivedValue(() => (A0.r + (A1.r - A0.r) * p.value) * s);
   const q = useDerivedValue(() => 1 - p.value);
   const breathe = useDerivedValue(() => 1 + 0.045 * Math.sin(time.value * 2 * Math.PI / 5.2) * q.value);
-  const colour = useDerivedValue(() => {
-    const m = mix.value;
-    const c = [Math.round(INK[0] + (CRIMSON[0] - INK[0]) * m), Math.round(INK[1] + (CRIMSON[1] - INK[1]) * m), Math.round(INK[2] + (CRIMSON[2] - INK[2]) * m)];
-    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  // Base tone: white (250) in the dark brief, ink (9,9,11) once it is the header mark; crimson while working.
+  const tone = useDerivedValue(() => {
+    const m = mix.value, pv = p.value;
+    const base = [250 + (INK[0] - 250) * pv, 250 + (INK[1] - 250) * pv, 250 + (INK[2] - 250) * pv];
+    return [Math.round(base[0] + (CRIMSON[0] - base[0]) * m), Math.round(base[1] + (CRIMSON[1] - base[1]) * m), Math.round(base[2] + (CRIMSON[2] - base[2]) * m)];
   });
-  const glowColors = useDerivedValue(() => [`rgba(9,9,11,${(0.14 * q.value).toFixed(3)})`, 'rgba(9,9,11,0)']);
+  const colour = useDerivedValue(() => `rgb(${tone.value[0]},${tone.value[1]},${tone.value[2]})`);
+  const glowColors = useDerivedValue(() => [`rgba(${tone.value[0]},${tone.value[1]},${tone.value[2]},${(0.2 * q.value).toFixed(3)})`, `rgba(${tone.value[0]},${tone.value[1]},${tone.value[2]},0)`]);
   const glowC = useDerivedValue(() => ({ x: cx.value, y: cy.value }));
   const glowR = useDerivedValue(() => R.value * 0.95);
 
@@ -120,7 +130,7 @@ export function Orb({ mode, working, focused }: Props) {
     }
     return out;
   });
-  const particleColor = useDerivedValue(() => `rgba(9,9,11,${(0.55 * q.value).toFixed(3)})`);
+  const particleColor = useDerivedValue(() => `rgba(${tone.value[0]},${tone.value[1]},${tone.value[2]},${(0.6 * q.value).toFixed(3)})`);
 
   // Filaments from the fingertips to the orb.
   const threads = [0, 1, 2].map((i) => useDerivedValue(() => {
@@ -129,7 +139,7 @@ export function Orb({ mode, working, focused }: Props) {
     const mx = (fx + tx) / 2 + Math.sin(time.value * 1.7 + i * 2) * 10 * s, my = (fy + ty) / 2 + Math.cos(time.value * 1.3 + i) * 6 * s;
     return `M ${fx} ${fy} Q ${mx} ${my} ${tx} ${ty}`;
   }));
-  const threadColor = useDerivedValue(() => `rgba(9,9,11,${(0.22 * q.value * Math.min(1, energy.value)).toFixed(3)})`);
+  const threadColor = useDerivedValue(() => `rgba(${tone.value[0]},${tone.value[1]},${tone.value[2]},${(0.2 * q.value * Math.min(1, energy.value)).toFixed(3)})`);
 
   // Logomark layers inside the orb.
   const markSize = useDerivedValue(() => R.value * (0.72 * q.value + p.value));
@@ -150,8 +160,8 @@ export function Orb({ mode, working, focused }: Props) {
   }));
 
   // Art group: fades and lifts as chat opens.
-  const artTransform = useDerivedValue(() => [{ translateY: -40 * p.value }]);
-  const artOpacity = useDerivedValue(() => q.value);
+  const artOpacity = useDerivedValue(() => 1 - artA.value);
+  const artTransform = useDerivedValue(() => [{ translateY: -70 * artT.value }]);
   const ax = ART_BOX.x * s, ay = ART_BOX.y * s, A = ART_BOX.size * s;
   const k = A / 1024; // image px → screen pt
   const slices = useMemo(() => Array.from({ length: SLICES }, (_, i) => {
@@ -164,10 +174,12 @@ export function Orb({ mode, working, focused }: Props) {
   const sliceTransforms = slices.map((sl) => useDerivedValue(() => [{ translateY: dy.value * sl.weight * s * q.value }]));
 
   if (hidden || !img) return null;
-  const fadeW = 70 * s;
+  const cxA = ax + A / 2, cyA = ay + A / 2;
+  const artScale = useDerivedValue(() => [{ translateX: cxA }, { translateY: cyA }, { scale: 1 + 0.06 * artT.value }, { translateX: -cxA }, { translateY: -cyA }]);
   return (
     <Canvas style={[StyleSheet.absoluteFill, { width: SW, height: SH }]} pointerEvents="none">
       <Group transform={artTransform} opacity={artOpacity}>
+      <Group transform={artScale}>
         <SkImage image={img} x={ax} y={ay} width={A} height={A} fit="contain" />
         {slices.map((sl, i) => (
           <Group key={i} clip={rect(sl.sx, sl.top, sl.sw, sl.h)}>
@@ -176,13 +188,11 @@ export function Orb({ mode, working, focused }: Props) {
             </Group>
           </Group>
         ))}
-        {/* Vignette: the engraving's visible edges dissolve into the white page. */}
-        <Rect x={ax} y={ay} width={fadeW} height={A + 24}>
-          <LinearGradient start={vec(ax, 0)} end={vec(ax + fadeW, 0)} colors={['#ffffff', 'rgba(255,255,255,0)']} />
+        {/* Mask: solid to 70 % of the art, transparent at 100 % — the dark tones blend into #2c2c2c on their own. */}
+        <Rect x={ax - 2} y={ay + A * 0.7} width={A + 4} height={A * 0.3 + 2}>
+          <LinearGradient start={vec(0, ay + A * 0.7)} end={vec(0, ay + A)} colors={['rgba(44,44,44,0)', v2.color.darkGround]} />
         </Rect>
-        <Rect x={ax - 4} y={ay + A - fadeW * 1.4} width={A + 8} height={fadeW * 1.4 + 30}>
-          <LinearGradient start={vec(0, ay + A - fadeW * 1.4)} end={vec(0, ay + A + 12)} colors={['rgba(255,255,255,0)', '#ffffff']} />
-        </Rect>
+      </Group>
       </Group>
       {/* Orb */}
       <Circle c={glowC} r={glowR}>

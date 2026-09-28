@@ -51,3 +51,19 @@ export function sessionName(raw?: string | null): string {
 }
 
 export const smoothstep = (v: number) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v));
+
+/** Row title: the first word of the session name — "Upper Body — Arms/Chest Emphasis" → "Upper". */
+export function sessionTitle(raw?: string | null): string {
+  if (!raw) return 'Session';
+  const head = String(raw).split(/[—–·/]/)[0].trim().replace(/\s+body$/i, '').trim();
+  const first = head.split(/\s+/)[0] || head;
+  return first.charAt(0).toUpperCase() + first.slice(1);
+}
+
+/** Row caption in sentence case, no slashes: "Muscle detail/aesthetics" → "Muscle detail and aesthetics". */
+export function sessionCaption(raw?: string | null): string {
+  if (!raw) return '';
+  let t = String(raw).replace(/\s*\/\s*/g, ' and ').replace(/\s+emphasis\b/i, '').replace(/\s{2,}/g, ' ').trim();
+  t = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+  return t.length > 40 ? `${t.slice(0, 39).trim()}…` : t;
+}
