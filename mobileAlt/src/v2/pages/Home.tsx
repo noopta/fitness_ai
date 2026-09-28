@@ -28,11 +28,15 @@ import { useThread } from '../chat/useThread';
 import { TurnCard } from '../chat/Cards';
 import { Artwork } from '../home/Artwork';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
+import { MarkdownText } from '../../components/ui/MarkdownText';
 import { useAuth } from '../../context/AuthContext';
 import { coachApi } from '../../lib/api';
 import { haptics } from '../haptics';
 
 const D = v2.motion;
+
+/** The read is plain text; the model occasionally leaks markdown into it. */
+const plain = (t: string) => t.replace(/[*_`#>]+/g, '').replace(/\s+/g, ' ').trim();
 
 export function HomePage() {
   const insets = useSafeAreaInsets();
@@ -70,8 +74,9 @@ export function HomePage() {
   const dark = !chat;
   const ink = dark ? v2.color.darkInk : v2.color.ink;
   const mutedC = dark ? v2.color.darkMuted : v2.color.muted;
-  const isDay0 = !!(user as any)?.coachOnboardingDone && !brief.data?.session && !brief.data?.weekNumber;
-  const sentence = brief.data?.sentence ?? (brief.isLoading ? '' : 'Tell me what you\'re working toward.');
+  const loaded = !!brief.data;
+  const isDay0 = loaded && !!(user as any)?.coachOnboardingDone && !brief.data?.session && !brief.data?.weekNumber;
+  const sentence = loaded ? plain(brief.data!.sentence) : (brief.isError ? 'Tell me what you\'re working toward.' : '');
   const summary = useMemo(() => {
     const n = brief.data?.receipts?.length ?? 0;
     if (!n) return '';
@@ -99,12 +104,13 @@ export function HomePage() {
         </Animated.View>
 
         <View style={[styles.flex, { paddingHorizontal: v2.space.gutter }]}>
-          <View style={{ flex: 1 }} />
+          {/* In brief the content sits low; in chat the thread takes the top. */}
+          <View style={{ flex: chat ? 0 : 1 }} />
 
           {/* Brief block: eyebrow, sentence, receipts summary, session row, suggestions. */}
           <Animated.View style={[briefBlock, { overflow: 'hidden' }]} pointerEvents={chat ? 'none' : 'auto'}>
             <Enter exit={false}>
-              <Text style={[T.eyebrow, { color: mutedC }]}>{isDay0 ? 'Day 0' : brief.data?.phaseName && brief.data?.weekNumber ? `${brief.data.phaseName} · wk ${brief.data.weekNumber}` : 'Anakin'}</Text>
+              <Text style={[T.eyebrow, { color: mutedC }]}>{isDay0 ? 'Day 0' : loaded && brief.data?.phaseName && brief.data?.weekNumber ? `${brief.data.phaseName} · wk ${brief.data.weekNumber}` : 'Anakin'}</Text>
               <Text style={[T.read, { color: ink, marginTop: 10 }]}>{sentence || ' '}</Text>
             </Enter>
             {summary ? (
@@ -215,7 +221,10 @@ function TurnView({ turn, toggle, patch, resolve, ask }: { turn: Turn; toggle: (
         ) : null}
         {showList && turn.receipts.length ? <View style={{ marginTop: 8 }}><ReceiptList items={turn.receipts} liveIndex={live} animate={streaming} /></View> : null}
         {turn.text ? (
-          <Text style={[T.body, { marginTop: summary ? 10 : 0, fontSize: 16, lineHeight: 25 }]}>{turn.text}{streaming ? <Caret /> : null}</Text>
+          <View style={{ marginTop: summary ? 10 : 0, flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <View style={{ flex: 1 }}><MarkdownText text={turn.text} style={[T.body, { fontSize: 16, lineHeight: 25 }]} /></View>
+            {streaming ? <Caret /> : null}
+          </View>
         ) : null}
         {turn.done ? <TurnCard turn={turn} patch={patch} resolve={resolve} ask={ask} /> : null}
         {turn.resolution ? <View style={{ marginTop: 12 }}><Text style={[T.caption, { color: /^Adjusted/.test(turn.resolution) ? v2.color.crimson : v2.color.muted }]}>{turn.resolution}</Text></View> : null}

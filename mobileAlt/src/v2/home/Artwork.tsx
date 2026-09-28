@@ -12,6 +12,8 @@
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Image, View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useReducedMotion, useSharedValue, useFrameCallback, useDerivedValue } from 'react-native-reanimated';
 import * as SkiaLib from '@shopify/react-native-skia';
 import { v2 } from '../theme';
@@ -68,10 +70,23 @@ export function Artwork({ visible, working }: Props) {
 }
 
 function StaticArt() {
+  const g = ORB.r * 1.1;
   return (
     <View style={styles.box}>
       <Image source={ART} style={styles.img} resizeMode="cover" />
-      <View style={[styles.glow, { left: ORB.x - ORB.r, top: ORB.y - ORB.r, width: ORB.r * 2, height: ORB.r * 2, borderRadius: ORB.r }]} />
+      {/* The lower edge of the square art fades into the page ground instead of cutting off. */}
+      <LinearGradient pointerEvents="none" colors={['rgba(39,39,39,0)', v2.color.darkGround]} style={styles.fade} />
+      {/* A quiet radial glow where the orb sits — the still-image stand-in for the live orb. */}
+      <Svg pointerEvents="none" width={g * 2} height={g * 2} style={{ position: 'absolute', left: ORB.x - g, top: ORB.y - g }}>
+        <Defs>
+          <RadialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#fafafa" stopOpacity={0.16} />
+            <Stop offset="60%" stopColor="#fafafa" stopOpacity={0.04} />
+            <Stop offset="100%" stopColor="#fafafa" stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Circle cx={g} cy={g} r={g} fill="url(#orbGlow)" />
+      </Svg>
     </View>
   );
 }
@@ -187,5 +202,5 @@ function LiveArt({ visible, working }: Props) {
 const styles = StyleSheet.create({
   box: { width: ART_SIZE, height: ART_SIZE },
   img: { width: ART_SIZE, height: ART_SIZE },
-  glow: { position: 'absolute', backgroundColor: 'rgba(250,250,250,.12)' },
+  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 150 },
 });

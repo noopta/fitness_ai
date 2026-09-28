@@ -20,7 +20,8 @@ export type AgentTaskId =
   | 'weekly_review'
   | 'injury_intake'
   | 'research_apply'
-  | 'apply_suggestion';
+  | 'apply_suggestion'
+  | 'home_brief';
 
 interface AgentTaskDef {
   id: AgentTaskId;
@@ -62,6 +63,12 @@ export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
     // Has a real default so the task works with no caller input; if input IS
     // given (e.g. "something high-protein and quick") it replaces this.
     opening: 'Suggest meals that fit what\'s left in my day based on my targets, goal, and preferences. {input}',
+    needsInput: false,
+  },
+  home_brief: {
+    id: 'home_brief',
+    framing: `${BASE}\n\nWrite the ONE sentence the user sees when they open the app. Read today's schedule, their last wellness check-in, today's nutrition so far and recent training first. Then say the single most useful thing for today — what's on, what changed, or what to do first. HARD RULES: exactly one or two short sentences, at most 160 characters total; plain text only — no markdown, no asterisks, no bullets, no headings, no emoji; no greeting; second person; lead with the fact, not the advice.`,
+    opening: 'Write my one-sentence opener for today.',
     needsInput: false,
   },
   daily_tips: {

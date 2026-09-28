@@ -42,6 +42,26 @@ interface Brief {
 }
 
 const TTL_MS = 6 * 60 * 60 * 1000; // sentence stays fresh for 6h or until a mutation clears it
+const MAX_SENTENCE = 180;
+
+/** Plain text, at most two sentences, no markdown — whatever the model did. */
+export function tidySentence(raw: string): string {
+  let t = String(raw ?? '')
+    .replace(/[*_`#>]+/g, '')            // markdown emphasis / headings / quotes
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')  // links
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Split on sentence punctuation followed by whitespace — "6.3" is not a boundary.
+  const parts = t.split(/(?<=[.!?])\s+/);
+  if (parts.length > 2) t = parts.slice(0, 2).join(' ').trim();
+  if (t.length > MAX_SENTENCE) {
+    const cut = t.slice(0, MAX_SENTENCE);
+    const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('— '), cut.lastIndexOf(', '));
+    t = (end > 80 ? cut.slice(0, end + 1) : cut).trim().replace(/[,—-]$/, '') ;
+    if (!/[.!?]$/.test(t)) t += '…';
+  }
+  return t;
+}
 
 function estimateMinutes(session: any): number | null {
   const ex = Array.isArray(session?.exercises) ? session.exercises.length : 0;
@@ -102,11 +122,11 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
     let source: Brief['source'] = 'agent';
     if (!sentence) {
       try {
-        const r = await runAgentTask(userId, 'daily_tips');
-        sentence = r.reply?.trim() || null;
+        const r = await runAgentTask(userId, 'home_brief');
+        sentence = tidySentence(r.reply ?? '') || null;
         if (sentence) cacheSet(cacheKey, sentence, TTL_MS);
       } catch (err: any) {
-        console.warn('[brief] daily_tips failed, using fallback:', err?.message ?? err);
+        console.warn('[brief] home_brief failed, using fallback:', err?.message ?? err);
       }
     }
     if (!sentence) { sentence = fallbackSentence(ctx, session); source = 'fallback'; }

@@ -90,3 +90,19 @@ describe('cardForResult', () => {
     expect(c).toEqual({ type: 'food', data: { totals: { calories: 1200, proteinG: 90, carbsG: 100, fatG: 40 }, mealCount: 2 } });
   });
 });
+
+describe('tidySentence (brief)', () => {
+  it('strips markdown and clamps to two short sentences', async () => {
+    const { tidySentence } = await import('../routes/brief.js');
+    const long = 'Your body weight is trending **+6.3 lbs/week** — that\'s a sharp reversal. You haven\'t logged a workout in 14 days. Before touching macros, log meals. Right now there is zero data.';
+    const t = tidySentence(long);
+    expect(t).not.toMatch(/\*/);
+    expect(t.length).toBeLessThanOrEqual(180);
+    expect(t.split(/[.!?]\s/).length).toBeLessThanOrEqual(3);
+    expect(t.startsWith('Your body weight is trending +6.3 lbs/week')).toBe(true);
+  });
+  it('leaves a short plain sentence alone', async () => {
+    const { tidySentence } = await import('../routes/brief.js');
+    expect(tidySentence('Pull day. Your top set moved fast last time.')).toBe('Pull day. Your top set moved fast last time.');
+  });
+});

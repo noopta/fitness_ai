@@ -22,7 +22,7 @@ export const v2 = {
     /** Macro chart encoding only — ring stroke and numerals, never in a row. */
     macro: { protein: '#3b82f6', carbs: '#f59e0b', fat: '#ec4899', fiber: '#22c55e' },
     /** The home brief state and the camera are the only dark surfaces. */
-    darkGround: '#2c2c2c',
+    darkGround: '#272727', // sampled from the artwork's lower edge so the image blends into the page
     darkInk: '#fafafa',
     darkMuted: '#a1a1aa',
     darkHairline: 'rgba(255,255,255,.16)',
