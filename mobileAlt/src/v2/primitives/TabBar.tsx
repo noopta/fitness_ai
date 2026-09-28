@@ -8,7 +8,7 @@ import { BlurView } from 'expo-blur';
 import Svg, { Path } from 'react-native-svg';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import { v2 } from '../theme';
-import { PAGE_COUNT, pillOffset } from '@axiom/agent-ui-core';
+import { PAGE_COUNT } from '@axiom/agent-ui-core';
 import { haptics } from '../haptics';
 
 /** Lucide-style 24-unit paths from the prototype's TABS. */
@@ -36,7 +36,12 @@ interface Props {
 }
 
 export function TabBar({ position, active, onSelect, dark, hidden }: Props) {
-  const pill = useAnimatedStyle(() => ({ transform: [{ translateX: pillOffset(position.value, INNER) }] }));
+  // Inline: this runs on the UI thread, and only worklets may be called there.
+  // Mirrors pillOffset() in @axiom/agent-ui-core/track (tested).
+  const pill = useAnimatedStyle(() => {
+    const p = Math.max(0, Math.min(PAGE_COUNT - 1, position.value));
+    return { transform: [{ translateX: p * SLOT }] };
+  });
   const bar = useAnimatedStyle(() => ({ transform: [{ translateY: hidden ? hidden.value * 140 : 0 }] }));
   const ground = dark ? v2.color.tabBarDark : v2.color.tabBarLight;
   const border = dark ? 'rgba(255,255,255,.1)' : v2.color.hairline;

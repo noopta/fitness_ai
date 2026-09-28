@@ -49,12 +49,19 @@ interface Props {
   working: boolean;
 }
 
+class ArtBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(err: unknown) { console.warn('[v2] artwork failed, showing still', err); }
+  render() { return this.state.failed ? <StaticArt /> : this.props.children; }
+}
+
 export function Artwork({ visible, working }: Props) {
   const reduced = useReducedMotion();
   const Skia = SkiaLib as any;
   const hasSkia = !!(Skia?.Canvas && Skia?.Vertices && Skia?.useImage);
   if (!hasSkia || reduced) return <StaticArt />;
-  return <LiveArt visible={visible} working={working} />;
+  return <ArtBoundary><LiveArt visible={visible} working={working} /></ArtBoundary>;
 }
 
 function StaticArt() {

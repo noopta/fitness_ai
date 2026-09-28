@@ -86,7 +86,9 @@ export function RatioBand({ lo, hi, value, width = 346 }: { lo: number; hi: numb
   const reduced = useReducedMotion();
   const p = useSharedValue(reduced ? 1 : 0);
   useEffect(() => { p.value = withDelay(80, withTiming(1, { duration: 600, easing: v2.motion.easeEnter })); }, [p]);
-  const dot = useAnimatedStyle(() => ({ left: `${value == null ? 50 : 50 + (f(value) - 50) * p.value}%` }));
+  // Precomputed: useAnimatedStyle runs on the UI thread and must not call `f`.
+  const target = value == null ? 50 : f(value);
+  const dot = useAnimatedStyle(() => ({ left: `${50 + (target - 50) * p.value}%` }));
   return (
     <View style={{ width, height: 12, justifyContent: 'center', marginTop: 10 }}>
       <View style={{ position: 'absolute', left: 0, right: 0, height: 2, backgroundColor: v2.color.surface }} />

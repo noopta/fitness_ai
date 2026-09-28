@@ -11,11 +11,13 @@ import { Stack } from 'expo-router';
 import { v2 } from '../../src/v2/theme';
 import { useV2Fonts } from '../../src/v2/fonts';
 import { ShellProvider } from '../../src/v2/shell/ShellContext';
+import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 
 export default function V2Layout() {
   const ready = useV2Fonts();
   if (!ready) return <View style={{ flex: 1, backgroundColor: v2.color.darkGround }} />;
   return (
+    <ErrorBoundary>
     <ShellProvider>
       <Stack
         screenOptions={{
@@ -33,5 +35,6 @@ export default function V2Layout() {
         <Stack.Screen name="paywall" options={{ animation: 'fade', gestureEnabled: false }} />
       </Stack>
     </ShellProvider>
+    </ErrorBoundary>
   );
 }
