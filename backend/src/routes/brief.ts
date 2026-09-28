@@ -34,6 +34,8 @@ interface Brief {
   receipts: Receipt[];
   session: BriefSession | null;
   suggestions: string[];
+  /** An Ask Anakin raises on home when it matters — e.g. no wellness check-in yet today. */
+  ask: { key: string; question: string; reason: string; options: string[] } | null;
   weekNumber: number | null;
   phaseName: string | null;
   source: 'agent' | 'fallback';
@@ -113,8 +115,12 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
       ? [`What's the plan for ${session.name.toLowerCase()} today?`, 'I slept badly — adjust today?', 'Log lunch']
       : ["I can't train tomorrow. Move it?", 'How\'s my deadlift?', 'Log lunch'];
 
+    const checkedInToday = ctx.lastWellness?.date === date;
+    const ask = !checkedInToday && session?.isToday
+      ? { key: 'sleep', question: 'How did you sleep?', reason: session.name ? `Under 6 hours makes ${session.name.toLowerCase()} a deload, not a test.` : 'Under 6 hours makes today a deload, not a test.', options: ['Under 6 hours', '6–7 hours', '7 or more'] }
+      : null;
     const brief: Brief = {
-      date, sentence, receipts, session, suggestions,
+      date, sentence, receipts, session, suggestions, ask,
       weekNumber: schedule?.weekNumber ?? null,
       phaseName: schedule?.phaseName ?? null,
       source,

@@ -19,6 +19,7 @@ export interface Brief {
     date: string; isToday: boolean; isLogged: boolean;
   } | null;
   suggestions: string[];
+  ask: { key: string; question: string; reason: string; options: string[] } | null;
   weekNumber: number | null;
   phaseName: string | null;
   source: 'agent' | 'fallback';

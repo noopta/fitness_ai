@@ -35,7 +35,7 @@ const SUGGESTIONS = ['Pull a 350 lb deadlift', 'Fix my lower back', 'Rehab a rup
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { refreshUser } = useAuth();
+  const { refreshUser, user } = useAuth();
   const invalidate = useInvalidate();
   const [s, dispatch] = useReducer(onboardingReducer, undefined, initialOnboarding);
   const [busy, setBusy] = useState(false);
@@ -96,7 +96,7 @@ export default function OnboardingScreen() {
   };
   useEffect(() => { if (s.screen === 'plan' && !s.phases.length && !s.error) void build(); }, [s.screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const begin = () => { haptics.light(); router.replace('/(v2)' as any); };
+  const begin = () => { haptics.light(); const pro = user?.tier === 'pro' || user?.tier === 'enterprise'; router.replace((pro ? '/(v2)' : '/(v2)/paywall') as any); };
   const status = s.screen === 'working' ? 'Working' : s.screen === 'gaps' ? `${s.sources} source${s.sources === 1 ? '' : 's'} read` : s.screen === 'plan' && s.phases.length ? 'Ready' : s.screen === 'redflag' ? 'Paused' : '';
   const q: Question | undefined = s.screen === 'ask' ? s.questions[s.qi] : s.screen === 'health' ? s.health[s.hi] : undefined;
   const total = s.phases.reduce((a, x) => a + x.weeks, 0);

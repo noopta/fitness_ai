@@ -393,12 +393,12 @@ function BillingPage() {
 }
 
 function PrefsPage() {
-  const { unit, toggleUnit } = useUnits() as any;
+  const { unit, toggleUnit } = useUnits();
   const { logout } = useAuth();
   const router = useRouter();
   return (
     <PushedPage back="You" title="Preferences">
-      <Row name="Units" value={unit} onPress={() => toggleUnit?.()} />
+      <Row name="Units" value={unit} onPress={() => toggleUnit()} />
       <Row name="Notifications" sub="Only when Anakin needs you" value="Quiet" onPress={() => Linking.openSettings()} />
       <Row name="Sources Anakin can use" sub="Research, your logs" value="On" />
       <Row name="Classic app" sub="The previous tabs, still here" onPress={() => router.push('/(tabs)' as any)} />
@@ -425,11 +425,23 @@ function GroupsPage() {
 
 function LeaderboardPage() {
   const [data, setData] = React.useState<any>(null);
-  React.useEffect(() => { (socialApi.getLeaderboard('sessions') as Promise<any>).then(setData).catch(() => setData({ entries: [] })); }, []);
+  const [lift, setLift] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const lifts: any = await socialApi.getLeaderboardLifts();
+        const list: string[] = lifts?.lifts ?? (Array.isArray(lifts) ? lifts : []);
+        const first = list[0] ?? 'deadlift';
+        setLift(first);
+        const r: any = await socialApi.getLeaderboard(String(first));
+        setData(r);
+      } catch { setData({ entries: [] }); }
+    })();
+  }, []);
   const entries: any[] = data?.entries ?? data?.leaderboard ?? (Array.isArray(data) ? data : []);
   return (
-    <PushedPage back="Feed" meta="This week" title="Leaderboard" lead="Sessions completed, not weight lifted. Rehab counts the same as a peak." loading={!data}>
-      {entries.slice(0, 20).map((e, i) => <Row key={e.userId ?? e.id ?? i} name={e.name ?? e.username ?? 'Someone'} sub={e.goal ?? e.phase ?? undefined} value={String(e.sessions ?? e.count ?? e.value ?? e.score ?? '—')} bigValue last={i === Math.min(entries.length, 20) - 1} />)}
+    <PushedPage back="Feed" meta={lift ? liftName(lift) : null} title="Leaderboard" lead="By estimated 1RM on the lift, among people you train with." loading={!data}>
+      {entries.slice(0, 20).map((e, i) => <Row key={e.userId ?? e.id ?? i} name={e.name ?? e.username ?? 'Someone'} sub={e.goal ?? e.phase ?? undefined} value={String(e.e1rm ?? e.oneRm ?? e.value ?? e.score ?? e.sessions ?? '—')} bigValue last={i === Math.min(entries.length, 20) - 1} />)}
       {!entries.length && data ? <Text style={T.bodyMuted}>No one on the board yet this week.</Text> : null}
     </PushedPage>
   );

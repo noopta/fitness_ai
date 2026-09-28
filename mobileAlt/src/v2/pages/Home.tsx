@@ -23,7 +23,7 @@ import { TextAction } from '../primitives/TextAction';
 import { Ask } from '../primitives/Ask';
 import { HEADER_HEIGHT } from '../shell/Header';
 import { useShell } from '../shell/ShellContext';
-import { useBrief } from '../data';
+import { useBrief, useInvalidate } from '../data';
 import { useThread } from '../chat/useThread';
 import { TurnCard } from '../chat/Cards';
 import { Artwork } from '../home/Artwork';
@@ -40,7 +40,9 @@ export function HomePage() {
   const shell = useShell();
   const { user } = useAuth();
   const brief = useBrief();
+  const invalidate = useInvalidate();
   const thread = useThread();
+  const [askDone, setAskDone] = useState<string | null>(null);
   const reduced = useReducedMotion();
   const chat = shell.mode === 'chat';
   const [text, setText] = useState('');
@@ -118,6 +120,18 @@ export function HomePage() {
                 <View style={{ marginTop: 22 }}>
                   <Row tone="dark" name={`${session.isToday ? '' : 'Tomorrow · '}${session.name}${session.minutes ? ` · ${session.minutes} min` : ''}`} sub={session.focus ?? (session.exerciseCount ? `${session.exerciseCount} exercises` : undefined)} value={session.isLogged ? 'Done' : undefined} arrow={!session.isLogged} last
                     onPress={session.isLogged ? undefined : () => router.push('/(v2)/session' as any)} />
+                </View>
+              </Enter>
+            ) : null}
+            {brief.data?.ask && !askDone ? (
+              <Enter index={3} exit={false}>
+                <View style={{ marginTop: 22 }}>
+                  <InlineAsk question={brief.data.ask.question} reason={brief.data.ask.reason} options={brief.data.ask.options} tone="dark" onPick={(o) => {
+                    const hours = /Under/.test(o) ? 5 : /6–7/.test(o) ? 6.5 : 7.5;
+                    setAskDone(o);
+                    void logWellness(hours, hours < 6 ? 2 : hours < 7 ? 3 : 4).then(() => invalidate.afterSchedule());
+                    void thread.send(`I slept ${o.toLowerCase()} last night. Does today change?`);
+                  }} />
                 </View>
               </Enter>
             ) : null}
@@ -211,8 +225,8 @@ function TurnView({ turn, toggle, patch, resolve, ask }: { turn: Turn; toggle: (
 }
 
 /** A wellness Ask Anakin raises inline (used by the session's "Something hurts" and the brief on low sleep). */
-export function InlineAsk({ question, reason, options, onPick }: { question: string; reason: string; options: string[]; onPick: (o: string) => void }) {
-  return <Ask question={question} reason={reason} options={options} onPick={(o) => { haptics.select(); onPick(o); }} size="read" />;
+export function InlineAsk({ question, reason, options, onPick, tone = 'light' }: { question: string; reason: string; options: string[]; onPick: (o: string) => void; tone?: 'light' | 'dark' }) {
+  return <Ask question={question} reason={reason} options={options} onPick={(o) => { haptics.select(); onPick(o); }} size="read" tone={tone} />;
 }
 
 export async function logWellness(sleepHours: number, energy: number) {
