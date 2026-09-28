@@ -28,6 +28,7 @@ import { hasSeenFormHook } from '../src/onboarding/formhook/storage';
 import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 import { hasSeenDiagnosticFirst } from '../src/onboarding/diagnosticFirst';
 import { applyPendingUpdateWhileSignedOut } from '../src/lib/launchUpdate';
+import { v2SuppressedThisLaunch, v2SuppressedSync } from '../src/v2/crashGuard';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
 // it captures module-load startup errors. Here we only wrap the root component.
@@ -46,7 +47,8 @@ function RootNavigator() {
   const [cacheReady, setCacheReady] = useState(false);
 
   useEffect(() => {
-    void hydrateCacheFromStorage().finally(() => setCacheReady(true));
+    // The v2 crash guard is read before anything routes (cacheReady gates the tree).
+    void Promise.all([hydrateCacheFromStorage(), v2SuppressedThisLaunch()]).finally(() => setCacheReady(true));
   }, []);
 
   // Global JS error capture → PostHog. The previous handler still runs after
@@ -186,7 +188,7 @@ function RootNavigator() {
   const diagnosticCatchDone = useRef(false);
   useEffect(() => {
     if (loading || !user || needsDobCheck || diagnosticCatchDone.current) return;
-    if (getFeatures().uiV2) return; // v2 users are program-first; the diagnostic is an offer, not a gate
+    if (getFeatures().uiV2 && !v2SuppressedSync()) return; // v2 users are program-first; the diagnostic is an offer, not a gate
     // Already routed into (or through) the diagnostic this launch — never bounce back.
     if ((segments[0] as string) === 'diagnostic') { diagnosticCatchDone.current = true; return; }
     if ((segments[0] as string) !== '(tabs)') return;
@@ -219,7 +221,7 @@ function RootNavigator() {
     // tabs (cold start, a stale router.replace) is moved to the track. Only
     // from (tabs) — pushed v1 routes (form analysis, groups…) are reachable
     // from v2 on purpose and must not bounce.
-    if (user && !needsDobCheck && getFeatures().uiV2 && inTabs && !inV2) {
+    if (user && !needsDobCheck && getFeatures().uiV2 && !v2SuppressedSync() && inTabs && !inV2) {
       router.replace(((user as any).coachOnboardingDone ? '/(v2)' : '/(v2)/onboarding') as any);
       return;
     }

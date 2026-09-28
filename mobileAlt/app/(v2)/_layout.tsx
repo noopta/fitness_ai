@@ -5,16 +5,19 @@
 // the v1 boot path is untouched; the shell renders with the system font if
 // Inter is late or missing rather than blocking.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import { v2 } from '../../src/v2/theme';
 import { useV2Fonts } from '../../src/v2/fonts';
 import { ShellProvider } from '../../src/v2/shell/ShellContext';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
+import { markV2Boot } from '../../src/v2/crashGuard';
 
 export default function V2Layout() {
   const ready = useV2Fonts();
+  // Crash-loop breaker: if this boot dies, the next launch takes the classic app.
+  useEffect(() => markV2Boot(), []);
   if (!ready) return <View style={{ flex: 1, backgroundColor: v2.color.darkGround }} />;
   return (
     <ErrorBoundary>

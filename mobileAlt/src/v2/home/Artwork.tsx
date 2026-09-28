@@ -44,6 +44,9 @@ function handDisp(time: number) {
   };
 }
 
+/** The live Skia orb is off until it has been seen running on a device; the still is the fallback. */
+export const LIVE_ORB_ENABLED = false;
+
 interface Props {
   visible: boolean;
   working: boolean;
@@ -60,7 +63,7 @@ export function Artwork({ visible, working }: Props) {
   const reduced = useReducedMotion();
   const Skia = SkiaLib as any;
   const hasSkia = !!(Skia?.Canvas && Skia?.Vertices && Skia?.useImage);
-  if (!hasSkia || reduced) return <StaticArt />;
+  if (!LIVE_ORB_ENABLED || !hasSkia || reduced) return <StaticArt />;
   return <ArtBoundary><LiveArt visible={visible} working={working} /></ArtBoundary>;
 }
 
