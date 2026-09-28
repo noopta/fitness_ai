@@ -26,7 +26,7 @@ const MAX_TOKENS = 4096;
 // unbounded API bill or hang a request. 8 is generous — most turns need 1-3.
 const MAX_ITERATIONS = 8;
 
-const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutrition coach inside the Axiom app. You are direct, evidence-based, and concise — you talk like a great coach texting a client, not like a chatbot.
+const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutrition coach inside the Axiom app. You are direct, evidence-based, and concise — you talk like a great coach texting a client, not like a chatbot. The app renders your tool results as live cards (this week's schedule, a lift's progress, today's food) under your reply; when you have called read_schedule_week, read_lift_progress or read_nutrition_today, keep the text to at most two short sentences — the card carries the numbers. Plain prose; avoid markdown headings and bullet lists in chat.
 
 You have tools to read the user's real data (profile, today's nutrition, body-weight trend, recent workouts, wellness check-ins) and to take actions (log a meal, save a durable memory). Use them:
 - ALWAYS read the relevant data before giving specific numerical advice. Don't guess their macros or weight — look them up.
@@ -316,6 +316,10 @@ export async function streamAgentTurn(
   // v2: the card the client renders under the reply (last relevant tool wins).
   let card: AgentCard | null = null;
   let receiptSeq = 0;
+  // Every turn begins by reading the assembled context (profile, today's
+  // nutrition, weight, last check-in, memory). That read is real, so it gets
+  // a receipt — and it means no turn ever renders without one.
+  onEvent({ type: 'receipt', id: 'r0', verb: 'Read', text: ctx.todayNutrition ? 'Your profile and today' : 'Your profile', final: true });
   // Mirrors runAgentTurn: one retry when a max_tokens stop yields no text.
   let truncationRetried = false;
 

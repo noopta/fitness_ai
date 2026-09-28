@@ -17,7 +17,7 @@ import { Mark } from '../primitives/Mark';
 import { Enter } from '../primitives/Enter';
 import { TextAction } from '../primitives/TextAction';
 import { Receipt } from '../primitives/Receipt';
-import { HEADER_HEIGHT } from './Header';
+import { HEADER_HEIGHT, headerClearance } from './Header';
 import { haptics } from '../haptics';
 
 export function TabPage({ children, style, refreshing, onRefresh, dark, contentStyle, scrollEnabled = true }: {
@@ -25,27 +25,32 @@ export function TabPage({ children, style, refreshing, onRefresh, dark, contentS
 }) {
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView
-      style={[styles.flex, style]}
-      contentContainerStyle={[{ paddingTop: insets.top + 12 + HEADER_HEIGHT + 20, paddingBottom: v2.space.tabBarClearance + insets.bottom, paddingHorizontal: v2.space.gutter }, contentStyle]}
-      showsVerticalScrollIndicator={false}
-      scrollEnabled={scrollEnabled}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={dark ? v2.color.darkMuted : v2.color.muted} /> : undefined}
-    >
-      {children}
-    </ScrollView>
+    // The header is fixed at the safe-area top with a white ground; content lives below it and can never scroll under it.
+    <View style={[styles.flex, { paddingTop: headerClearance(insets.top) }, style]}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={[{ paddingTop: 12, paddingBottom: v2.space.tabBarClearance + insets.bottom, paddingHorizontal: v2.space.gutter }, contentStyle]}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={scrollEnabled}
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="never"
+        refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={dark ? v2.color.darkMuted : v2.color.muted} /> : undefined}
+      >
+        {children}
+      </ScrollView>
+    </View>
   );
 }
 
 /** Headline + one caption, the top of every tab page. */
-export function PageTitle({ title, caption, dark, right }: { title: string; caption?: string | null; dark?: boolean; right?: React.ReactNode }) {
+export function PageTitle({ title, caption, meta, dark, right }: { title?: string | null; caption?: string | null; meta?: string | null; dark?: boolean; right?: React.ReactNode }) {
   return (
     <Enter exit={false}>
       <View style={styles.titleRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[T.headlineSm, dark && { color: v2.color.darkInk }]}>{title}</Text>
-          {caption ? <Text style={[T.caption, { marginTop: 8 }, dark && { color: v2.color.darkMuted }]}>{caption}</Text> : null}
+          {meta ? <Text style={[T.caption, { marginBottom: 8 }, dark && { color: v2.color.darkMuted }]} numberOfLines={1}>{meta}</Text> : null}
+          {title ? <Text style={[T.headlineSm, dark && { color: v2.color.darkInk }]}>{title}</Text> : null}
+          {caption ? <Text style={[T.caption, { marginTop: 8 }, dark && { color: v2.color.darkMuted }]} numberOfLines={1}>{caption}</Text> : null}
         </View>
         {right}
       </View>

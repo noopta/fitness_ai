@@ -42,7 +42,7 @@ interface Brief {
 }
 
 const TTL_MS = 6 * 60 * 60 * 1000; // sentence stays fresh for 6h or until a mutation clears it
-const MAX_SENTENCE = 180;
+const MAX_SENTENCE = 110;
 
 /** Plain text, at most two sentences, no markdown — whatever the model did. */
 export function tidySentence(raw: string): string {
@@ -53,12 +53,13 @@ export function tidySentence(raw: string): string {
     .trim();
   // Split on sentence punctuation followed by whitespace — "6.3" is not a boundary.
   const parts = t.split(/(?<=[.!?])\s+/);
-  if (parts.length > 2) t = parts.slice(0, 2).join(' ').trim();
+  if (parts.length > 1 && parts[0].length >= 40) t = parts[0].trim();
+  else if (parts.length > 2) t = parts.slice(0, 2).join(' ').trim();
   if (t.length > MAX_SENTENCE) {
     const cut = t.slice(0, MAX_SENTENCE);
     const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('— '), cut.lastIndexOf(', '));
     t = (end > 80 ? cut.slice(0, end + 1) : cut).trim().replace(/[,—-]$/, '') ;
-    if (!/[.!?]$/.test(t)) t += '…';
+    if (!/[.!?…]$/.test(t)) t += '…';
   }
   return t;
 }

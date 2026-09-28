@@ -48,6 +48,8 @@ export interface Turn {
   open?: boolean;
   /** Marks an unprompted (proactive) agent turn. */
   unprompted?: boolean;
+  /** An inline Ask Anakin raises in the thread (question · reason · ≤4 rows). */
+  ask?: { key: string; question: string; reason: string; options: string[] } | null;
   at?: number;
 }
 

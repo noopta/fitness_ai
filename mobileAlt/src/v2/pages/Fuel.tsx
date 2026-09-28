@@ -12,7 +12,8 @@ import { Enter } from '../primitives/Enter';
 import { TextAction } from '../primitives/TextAction';
 import { ReceiptList } from '../primitives/Receipt';
 import { Ring } from '../charts';
-import { useMeals, useNpDay, useInvalidate } from '../data';
+import { useMeals, useNpDay, useNpWeek, useInvalidate } from '../data';
+import { useQuery } from '@tanstack/react-query';
 import { nutritionApi } from '../../lib/api';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
 import { haptics } from '../haptics';
@@ -24,7 +25,15 @@ export function FuelPage() {
   const router = useRouter();
   const meals = useMeals();
   const np = useNpDay();
+  const week = useNpWeek();
   const invalidate = useInvalidate();
+  // "The usual": what was logged at this meal a week ago today, for one-tap logging.
+  const usual = useQuery({ queryKey: ['v2', 'usual', new Date().getDay()], staleTime: 10 * 60_000, queryFn: async () => {
+    const d = new Date(); d.setDate(d.getDate() - 7);
+    const r: any = await nutritionApi.getMeals(d.toISOString().slice(0, 10)).catch(() => null);
+    const list: any[] = r?.meals ?? r?.entries ?? (Array.isArray(r) ? r : []);
+    return list.find((m) => String(m.mealType ?? '').toLowerCase() === guessMealType()) ?? list[0] ?? null;
+  } });
   const [dock, setDock] = useState<'idle' | 'typing' | 'busy'>('idle');
   const [text, setText] = useState('');
   const [log, setLog] = useState<{ verb: ReceiptVerb; text: string }[]>([]);
@@ -33,7 +42,8 @@ export function FuelPage() {
   const targets = meals.data?.targets ?? meals.data?.plan ?? TARGET_DEFAULT;
   const tot = (k: string) => rows.reduce((s, m) => s + (Number(m[k]) || 0), 0);
   const kcal = tot('calories'), p = tot('proteinG'), c = tot('carbsG'), f = tot('fatG');
-  const systems: any[] = np.data?.systems ?? [];
+  const systems: any[] = (np.data?.systems?.length ? np.data.systems : week.data?.systems) ?? [];
+  const npWin: any = np.data?.systems?.length ? np.data : week.data;
   const worst = [...systems].sort((a, b) => a.score - b.score)[0];
   const read = np.data?.headline || (rows.length === 0
     ? 'Nothing logged yet today. Snap your first plate and I\'ll do the math.'
@@ -41,6 +51,16 @@ export function FuelPage() {
       ? `Protein's covered — ${Math.round(p)} g against ${targets.proteinG}. ${worst ? `${worst.name} is the system to watch.` : ''}`
       : `${Math.round((targets.proteinG ?? 134) - p)} g of protein still to go. ${worst ? `${worst.name} is below band.` : ''}`);
 
+  const logUsual = async () => {
+    const u = usual.data; if (!u) return;
+    setDock('busy'); setLog([{ verb: 'Read', text: `Last ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} — ${u.name ?? 'meal'}` }]);
+    try {
+      await nutritionApi.logMeal({ name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), source: 'usual' } as any);
+      setLog((l) => [...l, { verb: 'Logged', text: `${u.name ?? 'The usual'} — ${Math.round(u.calories ?? 0)} kcal` }]);
+      haptics.success(); await invalidate.afterMeal();
+      setTimeout(() => { setDock('idle'); setLog([]); }, 1200);
+    } catch (e: any) { setLog((l) => [...l, { verb: 'Noted', text: e?.message ?? 'Couldn\'t log that.' }]); setTimeout(() => setDock('idle'), 1200); }
+  };
   const describe = async () => {
     const t = text.trim(); if (!t) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `“${t}”` }]);
@@ -63,10 +83,9 @@ export function FuelPage() {
 
   return (
     <KeyboardAvoider style={{ flex: 1 }}>
-      <TabPage refreshing={meals.isFetching || np.isFetching} onRefresh={() => { void meals.refetch(); void np.refetch(); }}>
-        <PageTitle title="Fuel" caption={np.data?.profileScore != null ? `Profile ${np.data.profileScore} · coverage ${np.data.microCoveragePct ?? '—'}%` : 'Today'} />
+      <TabPage refreshing={meals.isFetching || np.isFetching} onRefresh={() => { void meals.refetch(); void np.refetch(); void week.refetch(); }}>
         <Enter index={1} exit={false}>
-          <View style={styles.ringRow}>
+          <View style={[styles.ringRow, { marginTop: 4 }]}>
             <Ring kcal={kcal} target={targets.calories ?? 2400} macros={[{ key: 'protein', grams: p }, { key: 'carbs', grams: c }, { key: 'fat', grams: f }]}>
               <Text style={[T.hero, { fontSize: 30, lineHeight: 34, letterSpacing: -1 }]}>{Math.round(kcal).toLocaleString()}</Text>
               <Text style={T.caption}>of {Number(targets.calories ?? 2400).toLocaleString()}</Text>
@@ -75,7 +94,7 @@ export function FuelPage() {
               {[['Protein', p, targets.proteinG, v2.color.macro.protein], ['Carbs', c, targets.carbsG, v2.color.macro.carbs], ['Fat', f, targets.fatG, v2.color.macro.fat]].map(([k, now, tgt, hue]) => (
                 <View key={String(k)} style={styles.macroLine}>
                   <Text style={T.caption}>{k}</Text>
-                  <Text style={[T.rowStrong, T.num, { color: String(hue) }]}>{Math.round(Number(now))}<Text style={[T.caption, { color: v2.color.placeholder }]}> / {tgt ?? '—'} g</Text></Text>
+                  <Text style={[T.rowStrong, T.num, { color: Number(now) > 0 ? String(hue) : v2.color.placeholder, textAlign: 'right' }]}>{Math.round(Number(now))}<Text style={[T.caption, { color: v2.color.placeholder }]}> of {tgt ?? '—'} g</Text></Text>
                 </View>
               ))}
             </View>
@@ -85,7 +104,7 @@ export function FuelPage() {
 
         {systems.length ? (
           <View style={{ marginTop: 30 }}>
-            <Row name="Body systems" sub={worst ? `${worst.name} ${worst.score} — the lowest` : 'Five systems, scored from today\'s food'} value={np.data?.profileScore != null ? String(np.data.profileScore) : undefined} bigValue onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'systems' } } as any)} />
+            <Row name="Body systems" sub={worst ? `${worst.name} ${worst.score} — the lowest · 7-day` : 'Five systems, 7-day average'} value={npWin?.profileScore != null ? String(npWin.profileScore) : undefined} bigValue onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'systems' } } as any)} />
             <Row name="Gaps" sub="Only what's under 100%" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'micros' } } as any)} last />
           </View>
         ) : null}
@@ -93,7 +112,8 @@ export function FuelPage() {
         <View style={{ marginTop: 30 }}>
           <Eyebrow>Today</Eyebrow>
           <View style={{ marginTop: 10 }}>
-            {rows.length === 0 && !meals.isLoading ? <Text style={T.bodyMuted}>No meals yet.</Text> : null}
+            {usual.data ? <Row name={`The usual — ${usual.data.name ?? usual.data.description ?? 'last week\'s meal'}`} sub="One tap, same as a week ago" value={`${Math.round(usual.data.calories ?? 0)}`} onPress={() => void logUsual()} /> : null}
+            {rows.length === 0 && !meals.isLoading && !usual.data ? <Text style={T.bodyMuted}>No meals yet.</Text> : null}
             {rows.map((m, i) => (
               <Enter key={m.id ?? i} index={i + 2} exit={false}>
                 <Row name={m.name || m.description || 'Meal'} sub={[timeOf(m), viaOf(m)].filter(Boolean).join(' · ')} value={`${Math.round(m.calories ?? 0)}`} last={i === rows.length - 1}
@@ -108,21 +128,15 @@ export function FuelPage() {
         ) : null}
       </TabPage>
 
-      {/* Dock — sits above the tab bar clearance. */}
+      {/* Dock — three equal columns above the tab bar. Snap / Scan / Describe all open the capture surface. */}
       <View style={styles.dock} pointerEvents="box-none">
-        {dock === 'typing' ? (
-          <View style={styles.describe}>
-            <TextInput value={text} onChangeText={setText} placeholder="What did you eat?" placeholderTextColor={v2.color.placeholder} style={styles.input} autoFocus returnKeyType="send" onSubmitEditing={() => void describe()} cursorColor={v2.color.crimson} />
-            <Pressable onPress={() => void describe()} hitSlop={8}><Text style={[T.rowStrong, { color: text.trim() ? v2.color.crimson : v2.color.placeholder }]}>↑</Text></Pressable>
-            <Pressable onPress={() => { setDock('idle'); setText(''); }} hitSlop={8}><Text style={[T.body, { color: v2.color.muted }]}>Cancel</Text></Pressable>
-          </View>
-        ) : dock === 'idle' ? (
-          <View style={styles.dockRow}>
-            <TextAction arrow={false} size={15} onPress={() => router.push({ pathname: '/(v2)/capture', params: { mode: 'photo' } } as any)}>Snap</TextAction>
-            <TextAction arrow={false} size={15} onPress={() => router.push({ pathname: '/(v2)/capture', params: { mode: 'barcode' } } as any)}>Scan</TextAction>
-            <TextAction arrow={false} size={15} onPress={() => setDock('typing')}>Describe</TextAction>
-          </View>
-        ) : null}
+        <View style={styles.dockRow}>
+          {([['Snap', 'photo'], ['Scan', 'barcode'], ['Describe', 'describe']] as const).map(([label, mode]) => (
+            <Pressable key={label} onPress={() => { haptics.select(); router.push({ pathname: '/(v2)/capture', params: { mode } } as any); }} style={styles.dockItem} hitSlop={8} accessibilityRole="button">
+              <Text style={[T.rowStrong, { fontSize: 15 }]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
     </KeyboardAvoider>
   );
@@ -156,7 +170,8 @@ const styles = StyleSheet.create({
   macroCol: { flex: 1, gap: 10 },
   macroLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   dock: { position: 'absolute', left: 0, right: 0, bottom: v2.space.tabBarClearance - 8, paddingHorizontal: v2.space.gutter },
-  dockRow: { flexDirection: 'row', gap: 28, alignItems: 'center', borderTopWidth: 1, borderTopColor: v2.color.hairline, paddingTop: 12, backgroundColor: v2.color.white },
+  dockRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: v2.color.hairline, backgroundColor: v2.color.white },
+  dockItem: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   describe: { flexDirection: 'row', alignItems: 'center', gap: 16, borderTopWidth: 1, borderTopColor: v2.color.ink, paddingTop: 12, backgroundColor: v2.color.white },
   input: { flex: 1, ...T.body, fontSize: 17, padding: 0 },
 });

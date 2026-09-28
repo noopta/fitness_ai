@@ -36,6 +36,7 @@ export const useCompletedPrograms = () => useQuery({ queryKey: qk.completed, que
 export const useStrength = () => useQuery({ queryKey: qk.strength, queryFn: () => apiFetch('/strength/profile') as Promise<any>, staleTime: 5 * 60_000 });
 export const useMeals = (date?: string) => useQuery({ queryKey: qk.meals(date), queryFn: () => nutritionApi.getMeals(date) as Promise<any>, staleTime: 30_000 });
 export const useNpDay = () => useQuery({ queryKey: qk.npDay, queryFn: () => nutritionProfileApi.getDay(), staleTime: STALE });
+export const useNpWeek = () => useQuery({ queryKey: ['v2', 'np', 'week'], queryFn: () => nutritionProfileApi.getDay(undefined, '7d'), staleTime: 5 * 60_000 });
 export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, undefined, '7d' as any), staleTime: STALE, enabled: !!id });
 export const useNpNutrient = (key: string) => useQuery({ queryKey: qk.npNutrient(key), queryFn: () => nutritionProfileApi.getNutrient(key, undefined, '7d' as any), staleTime: STALE, enabled: !!key });
 export const useFeed = () => useQuery({ queryKey: qk.feed, queryFn: () => socialApi.getFeed({ includeResearch: false }) as Promise<any>, staleTime: STALE });

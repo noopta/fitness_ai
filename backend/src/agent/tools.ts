@@ -829,7 +829,7 @@ const readLiftProgress: AgentTool = {
     const lifts = (profile as any)?.lifts ?? [];
     const hit = lifts.find((l: any) => String(l.canonicalName ?? '').toLowerCase() === q)
       ?? lifts.find((l: any) => String(l.canonicalName ?? '').toLowerCase().includes(q));
-    if (!hit) return { error: `No logged lift matches "${q}"`, available: lifts.map((l: any) => l.canonicalName) };
+    if (!hit) return { lift: q.replace(/\b\w/g, (c: string) => c.toUpperCase()), empty: true, current1RMkg: null, deltaKg: null, weeks: 0, series: [], forecast: null, available: lifts.map((l: any) => l.canonicalName) };
     const series = (hit.weekSeries ?? []).map((p: any) => ({ week: p.week, rm: p.rm }));
     const first = series[0]?.rm ?? null, last = series[series.length - 1]?.rm ?? null;
     return {

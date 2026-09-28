@@ -106,3 +106,14 @@ describe('tidySentence (brief)', () => {
     expect(tidySentence('Pull day. Your top set moved fast last time.')).toBe('Pull day. Your top set moved fast last time.');
   });
 });
+
+describe('bench card', () => {
+  it('maps read_lift_progress to a bench card, empty when no sets', () => {
+    const c = cardForResult('read_lift_progress', { lift: 'bench' }, { lift: 'Bench', empty: true, series: [], current1RMkg: null }, null);
+    expect(c).toEqual({ type: 'bench', data: { lift: 'Bench', series: [], forecast: null, delta: null, current1RMkg: null, weeks: 0, empty: true } });
+    const full = cardForResult('read_lift_progress', { lift: 'bench' }, { lift: 'Bench Press', series: [{ week: 'w', rm: 100 }], deltaKg: 4, weeks: 1, current1RMkg: 100, forecast: { value: 104, week: 'x' } }, null);
+    expect((full as any).data.empty).toBe(false);
+    expect(receiptForCall('read_lift_progress', { lift: 'bench' })).toEqual({ verb: 'Pulled', text: 'Bench history' });
+    expect(summarizeResult('read_lift_progress', { lift: 'Bench', empty: true })).toBe('Bench — no sets logged yet');
+  });
+});

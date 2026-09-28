@@ -19,18 +19,20 @@ interface Props {
 }
 
 export const HEADER_HEIGHT = 44;
+/** Total clearance a page needs above its content: safe-area top + 12 + the bar. */
+export const headerClearance = (insetTop: number) => insetTop + 12 + HEADER_HEIGHT;
 
 export function Header({ title, titleOpacity, dark, caption }: Props) {
   const insets = useSafeAreaInsets();
   const shell = useShell();
   const t = useAnimatedStyle(() => ({ opacity: titleOpacity.value }));
   const isHome = shell.index === 0;
-  const showTitle = !(isHome && shell.mode === 'chat');
+  const showTitle = !isHome;
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top + 12 }]} pointerEvents="box-none">
+    <View style={[styles.wrap, { paddingTop: insets.top + 12, backgroundColor: isHome ? 'transparent' : v2.color.white }]} pointerEvents="box-none">
       <View style={styles.row} pointerEvents="box-none">
         <Pressable onPress={shell.goHome} hitSlop={10} accessibilityLabel="Anakin — home" accessibilityRole="button" style={styles.markWrap}>
-          <Mark working={shell.busy} tone={dark ? 'light' : 'ink'} />
+          <Mark working={shell.busy} tone="ink" />
         </Pressable>
         {showTitle ? (
           <Animated.Text style={[T.captionStrong, { color: dark ? v2.color.darkMuted : v2.color.muted }, t]}>{title}</Animated.Text>

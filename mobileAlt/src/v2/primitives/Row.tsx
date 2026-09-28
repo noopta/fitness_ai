@@ -41,8 +41,8 @@ export function Row({ name, sub, value, arrow, emphasis, muted, last, onPress, b
       <View style={styles.main}>
         {leading}
         <View style={styles.text}>
-          <Text style={[emphasis ? T.rowStrong : T.row, { color: ink }]} numberOfLines={2}>{name}</Text>
-          {sub ? <Text style={[T.caption, { color: mutedC, marginTop: 3 }]} numberOfLines={2}>{sub}</Text> : null}
+          <Text style={[emphasis ? T.rowStrong : T.row, { color: ink }]} numberOfLines={1}>{name}</Text>
+          {sub ? <Text style={[T.caption, { color: mutedC, marginTop: 3 }]} numberOfLines={1}>{sub}</Text> : null}
           {below}
         </View>
       </View>

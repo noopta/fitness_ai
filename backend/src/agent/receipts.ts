@@ -59,6 +59,10 @@ export function receiptForCall(tool: string, input: Input = {}): Receipt {
       return { verb: 'Pulled', text: `Wellness — last ${num(input.limit, 7)} check-ins` };
     case 'read_micro_status':
       return { verb: 'Pulled', text: `Micronutrients — ${num(input.days, 7)} days` };
+    case 'read_lift_progress': {
+      const l = str(input.lift);
+      return { verb: 'Pulled', text: l ? `${l.charAt(0).toUpperCase()}${l.slice(1)} history` : 'Lift history' };
+    }
     case 'query_research': {
       const q = str(input.query);
       return { verb: 'Searched', text: q ? `“${clip(q, 48)}”` : 'Research' };
@@ -161,6 +165,10 @@ export function summarizeResult(tool: string, result: unknown): string | null {
       if (gaps) return gaps.length ? `${gaps.length} nutrient${gaps.length === 1 ? '' : 's'} short` : 'No gaps';
       return null;
     }
+    case 'read_lift_progress':
+      if (r.empty) return `${r.lift} — no sets logged yet`;
+      if (typeof r.weeks === 'number' && r.weeks > 0) return `${r.lift} — ${r.weeks} week${r.weeks === 1 ? '' : 's'} of sessions`;
+      return null;
     case 'log_meal': {
       const kcal = r.meal?.calories ?? r.calories;
       const name = r.meal?.name ?? r.name;
@@ -175,7 +183,7 @@ export function summarizeResult(tool: string, result: unknown): string | null {
 /** Card the client may render under the reply, derived from tool results. */
 export type AgentCard =
   | { type: 'week'; data: { weekDays: any[]; weekNumber: number | null; phaseName: string | null; proposal?: { proposedWeek: any[]; rationale: string; summary: string; sourceDate: string } } }
-  | { type: 'bench'; data: { lift: string; series: { week: string; rm: number }[]; forecast?: { value: number; week: string } | null; delta?: number | null } }
+  | { type: 'bench'; data: { lift: string; series: { week: string; rm: number }[]; forecast?: { value: number; week: string } | null; delta?: number | null; current1RMkg?: number | null; weeks?: number; empty?: boolean } }
   | { type: 'food'; data: { totals: { calories: number; proteinG: number; carbsG: number; fatG: number }; mealCount: number } }
   | { type: 'proposal'; data: { summary: string; rationale?: string } };
 
@@ -200,6 +208,11 @@ export function cardForResult(tool: string, input: Input, result: unknown, prev:
       if (r._proposal && Array.isArray(r.proposedWeek)) {
         const base = prev?.type === 'week' ? prev.data : { weekDays: [], weekNumber: null, phaseName: null };
         return { type: 'week', data: { ...base, proposal: { proposedWeek: r.proposedWeek, rationale: String(r.rationale ?? ''), summary: String(r.summary ?? ''), sourceDate: String(r.sourceDate ?? '') } } };
+      }
+      return prev;
+    case 'read_lift_progress':
+      if (typeof r.lift === 'string' && Array.isArray(r.series)) {
+        return { type: 'bench', data: { lift: r.lift, series: r.series, forecast: r.forecast ?? null, delta: r.deltaKg ?? null, current1RMkg: r.current1RMkg ?? null, weeks: r.weeks ?? r.series.length, empty: !!r.empty || r.series.length === 0 } };
       }
       return prev;
     case 'read_nutrition_today': {

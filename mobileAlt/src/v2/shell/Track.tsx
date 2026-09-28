@@ -10,7 +10,7 @@
 // mirror it so the gesture runs on the UI thread.
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, useWindowDimensions, StatusBar as RNStatusBar } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, StatusBar as RNStatusBar, Keyboard } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, useDerivedValue, withTiming, runOnJS, useAnimatedReaction, interpolate, Extrapolation } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
@@ -33,6 +33,14 @@ export function Track({ pages }: Props) {
   const startT = useSharedValue(0);
   const chat = useSharedValue(0);
   const [nearest, setNearest] = useState(0);
+  const kb = useSharedValue(0);
+  useEffect(() => {
+    const a = Keyboard.addListener('keyboardWillShow', () => { kb.value = withTiming(1, { duration: 200 }); });
+    const b = Keyboard.addListener('keyboardDidShow', () => { kb.value = withTiming(1, { duration: 120 }); });
+    const c = Keyboard.addListener('keyboardWillHide', () => { kb.value = withTiming(0, { duration: 200 }); });
+    const d = Keyboard.addListener('keyboardDidHide', () => { kb.value = withTiming(0, { duration: 120 }); });
+    return () => { a.remove(); b.remove(); c.remove(); d.remove(); };
+  }, [kb]);
 
   useEffect(() => { chat.value = withTiming(mode === 'chat' ? 1 : 0, { duration: 650, easing: v2.motion.easeEnter }); }, [mode, chat]);
 
@@ -78,27 +86,20 @@ export function Track({ pages }: Props) {
     });
 
   const track = useAnimatedStyle(() => ({ transform: [{ translateX: -index.value * W + drag.value }] }));
-  // Dark ground under page 0 in brief: follows the track so the swipe reveals white.
-  const dark = useAnimatedStyle(() => ({
-    transform: [{ translateX: -index.value * W + drag.value }],
-    opacity: 1 - chat.value,
-  }));
-  const isDark = nearest === 0 && mode !== 'chat';
   const title = TABS[nearest];
   const titleOpacity = useDerivedValue(() => {
     const n = Math.round(pos.value);
     return Math.max(0, 1 - Math.min(1, Math.abs(pos.value - n) * 2.2));
   });
-  // Tab bar drops out (translateY 140) while chatting on page 0.
-  const barHidden = useDerivedValue(() => chat.value * interpolate(pos.value, [0, 1], [1, 0], Extrapolation.CLAMP));
+  // Tab bar drops out (translateY 140) while chatting on page 0, and whenever the keyboard is up.
+  const barHidden = useDerivedValue(() => Math.max(kb.value, chat.value * interpolate(pos.value, [0, 1], [1, 0], Extrapolation.CLAMP)));
 
   return (
     <View style={styles.root}>
-      <StatusBar style={isDark ? 'light' : 'dark'} animated />
+      <StatusBar style="dark" />
       <GestureDetector gesture={pan}>
         <Animated.View style={styles.root}>
           <View style={[StyleSheet.absoluteFill, { backgroundColor: v2.color.white }]} />
-          <Animated.View pointerEvents="none" style={[styles.darkLayer, { width: W }, dark]} />
           <Animated.View style={[styles.track, { width: W * PAGE_COUNT }, track]}>
             {pages.map((p, i) => (
               <View key={TABS[i]} style={{ width: W, flex: 1 }} accessibilityLabel={`${TABS[i]} page`}>
@@ -106,8 +107,8 @@ export function Track({ pages }: Props) {
               </View>
             ))}
           </Animated.View>
-          <Header title={title} titleOpacity={titleOpacity} dark={isDark} />
-          <TabBar position={pos} active={nearest} onSelect={goTo} dark={isDark} hidden={barHidden} />
+          <Header title={title} titleOpacity={titleOpacity} />
+          <TabBar position={pos} active={nearest} onSelect={goTo} hidden={barHidden} />
         </Animated.View>
       </GestureDetector>
     </View>
@@ -117,7 +118,6 @@ export function Track({ pages }: Props) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: v2.color.white },
   track: { flex: 1, flexDirection: 'row' },
-  darkLayer: { position: 'absolute', top: 0, bottom: 0, left: 0, backgroundColor: v2.color.darkGround },
 });
 
 export const statusBarHeight = RNStatusBar.currentHeight ?? 0;

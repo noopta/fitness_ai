@@ -76,15 +76,21 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     const latestKg = bwKg[bwKg.length - 1];
     const last7 = bwKg.slice(-7);
     const sevenDayAvgKg = last7.length ? avg(last7) : null;
+    // Trend: compare the mean of the last 7 calendar days with the mean of the
+    // 7 days before that, by DATE (not by log index — two weigh-ins a day
+    // apart used to read as a week of change). Null with too little history.
     let trendKgPerWeek: number | null = null;
-    if (bwKg.length >= 2) {
-      const n = bwKg.length;
-      const ys = bwKg;
-      const xs = bwKg.map((_, i) => i);
-      const mx = avg(xs), my = avg(ys);
-      let num = 0, den = 0;
-      for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
-      trendKgPerWeek = den === 0 ? 0 : (num / den) * 7;
+    {
+      const byDate = bwLogs
+        .map((l) => ({ d: String(l.date).slice(0, 10), kg: bodyWeightKg(l) }))
+        .filter((x): x is { d: string; kg: number } => x.kg != null);
+      if (byDate.length >= 4) {
+        const lastDay = new Date(byDate[byDate.length - 1].d + 'T00:00:00Z').getTime();
+        const day = 86400000;
+        const inWin = (from: number, to: number) => byDate.filter((x) => { const t = new Date(x.d + 'T00:00:00Z').getTime(); return t > lastDay - to * day && t <= lastDay - from * day; }).map((x) => x.kg);
+        const recent = inWin(0, 7), prior = inWin(7, 14);
+        if (recent.length >= 2 && prior.length >= 2) trendKgPerWeek = Math.round((avg(recent) - avg(prior)) * 100) / 100;
+      }
     }
     bodyWeight = { latestKg, sevenDayAvgKg, trendKgPerWeek };
   }

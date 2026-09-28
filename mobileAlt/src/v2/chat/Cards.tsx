@@ -4,7 +4,7 @@
 // full page. The user can act on the card directly or ask Anakin to.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { v2, T } from '../theme';
@@ -14,10 +14,11 @@ import { Receipt } from '../primitives/Receipt';
 import { Enter } from '../primitives/Enter';
 import { LineForecast } from '../charts';
 import { WeekStrip } from '../pages/Training';
-import { coachApi } from '../../lib/api';
+import { coachApi, workoutsApi } from '../../lib/api';
 import { v2Api } from '../api';
 import { useUnits } from '../../context/UnitsContext';
-import { qk } from '../data';
+import { qk, useInvalidate } from '../data';
+import { unitLabel } from '../format';
 import type { Turn } from '@axiom/agent-ui-core';
 import { haptics } from '../haptics';
 
@@ -92,25 +93,67 @@ export function WeekCard({ turn, patch, resolve }: CardProps) {
   );
 }
 
-/** Bench (lift progress) card: the chart draws in; forecast; Open → lift history. */
-export function BenchCard({ turn }: CardProps) {
+/** Bench (lift progress) card: the chart draws in; forecast; Open → lift history.
+ *  Empty state: "No sets yet" plus an inline logger (weight × reps, Log it →). */
+export function BenchCard({ turn, patch, resolve }: CardProps) {
   const router = useRouter();
-  const { fromKg, unit } = useUnits();
+  const { fromKg, toKg, unit } = useUnits();
+  const invalidate = useInvalidate();
   const d = turn.card?.data ?? {};
+  const cs = turn.cardState ?? {};
+  const u = unitLabel(unit);
   const series: number[] = (d.series ?? []).map((p: any) => fromKg(p.rm));
+  const empty = !!d.empty || series.length === 0;
   const forecast = d.forecast ? { value: fromKg(d.forecast.value), label: String(d.forecast.week).replace(/^\d{4}-W/, 'wk ') } : null;
   const current = series.length ? series[series.length - 1] : (d.current1RMkg ? fromKg(d.current1RMkg) : null);
   const delta = d.deltaKg != null ? fromKg(d.deltaKg) : null;
+  const [w, setW] = useState('');
+  const [r, setR] = useState('');
+  const [busy, setBusy] = useState(false);
+  const lift: string = d.lift ?? 'Lift';
+  const logSet = async () => {
+    const weight = Number(w), reps = Number(r);
+    if (!Number.isFinite(weight) || !Number.isFinite(reps) || reps <= 0) return;
+    setBusy(true);
+    try {
+      await workoutsApi.logWorkout({ date: new Date().toISOString().slice(0, 10), title: lift, exercises: [{ name: lift, sets: 1, reps: String(reps), weightKg: weight > 0 ? toKg(weight) : null, bodyweight: weight <= 0 }] } as any);
+      await invalidate.afterWorkout();
+      patch({ logged: `${lift} ${weight} ${u} × ${reps}` });
+      resolve(`Logged — ${lift} · ${weight} ${u} × ${reps}`);
+      haptics.success();
+    } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
+    setBusy(false);
+  };
+  if (empty) {
+    return (
+      <View style={styles.card}>
+        <Text style={T.eyebrow}>{lift} · estimated 1RM</Text>
+        <Text style={[T.readSm, { marginTop: 8 }]}>No {lift.toLowerCase()} sets yet.</Text>
+        {!cs.logged ? (
+          <View style={{ marginTop: 14 }}>
+            <Text style={T.caption}>Log one and the line starts.</Text>
+            <View style={styles.logger}>
+              <TextInput value={w} onChangeText={setW} placeholder={`weight, ${u}`} placeholderTextColor={v2.color.placeholder} keyboardType="decimal-pad" style={styles.loggerInput} accessibilityLabel="Weight" />
+              <Text style={[T.row, { color: v2.color.placeholder }]}>×</Text>
+              <TextInput value={r} onChangeText={setR} placeholder="reps" placeholderTextColor={v2.color.placeholder} keyboardType="number-pad" style={[styles.loggerInput, { flex: 0.6 }]} accessibilityLabel="Reps" />
+              <TextAction primary size={15} onPress={() => void logSet()} loading={busy} disabled={!w || !r}>Log it</TextAction>
+            </View>
+          </View>
+        ) : null}
+        <OpenLink label="Open lift history" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `lift:${lift}` } } as any)} />
+      </View>
+    );
+  }
   return (
     <View style={styles.card}>
-      <Text style={T.eyebrow}>{d.lift ?? 'Lift'} · estimated 1RM</Text>
+      <Text style={T.eyebrow}>{lift} · estimated 1RM</Text>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 6 }}>
         <Text style={[T.hero, { fontSize: 44, lineHeight: 48, letterSpacing: -1.6 }]}>{current != null ? Math.round(current) : '—'}</Text>
-        <Text style={[T.read, { color: v2.color.muted, marginLeft: 8 }]}>{unit}</Text>
+        <Text style={[T.read, { color: v2.color.muted, marginLeft: 8 }]}>{u}</Text>
         {delta != null ? <Text style={[T.captionStrong, { marginLeft: 12 }]}>{delta >= 0 ? '+' : ''}{Math.round(delta)} over {d.weeks ?? series.length} wk</Text> : null}
       </View>
-      {series.length > 1 ? <View style={{ marginTop: 14 }}><LineForecast series={series} forecast={forecast} width={300} height={120} unitLabel={unit} /></View> : <Text style={[T.caption, { marginTop: 10 }]}>Not enough sessions to draw a line yet.</Text>}
-      <OpenLink label="Open lift history" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `lift:${d.lift ?? ''}` } } as any)} />
+      {series.length > 1 ? <View style={{ marginTop: 14 }}><LineForecast series={series} forecast={forecast} width={300} height={120} unitLabel={u} /></View> : <Text style={[T.caption, { marginTop: 10 }]}>One session so far — a second draws the line.</Text>}
+      <OpenLink label="Open lift history" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `lift:${lift}` } } as any)} />
     </View>
   );
 }
@@ -183,4 +226,6 @@ export function TurnCard(props: CardProps) {
 const styles = StyleSheet.create({
   card: { marginTop: 18, paddingTop: 14, borderTopWidth: 1, borderTopColor: v2.color.hairline },
   macros: { flexDirection: 'row', gap: 16, marginTop: 6 },
+  logger: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 10 },
+  loggerInput: { flex: 1, ...T.row, fontFamily: v2.font.medium, borderBottomWidth: 1, borderBottomColor: v2.color.hairline, paddingVertical: 8, paddingHorizontal: 0 },
 });

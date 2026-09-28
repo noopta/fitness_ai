@@ -22,6 +22,7 @@ export const TAB_ICONS: { name: string; d: string }[] = [
 
 const INNER = v2.tabBar.width - 8; // 292 — five slots of 58.4
 const SLOT = INNER / PAGE_COUNT;
+const PILL_W = 52, PILL_H = 40;
 
 interface Props {
   /** Fractional position 0..4 (shared value so the pill follows the finger on the UI thread). */
@@ -40,7 +41,7 @@ export function TabBar({ position, active, onSelect, dark, hidden }: Props) {
   // Mirrors pillOffset() in @axiom/agent-ui-core/track (tested).
   const pill = useAnimatedStyle(() => {
     const p = Math.max(0, Math.min(PAGE_COUNT - 1, position.value));
-    return { transform: [{ translateX: p * SLOT }] };
+    return { transform: [{ translateX: p * SLOT + (SLOT - PILL_W) / 2 }] };
   });
   const bar = useAnimatedStyle(() => ({ transform: [{ translateY: hidden ? hidden.value * 140 : 0 }] }));
   const ground = dark ? v2.color.tabBarDark : v2.color.tabBarLight;
@@ -72,7 +73,7 @@ export function TabBar({ position, active, onSelect, dark, hidden }: Props) {
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, bottom: v2.tabBar.bottom, alignItems: 'center' },
   bar: { width: v2.tabBar.width, height: v2.tabBar.height, borderRadius: v2.radius.pill, borderWidth: 1, overflow: 'hidden', justifyContent: 'center' },
-  pill: { position: 'absolute', left: 4, top: 4, width: SLOT, height: v2.tabBar.height - 8, borderRadius: v2.radius.pill, backgroundColor: v2.color.crimson },
+  pill: { position: 'absolute', left: 4, top: (v2.tabBar.height - PILL_H) / 2 - 1, width: PILL_W, height: PILL_H, borderRadius: v2.radius.pill, backgroundColor: v2.color.crimson },
   icons: { flexDirection: 'row', paddingHorizontal: 4 },
   slot: { width: SLOT, height: v2.tabBar.height - 2, alignItems: 'center', justifyContent: 'center' },
 });

@@ -67,7 +67,7 @@ export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
   },
   home_brief: {
     id: 'home_brief',
-    framing: `${BASE}\n\nWrite the ONE sentence the user sees when they open the app. Read today's schedule, their last wellness check-in, today's nutrition so far and recent training first. Then say the single most useful thing for today — what's on, what changed, or what to do first. HARD RULES: exactly one or two short sentences, at most 160 characters total; plain text only — no markdown, no asterisks, no bullets, no headings, no emoji; no greeting; second person; lead with the fact, not the advice.`,
+    framing: `${BASE}\n\nWrite the ONE sentence the user sees when they open the app. Read today's schedule, their last wellness check-in, today's nutrition so far and recent training first. Then say the single most useful thing for today — what's on, what changed, or what to do first. HARD RULES: exactly ONE sentence, under 90 characters; plain text only — no markdown, no asterisks, no bullets, no headings, no emoji; no greeting; second person; lead with the fact, not the advice.`,
     opening: 'Write my one-sentence opener for today.',
     needsInput: false,
   },
