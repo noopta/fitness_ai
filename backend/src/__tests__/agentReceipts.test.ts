@@ -107,6 +107,26 @@ describe('tidySentence (brief)', () => {
   });
 });
 
+describe('brief validator (review #4)', () => {
+  it('rejects long, slashed, parenthesised lines and passes the example', async () => {
+    const { briefViolations } = await import('../routes/brief.js');
+    expect(briefViolations("Bench day. Log breakfast first — you're behind on protein.")).toEqual([]);
+    expect(briefViolations('Upper/lower split today.')).toContain('slash');
+    expect(briefViolations('Upper today (heavy).')).toContain('parentheses');
+    expect(briefViolations('x'.repeat(91))).toContain('91 chars');
+  });
+  it('fallback lines always pass, even with long slashed session names', async () => {
+    const { briefViolations, fallbackSentence } = await import('../routes/brief.js');
+    const s = { name: 'Upper Body — Horizontal Push/Pull Emphasis', focus: null, minutes: 53, exerciseCount: 5, date: '', isToday: true, isLogged: false };
+    for (const ctx of [{ lastWellness: { sleepHours: 5.5 }, profile: { goal: 'x' } }, { lastWellness: null, profile: { goal: 'x' } }, { lastWellness: null, profile: { goal: null } }]) {
+      for (const sess of [s, { ...s, isToday: false }, null]) {
+        const line = fallbackSentence(ctx as any, sess as any);
+        expect(briefViolations(line)).toEqual([]);
+      }
+    }
+  });
+});
+
 describe('bench card', () => {
   it('maps read_lift_progress to a bench card, empty when no sets', () => {
     const c = cardForResult('read_lift_progress', { lift: 'bench' }, { lift: 'Bench', empty: true, series: [], current1RMkg: null }, null);

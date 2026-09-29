@@ -19,6 +19,7 @@ import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
 import { nutritionApi, socialApi, groupsApi, trainTogetherApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
+import { exName } from '../../format';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -71,7 +72,7 @@ function PhasePage({ index }: { index: number }) {
           <View key={i}>
             <Eyebrow style={{ marginTop: i ? 24 : 0 }}>{d.day || d.name || `Day ${i + 1}`}{d.focus ? ` · ${d.focus}` : ''}</Eyebrow>
             <View style={{ marginTop: 10 }}>
-              {ex.map((e, k) => <Row key={k} name={e.name} sub={e.notes || undefined} value={`${e.sets ?? '—'} × ${e.reps ?? '—'}`} last={k === ex.length - 1} />)}
+              {ex.map((e, k) => <Row key={k} name={exName(e)} sub={e.notes || e.intensity || undefined} value={`${e.sets ?? '—'} × ${e.reps ?? '—'}`} last={k === ex.length - 1} />)}
             </View>
           </View>
         );
@@ -91,7 +92,7 @@ function DayPage({ date }: { date: string }) {
     <PushedPage back="Training" meta={date} title={s?.name ?? 'Rest'} lead={s?.focus ?? (s ? null : 'A rest day. Anakin reads these as recovery, not absence.')}
       cta={s && day?.isToday && !day?.isLogged ? { label: 'Begin', onPress: () => router.push('/(v2)/session' as any) } : null}
       foot={s ? [{ label: 'Move this day', onPress: () => { shell?.ask(`Can we move ${s.name} from ${date}?`); router.replace('/(v2)' as any); } }] : undefined}>
-      {ex.map((e, k) => <Row key={k} name={e.name} sub={e.notes || undefined} value={`${e.sets ?? '—'} × ${e.reps ?? '—'}`} last={k === ex.length - 1} />)}
+      {ex.map((e, k) => <Row key={k} name={exName(e)} sub={e.notes || e.intensity || undefined} value={`${e.sets ?? '—'} × ${e.reps ?? '—'}`} last={k === ex.length - 1} />)}
     </PushedPage>
   );
 }

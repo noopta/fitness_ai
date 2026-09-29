@@ -67,3 +67,22 @@ export function sessionCaption(raw?: string | null): string {
   t = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
   return t.length > 40 ? `${t.slice(0, 39).trim()}…` : t;
 }
+
+/** The program JSON stores the exercise as `exercise`; older shapes use `name`. */
+export function exName(e: any): string {
+  return String(e?.name ?? e?.exercise ?? e?.exerciseName ?? e?.title ?? 'Exercise');
+}
+
+/** "Upper — Horizontal Push/Pull" + focus "Strength and final mass" → "Horizontal push and pull — strength and final mass." */
+export function sessionDescriptor(day?: string | null, focus?: string | null): string {
+  const tail = day && /[—–-]/.test(day) ? String(day).split(/\s*[—–-]\s*/).slice(1).join(' ') : '';
+  const parts = [tail, focus].filter(Boolean).map((x) => String(x).replace(/\s*\/\s*/g, ' and ').trim());
+  if (!parts.length) return '';
+  const joined = parts.map((x, i) => (i === 0 ? x.charAt(0).toUpperCase() + x.slice(1).toLowerCase() : x.toLowerCase())).join(' — ');
+  return /[.!?]$/.test(joined) ? joined : `${joined}.`;
+}
+
+/** Same estimate the brief uses, so the home row and the overview agree: ~9 min per exercise + 8 warm-up. */
+export function estimateMinutes(exerciseCount: number): number | null {
+  return exerciseCount ? Math.round(exerciseCount * 9 + 8) : null;
+}

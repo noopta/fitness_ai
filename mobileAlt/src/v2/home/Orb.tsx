@@ -14,7 +14,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, useWindowDimensions, AppState } from 'react-native';
 import { useSharedValue, useDerivedValue, useFrameCallback, withTiming, useReducedMotion, type SharedValue } from 'react-native-reanimated';
 import {
-  Canvas, Group, Image as SkImage, Circle, Path, Rect, Vertices, ImageShader, RadialGradient, LinearGradient, BlendColor, useImage,
+  Canvas, Group, Image as SkImage, Circle, Path, Rect, Vertices, ImageShader, RadialGradient, LinearGradient, BlendColor, Mask, useImage,
 } from '@shopify/react-native-skia';
 import { v2 } from '../theme';
 
@@ -219,24 +219,32 @@ function Canvas_({ mode, progress, working, focused }: Props) {
   const artTransform = useDerivedValue(() => [{ translateY: -70 * artT.value * s }, { translateX: cxA }, { translateY: cyA }, { scale: 1 + 0.06 * artT.value }, { translateX: -cxA }, { translateY: -cyA }]);
   const markOpacityDone = useDerivedValue(() => (p.value > 0.995 ? 1 : 0));
   void markOpacityDone;
-  const feather = 36 * s;
 
   if (hidden || !img) return null;
   return (
     <Canvas style={[StyleSheet.absoluteFill, { width: SW, height: SH }]} pointerEvents="none">
       <Group transform={artTransform} opacity={artOpacity}>
-        <SkImage image={img} x={ax} y={ay} width={A} height={A} fit="contain" />
-        {/* Hand warp: the 12 × 6 mesh of the hand region, textured from the same image (C6). */}
-        <Vertices vertices={meshVerts} textures={mesh.tex} indices={mesh.idx} mode="triangles">
-          <ImageShader image={img} fit="none" tx="clamp" ty="clamp" />
-        </Vertices>
-        {/* Feather (B1): bottom 30 % and the left 36 pt dissolve into #2c2c2c — the flat ground never meets a hard edge. */}
-        <Rect x={ax - 2} y={ay + A * 0.7} width={A + 4} height={A * 0.3 + 4}>
-          <LinearGradient start={{ x: 0, y: ay + A * 0.7 }} end={{ x: 0, y: ay + A }} colors={['rgba(44,44,44,0)', v2.color.darkGround]} />
-        </Rect>
-        <Rect x={ax - 2} y={ay - 2} width={feather + 2} height={A + 4}>
-          <LinearGradient start={{ x: ax, y: 0 }} end={{ x: ax + feather, y: 0 }} colors={[v2.color.darkGround, 'rgba(44,44,44,0)']} />
-        </Rect>
+        {/* Review #4: two fades, intersected (left: transparent → opaque over the first 12 %; bottom: opaque to 62 %,
+            transparent at 100 %). Luminance mask — the image never meets the ground in a visible edge. */}
+        <Mask
+          mode="luminance"
+          mask={
+            <Group>
+              <Rect x={ax} y={ay} width={A} height={A}>
+                <LinearGradient start={{ x: ax, y: 0 }} end={{ x: ax + A * 0.12, y: 0 }} colors={['black', 'white']} />
+              </Rect>
+              <Rect x={ax} y={ay} width={A} height={A} blendMode="multiply">
+                <LinearGradient start={{ x: 0, y: ay + A * 0.62 }} end={{ x: 0, y: ay + A }} colors={['white', 'black']} />
+              </Rect>
+            </Group>
+          }
+        >
+          <SkImage image={img} x={ax} y={ay} width={A} height={A} fit="contain" />
+          {/* Hand warp: the 12 × 6 mesh of the hand region, textured from the same image (C6). */}
+          <Vertices vertices={meshVerts} textures={mesh.tex} indices={mesh.idx} mode="triangles">
+            <ImageShader image={img} fit="none" tx="clamp" ty="clamp" />
+          </Vertices>
+        </Mask>
       </Group>
 
       <Group opacity={showOrb}>

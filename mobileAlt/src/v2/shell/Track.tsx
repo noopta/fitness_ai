@@ -18,6 +18,7 @@ import { PAGE_COUNT, TABS } from '@axiom/agent-ui-core';
 import { v2 } from '../theme';
 import { TabBar } from '../primitives/TabBar';
 import { Header } from './Header';
+import { HomeGround } from '../home/Ground';
 import { useShell } from './ShellContext';
 
 interface Props {
@@ -105,7 +106,7 @@ export function Track({ pages }: Props) {
       <GestureDetector gesture={pan}>
         <Animated.View style={styles.root}>
           <View style={[StyleSheet.absoluteFill, { backgroundColor: v2.color.white }]} />
-          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: v2.color.darkGround }, ground]} />
+          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, ground]}><HomeGround /></Animated.View>
           <Animated.View style={[styles.track, { width: W * PAGE_COUNT }, track]}>
             {pages.map((p, i) => (
               <View key={TABS[i]} style={{ width: W, flex: 1 }} accessibilityLabel={`${TABS[i]} page`}>

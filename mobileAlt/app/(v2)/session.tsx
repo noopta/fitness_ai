@@ -27,6 +27,8 @@ import { useUnits } from '../../src/context/UnitsContext';
 import { workoutsApi } from '../../src/lib/api';
 import { v2Api } from '../../src/v2/api';
 import { haptics } from '../../src/v2/haptics';
+import { Mark } from '../../src/v2/primitives/Mark';
+import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } from '../../src/v2/format';
 import { trackScreen } from '../../src/lib/analytics';
 
 function parseReps(r: any): number | string { const n = typeof r === 'number' ? r : parseInt(String(r ?? ''), 10); return Number.isFinite(n) && n > 0 ? n : String(r ?? 8); }
@@ -56,9 +58,12 @@ export default function SessionScreen() {
     (async () => {
       const out: PlanExercise[] = await Promise.all(ex.map(async (e) => {
         let load: number | null = null;
-        try { const last: any = await v2Api.lastExercise(e.name); const kg = last?.weightKg ?? last?.last?.weightKg ?? null; if (kg) load = Math.round(fromKg(kg) / rules.step) * rules.step; } catch { /* no history */ }
+        const name = exName(e);
+        // /workouts/exercise/:name/last → { target: { targetWeightKg }, exposures: [{ top: { weightKg } }] }.
+        // The progression target wins; otherwise repeat the last top set.
+        try { const last: any = await v2Api.lastExercise(name); const kg = last?.target?.targetWeightKg ?? last?.exposures?.[0]?.top?.weightKg ?? null; if (kg) load = Math.round(fromKg(kg) / rules.step) * rules.step; } catch { /* no history */ }
         const reps = parseReps(e.reps);
-        return { name: e.name, sets: Math.max(1, Number(e.sets) || 3), reps, load: e.bodyweight ? null : load, rest: Number(e.restSeconds) || rules.restForReps(reps), cue: e.notes || e.cue || null };
+        return { name, sets: Math.max(1, Number(e.sets) || 3), reps, load: e.bodyweight ? null : load, rest: Number(e.restSeconds) || rules.restForReps(reps), cue: e.notes || e.cue || e.intensity || null };
       }));
       setPlan(out);
     })();
@@ -117,12 +122,18 @@ export default function SessionScreen() {
   };
 
   const eyebrowTone = { color: v2.color.muted };
+  const overview = state.step === 'overview';
+  const rawName: string | null = session?.name ?? session?.day ?? session?.dayName ?? null;
+  const minutes = session?.minutes ?? estimateMinutes(P.length);
+  const phase = phaseShort(today.data?.phaseName);
+  const week = today.data?.weekNumber ?? null;
+  const descriptor = (sessionDescriptor(rawName, session?.focus ?? session?.dayFocus) || '').split(/(?<=[.!?])\s+/)[0];
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}>
       <StatusBar style="dark" />
       <View style={styles.top}>
-        <Pressable onPress={back} hitSlop={10}><Text style={[T.body, { color: v2.color.muted }]}>← Back</Text></Pressable>
-        <Text style={[T.caption, T.num]}>{state.step === 'overview' ? (today.data?.phaseName ? `${today.data.phaseName} · wk ${today.data.weekNumber ?? ''}` : 'Today') : mmss(elapsedSec(state, now))}</Text>
+        <Pressable onPress={back} hitSlop={10}><Text style={overview ? styles.backOv : [T.body, { color: v2.color.muted }]}>← Back</Text></Pressable>
+        <Text style={[T.caption, T.num, { color: v2.color.muted, fontSize: 13 }]}>{overview ? (phase ? `${phase}${week ? ` · wk ${week}` : ''}` : 'Today') : mmss(elapsedSec(state, now))}</Text>
       </View>
       {state.step !== 'overview' && state.step !== 'done' ? (
         <View style={styles.bars}>
@@ -141,13 +152,29 @@ export default function SessionScreen() {
         {session && !plan ? <Text style={T.caption}>Setting the loads…</Text> : null}
 
         {plan && state.step === 'overview' ? (
-          <Animated.View key="ov" entering={FadeIn.duration(480)} exiting={FadeOut.duration(260)}>
-            <Enter exit={false}><Text style={[T.eyebrow, eyebrowTone]}>Today</Text><Text style={[T.headline, { marginTop: 10 }]}>{session.name ?? session.day}{session.minutes ? ` · ${session.minutes} min` : ''}</Text></Enter>
-            {session.focus ? <Enter index={1} exit={false}><Text style={[T.bodyMuted, { marginTop: 12 }]}>{session.focus}</Text></Enter> : null}
-            <View style={{ marginTop: 28 }}>
-              {P.map((e, i) => <Enter key={e.name} index={i + 2} exit={false}><Row name={e.name} value={`${e.sets} × ${e.reps}${e.load ? ` · ${e.load}` : ''}`} last={i === P.length - 1} /></Enter>)}
+          // Review #4: content sits low-middle — flex 1 above, flex 1.2 below, Begin at the bottom.
+          <Animated.View key="ov" entering={FadeIn.duration(480)} exiting={FadeOut.duration(260)} style={{ flex: 1 }}>
+            <View style={{ flex: 1 }} />
+            <Text style={styles.ovEyebrow}>{['Today', phase && week ? `${phase}, week ${week}` : phase].filter(Boolean).join(' · ').toUpperCase()}</Text>
+            <Text style={styles.ovTitle}>{sessionTitle(rawName)}{minutes ? ` · ${minutes} min` : ''}</Text>
+            {descriptor ? (
+              <View style={styles.ovLine}>
+                <Mark size={18} style={{ marginTop: 2 }} />
+                <Text style={styles.ovLineText}>{descriptor}</Text>
+              </View>
+            ) : null}
+            <View style={{ marginTop: 36 }}>
+              {P.map((e, i) => (
+                <Animated.View key={`${e.name}-${i}`} entering={FadeIn.delay(200 + 80 * i).duration(420)} style={[styles.ovRow, i === P.length - 1 && styles.ovRowLast]}>
+                  <Text style={styles.ovName} numberOfLines={1}>{e.name}</Text>
+                  <Text style={styles.ovValue}>{`${e.sets} × ${e.reps}${e.load != null ? ` · ${e.load}` : ''}`}</Text>
+                </Animated.View>
+              ))}
             </View>
-            <Enter index={P.length + 2} exit={false}><TextAction primary onPress={() => { haptics.light(); dispatch({ type: 'begin', now: Date.now() }); }} style={{ marginTop: 28 }}>Begin</TextAction></Enter>
+            <View style={{ flex: 1.2 }} />
+            <Pressable onPress={() => { haptics.light(); dispatch({ type: 'begin', now: Date.now() }); }} hitSlop={12} accessibilityRole="button" style={{ alignSelf: 'flex-start' }}>
+              <Text style={styles.ovBegin}>Begin →</Text>
+            </Pressable>
           </Animated.View>
         ) : null}
 
@@ -236,4 +263,15 @@ const styles = StyleSheet.create({
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 32 },
   bars: { flexDirection: 'row', gap: 6, marginTop: 12 },
   body: { flex: 1, marginTop: 28 },
+  // Overview (review #4). The session page is always light — every colour explicit.
+  backOv: { fontFamily: v2.font.semibold, fontSize: 15, color: v2.color.ink },
+  ovEyebrow: { fontFamily: v2.font.bold, fontSize: 11, letterSpacing: 11 * 0.12, color: v2.color.muted },
+  ovTitle: { fontFamily: v2.font.bold, fontSize: 34, letterSpacing: -0.68, lineHeight: 37.4, color: v2.color.ink, marginTop: 10, fontVariant: ['tabular-nums'] },
+  ovLine: { flexDirection: 'row', gap: 10, marginTop: 20, alignItems: 'flex-start' },
+  ovLineText: { flex: 1, fontFamily: v2.font.regular, fontSize: 15, lineHeight: 15 * 1.55, color: v2.color.muted },
+  ovRow: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: v2.color.hairline },
+  ovRowLast: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: v2.color.hairline },
+  ovName: { flex: 1, fontFamily: v2.font.medium, fontSize: 17, color: v2.color.ink },
+  ovValue: { fontFamily: v2.font.regular, fontSize: 15, color: v2.color.muted, fontVariant: ['tabular-nums'] },
+  ovBegin: { fontFamily: v2.font.semibold, fontSize: 17, color: v2.color.crimson },
 });

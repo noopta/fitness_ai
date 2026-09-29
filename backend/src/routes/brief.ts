@@ -44,6 +44,18 @@ interface Brief {
 const TTL_MS = 6 * 60 * 60 * 1000; // sentence stays fresh for 6h or until a mutation clears it
 const MAX_SENTENCE = 95;
 
+/** Why a brief line would be rejected; empty = valid. Kept pure for tests. */
+export function briefViolations(t: string): string[] {
+  const v: string[] = [];
+  if (!t) v.push('empty');
+  if (t.length > 90) v.push(`${t.length} chars`);
+  if (/\//.test(t)) v.push('slash');
+  if (/[()]/.test(t)) v.push('parentheses');
+  if (/~/.test(t)) v.push('tilde');
+  if (/[*_`#]/.test(t)) v.push('markdown');
+  return v;
+}
+
 /** Plain text, at most two sentences, no markdown — whatever the model did. */
 export function tidySentence(raw: string): string {
   let t = String(raw ?? '')
@@ -90,15 +102,24 @@ function pickSession(schedule: any): BriefSession | null {
   };
 }
 
-function fallbackSentence(ctx: Awaited<ReturnType<typeof assembleContext>>, session: BriefSession | null): string {
+/** "Upper Body — Horizontal Push/Pull" → "Upper": the brief never carries the long descriptor. */
+export function shortSessionName(raw: string): string {
+  const head = String(raw ?? '').split(/[—–·/]|\s-\s/)[0].trim().replace(/\s+body$/i, '').trim();
+  const first = head.split(/\s+/)[0] || 'Session';
+  return first.charAt(0).toUpperCase() + first.slice(1);
+}
+
+/** Deterministic line — always passes briefViolations (≤ 90 chars, no slashes). */
+export function fallbackSentence(ctx: { lastWellness?: { sleepHours: number } | null; profile: { goal?: string | null } }, session: BriefSession | null): string {
   const w = ctx.lastWellness;
+  const name = session ? shortSessionName(session.name) : '';
   if (session?.isToday) {
-    if (w && w.sleepHours < 6) return `${session.name} day, and you slept ${w.sleepHours} hours. I'll hold last week's loads — bar speed will tell us if that was right.`;
-    return `${session.name} day. Your last one moved well, so today builds on it.`;
+    if (w && w.sleepHours < 6) return `${name} day on ${w.sleepHours} hours of sleep. I'll hold last week's loads.`;
+    return `${name} day. Your last one moved well, so today builds on it.`;
   }
-  if (session) return `Rest today. ${session.name} is next — I'll set the loads from your last session.`;
+  if (session) return `Rest today. ${name} is next — I'll set the loads from your last one.`;
   if (!ctx.profile.goal) return 'Tell me what you\'re working toward and I\'ll build the first week.';
-  return 'Nothing scheduled today. Log a meal or ask me anything about the plan.';
+  return 'Nothing scheduled today. Log a meal or ask me about the plan.';
 }
 
 router.get('/coach/brief', requireAuth, async (req, res) => {
@@ -124,8 +145,20 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
     let source: Brief['source'] = 'agent';
     if (!sentence) {
       try {
-        const r = await runAgentTask(userId, 'home_brief');
-        sentence = tidySentence(r.reply ?? '') || null;
+        // Validator: ≤ 90 characters, no slashes, no parentheses, no "~". One
+        // regeneration with the violation named; then the deterministic line.
+        let lastRaw = '';
+        for (let attempt = 0; attempt < 2 && !sentence; attempt++) {
+          const r = await runAgentTask(userId, 'home_brief', attempt ? 'Your last line broke the rules (over 90 characters, or used a slash, parentheses or ~). One sentence, under 90 characters, plain words.' : undefined);
+          lastRaw = String(r.reply ?? '').trim();
+          if (briefViolations(lastRaw).length === 0) sentence = lastRaw;
+          else console.warn(`[brief] rejected (${briefViolations(lastRaw).join(', ')}): ${lastRaw.slice(0, 120)}`);
+        }
+        // Last resort before the deterministic line: the tidied first sentence, if that alone passes.
+        if (!sentence && lastRaw) {
+          const first = tidySentence(lastRaw).split(/(?<=[.!?])\s+/)[0];
+          if (briefViolations(first).length === 0) sentence = first;
+        }
         if (sentence) cacheSet(cacheKey, sentence, TTL_MS);
       } catch (err: any) {
         console.warn('[brief] home_brief failed, using fallback:', err?.message ?? err);
@@ -134,12 +167,12 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
     if (!sentence) { sentence = fallbackSentence(ctx, session); source = 'fallback'; }
 
     const suggestions = session?.isToday
-      ? [`What's the plan for ${session.name.toLowerCase()} today?`, 'I slept badly — adjust today?', 'Log lunch']
+      ? [`What's the plan for ${shortSessionName(session.name).toLowerCase()} today?`, 'I slept badly — adjust today?', 'Log lunch']
       : ["I can't train tomorrow. Move it?", 'How\'s my deadlift?', 'Log lunch'];
 
     const checkedInToday = ctx.lastWellness?.date === date;
     const ask = !checkedInToday && session?.isToday
-      ? { key: 'sleep', question: 'How did you sleep?', reason: session.name ? `Under 6 hours makes ${session.name.toLowerCase()} a deload, not a test.` : 'Under 6 hours makes today a deload, not a test.', options: ['Under 6 hours', '6–7 hours', '7 or more'] }
+      ? { key: 'sleep', question: 'How did you sleep?', reason: session.name ? `Under 6 hours makes ${shortSessionName(session.name).toLowerCase()} a deload, not a test.` : 'Under 6 hours makes today a deload, not a test.', options: ['Under 6 hours', '6–7 hours', '7 or more'] }
       : null;
     const brief: Brief = {
       date, sentence, receipts, session, suggestions, ask,
