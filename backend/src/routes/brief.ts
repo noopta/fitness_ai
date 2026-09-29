@@ -39,6 +39,8 @@ interface Brief {
   weekNumber: number | null;
   phaseName: string | null;
   source: 'agent' | 'fallback';
+  /** True while Anakin's line is still being written; the client refetches shortly and cross-fades. */
+  pending: boolean;
 }
 
 const TTL_MS = 6 * 60 * 60 * 1000; // sentence stays fresh for 6h or until a mutation clears it
@@ -122,6 +124,35 @@ export function fallbackSentence(ctx: { lastWellness?: { sleepHours: number } | 
   return 'Nothing scheduled today. Log a meal or ask me about the plan.';
 }
 
+const inFlight = new Map<string, Promise<void>>();
+
+/** Kick off Anakin's line for today if it isn't cached or already being written. Returns whether one is in flight. */
+export function ensureBriefSentence(userId: string, cacheKey: string, write = writeBriefSentence): boolean {
+  if (cacheGet<string>(cacheKey) || cacheGet<boolean>(`${cacheKey}:failed`)) return false;
+  if (inFlight.has(cacheKey)) return true;
+  // A failed write backs off for 10 minutes (the fallback line stands) rather than re-billing every home visit.
+  const failed = () => cacheSet(`${cacheKey}:failed`, true, 10 * 60 * 1000);
+  const job = write(userId)
+    .then((line) => { if (line) cacheSet(cacheKey, line, TTL_MS); else failed(); })
+    .catch((err: any) => { failed(); console.warn('[brief] home_brief failed:', err?.message ?? err); })
+    .finally(() => { inFlight.delete(cacheKey); });
+  inFlight.set(cacheKey, job);
+  return true;
+}
+
+/** Validator (≤ 90 characters, no slashes/parentheses/~/markdown): one regeneration with the violation named, then the tidied first sentence if that alone passes; else null (the fallback stays). */
+export async function writeBriefSentence(userId: string): Promise<string | null> {
+  let lastRaw = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await runAgentTask(userId, 'home_brief', attempt ? 'Your last line broke the rules (over 90 characters, or used a slash, parentheses or ~). One sentence, under 90 characters, plain words.' : undefined);
+    lastRaw = String(r.reply ?? '').trim();
+    if (briefViolations(lastRaw).length === 0) return lastRaw;
+    console.warn(`[brief] rejected (${briefViolations(lastRaw).join(', ')}): ${lastRaw.slice(0, 120)}`);
+  }
+  const first = tidySentence(lastRaw).split(/(?<=[.!?])\s+/)[0];
+  return briefViolations(first).length === 0 ? first : null;
+}
+
 router.get('/coach/brief', requireAuth, async (req, res) => {
   const userId = req.user!.id;
   try {
@@ -140,31 +171,19 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
     if (ctx.lastWellness) receipts.push({ verb: 'Pulled', text: `Wellness — sleep ${ctx.lastWellness.sleepHours} h` });
     if (ctx.todayNutrition) receipts.push({ verb: 'Pulled', text: `Nutrition — ${Math.round(ctx.todayNutrition.calories)} kcal so far` });
 
+    // Review #5: never make home wait on the model. A cached line is served
+    // as-is; otherwise respond now with the deterministic line and write
+    // Anakin's in the background (one in flight per user) — the client
+    // polls while `pending` and cross-fades when it lands.
     const cacheKey = `brief:${userId}:${date}`;
     let sentence = cacheGet<string>(cacheKey) ?? null;
     let source: Brief['source'] = 'agent';
+    let pending = false;
     if (!sentence) {
-      try {
-        // Validator: ≤ 90 characters, no slashes, no parentheses, no "~". One
-        // regeneration with the violation named; then the deterministic line.
-        let lastRaw = '';
-        for (let attempt = 0; attempt < 2 && !sentence; attempt++) {
-          const r = await runAgentTask(userId, 'home_brief', attempt ? 'Your last line broke the rules (over 90 characters, or used a slash, parentheses or ~). One sentence, under 90 characters, plain words.' : undefined);
-          lastRaw = String(r.reply ?? '').trim();
-          if (briefViolations(lastRaw).length === 0) sentence = lastRaw;
-          else console.warn(`[brief] rejected (${briefViolations(lastRaw).join(', ')}): ${lastRaw.slice(0, 120)}`);
-        }
-        // Last resort before the deterministic line: the tidied first sentence, if that alone passes.
-        if (!sentence && lastRaw) {
-          const first = tidySentence(lastRaw).split(/(?<=[.!?])\s+/)[0];
-          if (briefViolations(first).length === 0) sentence = first;
-        }
-        if (sentence) cacheSet(cacheKey, sentence, TTL_MS);
-      } catch (err: any) {
-        console.warn('[brief] home_brief failed, using fallback:', err?.message ?? err);
-      }
+      pending = ensureBriefSentence(userId, cacheKey);
+      sentence = fallbackSentence(ctx, session);
+      source = 'fallback';
     }
-    if (!sentence) { sentence = fallbackSentence(ctx, session); source = 'fallback'; }
 
     const suggestions = session?.isToday
       ? [`What's the plan for ${shortSessionName(session.name).toLowerCase()} today?`, 'I slept badly — adjust today?', 'Log lunch']
@@ -178,7 +197,7 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
       date, sentence, receipts, session, suggestions, ask,
       weekNumber: schedule?.weekNumber ?? null,
       phaseName: schedule?.phaseName ?? null,
-      source,
+      source, pending,
     };
     res.json(brief);
   } catch (err: any) {

@@ -127,6 +127,34 @@ describe('brief validator (review #4)', () => {
   });
 });
 
+describe('brief background write (review #5)', () => {
+  it('serves now, writes once in flight, then caches', async () => {
+    const { ensureBriefSentence } = await import('../routes/brief.js');
+    const { cacheGet } = await import('../services/cacheService.js');
+    const key = `brief:test-${Date.now()}:2026-09-29`;
+    let calls = 0;
+    let release!: (v: string) => void;
+    const write = () => { calls++; return new Promise<string | null>((r) => { release = r as any; }); };
+    expect(ensureBriefSentence('u', key, write)).toBe(true);
+    expect(ensureBriefSentence('u', key, write)).toBe(true);
+    expect(calls).toBe(1);
+    release('Bench day. Log breakfast first.');
+    await new Promise((r) => setTimeout(r, 0));
+    expect(cacheGet<string>(key)).toBe('Bench day. Log breakfast first.');
+    expect(ensureBriefSentence('u', key, write)).toBe(false);
+  });
+  it('backs off after a failed write', async () => {
+    const { ensureBriefSentence } = await import('../routes/brief.js');
+    const key = `brief:test-fail-${Date.now()}:2026-09-29`;
+    let calls = 0;
+    const write = async () => { calls++; return null; };
+    ensureBriefSentence('u', key, write);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(ensureBriefSentence('u', key, write)).toBe(false);
+    expect(calls).toBe(1);
+  });
+});
+
 describe('bench card', () => {
   it('maps read_lift_progress to a bench card, empty when no sets', () => {
     const c = cardForResult('read_lift_progress', { lift: 'bench' }, { lift: 'Bench', empty: true, series: [], current1RMkg: null }, null);

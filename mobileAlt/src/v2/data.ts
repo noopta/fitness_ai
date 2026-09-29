@@ -4,7 +4,9 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, coachApi, nutritionApi, nutritionProfileApi, workoutsApi, socialApi, liftCoachApi, formAnalysisApi, authApi } from '../lib/api';
-import { v2Api } from './api';
+import { v2Api, type Brief } from './api';
+import { getCached, setCached } from '../lib/cache';
+import { useAuth } from '../context/AuthContext';
 
 const STALE = 60_000;
 
@@ -28,7 +30,23 @@ export const qk = {
   streak: ['v2', 'streak'] as const,
 };
 
-export const useBrief = () => useQuery({ queryKey: qk.brief, queryFn: v2Api.brief, staleTime: 5 * 60_000, retry: 1 });
+// Review #5: home never waits. The last brief (persisted, per user) renders on
+// the first frame and is refreshed behind it; while the server is still
+// writing Anakin's line (`pending`) it's polled every 3 s.
+const BRIEF_CACHE_TTL = 12 * 60 * 60 * 1000;
+export const useBrief = () => {
+  const { user } = useAuth();
+  const key = `v2:brief:${user?.id ?? 'anon'}`;
+  return useQuery({
+    queryKey: [...qk.brief, user?.id ?? 'anon'],
+    queryFn: async () => { const b = await v2Api.brief(); setCached(key, b); return b; },
+    initialData: () => getCached<Brief>(key, BRIEF_CACHE_TTL) ?? undefined,
+    initialDataUpdatedAt: 0, // always revalidate the cached copy
+    staleTime: 5 * 60_000,
+    retry: 1,
+    refetchInterval: (q) => (q.state.data?.pending ? 3000 : false),
+  });
+};
 export const useProgram = () => useQuery({ queryKey: qk.program, queryFn: () => coachApi.getProgram() as Promise<any>, staleTime: STALE });
 export const useSchedule = () => useQuery({ queryKey: qk.schedule, queryFn: () => coachApi.getSchedule() as Promise<any>, staleTime: STALE });
 export const useToday = () => useQuery({ queryKey: qk.today, queryFn: () => coachApi.getToday() as Promise<any>, staleTime: STALE });

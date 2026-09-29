@@ -14,7 +14,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Keyboard, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, interpolate, interpolateColor, useAnimatedKeyboard, FadeIn, FadeOut, Extrapolation } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, interpolate, interpolateColor, useAnimatedKeyboard, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { receiptSummary, type Turn } from '@axiom/agent-ui-core';
@@ -36,6 +36,9 @@ import { sessionTitle, sessionCaption } from '../format';
 const C = v2.color;
 const plain = (t: string) => t.replace(/[*_`#>]+/g, '').replace(/\s+/g, ' ').trim();
 let askSeq = 0;
+// Review #5 §1.5: pieces settle in on open — opacity 0→1, translateY 8→0, 500 ms, staggered.
+const settle = (delay: number) => FadeInDown.duration(500).delay(delay).easing(v2.motion.easeEnter).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] });
+const READ_SLOT = 99; // 3 lines × 33 — reserved so a new read never moves the layout
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export function HomePage() {
@@ -75,7 +78,7 @@ export function HomePage() {
     color: interpolateColor(p.value, [0, 1], [C.darkInk, C.muted]),
     transform: [{ scale: interpolate(p.value, [0, 1], [1, 15 / 27]) }],
   }));
-  const readBox = useAnimatedStyle(() => ({ marginBottom: 22 * (1 - p.value) }));
+  const readBox = useAnimatedStyle(() => ({ marginBottom: 22 * (1 - p.value), minHeight: READ_SLOT * (1 - p.value) }));
   const rowStyle = useAnimatedStyle(() => ({ paddingVertical: 20 - 10 * p.value, borderColor: interpolateColor(p.value, [0, 1], [C.darkHairline, C.hairline]) }));
   const rowName = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]), transform: [{ scale: interpolate(p.value, [0, 1], [1, 15 / 17]) }] }));
   const captionStyle = useAnimatedStyle(() => ({ height: captionH.value ? captionH.value * (1 - p.value) : undefined, opacity: 1 - p.value }));
@@ -94,6 +97,10 @@ export function HomePage() {
 
   const loaded = !!brief.data;
   const sentence = loaded ? plain(brief.data!.sentence) : (brief.isError ? 'Tell me what you\'re working toward.' : '');
+  // A changed read cross-fades (old out 200 ms, new in 500 ms); the first one just settles with the rest.
+  const prevRead = useRef<string | null>(null);
+  const swapRead = prevRead.current !== null && prevRead.current !== sentence;
+  useEffect(() => { prevRead.current = sentence; }, [sentence]);
   const summary = useMemo(() => {
     const n = brief.data?.receipts?.length ?? 0;
     if (!n) return '';
@@ -145,21 +152,30 @@ export function HomePage() {
 
         {/* Receipts summary → tap to expand (§B2.1). Tapping also enters chat per §D. */}
         {summary ? (
+          <Animated.View entering={settle(150)}>
           <Animated.View style={[{ overflow: 'hidden' }, summaryStyle]} onLayout={onSummaryLayout}>
             <Pressable onPress={() => { if (!chat) setBriefOpen((o) => !o); }} hitSlop={6}>
               <Text style={[T.caption, { color: C.darkMuted }]} numberOfLines={1}>{summary}{briefOpen ? '' : ' →'}</Text>
             </Pressable>
             {briefOpen ? <View style={{ marginTop: 10 }}><ReceiptList items={brief.data!.receipts} tone="dark" /></View> : null}
           </Animated.View>
+          </Animated.View>
         ) : null}
 
         {/* The read: 27 / 600 / −0.02em / 1.22 in brief; scales to 15 and recolours in chat. */}
-        <Animated.View style={readBox}>
-          <Animated.Text style={[styles.read, { transformOrigin: 'left top' } as any, readStyle]} numberOfLines={3}>{sentence || ' '}</Animated.Text>
+        <Animated.View entering={settle(240)}>
+          <Animated.View style={readBox}>
+            {sentence ? (
+              <Animated.Text key={sentence} entering={swapRead ? settle(0) : undefined} exiting={FadeOut.duration(200)} style={[styles.read, { transformOrigin: 'left top' } as any, readStyle]} numberOfLines={3}>{sentence}</Animated.Text>
+            ) : (
+              <Checking />
+            )}
+          </Animated.View>
         </Animated.View>
 
         {/* Session row: name · minutes, caption, `Begin →`. Opens the workout. */}
         {session ? (
+          <Animated.View entering={settle(330)}>
           <Pressable onPress={session.isLogged ? undefined : () => { haptics.select(); router.push('/(v2)/session' as any); }} accessibilityRole="button">
             <Animated.View style={[styles.sessionRow, rowStyle]}>
               <View style={{ flex: 1, minWidth: 0 }}>
@@ -175,6 +191,7 @@ export function HomePage() {
               <Animated.Text style={[styles.begin, beginStyle]}>{session.isLogged ? 'Done' : 'Begin →'}</Animated.Text>
             </Animated.View>
           </Pressable>
+          </Animated.View>
         ) : null}
 
         {/* Thread: fills in chat; suggestions only while empty; 44 between turns; bottom padding grows with the keyboard. */}
@@ -203,6 +220,7 @@ export function HomePage() {
         </Animated.View>
 
         {/* Composer: one hairline, "Ask Anakin", ↑ (crimson with text, unless busy). Rides the keyboard at 12 pt. */}
+        <Animated.View entering={settle(420)}>
         <Animated.View style={[styles.inputWrap, inputWrap]}>
           <AnimatedTextInput
             ref={inputRef}
@@ -223,6 +241,7 @@ export function HomePage() {
           <Pressable onPress={() => void send()} hitSlop={10} accessibilityLabel="Send" disabled={!text.trim() || busy}>
             <Text style={[styles.send, { color: text.trim() && !busy ? C.crimson : C.placeholder }]}>↑</Text>
           </Pressable>
+        </Animated.View>
         </Animated.View>
       </View>
     </View>
@@ -262,6 +281,16 @@ function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; to
 }
 
 export function dismissKeyboard() { Keyboard.dismiss(); }
+
+/** First launch with nothing cached (review #5 §1.4): the read slot says so, pulsing 1 → .25 → 1 over 1.6 s — never a blank area. */
+function Checking() {
+  const o = useSharedValue(1);
+  useEffect(() => {
+    o.value = withRepeat(withSequence(withTiming(0.25, { duration: 800, easing: Easing.inOut(Easing.ease) }), withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })), -1, false);
+  }, [o]);
+  const st = useAnimatedStyle(() => ({ opacity: o.value }));
+  return <Animated.Text exiting={FadeOut.duration(200)} style={[styles.read, { color: C.darkMuted }, st]}>Checking your day…</Animated.Text>;
+}
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

@@ -23,6 +23,8 @@ export interface Brief {
   weekNumber: number | null;
   phaseName: string | null;
   source: 'agent' | 'fallback';
+  /** Anakin's line is still being written — refetch shortly. */
+  pending?: boolean;
 }
 
 export const v2Api = {
