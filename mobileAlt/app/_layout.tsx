@@ -10,6 +10,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PostHogProvider } from 'posthog-react-native';
@@ -281,6 +282,9 @@ function RootLayout() {
   return (
     <PostHogProvider client={posthog} autocapture>
       <GestureHandlerRootView style={{ flex: 1 }}>
+        {/* Off by default: the classic app keeps its own KeyboardAvoider. The v2
+            chat switches it on (and Android to adjustNothing) while it's open. */}
+        <KeyboardProvider enabled={false} preserveEdgeToEdge>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
@@ -291,6 +295,7 @@ function RootLayout() {
             </AuthProvider>
           </QueryClientProvider>
         </SafeAreaProvider>
+        </KeyboardProvider>
       </GestureHandlerRootView>
     </PostHogProvider>
   );

@@ -8,7 +8,15 @@
 
 import { fetch as expoFetch } from 'expo/fetch';
 import { apiFetch, getToken, API_BASE, LONG_TIMEOUT_MS } from '../lib/api';
-import { createSseParser, parseJsonFrame, type StreamEvent, type Receipt as CoreReceipt } from '@axiom/agent-ui-core';
+import { createSseParser, parseJsonFrame, type StreamEvent, type Receipt as CoreReceipt, type Card } from '@axiom/agent-ui-core';
+
+/** This client renders server cards (card2 events, /coach/agent/cards/*). */
+const CARD_CONTRACT = { 'X-Card-Contract': '2' };
+
+export interface HistoryMessage { role: 'user' | 'assistant'; content: string; cardIds?: string[]; origin?: 'anakin'; at?: string }
+
+const post = (path: string, body: Record<string, unknown> = {}) =>
+  apiFetch(path, { method: 'POST', body: JSON.stringify(body), timeoutMs: LONG_TIMEOUT_MS });
 
 export interface Brief {
   date: string;
@@ -32,9 +40,30 @@ export const v2Api = {
 
   /** Legacy non-streaming turn — the fallback when the stream can't open. */
   sendTurn: (message: string) =>
-    apiFetch('/coach/agent', { method: 'POST', body: JSON.stringify({ message }), timeoutMs: LONG_TIMEOUT_MS }),
+    apiFetch('/coach/agent', { method: 'POST', headers: CARD_CONTRACT, body: JSON.stringify({ message }), timeoutMs: LONG_TIMEOUT_MS }),
 
-  history: () => apiFetch('/coach/agent/history'),
+  history: (): Promise<{ messages: HistoryMessage[] }> => apiFetch('/coach/agent/history'),
+
+  // ── Cards (spec §2, §6): taps name the card + action; the server runs it. ──
+  cards: async (ids: string[]): Promise<Card[]> => {
+    if (!ids.length) return [];
+    const out: Card[] = [];
+    // The route caps a batch at 60 ids.
+    for (let i = 0; i < ids.length; i += 60) {
+      const r = await apiFetch(`/coach/agent/cards?ids=${encodeURIComponent(ids.slice(i, i + 60).join(','))}`);
+      out.push(...((r?.cards ?? []) as Card[]));
+    }
+    return out;
+  },
+  cardAction: (id: string, actionId: string, extra: { typed?: string; choice?: number } = {}): Promise<{ card: Card }> =>
+    post(`/coach/agent/cards/${id}/action`, { actionId, ...extra }),
+  cardUndo: (id: string): Promise<{ card: Card }> => post(`/coach/agent/cards/${id}/undo`),
+  cardEdit: (id: string, field: string, value: string | number): Promise<{ card: Card }> =>
+    post(`/coach/agent/cards/${id}/edit`, { field, value }),
+  cardToggle: (id: string, field: string, on: boolean): Promise<{ card: Card }> =>
+    post(`/coach/agent/cards/${id}/toggle`, { field, on }),
+  cardAnswer: (id: string, answer: { option?: number; text?: string }): Promise<{ card: Card; sendAsMessage?: string; next?: Card | null }> =>
+    post(`/coach/agent/cards/${id}/answer`, answer),
 
   confirmProposal: (body: Record<string, unknown>) =>
     apiFetch('/coach/agent/confirm-proposal', { method: 'POST', body: JSON.stringify(body) }),
@@ -62,6 +91,7 @@ export const v2Api = {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
+        ...CARD_CONTRACT,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ message, resetConversation: opts.resetConversation }),

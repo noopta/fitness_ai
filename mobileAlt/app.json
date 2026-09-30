@@ -59,7 +59,8 @@
         }
       ],
       "expo-audio",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "@react-native-community/datetimepicker"
     ],
     "ios": {
       "supportsTablet": false,
