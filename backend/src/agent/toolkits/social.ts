@@ -62,6 +62,15 @@ op('capture.form_started', async (u, a) => {
 
 const need = (friend: any, candidates: any[] | undefined, q: string): CardDraft | null => friend ? null : ({ fn: 'SOC-06', pattern: 'ask', rule: 'show', ask: { q: `Which friend — “${q}”?`, options: (candidates ?? []).map(who), typeInstead: true }, pending: { answer: { asMessage: 'I mean {answer}.' } } });
 
+/** Today's metered usage (BIL-02) — shared by the chat card and the Plan & usage page. */
+export async function readUsage(userId: string) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, dailyPhotoScanCount: true, dailyPhotoScanDate: true, dailyAnalysisCount: true, dailyAnalysisDate: true, agentTurnsCount: true, agentTurnsDate: true } });
+  const pro = u?.tier === 'pro' || u?.tier === 'enterprise';
+  const today = new Date().toISOString().slice(0, 10);
+  const used = (n: number | null | undefined, d: any) => (d && new Date(d).toISOString().slice(0, 10) === today ? n ?? 0 : 0);
+  return { pro, food: { used: used(u?.dailyPhotoScanCount, u?.dailyPhotoScanDate), limit: pro ? null : 7 }, analyses: { used: used(u?.dailyAnalysisCount, u?.dailyAnalysisDate), limit: pro ? null : 2 }, messages: { used: used(u?.agentTurnsCount, u?.agentTurnsDate), limit: pro ? 200 : 10 } };
+}
+
 export const SOCIAL_TOOLS = [
   tool({
     name: 'read_feed', kind: 'read', fn: 'SOC-01',
@@ -593,13 +602,7 @@ export const SOCIAL_TOOLS = [
     description: 'What the user has left today on free-tier limits: AI food logs (photo, describe, scan), lift analyses, Anakin messages.',
     input_schema: schema({}),
     receipt: () => ({ verb: 'Read', text: 'Today’s limits' }),
-    execute: async (_i, userId) => {
-      const u = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, dailyPhotoScanCount: true, dailyPhotoScanDate: true, dailyAnalysisCount: true, dailyAnalysisDate: true, agentTurnsCount: true, agentTurnsDate: true } });
-      const pro = u?.tier === 'pro' || u?.tier === 'enterprise';
-      const today = new Date().toISOString().slice(0, 10);
-      const used = (n: number | null | undefined, d: any) => (d && new Date(d).toISOString().slice(0, 10) === today ? n ?? 0 : 0);
-      return { pro, food: { used: used(u?.dailyPhotoScanCount, u?.dailyPhotoScanDate), limit: pro ? null : 7 }, analyses: { used: used(u?.dailyAnalysisCount, u?.dailyAnalysisDate), limit: pro ? null : 2 }, messages: { used: used(u?.agentTurnsCount, u?.agentTurnsDate), limit: pro ? 200 : 10 } };
-    },
+    execute: async (_i, userId) => readUsage(userId),
     card: (_i, r) => ({ fn: 'BIL-02', pattern: 'glance', rule: 'show', meta: { label: 'Today’s limits', open: { page: 'billing' } }, rows: [
       { key: 'AI food logs', value: r.food.limit ? `${r.food.used} of ${r.food.limit}` : 'Unlimited' },
       { key: 'Lift analyses', value: r.analyses.limit ? `${r.analyses.used} of ${r.analyses.limit}` : 'Unlimited' },

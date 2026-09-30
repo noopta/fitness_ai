@@ -20,6 +20,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { nutritionApi, socialApi, groupsApi, trainTogetherApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
+import { ProfilePage, NotificationsPage, RecipesPage, SavedFoodsPage, PlanPage, ConsentRows } from './agentPages';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -46,6 +47,11 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'leaderboard': return <LeaderboardPage />;
     case 'together': return <TogetherPage />;
     case 'person': return <PersonPage id={arg} params={params} />;
+    case 'profile': return <ProfilePage />;
+    case 'notifications': return <NotificationsPage />;
+    case 'recipes': return <RecipesPage />;
+    case 'savedfoods': return <SavedFoodsPage />;
+    case 'plan': return <PlanPage />;
     default: return <PushedPage back="Back" title="Not here yet" lead="That page hasn't been built in the new shell. Ask Anakin — or open it from the classic screens." />;
   }
 }
@@ -397,14 +403,22 @@ function PrefsPage() {
   const { unit, toggleUnit } = useUnits();
   const { logout } = useAuth();
   const router = useRouter();
+  // The export needs a short-lived signed link; the bare URL has no auth in a browser.
+  const exportData = async () => {
+    try { const r: any = await apiFetch('/auth/export-link'); if (r?.url) await WebBrowser.openBrowserAsync(r.url); }
+    catch (e: any) { Alert.alert('Couldn’t start the export', e?.message ?? 'Try again.'); }
+  };
   return (
     <PushedPage back="You" title="Preferences">
       <Row name="Units" value={unit} onPress={() => toggleUnit()} />
-      <Row name="Notifications" sub="Only when Anakin needs you" value="Quiet" onPress={() => Linking.openSettings()} />
-      <Row name="Sources Anakin can use" sub="Research, your logs" value="On" />
+      <Row name="Profile" sub="What Anakin plans around" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'profile' } } as any)} />
+      <Row name="Notifications" sub="Only when Anakin needs you" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'notifications' } } as any)} />
+      <Row name="Plan and usage" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'plan' } } as any)} />
       <Row name="Classic app" sub="The previous tabs, still here" onPress={() => router.push('/(tabs)' as any)} />
-      <Row name="Export my data" onPress={() => void WebBrowser.openBrowserAsync('https://api.airthreads.ai/api/auth/export')} />
+      <Row name="Export my data" sub="A link that works for 10 minutes" onPress={() => void exportData()} />
       <Row name="Sign out" onPress={() => Alert.alert('Sign out?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign out', style: 'destructive', onPress: () => void logout() }])} last />
+      <Text style={[T.eyebrow, { marginTop: 32, marginBottom: 8 }]}>What Anakin can use</Text>
+      <ConsentRows />
     </PushedPage>
   );
 }

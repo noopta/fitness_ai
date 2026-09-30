@@ -2,12 +2,13 @@
 // workout-calorie counting, schedule sharing, notification categories,
 // reminder time, timezone, marketing email, consent, and small prefs.
 
+import { parseConsent } from '../consent.js';
 import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, prisma } from './kit.js';
 import { NOTIFICATION_CATEGORIES, parseNotificationPrefs, parseUserPrefs } from '../../services/userPrefs.js';
-import { parseBlob, mergeBlobKeys } from '../profile/coachProfile.js';
+import { mergeBlobKeys } from '../profile/coachProfile.js';
 import { forgetTz } from '../cards/store.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 
@@ -31,7 +32,7 @@ function display(k: PrefKey, v: unknown): string {
   return String(v ?? '—');
 }
 
-async function readPrefs(userId: string) {
+export async function readPrefs(userId: string) {
   const u = await prisma.user.findUnique({ where: { id: userId }, select: {
     unitPreference: true, foodRegion: true, subtractWorkoutBurnFromCalories: true, scheduleSharing: true, timezone: true,
     prefsJson: true, notificationPrefsJson: true, reengagementOptOut: true, marketingEmailsOptOut: true, coachProfile: true,
@@ -44,7 +45,7 @@ async function readPrefs(userId: string) {
       scheduleSharing: u.scheduleSharing, timezone: u.timezone ?? 'America/New_York', saveFormStills: p.saveFormStills, adaptationEnabled: p.adaptationEnabled, shareTheme: p.shareTheme,
     } as Record<PrefKey, any>,
     notifications: { ...parseNotificationPrefs(u.notificationPrefsJson), nudges: !u.reengagementOptOut, marketingEmails: !u.marketingEmailsOptOut },
-    consent: { logs: true, health: true, research: true, nutrition: true, ...((parseBlob(u.coachProfile).consent ?? {}) as Record<string, boolean>) } as Record<string, boolean>,
+    consent: parseConsent(u.coachProfile) as Record<string, boolean>,
   };
 }
 

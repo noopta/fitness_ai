@@ -839,6 +839,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         tier: true,
         heightCm: true,
         weightKg: true,
+        goalWeightKg: true,
         unitPreference: true,
         foodRegion: true,
         trainingAge: true,

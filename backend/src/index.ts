@@ -36,6 +36,7 @@ import emailRoutes from './routes/email.js';
 import socialRoutes from './routes/social.js';
 import agentRoutes from './routes/agent.js';
 import agentCardRoutes from './routes/agentCards.js';
+import settingsRoutes from './routes/settings.js';
 import briefRoutes from './routes/brief.js';
 import onboardingV2Routes from './routes/onboardingV2.js';
 import groupsRoutes from './routes/groups.js';
@@ -220,6 +221,7 @@ app.use('/api', socialRoutes);
 // Agentic Anakin (flag-gated via AGENT_ENABLED; 404s when off).
 app.use('/api', agentRoutes);
 app.use('/api', agentCardRoutes);
+app.use('/api', settingsRoutes);
 app.use('/api', briefRoutes);
 app.use('/api', onboardingV2Routes);
 // Groups + formAnalysis must be mounted BEFORE institutionsRoutes —
