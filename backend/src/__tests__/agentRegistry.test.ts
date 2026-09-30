@@ -9,7 +9,8 @@ vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) { re
 process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test';
 process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'test';
 await import('../agent/toolkits/index.js');
-const { AGENT_TOOLS } = await import('../agent/registry.js');
+const { AGENT_TOOLS, toolsFor } = await import('../agent/registry.js');
+const { AGENT_TASKS } = await import('../agent/tasks.js');
 const { listOps } = await import('../agent/ops.js');
 
 describe('agent tool registry', () => {
@@ -41,6 +42,17 @@ describe('agent tool registry', () => {
     const ops = new Set(listOps());
     for (const name of ['program.replace', 'program.activate', 'schedule.set_days', 'workout.create', 'workout.remove', 'meal.create', 'meal.remove', 'nutrition.set_macros', 'profile.set_fields', 'pref.set_many', 'notif.set', 'account.delete', 'social.dm', 'social.post', 'adapt.decide', 'weight.log', 'wellness.log', 'memory.set', 'change.revert']) {
       expect(ops.has(name), name).toBe(true);
+    }
+  });
+
+  it('task framings only name tools the classic app (contract 1) can call', () => {
+    const v1 = new Set(toolsFor(1).map((t) => t.name));
+    for (const task of Object.values(AGENT_TASKS)) {
+      const named = (task.framing.match(/\b(?:read|propose|adjust|apply|log|query|update|remember|delegate)_[a-z_]+/g) ?? []);
+      for (const n of named) {
+        if (n.startsWith('delegate_')) continue;
+        expect(v1.has(n), `${task.id} names ${n}`).toBe(true);
+      }
     }
   });
 });

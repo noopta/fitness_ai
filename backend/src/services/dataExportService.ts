@@ -49,6 +49,14 @@ const USER_EXPORT_SELECT = {
   coachProfile: true,
   referredByCode: true,
   scheduleSharing: true,
+  foodRegion: true,
+  goalWeightKg: true,
+  timezone: true,
+  subtractWorkoutBurnFromCalories: true,
+  notificationPrefsJson: true,
+  prefsJson: true,
+  reengagementOptOut: true,
+  marketingEmailsOptOut: true,
 } as const;
 
 /**
@@ -91,6 +99,8 @@ export async function buildUserDataExport(userId: string): Promise<UserDataExpor
     mealEntries, nutritionLogs, nutritionPlans, savedFoods, recipes,
     posts, comments, reactions, friendships, sentMessages,
     diagnosticMessages, agentConversations, wellnessCheckins, activityLogs,
+    scheduleOverrides, adaptationProposals, diagnosticTurns, agentMemory, agentCards, agentChanges,
+    groupMemberships, groupMessages, partnerWorkouts, savedArticles, featureUsage, institutionMemberships,
   ] = await Promise.all([
     safeMany('session', () => p.session.findMany({ where: { userId } })),
     safeMany('exerciseSnapshot', () => p.exerciseSnapshot.findMany({ where: { session: { userId } } })),
@@ -122,6 +132,28 @@ export async function buildUserDataExport(userId: string): Promise<UserDataExpor
     safeMany('agentConversation', () => p.agentConversation.findMany({ where: { userId } })),
     safeMany('wellnessCheckin', () => p.wellnessCheckin.findMany({ where: { userId } })),
     safeMany('activityLog', () => p.activityLog.findMany({ where: { userId } })),
+
+    safeMany('scheduleOverride', () => p.scheduleOverride.findMany({ where: { userId } })),
+    safeMany('adaptationProposal', () => p.adaptationProposal.findMany({ where: { userId } })),
+    safeMany('diagnosticTurn', () => p.diagnosticTurn.findMany({ where: { session: { userId } } })),
+    safeMany('agentMemory', () => p.agentMemory.findMany({ where: { userId } })),
+    // What the coach showed and changed in chat, with each change's undo record.
+    safeMany('agentCard', () => p.agentCard.findMany({
+      where: { userId },
+      select: { id: true, fn: true, pattern: true, status: true, payloadJson: true, createdAt: true, updatedAt: true },
+    })),
+    safeMany('agentChange', () => p.agentChange.findMany({
+      where: { userId },
+      select: { id: true, op: true, summary: true, status: true, createdAt: true, revertedAt: true },
+    })),
+
+    safeMany('groupMember', () => p.groupMember.findMany({ where: { userId } })),
+    // As with DMs, only this user's own group messages.
+    safeMany('groupMessage', () => p.groupMessage.findMany({ where: { senderId: userId } })),
+    safeMany('partnerWorkout', () => p.partnerWorkout.findMany({ where: { creatorId: userId } })),
+    safeMany('savedArticle', () => p.savedArticle.findMany({ where: { userId } })),
+    safeMany('featureUsage', () => p.featureUsage.findMany({ where: { userId } })),
+    safeMany('institutionMember', () => p.institutionMember.findMany({ where: { userId } })),
   ]);
 
   return {
@@ -134,9 +166,10 @@ export async function buildUserDataExport(userId: string): Promise<UserDataExpor
     account: account as Record<string, unknown> | null,
     training: {
       sessions, snapshots, plans, workoutLogs, bodyWeightLogs, completedPrograms, formAnalyses,
+      scheduleOverrides, adaptationProposals, diagnosticTurns,
     },
     nutrition: { mealEntries, nutritionLogs, nutritionPlans, savedFoods, recipes },
-    social: { posts, comments, reactions, friendships, sentMessages },
-    coaching: { diagnosticMessages, agentConversations, wellnessCheckins, activityLogs },
+    social: { posts, comments, reactions, friendships, sentMessages, groupMemberships, groupMessages, partnerWorkouts, institutionMemberships },
+    coaching: { diagnosticMessages, agentConversations, agentMemory, agentCards, agentChanges, wellnessCheckins, activityLogs, savedArticles, featureUsage },
   };
 }

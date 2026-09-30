@@ -2,6 +2,7 @@
 // sign-out and other hand-offs. Name and username changes go through the real
 // routes (moderation, reserved names, uniqueness) via loopback.
 
+import { SUPPORT_EMAIL as TEMPLATE_SUPPORT_EMAIL } from '../../services/emailTemplates.js';
 import { registerToolkit } from '../registry.js';
 import { defineOp, UNDO_DELETE_MS, executeOp } from '../ops.js';
 import { callApi } from '../loopback.js';
@@ -10,7 +11,7 @@ import { validateDateOfBirth } from '../../validation/physiologicalBounds.js';
 import { requestReset } from '../../services/passwordResetService.js';
 import type { CardDraft } from '../cards/types.js';
 
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'support@axiomtraining.io';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || TEMPLATE_SUPPORT_EMAIL;
 const TERMS_URL = process.env.TERMS_URL || 'https://axiomtraining.io/terms';
 const PRIVACY_URL = process.env.PRIVACY_URL || 'https://axiomtraining.io/privacy';
 

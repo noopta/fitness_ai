@@ -2,6 +2,7 @@
 // the model (core loaded, the rest behind tool search), how one tool call
 // runs (write guard by kind), and how its cards are built and capped.
 
+import { CONSENT_GATED, consentRefusal, readConsent } from './consent.js';
 import type Anthropic from '@anthropic-ai/sdk';
 import { PrismaClient } from '@prisma/client';
 import type { AgentTool, ToolCtx } from './types.js';
@@ -68,6 +69,10 @@ export async function runToolCall(
   opts: { buildCards: boolean },
 ): Promise<ToolCallOutcome> {
   const kind = tool.kind ?? 'log';
+  const gate = kind === 'read' ? CONSENT_GATED[tool.name] : undefined;
+  if (gate && !(await readConsent(userId))[gate]) {
+    return { modelResult: consentRefusal(gate), raw: null, cards: [], change: undefined };
+  }
   const writes = kind === 'log' || kind === 'set' ? 'allow' : 'deny';
   const raw: any = await withWriteGuard(writes, tool.name, () => tool.execute(input, userId));
   const change: ExecutedChange | undefined = raw && typeof raw === 'object' ? raw._change : undefined;

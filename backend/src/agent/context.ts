@@ -7,6 +7,7 @@ import { PrismaClient } from '@prisma/client';
 import { readMemory } from './memory.js';
 import { bodyWeightKg, displayWeight, normalizePreference, unitLabel } from '../services/weightUnits.js';
 import type { UserContext } from './types.js';
+import { CONSENT_LABEL, parseConsent, type ConsentKey } from './consent.js';
 
 const prisma = new PrismaClient();
 
@@ -30,7 +31,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
         name: true, tier: true, heightCm: true, weightKg: true,
         unitPreference: true,
         trainingAge: true, equipment: true, constraintsText: true,
-        coachGoal: true, coachBudget: true,
+        coachGoal: true, coachBudget: true, coachProfile: true,
       },
     }),
     prisma.mealEntry.findMany({
@@ -55,9 +56,10 @@ export async function assembleContext(userId: string): Promise<UserContext> {
   ]);
 
   if (!user) throw new Error('User not found');
+  const consent = parseConsent(user.coachProfile);
 
   // Today's nutrition rollup.
-  const todayNutrition = meals.length
+  const todayNutrition = consent.nutrition && meals.length
     ? {
         date,
         calories: meals.reduce((s, m) => s + m.calories, 0),
@@ -105,7 +107,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       unitPreference: normalizePreference(user.unitPreference),
       trainingAge: user.trainingAge,
       equipment: user.equipment,
-      constraints: user.constraintsText,
+      constraints: consent.health ? user.constraintsText : null,
       goal: user.coachGoal,
       budget: user.coachBudget,
     },
@@ -121,6 +123,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
         }
       : null,
     memory,
+    consentOff: (Object.keys(consent) as ConsentKey[]).filter((k) => !consent[k]),
     adaptation: { pendingCount: pendingAdaptation.length, latestTitle: pendingAdaptation[0]?.title ?? null },
   };
 }
@@ -150,7 +153,14 @@ export function renderContext(ctx: UserContext): string {
     lines.push(`Adaptive progression — ${ctx.adaptation.pendingCount} proposal(s) PENDING the user's decision${ctx.adaptation.latestTitle ? ` (latest: "${ctx.adaptation.latestTitle}")` : ''}. If the user mentions targets, suggestions, or "the card", call read_adaptation for the details before answering.`);
   }
 
-  if (ctx.todayNutrition) {
+  const off = ctx.consentOff ?? [];
+  if (off.length) {
+    lines.push(`Privacy — the user has switched off your access to: ${off.map((k) => CONSENT_LABEL[k]).join(', ')}. Don't use, infer or ask about these; offer update_consent only if it would genuinely help.`);
+  }
+
+  if (off.includes('nutrition')) {
+    // Omitted on purpose; no "nothing logged" line to mislead the model.
+  } else if (ctx.todayNutrition) {
     const n = ctx.todayNutrition;
     lines.push(`Today's intake so far — ${Math.round(n.calories)} kcal, ${Math.round(n.proteinG)}g P / ${Math.round(n.carbsG)}g C / ${Math.round(n.fatG)}g F across ${n.mealCount} meal(s).`);
   } else {

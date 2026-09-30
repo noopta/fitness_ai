@@ -2,6 +2,8 @@ import { postInitiatedLater } from '../agent/initiated.js';
 import { parseNotificationPrefs, type NotificationCategory } from './userPrefs.js';
 
 import { weeklyReviewCard } from '../agent/toolkits/cards.js';
+import { sendEmail, isMailConfigured } from './mailService.js';
+import { weeklySummaryEmail, SUPPORT_EMAIL } from './emailTemplates.js';
 import { PrismaClient } from '@prisma/client';
 import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, unitLabel, type UnitPreference } from './weightUnits.js';
 import { parseJsonObjectColumn } from './jsonColumn.js';
@@ -268,13 +270,16 @@ export async function runWeeklySummary(): Promise<void> {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const weekStart = sevenDaysAgo.toISOString().split('T')[0];
 
+  // Everyone onboarded: the chat review goes to v2 users, the push to those
+  // with a token and the switch on, the email to those who opted in.
   const users = await prisma.user.findMany({
-    where: { expoPushToken: { not: null }, coachOnboardingDone: true },
-    select: { id: true, name: true, expoPushToken: true, currentStreak: true, unitPreference: true },
+    where: { coachOnboardingDone: true },
+    select: { id: true, name: true, email: true, expoPushToken: true, currentStreak: true, unitPreference: true, notificationPrefsJson: true },
   });
 
+  let sent = 0;
   for (const user of users) {
-    if (!user.expoPushToken) continue;
+    const nPrefs = parseNotificationPrefs(user.notificationPrefsJson);
 
     // Parallel fetch of this week's data
     const [workoutLogs, nutritionLogs, bwLogs] = await Promise.all([
@@ -313,18 +318,25 @@ export async function runWeeklySummary(): Promise<void> {
     if (bwDelta != null) parts.push(`weight ${bwDelta >= 0 ? '+' : ''}${bwDelta} ${unitLabel(pref)}`);
     if (user.currentStreak > 0) parts.push(`${user.currentStreak}-day streak`);
 
-    const wPrefs = await prisma.user.findUnique({ where: { id: user.id }, select: { notificationPrefsJson: true } });
-    const pushOn = parseNotificationPrefs(wPrefs?.notificationPrefsJson).weeklySummary !== false;
     postInitiatedLater(user.id, async () => ({ text: `Your week, ${first}.`, cards: [weeklyReviewCard({ sessions, avgProtein, bwDelta, unit: unitLabel(pref), streak: user.currentStreak })] }));
-    if (pushOn) await sendPushNotification({
-      to: user.expoPushToken,
-      title: `Your week in review, ${first}`,
-      body: parts.join(' · '),
-      data: { screen: 'coach', tab: 'analytics' },
-    });
+    if (user.expoPushToken && nPrefs.weeklySummary !== false) {
+      await sendPushNotification({
+        to: user.expoPushToken,
+        title: `Your week in review, ${first}`,
+        body: parts.join(' · '),
+        data: { screen: 'coach', tab: 'analytics' },
+      });
+    }
+    if (nPrefs.weeklyEmail && user.email && isMailConfigured()) {
+      const msg = weeklySummaryEmail({ name: user.name, sessions, avgProtein, bwDelta, unit: unitLabel(pref), streak: user.currentStreak });
+      const res = await sendEmail({ to: user.email, subject: msg.subject, html: msg.html, text: msg.text, replyTo: SUPPORT_EMAIL })
+        .catch((e) => ({ sent: false, reason: e?.message }));
+      if (!res.sent) console.error('[weekly-email] send failed for', user.id, (res as any).reason);
+    }
+    sent++;
   }
 
-  console.log(`[push] Weekly summary sent to ${users.length} user(s)`);
+  console.log(`[push] Weekly summary sent to ${sent} active user(s)`);
 }
 
 // ─── Instant: PR / milestone notification ────────────────────────────────────

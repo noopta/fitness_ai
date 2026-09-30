@@ -228,3 +228,37 @@ ${markdownToEmailHtml(post.content)}
   });
   return { subject, html, text };
 }
+
+// ─── Weekly summary (opt-in, You › Notifications › Weekly summary email) ─────
+
+export interface WeeklySummaryInput {
+  name: string | null | undefined;
+  sessions: number;
+  avgProtein: number | null;
+  bwDelta: number | null;
+  unit: string;
+  streak: number;
+}
+
+export function weeklySummaryEmail(w: WeeklySummaryInput): { subject: string; html: string; text: string } {
+  const first = (w.name || '').trim().split(/\s+/)[0] || '';
+  const subject = first ? `Your week in review, ${first}` : 'Your week in review';
+  const rows: Array<[string, string]> = [['Workouts logged', String(w.sessions)]];
+  if (w.avgProtein != null) rows.push(['Average protein', `${w.avgProtein} g`]);
+  if (w.bwDelta != null) rows.push(['Body weight', `${w.bwDelta >= 0 ? '+' : ''}${w.bwDelta} ${w.unit}`]);
+  if (w.streak > 0) rows.push(['Streak', `${w.streak} day${w.streak === 1 ? '' : 's'}`]);
+  const table = rows.map(([k, v]) => `<tr><td style="padding:8px 0;color:#52525b;">${escapeHtml(k)}</td><td style="padding:8px 0;text-align:right;font-weight:700;">${escapeHtml(v)}</td></tr>`).join('');
+  const body = `
+<p style="margin:0 0 14px;font-size:22px;font-weight:700;letter-spacing:-0.01em;">${first ? `${escapeHtml(first)}, here's your week` : "Here's your week"}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7;">${table}</table>
+<p style="margin:0 0 18px;">Anakin has the full review waiting in chat, with what to change next week.</p>
+<p style="margin:0 0 8px;"><a href="${SITE_URL}" style="display:inline-block;background:#09090b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:10px;">Open Axiom</a></p>`;
+  const html = layout({
+    preheader: rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
+    body,
+    footerNote: 'You get this because you turned on the weekly summary email. Turn it off in You › Notifications, or tell Anakin.',
+  });
+  const text = [`${subject}`, '', ...rows.map(([k, v]) => `${k}: ${v}`), '', 'Anakin has the full review waiting in chat.', SITE_URL, '',
+    'Turn this email off in You › Notifications, or tell Anakin.'].join('\n');
+  return { subject, html, text };
+}
