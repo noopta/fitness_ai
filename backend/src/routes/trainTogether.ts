@@ -11,6 +11,8 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser, sendPushToUsers } from '../services/notificationService.js';
+import { postInitiatedLater } from '../agent/initiated.js';
+import { partnerInviteCard } from '../agent/toolkits/cards.js';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 import {
@@ -248,6 +250,12 @@ router.post('/train-together/pins', wrap(async (req, res) => {
   const creator = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } });
   const myDay = days[0];
   const context = !myDay.rest && myDay.label ? ` — ${myDay.label} day` : '';
+  for (const inv of invitees) {
+    postInitiatedLater(inv, async () => ({
+      text: `${displayName(creator!)} wants to train together ${prettyDate(date)}.`,
+      cards: [partnerInviteCard({ id: pin.id, date, who: displayName(creator!), note: note ?? null })],
+    }));
+  }
   await sendPushToUsers(
     invitees,
     'Train together?',

@@ -11,6 +11,8 @@
 import { PrismaClient } from '@prisma/client';
 import { generateTrainingProgram } from './llmService.js';
 import { sendPushToUser } from './notificationService.js';
+import { postInitiatedLater } from '../agent/initiated.js';
+import { programReadyCard } from '../agent/toolkits/cards.js';
 import { cacheDelete } from './cacheService.js';
 
 const prisma = new PrismaClient();
@@ -129,6 +131,7 @@ export async function runProgramRescueSweep(): Promise<{ rescued: number; failed
       });
       cacheDelete(`program:${user.id}`);
 
+      postInitiatedLater(user.id, async () => ({ text: 'Your program is ready.', cards: [programReadyCard({ goal: (program as any)?.goal, phases: ((program as any)?.phases ?? []).map((ph: any) => ({ name: ph.phaseName, weeks: ph.durationWeeks })) })] }));
       await sendPushToUser(
         user.id,
         'Your program is ready',

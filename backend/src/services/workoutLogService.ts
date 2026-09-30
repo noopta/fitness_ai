@@ -20,6 +20,7 @@ import { logActivity } from './activityService.js';
 import posthog from './posthogClient.js';
 import { estimateWorkoutCalories } from './workoutCalories.js';
 import { runPostWorkout } from '../adaptation/proposalService.js';
+import { postInitiatedLater } from '../agent/initiated.js';
 
 const prisma = new PrismaClient();
 
@@ -183,6 +184,22 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
     }
   })();
 
+  // Chat logs already show these on their card; for a workout logged in the
+  // app, Anakin raises the PR and any suggestion in the thread.
+  if (source === 'app' && (prs.length || adaptationProposals.length)) {
+    postInitiatedLater(userId, async () => {
+      const { toolCtx } = await import('../agent/turn.js');
+      const { adaptationCard } = await import('../agent/toolkits/adaptation.js');
+      const { prCard } = await import('../agent/toolkits/cards.js');
+      const ctx = await toolCtx(userId);
+      const cards = [
+        ...(prs.length ? [prCard(prs.map((p) => ({ name: p.displayName, e1rmLbs: p.e1RMLbs })), ctx.unit)] : []),
+        ...(adaptationProposals as any[]).slice(0, 2).map((p) => adaptationCard(p, ctx)),
+      ];
+      const text = prs.length ? `New best on ${prs.map((p) => p.displayName).join(' and ')}.` : 'Your last session says a lift is ready to move.';
+      return { text, cards };
+    });
+  }
   logActivity(userId, 'workout').catch(() => {});
   posthog.capture({ distinctId: userId, event: 'workout_logged', properties: { exercise_count: exercises.length, duration_minutes: duration ?? null, workout_date: date, source } });
 

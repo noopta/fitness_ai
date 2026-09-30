@@ -1,3 +1,7 @@
+import { postInitiatedLater } from '../agent/initiated.js';
+import { parseNotificationPrefs, type NotificationCategory } from './userPrefs.js';
+
+import { weeklyReviewCard } from '../agent/toolkits/cards.js';
 import { PrismaClient } from '@prisma/client';
 import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, unitLabel, type UnitPreference } from './weightUnits.js';
 import { parseJsonObjectColumn } from './jsonColumn.js';
@@ -5,6 +9,11 @@ import { parseJsonObjectColumn } from './jsonColumn.js';
 const prisma = new PrismaClient();
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+
+/** The user's local hour (0–23); Eastern when no timezone is set. */
+export function localHour(tz: string | null | undefined): number {
+  try { return Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tz || 'America/New_York' }).format(new Date())) % 24; } catch { return new Date().getUTCHours(); }
+}
 
 interface PushMessage {
   to: string;
@@ -44,17 +53,36 @@ export async function sendPushNotification(message: PushMessage): Promise<void> 
   }
 }
 
+// Which notification switch (You › Notifications, or "only notify me about
+// my friends" in chat) a push falls under. Social, partner and group pushes
+// carry a `type`; the rest pass their category explicitly.
+const TYPE_CATEGORY: Record<string, NotificationCategory> = {
+  friend_request: 'social', friend_accepted: 'social', message: 'social', new_post: 'social', repost: 'social', reaction: 'social', comment: 'social', forward: 'social',
+  group_message: 'groupCheckins', anakin_checkin: 'groupCheckins',
+  partner_workout_invite: 'partnerSessions', partner_workout_today: 'partnerSessions', partner_workout_cancelled: 'partnerSessions', partner_workout_changed: 'partnerSessions',
+  partner_workout_declined: 'partnerSessions', partner_workout_accepted: 'partnerSessions', partner_workout_confirmed: 'partnerSessions', train_together_nudge: 'partnerSessions',
+  program_rescued: 'programUpdates',
+};
+export function categoryFor(data?: Record<string, unknown>, explicit?: NotificationCategory): NotificationCategory | null {
+  if (explicit) return explicit;
+  const t = typeof data?.type === 'string' ? data.type : '';
+  return TYPE_CATEGORY[t] ?? null;
+}
+
 export async function sendPushToUser(
   userId: string,
   title: string,
   body: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
+  category?: NotificationCategory,
 ): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { expoPushToken: true },
+    select: { expoPushToken: true, notificationPrefsJson: true },
   });
   if (!user?.expoPushToken) return;
+  const cat = categoryFor(data, category);
+  if (cat && parseNotificationPrefs(user.notificationPrefsJson)[cat] === false) return;
   await sendPushNotification({ to: user.expoPushToken, title, body, data });
 }
 
@@ -67,16 +95,18 @@ export async function sendPushToUsers(
   userIds: string[],
   title: string,
   body: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ): Promise<void> {
   const unique = Array.from(new Set(userIds)).filter(Boolean);
   if (unique.length === 0) return;
   const users = await prisma.user.findMany({
     where: { id: { in: unique }, expoPushToken: { not: null } },
-    select: { expoPushToken: true },
+    select: { expoPushToken: true, notificationPrefsJson: true },
   });
+  const cat = categoryFor(data);
   const messages: PushMessage[] = users
-    .filter((u): u is { expoPushToken: string } => !!u.expoPushToken)
+    .filter((u) => !cat || parseNotificationPrefs(u.notificationPrefsJson)[cat] !== false)
+    .filter((u): u is { expoPushToken: string; notificationPrefsJson: string | null } => !!u.expoPushToken)
     .map((u) => ({ to: u.expoPushToken, title, body, data, sound: 'default' as const }));
   if (messages.length === 0) return;
   for (let i = 0; i < messages.length; i += 100) {
@@ -105,11 +135,15 @@ async function sendToAll(
     programStartDate: Date | null;
     currentStreak: number;
     lastWorkoutDate: string | null;
-  }) => { title: string; body: string; data?: Record<string, unknown> } | null
+  }) => { title: string; body: string; data?: Record<string, unknown>; category?: NotificationCategory; nudge?: boolean } | null,
+  opts: { atReminderHour?: boolean } = {},
 ): Promise<void> {
   const users = await prisma.user.findMany({
     where: { expoPushToken: { not: null } },
     select: {
+      notificationPrefsJson: true,
+      reengagementOptOut: true,
+      timezone: true,
       id: true,
       name: true,
       coachGoal: true,
@@ -123,9 +157,14 @@ async function sendToAll(
 
   const messages: PushMessage[] = [];
   for (const u of users) {
+    const prefs = parseNotificationPrefs(u.notificationPrefsJson);
+    if (opts.atReminderHour && localHour(u.timezone) !== prefs.reminderHour) continue;
     const payload = build(u);
     if (!payload || !u.expoPushToken) continue;
-    messages.push({ to: u.expoPushToken, ...payload });
+    if (payload.category && prefs[payload.category] === false) continue;
+    if (payload.nudge && u.reengagementOptOut) continue;
+    const { category: _c, nudge: _n, ...msg } = payload;
+    messages.push({ to: u.expoPushToken, ...msg });
   }
 
   // Send in batches of 100 (Expo limit)
@@ -165,6 +204,7 @@ export async function runNightlyNotifications(): Promise<void> {
           title: `${first}, Anakin noticed you've been away`,
           body: `It's been ${daysSince} days since your last session. Even 20 minutes today keeps your momentum going.`,
           data: { screen: 'coach', tab: 'overview' },
+          nudge: true,
         };
       }
     }
@@ -175,6 +215,7 @@ export async function runNightlyNotifications(): Promise<void> {
         title: '7-day streak tomorrow 🔥',
         body: `You're on a ${user.currentStreak}-day streak. Log a workout tomorrow to hit your first milestone.`,
         data: { screen: 'coach', tab: 'overview' },
+        category: 'milestones',
       };
     }
 
@@ -201,6 +242,7 @@ export async function runNightlyNotifications(): Promise<void> {
                   title: `Today: ${session.focus}`,
                   body: `Your ${session.day} session is on the schedule today. Anakin has your program ready.`,
                   data: { screen: 'coach', tab: 'program' },
+                  category: 'workoutReminders',
                 };
               }
               break;
@@ -214,7 +256,7 @@ export async function runNightlyNotifications(): Promise<void> {
     }
 
     return null; // No notification for this user tonight
-  });
+  }, { atReminderHour: true });
 }
 
 // ─── Scheduled: Weekly summary (runs Sunday evenings) ────────────────────────
@@ -271,7 +313,10 @@ export async function runWeeklySummary(): Promise<void> {
     if (bwDelta != null) parts.push(`weight ${bwDelta >= 0 ? '+' : ''}${bwDelta} ${unitLabel(pref)}`);
     if (user.currentStreak > 0) parts.push(`${user.currentStreak}-day streak`);
 
-    await sendPushNotification({
+    const wPrefs = await prisma.user.findUnique({ where: { id: user.id }, select: { notificationPrefsJson: true } });
+    const pushOn = parseNotificationPrefs(wPrefs?.notificationPrefsJson).weeklySummary !== false;
+    postInitiatedLater(user.id, async () => ({ text: `Your week, ${first}.`, cards: [weeklyReviewCard({ sessions, avgProtein, bwDelta, unit: unitLabel(pref), streak: user.currentStreak })] }));
+    if (pushOn) await sendPushNotification({
       to: user.expoPushToken,
       title: `Your week in review, ${first}`,
       body: parts.join(' · '),
@@ -294,8 +339,7 @@ export async function notifyNewPR(
     userId,
     `New PR on ${liftName} 🏆`,
     `Anakin just detected a new estimated 1RM of ${newRM} ${unit}. Open your Strength Profile to see the full picture.`,
-    { screen: 'strength-profile' }
-  );
+    { screen: 'strength-profile' }, 'milestones');
 }
 
 export async function notifyStreakMilestone(
@@ -308,8 +352,7 @@ export async function notifyStreakMilestone(
     userId,
     `${streak}-day streak 🔥`,
     msg,
-    { screen: 'coach', tab: 'overview' }
-  );
+    { screen: 'coach', tab: 'overview' }, 'milestones');
 }
 
 // ─── Streak reinforcement (positive + loss-aversion) ──────────────────────────
@@ -395,7 +438,7 @@ export async function notifySurpriseReward(
   ];
   const title = `${streak}-day ${KIND_LABEL[kind]} streak`;
   const body = variants[Math.floor(Math.random() * variants.length)];
-  await sendPushToUser(userId, title, body, { screen: 'coach', tab: 'overview' });
+  await sendPushToUser(userId, title, body, { screen: 'coach', tab: 'overview' }, 'milestones');
 }
 
 /** Comeback nudge — user is rebuilding after losing a streak. Endowed progress. */
@@ -409,8 +452,7 @@ export async function notifyComeback(
     userId,
     `Welcome back`,
     `Your old streak peaked at ${oldLongest} days. Day 1 of the next one starts now.`,
-    { screen: 'coach', tab },
-  );
+    { screen: 'coach', tab }, 'milestones');
 }
 
 /** New personal best — frames as mastery, not just numbers. */
@@ -424,8 +466,7 @@ export async function notifyPersonalBest(
     userId,
     `New personal best 🏅`,
     `${streak} days — that's a new ${KIND_LABEL[kind]} record for you. Anakin is keeping count.`,
-    { screen: 'coach', tab },
-  );
+    { screen: 'coach', tab }, 'milestones');
 }
 
 /**
@@ -458,8 +499,7 @@ export async function notifyWeightProgress(
     userId,
     `${disp} ${verb} ${titleEmoji}`,
     body,
-    { screen: 'coach', tab: 'analytics' },
-  );
+    { screen: 'coach', tab: 'analytics' }, 'milestones');
 }
 
 /**
@@ -476,8 +516,7 @@ export async function notifyProteinTargetHit(
     userId,
     `Protein target hit 💪`,
     `${Math.round(proteinGActual)}g / ${proteinGTarget}g target. Recovery just got a boost.`,
-    { screen: 'coach', tab: 'nutrition' },
-  );
+    { screen: 'coach', tab: 'nutrition' }, 'milestones');
 }
 
 /**
@@ -500,8 +539,7 @@ export async function notifyProteinTargetMilestone(
     userId,
     `${streak}-day protein streak 💪`,
     body,
-    { screen: 'coach', tab: 'nutrition' },
-  );
+    { screen: 'coach', tab: 'nutrition' }, 'milestones');
 }
 
 /** Freeze-consumed nudge — keeps the safety-net mechanic visible. */
@@ -515,8 +553,7 @@ export async function notifyStreakFreezeUsed(
     userId,
     `Streak freeze used 🧊`,
     `Your ${streak}-day ${KIND_LABEL[kind]} streak is intact — a freeze covered yesterday's miss.`,
-    { screen: 'coach', tab },
-  );
+    { screen: 'coach', tab }, 'milestones');
 }
 
 /**

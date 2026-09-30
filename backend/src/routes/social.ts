@@ -2,6 +2,8 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { sendPushToUser } from '../services/notificationService.js';
+import { postInitiatedLater } from '../agent/initiated.js';
+import { friendRequestCard, incomingMessageCard } from '../agent/toolkits/cards.js';
 import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSources } from '../services/feedService.js';
 import { putImageBase64, objectUrl } from '../services/blobStore.js';
 import { moderateText, moderatePost } from '../services/moderationService.js';
@@ -241,6 +243,7 @@ router.post('/social/friends/request', wrap(async (req, res) => {
     const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, username: true } });
     const senderDisplay = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
     sendPushToUser(targetUserId, 'New Friend Request', `${senderDisplay} sent you a friend request`, { type: 'friend_request', requesterId: userId }).catch(() => {});
+    postInitiatedLater(targetUserId, async () => ({ text: `${senderDisplay} wants to be friends.`, cards: [friendRequestCard({ requesterId: userId, name: senderDisplay })] }));
     return res.status(201).json({ status: 'pending', friendship });
   } catch (err: any) {
     // P2002 = unique-constraint race (a concurrent identical request landed
@@ -598,6 +601,7 @@ router.post('/social/conversations/:conversationId/messages', socialWriteLimiter
     : ((message.sender as any)?.name ?? 'Someone');
   const preview = body.trim().length > 60 ? body.trim().slice(0, 57) + '…' : body.trim();
   sendPushToUser(recipientId, `Message from ${senderDisplay}`, preview, { type: 'message', conversationId }).catch(() => {});
+  postInitiatedLater(recipientId, async () => ({ text: `${senderDisplay} messaged you.`, cards: [incomingMessageCard({ from: senderDisplay, preview, conversationId })] }));
 
   res.status(201).json(message);
 }));

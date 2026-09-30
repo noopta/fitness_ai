@@ -48,6 +48,8 @@ import {
 import { extractReferenceFrames } from '../services/formFrameService.js';
 import { onboardingHookAvailableFor } from '../services/featureFlags.js';
 import { sendPushToUser } from '../services/notificationService.js';
+import { postInitiatedLater } from '../agent/initiated.js';
+import { formResultCard } from '../agent/toolkits/cards.js';
 import {
   consumeDailyQuota,
   refundDailyQuota,
@@ -224,6 +226,11 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
           errorMessage: null,
         },
       });
+      // Agent-first app: the result also lands in the chat as Anakin's turn.
+      postInitiatedLater(userId, async () => ({
+        text: `Your ${analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise.toLowerCase() : ''} form check is in.`.replace('  ', ' '),
+        cards: [formResultCard({ id: pending.id, status: 'complete', exercise: analysis.exercise, formScore: analysis.formScore, repCount: analysis.repCount, analysis })],
+      }));
       if (notify) {
         const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise : 'Your';
         const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';

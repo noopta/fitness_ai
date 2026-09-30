@@ -13,7 +13,7 @@ import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
 import { runAgentTurn, streamAgentTurn, type AgentStreamEvent } from '../agent/loop.js';
 import { applyProposedWeek, getCurrentWeekSchedule } from './coach.js';
 import { readMemory } from '../agent/memory.js';
-import { loadConversation, appendTurn, clearConversation } from '../agent/conversation.js';
+import { loadConversation, loadStoredMessages, appendTurn, clearConversation } from '../agent/conversation.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
 import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
 import { applyProgramUpdate, applyExerciseSwap } from '../agent/applyTools.js';
@@ -122,11 +122,14 @@ router.get('/coach/agent/status', requireAuth, (req, res) => {
 // the agent), keeping history consistent with whichever coach answered.
 router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, res) => {
   try {
-    const turns = await loadConversation(req.user!.id);
-    const messages = turns.map((t) => ({
-      role: t.role,
-      content: typeof t.content === 'string' ? t.content : '',
-    }));
+    const stored = await loadStoredMessages(req.user!.id);
+    // Card notes ("[card FN pattern id=…]") are for the model; the client gets
+    // the ids and fetches the cards (GET /coach/agent/cards?ids=).
+    const messages = stored.map((m) => {
+      const cardIds = [...m.text.matchAll(/\[card \S+ \S+ id=([0-9a-f-]{36})[^\]]*\]/g)].map((x) => x[1]);
+      const content = m.text.replace(/\n?\[card \S+ \S+ id=[0-9a-f-]{36}[^\]]*\]/g, '').trim();
+      return { role: m.role, content, ...(cardIds.length ? { cardIds } : {}), ...(m.origin ? { origin: m.origin } : {}), ...(m.at ? { at: m.at } : {}) };
+    });
     res.json({ messages, hasThread: messages.length > 0, source: 'agent' });
   } catch (err: any) {
     res.status(500).json({ error: err?.message ?? 'Failed to load history' });

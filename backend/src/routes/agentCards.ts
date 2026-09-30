@@ -32,6 +32,16 @@ function fail(res: any, err: any, what: string) {
 
 const actionSchema = z.object({ actionId: z.string().min(1).max(40), typed: z.string().max(40).optional(), choice: z.number().int().min(0).max(10).optional() });
 
+// Batch fetch (history hydrate): ?ids=a,b,c — only the caller's own cards.
+router.get('/coach/agent/cards', requireAuth, access, async (req, res) => {
+  try {
+    const ids = String(req.query.ids ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 60);
+    const out = [];
+    for (const id of ids) { try { out.push(await getCard(req.user!.id, id)); } catch { /* gone or not theirs */ } }
+    res.json({ cards: out });
+  } catch (e) { fail(res, e, 'load cards'); }
+});
+
 router.get('/coach/agent/cards/:id', requireAuth, access, async (req, res) => {
   try { res.json({ card: await getCard(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'load the card'); }
 });

@@ -21,6 +21,24 @@ const MAX_MESSAGES = 24; // 12 user + 12 assistant
 interface StoredMessage {
   role: 'user' | 'assistant';
   text: string;
+  /** 'anakin' = a turn Anakin started (form check ready, a PR…), not a reply. */
+  origin?: 'anakin';
+  at?: string;
+}
+
+/** Stored messages as-is (for the history endpoint). */
+export async function loadStoredMessages(userId: string): Promise<StoredMessage[]> {
+  const row = await prisma.agentConversation.findUnique({ where: { userId } });
+  if (!row) return [];
+  try { const parsed = JSON.parse(row.messagesJson); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+}
+
+/** Append a turn Anakin started. It has no user message before it. */
+export async function appendInitiated(userId: string, text: string): Promise<void> {
+  const history = await loadStoredMessages(userId);
+  history.push({ role: 'assistant', text, origin: 'anakin', at: new Date().toISOString() });
+  const trimmed = history.slice(-MAX_MESSAGES);
+  await prisma.agentConversation.upsert({ where: { userId }, create: { userId, messagesJson: JSON.stringify(trimmed) }, update: { messagesJson: JSON.stringify(trimmed) } });
 }
 
 export async function loadConversation(userId: string): Promise<Anthropic.MessageParam[]> {
@@ -29,9 +47,13 @@ export async function loadConversation(userId: string): Promise<Anthropic.Messag
   try {
     const parsed = JSON.parse(row.messagesJson) as StoredMessage[];
     if (!Array.isArray(parsed)) return [];
-    return parsed
+    const msgs = parsed
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string')
-      .map((m) => ({ role: m.role, content: m.text }));
+      .map((m) => ({ role: m.role, content: m.origin === 'anakin' ? `(You started this, unprompted:) ${m.text}` : m.text }));
+    // The API needs the first message to be the user's; a thread that opens
+    // with Anakin-initiated turns drops them from the model's history.
+    while (msgs.length && msgs[0].role !== 'user') msgs.shift();
+    return msgs;
   } catch {
     return [];
   }
@@ -50,8 +72,9 @@ export async function appendTurn(
       if (Array.isArray(parsed)) history = parsed;
     } catch { /* start fresh on corruption */ }
   }
-  history.push({ role: 'user', text: userText });
-  history.push({ role: 'assistant', text: assistantText });
+  const at = new Date().toISOString();
+  history.push({ role: 'user', text: userText, at });
+  history.push({ role: 'assistant', text: assistantText, at });
   const trimmed = history.slice(-MAX_MESSAGES);
   await prisma.agentConversation.upsert({
     where: { userId },

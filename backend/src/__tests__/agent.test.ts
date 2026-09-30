@@ -343,7 +343,7 @@ describe('conversation persistence', () => {
     await appendTurn(USER, 'newU', 'newA');
     const parsed = JSON.parse(stored);
     expect(parsed.length).toBe(24);
-    expect(parsed[parsed.length - 1]).toEqual({ role: 'assistant', text: 'newA' });
+    expect(parsed[parsed.length - 1]).toMatchObject({ role: 'assistant', text: 'newA' }); // + `at` timestamp
   });
 });
 

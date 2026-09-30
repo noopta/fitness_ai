@@ -378,7 +378,15 @@ function scheduleAt(hour: number, dayOfWeek: number | null, fn: () => void) {
   schedule();
 }
 
-scheduleAt(20, null, () => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
+// Hourly: each user gets their evening reminder at their own reminder hour
+// (default 8 pm) in their own timezone — the old 20:00 run was server time
+// (UTC), i.e. 4 pm Eastern.
+function scheduleHourly(fn: () => void) {
+  const next = () => { const d = new Date(); d.setMinutes(0, 5, 0); d.setHours(d.getHours() + 1); return d.getTime() - Date.now(); };
+  const loop = () => setTimeout(() => { fn(); loop(); }, next());
+  loop();
+}
+scheduleHourly(() => runNightlyNotifications().catch(err => console.error('[scheduler] nightly error:', err)));
 // Affiliate payouts — 1st of each month, 14:00 UTC (10am ET). Idempotent:
 // commissions flip to 'paid' as they're bundled into a payout, so a re-run
 // (or the admin pressing the button the same day) can never pay twice.
