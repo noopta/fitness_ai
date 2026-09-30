@@ -18,7 +18,7 @@ import { buildPodcastContext } from '../services/podcast/podcastRagService.js';
 import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/weekRebalance.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { adaptationEnabledFor, seedTargetsForNewProgram } from '../adaptation/proposalService.js';
-import { detectAndNotifyWeightMilestone } from '../services/progressService.js';
+import { logBodyWeight, deleteBodyWeight } from '../services/bodyWeightService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
 import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trainTogetherService.js';
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
@@ -1693,69 +1693,26 @@ router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
 
 // ── Body Weight Log ────────────────────────────────────────────────────────────
 
-// Canonical storage is kg. New clients send `weightKg`; older builds send
-// `weightLbs` (pounds). Exactly one is required and we normalise to kg.
-const bodyWeightSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  // Were `.positive()` with no ceiling. Bodyweight drives TDEE, the macro plan,
-  // the weight chart and the milestone push notifications, so a 900,000 kg
-  // entry propagated into all of them.
-  weightKg: bounded('bodyWeightKg', 'Weight').optional(),
-  // Pounds bound is the kg bound converted, so both paths gate identically.
-  weightLbs: z.number().finite().min(44).max(880).optional(),
-  notes: z.string().max(500).optional(),
-}).refine((v) => v.weightKg != null || v.weightLbs != null, {
-  message: 'weightKg or weightLbs is required',
-});
-
-// POST /api/coach/body-weight - Log a body weight entry
+// POST /api/coach/body-weight - Log a body weight entry (one per date).
 router.post('/coach/body-weight', requireAuth, async (req, res) => {
   try {
-    const { date, weightKg: kgIn, weightLbs: lbsIn, notes } = bodyWeightSchema.parse(req.body);
-    const userId = req.user!.id;
-    // Prefer explicit kg; else convert legacy pounds. bodyWeightKg handles the math.
-    const weightKg = kgIn != null ? kgIn : bodyWeightKg({ weightLbs: lbsIn })!;
-
-    // A large day-over-day jump is nearly always a unit mixup (pounds typed
-    // into a kg field) rather than a real change. Warn, don't reject — genuine
-    // large swings exist, and silently refusing the entry is worse than a
-    // flagged one the user can correct.
-    const lastLog = await prisma.bodyWeightLog.findFirst({
-      where: { userId, date: { not: date } },
-      orderBy: { date: 'desc' },
-      select: { weightKg: true },
-    });
-    const warnings = [
-      implausibilityWarning('bodyWeightKg', weightKg, 'Weight'),
-      weightDeltaWarning(lastLog?.weightKg ?? null, weightKg),
-    ].filter((w): w is string => w !== null);
-
-    // Upsert: replace existing entry for same date
-    const existing = await prisma.bodyWeightLog.findFirst({ where: { userId, date } });
-    let entry;
-    if (existing) {
-      entry = await prisma.bodyWeightLog.update({
-        where: { id: existing.id },
-        // Clear any stale legacy pounds so weightKg is the single source of truth.
-        data: { weightKg, weightLbs: null, notes: notes || null },
-      });
-    } else {
-      entry = await prisma.bodyWeightLog.create({
-        data: { userId, date, weightKg, notes: notes || null },
-      });
-    }
-    cacheDelete(`userctx:${userId}`);
-
-    // Fire-and-forget weight-progress milestone detection — neuro-style
-    // reinforcement when the user crosses a milestone in their goal direction.
-    detectAndNotifyWeightMilestone(prisma, userId, date, weightKg).catch(err =>
-      console.error('[coach] weight milestone detection error:', err)
-    );
-
+    const { entry, warnings } = await logBodyWeight(req.user!.id, req.body);
     res.json({ ...entry, ...(warnings.length ? { warnings } : {}) });
   } catch (err: any) {
     console.error('Body weight log error:', err);
     res.status(400).json({ error: err.message || 'Failed to save body weight' });
+  }
+});
+
+// DELETE /api/coach/body-weight/:id - Remove one weigh-in.
+router.delete('/coach/body-weight/:id', requireAuth, async (req, res) => {
+  try {
+    const gone = await deleteBodyWeight(req.user!.id, req.params.id);
+    if (!gone) return res.status(404).json({ error: 'Entry not found' });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('Body weight delete error:', err);
+    res.status(500).json({ error: 'Failed to delete entry' });
   }
 });
 

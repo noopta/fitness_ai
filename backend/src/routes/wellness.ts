@@ -4,45 +4,17 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { generateWellnessInsight } from '../services/llmService.js';
 import { cacheDelete } from '../services/cacheService.js';
-import { logActivity } from '../services/activityService.js';
+import { checkinSchema, upsertCheckin } from '../services/wellnessService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
-
-const checkinSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  mood: z.number().int().min(1).max(5),
-  energy: z.number().int().min(1).max(5),
-  sleepHours: z.number().min(0).max(24),
-  // Stress is captured on a 1–10 fatigue scale in the mobile UI ("1-3 Fresh,
-  // 4-6 Moderate, 7-10 Fatigued"), and the recent-checkins row even renders
-  // `${stress}/10`. The old .max(5) Zod cap was a leftover from an earlier
-  // 1–5 design and silently rejected every check-in where a user picked
-  // 6-10. Mood + energy remain 1-5 — those are still 5-emoji pickers.
-  stress: z.number().int().min(1).max(10),
-});
 
 // POST /api/wellness/checkin - Save or update daily check-in
 router.post('/wellness/checkin', requireAuth, async (req, res) => {
   try {
     const data = checkinSchema.parse(req.body);
     const userId = req.user!.id;
-
-    const existing = await prisma.wellnessCheckin.findFirst({
-      where: { userId, date: data.date },
-    });
-
-    let checkin;
-    if (existing) {
-      checkin = await prisma.wellnessCheckin.update({
-        where: { id: existing.id },
-        data,
-      });
-    } else {
-      checkin = await prisma.wellnessCheckin.create({
-        data: { userId, ...data },
-      });
-    }
+    const { checkin, before: existing } = await upsertCheckin(userId, data);
 
     // Generate AI insight from recent check-ins
     const recent = await prisma.wellnessCheckin.findMany({
@@ -53,8 +25,6 @@ router.post('/wellness/checkin', requireAuth, async (req, res) => {
 
     const insight = await generateWellnessInsight({ recentCheckins: recent });
 
-    cacheDelete(`userctx:${userId}`);
-    logActivity(userId, 'wellness').catch(() => {});
     res.status(existing ? 200 : 201).json({ checkin, insight });
   } catch (err: any) {
     console.error('Wellness checkin error:', err);

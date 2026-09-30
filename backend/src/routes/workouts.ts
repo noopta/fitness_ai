@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
@@ -21,93 +20,11 @@ import { logActivity } from '../services/activityService.js';
 import posthog from '../services/posthogClient.js';
 import { estimateWorkoutCalories } from '../services/workoutCalories.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
-import { runPostWorkout, lastForExercises } from '../adaptation/proposalService.js';
+import { lastForExercises } from '../adaptation/proposalService.js';
+import { workoutLogSchema, createWorkoutLog, updateWorkoutLog, deleteWorkoutLog } from '../services/workoutLogService.js';
 
 const router = Router();
 const prisma = new PrismaClient();
-
-// ─── Streak helper ────────────────────────────────────────────────────────────
-// Delegates to streakService so workout + nutrition share one source of truth
-// (handles freezes, personal bests, comebacks, surprise rewards).
-
-function updateStreakInBackground(userId: string, workoutDate: string): void {
-  (async () => {
-    try {
-      const result = await recordActivity(prisma, userId, 'workout', workoutDate);
-      if (!result || result.newStreak === result.prevStreak) return;
-
-      // Fire reinforcement pushes — order matters so we don't double-notify on
-      // the same log: milestones win over surprise; freeze-used and PB are
-      // independent and can both fire.
-      if (result.isMilestone) {
-        notifyStreakMilestone(userId, result.newStreak).catch(() => {});
-      } else if (result.fireSurpriseReward) {
-        notifySurpriseReward(userId, 'workout', result.newStreak).catch(() => {});
-      }
-      if (result.freezeUsed) {
-        notifyStreakFreezeUsed(userId, 'workout', result.newStreak).catch(() => {});
-      }
-      if (result.isPersonalBest && !result.isMilestone) {
-        notifyPersonalBest(userId, 'workout', result.newStreak).catch(() => {});
-      }
-      if (result.isComeback && result.newStreak === 1) {
-        const u = await prisma.user.findUnique({
-          where: { id: userId }, select: { longestStreak: true },
-        });
-        if (u && u.longestStreak >= 3) {
-          notifyComeback(userId, 'workout', u.longestStreak).catch(() => {});
-        }
-      }
-    } catch (err) {
-      console.error('[streak] update error:', err);
-    }
-  })();
-}
-
-// Per-set entry — used when a user's weights/reps vary across sets
-// (e.g. 135x4 → 100x8 → 100x8). When `setEntries` is present, it is the
-// source of truth for the diagnostic engine + e1RM calc; the top-level
-// `weightKg` and `reps` then represent a summary view (top set's load and
-// reps) and are still accepted for backward compatibility with old clients.
-const setEntrySchema = z.object({
-  weightKg: z.number().nonnegative().optional().nullable(),
-  reps: z.number().int().min(0).max(100),
-  rpe: z.number().min(0).max(10).optional().nullable(),
-});
-
-const exerciseSchema = z.object({
-  name: z.string().min(1),
-  sets: z.number().int().min(1).max(100),
-  reps: z.string().min(1),         // e.g. "8" or "6-8"
-  weightKg: z.number().nonnegative().optional().nullable(),
-  rpe: z.number().min(0).max(10).optional().nullable(),
-  notes: z.string().optional().nullable(),
-  // True for unloaded movements (abs, push-ups, etc.). Stored verbatim so
-  // progress/PR logic can track by reps instead of load.
-  bodyweight: z.boolean().optional(),
-  // Optional per-set breakdown. When provided, length should match `sets`
-  // but we don't fail validation if it doesn't — we just trust whichever
-  // value is the source of truth (setEntries.length).
-  setEntries: z.array(setEntrySchema).optional().nullable(),
-});
-
-// Which planned program day this log fulfils. Sent by the client when the
-// log sheet was opened from a program session; absent for ad-hoc workouts.
-const programDayRefSchema = z.object({
-  phaseIndex: z.number().int().min(0),
-  dayIndex: z.number().int().min(0),
-  weekNumber: z.number().int().min(1).optional(),
-  day: z.string().optional().nullable(),
-});
-
-const workoutLogSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  title: z.string().optional().nullable(),
-  exercises: z.array(exerciseSchema).min(1),
-  notes: z.string().optional().nullable(),
-  duration: z.number().int().min(1).max(600).optional().nullable(),
-  programDayRef: programDayRefSchema.optional().nullable(),
-});
 
 // GET /api/workouts — list all workout logs for the user (newest first)
 router.get('/workouts', requireAuth, async (req, res) => {
@@ -180,114 +97,9 @@ router.post('/workouts', requireAuth, async (req, res) => {
       console.error('[workouts] POST validation failed:', JSON.stringify(parsed.error.issues));
       return res.status(400).json({ error: 'Invalid workout data', details: parsed.error.issues });
     }
-
-    const { date, title, exercises, notes, duration, programDayRef } = parsed.data;
-
-    // Fire-and-forget normalization — doesn't block the response
-    const names = exercises.map(e => e.name);
-    normalizeExerciseBatch(names).catch(err =>
-      console.error('[workouts] normalization error on create:', err)
-    );
-
-    // Estimated calorie burn for the session. Computed at log-time using the
-    // user's stored bodyweight + a MET-table-driven estimator; stored on the
-    // row so /workouts/burn-today is a cheap GROUP BY rather than a re-compute
-    // across every exercise on every request.
-    const userForEstimate = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      select: { weightKg: true, unitPreference: true },
-    });
-    const unitPref = normalizePreference(userForEstimate?.unitPreference);
-    const caloriesBurnedKcal = estimateWorkoutCalories(exercises, {
-      bodyweightKg: userForEstimate?.weightKg ?? null,
-      totalDurationMinutes: duration ?? null,
-    });
-
-    const log = await prisma.workoutLog.create({
-      data: {
-        userId: req.user!.id,
-        date,
-        title: title || null,
-        exercises: JSON.stringify(exercises),
-        notes: notes || null,
-        duration: duration || null,
-        caloriesBurnedKcal: caloriesBurnedKcal > 0 ? caloriesBurnedKcal : null,
-        programDayRef: programDayRef ? JSON.stringify(programDayRef) : null,
-      },
-    });
-
-    cacheDelete(`userctx:${req.user!.id}`);
-    cacheClearByPrefix(`schedule:${req.user!.id}:`);
-    cacheClearByPrefix(`today:${req.user!.id}:`);
-    recomputeStrengthProfileInBackground(req.user!.id);
-
-    // ── Streak tracking ───────────────────────────────────────────────────────
-    updateStreakInBackground(req.user!.id, parsed.data.date);
-
-    // ── Strength PR detection + shareable payload ─────────────────────────────
-    // Detected inline (not fire-and-forget) so the celebration sheet gets an
-    // accurate PR object in the response — `pr` drives PR-led vs. fallback card
-    // rendering. PR push notifications still fire in the background. If anything
-    // here throws, the workout is already saved; we hand back a no-PR card so
-    // the client can still celebrate.
-    let shareable;
-    try {
-      const prs = await detectStrengthPRs(prisma, req.user!.id, log.id, exercises);
-      for (const pr of prs) {
-        const { value, unit } = prDisplay(pr.e1RMLbs, unitPref);
-        notifyNewPR(req.user!.id, pr.displayName, value, unit).catch(() => {});
-      }
-      shareable = buildShareableWorkout(
-        { title, exercises, durationMin: duration, loggedAt: log.createdAt },
-        prs,
-      );
-    } catch (err) {
-      console.error('[workouts] shareable build error:', err);
-      shareable = buildShareableWorkout(
-        { title, exercises, durationMin: duration, loggedAt: log.createdAt },
-        [],
-      );
-    }
-
-    // ── Adaptive progression: evaluate the lifts just logged ─────────────────
-    // Deterministic, DB-only, and gated per user inside runPostWorkout. Runs
-    // inline so the post-workout sheet can show the proposal card immediately;
-    // it never mutates the program — that takes an explicit decide() tap.
-    let adaptationProposals: unknown[] = [];
-    try {
-      adaptationProposals = await runPostWorkout(req.user!.id, names);
-    } catch (err: any) {
-      console.error('[workouts] adaptation post-workout failed:', err?.message ?? err);
-    }
-
-    // ── Proactive agent: post-workout drop-in (fire-and-forget) ───────────────
-    // Per the user-psychology audit's "AI coach: opened but barely messaged"
-    // finding — give Anakin a reason to surface AFTER the user logs a workout
-    // instead of waiting for them to open the chat tab and find a blank cursor.
-    // The sweep itself only sends a notification when AGENT_PROACTIVE_ENABLED
-    // is on, so this call is inert until the flag flips.
-    void (async () => {
-      try {
-        const { runProactiveSweep } = await import('../agent/proactiveSweep.js');
-        await runProactiveSweep('post_workout', [req.user!.id]);
-      } catch (err: any) {
-        console.error('[workouts] post_workout proactive sweep failed:', err?.message ?? err);
-      }
-    })();
-
-    // ── Activity tracking ─────────────────────────────────────────────────────
-    logActivity(req.user!.id, 'workout').catch(() => {});
-
-    posthog.capture({
-      distinctId: req.user!.id,
-      event: 'workout_logged',
-      properties: {
-        exercise_count: exercises.length,
-        duration_minutes: duration ?? null,
-        workout_date: date,
-      },
-    });
-
+    // Every side effect (streak, PRs, adaptation, strength recompute…) lives in
+    // the shared service so chat-logged workouts behave identically.
+    const { log, exercises, shareable, adaptationProposals } = await createWorkoutLog(req.user!.id, parsed.data, 'app');
     res.status(201).json({ ...log, exercises, shareable, adaptationProposals });
   } catch (err) {
     posthog.captureException(err, req.user?.id);
@@ -299,43 +111,13 @@ router.post('/workouts', requireAuth, async (req, res) => {
 // PUT /api/workouts/:id — update an existing workout log
 router.put('/workouts/:id', requireAuth, async (req, res) => {
   try {
-    const existing = await prisma.workoutLog.findUnique({ where: { id: req.params.id } });
-    if (!existing || existing.userId !== req.user!.id) {
-      return res.status(404).json({ error: 'Workout log not found' });
-    }
-
     const parsed = workoutLogSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: 'Invalid workout data', details: parsed.error.issues });
     }
-
-    const { date, title, exercises, notes, duration, programDayRef } = parsed.data;
-
-    // Fire-and-forget normalization for any new exercise names
-    const names = exercises.map(e => e.name);
-    normalizeExerciseBatch(names).catch(err =>
-      console.error('[workouts] normalization error on update:', err)
-    );
-
-    const updated = await prisma.workoutLog.update({
-      where: { id: req.params.id },
-      data: {
-        date,
-        title: title || null,
-        exercises: JSON.stringify(exercises),
-        notes: notes || null,
-        duration: duration || null,
-        // Only touch the link when the client sent one; an old client
-        // editing a log must not wipe it.
-        ...(programDayRef !== undefined ? { programDayRef: programDayRef ? JSON.stringify(programDayRef) : null } : {}),
-      },
-    });
-
-    cacheDelete(`userctx:${req.user!.id}`);
-    cacheClearByPrefix(`schedule:${req.user!.id}:`);
-    cacheClearByPrefix(`today:${req.user!.id}:`);
-    recomputeStrengthProfileInBackground(req.user!.id);
-    res.json({ ...updated, exercises });
+    const r = await updateWorkoutLog(req.user!.id, req.params.id, parsed.data);
+    if (!r) return res.status(404).json({ error: 'Workout log not found' });
+    res.json(r.updated);
   } catch (err) {
     console.error('Update workout error:', err);
     res.status(500).json({ error: 'Failed to update workout log' });
@@ -345,12 +127,8 @@ router.put('/workouts/:id', requireAuth, async (req, res) => {
 // DELETE /api/workouts/:id — delete a workout log
 router.delete('/workouts/:id', requireAuth, async (req, res) => {
   try {
-    const existing = await prisma.workoutLog.findUnique({ where: { id: req.params.id } });
-    if (!existing || existing.userId !== req.user!.id) {
-      return res.status(404).json({ error: 'Workout log not found' });
-    }
-    await prisma.workoutLog.delete({ where: { id: req.params.id } });
-    recomputeStrengthProfileInBackground(req.user!.id);
+    const gone = await deleteWorkoutLog(req.user!.id, req.params.id);
+    if (!gone) return res.status(404).json({ error: 'Workout log not found' });
     res.json({ success: true });
   } catch (err) {
     console.error('Delete workout error:', err);

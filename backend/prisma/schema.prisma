@@ -135,6 +135,8 @@ model User {
   feedViews                UserFeedView[]
   savedArticles            SavedArticle[]
   agentMemory              AgentMemory?
+  agentCards               AgentCard[]
+  agentChanges             AgentChange[]
   agentConversation        AgentConversation?
   // Group chats (#4)
   groupsCreated            GroupChat[]    @relation("GroupCreator")
@@ -162,6 +164,13 @@ model User {
   // calendar (session types + rest days only) in the overlap finder. Off by
   // default; the finder returns nothing for users who haven't opted in.
   scheduleSharing          Boolean           @default(false)
+  // Agent-first settings (2026-10). notificationPrefsJson: per-category push
+  // switches + reminderHour; prefsJson: small device-independent preferences
+  // (saveFormStills, adaptationEnabled, shareTheme). Both JSON strings.
+  notificationPrefsJson    String?
+  prefsJson                String?
+  timezone                 String?
+  goalWeightKg             Float?
   // Short split label derived from savedProgram at save time (PPL, UL, FB,
   // Arnold, Bro, ...). Display-only context for the overlap calendar header.
   splitLabel               String?
@@ -1253,4 +1262,59 @@ model BlogSubscriber {
   /// Set when they click unsubscribe; never emailed again unless cleared.
   unsubscribedAt DateTime?
   createdAt      DateTime  @default(now())
+}
+
+// ── Agent-first chat cards (2026-10) ─────────────────────────────────────────
+// Every card Anakin puts in the thread. Cards that can act (proposal, draft,
+// confirm, ask, flow) hold the operation to run on the user's tap in
+// pendingJson — the model never executes those; POST /cards/:id/apply does.
+model AgentCard {
+  id          String    @id @default(uuid())
+  userId      String
+  fn          String?
+  pattern     String
+  rule        String
+  payloadJson String
+  pendingJson String?
+  status      String    @default("live")
+  changeId    String?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// The change log: every write Anakin (or a card tap) makes, with the
+// operation that reverses it. Undo replays inverseJson; "undo what you
+// changed yesterday" reads this table.
+model AgentChange {
+  id          String    @id @default(uuid())
+  userId      String
+  cardId      String?
+  op          String
+  argsJson    String
+  inverseJson String?
+  summary     String
+  status      String    @default("applied")
+  undoUntil   DateTime?
+  createdAt   DateTime  @default(now())
+  revertedAt  DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// Password reset codes (6 digits, emailed). Separate from
+// EmailVerificationCode so a pending verification never blocks a reset.
+model PasswordResetCode {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  lastSentAt DateTime  @default(now())
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
 }

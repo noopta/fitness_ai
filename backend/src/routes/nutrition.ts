@@ -36,6 +36,7 @@ import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nut
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
 import { parseJsonArrayColumn } from '../services/jsonColumn.js';
+import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/mealLogService.js';
 
 
 const router = Router();
@@ -134,187 +135,15 @@ router.get('/nutrition/log', requireAuth, async (req, res) => {
 
 // ── Meal Entries (individual logged meals) ─────────────────────────────────────
 
-// Clamp an estimated nutrient value into [0, max] instead of rejecting it.
-// NaN/Infinity still reject (finite()) — those indicate a broken payload, not
-// an over-eager estimate.
-const clampedEstimate = (max: number) =>
-  z.number().finite().optional()
-    .transform((v) => (v == null ? v : Math.min(Math.max(v, 0), max)));
-
-// Exported for schema-level tests (clamping behavior).
-export const mealEntrySchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  name: z.string().min(1).max(200),
-  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).default('meal'),
-  calories: z.number().min(0).max(5000).optional().default(0),
-  proteinG: z.number().min(0).max(500).optional().default(0),
-  carbsG: z.number().min(0).max(1000).optional().default(0),
-  fatG: z.number().min(0).max(500).optional().default(0),
-  ingredients: z.array(z.string().min(1).transform((v) => v.slice(0, 120))).max(30).optional().default([]),
-  tags: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
-  plants: z.array(z.string().min(1).max(60)).max(30).optional().default([]),
-  fermentedFoods: z.array(z.string().min(1).max(60)).max(20).optional().default([]),
-  ultraProcessed: z.boolean().optional().default(false),
-  // Micronutrients are scan/LLM ESTIMATES, not user assertions. An implausible
-  // estimate (a salty takeout scan came back sodiumMg > 20000 on 2026-08-28 and
-  // 400'd the whole meal four times) must never reject the log — clamp into the
-  // plausible range instead. Same philosophy as descriptiveLabel below.
-  nutrients: z.object({
-    fiberG: clampedEstimate(500),
-    sugarG: clampedEstimate(500),
-    sodiumMg: clampedEstimate(20000),
-    saturatedFatG: clampedEstimate(500),
-    cholesterolMg: clampedEstimate(5000),
-    vitaminAIU: clampedEstimate(200000),
-    vitaminCMg: clampedEstimate(5000),
-    vitaminDIU: clampedEstimate(10000),
-    vitaminEMg: clampedEstimate(2000),
-    vitaminB12Mcg: clampedEstimate(5000),
-    folateMcg: clampedEstimate(10000),
-    ironMg: clampedEstimate(200),
-    calciumMg: clampedEstimate(5000),
-    magnesiumMg: clampedEstimate(3000),
-    zincMg: clampedEstimate(300),
-    potassiumMg: clampedEstimate(10000),
-    omega3G: clampedEstimate(200),
-    omega6G: clampedEstimate(300),
-    glycemicIndex: z.number().finite().nullable().optional()
-      .transform((v) => (v == null ? v : Math.min(Math.max(v, 0), 150))),
-  }).optional(),
-  // Descriptive labels, NOT gates — an unrecognised value must never reject the
-  // meal. See src/validation/descriptiveLabel.ts for why (this broke twice).
-  source: descriptiveLabel(KNOWN_MEAL_SOURCES, 'manual'),
-  parseConfidence: descriptiveLabel(KNOWN_PARSE_CONFIDENCE, null),
-  notes: z.string().max(500).optional(),
-  // OPEN nutrient channel — any nutrient keys the parser produced. Not capped
-  // to a fixed set; the effects engine reads this. Values must be finite.
-  nutrientMap: z.record(z.string(), z.number().finite()).optional(),
-  ingredientNutrients: z.array(z.object({
-    name: z.string().min(1).max(120),
-    nutrients: z.record(z.string(), z.number().finite()),
-  })).max(40).optional(),
-});
-
-// Build an open nutrient map from the structured micros + top-line macros, for
-// entries whose client didn't forward an explicit nutrientMap. Non-numeric
-// descriptors (digestiveSpeed, biochemicalEffects) and zeros are skipped.
-function deriveNutrientMap(
-  nutrients: Micronutrients,
-  macros: { proteinG: number; carbsG: number; fatG: number },
-): Record<string, number> {
-  const out: Record<string, number> = {};
-  if (macros.proteinG > 0) out.proteinG = macros.proteinG;
-  if (macros.carbsG > 0) out.carbsG = macros.carbsG;
-  if (macros.fatG > 0) out.fatG = macros.fatG;
-  for (const [key, value] of Object.entries(nutrients)) {
-    if (typeof value === 'number' && Number.isFinite(value) && value !== 0) out[key] = value;
-  }
-  return out;
-}
+// The schema and write logic live in the shared meal service; re-exported
+// here for the schema-level tests.
+export { mealEntrySchema } from '../services/mealLogService.js';
 
 // POST /api/nutrition/meals - Log a meal entry
 router.post('/nutrition/meals', requireAuth, async (req, res) => {
   try {
-    const data = mealEntrySchema.parse(req.body);
-    const userId = req.user!.id;
-    const nutrients = normalizeMicronutrients(data.nutrients);
-    const ingredients = data.ingredients.map(v => v.trim()).filter(Boolean);
-    const tags = data.tags.map(v => v.trim().toLowerCase()).filter(Boolean);
-    // Open nutrient channel: prefer what the client forwarded; otherwise
-    // derive it from the structured micros so entries logged by older clients
-    // (which don't send nutrientMap) still feed the effects engine.
-    const nutrientMap = data.nutrientMap && Object.keys(data.nutrientMap).length > 0
-      ? data.nutrientMap
-      : deriveNutrientMap(nutrients, data);
-    const ingredientNutrients = (data.ingredientNutrients ?? [])
-      .filter(i => i.name.trim() && Object.keys(i.nutrients).length > 0);
-
-    const entry = await prisma.mealEntry.create({
-      data: {
-        userId,
-        date: data.date,
-        name: data.name,
-        mealType: data.mealType,
-        calories: data.calories,
-        proteinG: data.proteinG,
-        carbsG: data.carbsG,
-        fatG: data.fatG,
-        ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
-        tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
-        nutrientsJson: JSON.stringify(nutrients),
-        nutrientMapJson: Object.keys(nutrientMap).length > 0 ? JSON.stringify(nutrientMap) : null,
-        ingredientNutrientsJson: ingredientNutrients.length > 0 ? JSON.stringify(ingredientNutrients) : null,
-        plantsJson: data.plants.length > 0 ? JSON.stringify(data.plants) : null,
-        fermentedJson: data.fermentedFoods.length > 0 ? JSON.stringify(data.fermentedFoods) : null,
-        ultraProcessed: data.ultraProcessed,
-        source: data.source,
-        parseConfidence: data.parseConfidence ?? null,
-        notes: data.notes,
-      },
-    });
-
-    // Auto-upsert into saved foods library for quick re-use and richer future
-    // analysis. Skipped for recipe-sourced entries: recipes live in their own
-    // library, and a per-serving shadow copy here could clobber a same-named
-    // saved food (or vice versa) on the normalizedName unique key.
-    if (data.source === 'recipe') {
-      cacheMarkStale(nutritionProfileCacheKey(userId));
-      logActivity(userId, 'nutrition').catch(() => {});
-      updateNutritionStreakInBackground(prisma, userId, data.date);
-      return res.status(201).json({ ...entry, ingredients, tags, nutrients });
-    }
-    const normalizedName = normalizeFoodName(data.name);
-    const existingFood = await prisma.savedFood.findUnique({
-      where: { userId_normalizedName: { userId, normalizedName } },
-    });
-    if (existingFood) {
-      // A macro-only manual/barcode log must not erase micronutrients learned
-      // from an earlier rich parse of the same saved food.
-      const incomingHasMicros = Object.values(nutrients)
-        .filter((value) => typeof value === 'number' && Number.isFinite(value) && value > 0)
-        .length >= 3;
-      await prisma.savedFood.update({
-        where: { id: existingFood.id },
-        data: {
-          calories: data.calories,
-          proteinG: data.proteinG,
-          carbsG: data.carbsG,
-          fatG: data.fatG,
-          ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
-          tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
-          ...(incomingHasMicros ? { nutrientsJson: JSON.stringify(nutrients) } : {}),
-          source: data.source,
-          useCount: { increment: 1 },
-        },
-      });
-    } else {
-      await prisma.savedFood.create({
-        data: {
-          userId,
-          name: data.name.trim(),
-          normalizedName,
-          calories: data.calories,
-          proteinG: data.proteinG,
-          carbsG: data.carbsG,
-          fatG: data.fatG,
-          ingredientsJson: ingredients.length > 0 ? JSON.stringify(ingredients) : null,
-          tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
-          nutrientsJson: JSON.stringify(nutrients),
-          source: data.source,
-          useCount: 1,
-        },
-      });
-    }
-
-    cacheMarkStale(nutritionProfileCacheKey(userId));
-    logActivity(userId, 'nutrition').catch(() => {});
-    updateNutritionStreakInBackground(prisma, userId, data.date);
-    res.status(201).json({
-      ...entry,
-      ingredients,
-      tags,
-      nutrients,
-    });
+    const { entry, ingredients, tags, nutrients } = await createMealEntry(req.user!.id, req.body);
+    res.status(201).json({ ...entry, ingredients, tags, nutrients });
   } catch (err: any) {
     console.error('Meal entry error:', err);
     // Never surface raw Zod JSON to the sheet — it renders in the UI.
@@ -629,43 +458,14 @@ router.put('/nutrition/targets', requireAuth, async (req, res) => {
 // optional, only the keys the user actually touched in MealEditSheet are
 // sent. We deliberately don't reuse mealEntrySchema (whose defaults would
 // blast over existing values).
-const mealUpdateSchema = z.object({
-  name: z.string().min(1).max(200).optional(),
-  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).optional(),
-  calories: z.number().min(0).max(5000).optional(),
-  proteinG: z.number().min(0).max(500).optional(),
-  carbsG: z.number().min(0).max(1000).optional(),
-  fatG: z.number().min(0).max(500).optional(),
-  notes: z.string().max(2000).optional().nullable(),
-});
-
 // PUT /api/nutrition/meals/:id - Update a meal entry in place.
 // Replaces the mobile MealEditSheet's old delete-then-re-log workaround so
 // edits keep the row's id, createdAt, and saved-food backlinks intact.
 router.put('/nutrition/meals/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = mealUpdateSchema.parse(req.body);
-    const userId = req.user!.id;
-
-    const existing = await prisma.mealEntry.findFirst({ where: { id, userId } });
-    if (!existing) return res.status(404).json({ error: 'Entry not found' });
-
-    const entry = await prisma.mealEntry.update({
-      where: { id },
-      data: {
-        ...(data.name !== undefined ? { name: data.name } : {}),
-        ...(data.mealType !== undefined ? { mealType: data.mealType } : {}),
-        ...(data.calories !== undefined ? { calories: data.calories } : {}),
-        ...(data.proteinG !== undefined ? { proteinG: data.proteinG } : {}),
-        ...(data.carbsG !== undefined ? { carbsG: data.carbsG } : {}),
-        ...(data.fatG !== undefined ? { fatG: data.fatG } : {}),
-        ...(data.notes !== undefined ? { notes: data.notes } : {}),
-      },
-    });
-
-    cacheMarkStale(nutritionProfileCacheKey(req.user!.id));
-    res.json(entry);
+    const r = await updateMealEntry(req.user!.id, req.params.id, req.body);
+    if (!r) return res.status(404).json({ error: 'Entry not found' });
+    res.json(r.entry);
   } catch (err: any) {
     console.error('Meal update error:', err);
     res.status(500).json({ error: 'Failed to update meal' });
@@ -675,13 +475,8 @@ router.put('/nutrition/meals/:id', requireAuth, async (req, res) => {
 // DELETE /api/nutrition/meals/:id - Delete a meal entry
 router.delete('/nutrition/meals/:id', requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
-    const entry = await prisma.mealEntry.findFirst({
-      where: { id, userId: req.user!.id },
-    });
-    if (!entry) return res.status(404).json({ error: 'Entry not found' });
-    await prisma.mealEntry.delete({ where: { id } });
-    cacheMarkStale(nutritionProfileCacheKey(req.user!.id));
+    const gone = await deleteMealEntry(req.user!.id, req.params.id);
+    if (!gone) return res.status(404).json({ error: 'Entry not found' });
     res.json({ success: true });
   } catch (err: any) {
     console.error('Meal delete error:', err);
