@@ -12,12 +12,18 @@
 // Suggestions live in the empty thread. The composer rides the keyboard at
 // 12 pt. Blur with an empty thread and no text returns to brief after 250 ms.
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Keyboard, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, interpolate, interpolateColor, useAnimatedKeyboard, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, interpolate, interpolateColor, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { receiptSummary, type Turn } from '@axiom/agent-ui-core';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import * as ScreenCapture from 'expo-screen-capture';
+import { receiptSummary, composerMode, latestAgentCards, allCards, type Turn, type Card } from '@axiom/agent-ui-core';
+import { CardView, CardSkeleton } from '../chat/card/CardView';
+import { CardHandlersProvider, type CardHandlers, type EditSession } from '../chat/card/context';
+import { useCardActions } from '../chat/useCardActions';
+import { v2Api } from '../api';
 import { v2, T } from '../theme';
 import { Enter } from '../primitives/Enter';
 import { ReceiptList, Caret } from '../primitives/Receipt';
@@ -68,8 +74,100 @@ export function HomePage() {
     shell.registerAsk((m) => { void thread.send(m); });
     if (shell.pendingAsk.current) { const m = shell.pendingAsk.current; shell.pendingAsk.current = null; void thread.send(m); }
   }, [shell, thread.send]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { void thread.hydrate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); return () => clearTimeout(t); }, [thread.state.turns, focus]);
+  // "While you were away · N" (spec §9): Anakin-initiated turns since the user last spoke, folded once at open.
+  const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
+  const [awayOpen, setAwayOpen] = useState(false);
+  useEffect(() => { void thread.hydrate().then(setAway); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Scroll: follow the stream unless the user scrolled up > 120 pt (then "↓ New") ──
+  const scrollY = useRef(0);
+  const fromBottom = useRef(0);
+  const forceScroll = useRef(false);
+  const [showNew, setShowNew] = useState(false);
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    scrollY.current = contentOffset.y;
+    fromBottom.current = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+    if (fromBottom.current < 120 && showNew) setShowNew(false);
+  };
+  const toEnd = useCallback(() => { setShowNew(false); scrollRef.current?.scrollToEnd({ animated: true }); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (forceScroll.current || fromBottom.current < 120) { forceScroll.current = false; scrollRef.current?.scrollToEnd({ animated: true }); }
+      else setShowNew(true);
+    }, 60);
+    return () => clearTimeout(t);
+  }, [thread.state.turns, focus]);
+
+  // ── Keyboard: keyboard-controller runs only while this screen is showing (the
+  //    classic app and the Fuel page keep their own KeyboardAvoider) ──
+  const kc = useKeyboardController();
+  const [screenFocused, setScreenFocused] = useState(true);
+  useFocusEffect(useCallback(() => { setScreenFocused(true); return () => setScreenFocused(false); }, []));
+  const kbOn = screenFocused && shell.index === 0;
+  useEffect(() => { kc.setEnabled(kbOn); }, [kbOn]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reveal (§7.1.3): the node's bottom sits 16 pt above the composer / Save bar once the keyboard is up.
+  const pendingReveal = useRef<View | null>(null);
+  const doReveal = useCallback((kbH: number) => {
+    const node = pendingReveal.current;
+    pendingReveal.current = null;
+    node?.measureInWindow((_x, y, _w, h) => {
+      const limit = Dimensions.get('window').height - kbH - 60 - 16;
+      const over = y + h - limit;
+      if (over > 0) scrollRef.current?.scrollTo({ y: scrollY.current + over, animated: true });
+    });
+  }, []);
+  useEffect(() => {
+    const sub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => { if (pendingReveal.current) doReveal(e.endCoordinates.height); });
+    return () => sub.remove();
+  }, [doReveal]);
+  const reveal = useCallback((node: View | null) => {
+    pendingReveal.current = node;
+    const m = Keyboard.metrics();
+    if (Keyboard.isVisible() && m) doReveal(m.height);
+  }, [doReveal]);
+
+  // ── Cards ──
+  const actions = useCardActions(thread);
+  const [editing, setEditing] = useState<EditSession | null>(null);
+  const [typedFocus, setTypedFocus] = useState(false);
+  const [draftEdit, setDraftEdit] = useState<string | null>(null);
+  const [answering, setAnswering] = useState(false);
+  const cmode = composerMode(latestAgentCards(thread.state), draftEdit);
+  const findCard = (id: string): Card | undefined => allCards(thread.stateRef.current).find((c) => c.id === id);
+  const editDraft = useCallback((c: Card) => { setDraftEdit(c.id); setText(c.draft?.body ?? ''); inputRef.current?.focus(); }, []);
+  const handlers = useMemo<CardHandlers>(() => ({
+    act: (c, a, x) => (c.pattern === 'draft' && a.id === 'edit' ? Promise.resolve(editDraft(c)) : actions.act(c, a, x)),
+    undo: actions.undo, edit: actions.edit, toggle: actions.toggle, answer: actions.answer,
+    open: (c, r) => actions.open(c, r),
+    typeInstead: () => { setAnswering(true); inputRef.current?.focus(); },
+    editDraft,
+    say: (m) => { forceScroll.current = true; void thread.send(m); },
+    reveal, scrollToLatest: toEnd, setTypedFocus,
+    editing,
+    beginEdit: (x) => setEditing({ ...x, value: x.value ?? x.initial }),
+    setEditValue: (v) => setEditing((e) => (e ? { ...e, value: v } : e)),
+    endEdit: () => setEditing(null),
+  }), [actions, editDraft, reveal, toEnd, editing, thread.send]); // eslint-disable-line react-hooks/exhaustive-deps
+  const saveEdit = () => {
+    const e = editing; if (!e) return;
+    setEditing(null); Keyboard.dismiss();
+    const card = findCard(e.cardId);
+    if (card && e.value.trim() && e.value.trim() !== e.initial) void actions.edit(card, e.field, e.value.trim());
+  };
+
+  // Private cards (§6.7): blur the app-switcher snapshot (iOS) / secure the window (Android) while one is in the thread.
+  const hasPrivate = allCards(thread.state).some((c) => c.private);
+  useEffect(() => {
+    if (!hasPrivate) return;
+    if (Platform.OS === 'ios') void ScreenCapture.enableAppSwitcherProtectionAsync(0.9).catch(() => {});
+    else void ScreenCapture.preventScreenCaptureAsync('private-cards').catch(() => {});
+    return () => {
+      if (Platform.OS === 'ios') void ScreenCapture.disableAppSwitcherProtectionAsync().catch(() => {});
+      else void ScreenCapture.allowScreenCaptureAsync('private-cards').catch(() => {});
+    };
+  }, [hasPrivate]);
 
   // ── Everything below runs from the one progress value, on the UI thread (§D) ──
   const spacer = useAnimatedStyle(() => ({ flexGrow: 1 - p.value }));
@@ -84,15 +182,16 @@ export function HomePage() {
   const captionStyle = useAnimatedStyle(() => ({ height: captionH.value ? captionH.value * (1 - p.value) : undefined, opacity: 1 - p.value }));
   const beginStyle = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]) }));
   const threadStyle = useAnimatedStyle(() => ({ flexGrow: p.value, opacity: p.value, flexBasis: 0 }));
-  const kb = useAnimatedKeyboard();
+  // keyboard-controller's height is negative while the keyboard is up.
+  const { height: kbHeight } = useReanimatedKeyboardAnimation();
   const bottomInset = insets.bottom;
   const inputWrap = useAnimatedStyle(() => ({
     height: 52 + 8 * p.value,
     marginBottom: 112 + (40 - 112) * p.value,
     borderTopColor: interpolateColor(p.value, [0, 1], [C.darkInputLine, focus ? C.ink : C.hairline]),
-    transform: [{ translateY: -Math.max(0, kb.height.value - bottomInset) * p.value }],
+    transform: [{ translateY: -Math.max(0, -kbHeight.value - bottomInset) * p.value }],
   }), [focus, bottomInset]);
-  const threadPad = useAnimatedStyle(() => ({ height: 72 + Math.max(0, kb.height.value - bottomInset) }));
+  const threadPad = useAnimatedStyle(() => ({ height: 72 + Math.max(0, -kbHeight.value - bottomInset) }));
   const inputText = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]) }));
 
   const loaded = !!brief.data;
@@ -122,6 +221,20 @@ export function HomePage() {
   const send = async (m?: string) => {
     const msg = (m ?? text).trim(); if (!msg) return;
     enterChat(); setText('');
+    // While a card waits, the composer answers or rewrites it instead (§7.2).
+    if (!m && cmode.kind === 'draft') {
+      setDraftEdit(null);
+      const card = findCard(cmode.cardId);
+      try { const r = await v2Api.cardDraft(cmode.cardId, msg); thread.dispatch({ type: 'card_set', card: r.card }); }
+      catch (e: any) { if (card) thread.dispatch({ type: 'card_set', card: { ...card, note: e?.message ?? 'Couldn’t update the draft — try again' } }); }
+      return;
+    }
+    if (!m && cmode.kind === 'ask') {
+      setAnswering(false);
+      const card = findCard(cmode.cardId);
+      if (card) { await actions.answer(card, { text: msg }).catch(() => {}); return; }
+    }
+    forceScroll.current = true;
     await thread.send(msg);
   };
   const answerAsk = (turn: Turn, o: string) => {
@@ -196,7 +309,7 @@ export function HomePage() {
 
         {/* Thread: fills in chat; suggestions only while empty; 44 between turns; bottom padding grows with the keyboard. */}
         <Animated.View style={[threadStyle, { overflow: 'hidden' }]} pointerEvents={chat ? 'auto' : 'none'}>
-          <Animated.ScrollView ref={scrollRef as any} style={styles.flex} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+          <Animated.ScrollView ref={scrollRef as any} style={styles.flex} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}>
             {emptyThread ? (
               <Animated.View exiting={FadeOut.duration(220)} style={{ gap: 16 }}>
                 {suggestions.slice(0, 3).map((l, i) => (
@@ -206,30 +319,56 @@ export function HomePage() {
                 ))}
               </Animated.View>
             ) : null}
-            {thread.state.turns.map((t) => (
+            <CardHandlersProvider value={handlers}>
+            {thread.state.turns.map((t, i) => {
+              if (away && !awayOpen && i >= away.start && i < away.end) {
+                return i === away.start ? <AwayRow key="away" count={away.count} onPress={() => setAwayOpen(true)} /> : null;
+              }
+              return (
               <TurnView key={t.id} turn={t}
                 toggle={() => thread.dispatch({ type: 'toggle', id: t.id })}
                 patch={(pch) => thread.dispatch({ type: 'card_state', agentId: t.id, patch: pch })}
                 resolve={(line) => thread.dispatch({ type: 'resolve', agentId: t.id, resolution: line })}
                 ask={(m) => { setText(m); inputRef.current?.focus(); }}
                 onAsk={(o) => answerAsk(t, o)} />
-            ))}
+              );
+            })}
+            </CardHandlersProvider>
             {thread.state.error ? <Text style={T.caption}>{thread.state.error}</Text> : null}
             <Animated.View style={threadPad} />
           </Animated.ScrollView>
+          {showNew && chat ? (
+            <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.newPillWrap} pointerEvents="box-none">
+              <Pressable onPress={toEnd} style={styles.newPill} accessibilityRole="button" accessibilityLabel="Scroll to new messages">
+                <Text style={[T.captionStrong, { color: C.ink }]}>↓ New</Text>
+              </Pressable>
+            </Animated.View>
+          ) : null}
         </Animated.View>
 
         {/* Composer: one hairline, "Ask Anakin", ↑ (crimson with text, unless busy). Rides the keyboard at 12 pt. */}
-        <Animated.View entering={settle(420)}>
+        <Animated.View entering={settle(420)} style={typedFocus ? { opacity: 0 } : undefined} pointerEvents={typedFocus ? 'none' : 'auto'}>
+        {draftEdit && cmode.kind === 'draft' ? (
+          <View style={styles.editingRow}>
+            <Text style={T.caption} numberOfLines={1}>Editing draft to {cmode.to} · </Text>
+            <Pressable onPress={() => { setDraftEdit(null); setText(''); }} hitSlop={10}><Text style={[T.caption, { color: C.ink }]}>Cancel</Text></Pressable>
+          </View>
+        ) : null}
+        {editing ? (
+          <Animated.View style={[styles.inputWrap, styles.saveBar, inputWrap]}>
+            <Pressable onPress={() => { setEditing(null); Keyboard.dismiss(); }} hitSlop={12} accessibilityRole="button"><Text style={[T.body, { color: C.muted }]}>Cancel</Text></Pressable>
+            <Pressable onPress={saveEdit} hitSlop={12} accessibilityRole="button"><Text style={[T.body, { color: C.crimson, fontFamily: v2.font.semibold }]}>Save</Text></Pressable>
+          </Animated.View>
+        ) : (
         <Animated.View style={[styles.inputWrap, inputWrap]}>
           <AnimatedTextInput
             ref={inputRef}
             value={text}
             onChangeText={setText}
             onFocus={() => { setFocus(true); enterChat(); setBriefOpen(false); }}
-            onBlur={onBlur}
+            onBlur={() => { setAnswering(false); onBlur(); }}
             onSubmitEditing={() => void send()}
-            placeholder="Ask Anakin"
+            placeholder={cmode.kind === 'ask' && answering ? 'Type your answer' : cmode.placeholder}
             placeholderTextColor={C.placeholder}
             style={[styles.input, inputText]}
             returnKeyType="send"
@@ -242,6 +381,7 @@ export function HomePage() {
             <Text style={[styles.send, { color: text.trim() && !busy ? C.crimson : C.placeholder }]}>↑</Text>
           </Pressable>
         </Animated.View>
+        )}
         </Animated.View>
       </View>
     </View>
@@ -259,7 +399,6 @@ function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; to
   return (
     <Enter exit={false}>
       <View>
-        {turn.unprompted ? <Text style={[T.eyebrow, { marginBottom: 8 }]}>While you were away</Text> : null}
         {summary ? (
           <Pressable onPress={toggle} hitSlop={6} disabled={streaming && !turn.text}>
             <Text style={T.caption}>{summary}{turn.done && turn.receipts.length && !turn.open ? ' →' : ''}</Text>
@@ -273,7 +412,11 @@ function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; to
             {streaming ? <Caret /> : null}
           </View>
         ) : null}
-        {turn.done ? <TurnCard turn={turn} patch={patch} resolve={resolve} ask={ask} /> : null}
+        {turn.cards?.length ? (
+          <View style={{ marginTop: 18, gap: 28 }}>
+            {turn.cards.map((c, i) => <Enter key={c.id} index={i} exit={false}><CardView card={c} /></Enter>)}
+          </View>
+        ) : turn.done ? <TurnCard turn={turn} patch={patch} resolve={resolve} ask={ask} /> : <PendingCard turn={turn} />}
         {turn.resolution ? <View style={{ marginTop: 12 }}><Text style={[T.caption, { color: /^(Adjusted|Logged)/.test(turn.resolution) ? C.crimson : C.muted }]}>{turn.resolution}</Text></View> : null}
       </View>
     </Enter>
@@ -281,6 +424,31 @@ function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; to
 }
 
 export function dismissKeyboard() { Keyboard.dismiss(); }
+
+/** "While you were away · 3" — one collapsed row; tapping expands the cards in order. */
+function AwayRow({ count, onPress }: { count: number; onPress: () => void }) {
+  return (
+    <Enter exit={false}>
+      <Pressable onPress={onPress} style={styles.awayRow} accessibilityRole="button" accessibilityLabel={`While you were away, ${count} items. Show them`}>
+        <Text style={[T.rowStrong, { fontSize: 15, flex: 1 }]}>While you were away · {count}</Text>
+        <Text style={[T.rowStrong, { fontSize: 15, color: C.muted }]}>↓</Text>
+      </Pressable>
+    </Enter>
+  );
+}
+
+/** Skeleton in the card slot while a tool runs longer than 400 ms (§6.4) — never for fast results. */
+function PendingCard({ turn }: { turn: Turn }) {
+  const [show, setShow] = useState(false);
+  const running = !turn.done && turn.receipts.length > 0 && !turn.text;
+  useEffect(() => {
+    if (!running) { setShow(false); return; }
+    const t = setTimeout(() => setShow(true), 400);
+    return () => clearTimeout(t);
+  }, [running, turn.receipts.length]);
+  if (!running || !show) return null;
+  return <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)} style={{ marginTop: 18 }}><CardSkeleton /></Animated.View>;
+}
 
 /** First launch with nothing cached (review #5 §1.4): the read slot says so, pulsing 1 → .25 → 1 over 1.6 s — never a blank area. */
 function Checking() {
@@ -304,4 +472,9 @@ const styles = StyleSheet.create({
   send: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
   userTurn: { fontFamily: v2.font.regular, fontSize: 17, lineHeight: 25, color: C.ink, textAlign: 'right', alignSelf: 'flex-end', maxWidth: '86%' },
   agentText: { fontFamily: v2.font.regular, fontSize: 17, lineHeight: 25.5, color: C.ink },
+  awayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.hairline },
+  saveBar: { justifyContent: 'space-between' },
+  editingRow: { height: 32, flexDirection: 'row', alignItems: 'center' },
+  newPillWrap: { position: 'absolute', left: 0, right: 0, bottom: 84, alignItems: 'center' },
+  newPill: { paddingHorizontal: 14, height: 32, borderRadius: 16, justifyContent: 'center', backgroundColor: C.white, borderWidth: 1, borderColor: C.hairline },
 });

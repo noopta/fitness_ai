@@ -202,7 +202,10 @@ function RootNavigator() {
 
   useEffect(() => {
     if (loading || seenCinematic === null || seenFormHook === null) return;
+    // A signed-in user can reset their password from chat (ACC-07); that one
+    // auth screen must not bounce them back to the app.
     const inAuthGroup = segments[0] === '(auth)';
+    const inPasswordReset = inAuthGroup && (segments[1] as string) === 'reset-password';
     const inAgeCheck = (segments[0] as string) === 'age-check';
     const inCinematic = (segments[0] as string) === 'onboarding-cinematic';
     // The OAuth deep-link target (app/auth/callback.tsx) sits at segment 'auth'
@@ -232,7 +235,7 @@ function RootNavigator() {
       router.replace(seenCinematic ? '/(auth)/welcome' : ('/onboarding-cinematic' as any));
     } else if (user && needsDobCheck && !inAgeCheck) {
       router.replace('/age-check' as any);
-    } else if (user && !needsDobCheck && (inAuthGroup || inCinematic)) {
+    } else if (user && !needsDobCheck && ((inAuthGroup && !inPasswordReset) || inCinematic)) {
       // Funnel: users who haven't completed coach onboarding go straight into
       // it (intake → plan → paywall) rather than the Home tab. Onboarded users
       // land on Home as before.

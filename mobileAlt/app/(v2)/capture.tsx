@@ -9,6 +9,7 @@
 // links. Every module access is guarded: on a binary without the camera the
 // screen explains instead of crashing.
 
+import { captureBus } from '../../src/v2/chat/captureBus';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert, Image, ScrollView, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -36,7 +37,8 @@ type Item = { name: string; grams: number | null; calories: number; proteinG: nu
 export default function CaptureScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ mode?: string }>();
+  // cardId: opened from a chat capture card; the logged meal answers that card.
+  const params = useLocalSearchParams<{ mode?: string; cardId?: string }>();
   const [mode, setMode] = useState<Mode>((params.mode as Mode) || 'photo');
   const invalidate = useInvalidate();
   const camRef = useRef<any>(null);
@@ -118,8 +120,8 @@ export default function CaptureScreen() {
     setBusy(true);
     const tot = items.reduce((a, i) => ({ calories: a.calories + i.calories, proteinG: a.proteinG + i.proteinG, carbsG: a.carbsG + i.carbsG, fatG: a.fatG + i.fatG }), { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
     try {
-      await nutritionApi.logMeal({ name: items.map((i) => i.name).join(', '), mealType: mealType(), ...tot, source: 'photo', items } as any);
-      await invalidate.afterMeal(); haptics.success(); router.back();
+      const m: any = await nutritionApi.logMeal({ name: items.map((i) => i.name).join(', '), mealType: mealType(), ...tot, source: 'photo', items } as any);
+      await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
   };
@@ -128,8 +130,8 @@ export default function CaptureScreen() {
     setBusy(true);
     const k = (v: any) => Math.round((Number(v) || 0) * servings);
     try {
-      await nutritionApi.logMeal({ name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: mealType(), calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), source: 'barcode', barcode: product.code } as any);
-      await invalidate.afterMeal(); haptics.success(); router.back();
+      const m: any = await nutritionApi.logMeal({ name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: mealType(), calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), source: 'barcode', barcode: product.code } as any);
+      await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
   };

@@ -194,6 +194,31 @@ export async function toggleCardField(userId: string, cardId: string, field: str
  * returns the text the client should send into the conversation so Anakin
  * continues with the answer in context.
  */
+const DRAFT_BODY_KEYS = ['body', 'text', 'caption', 'note', 'comment', 'message'];
+
+/**
+ * Draft "Edit" (spec §7.6): the user rewrote the message. The card body and
+ * the send op's own argument change together, so Send sends what the card
+ * shows. Nothing leaves until Send.
+ */
+export async function editDraftBody(userId: string, cardId: string, body: string): Promise<Card> {
+  const { card, pending } = await load(userId, cardId);
+  if (card.pattern !== 'draft' || !card.draft) throw new CardError('Only a draft can be rewritten.', 400);
+  if (card.state?.status && card.state.status !== 'live') throw new CardError('This draft was already sent or cancelled.', 409);
+  const text = body.trim();
+  if (!text) throw new CardError('The message can’t be empty.', 400);
+  let updated = false;
+  for (const a of Object.values(pending.actions ?? {})) {
+    if (!('op' in a) || !a.op) continue;
+    const key = DRAFT_BODY_KEYS.find((k) => typeof a.args?.[k] === 'string' || (k === 'note' && 'note' in (a.args ?? {})));
+    if (key) { a.args = { ...a.args, [key]: text }; updated = true; }
+  }
+  if (!updated) throw new CardError('This draft’s text can’t be changed here — ask Anakin to rewrite it.', 400);
+  card.draft = { ...card.draft, body: text };
+  await persist(cardId, card, pending);
+  return card;
+}
+
 export async function answerCard(userId: string, cardId: string, answer: { option?: number; text?: string }): Promise<{ card: Card; sendAsMessage?: string; next?: Card | null }> {
   const { card, pending } = await load(userId, cardId);
   if (card.state?.status && !['live'].includes(card.state.status)) throw new CardError('This question has already been answered.', 409);
@@ -204,14 +229,18 @@ export async function answerCard(userId: string, cardId: string, answer: { optio
 
   let changeId: string | undefined;
   let next: Card | null = null;
+  let line = value;
   if (pending.answer?.op) {
     const change = await withWriteGuard('allow', `answer:${card.fn}`, () =>
       executeOp(userId, pending.answer!.op!, { ...(pending.answer!.args ?? {}), [pending.answer!.valueKey ?? 'value']: value, optionIndex: answer.option ?? null }, { cardId }));
-    changeId = change.changeId;
-    const nextDraft = (change.result as any)?.nextCard as CardDraft | undefined;
-    if (nextDraft) next = await saveCard(userId, nextDraft);
+    const result = (change.result ?? {}) as { nextCard?: CardDraft; nextOwnsChange?: boolean; line?: string };
+    // A capture's answer is ids, not words: the op names the line, and the
+    // card it hands back (the Logged card) carries the Undo instead.
+    if (result.line) line = result.line;
+    if (result.nextCard) next = await saveCard(userId, result.nextCard, result.nextOwnsChange ? { change } : {});
+    if (!result.nextOwnsChange) changeId = change.changeId;
   }
-  card.state = { status: 'answered', line: value, at: new Date().toISOString(), ...(changeId ? { changeId } : {}) };
+  card.state = { status: 'answered', line, at: new Date().toISOString(), ...(changeId ? { changeId } : {}) };
   await persist(cardId, card);
   const q = card.ask?.q ?? card.meta?.label ?? 'your question';
   const sendAsMessage = pending.answer?.op && !pending.answer.asMessage ? undefined : (pending.answer?.asMessage ?? `${value}`).replace('{answer}', value).replace('{q}', q);

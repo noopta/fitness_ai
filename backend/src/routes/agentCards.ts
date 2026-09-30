@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { applyCardAction, undoCard, editCardField, toggleCardField, answerCard, getCard, CardError } from '../agent/cards/store.js';
+import { applyCardAction, undoCard, editCardField, toggleCardField, answerCard, editDraftBody, getCard, CardError } from '../agent/cards/store.js';
 import { revertChange, listChanges, UndoError } from '../agent/ops.js';
 import '../agent/toolkits/index.js';
 
@@ -77,6 +77,14 @@ router.post('/coach/agent/cards/:id/toggle', requireAuth, access, async (req, re
     const b = z.object({ field: z.string().min(1).max(60), on: z.boolean() }).parse(req.body);
     res.json({ card: await toggleCardField(req.user!.id, req.params.id, b.field, b.on) });
   } catch (e) { fail(res, e, 'change that'); }
+});
+
+// Draft "Edit": the rewritten message replaces the card body and what Send sends.
+router.post('/coach/agent/cards/:id/draft', requireAuth, access, async (req, res) => {
+  try {
+    const b = z.object({ body: z.string().min(1).max(2000) }).parse(req.body);
+    res.json({ card: await editDraftBody(req.user!.id, req.params.id, b.body) });
+  } catch (e) { fail(res, e, 'update the draft'); }
 });
 
 // Ask / Flow answers. Returns `sendAsMessage` when the answer should go back

@@ -86,7 +86,10 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     if (resetConversation) await clearConversation(userId);
     const history: Anthropic.MessageParam[] = await loadConversation(userId);
 
-    const result = await runAgentTurn(userId, message, history);
+    // Same card contract as the stream: v2 clients get server cards here too
+    // (this route is their fallback when SSE can't open).
+    const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
+    const result = await runAgentTurn(userId, message, { history, cardContract });
 
     // Log what the agent did this turn — invaluable for diagnosing
     // "agent said done but nothing changed" bug reports. The toolsUsed
@@ -95,7 +98,7 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     console.log(`[agent] user=${userId.slice(0,8)} turn=${result.iterations} tools=${JSON.stringify(result.toolsUsed)} hasProposal=${!!result.proposal}`);
 
     // Persist the text transcript for next turn's continuity.
-    await appendTurn(userId, message, result.reply);
+    await appendTurn(userId, message, withCardNotes(result.reply, result.cards));
 
     res.json(result);
   } catch (err: any) {

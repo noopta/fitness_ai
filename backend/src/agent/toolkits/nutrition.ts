@@ -113,7 +113,10 @@ defineOp({
     const ids = String(args.value).split(',').map((s) => s.trim()).filter(Boolean);
     const meals = await prisma.mealEntry.findMany({ where: { userId, id: { in: ids } } });
     if (!meals.length) throw new Error('Nothing was logged.');
-    return { result: { mealIds: meals.map((m) => m.id) }, inverse: { op: 'meal.remove_many', args: { ids: meals.map((m) => m.id) } }, summary: `Logged · ${meals.map((m) => m.name).join(', ')}` };
+    const ctx = await ctxOf(userId);
+    // The Logged card replaces the capture placeholder in place (spec §7.7) and owns the Undo.
+    const nextCard = await loggedMealCard('NUT-02', userId, meals[0].id, ctx as any);
+    return { result: { mealIds: meals.map((m) => m.id), nextCard, nextOwnsChange: true, line: `Logged — ${meals.map((m) => m.name).join(', ')}` }, inverse: { op: 'meal.remove_many', args: { ids: meals.map((m) => m.id) } }, summary: `Logged · ${meals.map((m) => m.name).join(', ')}` };
   },
 });
 defineOp({

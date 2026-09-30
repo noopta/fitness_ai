@@ -219,6 +219,16 @@ export default function LoginScreen() {
                 placeholder="••••••••"
                 containerStyle={styles.inputContainer}
               />
+              {!orgMode && (
+                <Pressable
+                  onPress={() => router.push({ pathname: '/(auth)/reset-password', params: email.trim() ? { email: email.trim() } : {} } as any)}
+                  style={styles.forgotLink}
+                  hitSlop={8}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.registerLinkText}>Forgot password?</Text>
+                </Pressable>
+              )}
 
               {/* Org slug field — shown only in org mode */}
               {orgMode && (
@@ -402,6 +412,7 @@ const styles = StyleSheet.create({
   },
 
   registerLink: { alignItems: 'center', paddingVertical: spacing.sm },
+  forgotLink: { alignSelf: 'flex-end', marginTop: -spacing.xs, marginBottom: spacing.md },
 
   // Social-proof box on the login screen (replaced the diagnostic-preview pill)
   socialProofBox: {

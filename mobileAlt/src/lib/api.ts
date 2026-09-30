@@ -172,6 +172,13 @@ export function isVerifyPending(r: any): r is AuthVerifyPending {
 }
 
 export const authApi = {
+  /** Always 200 (never reveals whether an account exists); emails a 6-digit code. */
+  forgotPassword: (email: string): Promise<{ ok: true; cooldownRemainingSec?: number }> =>
+    apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }, false),
+  /** Sets the new password and signs the user in. */
+  resetPassword: (email: string, code: string, password: string): Promise<{ ok: true; token: string }> =>
+    apiFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, code, password }) }, false),
+
   login: (email: string, password: string): Promise<RegisterOrLoginResult> =>
     apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, false),
 

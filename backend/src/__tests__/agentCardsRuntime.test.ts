@@ -130,6 +130,29 @@ describe('card taps', () => {
     expect(r.sendAsMessage).toBe('I slept Badly.');
     expect(r.card.state?.status).toBe('answered');
   });
+  it('a capture answer swaps in the next card, which owns the Undo', async () => {
+    ops.defineOp({ name: 'test.capture', run: async (_u, a) => ({
+      result: { nextCard: { fn: 'NUT-02', pattern: 'logged', rule: 'log_undo', rows: [{ key: 'Bowl', value: '520 kcal' }] }, nextOwnsChange: true, line: 'Logged — Bowl' },
+      inverse: { op: 'test.send', args: {} }, summary: `Logged ${a.value}`,
+    }) });
+    const card = await store.saveCard('u1', { fn: 'NUT-02', pattern: 'capture', rule: 'handoff', pending: { answer: { op: 'test.capture', valueKey: 'value' } } });
+    const r = await store.answerCard('u1', card.id, { text: 'meal-1' });
+    expect(r.card.state).toMatchObject({ status: 'answered', line: 'Logged — Bowl' });
+    expect(r.card.state?.changeId).toBeUndefined();
+    expect(r.next?.pattern).toBe('logged');
+    expect(r.next?.state?.changeId).toBeTruthy();
+    expect(r.next?.actions?.some((x) => x.kind === 'undo')).toBe(true);
+    expect(r.sendAsMessage).toBeUndefined();
+  });
+  it('rewriting a draft changes the body and what Send sends', async () => {
+    const card = await store.saveCard('u1', { fn: 'SOC-12', pattern: 'draft', rule: 'draft_send', draft: { to: 'Sam', audience: 'Only Sam', body: 'hey' },
+      pending: { actions: { send: { op: 'test.send', args: { recipientId: 'x', body: 'hey' } }, cancel: { kind: 'cancel' } } } });
+    const edited = await store.editDraftBody('u1', card.id, '  see you at 6  ');
+    expect(edited.draft?.body).toBe('see you at 6');
+    const row = db.agentCard.find((r) => r.id === card.id);
+    expect(JSON.parse(row.pendingJson).actions.send.args.body).toBe('see you at 6');
+    await expect(store.editDraftBody('u1', card.id, '   ')).rejects.toThrow();
+  });
   it('a newer card for the same entity replaces the older one', async () => {
     const a = await store.saveCard('u1', { fn: 'ADP-01', pattern: 'proposal', rule: 'propose', entity: 'adapt:bench' });
     await store.saveCard('u1', { fn: 'ADP-01', pattern: 'proposal', rule: 'propose', entity: 'adapt:bench' });

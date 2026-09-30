@@ -62,6 +62,7 @@ export const v2Api = {
     post(`/coach/agent/cards/${id}/edit`, { field, value }),
   cardToggle: (id: string, field: string, on: boolean): Promise<{ card: Card }> =>
     post(`/coach/agent/cards/${id}/toggle`, { field, on }),
+  cardDraft: (id: string, body: string): Promise<{ card: Card }> => post(`/coach/agent/cards/${id}/draft`, { body }),
   cardAnswer: (id: string, answer: { option?: number; text?: string }): Promise<{ card: Card; sendAsMessage?: string; next?: Card | null }> =>
     post(`/coach/agent/cards/${id}/answer`, answer),
 
