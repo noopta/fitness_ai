@@ -90,7 +90,10 @@ export async function runToolCall(
   // The model sees the result without server internals, plus what changed.
   let modelResult: unknown = raw;
   if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-    const { _change, _pending, ...rest } = raw as any;
+    const { _change } = raw as any;
+    // Internal fields (prefixed _) and whole-program / whole-week payloads are
+    // for the card and the apply op; the model only needs the summary.
+    const rest = Object.fromEntries(Object.entries(raw as any).filter(([k]) => !k.startsWith('_') && k !== 'updatedProgram' && k !== 'proposedWeek' && k !== 'program'));
     modelResult = {
       ...rest,
       ...(_change ? { changed: _change.summary, undoable: _change.reversible } : {}),

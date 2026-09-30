@@ -151,6 +151,20 @@ export async function editCardField(userId: string, cardId: string, field: strin
   const { card, pending } = await load(userId, cardId);
   const spec = pending.edits?.[field];
   if (!spec) throw new CardError('That value can’t be edited here.', 400);
+  if ('stage' in spec) {
+    if (card.state?.status && card.state.status !== 'live') throw new CardError('This card has already been acted on.', 409);
+    const n = Number(String(raw).replace(/[^0-9.\-]/g, ''));
+    if (!Number.isFinite(n) || n <= 0) throw new CardError('Enter a number.', 400);
+    const act = pending.actions?.[spec.stage.action] as PendingOp | undefined;
+    if (!act || !('op' in act)) throw new CardError('Nothing to adjust.', 400);
+    const kg = spec.stage.unit === 'imperial' ? n * 0.45359237 : n;
+    const edits = Array.isArray(act.args.edits) ? (act.args.edits as any[]).filter((e) => e.key !== spec.stage.key) : [];
+    act.args.edits = [...edits, { key: spec.stage.key, targetWeightKg: Math.round(kg * 100) / 100 }];
+    const unitWord = spec.stage.unit === 'metric' ? 'kg' : 'lb';
+    for (const r of card.rows ?? []) if (r.editable?.field === field) { r.was = r.was ?? r.value; r.value = `${n} ${unitWord}`; }
+    await persist(cardId, card, pending);
+    return card;
+  }
   const value = parseValue(raw, spec.parse);
   const change = await withWriteGuard('allow', `edit:${card.fn}`, () => executeOp(userId, spec.op, { ...spec.args, [spec.valueKey]: value }, { cardId }));
   const display = (change.result as any)?.display ?? String(raw);

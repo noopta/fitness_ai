@@ -5,6 +5,7 @@
 // A program is NEVER modified except inside `decide('apply')` and `undo`,
 // and both record what they did on the proposal row.
 
+import { parseUserPrefs } from '../services/userPrefs.js';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizePreference, type UnitPreference } from '../services/weightUnits.js';
@@ -358,6 +359,9 @@ export async function undo(userId: string, proposalId: string, now = new Date())
 /** After a workout is logged: evaluate the lifts in that workout. */
 export async function runPostWorkout(userId: string, loggedNames: string[]): Promise<ProposalRow[]> {
   if (!adaptationEnabledFor(userId)) return [];
+  // Per-user switch (PRF-13, "stop suggesting weight increases").
+  const prefs = await prisma.user.findUnique({ where: { id: userId }, select: { prefsJson: true } }).catch(() => null);
+  if (parseUserPrefs(prefs?.prefsJson).adaptationEnabled === false) return [];
   const ctx = await loadContext(userId);
   if (!ctx.program) return [];
   const keyFn = await keyFnFor(ctx.program);

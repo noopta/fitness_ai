@@ -89,7 +89,10 @@ export interface PendingOp { op: string; args: Record<string, unknown>; status?:
 export interface PendingActions {
   actions?: Record<string, PendingOp | { kind: 'keep' | 'cancel' | 'dismiss'; line?: string }>;
   /** Inline edits: field → op run with { ...args, [valueKey]: value }. */
-  edits?: Record<string, { op: string; args: Record<string, unknown>; valueKey: string; parse?: 'number' | 'text' | 'weightReps' | 'date' | 'time' }>;
+  edits?: Record<string, { op: string; args: Record<string, unknown>; valueKey: string; parse?: 'number' | 'text' | 'weightReps' | 'date' | 'time' }
+    // Staged edit: changes the pending action's args (a proposal's numbers)
+    // without running anything — the change happens only on Apply.
+    | { stage: { action: string; key: string; unit?: 'metric' | 'imperial' }; parse?: 'number'; display?: 'weight' }>;
   /** Toggles: field → op run with { ...args, [valueKey]: boolean }. */
   toggles?: Record<string, { op: string; args: Record<string, unknown>; valueKey: string }>;
   /** Segmented choice: field → arg name the chosen index/option is written to on apply. */
