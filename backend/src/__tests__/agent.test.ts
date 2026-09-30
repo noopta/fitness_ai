@@ -110,6 +110,9 @@ beforeEach(() => {
 });
 
 // ─── Tool registry ────────────────────────────────────────────────────────────
+// The loop sends the system prompt as cacheable text blocks.
+const systemText = (sys: any): string => Array.isArray(sys) ? sys.map((b: any) => b.text ?? '').join('\n') : String(sys ?? '');
+
 describe('tool registry', () => {
   it('every tool has a name, description, schema, and executor', () => {
     for (const t of AGENT_TOOLS) {
@@ -537,7 +540,7 @@ describe('runAgentTask', () => {
     const res = await runAgentTask(USER, 'life_happened', 'I was sick all week', client);
     expect(res.reply).toContain('restart');
     // The opening sent to the model should contain the user's input.
-    const sentSystem = (mockClient as any)._lastSystem;
+    const sentSystem = systemText((mockClient as any)._lastSystem);
     expect(sentSystem).toContain('disrupted'); // life_happened framing
   });
 

@@ -1,6 +1,7 @@
 import { Router, type Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { requestReset, resetPassword } from '../services/passwordResetService.js';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -96,6 +97,44 @@ function issueToken(user: { id: string; email: string | null; tier: string }) {
 // floor, so a DOB in the year 1200 or next century passed and then produced a
 // nonsense age everywhere it was consumed.
 const validateAge = validateDateOfBirth;
+
+// ── Password reset (ACC-07) ────────────────────────────────────────────────
+// POST /api/auth/forgot-password { email } — always 200 so it can't be used to
+// probe which emails have accounts. POST /api/auth/reset-password { email,
+// code, password } sets the new password and signs the user in.
+router.post('/auth/forgot-password', authLimiter, async (req, res) => {
+  try {
+    const { email } = z.object({ email: z.string().email() }).parse(req.body);
+    const r = await requestReset(email);
+    res.json({ ok: true, ...(r.cooldownRemainingSec ? { cooldownRemainingSec: r.cooldownRemainingSec } : {}) });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Enter a valid email.' });
+    console.error('[auth] forgot-password failed:', err?.message ?? err);
+    res.status(500).json({ error: 'Couldn’t send a reset code. Try again.' });
+  }
+});
+
+router.post('/auth/reset-password', authLimiter, async (req, res) => {
+  try {
+    const { email, code, password } = z.object({ email: z.string().email(), code: z.string().regex(/^\d{6}$/), password: z.string().min(8).max(200) }).parse(req.body);
+    const r = await resetPassword(email, code, password);
+    if (!r.ok) {
+      const msg: Record<string, string> = {
+        no_code: 'Request a new code first.', expired: 'That code expired. Request a new one.',
+        too_many_attempts: 'Too many tries. Request a new code.', mismatch: 'That code isn’t right.', weak_password: 'Use at least 8 characters.',
+      };
+      return res.status(400).json({ error: msg[r.reason], reason: r.reason });
+    }
+    const user = await prisma.user.findUnique({ where: { id: r.userId }, select: { id: true, email: true, tier: true } });
+    const token = issueToken(user!);
+    res.cookie('liftoff_jwt', token, COOKIE_OPTS);
+    res.json({ ok: true, token });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Enter your email, the 6-digit code and a new password of 8+ characters.' });
+    console.error('[auth] reset-password failed:', err?.message ?? err);
+    res.status(500).json({ error: 'Couldn’t reset your password. Try again.' });
+  }
+});
 
 // POST /api/auth/register
 const registerSchema = z.object({
@@ -905,6 +944,12 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
       if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
     }
 
+    // Same age gate as /auth/set-dob — this route used to accept any date.
+    if (data.dateOfBirth) {
+      const ageError = validateAge(data.dateOfBirth);
+      if (ageError) return res.status(400).json({ error: ageError });
+    }
+
     // Values inside the hard bounds but outside the plausible band are saved
     // and reported back, never rejected. A 180 kg powerlifter is real; a hard
     // gate there would be a bug, not a safeguard.
@@ -1072,7 +1117,29 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
 // The privacy policy has always promised both Access and Portability; this is
 // the mechanism behind those sentences. Rate-limited because assembling the
 // document touches ~20 tables.
-router.get('/auth/export', requireAuth, outboundNotifyLimiter, async (req, res) => {
+// A browser opening the export can't send the app's bearer token (the v2
+// "Download my data" row 401'd). /auth/export-link returns a URL carrying a
+// 10-minute, export-only token; /auth/export accepts it via ?t=.
+const EXPORT_BASE = process.env.PUBLIC_API_URL || 'https://api.airthreads.ai';
+router.get('/auth/export-link', requireAuth, async (req, res) => {
+  const t = jwt.sign({ id: req.user!.id, purpose: 'export' }, process.env.JWT_SECRET!, { expiresIn: '10m' });
+  res.json({ url: `${EXPORT_BASE}/api/auth/export?t=${encodeURIComponent(t)}`, expiresInSec: 600 });
+});
+
+function exportAuth(req: any, res: any, next: any) {
+  const t = typeof req.query.t === 'string' ? req.query.t : null;
+  if (!t) return requireAuth(req, res, next);
+  try {
+    const p = jwt.verify(t, process.env.JWT_SECRET!) as any;
+    if (p?.purpose !== 'export' || !p?.id) throw new Error('bad purpose');
+    req.user = { id: p.id };
+    next();
+  } catch {
+    res.status(401).json({ error: 'This download link has expired. Ask again for a new one.' });
+  }
+}
+
+router.get('/auth/export', exportAuth, outboundNotifyLimiter, async (req, res) => {
   try {
     const data = await buildUserDataExport(req.user!.id);
 
@@ -1103,6 +1170,7 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
       }
     };
 
+    const email = (await prisma.user.findUnique({ where: { id: userId }, select: { email: true } }))?.email ?? null;
     await prisma.$transaction(async (tx) => {
       const t = tx as any;
 
@@ -1174,6 +1242,8 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
       //     with an unnamed P2003 (SQLite reports constraint: null) for every
       //     user who had one.
       await tryDelete('adaptationProposal', () => t.adaptationProposal.deleteMany({ where: { userId } }));
+      // Keyed by email, not a user FK, so the cascade doesn't reach it.
+      if (email) await tryDelete('passwordResetCode', () => t.passwordResetCode.deleteMany({ where: { email: email.toLowerCase() } }));
 
       // 5. Trust & safety. Reports filed BY this user go; ContentFlag rows are
       //    deliberately retained (userId is not an FK) — an abuse history that

@@ -29,7 +29,7 @@ describe('receiptForCall', () => {
     }
     expect(receiptForCall('adjust_macros', { calories: 2400 })).toEqual({ verb: 'Adjusted', text: 'Macros — 2400 kcal' });
     expect(receiptForCall('remember', { note: 'Knee hurts on squats' })).toEqual({ verb: 'Noted', text: 'Knee hurts on squats' });
-    expect(WRITE_VERBS.has('Noted')).toBe(false);
+    expect(WRITE_VERBS.has('Noted')).toBe(true); // design §2: Noted is a write (crimson)
   });
 
   it('proposals are Proposed and carry the noun', () => {

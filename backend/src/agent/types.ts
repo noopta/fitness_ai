@@ -10,8 +10,35 @@
 
 import type Anthropic from '@anthropic-ai/sdk';
 
+/**
+ * What a tool may do (CHAT_CARDS_RN_SPEC §2 server rules):
+ *  read    — nothing changes
+ *  log     — the user stated a fact; runs its op at once, card offers Undo
+ *  set     — the user asked for a setting/profile change; runs at once, Undo
+ *  propose — program / schedule / targets; stores a pending op, applied on tap
+ *  draft   — anything other people see; nothing leaves until Send
+ *  confirm — deletes; runs on tap
+ *  intent  — a client action (camera, store sheet, sign out…)
+ * Only log and set tools may call executeOp; the loop's write guard throws
+ * for the rest.
+ */
+export type ToolKind = 'read' | 'log' | 'set' | 'propose' | 'draft' | 'confirm' | 'intent';
+
+/** Per-turn facts card builders need (display unit, timezone, today). */
+export interface ToolCtx { userId: string; unit: 'metric' | 'imperial'; tz: string; today: string }
+
 /** A single tool the agent can call. `execute` runs the real side effect. */
 export interface AgentTool {
+  kind?: ToolKind;
+  /** Capability id from the catalog (e.g. 'PRG-07'); drives card.fn. */
+  fn?: string;
+  /** Always loaded; the rest are found through tool search. */
+  core?: boolean;
+  /** Build the card(s) shown under the reply from this call's result. */
+  card?: (input: Record<string, unknown>, result: any, ctx: ToolCtx) => import('./cards/types.js').CardDraft | import('./cards/types.js').CardDraft[] | null | Promise<import('./cards/types.js').CardDraft | import('./cards/types.js').CardDraft[] | null>;
+  /** Receipt shown while the tool runs, and the refined one after. */
+  receipt?: (input: Record<string, unknown>) => { verb: string; text: string };
+  refine?: (result: any, input: Record<string, unknown>) => string | null;
   name: string;
   description: string;
   // JSON Schema for the tool's input, passed straight to the Anthropic API.
@@ -114,4 +141,6 @@ export interface AgentTurnResult {
   // Set when the agent called a propose_* tool — the client uses this to
   // render a confirm-before-apply UI instead of persisting directly.
   proposal?: AgentProposal;
+  /** Contract-2 cards shown under the reply (server ids, max 3 + summary). */
+  cards?: import('./cards/types.js').Card[];
 }

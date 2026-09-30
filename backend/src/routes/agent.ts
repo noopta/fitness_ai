@@ -18,6 +18,21 @@ import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proact
 import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
 import { applyProgramUpdate, applyExerciseSwap } from '../agent/applyTools.js';
 import type Anthropic from '@anthropic-ai/sdk';
+import type { Card } from '../agent/cards/types.js';
+import '../agent/toolkits/index.js';
+
+/**
+ * The stored transcript is text only. Append one line per card so the next
+ * turn knows what is on screen ("make it 190" refers to the proposal).
+ */
+function withCardNotes(reply: string, cards?: Card[]): string {
+  if (!cards?.length) return reply;
+  const notes = cards.map((c) => {
+    const what = c.change ? `${c.change.key}: ${c.change.from} → ${c.change.to}` : (c.diff ?? []).map((d) => `${d.key}: ${d.from ?? ''} → ${d.to}`).join('; ') || c.meta?.label || c.fn;
+    return `[card ${c.fn} ${c.pattern} id=${c.id}: ${what}]`;
+  });
+  return `${reply}\n${notes.join('\n')}`;
+}
 
 const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
   'nightly_review', 'streak_at_risk', 'post_workout', 'wellness_flag', 'nutrition_gap',
@@ -155,8 +170,11 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
   try {
     if (parsed.resetConversation) await clearConversation(userId);
     const history = await loadConversation(userId);
-    const result = await streamAgentTurn(userId, parsed.message, send, history);
-    await appendTurn(userId, parsed.message, result.reply);
+    // Contract 2 = agent-first cards (server ids, several per reply). Old
+    // builds don't send the header and keep the single legacy card.
+    const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
+    const result = await streamAgentTurn(userId, parsed.message, send, { history, cardContract });
+    await appendTurn(userId, parsed.message, withCardNotes(result.reply, result.cards));
   } catch (err: any) {
     console.error('[agent] stream failed:', err?.message ?? err);
     send({ type: 'error', error: err?.message ?? 'Agent error' });

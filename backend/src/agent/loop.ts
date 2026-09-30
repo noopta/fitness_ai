@@ -10,9 +10,11 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { assembleContext, renderContext } from './context.js';
-import { AGENT_TOOLS } from './tools.js';
-import type { AgentTool, AgentTurnResult, AgentProposal } from './types.js';
+import { AGENT_TOOLS } from './registry.js';
+import type { AgentTool, AgentTurnResult, AgentProposal, ToolCtx } from './types.js';
 import { receiptForCall, summarizeResult, cardForResult, type AgentCard, type ReceiptVerb } from './receipts.js';
+import type { Card } from './cards/types.js';
+import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -26,20 +28,24 @@ const MAX_TOKENS = 4096;
 // unbounded API bill or hang a request. 8 is generous — most turns need 1-3.
 const MAX_ITERATIONS = 8;
 
-const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutrition coach inside the Axiom app. You are direct, evidence-based, and concise — you talk like a great coach texting a client, not like a chatbot. The app renders your tool results as live cards (this week's schedule, a lift's progress, today's food) under your reply; when you have called read_schedule_week, read_lift_progress or read_nutrition_today, keep the text to at most two short sentences — the card carries the numbers. Otherwise at most four sentences. Plain prose; no markdown headings or bullet lists in chat; units as "lb" or "kg" with a space; no "~" and no slashes in copy.
+const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutrition coach inside the Axiom app. You are direct, evidence-based, and concise — you talk like a great coach texting a client, not like a chatbot. The app renders your tool results as live cards under your reply. When a card is shown (the tool result says card_shown), keep the text to at most two short sentences — the card carries the numbers and the buttons. Otherwise at most four sentences. Plain prose; no markdown headings or bullet lists in chat; units as "lb" or "kg" with a space; no "~" and no slashes in copy.
 
-You have tools to read the user's real data (profile, today's nutrition, body-weight trend, recent workouts, wellness check-ins) and to take actions (log a meal, save a durable memory). Use them:
+You have tools for every part of the user's account: profile and settings, program and schedule, workouts, strength, nutrition, recipes, body weight, wellness, memory, friends, groups and billing. Use them:
 - ALWAYS read the relevant data before giving specific numerical advice. Don't guess their macros or weight — look them up.
-- When the user tells you to log something, use log_meal and confirm exactly what you logged.
+- When the user tells you to log something, log it and confirm exactly what you logged.
 - When you learn a durable fact (a goal, an injury, a strong preference), use remember so future sessions know it. Don't remember transient details.
 - Chain tools when needed: e.g. read training load AND nutrition before advising on a recovery meal.
 
-Applying changes to their plan (propose_exercise_swap, propose_workout_swap, adjust_macros, apply_program_update):
-- EXERCISE SWAPS (replace one exercise with another) are surfaced as a REVIEWABLE Plan Patch card — do NOT apply them directly and do NOT wait for a separate "yes". The moment the user asks to swap an exercise: FIRST call read_schedule_week to get the exact stored exercise names AND today's day label, THEN call propose_exercise_swap(fromExerciseName, toExerciseName, scope, day, meta…, rationale). That emits the card; the user taps Apply on the card to commit it — the card IS the confirmation, so you do NOT need them to say "yes" first. By DEFAULT scope='day' with day=today's day — only that one day changes; pass scope='program' only when they clearly want it across their whole regiment, or a different day label when they name one. If the tool returns { error, candidates } instead of a proposal (ambiguous/missing name), pick the exact stored name and call again. Provide meta (primaryTarget, equipment, stimulusDelta, shoulderLoad) + a one-line rationale so the card is informative. After proposing, say in one line that you've put up a swap for them to review — do NOT claim it's already applied.
-- WORKOUT-DAY MOVES (move a whole session to another weekday) → propose_workout_swap, also a reviewable card the user applies.
-- DIRECT changes — macros (adjust_macros) and broad program edits (apply_program_update) — modify data immediately, no card. When the user agrees in ANY form ("yes", "ok", "do it", "go with X", just naming the option), call the tool ON THAT SAME TURN. Not next turn. THIS turn. HARD RULE: if the user agrees to a direct change and your reply does NOT include a tool_use call, you have failed — text-only confirmation changes nothing; the user sees no change and loses trust. NEVER respond to "yes" with a follow-up question like "want to make this permanent?" — they already agreed; do it now and confirm.
-- Preserve their GOAL — adjust around it, keep phase structure + progression intact.
-- After the tool runs, confirm in one line what changed (use the tool's return value).
+How changes work — the app enforces these, so follow them:
+- READ tools change nothing. LOG tools (a meal, a set, a weigh-in, a check-in, a note) save at once when the user states the fact — call them on the same turn and say in one line what you saved; the card offers Undo. SET tools change a setting or profile field the user explicitly asked to change — do it that turn; the card shows old → new with Undo. If a setting change is YOUR idea rather than their request, suggest it in words and let them ask.
+- PROPOSE tools (program edits, swaps, schedule moves, targets, macros, new programs, restores) never apply anything: they put a card up and the user taps Apply. After proposing, say in one line what you put up for them to review — never claim it is already done. Don't ask "want me to apply it?" — the card is the question.
+- DRAFT tools (posts, comments, messages, friend requests, invites, group posts, partner sessions) only draft; nothing is sent until the user taps Send. CONFIRM tools (deletes, leaving, restarting the intake, account deletion) show what will be lost; the tap deletes. Never describe a draft as sent or a delete as done.
+- INTENT tools open something on the phone (camera, scanner, store sheet, settings, a session). Say what they'll see in one line.
+- When the user asks to undo something you changed, use undo_change (read_change_log first if you need the id).
+- To change a profile field, read_coaching_profile first so you know the current value. Injuries go through update_injuries, medical answers through update_health_profile.
+- Exercise swaps: read_schedule_week first for the exact stored names and today's day label, then propose_exercise_swap (scope 'day' by default; 'program' only if they want it everywhere).
+- Preserve their GOAL — adjust around it, keep phase structure and progression intact. A goal change means a new program (propose_new_program), not an edit.
+- Many tools aren't loaded up front. If you need one you don't see (recipes, friends, groups, notifications, diagnostics, form checks, streaks, billing…), search for it with the tool search tool before saying you can't.
 
 Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.`;
 
@@ -73,6 +79,8 @@ export interface AgentTurnOptions {
   // tool is only offered while depth < MAX_SUBAGENT_DEPTH, so a sub-agent
   // can't spawn its own sub-agents — bounding cost + recursion.
   depth?: number;
+  /** 2 = build agent-first cards (server ids) for the result. */
+  cardContract?: 1 | 2;
 }
 
 // Phase 6 — sub-agent delegation. One level deep: the top-level agent can
@@ -81,6 +89,64 @@ export interface AgentTurnOptions {
 const MAX_SUBAGENT_DEPTH = 1;
 
 const SUBAGENT_SYSTEM = `You are a focused sub-agent spun up by Anakin to handle ONE bounded task. Do exactly the task you were given using your tools, then return a concise result. Don't chat, don't ask follow-ups — produce the deliverable.`;
+
+/** Lift a legacy propose_* result onto the turn (v1 cards + the web app). */
+function extractProposal(r: any): AgentProposal | undefined {
+  if (!r || typeof r !== 'object' || !r._proposal) return undefined;
+  if (r.kind === 'workout_swap') {
+    return { kind: 'workout_swap', proposedWeek: r.proposedWeek ?? [], rationale: r.rationale ?? '', summary: r.summary ?? 'Proposed workout swap', sourceDate: r.sourceDate ?? '', chosenSessionName: r.chosenSessionName ?? '' };
+  }
+  if (r.kind === 'plan_patch') {
+    return {
+      kind: 'plan_patch', day: r.day ?? null, scope: r.scope === 'program' ? 'program' : 'day',
+      from: r.from ?? { name: '' }, to: r.to ?? { name: '' }, meta: r.meta ?? {},
+      rationale: typeof r.rationale === 'string' ? r.rationale : '',
+      summary: typeof r.summary === 'string' && r.summary.trim() ? r.summary : 'Proposed exercise swap',
+    };
+  }
+  // Coerce summary to a non-empty string: the v1 client renders it directly
+  // as a <Text> child, and an object/undefined trips its ErrorBoundary.
+  const summary = typeof r.summary === 'string' && r.summary.trim() ? r.summary : 'Program update proposed';
+  return { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary, changedDays: Array.isArray(r.changedDays) ? r.changedDays : [] };
+}
+
+/** System prompt as a cacheable block: stable instructions, then the per-user context. */
+function systemBlocks(base: string, ctxText: string): Anthropic.TextBlockParam[] {
+  return [
+    { type: 'text', text: base, cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: ctxText },
+  ];
+}
+
+/** One model call; if the API rejects tool search, retry once without it. */
+async function createWithFallback(
+  anthropic: Pick<Anthropic, 'messages'>,
+  params: { system: Anthropic.TextBlockParam[]; tools: AgentTool[]; messages: Anthropic.MessageParam[] },
+  stream: false,
+): Promise<Anthropic.Message>;
+async function createWithFallback(
+  anthropic: Pick<Anthropic, 'messages'>,
+  params: { system: Anthropic.TextBlockParam[]; tools: AgentTool[]; messages: Anthropic.MessageParam[]; onText: (d: string) => void },
+  stream: true,
+): Promise<Anthropic.Message>;
+async function createWithFallback(anthropic: Pick<Anthropic, 'messages'>, params: any, stream: boolean): Promise<Anthropic.Message> {
+  const attempt = async () => {
+    const req = { model: MODEL, max_tokens: MAX_TOKENS, system: params.system, tools: toolParams(params.tools), messages: params.messages };
+    if (!stream) return anthropic.messages.create(req as any) as Promise<Anthropic.Message>;
+    const st = anthropic.messages.stream(req as any);
+    st.on('text', params.onText);
+    return st.finalMessage();
+  };
+  try {
+    return await attempt();
+  } catch (err: any) {
+    if (isToolSearchRejection(err)) {
+      disableToolSearch(err?.message ?? 'rejected');
+      return attempt();
+    }
+    throw err;
+  }
+}
 
 export async function runAgentTurn(
   userId: string,
@@ -102,6 +168,8 @@ export async function runAgentTurn(
   // current depth + the injected client for nested calls.
   const delegateTools: AgentTool[] = depth < MAX_SUBAGENT_DEPTH ? [{
     name: 'delegate_task',
+    kind: 'read',
+    core: true,
     description:
       'Hand a single, well-defined sub-task to a focused sub-agent (e.g. "draft a 4-day upper/lower split for my equipment" or "compute my remaining macros and propose a dinner"). The sub-agent has the same data tools and returns a concise result you can use. Use for complex multi-step work you want isolated from the main conversation.',
     input_schema: {
@@ -120,24 +188,19 @@ export async function runAgentTurn(
   }] : [];
 
   // Per-call tool set = standard registry + delegate (if allowed) + any extras.
-  const tools = [...AGENT_TOOLS, ...delegateTools, ...(opts.extraTools ?? [])];
-  const toolDefs = tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
+  const tools = [...AGENT_TOOLS, ...delegateTools, ...(opts.extraTools ?? []).map((t) => ({ core: true, ...t }))];
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
-  const ctx = await assembleContext(userId);
-  const baseSystem = opts.systemOverride ?? SYSTEM_PROMPT;
-  const system = `${baseSystem}\n\n${renderContext(ctx)}`;
+  const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
+  const system = systemBlocks(opts.systemOverride ?? SYSTEM_PROMPT, renderContext(ctx));
 
-  const messages: Anthropic.MessageParam[] = [
-    ...history,
-    { role: 'user', content: userMessage },
-  ];
-
+  const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: userMessage }];
   const toolsUsed: string[] = [];
   let iterations = 0;
   // Captured the last time the agent called a propose_* tool — surfaced on
   // the turn result so the client can render a confirm-before-apply UI.
   let proposal: AgentProposal | undefined;
+  const cards: Card[] = [];
   // One-shot guard for a max_tokens stop that produced no text (typically the
   // cap landing mid-tool-call): retry once, telling the model to answer in
   // prose with what it already has instead of surfacing an empty reply.
@@ -145,20 +208,12 @@ export async function runAgentTurn(
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
-    const res = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system,
-      tools: toolDefs as Anthropic.Tool[],
-      messages,
-    });
-
+    const res = await createWithFallback(anthropic, { system, tools, messages }, false);
     // Record the assistant turn verbatim so tool_use ids line up with the
-    // tool_result blocks we send next.
+    // tool_result blocks we send next (tool-search blocks included).
     messages.push({ role: 'assistant', content: res.content });
 
     if (res.stop_reason !== 'tool_use') {
-      // Final answer — concatenate any text blocks.
       const reply = res.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text)
@@ -181,79 +236,28 @@ export async function runAgentTurn(
         toolsUsed,
         iterations,
         proposal,
+        ...(opts.cardContract === 2 ? { cards: await capCards(userId, cards) } : {}),
       };
     }
 
-    // Execute every requested tool, collecting results for the next turn.
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
     for (const block of res.content) {
       if (block.type !== 'tool_use') continue;
       toolsUsed.push(block.name);
       const tool = byName[block.name];
       if (!tool) {
-        toolResults.push({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: `Unknown tool: ${block.name}`,
-          is_error: true,
-        });
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Unknown tool: ${block.name}`, is_error: true });
         continue;
       }
       try {
-        const result = await tool.execute(block.input as Record<string, unknown>, userId);
-        // Hoist a propose_* result onto the turn so the API caller gets the
-        // structured proposal alongside the agent's text reply.
-        if (result && typeof result === 'object' && (result as any)._proposal) {
-          const r = result as any;
-          if (r.kind === 'workout_swap') {
-            proposal = {
-              kind: 'workout_swap',
-              proposedWeek: r.proposedWeek ?? [],
-              rationale: r.rationale ?? '',
-              summary: r.summary ?? 'Proposed workout swap',
-              sourceDate: r.sourceDate ?? '',
-              chosenSessionName: r.chosenSessionName ?? '',
-            };
-          } else if (r.kind === 'plan_patch') {
-            proposal = {
-              kind: 'plan_patch',
-              day: r.day ?? null,
-              scope: r.scope === 'program' ? 'program' : 'day',
-              from: r.from ?? { name: '' },
-              to: r.to ?? { name: '' },
-              meta: r.meta ?? {},
-              rationale: typeof r.rationale === 'string' ? r.rationale : '',
-              summary: typeof r.summary === 'string' && r.summary.trim() ? r.summary : 'Proposed exercise swap',
-            };
-          } else {
-            // Coerce summary to a non-empty string: the client renders it
-            // directly as a <Text> child, and an object/undefined here trips the
-            // Coach ErrorBoundary ("Objects are not valid as a React child").
-            const summary = typeof r.summary === 'string' && r.summary.trim()
-              ? r.summary
-              : 'Program update proposed';
-            proposal = {
-              kind: r.kind ?? 'program_update',
-              updatedProgram: r.updatedProgram,
-              summary,
-              changedDays: Array.isArray(r.changedDays) ? r.changedDays : [],
-            };
-          }
-        }
-        toolResults.push({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: JSON.stringify(result),
-        });
+        const out = await runToolCall(tool, (block.input ?? {}) as Record<string, unknown>, userId, tctx, { buildCards: opts.cardContract === 2 });
+        proposal = extractProposal(out.raw) ?? proposal;
+        cards.push(...out.cards);
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out.modelResult) });
       } catch (err: any) {
         // Feed the error back to the model rather than throwing — it can
         // recover (try a different tool, or explain to the user).
-        toolResults.push({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: `Error: ${err?.message ?? String(err)}`,
-          is_error: true,
-        });
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Error: ${err?.message ?? String(err)}`, is_error: true });
       }
     }
     messages.push({ role: 'user', content: toolResults });
@@ -266,6 +270,7 @@ export async function runAgentTurn(
     toolsUsed,
     iterations,
     proposal,
+    ...(opts.cardContract === 2 ? { cards: await capCards(userId, cards) } : {}),
   };
 }
 
@@ -274,72 +279,85 @@ export async function runAgentTurn(
 export type AgentStreamEvent =
   | { type: 'status'; phase: 'thinking' | 'tool'; tool?: string }
   | { type: 'delta'; text: string }
-  // v2 receipts: one per tool call, keyed by `id`. Emitted once when the tool
+  // Receipts: one per tool call, keyed by `id`. Emitted once when the tool
   // is called and again (same id, `final: true`) when its result sharpened
   // the text. `indent` marks a sub-agent's tool. Verb is the tool class —
-  // see receipts.ts — never something the model wrote.
+  // never something the model wrote.
   | { type: 'receipt'; id: string; verb: ReceiptVerb; text: string; indent?: boolean; final?: boolean }
-  // v2 inline card derived from tool results (week / bench / food / proposal).
+  // Legacy (contract 1) inline card: week / bench / food / proposal.
   | { type: 'card'; card: AgentCard }
-  | { type: 'done'; reply: string; toolsUsed: string[]; iterations: number; card?: AgentCard | null; proposal?: AgentProposal }
+  // Contract 2: server-id cards, up to 3 per turn, in execution order.
+  | { type: 'card2'; turnId: string; card: Card }
+  | { type: 'done'; reply: string; toolsUsed: string[]; iterations: number; card?: AgentCard | null; proposal?: AgentProposal; cards?: Card[]; turnId?: string }
   | { type: 'error'; error: string };
+
+export interface StreamOptions {
+  history?: Anthropic.MessageParam[];
+  injectClient?: Pick<Anthropic, 'messages'>;
+  /** 2 = the agent-first card contract (server ids, many cards). */
+  cardContract?: 1 | 2;
+  turnId?: string;
+}
 
 /**
  * Streaming version of a coach turn. Emits events as the loop runs:
  *  - status (thinking / calling a tool)
+ *  - receipt (one per tool call)
  *  - delta  (text tokens of the assistant's reply, as they generate)
+ *  - card / card2 (the cards under the reply)
  *  - done   (final reply + telemetry)
- *  - error
- * The route turns these into Server-Sent Events. Built for the chat surface
- * where 5-20s of silence would feel broken — the web client already expects
- * a token stream (it uses /coach/chat/stream today).
  */
 export async function streamAgentTurn(
   userId: string,
   userMessage: string,
   onEvent: (e: AgentStreamEvent) => void,
-  history: Anthropic.MessageParam[] = [],
-  injectClient?: Pick<Anthropic, 'messages'>,
+  historyOrOpts: Anthropic.MessageParam[] | StreamOptions = [],
+  injectClientLegacy?: Pick<Anthropic, 'messages'>,
 ): Promise<AgentTurnResult> {
-  const anthropic = injectClient ?? getClient();
-  const ctx = await assembleContext(userId);
-  const system = `${SYSTEM_PROMPT}\n\n${renderContext(ctx)}`;
+  const opts: StreamOptions = Array.isArray(historyOrOpts) ? { history: historyOrOpts, injectClient: injectClientLegacy } : historyOrOpts;
+  const anthropic = opts.injectClient ?? getClient();
+  const contract = opts.cardContract ?? 1;
+  const turnId = opts.turnId ?? `t${Date.now().toString(36)}`;
+  const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
+  const system = systemBlocks(SYSTEM_PROMPT, renderContext(ctx));
   const tools = [...AGENT_TOOLS];
-  const toolDefs = tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
-  const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: userMessage }];
+  const messages: Anthropic.MessageParam[] = [...(opts.history ?? []), { role: 'user', content: userMessage }];
   const toolsUsed: string[] = [];
   let iterations = 0;
   let finalText = '';
   let proposal: AgentProposal | undefined;
-  // v2: the card the client renders under the reply (last relevant tool wins).
+  // Contract 1: the one legacy card (last relevant tool wins).
   let card: AgentCard | null = null;
+  // Contract 2: every card, capped at the end of the turn.
+  const cards: Card[] = [];
   let receiptSeq = 0;
   // Every turn begins by reading the assembled context (profile, today's
   // nutrition, weight, last check-in, memory). That read is real, so it gets
   // a receipt — and it means no turn ever renders without one.
   onEvent({ type: 'receipt', id: 'r0', verb: 'Read', text: ctx.todayNutrition ? 'Your profile and today' : 'Your profile', final: true });
-  // Mirrors runAgentTurn: one retry when a max_tokens stop yields no text.
   let truncationRetried = false;
+
+  const finish = async (reply: string): Promise<AgentTurnResult> => {
+    if (contract === 2) {
+      const shown = await capCards(userId, cards);
+      for (const c of shown) onEvent({ type: 'card2', turnId, card: c });
+      onEvent({ type: 'done', reply, toolsUsed, iterations, proposal, cards: shown, turnId });
+      return { reply, toolsUsed, iterations, proposal, cards: shown };
+    }
+    if (card) onEvent({ type: 'card', card });
+    onEvent({ type: 'done', reply, toolsUsed, iterations, card, proposal });
+    return { reply, toolsUsed, iterations, proposal };
+  };
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
     onEvent({ type: 'status', phase: 'thinking' });
-
-    // Stream this model call; forward text deltas live.
-    const stream = anthropic.messages.stream({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system,
-      tools: toolDefs as Anthropic.Tool[],
-      messages,
-    });
-    stream.on('text', (delta: string) => {
-      finalText += delta;
-      onEvent({ type: 'delta', text: delta });
-    });
-    const res = await stream.finalMessage();
+    const res = await createWithFallback(anthropic, {
+      system, tools, messages,
+      onText: (delta: string) => { finalText += delta; onEvent({ type: 'delta', text: delta }); },
+    }, true);
     messages.push({ role: 'assistant', content: res.content });
 
     if (res.stop_reason !== 'tool_use') {
@@ -356,14 +374,10 @@ export async function streamAgentTurn(
         continue;
       }
       if (!text) console.warn(`[agent] empty streamed reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
-      const reply = text || "I lost my train of thought there — mind asking that again?";
-      if (card) onEvent({ type: 'card', card });
-      onEvent({ type: 'done', reply, toolsUsed, iterations, card, proposal });
-      return { reply, toolsUsed, iterations, proposal };
+      return finish(text || "I lost my train of thought there — mind asking that again?");
     }
 
-    // Reset accumulated text — intermediate "thinking" text before a tool
-    // call isn't the final answer.
+    // Intermediate "thinking" text before a tool call isn't the final answer.
     finalText = '';
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
     for (const block of res.content) {
@@ -372,66 +386,31 @@ export async function streamAgentTurn(
       onEvent({ type: 'status', phase: 'tool', tool: block.name });
       const toolInput = (block.input ?? {}) as Record<string, unknown>;
       const receiptId = `r${iterations}-${receiptSeq++}`;
-      const callReceipt = receiptForCall(block.name, toolInput);
-      onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb, text: callReceipt.text });
       const tool = byName[block.name];
+      const callReceipt = tool?.receipt ? tool.receipt(toolInput) : receiptForCall(block.name, toolInput);
+      onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb as ReceiptVerb, text: callReceipt.text });
       if (!tool) {
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Unknown tool: ${block.name}`, is_error: true });
         continue;
       }
       try {
-        const result = await tool.execute(toolInput, userId);
+        const out = await runToolCall(tool, toolInput, userId, tctx, { buildCards: contract === 2 });
+        const result = out.raw;
         // Sharpen the receipt with what the tool found, and surface nested
-        // (sub-agent) tool calls as indented receipts. Sub-agents run the
-        // non-streaming loop, so their receipts arrive when they return —
-        // still 1:1 with real tool calls, just late.
-        const refined = summarizeResult(block.name, result);
-        if (refined) onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb, text: refined, final: true });
+        // (sub-agent) tool calls as indented receipts.
+        const refined = tool.refine ? tool.refine(result, toolInput) : summarizeResult(block.name, result);
+        if (refined) onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb as ReceiptVerb, text: refined, final: true });
         if (block.name === 'delegate_task' && result && typeof result === 'object' && Array.isArray((result as any).toolsUsed)) {
           for (const sub of (result as any).toolsUsed as string[]) {
-            const sr = receiptForCall(sub, {});
-            onEvent({ type: 'receipt', id: `${receiptId}-${receiptSeq++}`, verb: sr.verb, text: sr.text, indent: true, final: true });
+            const st = byName[sub];
+            const sr = st?.receipt ? st.receipt({}) : receiptForCall(sub, {});
+            onEvent({ type: 'receipt', id: `${receiptId}-${receiptSeq++}`, verb: sr.verb as ReceiptVerb, text: sr.text, indent: true, final: true });
           }
         }
-        card = cardForResult(block.name, toolInput, result, card);
-        if (result && typeof result === 'object' && (result as any)._proposal) {
-          const r = result as any;
-          if (r.kind === 'workout_swap') {
-            proposal = {
-              kind: 'workout_swap',
-              proposedWeek: r.proposedWeek ?? [],
-              rationale: r.rationale ?? '',
-              summary: r.summary ?? 'Proposed workout swap',
-              sourceDate: r.sourceDate ?? '',
-              chosenSessionName: r.chosenSessionName ?? '',
-            };
-          } else if (r.kind === 'plan_patch') {
-            proposal = {
-              kind: 'plan_patch',
-              day: r.day ?? null,
-              scope: r.scope === 'program' ? 'program' : 'day',
-              from: r.from ?? { name: '' },
-              to: r.to ?? { name: '' },
-              meta: r.meta ?? {},
-              rationale: typeof r.rationale === 'string' ? r.rationale : '',
-              summary: typeof r.summary === 'string' && r.summary.trim() ? r.summary : 'Proposed exercise swap',
-            };
-          } else {
-            // Coerce summary to a non-empty string: the client renders it
-            // directly as a <Text> child, and an object/undefined here trips the
-            // Coach ErrorBoundary ("Objects are not valid as a React child").
-            const summary = typeof r.summary === 'string' && r.summary.trim()
-              ? r.summary
-              : 'Program update proposed';
-            proposal = {
-              kind: r.kind ?? 'program_update',
-              updatedProgram: r.updatedProgram,
-              summary,
-              changedDays: Array.isArray(r.changedDays) ? r.changedDays : [],
-            };
-          }
-        }
-        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) });
+        if (contract === 1) card = cardForResult(block.name, toolInput, result, card);
+        cards.push(...out.cards);
+        proposal = extractProposal(result) ?? proposal;
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out.modelResult) });
       } catch (err: any) {
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Error: ${err?.message ?? String(err)}`, is_error: true });
       }
@@ -439,8 +418,5 @@ export async function streamAgentTurn(
     messages.push({ role: 'user', content: toolResults });
   }
 
-  const reply = "I ran out of steps working through that. Could you narrow the question a bit?";
-  if (card) onEvent({ type: 'card', card });
-  onEvent({ type: 'done', reply, toolsUsed, iterations, card, proposal });
-  return { reply, toolsUsed, iterations, proposal };
+  return finish("I ran out of steps working through that. Could you narrow the question a bit?");
 }

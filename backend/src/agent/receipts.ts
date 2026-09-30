@@ -13,9 +13,11 @@
 // `Checked` for validation reads. Write verbs render crimson on the client;
 // read verbs render muted.
 
+// Verbs = tool class (design §2). Reads render muted, writes crimson.
 export type ReceiptVerb =
-  | 'Read' | 'Pulled' | 'Searched' | 'Checked'
-  | 'Logged' | 'Adjusted' | 'Noted' | 'Proposed' | 'Delegated';
+  | 'Read' | 'Pulled' | 'Searched' | 'Computed' | 'Checked' | 'Heard' | 'Delegated'
+  | 'Logged' | 'Adjusted' | 'Proposed' | 'Noted' | 'Saved' | 'Drafted' | 'Sent' | 'Posted'
+  | 'Deleted' | 'Corrected' | 'Started' | 'Opened' | 'Forgot' | 'Removed';
 
 export interface Receipt {
   verb: ReceiptVerb;
@@ -24,7 +26,7 @@ export interface Receipt {
   indent?: boolean;
 }
 
-export const WRITE_VERBS: ReadonlySet<ReceiptVerb> = new Set(['Logged', 'Adjusted', 'Proposed']);
+export const WRITE_VERBS: ReadonlySet<ReceiptVerb> = new Set(['Logged', 'Adjusted', 'Proposed', 'Noted', 'Saved', 'Drafted', 'Sent', 'Posted', 'Deleted', 'Corrected', 'Started', 'Opened', 'Forgot', 'Removed']);
 
 type Input = Record<string, unknown>;
 
