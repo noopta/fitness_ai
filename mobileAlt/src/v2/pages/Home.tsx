@@ -34,6 +34,7 @@ import { useBrief, useInvalidate } from '../data';
 import { useThread } from '../chat/useThread';
 import { TurnCard } from '../chat/Cards';
 import { Orb } from '../home/Orb';
+import { HomeVideo } from '../home/HomeVideo';
 import { MarkdownText } from '../../components/ui/MarkdownText';
 import { coachApi } from '../../lib/api';
 import { haptics } from '../haptics';
@@ -44,12 +45,16 @@ const plain = (t: string) => t.replace(/[*_`#>]+/g, '').replace(/\s+/g, ' ').tri
 let askSeq = 0;
 // Review #5 §1.5: pieces settle in on open — opacity 0→1, translateY 8→0, 500 ms, staggered.
 const settle = (delay: number) => FadeInDown.duration(500).delay(delay).easing(v2.motion.easeEnter).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] });
-const READ_SLOT = 99; // 3 lines × 33 — reserved so a new read never moves the layout
+const READ_LINE = 33; // the read's line height — its slot is reserved so a new read never moves the layout
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export function HomePage() {
   const insets = useSafeAreaInsets();
-  const { width: SW } = useWindowDimensions();
+  const { width: SW, height: SH } = useWindowDimensions();
+  // Short screens (iPhone SE): the video's orb sits ≈ 405 pt down, so the bottom-anchored
+  // brief gets two lines of read instead of three to stay clear of it (video spec §7).
+  const readLines = SH < 740 ? 2 : 3;
+  const READ_SLOT = READ_LINE * readLines;
   const s = SW / 402;
   const router = useRouter();
   const shell = useShell();
@@ -79,25 +84,42 @@ export function HomePage() {
   const [awayOpen, setAwayOpen] = useState(false);
   useEffect(() => { void thread.hydrate().then(setAway); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Scroll: follow the stream unless the user scrolled up > 120 pt (then "↓ New") ──
+  // ── Scroll: the thread stays pinned to its end unless the user drags it up
+  //    more than 120 pt (then "↓ New"). Opening chat grows the viewport over
+  //    850 ms and the keyboard grows the bottom pad — neither changes content
+  //    size, so pinning re-runs on viewport, content and keyboard changes alike.
   const scrollY = useRef(0);
   const fromBottom = useRef(0);
-  const forceScroll = useRef(false);
+  const pinned = useRef(true);
+  const dragging = useRef(false);
   const [showNew, setShowNew] = useState(false);
+  const pin = useCallback((animated = true) => {
+    pinned.current = true;
+    setShowNew(false);
+    scrollRef.current?.scrollToEnd({ animated });
+  }, []);
+  const followIfPinned = useCallback(() => { if (pinned.current) scrollRef.current?.scrollToEnd({ animated: false }); }, []);
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
     scrollY.current = contentOffset.y;
     fromBottom.current = contentSize.height - (contentOffset.y + layoutMeasurement.height);
-    if (fromBottom.current < 120 && showNew) setShowNew(false);
+    // Only the user's own drag un-pins; programmatic scrolls never do.
+    if (dragging.current) pinned.current = fromBottom.current < 120;
+    if (pinned.current && showNew) setShowNew(false);
   };
-  const toEnd = useCallback(() => { setShowNew(false); scrollRef.current?.scrollToEnd({ animated: true }); }, []);
+  const onDragEnd = () => { dragging.current = false; pinned.current = fromBottom.current < 120; };
+  const toEnd = useCallback(() => pin(true), [pin]);
+  // New turns: follow if pinned, otherwise offer "↓ New".
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (forceScroll.current || fromBottom.current < 120) { forceScroll.current = false; scrollRef.current?.scrollToEnd({ animated: true }); }
-      else setShowNew(true);
-    }, 60);
+    const t = setTimeout(() => { if (pinned.current) scrollRef.current?.scrollToEnd({ animated: true }); else setShowNew(true); }, 60);
     return () => clearTimeout(t);
-  }, [thread.state.turns, focus]);
+  }, [thread.state.turns]);
+  // Every open of the chat (and every composer focus) lands on the latest message.
+  useEffect(() => { if (chat || focus) { const t = setTimeout(() => pin(false), 30); return () => clearTimeout(t); } }, [chat, focus, pin]);
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidShow', () => followIfPinned());
+    return () => sub.remove();
+  }, [followIfPinned]);
 
   // ── Keyboard: keyboard-controller runs only while this screen is showing (the
   //    classic app and the Fuel page keep their own KeyboardAvoider) ──
@@ -143,13 +165,13 @@ export function HomePage() {
     open: (c, r) => actions.open(c, r),
     typeInstead: () => { setAnswering(true); inputRef.current?.focus(); },
     editDraft,
-    say: (m) => { forceScroll.current = true; void thread.send(m); },
+    say: (m) => { pin(); void thread.send(m); },
     reveal, scrollToLatest: toEnd, setTypedFocus,
     editing,
     beginEdit: (x) => setEditing({ ...x, value: x.value ?? x.initial }),
     setEditValue: (v) => setEditing((e) => (e ? { ...e, value: v } : e)),
     endEdit: () => setEditing(null),
-  }), [actions, editDraft, reveal, toEnd, editing, thread.send]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [actions, editDraft, reveal, toEnd, editing, thread.send, pin]); // eslint-disable-line react-hooks/exhaustive-deps
   const saveEdit = () => {
     const e = editing; if (!e) return;
     setEditing(null); Keyboard.dismiss();
@@ -189,6 +211,7 @@ export function HomePage() {
     height: 52 + 8 * p.value,
     marginBottom: 112 + (40 - 112) * p.value,
     borderTopColor: interpolateColor(p.value, [0, 1], [C.darkInputLine, focus ? C.ink : C.hairline]),
+    backgroundColor: interpolateColor(p.value, [0, 1], ['rgba(255,255,255,0)', 'rgba(255,255,255,1)']),
     transform: [{ translateY: -Math.max(0, -kbHeight.value - bottomInset) * p.value }],
   }), [focus, bottomInset]);
   const threadPad = useAnimatedStyle(() => ({ height: 72 + Math.max(0, -kbHeight.value - bottomInset) }));
@@ -234,7 +257,7 @@ export function HomePage() {
       const card = findCard(cmode.cardId);
       if (card) { await actions.answer(card, { text: msg }).catch(() => {}); return; }
     }
-    forceScroll.current = true;
+    pin();
     await thread.send(msg);
   };
   const answerAsk = (turn: Turn, o: string) => {
@@ -257,7 +280,8 @@ export function HomePage() {
 
   return (
     <View style={styles.flex}>
-      <Orb mode={chat ? 'chat' : 'brief'} progress={p} working={busy} focused={shell.index === 0} />
+      <HomeVideo mode={chat ? 'chat' : 'brief'} homeVisible={screenFocused && shell.index === 0} />
+      <Orb mode={chat ? 'chat' : 'brief'} progress={p} working={busy} focused={screenFocused && shell.index === 0} />
 
       <View style={[styles.flex, { paddingTop: headerClearance(insets.top), paddingHorizontal: v2.space.gutter }]}>
         {/* Top spacer: pushes the brief to the bottom; collapses in chat. */}
@@ -279,7 +303,7 @@ export function HomePage() {
         <Animated.View entering={settle(240)}>
           <Animated.View style={readBox}>
             {sentence ? (
-              <Animated.Text key={sentence} entering={swapRead ? settle(0) : undefined} exiting={FadeOut.duration(200)} style={[styles.read, { transformOrigin: 'left top' } as any, readStyle]} numberOfLines={3}>{sentence}</Animated.Text>
+              <Animated.Text key={sentence} entering={swapRead ? settle(0) : undefined} exiting={FadeOut.duration(200)} style={[styles.read, { transformOrigin: 'left top' } as any, readStyle]} numberOfLines={readLines}>{sentence}</Animated.Text>
             ) : (
               <Checking />
             )}
@@ -309,7 +333,9 @@ export function HomePage() {
 
         {/* Thread: fills in chat; suggestions only while empty; 44 between turns; bottom padding grows with the keyboard. */}
         <Animated.View style={[threadStyle, { overflow: 'hidden' }]} pointerEvents={chat ? 'auto' : 'none'}>
-          <Animated.ScrollView ref={scrollRef as any} style={styles.flex} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}>
+          <Animated.ScrollView ref={scrollRef as any} style={styles.flex} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}
+            onScrollBeginDrag={() => { dragging.current = true; }} onScrollEndDrag={onDragEnd} onMomentumScrollEnd={onDragEnd}
+            onContentSizeChange={followIfPinned} onLayout={followIfPinned}>
             {emptyThread ? (
               <Animated.View exiting={FadeOut.duration(220)} style={{ gap: 16 }}>
                 {suggestions.slice(0, 3).map((l, i) => (
