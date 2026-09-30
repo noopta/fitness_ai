@@ -10,7 +10,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { assembleContext, renderContext } from './context.js';
-import { AGENT_TOOLS } from './registry.js';
+import { AGENT_TOOLS, toolsFor } from './registry.js';
 import type { AgentTool, AgentTurnResult, AgentProposal, ToolCtx } from './types.js';
 import { receiptForCall, summarizeResult, cardForResult, type AgentCard, type ReceiptVerb } from './receipts.js';
 import type { Card } from './cards/types.js';
@@ -48,6 +48,9 @@ How changes work — the app enforces these, so follow them:
 - Many tools aren't loaded up front. If you need one you don't see (recipes, friends, groups, notifications, diagnostics, form checks, streaks, billing…), search for it with the tool search tool before saying you can't.
 
 Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.`;
+
+// The classic app renders three proposal cards and relies on two direct tools.
+const V1_ADDENDUM = `In this version of the app: macro targets change directly with adjust_macros once the user agrees (any "yes", "ok", "do it" — call it on that same turn), and broad program rewrites use apply_program_update after they agree. Program edits (propose_program_edit), exercise swaps and session moves show a card they confirm.`;
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -188,11 +191,11 @@ export async function runAgentTurn(
   }] : [];
 
   // Per-call tool set = standard registry + delegate (if allowed) + any extras.
-  const tools = [...AGENT_TOOLS, ...delegateTools, ...(opts.extraTools ?? []).map((t) => ({ core: true, ...t }))];
+  const tools = [...toolsFor(opts.cardContract === 2 ? 2 : 1), ...delegateTools, ...(opts.extraTools ?? []).map((t) => ({ core: true, ...t }))];
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const system = systemBlocks(opts.systemOverride ?? SYSTEM_PROMPT, renderContext(ctx));
+  const system = systemBlocks(opts.systemOverride ?? (opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`), renderContext(ctx));
 
   const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: userMessage }];
   const toolsUsed: string[] = [];
@@ -319,8 +322,8 @@ export async function streamAgentTurn(
   const contract = opts.cardContract ?? 1;
   const turnId = opts.turnId ?? `t${Date.now().toString(36)}`;
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const system = systemBlocks(SYSTEM_PROMPT, renderContext(ctx));
-  const tools = [...AGENT_TOOLS];
+  const system = systemBlocks(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, renderContext(ctx));
+  const tools = toolsFor(contract);
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const messages: Anthropic.MessageParam[] = [...(opts.history ?? []), { role: 'user', content: userMessage }];

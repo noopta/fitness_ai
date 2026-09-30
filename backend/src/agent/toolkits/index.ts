@@ -8,3 +8,4 @@ import './adaptation.js';
 import './workouts.js';
 import './nutrition.js';
 import './health.js';
+import './social.js';

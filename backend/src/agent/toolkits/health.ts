@@ -517,5 +517,28 @@ export const HEALTH_TOOLS = [
   }),
 ];
 
+HEALTH_TOOLS.push(tool({
+  name: 'query_research', kind: 'read', core: true, fn: 'MEM-06',
+  description: 'Search the curated research feed (PubMed, NIH, medical schools, Huberman Lab) for a topic and return a few summaries with sources, to ground an answer in evidence.',
+  input_schema: schema({ query: { type: 'string' }, limit: { type: 'number' } }, ['query']),
+  receipt: (i) => ({ verb: 'Searched', text: `Research · ${str(i.query)}` }),
+  refine: (r) => r?.count != null ? `Research · ${r.count} ${r.count === 1 ? 'source' : 'sources'}` : null,
+  execute: async (input) => {
+    const q = str(input.query);
+    const limit = Math.max(1, Math.min(8, numOr(input.limit, 3)!));
+    if (!q) return { query: q, count: 0, results: [] };
+    const words = q.toLowerCase().split(/\s+/).filter((w) => w.length > 3).slice(0, 4);
+    const items = await prisma.feedItem.findMany({
+      where: { OR: [{ title: { contains: q } }, { summary: { contains: q } }, { tags: { contains: q.toLowerCase() } }, ...words.map((w) => ({ title: { contains: w } }))] },
+      orderBy: { fetchedAt: 'desc' }, take: limit, select: { id: true, title: true, summary: true, source: true, url: true },
+    });
+    return { query: q, count: items.length, results: items };
+  },
+  card: (_i, r) => r.count ? {
+    fn: 'MEM-06', pattern: 'glance', rule: 'show', meta: { label: 'Sources' },
+    rows: r.results.map((x: any) => ({ key: x.title, sub: x.source })),
+    actions: r.results.slice(0, 3).map((x: any, i: number) => ({ id: `open${i}`, label: `Open: ${x.title}`.slice(0, 36), kind: 'secondary' as const, client: { action: 'open_url' as const, args: { url: x.url } } })),
+  } : null,
+}));
 registerToolkit(HEALTH_TOOLS);
 export type { CardRow };

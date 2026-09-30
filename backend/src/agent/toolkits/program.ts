@@ -391,7 +391,10 @@ export const PROGRAM_TOOLS = [
       if (!edits.length) throw new Error('Say what to change.');
       const { program: next, diff } = applyProgramEdits(program, edits, { phaseIndex: await currentPhaseIndex(userId, program), allPhases: !!input.allPhases });
       const kinds = new Set(edits.map((e) => e.type));
-      return { diff, why: str(input.why), fn: kinds.has('set_target') ? 'PRG-15' : kinds.has('add') || kinds.has('remove') ? 'PRG-06' : kinds.has('reorder') || kinds.has('focus') ? 'PRG-08' : 'PRG-05', _programNext: next, summary: diff.map((d) => d.key).join('; ') };
+      const summary = diff.map((d) => d.key).join('; ');
+      // _proposal/updatedProgram: the classic app renders this as its program diff card.
+      return { diff, why: str(input.why), fn: kinds.has('set_target') ? 'PRG-15' : kinds.has('add') || kinds.has('remove') ? 'PRG-06' : kinds.has('reorder') || kinds.has('focus') ? 'PRG-08' : 'PRG-05', _programNext: next, summary,
+        _proposal: true, kind: 'program_update', updatedProgram: next, changedDays: [...new Set(edits.map((e: any) => e.day).filter(Boolean))] };
     },
     card: (_i, r, ctx) => ({
       fn: r.fn, pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · program', open: { page: 'training' } },
