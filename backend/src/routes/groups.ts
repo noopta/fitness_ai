@@ -53,12 +53,24 @@ router.post('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
     const { name, groupGoal, memberUsernames, selfGoal, anakinDailyEnabled } = createSchema.parse(req.body);
     const userId = req.user!.id;
 
-    const others = memberUsernames?.length
+    // Only accepted friends can be added — you can't drop a stranger into a
+    // group (and its pushes) by knowing their username.
+    const named = memberUsernames?.length
       ? await prisma.user.findMany({
           where: { username: { in: memberUsernames } },
           select: { id: true, username: true },
         })
       : [];
+    const friendRows = named.length ? await prisma.friendship.findMany({
+      where: { status: 'accepted', OR: [
+        { requesterId: userId, addresseeId: { in: named.map((n) => n.id) } },
+        { addresseeId: userId, requesterId: { in: named.map((n) => n.id) } },
+      ] },
+      select: { requesterId: true, addresseeId: true },
+    }) : [];
+    const friendIds = new Set(friendRows.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId)));
+    const others = named.filter((n) => friendIds.has(n.id));
+    const skipped = named.filter((n) => !friendIds.has(n.id)).map((n) => n.username);
 
     const group = await prisma.groupChat.create({
       data: {
@@ -74,7 +86,7 @@ router.post('/groups', requireAuth, requireGroupsAccess, async (req, res) => {
       },
       include: { members: { include: { user: { select: { id: true, username: true, name: true, avatarBase64: true } } } } },
     });
-    res.json({ group });
+    res.json({ group, ...(skipped.length ? { skipped, note: 'Only friends can be added to a group.' } : {}) });
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
     console.error('[groups] create failed:', err?.message ?? err);

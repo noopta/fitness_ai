@@ -142,7 +142,7 @@ app.use(cors({
     corsErr._isCors = true;
     callback(corsErr);
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
@@ -163,7 +163,10 @@ const LARGE_BODY_PATHS = [
   '/api/nutrition/transcribe',
   '/api/social/share',
   '/api/auth/avatar',
-  '/api/recipes',
+  // Recipe text and photo-based scans (order screenshots, nutrition labels).
+  '/api/nutrition/recipes',
+  '/api/nutrition/order-scan',
+  '/api/nutrition/barcode/',
 ];
 
 const largeJson = express.json({ limit: '10mb', verify: jsonVerify });
@@ -227,7 +230,9 @@ app.use('/api', groupsRoutes);
 // uploads; free tier rate-limited via featureUsageService.
 app.use('/api', formAnalysisRoutes);
 if (growth) app.use('/api', growth.routes);
-app.use('/api', institutionsRoutes);
+// Clients call /api/institutions/*; mounting at /api left every institution
+// screen 404ing and made GET /api/:slug a catch-all.
+app.use('/api/institutions', institutionsRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', instagramWebhookRoutes);
 app.use('/api', trainTogetherRoutes);

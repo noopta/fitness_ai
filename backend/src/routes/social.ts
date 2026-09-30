@@ -178,7 +178,8 @@ router.get('/social/notifications/counts', wrap(async (req, res) => {
 router.get('/social/friends/requests', wrap(async (req, res) => {
   const requests = await prisma.friendship.findMany({
     where: { addresseeId: req.user!.id, status: 'pending' },
-    include: { requester: { select: { id: true, name: true, username: true, email: true, avatarBase64: true } } },
+    // No email: another user's address is never shown to them.
+    include: { requester: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'desc' },
   });
   res.json(requests);
@@ -397,7 +398,7 @@ router.get('/social/profile/:userId', wrap(async (req, res) => {
 
   const targetUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, username: true, avatarBase64: true, tier: true, createdAt: true },
+    select: { id: true, name: true, username: true, avatarBase64: true, tier: true, createdAt: true },
   });
   if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
@@ -462,8 +463,8 @@ router.get('/social/conversations', wrap(async (req, res) => {
   const convos = await prisma.directConversation.findMany({
     where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
     include: {
-      participantA: { select: { id: true, name: true, username: true, email: true, avatarBase64: true } },
-      participantB: { select: { id: true, name: true, username: true, email: true, avatarBase64: true } },
+      participantA: { select: { id: true, name: true, username: true, avatarBase64: true } },
+      participantB: { select: { id: true, name: true, username: true, avatarBase64: true } },
       messages: { orderBy: { createdAt: 'desc' }, take: 1 },
     },
     orderBy: { updatedAt: 'desc' },
@@ -518,7 +519,7 @@ router.post('/social/conversations', wrap(async (req, res) => {
 
   const participant = await prisma.user.findUnique({
     where: { id: participantId },
-    select: { id: true, name: true, username: true, email: true, avatarBase64: true },
+    select: { id: true, name: true, username: true, avatarBase64: true },
   });
 
   res.json({
@@ -604,6 +605,9 @@ router.post('/social/conversations/:conversationId/messages', socialWriteLimiter
 // POST /api/social/conversations/:conversationId/read
 router.post('/social/conversations/:conversationId/read', wrap(async (req, res) => {
   const userId = req.user!.id;
+  // Only a participant can mark a conversation read.
+  const convo = await prisma.directConversation.findUnique({ where: { id: req.params.conversationId }, select: { participantAId: true, participantBId: true } });
+  if (!convo || (convo.participantAId !== userId && convo.participantBId !== userId)) return res.status(404).json({ error: 'Conversation not found' });
   await prisma.message.updateMany({
     where: { conversationId: req.params.conversationId, senderId: { not: userId }, readAt: null },
     data: { readAt: new Date() },
@@ -1236,6 +1240,7 @@ router.post('/social/articles/:id/forward', wrap(async (req, res) => {
   const canShare = await areFriendsOrColleagues(userId, recipientId);
   if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
 
+  if (await isBlockedBetween(userId, recipientId)) return res.status(403).json({ error: 'Can only forward to friends' });
   const item = await prisma.feedItem.findUnique({ where: { id: req.params.id } });
   if (!item) return res.status(404).json({ error: 'Article not found' });
 
@@ -1294,7 +1299,7 @@ router.post('/social/workouts/forward', wrap(async (req, res) => {
   }
 
   const canShare = await areFriendsOrColleagues(userId, recipientId);
-  if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
+  if (!canShare || await isBlockedBetween(userId, recipientId)) return res.status(403).json({ error: 'Can only forward to friends' });
 
   // For logged workouts, verify the WorkoutLog belongs to the sender. This
   // prevents impersonation / sharing someone else's logs.
@@ -1371,6 +1376,8 @@ router.post('/social/workouts/forward', wrap(async (req, res) => {
 router.post('/social/posts/:id/react', wrap(async (req, res) => {
   const userId = req.user!.id;
   const postId = req.params.id;
+  // Same gate as reading comments: you can only like a post you can see.
+  if (!(await loadViewablePost(req, res, { id: true }))) return;
 
   const existing = await prisma.postReaction.findUnique({ where: { postId_userId: { postId, userId } } });
   if (existing) {
@@ -1481,8 +1488,10 @@ router.post('/social/posts/:id/forward', wrap(async (req, res) => {
   const canShare = await areFriendsOrColleagues(userId, recipientId);
   if (!canShare) return res.status(403).json({ error: 'Can only forward to friends' });
 
-  const original = await prisma.sharedItem.findUnique({ where: { id: req.params.id } });
-  if (!original) return res.status(404).json({ error: 'Post not found' });
+  if (await isBlockedBetween(userId, recipientId)) return res.status(403).json({ error: 'Can only forward to friends' });
+  // You can only forward a post you can see.
+  const original = await loadViewablePost(req, res);
+  if (!original) return;
 
   // Find or create DM conversation
   const ids = canonicalParticipants(userId, recipientId);

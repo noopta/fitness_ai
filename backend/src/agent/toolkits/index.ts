@@ -6,3 +6,5 @@ import './profile.js';
 import './program.js';
 import './adaptation.js';
 import './workouts.js';
+import './nutrition.js';
+import './health.js';

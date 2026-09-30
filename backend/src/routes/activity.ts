@@ -3,6 +3,19 @@ import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = Router();
+
+/**
+ * Whose activity to show. Your own always; someone else's only if you're
+ * accepted friends (the endpoint used to return any user's calendar by id).
+ */
+async function heatmapSubject(req: any, res: any): Promise<string | null> {
+  const me = req.user!.id as string;
+  const asked = typeof req.query.userId === 'string' && req.query.userId ? req.query.userId : me;
+  if (asked === me) return me;
+  const friends = await prisma.friendship.findFirst({ where: { status: 'accepted', OR: [{ requesterId: me, addresseeId: asked }, { requesterId: asked, addresseeId: me }] }, select: { id: true } });
+  if (!friends) { res.status(404).json({ error: 'Not found' }); return null; }
+  return asked;
+}
 const prisma = new PrismaClient();
 
 // Build an array of the last 365 date strings (YYYY-MM-DD), oldest first
@@ -21,7 +34,8 @@ function getLast365Dates(): string[] {
 // Returns [{ date, count }] for last 365 days (0-filled)
 router.get('/activity/heatmap', requireAuth, async (req, res) => {
   try {
-    const userId = (req.query.userId as string) || req.user!.id;
+    const userId = await heatmapSubject(req, res);
+    if (!userId) return;
     const dates = getLast365Dates();
     const since = dates[0];
 
@@ -48,7 +62,8 @@ router.get('/activity/heatmap', requireAuth, async (req, res) => {
 // Returns [{ date, workout, nutrition, wellness, analysis }] for last 365 days
 router.get('/activity/heatmap/detail', requireAuth, async (req, res) => {
   try {
-    const userId = (req.query.userId as string) || req.user!.id;
+    const userId = await heatmapSubject(req, res);
+    if (!userId) return;
     const dates = getLast365Dates();
     const since = dates[0];
 

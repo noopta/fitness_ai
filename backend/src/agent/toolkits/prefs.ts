@@ -24,7 +24,8 @@ const LABEL: Record<PrefKey, string> = {
 function display(k: PrefKey, v: unknown): string {
   if (k === 'unitPreference') return v === 'metric' ? 'kg' : 'lb';
   if (k === 'foodRegion') return REGION[String(v)] ?? String(v);
-  if (k === 'subtractWorkoutBurnFromCalories') return v ? 'Off' : 'On'; // "count them back in" is the inverse flag
+  // true = calories burned in a workout are added to that day's target ("count workout calories").
+  if (k === 'subtractWorkoutBurnFromCalories') return v ? 'On' : 'Off';
   if (k === 'shareTheme') return v === 'dark' ? 'Dark' : 'Light';
   if (typeof v === 'boolean') return onOff(v);
   return String(v ?? '—');
@@ -170,14 +171,14 @@ export const PREF_TOOLS = [
         rows: [
           { key: 'Units', value: display('unitPreference', r.prefs.unitPreference) },
           { key: 'Food region', value: display('foodRegion', r.prefs.foodRegion) },
-          toggleRow('Count workout calories', 'countBurn', !r.prefs.subtractWorkoutBurnFromCalories),
+          toggleRow('Count workout calories', 'countBurn', r.prefs.subtractWorkoutBurnFromCalories !== false),
           toggleRow('Share my training calendar', 'scheduleSharing', !!r.prefs.scheduleSharing),
           toggleRow('Progression suggestions', 'adaptationEnabled', !!r.prefs.adaptationEnabled),
           toggleRow('Save form-check stills', 'saveFormStills', !!r.prefs.saveFormStills),
           { key: 'Timezone', value: r.prefs.timezone },
         ],
         pending: { toggles: {
-          countBurn: { op: 'pref.toggle', args: { key: 'subtractWorkoutBurnFromCalories', invert: true }, valueKey: 'on' },
+          countBurn: { op: 'pref.toggle', args: { key: 'subtractWorkoutBurnFromCalories' }, valueKey: 'on' },
           scheduleSharing: { op: 'pref.toggle', args: { key: 'scheduleSharing' }, valueKey: 'on' },
           adaptationEnabled: { op: 'pref.toggle', args: { key: 'adaptationEnabled' }, valueKey: 'on' },
           saveFormStills: { op: 'pref.toggle', args: { key: 'saveFormStills' }, valueKey: 'on' },
@@ -199,7 +200,7 @@ export const PREF_TOOLS = [
   }),
   tool({
     name: 'set_preferences', kind: 'set', fn: 'PRF-01',
-    description: 'Change settings the user asked to change: unitPreference (lb or kg), foodRegion (global, Nigeria, The Gambia, West Africa), subtractWorkoutBurnFromCalories (true = workout calories are NOT added back to the day), scheduleSharing (friends can see my training calendar), timezone (IANA name), saveFormStills (18+), adaptationEnabled (progression suggestions), shareTheme (light or dark). Pass only what changes.',
+    description: 'Change settings the user asked to change: unitPreference (lb or kg), foodRegion (global, Nigeria, The Gambia, West Africa), subtractWorkoutBurnFromCalories (true = calories burned in workouts are added to that day’s calorie target; false = “don’t add my workout calories back”), scheduleSharing (friends can see my training calendar), timezone (IANA name), saveFormStills (18+), adaptationEnabled (progression suggestions), shareTheme (light or dark). Pass only what changes.',
     input_schema: schema({
       unitPreference: { type: 'string', enum: ['lb', 'kg'] }, foodRegion: { type: 'string' }, subtractWorkoutBurnFromCalories: { type: 'boolean' },
       scheduleSharing: { type: 'boolean' }, timezone: { type: 'string' }, saveFormStills: { type: 'boolean' }, adaptationEnabled: { type: 'boolean' }, shareTheme: { type: 'string', enum: ['light', 'dark'] },

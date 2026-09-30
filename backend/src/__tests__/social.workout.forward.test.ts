@@ -76,7 +76,8 @@ describe('POST /api/social/workouts/forward', () => {
   });
 
   function mockFriendsAccepted() {
-    friendshipMock.findFirst.mockResolvedValue({ status: 'accepted' });
+    // Friends, and not blocked: the block lookup (status 'blocked') finds nothing.
+    friendshipMock.findFirst.mockImplementation(async (q: any) => (q?.where?.status === 'blocked' ? null : { status: 'accepted' }));
   }
   function mockNotFriends() {
     friendshipMock.findFirst.mockResolvedValue(null);
