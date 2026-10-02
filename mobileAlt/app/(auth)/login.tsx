@@ -16,7 +16,7 @@ import { Analytics } from '../../src/lib/analytics';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute';
 import { COPY as PT_COPY } from '@axiom/personal-training-core';
-import { setTrainerMode } from '../../src/features/personal-training/mode';
+import { loadTrainerMode, setTrainerMode } from '../../src/features/personal-training/mode';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -42,6 +42,11 @@ export default function LoginScreen() {
   // postAuthDestination reads to land them on the dashboard instead of the
   // athlete app. (This replaced the old organization-slug sign-in.)
   const [trainerMode, setTrainerModeState] = useState(false);
+  // The mode outlives the screen, so the toggle must show what is stored —
+  // otherwise it could read "off" while a sign-in still routes to the dashboard.
+  useEffect(() => {
+    void loadTrainerMode().then(setTrainerModeState);
+  }, []);
 
   // C.1: collapse the email form behind a tap by default — OAuth gets the
   // visual weight. Returning users who default to email tap one extra time.
