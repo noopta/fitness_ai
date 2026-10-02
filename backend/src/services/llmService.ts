@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { parseModelJson } from './modelJson.js';
 import { GoogleGenAI } from '@google/genai';
 import { getLiftById } from '../data/lifts.js';
 import { getBiomechanicsForLift } from '../data/biomechanics.js';
@@ -278,7 +279,7 @@ TONE: Specific, data-driven, coach-like. Reference actual numbers from the signa
   });
 
   const content = response.choices[0].message.content || '{}';
-  const result = JSON.parse(content);
+  const result = parseModelJson(content);
 
   return {
     analysis: result.analysis || 'Analysis not available',
@@ -568,7 +569,7 @@ OUTPUT ONLY VALID JSON:
   });
 
   const content = response.choices[0].message.content || '{}';
-  const planData = JSON.parse(content);
+  const planData = parseModelJson(content);
 
   const plan: WorkoutPlan = {
     selected_lift: context.selectedLift,
@@ -1078,7 +1079,7 @@ OUTPUT FORMAT (JSON only):
   });
 
   const content = response.choices[0].message.content || '{}';
-  return JSON.parse(content) as NutritionPlanResult;
+  return parseModelJson(content) as NutritionPlanResult;
 }
 
 export async function generateMealSuggestions(params: {
@@ -1140,7 +1141,7 @@ OUTPUT FORMAT (JSON object with "meals" array):
 
   const content = response.choices[0].message.content || '{}';
   // LLM may return { meals: [...] } or just the array wrapped in any key
-  const parsed = JSON.parse(content);
+  const parsed = parseModelJson(content);
   if (Array.isArray(parsed)) return parsed as MealSuggestion[];
   // Try common wrapper keys
   const arr = parsed.meals || parsed.suggestions || parsed.data || Object.values(parsed)[0];
@@ -1357,7 +1358,7 @@ OUTPUT FORMAT — Return valid JSON only:
   });
 
   const content = response.choices[0].message.content || '{}';
-  const parsed = JSON.parse(content) as TrainingProgram;
+  const parsed = parseModelJson(content) as TrainingProgram;
 
   // Attach the real sources that informed this plan (may be empty if the
   // knowledge base is unseeded — the reveal screen omits the block in that case).
@@ -1622,7 +1623,7 @@ OUTPUT — valid JSON only:
   });
 
   const content = response.choices[0].message.content || '{}';
-  const result = JSON.parse(content) as ProgramAdjustmentResult;
+  const result = parseModelJson(content) as ProgramAdjustmentResult;
 
   // Normalize severity to accepted values so frontend SEVERITY_CONFIG never gets undefined
   const validSeverities = ['mild', 'moderate', 'significant'] as const;
@@ -1701,7 +1702,7 @@ OUTPUT — valid JSON only, one assignment per open slot in the same order:
   });
 
   const content = response.choices[0].message.content || '{}';
-  const parsed = JSON.parse(content) as Partial<WeekRebalanceResult>;
+  const parsed = parseModelJson(content) as Partial<WeekRebalanceResult>;
   return {
     assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
     rationale: typeof parsed.rationale === 'string' ? parsed.rationale : '',
@@ -1985,7 +1986,7 @@ ${regionPromptBlock(region, 'text')}`;
   });
 
   const raw = response.choices[0].message.content || '{}';
-  return coerceParsedMealDetail(JSON.parse(raw));
+  return coerceParsedMealDetail(parseModelJson(raw));
 }
 
 // ─── Nutrition Profile narration ────────────────────────────────────────────
@@ -2040,7 +2041,7 @@ OUTPUT (JSON only):
     max_completion_tokens: 700,
     response_format: { type: 'json_object' },
   });
-  const raw = JSON.parse(response.choices[0].message.content || '{}');
+  const raw = parseModelJson(response.choices[0].message.content || '{}');
   const drivers: Record<string, string> = {};
   if (raw?.drivers && typeof raw.drivers === 'object') {
     for (const [k, v] of Object.entries(raw.drivers)) if (typeof v === 'string') drivers[k] = v;
@@ -2178,7 +2179,7 @@ OUTPUT FORMAT (JSON only, no explanation):
   });
 
   const raw = response.choices[0].message.content || '{}';
-  return coerceParsedRecipe(JSON.parse(raw), servingsHint ?? 1);
+  return coerceParsedRecipe(parseModelJson(raw), servingsHint ?? 1);
 }
 
 
@@ -2256,7 +2257,7 @@ OUTPUT FORMAT (JSON only, no explanation):
   });
   const raw = response.choices[0]?.message?.content ?? '{}';
   let parsed: any;
-  try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+  try { parsed = parseModelJson(raw); } catch { parsed = {}; }
   const list = Array.isArray(parsed?.suggestions) ? parsed.suggestions : [];
 
   const VALID_FITS = new Set(['protein', 'carbs', 'fat', 'balanced']);
@@ -2439,7 +2440,7 @@ ${regionPromptBlock(region, 'photo')}`;
     .replace(/\s*```$/i, '')
     .trim();
   try {
-    return coerceParsedMealDetail(JSON.parse(text));
+    return coerceParsedMealDetail(parseModelJson(text));
   } catch (err: any) {
     // Gemini sometimes truncates mid-object (seen in prod: response ends at
     // `"calciumMg": 35,`). The schema puts name/macros/calories FIRST, so a
@@ -2449,7 +2450,7 @@ ${regionPromptBlock(region, 'photo')}`;
     const repaired = repairTruncatedJson(text);
     if (repaired) {
       try {
-        const parsed = coerceParsedMealDetail(JSON.parse(repaired));
+        const parsed = coerceParsedMealDetail(parseModelJson(repaired));
         console.warn(
           '[meal-photo] response was truncated; salvaged core fields.',
           `finishReason=${(result as any).candidates?.[0]?.finishReason ?? 'unknown'}`,
@@ -2540,7 +2541,7 @@ If the image is not a nutrition panel, or is too blurred to read, return {"name"
     const raw = result.text?.trim();
     if (!raw) return null;
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-    const parsed = JSON.parse(text);
+    const parsed = parseModelJson(text);
 
     // Clamping/typing lives in communityProduct.ts so it is unit-testable —
     // routes/nutrition.ts can't be mounted in a test (OpenAI at import time).
@@ -2575,7 +2576,7 @@ Return JSON only, all numeric fields required:
       response_format: { type: 'json_object' },
       max_completion_tokens: 400,
     });
-    const raw = JSON.parse(response.choices[0].message.content || '{}');
+    const raw = parseModelJson(response.choices[0].message.content || '{}');
     const detail = coerceParsedMealDetail({ nutrients: raw });
     return detail.nutrients;
   } catch (err) {
@@ -2659,11 +2660,11 @@ ${regionPromptBlock(region, 'order')}`;
 
   let parsed: any;
   try {
-    parsed = JSON.parse(text);
+    parsed = parseModelJson(text);
   } catch {
     const repaired = repairTruncatedJson(text);
     if (!repaired) throw new Error('Order scan response was malformed.');
-    parsed = JSON.parse(repaired);
+    parsed = parseModelJson(repaired);
     console.warn('[order-scan] response was truncated; salvaged parse.');
   }
 
@@ -2808,7 +2809,7 @@ Example format:
   try {
     const raw = response.choices[0].message.content || '{}';
     // response_format json_object wraps arrays, handle both
-    const parsed = JSON.parse(raw);
+    const parsed = parseModelJson(raw);
     if (Array.isArray(parsed)) return parsed.slice(0, 4);
     // Some models return { insights: [...] }
     const arr = parsed.insights ?? parsed.bullets ?? parsed.data ?? Object.values(parsed)[0];
