@@ -81,6 +81,27 @@ const TOOL = {
   },
 };
 
+/**
+ * The model's answer as a list of sheets. It usually arrives as the array the
+ * tool asks for, but sometimes as that array (or the whole `{ sheets }` object)
+ * encoded again as a JSON string, so both are unwrapped.
+ */
+export function proposedSheets(input: unknown): any[] {
+  let value: unknown = input;
+  for (let depth = 0; depth < 4; depth++) {
+    if (typeof value === 'string') {
+      try { value = JSON.parse(value); } catch { return []; }
+    } else if (Array.isArray(value)) {
+      return value.filter((v) => v && typeof v === 'object');
+    } else if (value && typeof value === 'object') {
+      value = (value as { sheets?: unknown }).sheets;
+    } else {
+      return [];
+    }
+  }
+  return [];
+}
+
 export async function proposeMappings(
   grids: Grid[],
   defaults: { unit: 'kg' | 'lb'; dateOrder: 'dmy' | 'mdy' },
@@ -107,8 +128,11 @@ export async function proposeMappings(
       }],
     });
     const call = (res.content ?? []).find((b: any) => b.type === 'tool_use');
-    const proposed: any[] = Array.isArray(call?.input?.sheets) ? call.input.sheets : [];
-    if (proposed.length === 0) return { mappings: rules, by: 'rules' };
+    const proposed = proposedSheets(call?.input);
+    if (proposed.length === 0) {
+      console.warn('[personal-training] import mapping: the model returned nothing usable; using rules');
+      return { mappings: rules, by: 'rules' };
+    }
 
     // Everything the model said is coerced against the real grid; whatever it got wrong or left out falls back to the rules.
     const mappings = grids.map((g, i) => {

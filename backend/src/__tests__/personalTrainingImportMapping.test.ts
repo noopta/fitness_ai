@@ -2,7 +2,7 @@
 // is coerced against the real sheet before it is used.
 
 import { describe, it, expect } from 'vitest';
-import { proposeMappings, redact, type CreateMessage } from '../services/personalTraining/importMapping.js';
+import { proposeMappings, proposedSheets, redact, type CreateMessage } from '../services/personalTraining/importMapping.js';
 import { extract } from '../services/personalTraining/importParse.js';
 
 const DEFAULTS = { unit: 'kg' as const, dateOrder: 'dmy' as const };
@@ -40,6 +40,20 @@ describe('model-proposed mapping', () => {
     expect(mappings[0].columns).toEqual({ client: 0, date: 1, exercise: 2 });
     expect(mappings[0].unit).toBe('kg');
     expect(mappings[0].headerRow).toBe(1); // 40 is outside the sheet; the rules' guess stands
+  });
+
+  it('accepts the answer when the model encodes it again as a string', async () => {
+    const sheet = { sheet: 'Registro', kind: 'workouts', headerRow: 1, columns: { client: 0, date: 1, exercise: 2, weight: 4 }, clientFrom: 'column', unit: 'kg', dateOrder: 'dmy' };
+    // Seen in production: `sheets` holding the whole object as JSON text.
+    const doubled: CreateMessage = async () => ({ content: [{ type: 'tool_use', name: 'submit_mapping', input: { sheets: JSON.stringify({ sheets: [sheet] }) } }] });
+    const { mappings, by } = await proposeMappings([grid], DEFAULTS, doubled);
+    expect(by).toBe('model');
+    expect(mappings[0]).toMatchObject({ kind: 'workouts', columns: { client: 0, date: 1, exercise: 2, weight: 4 } });
+
+    expect(proposedSheets({ sheets: [sheet] })).toEqual([sheet]);
+    expect(proposedSheets({ sheets: JSON.stringify([sheet]) })).toEqual([sheet]);
+    expect(proposedSheets(JSON.stringify({ sheets: [sheet] }))).toEqual([sheet]);
+    for (const bad of [undefined, null, 'not json', { sheets: 'nor this' }, { sheets: 7 }, { sheets: [null, 3] }]) expect(proposedSheets(bad)).toEqual([]);
   });
 
   it('falls back to the rules when the model fails or returns nothing', async () => {
