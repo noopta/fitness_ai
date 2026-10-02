@@ -4,14 +4,16 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Polyline } from 'react-native-svg';
+import Svg, { Polyline, Rect } from 'react-native-svg';
 import { ClipboardCheck, LineChart, MessageCircle, Sunrise, Users, type LucideIcon } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   COPY, STATUS_LABEL, engagementAltText, sparklinePoints,
   type ClientStatus, type EngagementTrend, type Tone,
 } from '@axiom/personal-training-core';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../constants/theme';
+import { MOBILE_COPY } from './mobileCopy';
 
 /** Type scaling is honoured up to 1.3× (handoff §10); past that, rows stop fitting a phone. */
 export const MAX_FONT_SCALE = 1.3;
@@ -57,15 +59,34 @@ export function Avatar({ initials, size = 36, status }: { initials: string; size
   );
 }
 
-/** Polyline only — no axes, no fill. A falling client's line is the one place it turns red. */
-export function Sparkline({ series, trend, width = 72, height = 24 }: { series: number[]; trend: EngagementTrend; width?: number; height?: number }) {
+/**
+ * Polyline only — no axes, no fill. Colour is status, never decoration: red
+ * for a falling or regressing line, amber for a plateau, ink otherwise.
+ * `domain` rescales for real measurements; `band` shades the plateau zone.
+ */
+export function Sparkline({
+  series, trend, width = 72, height = 24, label, domain, tone, band,
+}: {
+  series: number[];
+  trend?: EngagementTrend;
+  width?: number;
+  height?: number;
+  /** Text alternative; defaults to the engagement description. */
+  label?: string;
+  domain?: [number, number];
+  tone?: 'red' | 'amber' | 'ink';
+  band?: boolean;
+}) {
+  const colour = tone ?? (trend === 'falling' ? 'red' : 'ink');
+  const [min, max] = domain ?? [0, 10];
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel={engagementAltText(trend, series.length)}>
+    <View accessible accessibilityRole="image" accessibilityLabel={label ?? engagementAltText(trend ?? 'steady', series.length)}>
       <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        {band && <Rect x={0} y={height * 0.25} width={width} height={height * 0.5} rx={4} fill={colors.warningSoft} />}
         <Polyline
-          points={sparklinePoints(series, width, height)}
+          points={sparklinePoints(series, width, height, max, 2, min)}
           fill="none"
-          stroke={trend === 'falling' ? colors.destructive : colors.foreground}
+          stroke={colour === 'red' ? colors.destructive : colour === 'amber' ? colors.warning : colors.foreground}
           strokeWidth={1.6}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -102,7 +123,47 @@ export function Eyebrow({ children, style }: { children: string; style?: StylePr
   );
 }
 
-type TabKey = 'briefing' | 'clients' | 'checkIns' | 'progress' | 'anakin';
+/** "→"-prefixed reasons, then a "Sources: …" caption. Shared by briefing cards, check-ins and the dossier. */
+export function EvidenceList({ reasons, sources }: { reasons: string[]; sources: { label: string }[] }) {
+  return (
+    <View style={styles.evidence}>
+      {reasons.map((r) => (
+        <View key={r} style={styles.evidenceRow}>
+          <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.evidenceArrow} accessibilityElementsHidden importantForAccessibility="no">→</Text>
+          <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.evidenceText}>{r}</Text>
+        </View>
+      ))}
+      {sources.length > 0 && (
+        <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.evidenceSources}>
+          {MOBILE_COPY.sources(sources.map((x) => x.label).join(' · '))}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+/** A centred message with an optional action: the empty and error state of every list. */
+export function Notice({ title, children, action, alert }: { title?: string; children?: string; action?: React.ReactNode; alert?: boolean }) {
+  return (
+    <View style={styles.notice} accessibilityRole={alert ? 'alert' : undefined}>
+      {title ? <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.noticeTitle}>{title}</Text> : null}
+      {children ? <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.noticeBody}>{children}</Text> : null}
+      {action}
+    </View>
+  );
+}
+
+export type TabKey = 'briefing' | 'clients' | 'checkIns' | 'progress' | 'anakin';
+
+export const TAB_PATH: Record<TabKey, string> = {
+  briefing: '/personal-training',
+  clients: '/personal-training/clients',
+  checkIns: '/personal-training/check-ins',
+  progress: '/personal-training/progress',
+  anakin: '/personal-training/anakin',
+};
+
+export const clientPath = (id: string) => `/personal-training/client/${encodeURIComponent(id)}`;
 
 const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
   { key: 'briefing', label: COPY.nav.briefing, icon: Sunrise },
@@ -113,28 +174,27 @@ const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
 ];
 
 /**
- * The five-tab bar from the handoff (§6). Only Clients exists in this phase;
- * the rest render disabled at 40% so the bar does not reshuffle as they ship.
+ * The five-tab bar from the handoff (§6). `active` is null on screens pushed
+ * from a tab (a client, settings), where no tab is the current one.
  */
-export function TabBar({ active, onClients }: { active: TabKey; onClients: () => void }) {
+export function TabBar({ active }: { active: TabKey | null }) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   return (
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]} accessibilityRole="tablist">
       {TABS.map(({ key, label, icon: Icon }) => {
-        const enabled = key === 'clients';
         const selected = key === active;
         return (
           <Pressable
             key={key}
-            disabled={!enabled}
-            onPress={onClients}
+            onPress={() => { if (!selected) router.navigate(TAB_PATH[key] as any); }}
             accessibilityRole="tab"
-            accessibilityLabel={enabled ? label : `${label}, ${COPY.nav.comingSoon.toLowerCase()}`}
-            accessibilityState={{ selected, disabled: !enabled }}
-            style={[styles.tab, !enabled && styles.tabDisabled]}
+            accessibilityLabel={key === 'anakin' ? COPY.nav.anakin : label}
+            accessibilityState={{ selected }}
+            style={({ pressed }) => [styles.tab, pressed && styles.pressed]}
           >
             <Icon size={20} color={selected ? colors.foreground : colors.mutedForeground} />
-            <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={[styles.tabText, selected && styles.tabTextActive]}>{label}</Text>
+            <Text maxFontSizeMultiplier={MAX_FONT_SCALE} numberOfLines={1} style={[styles.tabText, selected && styles.tabTextActive]}>{label}</Text>
           </Pressable>
         );
       })}
@@ -159,7 +219,14 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, letterSpacing: 1.3, color: colors.mutedForeground },
   tabBar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth * 2, borderTopColor: colors.border, backgroundColor: colors.background, paddingTop: spacing.sm },
   tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  tabDisabled: { opacity: 0.4 },
+  evidence: { gap: 4 },
+  evidenceRow: { flexDirection: 'row', gap: spacing.sm },
+  evidenceArrow: { fontSize: fontSize.base, lineHeight: 22, color: colors.zinc400 },
+  evidenceText: { flex: 1, fontSize: fontSize.base, lineHeight: 22, color: colors.zinc600 },
+  evidenceSources: { marginTop: 4, fontSize: 12, lineHeight: 17, color: colors.mutedForeground },
+  notice: { padding: spacing.xl, gap: spacing.sm + 4, alignItems: 'center' },
+  noticeTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.foreground, textAlign: 'center' },
+  noticeBody: { fontSize: fontSize.base, lineHeight: 22, color: colors.zinc600, textAlign: 'center' },
   tabText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.mutedForeground },
   tabTextActive: { color: colors.foreground },
 });

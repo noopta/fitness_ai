@@ -1,25 +1,27 @@
 // Client roster on the phone (design handoff §6.2): list rows of at least
 // 64pt — avatar with status dot, name, reason line, sparkline — and a tap
-// opens the client's timeline.
+// opens the client. An Ask Anakin answer can be applied as a filter through
+// the `anakin` route param.
 
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import {
   COPY, FILTER_LABEL, ROSTER_FILTERS, STATUS_LABEL, countByStatus, filterClients, matchesQuery, reasonLine,
   type Client, type MeResponse, type RosterFilter,
 } from '@axiom/personal-training-core';
-import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../constants/theme';
-import { Avatar, FilterChip, MAX_FONT_SCALE, Sparkline } from './components';
-import { useRoster } from './hooks';
+import { Avatar, FilterChip, MAX_FONT_SCALE, Sparkline, clientPath } from './components';
+import { ActionButton } from './controls';
+import { useAnakinFilter, useRoster } from './hooks';
 import { InviteSheet } from './InviteSheet';
 import { Screen } from './Screen';
 
-function ClientRow({ client, onPress }: { client: Client; onPress: () => void }) {
-  const reason = reasonLine(client);
+function ClientRow({ client, evidence, onPress }: { client: Client; evidence?: string; onPress: () => void }) {
+  // Under an Ask Anakin filter the reason line is Anakin's evidence for this client.
+  const reason = evidence ?? reasonLine(client);
   return (
     <Pressable
       onPress={onPress}
@@ -45,7 +47,15 @@ export function RosterScreen({ me }: { me: MeResponse }) {
   const [q, setQ] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const all = roster.data?.clients ?? [];
+  // "Apply as roster filter" from Ask Anakin arrives as ?anakin=threadId:messageId.
+  const params = useLocalSearchParams<{ anakin?: string | string[] }>();
+  const anakinParam = Array.isArray(params.anakin) ? params.anakin[0] : params.anakin;
+  const [filterThread, filterMessage] = (anakinParam ?? '').split(':');
+  const anakin = useAnakinFilter(filterThread ?? '', filterMessage ?? '');
+  const evidence = useMemo(() => (anakin.data ? new Map(anakin.data.rows.map((r) => [r.clientId, r.evidence])) : null), [anakin.data]);
+
+  const everyone = roster.data?.clients ?? [];
+  const all = useMemo(() => (evidence ? everyone.filter((c) => evidence.has(c.id)) : everyone), [everyone, evidence]);
   // Counts follow the search box but not the chip, so each chip keeps showing how many it would reveal.
   const counts = useMemo(() => countByStatus(all.filter((c) => matchesQuery(c, q))), [all, q]);
   const visible = useMemo(() => filterClients(all, filter, q), [all, filter, q]);
@@ -56,8 +66,16 @@ export function RosterScreen({ me }: { me: MeResponse }) {
         <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.count}>
           {roster.data ? COPY.roster.countLine(all.length) : ' '}
         </Text>
-        <Button size="sm" onPress={() => setInviteOpen(true)}>{COPY.roster.invite}</Button>
+        <ActionButton size="sm" onPress={() => setInviteOpen(true)}>{COPY.roster.invite}</ActionButton>
       </View>
+      {filterThread && (anakin.data || anakin.isError) ? (
+        <View style={styles.banner} accessibilityLiveRegion="polite">
+          <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.bannerText}>
+            {anakin.data ? COPY.anakin.filterBanner(anakin.data.question) : COPY.anakin.failed}
+          </Text>
+          <ActionButton variant="secondary" size="sm" onPress={() => router.setParams({ anakin: '' })}>{COPY.anakin.clearFilter}</ActionButton>
+        </View>
+      ) : null}
       <View style={styles.search}>
         <Search size={16} color={colors.mutedForeground} />
         <TextInput
@@ -89,9 +107,9 @@ export function RosterScreen({ me }: { me: MeResponse }) {
   ) : roster.isError ? (
     <View style={styles.notice} accessibilityRole="alert">
       <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.noticeBody}>{COPY.roster.loadFailed}</Text>
-      <Button variant="secondary" onPress={() => roster.refetch()}>{COPY.roster.retry}</Button>
+      <ActionButton variant="secondary" onPress={() => roster.refetch()}>{COPY.roster.retry}</ActionButton>
     </View>
-  ) : all.length === 0 ? (
+  ) : everyone.length === 0 ? (
     <View style={styles.notice}>
       <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.noticeTitle}>{COPY.roster.emptyTitle}</Text>
       <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={styles.noticeBody}>{COPY.roster.emptyBody}</Text>
@@ -103,12 +121,12 @@ export function RosterScreen({ me }: { me: MeResponse }) {
   );
 
   return (
-    <Screen me={me} title={COPY.roster.title}>
+    <Screen me={me} title={COPY.roster.title} active="clients">
       <FlatList
         data={visible}
         keyExtractor={(c) => c.id}
         renderItem={({ item }) => (
-          <ClientRow client={item} onPress={() => router.push(`/personal-training/client/${item.id}` as any)} />
+          <ClientRow client={item} evidence={evidence?.get(item.id)} onPress={() => router.navigate(clientPath(item.id) as any)} />
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListHeaderComponent={header}
@@ -129,6 +147,11 @@ const styles = StyleSheet.create({
   header: { paddingTop: spacing.md, gap: spacing.sm + 4, marginBottom: spacing.sm },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md },
   count: { fontSize: fontSize.base, color: colors.zinc600 },
+  banner: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: spacing.md, paddingLeft: spacing.md, paddingRight: spacing.sm,
+    paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: colors.foreground,
+  },
+  bannerText: { flex: 1, fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.background },
   search: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginHorizontal: spacing.md, paddingHorizontal: 12,
     minHeight: 44, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth * 2, borderColor: colors.border,
