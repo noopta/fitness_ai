@@ -48,6 +48,12 @@ import InstitutionAthleteDetailPage from "./pages/institution-athlete-detail";
 import PersonalTrainingRosterPage from "./features/personal-training/pages/RosterPage";
 import PersonalTrainingTimelinePage from "./features/personal-training/pages/TimelinePage";
 import PersonalTrainingJoinPage from "./features/personal-training/pages/JoinPage";
+import PersonalTrainingBriefingPage from "./features/personal-training/pages/BriefingPage";
+import PersonalTrainingCheckInsPage from "./features/personal-training/pages/CheckInsPage";
+import PersonalTrainingCheckInAnswerPage from "./features/personal-training/pages/CheckInAnswerPage";
+import PersonalTrainingProgressPage from "./features/personal-training/pages/ProgressPage";
+import PersonalTrainingAnakinPage from "./features/personal-training/pages/AnakinPage";
+import PersonalTrainingNotificationSettingsPage from "./features/personal-training/pages/NotificationSettingsPage";
 import NavDemoPage from "./pages/nav-demo";
 import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
@@ -167,6 +173,12 @@ const ProtectedInstitutionAthleteDetail = () => <ProtectedRoute component={Insti
 const ProtectedPersonalTrainingRoster   = () => <ProtectedRoute component={PersonalTrainingRosterPage} />;
 const ProtectedPersonalTrainingTimeline = () => <ProtectedRoute component={PersonalTrainingTimelinePage} />;
 const ProtectedPersonalTrainingJoin     = () => <ProtectedRoute component={PersonalTrainingJoinPage} />;
+const ProtectedPersonalTrainingBriefing = () => <ProtectedRoute component={PersonalTrainingBriefingPage} />;
+const ProtectedPersonalTrainingCheckIns = () => <ProtectedRoute component={PersonalTrainingCheckInsPage} />;
+const ProtectedPersonalTrainingCheckInAnswer = () => <ProtectedRoute component={PersonalTrainingCheckInAnswerPage} />;
+const ProtectedPersonalTrainingProgress = () => <ProtectedRoute component={PersonalTrainingProgressPage} />;
+const ProtectedPersonalTrainingAnakin   = () => <ProtectedRoute component={PersonalTrainingAnakinPage} />;
+const ProtectedPersonalTrainingNotificationSettings = () => <ProtectedRoute component={PersonalTrainingNotificationSettingsPage} />;
 const ProtectedProfile                  = () => <ProtectedRoute component={ProfilePage} />;
 
 // Tracks page views on every Wouter route change and syncs PostHog identity
@@ -229,7 +241,12 @@ function Router() {
       <Route path="/personal-training/join/:token" component={ProtectedPersonalTrainingJoin} />
       <Route path="/personal-training/clients/:id/timeline" component={ProtectedPersonalTrainingTimeline} />
       <Route path="/personal-training/clients" component={ProtectedPersonalTrainingRoster} />
-      <Route path="/personal-training" component={ProtectedPersonalTrainingRoster} />
+      <Route path="/personal-training/check-in/:id" component={ProtectedPersonalTrainingCheckInAnswer} />
+      <Route path="/personal-training/check-ins" component={ProtectedPersonalTrainingCheckIns} />
+      <Route path="/personal-training/progress" component={ProtectedPersonalTrainingProgress} />
+      <Route path="/personal-training/anakin/:threadId?" component={ProtectedPersonalTrainingAnakin} />
+      <Route path="/personal-training/settings/notifications" component={ProtectedPersonalTrainingNotificationSettings} />
+      <Route path="/personal-training" component={ProtectedPersonalTrainingBriefing} />
       <Route path="/institution/join/:token" component={ProtectedInstitutionJoin} />
       <Route path="/institution/:slug/coach" component={ProtectedInstitutionCoach} />
       <Route path="/institution/:slug/athlete/:userId" component={ProtectedInstitutionAthleteDetail} />

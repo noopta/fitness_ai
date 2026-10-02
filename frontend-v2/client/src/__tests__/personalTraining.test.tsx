@@ -14,7 +14,7 @@ import { PersonalTrainingApiError, type Client, type TimelineEvent } from '@axio
 
 const api = vi.hoisted(() => ({
   me: vi.fn(), createPractice: vi.fn(), roster: vi.fn(), client: vi.fn(), timeline: vi.fn(),
-  invite: vi.fn(), invitePreview: vi.fn(), acceptInvite: vi.fn(),
+  invite: vi.fn(), invitePreview: vi.fn(), acceptInvite: vi.fn(), notifications: vi.fn(), markNotificationsRead: vi.fn(), anakinFilter: vi.fn(),
 }));
 vi.mock('@/features/personal-training/api', () => ({ ptApi: api }));
 vi.mock('@/components/BrandLogo', () => ({ BrandLogo: () => <div data-testid="brand-logo" /> }));
@@ -28,6 +28,7 @@ const ME = { trainer: { id: 't1', name: 'Kofi Mensah', initials: 'KM' }, practic
 const client = (over: Partial<Client>): Client => ({
   id: 'c1', name: 'Maya Okafor', initials: 'MO', email: 'maya@example.com', status: 'onPlan', channel: 'app',
   program: { blockLabel: 'Strength', week: 3, weeks: 8, goal: 'Squat 100 kg' },
+  sessionsPerWeek: 4,
   engagement8w: [5, 6, 7, 7, 8, 8, 9, 9], engagementTrend: 'steady', joinedAt: '2026-08-01T00:00:00.000Z',
   contraindications: [], ...over,
 });
@@ -51,6 +52,7 @@ function renderAt(path: string, ui: React.ReactElement) {
 beforeEach(() => {
   Object.values(api).forEach((fn) => fn.mockReset());
   api.me.mockResolvedValue(ME);
+  api.notifications.mockResolvedValue({ immediate: [], unread: 0, heldForBriefing: 0, recordedQuietly: 0 });
   api.roster.mockResolvedValue({ clients: CLIENTS, counts: { all: 3, support: 1, new: 1, onPlan: 1, paused: 0 } });
 });
 
@@ -123,12 +125,15 @@ describe('roster', () => {
     expect(await screen.findByRole('table')).toBeInTheDocument();
   });
 
-  it('keeps unbuilt surfaces in the nav, disabled', async () => {
+  it('links every surface from the nav and marks the current one', async () => {
     renderAt('/personal-training/clients', <RosterPage />);
     await screen.findByRole('table');
     const rail = screen.getAllByRole('navigation', { name: /personal training/i })[0];
-    expect(within(rail).getByText('Briefing')).toHaveAttribute('aria-disabled', 'true');
+    expect(within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
+      '/personal-training', '/personal-training/clients', '/personal-training/check-ins', '/personal-training/progress', '/personal-training/anakin',
+    ]);
     expect(within(rail).getByRole('link', { name: /clients/i })).toHaveAttribute('aria-current', 'page');
+    expect(within(rail).getByRole('link', { name: /briefing/i })).not.toHaveAttribute('aria-current');
   });
 
   it('creates an invite link from the dialog', async () => {

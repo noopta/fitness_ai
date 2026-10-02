@@ -1,1 +1,0 @@
-{ "extends": "./tsconfig.json", "compilerOptions": { "noEmit": true, "incremental": false }, "include": ["src/services/personalTraining/*.ts", "src/routes/personalTraining*.ts", "src/routes/personalTraining/*.ts", "src/middleware/requireTrainer.ts"] }

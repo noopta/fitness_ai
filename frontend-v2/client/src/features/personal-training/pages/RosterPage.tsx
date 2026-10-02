@@ -3,7 +3,7 @@
 // of rows. Each row leads to the client's timeline.
 
 import { useMemo, useState } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation, useSearch } from 'wouter';
 import { Search } from 'lucide-react';
 import {
   COPY, FILTER_LABEL, ROSTER_FILTERS, TREND_LABEL, countByStatus, filterClients, matchesQuery, reasonLine, relativeDay,
@@ -16,12 +16,13 @@ import { Gate } from '../components/Gate';
 import { InvitePanel } from '../components/InvitePanel';
 import { Avatar, Eyebrow, FilterChip, SkeletonBlock, Sparkline, StatusPill } from '../components/primitives';
 import { Shell } from '../components/Shell';
-import { useRoster } from '../hooks';
+import { useAnakinFilter, useRoster } from '../hooks';
 
 const timelineHref = (c: Client) => `/personal-training/clients/${c.id}/timeline`;
 
-function ClientCell({ client }: { client: Client }) {
-  const reason = reasonLine(client);
+function ClientCell({ client, evidence }: { client: Client; evidence?: string }) {
+  // Under an Ask Anakin filter the reason line is Anakin's evidence for this client.
+  const reason = evidence ?? reasonLine(client);
   return (
     <div className="min-w-0">
       <p className="truncate text-[13px] font-semibold">{client.name}</p>
@@ -31,7 +32,7 @@ function ClientCell({ client }: { client: Client }) {
   );
 }
 
-function RosterTable({ clients }: { clients: Client[] }) {
+function RosterTable({ clients, evidence }: { clients: Client[]; evidence: Map<string, string> | null }) {
   const th = 'whitespace-nowrap px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] text-axiom-zinc-500';
   return (
     <div className="hidden overflow-x-auto rounded-2xl border border-border md:block">
@@ -51,7 +52,7 @@ function RosterTable({ clients }: { clients: Client[] }) {
               <td className="w-[34%] min-w-[260px] px-4 py-3">
                 <Link href={timelineHref(c)} className="flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15">
                   <Avatar initials={c.initials} size={36} />
-                  <ClientCell client={c} />
+                  <ClientCell client={c} evidence={evidence?.get(c.id)} />
                 </Link>
               </td>
               <td className="px-4 py-3"><StatusPill status={c.status} /></td>
@@ -80,14 +81,14 @@ function RosterTable({ clients }: { clients: Client[] }) {
   );
 }
 
-function RosterList({ clients }: { clients: Client[] }) {
+function RosterList({ clients, evidence }: { clients: Client[]; evidence: Map<string, string> | null }) {
   return (
     <ul className="divide-y divide-border rounded-2xl border border-border md:hidden">
       {clients.map((c) => (
         <li key={c.id}>
           <Link href={timelineHref(c)} className="flex min-h-16 items-center gap-3 px-3 py-2.5 active:scale-[.98] motion-reduce:active:scale-100">
             <Avatar initials={c.initials} size={36} status={c.status} />
-            <div className="min-w-0 flex-1"><ClientCell client={c} /></div>
+            <div className="min-w-0 flex-1"><ClientCell client={c} evidence={evidence?.get(c.id)} /></div>
             <Sparkline series={c.engagement8w} trend={c.engagementTrend} />
           </Link>
         </li>
@@ -102,7 +103,16 @@ function Roster({ me }: { me: MeResponse }) {
   const [q, setQ] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const all = roster.data?.clients ?? [];
+  // "Apply as roster filter" from Ask Anakin: the filter lives in the URL
+  // (?anakin=threadId:messageId) so it survives a reload and can be shared.
+  const search = useSearch();
+  const [, navigate] = useLocation();
+  const [filterThread, filterMessage] = (new URLSearchParams(search).get('anakin') ?? '').split(':');
+  const anakin = useAnakinFilter(filterThread ?? '', filterMessage ?? '');
+  const evidence = useMemo(() => (anakin.data ? new Map(anakin.data.rows.map((r) => [r.clientId, r.evidence])) : null), [anakin.data]);
+
+  const everyone = roster.data?.clients ?? [];
+  const all = useMemo(() => (evidence ? everyone.filter((c) => evidence.has(c.id)) : everyone), [everyone, evidence]);
   // Counts follow the search box but not the chip, so each chip keeps showing how many it would reveal.
   const counts = useMemo(() => countByStatus(all.filter((c) => matchesQuery(c, q))), [all, q]);
   const visible = useMemo(() => filterClients(all, filter, q), [all, filter, q]);
@@ -116,6 +126,15 @@ function Roster({ me }: { me: MeResponse }) {
         </div>
         <Button className="h-11 shrink-0 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.roster.invite}</Button>
       </div>
+
+      {filterThread && (anakin.data || anakin.isError) && (
+        <div role="status" className="mb-4 flex items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-background">
+          <p className="min-w-0 text-[13px] font-semibold">
+            {anakin.data ? COPY.anakin.filterBanner(anakin.data.question) : COPY.anakin.failed}
+          </p>
+          <Button variant="secondary" className="h-8 shrink-0 rounded-lg px-3 text-[13px]" onClick={() => navigate('/personal-training/clients')}>{COPY.anakin.clearFilter}</Button>
+        </div>
+      )}
 
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
         <div className="relative md:w-64 md:shrink-0">
@@ -145,7 +164,7 @@ function Roster({ me }: { me: MeResponse }) {
           <p className="text-sm text-axiom-zinc-600">{COPY.roster.loadFailed}</p>
           <Button variant="secondary" className="mt-4 h-10 rounded-xl" onClick={() => roster.refetch()}>{COPY.roster.retry}</Button>
         </div>
-      ) : all.length === 0 ? (
+      ) : everyone.length === 0 ? (
         <div className="rounded-2xl border border-border p-10 text-center">
           <p className="text-[17px] font-semibold tracking-[-0.01em]">{COPY.roster.emptyTitle}</p>
           <p className="mt-1 text-sm text-axiom-zinc-600">{COPY.roster.emptyBody}</p>
@@ -157,8 +176,8 @@ function Roster({ me }: { me: MeResponse }) {
         </div>
       ) : (
         <>
-          <RosterTable clients={visible} />
-          <RosterList clients={visible} />
+          <RosterTable clients={visible} evidence={evidence} />
+          <RosterList clients={visible} evidence={evidence} />
         </>
       )}
 

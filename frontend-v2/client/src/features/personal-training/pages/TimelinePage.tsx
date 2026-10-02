@@ -154,7 +154,7 @@ function Timeline({ me, clientId }: { me: MeResponse; clientId: string }) {
   const notFound = client.error instanceof PersonalTrainingApiError && client.error.status === 404;
 
   return (
-    <Shell me={me} active="clients" title={client.data?.client.name ?? COPY.roster.title} wide={false}>
+    <Shell me={me} active="clients" title={client.data?.client.name ?? COPY.roster.title} width="narrow">
       <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1 text-xs text-axiom-zinc-500">
         <Link href="/personal-training/clients" className="rounded font-semibold hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15">
           {COPY.timeline.breadcrumb}

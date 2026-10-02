@@ -8,6 +8,7 @@ import {
 const client = (over: Partial<Client>): Client => ({
   id: 'c1', name: 'Maya Okafor', initials: 'MO', email: 'maya@example.com', status: 'onPlan', channel: 'app',
   program: { blockLabel: 'Strength', week: 3, weeks: 8, goal: 'Squat 100 kg' },
+  sessionsPerWeek: 4,
   engagement8w: [5, 6, 7, 7, 8, 8, 9, 9], engagementTrend: 'rising', joinedAt: '2026-08-01T00:00:00.000Z',
   contraindications: [], ...over,
 });

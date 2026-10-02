@@ -65,20 +65,43 @@ export function clockTime(iso: string): string {
  * The scale is fixed at 0–max so two clients' lines are comparable at a glance;
  * `pad` keeps the round caps inside the box.
  */
-export function sparklinePoints(series: number[], width: number, height: number, max = 10, pad = 2): string {
+export function sparklinePoints(series: number[], width: number, height: number, max = 10, pad = 2, min = 0): string {
   if (series.length === 0) return '';
   const innerW = width - pad * 2;
   const innerH = height - pad * 2;
   const step = series.length > 1 ? innerW / (series.length - 1) : 0;
+  const span = max - min;
   return series
     .map((v, i) => {
-      const clamped = Math.max(0, Math.min(max, v));
+      const clamped = Math.max(min, Math.min(max, v));
       const x = series.length > 1 ? pad + i * step : width / 2;
-      const y = pad + innerH - (clamped / max) * innerH;
+      // A flat domain (every value equal) draws through the middle rather than dividing by zero.
+      const y = span > 0 ? pad + innerH - ((clamped - min) / span) * innerH : height / 2;
       return `${round1(x)},${round1(y)}`;
     })
     .join(' ');
 }
+
+/**
+ * Domain for a sparkline of real measurements (an e1RM series): the data's
+ * own range with a little headroom, so a 2 kg change is visible rather than
+ * flattened against zero.
+ */
+export function seriesDomain(series: number[]): [number, number] {
+  if (series.length === 0) return [0, 1];
+  const lo = Math.min(...series);
+  const hi = Math.max(...series);
+  const padding = Math.max((hi - lo) * 0.15, hi * 0.02, 1);
+  return [lo - padding, hi + padding];
+}
+
+/** "6 PM", "9 AM" — for hour pickers. */
+export function hourLabel(hour: number): string {
+  const h = ((hour % 24) + 24) % 24;
+  return `${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+export const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;

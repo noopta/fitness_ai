@@ -69,21 +69,38 @@ export function Avatar({
   );
 }
 
-/** Polyline only — no axes, no fill. A falling client's line is the one place it turns red. */
+/**
+ * Polyline only — no axes, no fill. Colour is status, never decoration: red
+ * for a falling or regressing line, amber for a plateau, ink otherwise.
+ * `domain` rescales for real measurements; `band` shades the plateau zone.
+ */
 export function Sparkline({
-  series, trend, width = 72, height = 24,
-}: { series: number[]; trend: EngagementTrend; width?: number; height?: number }) {
+  series, trend, width = 72, height = 24, label, domain, tone, band,
+}: {
+  series: number[];
+  trend?: EngagementTrend;
+  width?: number;
+  height?: number;
+  /** Text alternative; defaults to the engagement description. */
+  label?: string;
+  domain?: [number, number];
+  tone?: 'red' | 'amber' | 'ink';
+  band?: boolean;
+}) {
+  const colour = tone ?? (trend === 'falling' ? 'red' : 'ink');
+  const [min, max] = domain ?? [0, 10];
   return (
     <svg
       role="img"
-      aria-label={engagementAltText(trend, series.length)}
+      aria-label={label ?? engagementAltText(trend ?? 'steady', series.length)}
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      className={cn('shrink-0', trend === 'falling' ? 'text-axiom-destructive' : 'text-foreground')}
+      className={cn('shrink-0', colour === 'red' ? 'text-axiom-destructive' : colour === 'amber' ? 'text-axiom-warning' : 'text-foreground')}
     >
+      {band && <rect x={0} y={height * 0.25} width={width} height={height * 0.5} rx={4} className="fill-axiom-warning-soft" />}
       <polyline
-        points={sparklinePoints(series, width, height)}
+        points={sparklinePoints(series, width, height, max, 2, min)}
         fill="none"
         stroke="currentColor"
         strokeWidth={1.6}
@@ -122,4 +139,74 @@ export function Eyebrow({ children, className }: { children: React.ReactNode; cl
 /** zinc-100 block pulsing 1 → .45 over 1.6s; still when the viewer prefers reduced motion. */
 export function SkeletonBlock({ className }: { className?: string }) {
   return <div aria-hidden className={cn('rounded-lg bg-axiom-zinc-100 motion-safe:animate-[pt-pulse_1.6s_ease-in-out_infinite]', className)} />;
+}
+
+/** zinc-100 track, 3px inset, active segment white with a hairline shadow. */
+export function SegmentedControl<T extends string>({
+  value, onChange, options, label, size = 'md',
+}: {
+  value: T;
+  onChange: (value: T) => void;
+  options: { value: T; label: string; disabled?: boolean; title?: string }[];
+  label: string;
+  size?: 'sm' | 'md';
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-xl bg-axiom-zinc-100 p-[3px]">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          disabled={o.disabled}
+          title={o.title}
+          onClick={() => onChange(o.value)}
+          className={cn(
+            'rounded-[9px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15',
+            size === 'sm' ? 'h-7 px-2.5 text-xs' : 'h-8 px-3.5 text-[13px]',
+            value === o.value ? 'bg-background text-foreground shadow-xs' : 'text-axiom-zinc-600 hover:text-foreground',
+            o.disabled && 'cursor-not-allowed opacity-40 hover:text-axiom-zinc-600',
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** "→"-prefixed reasons, then a "Sources: …" caption. Shared by briefing cards, check-ins and Anakin. */
+export function EvidenceList({ reasons, sources }: { reasons: string[]; sources: { label: string }[] }) {
+  return (
+    <div>
+      <ul className="space-y-1">
+        {reasons.map((r) => (
+          <li key={r} className="flex gap-2 text-sm leading-relaxed text-axiom-zinc-600">
+            <span aria-hidden className="text-axiom-zinc-400">→</span>
+            <span>{r}</span>
+          </li>
+        ))}
+      </ul>
+      {sources.length > 0 && <p className="mt-2 text-xs text-axiom-zinc-500">Sources: {sources.map((s) => s.label).join(' · ')}</p>}
+    </div>
+  );
+}
+
+export function PageTitle({ children, sub }: { children: React.ReactNode; sub?: React.ReactNode }) {
+  return (
+    <div className="mb-6">
+      <h1 className="hidden text-[30px] font-bold leading-tight tracking-[-0.02em] md:block">{children}</h1>
+      {sub && <p className="text-sm text-axiom-zinc-600 md:mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+export function Notice({ children, action, alert }: { children: React.ReactNode; action?: React.ReactNode; alert?: boolean }) {
+  return (
+    <div role={alert ? 'alert' : undefined} className="rounded-2xl border border-border p-8 text-center">
+      <div className="text-sm text-axiom-zinc-600">{children}</div>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
 }
