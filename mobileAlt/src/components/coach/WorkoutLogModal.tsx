@@ -17,7 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { RpeHelpButton } from '../ui/RpeHelpButton';
-import { workoutsApi, socialApi, type ExerciseLast } from '../../lib/api';
+import { workoutsApi, socialApi, type ExerciseLast, type ParsedNoteWorkout } from '../../lib/api';
+import { DateChips, PasteFromNotes, SessionQueueBar, dayLabel, localDateStr } from './LogDateAndNotes';
 import { invalidateCache } from '../../lib/cache';
 import { Analytics } from '../../lib/analytics';
 import { useUnits } from '../../context/UnitsContext';
@@ -77,7 +78,8 @@ interface ExerciseEntry {
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  /** Called with the date the workout was logged for. */
+  onSaved: (loggedDate?: string) => void;
   todayExercises?: Array<{ exercise?: string; name?: string; sets?: number; reps?: string | number }>;
   date?: string;
   workoutTitle?: string;
@@ -103,9 +105,29 @@ function emptySet(): PerSetEntry {
   return { weight: '', reps: '', rpe: '' };
 }
 
-function todayDateStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const todayDateStr = () => localDateStr();
+
+/** A session read from pasted notes, as form rows. Weights arrive in `from` and are shown in `to`. */
+function entriesFromNotes(w: ParsedNoteWorkout, from: 'kg' | 'lbs', to: 'kg' | 'lbs'): ExerciseEntry[] {
+  const conv = (v: number | null) => {
+    if (v == null) return '';
+    const n = from === to ? v : to === 'kg' ? v * 0.45359237 : v / 0.45359237;
+    return String(Math.round(n * 10) / 10);
+  };
+  return w.exercises.map((e) => {
+    const perSet = !!e.setEntries && e.setEntries.length >= 2;
+    return {
+      name: e.name,
+      sets: String(e.sets),
+      reps: e.reps,
+      weight: e.bodyweight ? '' : conv(e.weight),
+      rpe: e.rpe != null ? String(e.rpe) : '',
+      notes: e.notes ?? '',
+      perSetMode: perSet,
+      setEntries: perSet ? e.setEntries!.map((x) => ({ weight: conv(x.weight), reps: String(x.reps), rpe: x.rpe != null ? String(x.rpe) : '' })) : [],
+      bodyweight: e.bodyweight,
+    };
+  });
 }
 
 function buildInitialExercises(
@@ -149,6 +171,13 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   // local state so it survives this sheet closing (it's a separate full-screen
   // modal rendered as a sibling).
   const [celebration, setCelebration] = useState<ShareableWorkout | null>(null);
+  // Which day this is logged for: today unless opened from a program day or changed.
+  const initialDate = (date ?? todayDateStr()).slice(0, 10);
+  const [logDate, setLogDate] = useState(initialDate);
+  // Sessions read from pasted notes, handed to the form one at a time.
+  const [queue, setQueue] = useState<{ workouts: ParsedNoteWorkout[]; index: number; unit: 'kg' | 'lbs' } | null>(null);
+  const [titleOverride, setTitleOverride] = useState<string | null>(null);
+  const title = queue ? titleOverride : workoutTitle;
 
   // Reset state every time modal opens
   useEffect(() => {
@@ -161,6 +190,9 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       setShareToFeed(false);
       setShareCaption('');
       setLastByName({});
+      setLogDate((date ?? todayDateStr()).slice(0, 10));
+      setQueue(null);
+      setTitleOverride(null);
       const names = (todayExercises ?? []).map(ex => (ex.exercise ?? ex.name ?? '').trim()).filter(Boolean);
       if (names.length > 0) {
         let cancelled = false;
@@ -176,6 +208,24 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       }
     }
   }, [visible]);
+
+  function loadSession(workouts: ParsedNoteWorkout[], index: number, from: 'kg' | 'lbs') {
+    const w = workouts[index];
+    setQueue({ workouts, index, unit: from });
+    setExercises(entriesFromNotes(w, from, unit));
+    setTitleOverride(w.title);
+    if (w.date) setLogDate(w.date);
+    setWorkoutNotes('');
+    setDuration('');
+    setSuggestions([]);
+    setLastByName({});
+  }
+
+  function nextSession(): boolean {
+    if (!queue || queue.index + 1 >= queue.workouts.length) return false;
+    loadSession(queue.workouts, queue.index + 1, queue.unit);
+    return true;
+  }
 
   // Tap the "last time" line to prefill an empty weight/reps from the top set.
   function prefillFromLast(index: number, last: ExerciseLast) {
@@ -402,13 +452,14 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       });
 
       const saveRes = (await workoutsApi.logWorkout({
-        date: (date ?? todayDateStr()).slice(0, 10),
-        title: workoutTitle || undefined,
+        date: logDate,
+        title: title || undefined,
         exercises: mappedExercises,
         notes: workoutNotes.trim() || undefined,
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
-        programDayRef: programDayRef ?? undefined,
-      })) as { shareable?: ShareableWorkout };
+        // The plan link only holds for the day it was opened for.
+        programDayRef: !queue && logDate === initialDate ? (programDayRef ?? undefined) : undefined,
+      })) as { shareable?: ShareableWorkout; backdated?: boolean };
       // Logged workout changes today's session, schedule (logged-flag), and the
       // social feed (auto-share + friends' shares). Drop those caches so the
       // next render fetches fresh.
@@ -417,7 +468,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       Analytics.workoutLogged({
         exerciseCount: validExercises.length,
         totalSets: validExercises.reduce((s, ex) => s + (parseInt(ex.sets, 10) || 1), 0),
-        workoutTitle: workoutTitle || undefined,
+        workoutTitle: title || undefined,
       });
 
       // Share to social feed if toggled
@@ -436,16 +487,23 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
           itemType: 'workout',
           payload: {
             exercises: shareExercises,
-            title: workoutTitle || undefined,
-            date: (date ?? todayDateStr()).slice(0, 10),
+            title: title || undefined,
+            date: logDate,
           },
           caption: shareCaption.trim() || undefined,
         }).catch(() => {});
       }
 
+      // More sessions from the pasted notes: the next one replaces this one in
+      // the form, and the sheet stays open (onSaved can close it) until the last.
+      if (nextSession()) return;
+      const fromNotes = !!queue;
       onClose();
-      onSaved();
+      onSaved(logDate);
 
+      // A session filled in after the fact, or one of several from notes, is
+      // not a moment to celebrate; one just finished is.
+      if (fromNotes || saveRes?.backdated) return;
       // Celebrate + offer the shareable card. Delayed so the log sheet finishes
       // sliding away before the full-screen celebration presents (avoids two
       // modals transitioning at once on iOS).
@@ -474,7 +532,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             <View style={styles.headerTextBlock}>
               <Text style={styles.headerTitle}>Log Workout</Text>
               <Text style={styles.headerSub}>
-                {workoutTitle ? workoutTitle : "Record today's session"}
+                {[title, logDate === todayDateStr() ? (title ? null : "Record today's session") : `For ${dayLabel(logDate)}`].filter(Boolean).join(' · ')}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -489,6 +547,13 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
           >
+            {queue ? (
+              <SessionQueueBar index={queue.index} total={queue.workouts.length} onSkip={() => { if (!nextSession()) onClose(); }} />
+            ) : (
+              <PasteFromNotes onSessions={(workouts, from) => loadSession(workouts, 0, from)} />
+            )}
+            <DateChips value={logDate} onChange={setLogDate} />
+
             {/* Duration */}
             <View style={styles.row}>
               <Text style={styles.fieldLabel}>Duration (min)</Text>
