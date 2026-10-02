@@ -2,15 +2,14 @@
 // client is an active 'athlete' member of it. Everything here is read-only
 // over data clients already log — there is no personal-training table yet.
 
-import { PrismaClient } from '@prisma/client';
 import { parseBlob, readInjuries } from '../../agent/profile/coachProfile.js';
+import { prisma } from './db.js';
 import { computePhaseState, parseSavedProgram } from '../programPhaseService.js';
 import {
   DEFAULT_WEEKLY_SESSIONS, ENGAGEMENT_WEEKS, deriveStatus, engagementSeries, engagementTrend, estDateString,
 } from './status.js';
 import type { Client, ClientStatus, Contraindication } from './types.js';
 
-const prisma = new PrismaClient();
 
 const DAY_MS = 86_400_000;
 
@@ -93,6 +92,7 @@ export function buildClient(user: ClientUserRow, joinedAt: Date, activity: Clien
           goal: user.coachGoal?.trim() ?? '',
         }
       : null,
+    sessionsPerWeek: targetSessions,
     engagement8w,
     engagementTrend: engagementTrend(engagement8w),
     ...(activity.lastCheckInAt ? { lastCheckInAt: activity.lastCheckInAt.toISOString() } : {}),

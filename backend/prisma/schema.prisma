@@ -1318,3 +1318,254 @@ model PasswordResetCode {
   consumedAt DateTime?
   createdAt  DateTime  @default(now())
 }
+
+// ─── Personal training (human-trainer dashboard) ─────────────────────────────
+// A practice is an Institution and a client is an 'athlete' member of it.
+// These tables hold only what the dashboard itself creates. Ids are plain
+// strings rather than relations to User so that nothing here can block an
+// account deletion; the delete-account flow removes a user's rows explicitly.
+// JSON is stored as strings (SQLite has no JSON column type).
+
+// Every approve / send / dismiss / undo a trainer performs, with the AI's
+// original text and what the trainer changed it to. Nothing reaches a client
+// without a row here.
+model PtAuditLog {
+  id           String   @id @default(uuid())
+  practiceId   String
+  trainerId    String
+  clientId     String?
+  // sent | undone | delivered | dismissed | resolved | discarded | marked_read
+  // | report_sent | checkin_prompt | checkin_nudge | schedule_changed
+  action       String
+  // briefing_item | draft | report | checkin | schedule
+  itemType     String
+  itemId       String
+  originalText String?
+  editedText   String?
+  metaJson     String?
+  createdAt    DateTime @default(now())
+
+  @@index([practiceId, createdAt])
+  @@index([itemType, itemId])
+}
+
+// A message Axiom drafted for the trainer. It becomes a real Message only
+// through pending → sending (trainer tapped Send; undo window open) → sent.
+model PtDraft {
+  id         String    @id @default(uuid())
+  practiceId String
+  trainerId  String
+  clientId   String
+  // briefing | checkin_reply | anakin | report
+  kind       String
+  sourceId   String?
+  text       String
+  sentText   String?
+  // pending | sending | sent | discarded
+  status     String    @default("pending")
+  undoUntil  DateTime?
+  sentAt     DateTime?
+  messageId  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@index([practiceId, status])
+  @@index([status, undoUntil])
+  @@index([clientId])
+}
+
+model PtBriefing {
+  id                  String           @id @default(uuid())
+  practiceId          String
+  trainerId           String
+  // Calendar date (America/New_York) the briefing is for.
+  date                String
+  // pending | streaming | ready | failed
+  status              String           @default("pending")
+  generatedAt         DateTime?
+  summaryJson         String           @default("{}")
+  onPlanClientIdsJson String           @default("[]")
+  scheduledJson       String           @default("[]")
+  createdAt           DateTime         @default(now())
+  items               PtBriefingItem[]
+
+  @@unique([practiceId, trainerId, date])
+}
+
+model PtBriefingItem {
+  id                String     @id @default(uuid())
+  briefingId        String
+  clientId          String
+  ruleId            String
+  eventType         String
+  // attention | look
+  severity          String
+  headline          String
+  detail            String
+  suggestionKind    String
+  suggestionText    String
+  draftId           String?
+  primaryLabel      String
+  secondaryLabel    String
+  guardrailJson     String?
+  // {reasons: string[], sources: SourceRef[]} — never empty.
+  evidenceJson      String
+  dataThrough       DateTime
+  sortOrder         Int        @default(0)
+  // messaged | dismissed | reviewed
+  resolutionAction  String?
+  resolvedAt        DateTime?
+  resolutionSummary String?
+  undoUntil         DateTime?
+  briefing          PtBriefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
+
+  @@index([briefingId])
+  @@index([clientId])
+}
+
+// clientId null = the practice default ("All clients"); a row with a clientId
+// overrides it for that client.
+model PtCheckInSchedule {
+  id               String   @id @default(uuid())
+  practiceId       String
+  clientId         String?
+  // weekly | biweekly
+  frequency        String   @default("weekly")
+  dayOfWeek        Int      @default(0)
+  hour             Int      @default(18)
+  questionsJson    String
+  nudgeAfterHours  Int      @default(24)
+  flagAfterHours   Int      @default(48)
+  pauseAfterMisses Int      @default(2)
+  active           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+
+  @@index([practiceId])
+}
+
+model PtCheckIn {
+  id             String    @id @default(uuid())
+  practiceId     String
+  clientId       String
+  scheduleId     String?
+  // Snapshot of the questions asked, so later edits don't rewrite history.
+  questionsJson  String
+  dueAt          DateTime
+  // due | submitted | missed
+  status         String    @default("due")
+  submittedAt    DateTime?
+  channel        String    @default("app")
+  answersJson    String?
+  // flag | look | routine
+  classification String?
+  summary        String?
+  signalsJson    String?
+  evidenceJson   String?
+  draftId        String?
+  reviewedAt     DateTime?
+  nudgedAt       DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([practiceId, status])
+  @@index([clientId, status])
+}
+
+model PtReport {
+  id         String    @id @default(uuid())
+  practiceId String
+  clientId   String
+  trainerId  String
+  // YYYY-MM
+  month      String
+  // draft | sent
+  status     String    @default("draft")
+  narrative  String
+  statsJson  String
+  coachNote  String    @default("")
+  nextLine   String    @default("")
+  draftId    String?
+  sentAt     DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@unique([practiceId, clientId, month])
+}
+
+model PtAnakinThread {
+  id         String            @id @default(uuid())
+  practiceId String
+  trainerId  String
+  title      String
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @default(now()) @updatedAt
+  messages   PtAnakinMessage[]
+
+  @@index([trainerId, updatedAt])
+}
+
+model PtAnakinMessage {
+  id         String         @id @default(uuid())
+  threadId   String
+  // user | assistant
+  role       String
+  text       String
+  scope      String?
+  // The typed events an assistant turn produced (clarify / answer / drafts).
+  eventsJson String?
+  createdAt  DateTime       @default(now())
+  thread     PtAnakinThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
+model PtScheduledQuestion {
+  id             String    @id @default(uuid())
+  practiceId     String
+  trainerId      String
+  text           String
+  scope          String    @default("all")
+  active         Boolean   @default(true)
+  lastRunAt      DateTime?
+  lastResultJson String?
+  createdAt      DateTime  @default(now())
+
+  @@index([trainerId])
+}
+
+model PtNotificationSettings {
+  id            String   @id @default(uuid())
+  practiceId    String
+  trainerId     String
+  // {eventType: tier} — only the trainer's changes; defaults live in code.
+  rulesJson     String   @default("{}")
+  channelsJson  String   @default("{}")
+  quietStart    Int      @default(21)
+  quietEnd      Int      @default(7)
+  overridesJson String   @default("[]")
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@unique([practiceId, trainerId])
+}
+
+model PtNotification {
+  id         String    @id @default(uuid())
+  practiceId String
+  trainerId  String
+  clientId   String?
+  eventType  String
+  // immediate | briefing | timeline
+  tier       String
+  title      String
+  body       String
+  // Stable identity of the underlying event, so re-detecting it is a no-op.
+  sourceKey  String
+  at         DateTime
+  readAt     DateTime?
+  pushedAt   DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([trainerId, sourceKey])
+  @@index([trainerId, tier, readAt])
+  @@index([trainerId, at])
+}

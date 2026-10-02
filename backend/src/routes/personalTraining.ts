@@ -21,6 +21,7 @@ import {
   parseKinds, programEvent, workoutEvent,
 } from '../services/personalTraining/timeline.js';
 import type { ClientStatus, TimelineEvent } from '../services/personalTraining/types.js';
+import surfaces from './personalTrainingSurfaces.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -292,5 +293,8 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Briefing, drafts, check-ins, progress, reports, Ask Anakin and notifications.
+router.use(surfaces);
 
 export default router;

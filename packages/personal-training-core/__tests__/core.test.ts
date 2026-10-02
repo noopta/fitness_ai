@@ -124,3 +124,22 @@ describe('copy', () => {
     }
   });
 });
+
+import { BRIEFING_STREAM_PATH, anakinMessagePath, createEventParser } from '../src';
+
+describe('streamed endpoints', () => {
+  it('parses frames split across chunks and skips a malformed one', () => {
+    const seen: unknown[] = [];
+    const feed = createEventParser((e) => seen.push(e));
+    feed('data: {"type":"status","text":"Reading"}\n\ndata: {"ty');
+    expect(seen).toEqual([{ type: 'status', text: 'Reading' }]);
+    feed('pe":"done"}\n\ndata: not json\n\ndata: {"type":"x"}\n\n');
+    expect(seen).toEqual([{ type: 'status', text: 'Reading' }, { type: 'done' }, { type: 'x' }]);
+  });
+
+  it('builds stream paths', () => {
+    expect(BRIEFING_STREAM_PATH).toBe('/personal-training/briefing/today/stream');
+    expect(anakinMessagePath(null)).toBe('/personal-training/anakin/threads/new/messages');
+    expect(anakinMessagePath('t 1')).toBe('/personal-training/anakin/threads/t%201/messages');
+  });
+});

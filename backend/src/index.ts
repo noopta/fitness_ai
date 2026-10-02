@@ -42,6 +42,7 @@ import onboardingV2Routes from './routes/onboardingV2.js';
 import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import personalTrainingRoutes from './routes/personalTraining.js';
+import { startPersonalTrainingJobs } from './services/personalTraining/jobs.js';
 import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
 
@@ -359,6 +360,11 @@ setTimeout(() => {
 setInterval(() => {
   runProgramRescueSweep().catch((err) => console.error('[program-rescue] tick:', err));
 }, 30 * 60 * 1000);
+
+// Personal-training dashboard: deliver sent drafts once their undo window
+// closes, run check-in schedules, record trainer notifications, and have
+// each trainer's briefing ready by 6 AM their time.
+startPersonalTrainingJobs();
 
 // ── Notification schedulers ────────────────────────────────────────────────
 // Nightly at 8pm ET: contextual push notifications (session reminders, re-engagement, streaks)

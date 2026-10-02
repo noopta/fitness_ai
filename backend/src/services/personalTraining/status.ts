@@ -24,6 +24,26 @@ export function estDateString(d: Date): string {
   return d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
+export const DEFAULT_TZ = 'America/New_York';
+
+/** Calendar date in a trainer's own timezone; Eastern when they have none set or it is invalid. */
+export function dateStringIn(tz: string | null | undefined, d: Date): string {
+  try {
+    return d.toLocaleDateString('en-CA', { timeZone: tz || DEFAULT_TZ });
+  } catch {
+    return estDateString(d);
+  }
+}
+
+/** Hour of day (0–23) in a trainer's timezone. */
+export function hourIn(tz: string | null | undefined, d: Date): number {
+  try {
+    return Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tz || DEFAULT_TZ }).format(d)) % 24;
+  } catch {
+    return d.getUTCHours();
+  }
+}
+
 /**
  * Weekly engagement, 0–10, for the trailing eight 7-day windows (oldest
  * first). 70% is training — distinct session days against the program's
