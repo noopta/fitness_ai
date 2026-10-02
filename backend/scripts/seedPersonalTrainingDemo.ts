@@ -21,6 +21,7 @@
 //    is touched, and --remove takes exactly that row away again.
 
 import { PrismaClient } from '@prisma/client';
+import { DEFAULT_QUESTIONS, analyse } from '../src/services/personalTraining/checkinAnalysis.js';
 
 const prisma = new PrismaClient();
 
@@ -55,16 +56,18 @@ function program(startedDaysAgo: number, daysPerWeek: number) {
 }
 
 // Loads climb 2.5 kg every third session, so PRs appear now and then rather than every log.
-const step = (i: number) => Math.floor(i / 3) * 2.5;
-const lower = (squatKg: number, i: number) => JSON.stringify([
-  { name: 'Back squat', sets: 3, reps: '5', weightKg: squatKg + step(i), rpe: 8 },
-  { name: 'Romanian deadlift', sets: 3, reps: '8', weightKg: Math.round(squatKg * 0.8) + step(i) },
+// A client marked `plateau` holds the same loads throughout.
+const step = (i: number, flat = false) => (flat ? 0 : Math.floor(i / 3) * 2.5);
+const lower = (squatKg: number, i: number, flat = false) => JSON.stringify([
+  { name: 'Back squat', sets: 3, reps: '5', weightKg: squatKg + step(i, flat), rpe: 8 },
+  { name: 'Deadlift', sets: 2, reps: '5', weightKg: Math.round(squatKg * 1.2) + step(i, flat), rpe: 8 },
+  { name: 'Romanian deadlift', sets: 3, reps: '8', weightKg: Math.round(squatKg * 0.8) },
   { name: 'Walking lunge', sets: 3, reps: '12', weightKg: 20 },
   { name: 'Plank', sets: 3, reps: '60s' },
 ]);
-const upper = (benchKg: number, i: number) => JSON.stringify([
-  { name: 'Bench press', sets: 4, reps: '6', weightKg: benchKg + step(i), rpe: 8 },
-  { name: 'Barbell row', sets: 4, reps: '8', weightKg: Math.round(benchKg * 0.9) + step(i) },
+const upper = (benchKg: number, i: number, flat = false) => JSON.stringify([
+  { name: 'Bench press', sets: 4, reps: '6', weightKg: benchKg + step(i, flat), rpe: 8 },
+  { name: 'Barbell row', sets: 4, reps: '8', weightKg: Math.round(benchKg * 0.8) },
   { name: 'Overhead press', sets: 3, reps: '8', weightKg: Math.round(benchKg * 0.6) },
   { name: 'Pull-up', sets: 3, reps: '8' },
 ]);
@@ -91,6 +94,12 @@ interface DemoClient {
   proposals?: { daysAgo: number; title: string; reasoning: string; status: string; key: string }[];
   /** Thread with each trainer: [daysAgo, from, body]. */
   messages?: [number, 'trainer' | 'client', string][];
+  /** Holds the same loads every session, so the plateau rule fires. */
+  plateau?: boolean;
+  /** A trainer check-in in the inbox: answered `daysAgo`, or missed. */
+  trainerCheckIn?:
+    | { daysAgo: number; answers: { energy: number; sleep: number; stress: number; pain: string; notes: string }; reply: string }
+    | { missedDaysAgo: number; nudged: boolean };
 }
 
 const CLIENTS: DemoClient[] = [
@@ -114,6 +123,7 @@ const CLIENTS: DemoClient[] = [
   {
     key: 'priya', name: 'Priya Nair', joinedDaysAgo: 90, goal: 'Lose 5 kg, keep strength',
     program: { startedDaysAgo: 30, daysPerWeek: 4 },
+    trainerCheckIn: { missedDaysAgo: 5, nudged: true },
     squatKg: 60, benchKg: 35, sessions: [...every(55, 16, 2), 3], nutrition: every(55, 16, 1),
     checkIns: [[34, 4, 4, 7, 2], [20, 3, 3, 7, 3]],
     bodyweight: [[50, 71.4], [36, 70.6], [22, 70.1]],
@@ -122,6 +132,10 @@ const CLIENTS: DemoClient[] = [
   {
     key: 'aisha', name: 'Aisha Khan', joinedDaysAgo: 75, goal: 'General strength',
     constraintsText: 'Lower back', squatKg: 55, benchKg: 32.5, sessions: every(54, 2, 3), nutrition: every(40, 0, 2),
+    trainerCheckIn: {
+      daysAgo: 1, answers: { energy: 2, sleep: 2, stress: 5, pain: 'Lower back has been aching after deadlifts.', notes: 'Work has been brutal this week.' },
+      reply: 'Thanks for being straight with me, Aisha. This reads like a week to pull back, and I do not want you deadlifting through a sore back. Take the loads down and skip the deadlifts until we have talked.',
+    },
     checkIns: [[15, 4, 4, 7, 2], [8, 3, 3, 6.5, 3], [1, 2, 2, 5, 5]],
   },
   { key: 'sam', name: 'Sam Whitfield', joinedDaysAgo: 9, squatKg: 50, benchKg: 40, sessions: [] },
@@ -141,6 +155,10 @@ const CLIENTS: DemoClient[] = [
     program: { startedDaysAgo: 60, daysPerWeek: 4 },
     squatKg: 100, benchKg: 70, sessions: every(55, 1, 2), nutrition: every(55, 0, 1),
     checkIns: [[27, 4, 4, 7.5, 2], [13, 4, 4, 7, 2], [6, 5, 4, 8, 2]],
+    trainerCheckIn: {
+      daysAgo: 2, answers: { energy: 4, sleep: 4, stress: 2, pain: 'None', notes: 'Long run went well on Sunday.' },
+      reply: 'Thanks for checking in, Jordan. Solid week, and good to hear the long run went well. Keep doing what you are doing and we will stay on plan.',
+    },
     bodyweight: [[42, 74.0], [28, 73.8], [14, 73.9]],
   },
   {
@@ -153,7 +171,11 @@ const CLIENTS: DemoClient[] = [
   {
     key: 'hannah', name: 'Hannah Schmidt', joinedDaysAgo: 140, goal: 'Drop to 65 kg for a spring race',
     program: { startedDaysAgo: 45, daysPerWeek: 3 },
-    squatKg: 62.5, benchKg: 37.5, sessions: every(54, 1, 2), nutrition: every(55, 0, 1),
+    squatKg: 62.5, benchKg: 37.5, sessions: every(54, 1, 2), nutrition: every(55, 0, 1), plateau: true,
+    trainerCheckIn: {
+      daysAgo: 1, answers: { energy: 3, sleep: 3, stress: 3, pain: 'No', notes: 'Hungry on the lower calories but managing.' },
+      reply: 'Thanks for the check-in, Hannah. Hunger on a cut is normal, but tell me if energy drops further. Let us keep this week manageable: hit the main lifts and leave the rest if you are short on energy.',
+    },
     checkIns: [[29, 4, 3, 7, 3], [22, 4, 4, 7, 2], [15, 4, 4, 7.5, 2], [8, 4, 4, 7, 2], [1, 5, 4, 8, 2]],
     bodyweight: [[49, 69.1], [42, 68.7], [35, 68.2], [28, 67.9], [21, 67.5], [14, 67.0], [7, 66.6], [1, 66.3]],
   },
@@ -162,6 +184,10 @@ const CLIENTS: DemoClient[] = [
     program: { startedDaysAgo: 70, daysPerWeek: 4 },
     injuries: [{ area: 'Left hamstring', note: 'Grade 1 strain', resolvedAt: '2026-08-20' }],
     squatKg: 130, benchKg: 90, sessions: every(55, 0, 2), nutrition: every(50, 0, 2),
+    trainerCheckIn: {
+      daysAgo: 1, answers: { energy: 5, sleep: 4, stress: 1, pain: 'None, hamstring feels normal.', notes: '' },
+      reply: 'Thanks for checking in, Chidi. Great to hear the hamstring feels normal. Same plan next week.',
+    },
     checkIns: [[10, 4, 4, 7, 2], [3, 4, 5, 8, 1]],
     messages: [[7, 'client', 'Hamstring felt completely normal on deadlifts today.'], [6, 'trainer', 'Good. We go back to full range pulls next week.']],
   },
@@ -198,6 +224,18 @@ async function remove() {
       await tx.institutionMember.deleteMany({ where: byUser });
     }
     if (practice) {
+      // Everything the dashboard itself stored for this practice.
+      const scoped = { where: { practiceId: practice.id } };
+      await tx.ptBriefing.deleteMany(scoped); // items cascade
+      await tx.ptAnakinThread.deleteMany(scoped); // messages cascade
+      await tx.ptCheckIn.deleteMany(scoped);
+      await tx.ptCheckInSchedule.deleteMany(scoped);
+      await tx.ptDraft.deleteMany(scoped);
+      await tx.ptReport.deleteMany(scoped);
+      await tx.ptNotification.deleteMany(scoped);
+      await tx.ptNotificationSettings.deleteMany(scoped);
+      await tx.ptScheduledQuestion.deleteMany(scoped);
+      await tx.ptAuditLog.deleteMany(scoped);
       await tx.institutionInvite.deleteMany({ where: { institutionId: practice.id } });
       await tx.institutionMember.deleteMany({ where: { institutionId: practice.id } });
       await tx.institution.delete({ where: { id: practice.id } });
@@ -251,7 +289,7 @@ async function seed() {
             date: dateStr(d),
             createdAt: ago(d, 18),
             title: i % 2 ? 'Upper' : 'Lower',
-            exercises: i % 2 ? upper(c.benchKg, i) : lower(c.squatKg, i),
+            exercises: i % 2 ? upper(c.benchKg, i, c.plateau) : lower(c.squatKg, i, c.plateau),
             duration: 50 + (i % 3) * 5,
             notes: i === sessions.length - 1 ? c.lastSessionNote ?? null : null,
           })),
@@ -281,6 +319,34 @@ async function seed() {
           },
         });
       }
+      // A check-in in the trainer's inbox, analysed by the same code a real submission runs through.
+      const k = c.trainerCheckIn;
+      if (k && 'daysAgo' in k) {
+        const checkIn = await tx.ptCheckIn.create({
+          data: { practiceId: practice.id, clientId: user.id, questionsJson: JSON.stringify(DEFAULT_QUESTIONS), dueAt: ago(k.daysAgo + 0.5, 18) },
+        });
+        const last7 = c.sessions.filter((d) => d >= k.daysAgo && d < k.daysAgo + 7).length;
+        const a = analyse(DEFAULT_QUESTIONS, k.answers, { logged: last7, target: c.program?.daysPerWeek ?? 3 }, checkIn.id);
+        const draft = await tx.ptDraft.create({
+          data: { practiceId: practice.id, trainerId: trainers[0].id, clientId: user.id, kind: 'checkin_reply', sourceId: checkIn.id, text: k.reply },
+        });
+        await tx.ptCheckIn.update({
+          where: { id: checkIn.id },
+          data: {
+            status: 'submitted', submittedAt: ago(k.daysAgo, 9), classification: a.classification, summary: a.summary,
+            signalsJson: JSON.stringify(a.signals), evidenceJson: JSON.stringify(a.evidence), draftId: draft.id,
+            answersJson: JSON.stringify(DEFAULT_QUESTIONS.map((q) => ({ question: q.text, answer: String((k.answers as Record<string, string | number>)[q.id] ?? '') }))),
+          },
+        });
+      } else if (k) {
+        await tx.ptCheckIn.create({
+          data: {
+            practiceId: practice.id, clientId: user.id, questionsJson: JSON.stringify(DEFAULT_QUESTIONS), status: 'missed',
+            dueAt: ago(k.missedDaysAgo, 18), nudgedAt: k.nudged ? ago(k.missedDaysAgo - 1, 18) : null,
+          },
+        });
+      }
+
       // The same thread with each trainer, so both demo accounts see it.
       for (const t of c.messages?.length ? trainers : []) {
         const [a, b] = t.id < user.id ? [t.id, user.id] : [user.id, t.id];
@@ -296,6 +362,15 @@ async function seed() {
           })),
         });
       }
+    }
+    // The practice default schedule exists but is switched OFF: nothing is sent
+    // to the mock clients on a timer. Switch it on in Check-ins → Configure to
+    // watch the weekly prompt, nudge and missed escalation run.
+    await tx.ptCheckInSchedule.create({
+      data: { practiceId: practice.id, clientId: null, questionsJson: JSON.stringify(DEFAULT_QUESTIONS), active: false },
+    });
+    for (const t of trainers) {
+      await tx.ptScheduledQuestion.create({ data: { practiceId: practice.id, trainerId: t.id, text: 'Who has not trained in 7 days?', scope: 'all' } });
     }
   }, { timeout: 60_000 });
 

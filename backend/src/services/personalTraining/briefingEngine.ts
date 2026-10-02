@@ -5,13 +5,14 @@
 // item here always has reasons and sources (handoff §2.2).
 
 import { checkContraindications, type GuardrailResult } from './guardrails.js';
-import { LIFT_LABEL, liftHistory, liftMentioned, liftTrend, prEvents, weeklyBest } from './lifts.js';
+import { LIFT_LABEL, liftHistory, liftKeyOf, liftMentioned, liftTrend, prEvents, weeklyBest } from './lifts.js';
 import { painMention } from './signals.js';
 import type { ClientData, PracticeData } from './data.js';
 import type { Client, LiftKey, Severity, SourceRef, Tier } from './types.js';
 
 const DAY_MS = 86_400_000;
 const PLATEAU_WEEKS = 6;
+const PAIN_WINDOW_DAYS = 14;
 
 export interface Candidate {
   clientId: string;
@@ -53,9 +54,10 @@ const injurySources = (c: Client): SourceRef[] =>
 
 type Rule = (c: Client, d: ClientData, now: Date, o: EngineOptions) => Candidate | null;
 
-// BRF-PAIN — the client wrote about pain in the last week and has not heard back since.
+// BRF-PAIN — the client wrote about pain in the last two weeks and has not heard back since.
+// The window is deliberately long: a pain mention nobody answered gets more urgent with age, not less.
 const pain: Rule = (c, d, now) => {
-  const since = now.getTime() - 7 * DAY_MS;
+  const since = now.getTime() - PAIN_WINDOW_DAYS * DAY_MS;
   const lastFromTrainer = [...d.messages].reverse().find((m) => !m.fromClient)?.createdAt.getTime() ?? 0;
   const found: { at: Date; snippet: string; where: string; source: SourceRef }[] = [];
 
@@ -285,7 +287,8 @@ const proposal: Rule = (c, d, now) => {
 const pr: Rule = (c, d, now, o) => {
   const recent = prEvents(d.workouts).filter((e) => now.getTime() - e.at.getTime() <= 1.5 * DAY_MS);
   if (recent.length === 0) return null;
-  const top = recent[recent.length - 1];
+  // Lead with a main lift when one of the records is on it; a row PR is not the headline next to a squat PR.
+  const top = [...recent].reverse().find((e) => liftKeyOf(e.lift)) ?? recent[recent.length - 1];
   const name = firstName(c);
   return {
     clientId: c.id, ruleId: 'BRF-PR', eventType: 'pr', severity: 'look', priority: 20,
@@ -362,7 +365,7 @@ export function planBriefing(data: PracticeData, o: EngineOptions): BriefingPlan
     items.push({
       ...lead,
       severity: rest.some((r) => r.severity === 'attention') ? 'attention' : lead.severity,
-      reasons: [...lead.reasons, ...rest.map((r) => `Also: ${r.headline.charAt(0).toLowerCase()}${r.headline.slice(1)}`)],
+      reasons: [...lead.reasons, ...rest.map((r) => `Also: ${r.headline}`)],
       sources: [...lead.sources, ...rest.flatMap((r) => r.sources).filter((s) => !seen.has(`${s.kind}:${s.id}`) && seen.add(`${s.kind}:${s.id}`))],
     });
   }

@@ -113,7 +113,7 @@ describe('briefing engine', () => {
     expect(item).toMatchObject({ ruleId: 'BRF-PAIN', eventType: 'painReported', severity: 'attention', primaryLabel: 'Send reply' });
     expect(item.headline).toBe('Maya mentioned pain');
     expect(item.reasons.some((r) => r.includes('Active injury on file: Left knee'))).toBe(true);
-    expect(item.reasons.some((r) => r.startsWith('Also:'))).toBe(true);
+    expect(item.reasons).toContain('Also: Maya is waiting on a reply');
     expect(item.sources.map((s) => s.kind)).toEqual(expect.arrayContaining(['message', 'intake']));
     expect(item.guardrail).toMatchObject({ checked: 1 });
     expect(item.draft.fallback).not.toMatch(/!/);
