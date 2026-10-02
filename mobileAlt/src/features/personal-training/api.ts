@@ -9,7 +9,8 @@ import { API_BASE, apiFetch, getToken } from '../../lib/api';
 const fetcher: Fetcher = async (path, init) => {
   try {
     // silent404: "not enabled for this account" is an expected answer, not a console error.
-    return await apiFetch(path, { ...init, silent404: true } as any);
+    // X-PT-Caps tells the API this build can draw the "Not joined" status.
+    return await apiFetch(path, { ...init, headers: { 'X-PT-Caps': 'not-joined' }, silent404: true } as any);
   } catch (err: any) {
     throw new PersonalTrainingApiError(err?.message ?? 'Request failed', typeof err?.status === 'number' ? err.status : 0);
   }
@@ -31,6 +32,7 @@ export async function streamEvents<T>(
     method: init.method ?? 'GET',
     headers: {
       Accept: 'text/event-stream',
+      'X-PT-Caps': 'not-joined',
       ...(init.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },

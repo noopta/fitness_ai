@@ -81,13 +81,18 @@ export function ClientScreen({ me, clientId }: { me: MeResponse; clientId: strin
       {data ? <ClientHeader client={data} /> : (
         <View style={styles.clientHeader} accessibilityState={{ busy: true }}><Skeleton width={220} height={56} /></View>
       )}
-      <View style={styles.actions}>
-        {/* "Message Maya", not "Message": the timeline below has a filter chip with that name. */}
-        <ActionButton variant="secondary" disabled={!data} onPress={() => setMessageOpen(true)}>{COPY.dossier.messageTitle(firstName)}</ActionButton>
-        <ActionButton variant="secondary" disabled={!data || request.isPending} onPress={() => { sendHaptic(); request.mutate([clientId]); }}>
-          {COPY.dossier.requestCheckIn}
-        </ActionButton>
-      </View>
+      {data?.status === 'notJoined' ? (
+        // Imported from a spreadsheet: there is no account to message. Inviting them is done on the web dashboard.
+        <View style={styles.feedback}><FeedbackText>{COPY.import.notJoinedBanner(firstName)}</FeedbackText></View>
+      ) : (
+        <View style={styles.actions}>
+          {/* "Message Maya", not "Message": the timeline below has a filter chip with that name. */}
+          <ActionButton variant="secondary" disabled={!data} onPress={() => setMessageOpen(true)}>{COPY.dossier.messageTitle(firstName)}</ActionButton>
+          <ActionButton variant="secondary" disabled={!data || request.isPending} onPress={() => { sendHaptic(); request.mutate([clientId]); }}>
+            {COPY.dossier.requestCheckIn}
+          </ActionButton>
+        </View>
+      )}
       {request.isSuccess && (
         <View style={styles.feedback}><FeedbackText>{request.data.requested === 0 ? COPY.dossier.checkInAlready : COPY.dossier.checkInRequested}</FeedbackText></View>
       )}

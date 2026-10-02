@@ -26,7 +26,7 @@ const TONE: Record<Tone, { soft: string; ink: string; dot: string }> = {
 };
 
 /** "Might need support" is amber — worth a look — not the red of an urgent item. */
-export const STATUS_TONE: Record<ClientStatus, Tone> = { support: 'amber', new: 'zinc', onPlan: 'green', paused: 'zinc' };
+export const STATUS_TONE: Record<ClientStatus, Tone> = { support: 'amber', new: 'zinc', onPlan: 'green', paused: 'zinc', notJoined: 'zinc' };
 
 /** 6px dot + 11/600 label on a soft fill. The label means status is never colour-only. */
 export function Pill({ tone, children }: { tone: Tone; children: string }) {
