@@ -110,8 +110,9 @@ function Canvas_({ mode, progress, working, focused }: Props) {
       const rr = pt.rad * s * br * k;
       const a1 = ang[i], a0 = a1 - 0.22 * Math.sign(pt.sp);
       const ct = Math.cos(pt.tilt), st = Math.sin(pt.tilt);
-      for (let j = 0; j <= 5; j++) {
-        const a = a0 + ((a1 - a0) * j) / 5;
+      // A 0.22 rad arc is under a point off its chord at these radii — two segments are enough.
+      for (let j = 0; j <= 2; j++) {
+        const a = a0 + ((a1 - a0) * j) / 2;
         const ex = Math.cos(a) * rr, ey = Math.sin(a) * rr * pt.fl;      // scale(1, fl)
         const x = cx.value + ex * ct - ey * st, y = cy.value + ex * st + ey * ct; // rotate(tilt) → translate
         d += (j === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';

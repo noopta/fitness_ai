@@ -14,6 +14,7 @@ import { AGENT_TOOLS, toolsFor } from './registry.js';
 import type { AgentTool, AgentTurnResult, AgentProposal, ToolCtx } from './types.js';
 import { receiptForCall, summarizeResult, cardForResult, type AgentCard, type ReceiptVerb } from './receipts.js';
 import type { Card } from './cards/types.js';
+import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
@@ -45,6 +46,7 @@ How changes work — the app enforces these, so follow them:
 - To change a profile field, read_coaching_profile first so you know the current value. Injuries go through update_injuries, medical answers through update_health_profile.
 - Exercise swaps: read_schedule_week first for the exact stored names and today's day label, then propose_exercise_swap (scope 'day' by default; 'program' only if they want it everywhere).
 - Preserve their GOAL — adjust around it, keep phase structure and progression intact. A goal change means a new program (propose_new_program), not an edit.
+- A user message may open with an <app_note> block. That is the app telling you which cards are on screen under your previous reply — the user did not type it. Use it to follow references ("make it 190", "apply that"), never repeat it, and never write card names in brackets, card codes or ids in a reply: the app places the cards, your reply is only the words.
 - Many tools aren't loaded up front. If you need one you don't see (recipes, friends, groups, notifications, diagnostics, form checks, streaks, billing…), search for it with the tool search tool before saying you can't.
 
 Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.`;
@@ -217,11 +219,11 @@ export async function runAgentTurn(
     messages.push({ role: 'assistant', content: res.content });
 
     if (res.stop_reason !== 'tool_use') {
-      const reply = res.content
+      const raw = res.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text)
-        .join('')
-        .trim();
+        .join('');
+      const reply = stripCardNotes(raw);
       if (!reply && res.stop_reason === 'max_tokens' && !truncationRetried) {
         truncationRetried = true;
         // The truncated turn may end in a partial tool_use with no paired
@@ -277,6 +279,11 @@ export async function runAgentTurn(
   };
 }
 
+/** Joins the text of each step of a turn into one reply. */
+function joinSteps(parts: string[]): string {
+  return parts.map((p) => p.trim()).filter(Boolean).join(' ');
+}
+
 // ─── Streaming variant ────────────────────────────────────────────────────────
 
 export type AgentStreamEvent =
@@ -330,6 +337,13 @@ export async function streamAgentTurn(
   const toolsUsed: string[] = [];
   let iterations = 0;
   let finalText = '';
+  // Text the model wrote before a tool call. It often starts its answer,
+  // calls one more tool, then carries on mid-sentence — so the reply is every
+  // step's text in order, not just the last step's.
+  const earlier: string[] = [];
+  // Card notes the model writes itself never reach the client (cardNotes.ts).
+  const notes = new CardNoteFilter();
+  const emitText = (t: string) => { if (t) onEvent({ type: 'delta', text: t }); };
   let proposal: AgentProposal | undefined;
   // Contract 1: the one legacy card (last relevant tool wins).
   let card: AgentCard | null = null;
@@ -359,14 +373,16 @@ export async function streamAgentTurn(
     onEvent({ type: 'status', phase: 'thinking' });
     const res = await createWithFallback(anthropic, {
       system, tools, messages,
-      onText: (delta: string) => { finalText += delta; onEvent({ type: 'delta', text: delta }); },
+      onText: (delta: string) => { finalText += delta; emitText(notes.push(delta)); },
     }, true);
+    emitText(notes.flush());
     messages.push({ role: 'assistant', content: res.content });
 
     if (res.stop_reason !== 'tool_use') {
-      const text = res.content
+      const last = res.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text).join('').trim() || finalText.trim();
+      const text = stripCardNotes(joinSteps([...earlier, last]));
       if (!text && res.stop_reason === 'max_tokens' && !truncationRetried) {
         truncationRetried = true;
         messages.pop(); // drop the truncated turn (may hold a partial tool_use)
@@ -380,7 +396,9 @@ export async function streamAgentTurn(
       return finish(text || "I lost my train of thought there — mind asking that again?");
     }
 
-    // Intermediate "thinking" text before a tool call isn't the final answer.
+    // Text before a tool call is kept: it is the start of the answer. The
+    // client has shown it already; a space keeps the next step from running on.
+    if (finalText.trim()) { earlier.push(finalText.trim()); emitText(' '); }
     finalText = '';
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
     for (const block of res.content) {

@@ -69,7 +69,7 @@ import { runAgentTurn } from '../agent/loop.js';
 import { assembleContext, renderContext } from '../agent/context.js';
 import { TOOLS_BY_NAME, AGENT_TOOLS } from '../agent/tools.js';
 import { readMemory, appendMemory } from '../agent/memory.js';
-import { loadConversation, appendTurn } from '../agent/conversation.js';
+import { loadConversation, loadTurn, appendTurn } from '../agent/conversation.js';
 import { evaluateProactiveTrigger } from '../agent/proactive.js';
 import { runProactiveSweep } from '../agent/proactiveSweep.js';
 import { runAgentTask, AGENT_TASKS } from '../agent/tasks.js';
@@ -332,6 +332,47 @@ describe('conversation persistence', () => {
       { role: 'user', content: 'how much protein left?' },
       { role: 'assistant', content: 'About 60g.' },
     ]);
+  });
+
+  it('keeps cards out of the reply text and tells the model in a note on the next user message', async () => {
+    let stored = '[]';
+    mocks.agentConversation.findUnique.mockImplementation(async () => ({ messagesJson: stored }));
+    mocks.agentConversation.upsert.mockImplementation(async ({ create, update }: any) => {
+      stored = update?.messagesJson ?? create?.messagesJson; return {};
+    });
+    const id = '3d4a31d6-3357-47ba-a1e2-086b53d98533';
+    await appendTurn(USER, 'cut my calories', 'Put up new targets.', [{ id, fn: 'NTP-02', pattern: 'proposal', what: 'Calories: 2,992 kcal → 2,500 kcal' }]);
+    expect(JSON.parse(stored)[1].text).toBe('Put up new targets.');
+
+    const turn = await loadTurn(USER, 'make it 2400');
+    expect(turn.history).toEqual([
+      { role: 'user', content: 'cut my calories' },
+      { role: 'assistant', content: 'Put up new targets.' },
+    ]);
+    expect(turn.message).toMatch(/^<app_note>[\s\S]*proposal: Calories: 2,992 kcal → 2,500 kcal[\s\S]*<\/app_note>\n\nmake it 2400$/);
+    // Nothing the model could copy back as a card tag.
+    expect(turn.message).not.toContain('[card');
+    expect(turn.message).not.toContain(id);
+
+    // Once the user has answered, the note sits on that user message.
+    await appendTurn(USER, 'make it 2400', 'Done — 2400 is up.');
+    const next = await loadConversation(USER);
+    expect(next[2].content).toMatch(/^<app_note>[\s\S]*<\/app_note>\n\nmake it 2400$/);
+    expect(next[3]).toEqual({ role: 'assistant', content: 'Done — 2400 is up.' });
+  });
+
+  it('reads transcripts stored with the old in-text card lines', async () => {
+    const real = '4f564cfc-fdd3-408c-9cb9-6f54dd1afdd2';
+    const stored = JSON.stringify([
+      { role: 'user', text: 'does today change?' },
+      // A line the model made up (id=pending), then the one the server appended.
+      { role: 'assistant', text: `Follow the card.\n[card WK-04 proposal id=pending: Move session]\n[card SCH-04 glance id=${real}: Today · Session · 62 min]` },
+    ]);
+    mocks.agentConversation.findUnique.mockResolvedValue({ messagesJson: stored });
+    const turn = await loadTurn(USER, 'ok');
+    expect(turn.history[1]).toEqual({ role: 'assistant', content: 'Follow the card.' });
+    expect(turn.message).toContain('glance: Today · Session · 62 min');
+    expect(turn.message).not.toContain('Move session');
   });
 
   it('trims to the most recent window', async () => {
@@ -732,6 +773,32 @@ describe('streamAgentTurn', () => {
     const events: any[] = [];
     await streamAgentTurn(USER, 'calories?', (e) => events.push(e), [], client);
     expect(events.some((e) => e.type === 'status' && e.phase === 'tool' && e.tool === 'read_nutrition_today')).toBe(true);
+  });
+
+  it('never sends a card note the model wrote, in the stream or the reply', async () => {
+    const note = '[card SCH-04 glance id=aa481a9e-0b5b-4f89-ae99-5751dc1522b4: Today · Session · 62 min]';
+    const full = `Just follow the loads on the card.\n${note}`;
+    const client = streamClient([
+      // The note arrives split across tokens, as it does from the API.
+      { deltas: ['Just follow the loads on the card.\n', '[ca', 'rd SCH-04 glance id=aa481a9e-0b5b-4f89-ae99-5751dc1522b4: Today', ' · Session · 62 min]'], final: { stop_reason: 'end_turn', content: [{ type: 'text', text: full }] } },
+    ]);
+    const events: any[] = [];
+    const res = await streamAgentTurn(USER, 'does today change?', (e) => events.push(e), [], client);
+    expect(res.reply).toBe('Just follow the loads on the card.');
+    expect(events.filter((e) => e.type === 'delta').map((e) => e.text).join('')).not.toContain('[card');
+    expect(events.find((e) => e.type === 'done').reply).toBe('Just follow the loads on the card.');
+  });
+
+  it('keeps the text written before a tool call as the start of the reply', async () => {
+    mocks.mealEntry.findMany.mockResolvedValue([]);
+    const client = streamClient([
+      { deltas: ['Your cut is set at'], final: { stop_reason: 'tool_use', content: [{ type: 'text', text: 'Your cut is set at' }, { type: 'tool_use', id: 't', name: 'read_nutrition_today', input: {} }] } },
+      { deltas: ['2500 cal.'], final: { stop_reason: 'end_turn', content: [{ type: 'text', text: '2500 cal.' }] } },
+    ]);
+    const events: any[] = [];
+    const res = await streamAgentTurn(USER, 'nutrition?', (e) => events.push(e), [], client);
+    expect(res.reply).toBe('Your cut is set at 2500 cal.');
+    expect(events.filter((e) => e.type === 'delta').map((e) => e.text).join('')).toBe('Your cut is set at 2500 cal.');
   });
 });
 

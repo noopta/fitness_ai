@@ -13,26 +13,12 @@ import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
 import { runAgentTurn, streamAgentTurn, type AgentStreamEvent } from '../agent/loop.js';
 import { applyProposedWeek, getCurrentWeekSchedule } from './coach.js';
 import { readMemory } from '../agent/memory.js';
-import { loadConversation, loadStoredMessages, appendTurn, clearConversation } from '../agent/conversation.js';
+import { loadTurn, loadStoredMessages, appendTurn, clearConversation } from '../agent/conversation.js';
+import { cardRef, splitStored } from '../agent/cardNotes.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
 import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
 import { applyProgramUpdate, applyExerciseSwap } from '../agent/applyTools.js';
-import type Anthropic from '@anthropic-ai/sdk';
-import type { Card } from '../agent/cards/types.js';
 import '../agent/toolkits/index.js';
-
-/**
- * The stored transcript is text only. Append one line per card so the next
- * turn knows what is on screen ("make it 190" refers to the proposal).
- */
-function withCardNotes(reply: string, cards?: Card[]): string {
-  if (!cards?.length) return reply;
-  const notes = cards.map((c) => {
-    const what = c.change ? `${c.change.key}: ${c.change.from} → ${c.change.to}` : (c.diff ?? []).map((d) => `${d.key}: ${d.from ?? ''} → ${d.to}`).join('; ') || c.meta?.label || c.fn;
-    return `[card ${c.fn} ${c.pattern} id=${c.id}: ${what}]`;
-  });
-  return `${reply}\n${notes.join('\n')}`;
-}
 
 const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
   'nightly_review', 'streak_at_risk', 'post_workout', 'wellness_flag', 'nutrition_gap',
@@ -84,12 +70,13 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     const userId = req.user!.id;
 
     if (resetConversation) await clearConversation(userId);
-    const history: Anthropic.MessageParam[] = await loadConversation(userId);
+    // `turn.message` leads with the note about the cards under the last reply.
+    const turn = await loadTurn(userId, message);
 
     // Same card contract as the stream: v2 clients get server cards here too
     // (this route is their fallback when SSE can't open).
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
-    const result = await runAgentTurn(userId, message, { history, cardContract });
+    const result = await runAgentTurn(userId, turn.message, { history: turn.history, cardContract });
 
     // Log what the agent did this turn — invaluable for diagnosing
     // "agent said done but nothing changed" bug reports. The toolsUsed
@@ -98,7 +85,7 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     console.log(`[agent] user=${userId.slice(0,8)} turn=${result.iterations} tools=${JSON.stringify(result.toolsUsed)} hasProposal=${!!result.proposal}`);
 
     // Persist the text transcript for next turn's continuity.
-    await appendTurn(userId, message, withCardNotes(result.reply, result.cards));
+    await appendTurn(userId, message, result.reply, (result.cards ?? []).map(cardRef));
 
     res.json(result);
   } catch (err: any) {
@@ -126,11 +113,10 @@ router.get('/coach/agent/status', requireAuth, (req, res) => {
 router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, res) => {
   try {
     const stored = await loadStoredMessages(req.user!.id);
-    // Card notes ("[card FN pattern id=…]") are for the model; the client gets
-    // the ids and fetches the cards (GET /coach/agent/cards?ids=).
+    // The client gets the card ids and fetches the cards (GET /coach/agent/cards?ids=).
     const messages = stored.map((m) => {
-      const cardIds = [...m.text.matchAll(/\[card \S+ \S+ id=([0-9a-f-]{36})[^\]]*\]/g)].map((x) => x[1]);
-      const content = m.text.replace(/\n?\[card \S+ \S+ id=[0-9a-f-]{36}[^\]]*\]/g, '').trim();
+      const { text: content, cards } = m.role === 'assistant' ? splitStored(m) : { text: m.text, cards: [] };
+      const cardIds = cards.map((c) => c.id);
       return { role: m.role, content, ...(cardIds.length ? { cardIds } : {}), ...(m.origin ? { origin: m.origin } : {}), ...(m.at ? { at: m.at } : {}) };
     });
     res.json({ messages, hasThread: messages.length > 0, source: 'agent' });
@@ -175,12 +161,12 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
 
   try {
     if (parsed.resetConversation) await clearConversation(userId);
-    const history = await loadConversation(userId);
+    const turn = await loadTurn(userId, parsed.message);
     // Contract 2 = agent-first cards (server ids, several per reply). Old
     // builds don't send the header and keep the single legacy card.
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
-    const result = await streamAgentTurn(userId, parsed.message, send, { history, cardContract });
-    await appendTurn(userId, parsed.message, withCardNotes(result.reply, result.cards));
+    const result = await streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract });
+    await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef));
   } catch (err: any) {
     console.error('[agent] stream failed:', err?.message ?? err);
     send({ type: 'error', error: err?.message ?? 'Agent error' });

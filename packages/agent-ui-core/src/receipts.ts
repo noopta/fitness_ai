@@ -109,6 +109,12 @@ const patchTurn = (s: ThreadState, id: string, fn: (t: Turn) => Turn): ThreadSta
   ...s, turns: s.turns.map((t) => (t.id === id ? fn(t) : t)),
 });
 
+/** Collapse open receipt lists. Turns that are already closed keep their identity, so they don't re-render. */
+const closeAll = (turns: Turn[]): Turn[] => turns.map((t) => (t.open ? { ...t, open: false } : t));
+
+/** The server strips its internal "[card …]" notes; this is the last line of defence. */
+export const stripCardTags = (text: string): string => text.replace(/\n?[ \t]*\[card [^\]\n]{0,600}\]/g, '').trim();
+
 export function threadReducer(s: ThreadState, a: ThreadAction): ThreadState {
   switch (a.type) {
     case 'send': {
@@ -116,14 +122,14 @@ export function threadReducer(s: ThreadState, a: ThreadAction): ThreadState {
       return {
         ...s, busy: true, busySince: now, error: null,
         turns: [
-          ...s.turns.map((t) => ({ ...t, open: false })),
+          ...closeAll(s.turns),
           { id: a.id, kind: 'user', text: a.text, receipts: [], done: true, at: now },
           { id: a.agentId, kind: 'agent', text: '', receipts: [], done: false, at: now },
         ],
       };
     }
     case 'append_agent':
-      return { ...s, turns: [...s.turns.map((t) => ({ ...t, open: false })), a.turn] };
+      return { ...s, turns: [...closeAll(s.turns), a.turn] };
     case 'event': {
       const e = a.event;
       switch (e.type) {
@@ -143,7 +149,7 @@ export function threadReducer(s: ThreadState, a: ThreadAction): ThreadState {
             ...t,
             // The done reply is authoritative — deltas may have been partial
             // or belonged to an intermediate (pre-tool) thought.
-            text: e.reply || t.text,
+            text: stripCardTags(e.reply || t.text),
             done: true,
             card: e.card ?? t.card ?? null,
             cardState: t.cardState ?? (e.card ? initialCardState(e.card) : undefined),

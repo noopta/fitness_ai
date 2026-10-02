@@ -11,6 +11,12 @@
 // 52 → 60 and its margin 112 → 40, the thread fills with opacity 0 → 1.
 // Suggestions live in the empty thread. The composer rides the keyboard at
 // 12 pt. Blur with an empty thread and no text returns to brief after 250 ms.
+//
+// Brief → chat is two beats, not one: the tap starts the morph at once and the
+// keyboard is asked for as it lands (KEYBOARD_AT). Bringing the keyboard up is
+// work on the UI thread — the same thread that runs the morph — so asking for
+// both on the tap made the morph stutter. In brief the composer is therefore a
+// button over a non-editable input; in chat it is the input.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
@@ -31,7 +37,7 @@ import { Ask } from '../primitives/Ask';
 import { headerClearance } from '../shell/Header';
 import { useShell } from '../shell/ShellContext';
 import { useBrief, useInvalidate } from '../data';
-import { useThread } from '../chat/useThread';
+import { useThread, type Thread } from '../chat/useThread';
 import { TurnCard } from '../chat/Cards';
 import { Orb } from '../home/Orb';
 import { HomeVideo } from '../home/HomeVideo';
@@ -47,6 +53,8 @@ let askSeq = 0;
 const settle = (delay: number) => FadeInDown.duration(500).delay(delay).easing(v2.motion.easeEnter).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] });
 const READ_LINE = 33; // the read's line height — its slot is reserved so a new read never moves the layout
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+/** When the keyboard is asked for after the tap: the morph is ~96 % of the way there and slowing. */
+const KEYBOARD_AT = Math.round(v2.motion.briefChat * 0.8);
 
 export function HomePage() {
   const insets = useSafeAreaInsets();
@@ -241,6 +249,17 @@ export function HomePage() {
       thread.dispatch({ type: 'append_agent', turn: { id: `ask${Date.now().toString(36)}${askSeq++}`, kind: 'agent', text: '', receipts: [{ id: 'r-ask', verb: 'Checked', text: 'Wellness — no check-in today' }], done: true, ask } });
     }
   };
+  // Tap on the composer in brief: morph first, keyboard as it lands.
+  const chatRef = useRef(chat);
+  chatRef.current = chat;
+  const focusTimer = useRef<any>(null);
+  const openChat = () => {
+    enterChat(); setBriefOpen(false);
+    clearTimeout(focusTimer.current);
+    focusTimer.current = setTimeout(() => { if (chatRef.current) inputRef.current?.focus(); }, KEYBOARD_AT);
+  };
+  useEffect(() => { if (!chat) clearTimeout(focusTimer.current); }, [chat]);
+  useEffect(() => () => clearTimeout(focusTimer.current), []);
   const send = async (m?: string) => {
     const msg = (m ?? text).trim(); if (!msg) return;
     enterChat(); setText('');
@@ -267,6 +286,12 @@ export function HomePage() {
     void coachApi.postCheckin({ sleepHours: hours, energy: hours < 6 ? 2 : hours < 7 ? 3 : 4, mood: hours < 6 ? 2 : 3, stress: hours < 6 ? 4 : 2 } as any).catch(() => {}).then(() => invalidate.afterSchedule());
     void thread.send(`I slept ${o.toLowerCase()} last night. Does today change?`);
   };
+  // Stable handlers so a turn re-renders only when the turn itself changes —
+  // not on every keystroke, streamed token or mode change.
+  const answerAskRef = useRef(answerAsk);
+  answerAskRef.current = answerAsk;
+  const onAskPick = useCallback((turn: Turn, o: string) => answerAskRef.current(turn, o), []);
+  const askInComposer = useCallback((m: string) => { setText(m); inputRef.current?.focus(); }, []);
   const onBlur = () => {
     setFocus(false);
     clearTimeout(blurTimer.current);
@@ -351,12 +376,7 @@ export function HomePage() {
                 return i === away.start ? <AwayRow key="away" count={away.count} onPress={() => setAwayOpen(true)} /> : null;
               }
               return (
-              <TurnView key={t.id} turn={t}
-                toggle={() => thread.dispatch({ type: 'toggle', id: t.id })}
-                patch={(pch) => thread.dispatch({ type: 'card_state', agentId: t.id, patch: pch })}
-                resolve={(line) => thread.dispatch({ type: 'resolve', agentId: t.id, resolution: line })}
-                ask={(m) => { setText(m); inputRef.current?.focus(); }}
-                onAsk={(o) => answerAsk(t, o)} />
+              <TurnView key={t.id} turn={t} dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />
               );
             })}
             </CardHandlersProvider>
@@ -391,6 +411,8 @@ export function HomePage() {
             ref={inputRef}
             value={text}
             onChangeText={setText}
+            // Brief: the row below takes the tap (morph first, keyboard after).
+            editable={chat}
             onFocus={() => { setFocus(true); enterChat(); setBriefOpen(false); }}
             onBlur={() => { setAnswering(false); onBlur(); }}
             onSubmitEditing={() => void send()}
@@ -406,6 +428,7 @@ export function HomePage() {
           <Pressable onPress={() => void send()} hitSlop={10} accessibilityLabel="Send" disabled={!text.trim() || busy}>
             <Text style={[styles.send, { color: text.trim() && !busy ? C.crimson : C.placeholder }]}>↑</Text>
           </Pressable>
+          {chat ? null : <Pressable style={StyleSheet.absoluteFill} onPress={openChat} accessibilityRole="button" accessibilityLabel="Ask Anakin" />}
         </Animated.View>
         )}
         </Animated.View>
@@ -414,7 +437,10 @@ export function HomePage() {
   );
 }
 
-function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; toggle: () => void; patch: (p: Record<string, any>) => void; resolve: (l: string) => void; ask: (m: string) => void; onAsk: (o: string) => void }) {
+const TurnView = React.memo(function TurnView({ turn, dispatch, ask, onAsk }: { turn: Turn; dispatch: Thread['dispatch']; ask: (m: string) => void; onAsk: (turn: Turn, o: string) => void }) {
+  const toggle = () => dispatch({ type: 'toggle', id: turn.id });
+  const patch = (pch: Record<string, any>) => dispatch({ type: 'card_state', agentId: turn.id, patch: pch });
+  const resolve = (line: string) => dispatch({ type: 'resolve', agentId: turn.id, resolution: line });
   if (turn.kind === 'user') {
     return <Enter exit={false}><Text style={[styles.userTurn]}>{turn.text}</Text></Enter>;
   }
@@ -431,7 +457,7 @@ function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; to
           </Pressable>
         ) : null}
         {showList && turn.receipts.length ? <View style={{ marginTop: 8 }}><ReceiptList items={turn.receipts} liveIndex={live} animate={streaming} /></View> : null}
-        {turn.ask && !turn.resolution ? <View style={{ marginTop: 12 }}><Ask question={turn.ask.question} reason={turn.ask.reason} options={turn.ask.options} size="read" onPick={(o) => onAsk(o)} /></View> : null}
+        {turn.ask && !turn.resolution ? <View style={{ marginTop: 12 }}><Ask question={turn.ask.question} reason={turn.ask.reason} options={turn.ask.options} size="read" onPick={(o) => onAsk(turn, o)} /></View> : null}
         {turn.text ? (
           <View style={{ marginTop: summary ? 10 : 0, flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <View style={{ flex: 1 }}><MarkdownText text={turn.text} style={styles.agentText} /></View>
@@ -447,7 +473,7 @@ function TurnView({ turn, toggle, patch, resolve, ask, onAsk }: { turn: Turn; to
       </View>
     </Enter>
   );
-}
+});
 
 export function dismissKeyboard() { Keyboard.dismiss(); }
 

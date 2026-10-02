@@ -7,6 +7,7 @@
 import { PrismaClient } from '@prisma/client';
 import { saveCard } from './cards/store.js';
 import { appendInitiated } from './conversation.js';
+import { cardRef } from './cardNotes.js';
 import { uiV2AvailableFor } from '../services/featureFlags.js';
 import type { CardDraft } from './cards/types.js';
 
@@ -19,8 +20,7 @@ export async function postInitiatedTurn(userId: string, turn: { text: string; ca
     if (!u || !uiV2AvailableFor(userId, u.email)) return false;
     const saved = [];
     for (const d of (turn.cards ?? []).slice(0, 3)) saved.push(await saveCard(userId, d));
-    const notes = saved.map((c) => `[card ${c.fn} ${c.pattern} id=${c.id}: ${c.meta?.label ?? c.fn}]`);
-    await appendInitiated(userId, [turn.text, ...notes].join('\n'));
+    await appendInitiated(userId, turn.text, saved.map(cardRef));
     return true;
   } catch (err: any) {
     console.error('[initiated] failed:', err?.message ?? err);

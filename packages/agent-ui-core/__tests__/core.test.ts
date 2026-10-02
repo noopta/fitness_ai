@@ -237,3 +237,20 @@ describe('onboarding reducer', () => {
     expect(goalHint('feel better')).toBe('general');
   });
 });
+
+describe('thread reducer — card tags and turn identity', () => {
+  it('removes a card tag from the final reply', () => {
+    let s = threadReducer(emptyThread(), { type: 'send', id: 'u1', agentId: 'a1', text: 'does today change?' });
+    s = threadReducer(s, { type: 'event', agentId: 'a1', event: { type: 'done', reply: 'Follow the card.\n[card SCH-04 glance id=aa481a9e-0b5b-4f89-ae99-5751dc1522b4: Today · Session · 62 min]', toolsUsed: [], iterations: 1 } });
+    expect(s.turns[1].text).toBe('Follow the card.');
+  });
+
+  it('keeps closed turns identical when a new message is sent', () => {
+    let s = threadReducer(emptyThread(), { type: 'send', id: 'u1', agentId: 'a1', text: 'hi' });
+    s = threadReducer(s, { type: 'event', agentId: 'a1', event: { type: 'done', reply: 'Hey.', toolsUsed: [], iterations: 1 } });
+    const before = s.turns;
+    s = threadReducer(s, { type: 'send', id: 'u2', agentId: 'a2', text: 'again' });
+    expect(s.turns[0]).toBe(before[0]);
+    expect(s.turns[1]).toBe(before[1]);
+  });
+});

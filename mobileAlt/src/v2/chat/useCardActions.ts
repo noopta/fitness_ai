@@ -6,7 +6,7 @@
 // actions (camera, share, purchase, settings…) run here and never touch the
 // server; each dismisses the keyboard first.
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Alert, Keyboard, Linking, Platform, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -174,5 +174,5 @@ export function useCardActions(thread: Thread) {
     if (card) void answer(card, { text: ids.join(',') }).catch(() => {});
   }), [answer]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { act, undo, edit, toggle, answer, open, runClient };
+  return useMemo(() => ({ act, undo, edit, toggle, answer, open, runClient }), [act, undo, edit, toggle, answer, open, runClient]);
 }
