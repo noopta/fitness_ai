@@ -243,3 +243,65 @@ describe('Login page — auth=error query param', () => {
     expect(window.history.replaceState).toHaveBeenCalledWith({}, '', '/login');
   });
 });
+
+// ─── Personal trainer sign-in (replaced the organization-slug sign-in) ────────
+
+import { resolvePostAuthRedirect } from '@/pages/login';
+
+describe('Login page — personal trainer sign-in', () => {
+  beforeEach(() => {
+    setupCleanURL();
+    vi.clearAllMocks();
+    window.sessionStorage.clear();
+  });
+
+  it('no longer asks for an organization slug', async () => {
+    render(<Login />);
+    expect(screen.queryByText(/organization/i)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /sign in as a personal trainer/i }));
+    expect(screen.queryByPlaceholderText(/state-university/i)).not.toBeInTheDocument();
+    expect(submitButton()).toHaveTextContent(/sign in to trainer dashboard/i);
+  });
+
+  it('lands a trainer on /personal-training, even a brand-new account headed for onboarding', async () => {
+    mockLogin.mockResolvedValueOnce(undefined);
+    mockRefreshUser.mockResolvedValueOnce({
+      user: { coachOnboardingDone: false },
+      features: { onboardingFormHook: false, diagnosticFirstOnboarding: true },
+    });
+    render(<Login />);
+    await userEvent.click(screen.getByRole('button', { name: /sign in as a personal trainer/i }));
+    await userEvent.type(screen.getByPlaceholderText(/you@example\.com/i), 'kofi@example.com');
+    await userEvent.type(screen.getByPlaceholderText(/••••••••/), 'password123');
+    await userEvent.click(submitButton());
+    await waitFor(() => expect(mockSetLocation).toHaveBeenCalledWith('/personal-training'));
+  });
+
+  it('remembers the trainer destination across the Google round trip', async () => {
+    render(<Login />);
+    await userEvent.click(screen.getByRole('button', { name: /sign in as a personal trainer/i }));
+    await userEvent.click(screen.getByRole('button', { name: /continue with google/i }));
+    expect(window.sessionStorage.getItem('liftoff_redirect')).toBe('/personal-training');
+    expect(mockGoogleLogin).toHaveBeenCalled();
+  });
+
+  it('does not touch the saved redirect for an ordinary Google sign-in', async () => {
+    render(<Login />);
+    await userEvent.click(screen.getByRole('button', { name: /continue with google/i }));
+    expect(window.sessionStorage.getItem('liftoff_redirect')).toBeNull();
+  });
+});
+
+describe('resolvePostAuthRedirect', () => {
+  it('sends new users to onboarding over an ordinary saved path', () => {
+    expect(resolvePostAuthRedirect('/onboarding', '/history')).toBe('/onboarding');
+    expect(resolvePostAuthRedirect('/coach', '/history')).toBe('/history');
+    expect(resolvePostAuthRedirect('/coach', null)).toBe('/coach');
+    expect(resolvePostAuthRedirect('/coach', '/login')).toBe('/coach');
+  });
+
+  it('lets trainer and invite paths through ahead of onboarding', () => {
+    expect(resolvePostAuthRedirect('/onboarding', '/personal-training')).toBe('/personal-training');
+    expect(resolvePostAuthRedirect('/onboarding', '/personal-training/join/tok-1')).toBe('/personal-training/join/tok-1');
+  });
+});

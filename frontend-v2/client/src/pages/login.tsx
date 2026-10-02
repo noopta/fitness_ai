@@ -12,6 +12,21 @@ import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
+import { COPY as PT_COPY } from '@axiom/personal-training-core';
+
+const TRAINER_HOME = '/personal-training';
+
+/**
+ * Where to send a user who just authenticated. A new user normally cold-starts
+ * in onboarding whatever path they came from — except when they were headed
+ * to the personal-training dashboard or a trainer's invite link, which must
+ * not be swallowed by the athlete intake.
+ */
+export function resolvePostAuthRedirect(dest: string, saved: string | null): string {
+  const usable = saved && saved !== '/login' && saved !== '/register' ? saved : null;
+  if (usable?.startsWith(TRAINER_HOME)) return usable;
+  return dest === '/onboarding' ? dest : usable ?? dest;
+}
 
 export default function Login() {
   const { login, googleLogin, refreshUser, user, features, loading } = useAuth();
@@ -20,8 +35,9 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [oauthPending, setOauthPending] = useState(false);
-  const [orgMode, setOrgMode] = useState(false);
-  const [orgSlug, setOrgSlug] = useState('');
+  // Personal trainers sign in with the same account system; the toggle only
+  // changes where they land. (This replaced the old organization-slug sign-in.)
+  const [trainerMode, setTrainerMode] = useState(false);
   const redirected = useRef(false); // prevent double-redirect from handleLogin + useEffect
 
   // Handle ?auth=success from Google OAuth redirect (including after Gmail verification)
@@ -59,9 +75,7 @@ export default function Login() {
           const dest = postAuthDestination(refreshed.user, refreshed.features);
           // A new user under diagnostic-first cold-starts in the diagnostic
           // flow regardless of any saved path; returning users keep theirs.
-          const redirect = dest === '/onboarding'
-            ? dest
-            : (saved && saved !== '/login' && saved !== '/register') ? saved : dest;
+          const redirect = resolvePostAuthRedirect(dest, saved);
           sessionStorage.removeItem('liftoff_redirect');
           setLocation(redirect);
           return;
@@ -84,9 +98,7 @@ export default function Login() {
       redirected.current = true;
       const saved = sessionStorage.getItem('liftoff_redirect');
       const dest = postAuthDestination(user, features ?? DEFAULT_FEATURES);
-      const redirect = dest === '/onboarding'
-        ? dest
-        : (saved && saved !== '/login' && saved !== '/register') ? saved : dest;
+      const redirect = resolvePostAuthRedirect(dest, saved);
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     }
@@ -112,13 +124,7 @@ export default function Login() {
       const refreshed = await Promise.resolve(refreshUser()).catch(() => null);
       const dest = postAuthDestination(refreshed?.user ?? null, refreshed?.features ?? DEFAULT_FEATURES);
       const saved = sessionStorage.getItem('liftoff_redirect');
-      // If org mode, redirect to institution page after login
-      let redirect = dest === '/onboarding'
-        ? dest
-        : (saved && saved !== '/login' && saved !== '/register') ? saved : dest;
-      if (orgMode && orgSlug.trim()) {
-        redirect = `/institution/${orgSlug.trim()}`;
-      }
+      const redirect = trainerMode ? TRAINER_HOME : resolvePostAuthRedirect(dest, saved);
       sessionStorage.removeItem('liftoff_redirect');
       setLocation(redirect);
     } catch (err: any) {
@@ -168,7 +174,12 @@ export default function Login() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={googleLogin}
+            onClick={() => {
+              // The OAuth round trip loses component state; the saved path is
+              // what brings a trainer back to their dashboard.
+              if (trainerMode) sessionStorage.setItem('liftoff_redirect', TRAINER_HOME);
+              googleLogin();
+            }}
             type="button"
           >
             <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
@@ -190,17 +201,8 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {orgMode && (
-              <div className="space-y-2">
-                <Label>Organization slug</Label>
-                <Input
-                  placeholder="e.g. state-university"
-                  value={orgSlug}
-                  onChange={e => setOrgSlug(e.target.value)}
-                  required={orgMode}
-                />
-                <p className="text-xs text-muted-foreground">Enter your organization's slug, then sign in with your credentials.</p>
-              </div>
+            {trainerMode && (
+              <p className="text-sm text-muted-foreground">{PT_COPY.login.subtitle}</p>
             )}
             <div className="space-y-2">
               <Label>Email</Label>
@@ -223,7 +225,7 @@ export default function Login() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? 'Signing in...' : orgMode ? 'Sign in to organization' : 'Sign in'}
+              {submitting ? 'Signing in...' : trainerMode ? PT_COPY.login.submit : 'Sign in'}
             </Button>
           </form>
 
@@ -232,7 +234,7 @@ export default function Login() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Organization</span>
+              <span className="bg-card px-2 text-muted-foreground">{PT_COPY.login.divider}</span>
             </div>
           </div>
 
@@ -240,9 +242,10 @@ export default function Login() {
             variant="outline"
             className="w-full"
             type="button"
-            onClick={() => { setOrgMode(v => !v); setOrgSlug(''); }}
+            aria-pressed={trainerMode}
+            onClick={() => setTrainerMode(v => !v)}
           >
-            {orgMode ? 'Cancel organization sign-in' : 'Sign in with organization'}
+            {trainerMode ? PT_COPY.login.cancel : PT_COPY.login.toggle}
           </Button>
         </Card>
       </motion.div>

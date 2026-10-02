@@ -29,6 +29,8 @@ export default defineConfig({
       "@shared": path.resolve(import.meta.dirname, "shared"),
       // Shared diagnostic core (stage machine, policy, copy) — also consumed by mobileAlt.
       "@axiom/diagnostic-core": path.resolve(import.meta.dirname, "..", "packages", "diagnostic-core", "src"),
+      // Shared personal-training dashboard core (contract types, client, copy) — also consumed by mobileAlt.
+      "@axiom/personal-training-core": path.resolve(import.meta.dirname, "..", "packages", "personal-training-core", "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "attached_assets"),
     },
   },

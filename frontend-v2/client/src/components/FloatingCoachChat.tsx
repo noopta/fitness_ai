@@ -7,8 +7,10 @@ import { useAuth } from '@/context/AuthContext';
 import { streamCoachChat } from '@/lib/api';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
 
-// Pages where the widget should be hidden (auth flow only)
-const HIDDEN_PATHS = ['/login', '/register'];
+// Pages where the widget should be hidden: the auth flow, and the
+// personal-training dashboard — there the signed-in user is a human trainer
+// looking at clients, and a "Coach" button would open their own AI coach.
+const HIDDEN_PATHS = ['/login', '/register', '/personal-training'];
 
 interface Message {
   role: 'user' | 'assistant';

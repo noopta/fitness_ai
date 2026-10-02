@@ -23,6 +23,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'client/src'),
       '@shared': path.resolve(__dirname, 'shared'),
       '@axiom/diagnostic-core': path.resolve(__dirname, '..', 'packages', 'diagnostic-core', 'src'),
+      '@axiom/personal-training-core': path.resolve(__dirname, '..', 'packages', 'personal-training-core', 'src'),
     },
   },
 });

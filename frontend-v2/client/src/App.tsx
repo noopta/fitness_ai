@@ -45,6 +45,9 @@ import InstitutionJoinPage from "./pages/institution-join";
 import InstitutionAthletePage from "./pages/institution-athlete";
 import InstitutionCoachPage from "./pages/institution-coach";
 import InstitutionAthleteDetailPage from "./pages/institution-athlete-detail";
+import PersonalTrainingRosterPage from "./features/personal-training/pages/RosterPage";
+import PersonalTrainingTimelinePage from "./features/personal-training/pages/TimelinePage";
+import PersonalTrainingJoinPage from "./features/personal-training/pages/JoinPage";
 import NavDemoPage from "./pages/nav-demo";
 import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
@@ -160,6 +163,10 @@ const ProtectedInstitutionJoin        = () => <ProtectedRoute component={Institu
 const ProtectedInstitutionAthlete     = () => <ProtectedRoute component={InstitutionAthletePage} />;
 const ProtectedInstitutionCoach       = () => <ProtectedRoute component={InstitutionCoachPage} />;
 const ProtectedInstitutionAthleteDetail = () => <ProtectedRoute component={InstitutionAthleteDetailPage} />;
+// Human-trainer dashboard. Deliberately not under /coach, which is the AI coach.
+const ProtectedPersonalTrainingRoster   = () => <ProtectedRoute component={PersonalTrainingRosterPage} />;
+const ProtectedPersonalTrainingTimeline = () => <ProtectedRoute component={PersonalTrainingTimelinePage} />;
+const ProtectedPersonalTrainingJoin     = () => <ProtectedRoute component={PersonalTrainingJoinPage} />;
 const ProtectedProfile                  = () => <ProtectedRoute component={ProfilePage} />;
 
 // Tracks page views on every Wouter route change and syncs PostHog identity
@@ -219,6 +226,10 @@ function Router() {
       <Route path="/friends" component={ProtectedFriends} />
       <Route path="/messages" component={ProtectedMessages} />
       <Route path="/social" component={ProtectedSocialFeed} />
+      <Route path="/personal-training/join/:token" component={ProtectedPersonalTrainingJoin} />
+      <Route path="/personal-training/clients/:id/timeline" component={ProtectedPersonalTrainingTimeline} />
+      <Route path="/personal-training/clients" component={ProtectedPersonalTrainingRoster} />
+      <Route path="/personal-training" component={ProtectedPersonalTrainingRoster} />
       <Route path="/institution/join/:token" component={ProtectedInstitutionJoin} />
       <Route path="/institution/:slug/coach" component={ProtectedInstitutionCoach} />
       <Route path="/institution/:slug/athlete/:userId" component={ProtectedInstitutionAthleteDetail} />

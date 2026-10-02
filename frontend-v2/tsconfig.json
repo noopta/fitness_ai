@@ -1,5 +1,5 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "../packages/diagnostic-core/src/**/*"],
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "../packages/diagnostic-core/src/**/*", "../packages/personal-training-core/src/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "../packages/diagnostic-core/src/__tests__"],
   "compilerOptions": {
     "incremental": true,
@@ -18,7 +18,8 @@
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"],
-      "@axiom/diagnostic-core": ["../packages/diagnostic-core/src/index.ts"]
+      "@axiom/diagnostic-core": ["../packages/diagnostic-core/src/index.ts"],
+      "@axiom/personal-training-core": ["../packages/personal-training-core/src/index.ts"]
     }
   }
 }

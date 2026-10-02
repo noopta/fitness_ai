@@ -43,6 +43,26 @@
 
   --spacing: 0.25rem;
   --radius: 0.85rem;
+
+  /* Personal-training dashboard tokens (design handoff §4). Feature code
+     uses these names — bg-axiom-zinc-50, text-axiom-warning-ink — and never
+     a hex value. Red/amber/green are status only: dots, pills, sparklines. */
+  --color-axiom-zinc-50: var(--axiom-zinc-50);
+  --color-axiom-zinc-100: var(--axiom-zinc-100);
+  --color-axiom-zinc-200: var(--axiom-zinc-200);
+  --color-axiom-zinc-400: var(--axiom-zinc-400);
+  --color-axiom-zinc-500: var(--axiom-zinc-500);
+  --color-axiom-zinc-600: var(--axiom-zinc-600);
+  --color-axiom-border-strong: var(--axiom-border-strong);
+  --color-axiom-destructive: var(--axiom-destructive);
+  --color-axiom-destructive-soft: var(--axiom-destructive-soft);
+  --color-axiom-destructive-ink: var(--axiom-destructive-ink);
+  --color-axiom-warning: var(--axiom-warning);
+  --color-axiom-warning-soft: var(--axiom-warning-soft);
+  --color-axiom-warning-ink: var(--axiom-warning-ink);
+  --color-axiom-success: var(--axiom-success);
+  --color-axiom-success-soft: var(--axiom-success-soft);
+  --color-axiom-success-ink: var(--axiom-success-ink);
 }
 
 :root {
@@ -73,6 +93,23 @@
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
   --ring: 240 10% 3.9%;
+
+  --axiom-zinc-50: #fafafa;
+  --axiom-zinc-100: #f4f4f5;
+  --axiom-zinc-200: #e4e4e7;
+  --axiom-zinc-400: #a1a1aa;
+  --axiom-zinc-500: #71717a;
+  --axiom-zinc-600: #52525b;
+  --axiom-border-strong: #d4d4d8;
+  --axiom-destructive: #ef4444;
+  --axiom-destructive-soft: #fee2e2;
+  --axiom-destructive-ink: #dc2626;
+  --axiom-warning: #f59e0b;
+  --axiom-warning-soft: #fef3c7;
+  --axiom-warning-ink: #b45309;
+  --axiom-success: #22c55e;
+  --axiom-success-soft: #dcfce7;
+  --axiom-success-ink: #15803d;
 
   --elevate-1: rgba(2, 6, 23, 0.03);
   --elevate-2: rgba(2, 6, 23, 0.06);
@@ -230,4 +267,10 @@
 @media (prefers-reduced-motion: reduce) {
   .dx-bubble-in, .dx-card-in, .dx-fade-in, .dx-sheet-in { animation: none; }
   .dx-dot { animation: none; opacity: 0.6; }
+}
+
+/* Personal-training dashboard: skeleton pulse (handoff §7 — opacity 1 ↔ .45). */
+@keyframes pt-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
 }

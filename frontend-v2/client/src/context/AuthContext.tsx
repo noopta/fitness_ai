@@ -43,12 +43,15 @@ export interface AuthFeatures {
   diagnosticFirstOnboarding: boolean;
   /** Conversational lift diagnostic rollout; off = the 4-screen wizard. */
   liftDiagnosticConversation: boolean;
+  /** Personal-training (human trainer) dashboard at /personal-training. */
+  personalTraining: boolean;
 }
 
 export const DEFAULT_FEATURES: AuthFeatures = {
   onboardingFormHook: false,
   diagnosticFirstOnboarding: false,
   liftDiagnosticConversation: false,
+  personalTraining: false,
 };
 
 function normalizeFeatures(raw: any): AuthFeatures {
@@ -56,6 +59,7 @@ function normalizeFeatures(raw: any): AuthFeatures {
     onboardingFormHook: raw?.onboardingFormHook === true,
     diagnosticFirstOnboarding: raw?.diagnosticFirstOnboarding === true,
     liftDiagnosticConversation: raw?.liftDiagnosticConversation === true,
+    personalTraining: raw?.personalTraining === true,
   };
 }
 
