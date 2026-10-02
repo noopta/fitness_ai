@@ -239,7 +239,7 @@ function Router() {
       <Route path="/messages" component={ProtectedMessages} />
       <Route path="/social" component={ProtectedSocialFeed} />
       <Route path="/personal-training/join/:token" component={ProtectedPersonalTrainingJoin} />
-      <Route path="/personal-training/clients/:id/timeline" component={ProtectedPersonalTrainingTimeline} />
+      <Route path="/personal-training/clients/:id/:tab" component={ProtectedPersonalTrainingTimeline} />
       <Route path="/personal-training/clients" component={ProtectedPersonalTrainingRoster} />
       <Route path="/personal-training/check-in/:id" component={ProtectedPersonalTrainingCheckInAnswer} />
       <Route path="/personal-training/check-ins" component={ProtectedPersonalTrainingCheckIns} />

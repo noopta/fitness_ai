@@ -355,8 +355,14 @@ export type AnakinEvent =
       note?: string;
       sources: string;
       followUps: string[];
-      /** False when the question was not understood; nothing to filter or schedule. */
+      /** False when there is nothing to filter: small talk, or a question about one client. */
       actionable: boolean;
+      /**
+       * The roster query behind this answer, as a question with a fixed meaning.
+       * Present only when the answer came from one; it is what "Run every
+       * morning" schedules, rather than whatever the trainer happened to type.
+       */
+      scheduleText?: string;
     }
   | { type: 'drafts'; text: string; drafts: (Draft & { client: ClientRef })[] }
   | { type: 'error'; message: string }
@@ -448,4 +454,43 @@ export interface NotificationFeed {
   unread: number;
   heldForBriefing: number;
   recordedQuietly: number;
+}
+
+// ─── Client dossier: overview, program, notes (§6.3) ─────────────────────────
+
+export interface ClientOverview {
+  /** One paragraph built from the facts below it; never free-form. */
+  summary: { text: string; updatedAt: string; evidence: Evidence };
+  /** Key stats, each with its change over the last six weeks where known. */
+  stats: { label: string; value: string; delta?: string; tone?: Tone }[];
+  block: ClientProgram | null;
+  /** What is waiting on the trainer for this client, strongest first. */
+  openItems: { id: string; headline: string; detail: string; severity: Severity }[];
+  recentPrs: { lift: string; value: string; date: string }[];
+}
+
+export interface ProgramDayView {
+  day: string;
+  focus: string;
+  exercises: { name: string; scheme: string; target?: string; notes?: string }[];
+}
+
+export interface ClientProgramView {
+  goal: string;
+  daysPerWeek: number;
+  totalWeeks: number;
+  currentWeek: number;
+  startedAt: string | null;
+  phases: { name: string; weeksLabel: string; rationale: string; current: boolean; days: ProgramDayView[] }[];
+  /** Changes Axiom has proposed that the client has not answered yet. */
+  pending: { id: string; title: string; reasoning: string; proposedAt: string }[];
+}
+
+/** A trainer's private note on a client. Never shown to the client. */
+export interface ClientNote {
+  id: string;
+  body: string;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
 }

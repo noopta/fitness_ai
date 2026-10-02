@@ -21,6 +21,7 @@ const api = vi.hoisted(() => {
     'sendRoutineReplies', 'markCheckInRead', 'schedules', 'saveSchedule', 'deleteSchedule', 'checkInRequest', 'submitCheckIn', 'progress',
     'report', 'patchReport', 'sendReport', 'undoReport', 'anakinThreads', 'anakinThread', 'anakinFilter', 'addScheduled', 'setScheduled',
     'removeScheduled', 'notifications', 'markNotificationsRead', 'notificationSettings', 'saveNotificationSettings', 'invite',
+    'client', 'timeline', 'overview', 'program', 'notes', 'addNote', 'updateNote', 'deleteNote', 'messageClient',
   ] as const;
   return Object.fromEntries(names.map((n) => [n, vi.fn()])) as Record<(typeof names)[number], ReturnType<typeof vi.fn>>;
 });
@@ -34,6 +35,7 @@ import CheckInAnswerPage from '@/features/personal-training/pages/CheckInAnswerP
 import ProgressPage from '@/features/personal-training/pages/ProgressPage';
 import NotificationSettingsPage from '@/features/personal-training/pages/NotificationSettingsPage';
 import RosterPage from '@/features/personal-training/pages/RosterPage';
+import TimelinePage from '@/features/personal-training/pages/TimelinePage';
 
 const ME = { trainer: { id: 't1', name: 'Kofi Mensah', initials: 'KM' }, practice: { id: 'p1', name: 'Kofi Coaching', slug: 'pt-kofi', logoUrl: null } };
 const future = () => new Date(Date.now() + 60_000).toISOString();
@@ -353,5 +355,96 @@ describe('notification bell', () => {
     expect(await screen.findByText('Maya Okafor reported pain')).toBeInTheDocument();
     expect(screen.getByText("3 updates held for tomorrow's briefing")).toBeInTheDocument();
     expect(screen.getByText('12 logs recorded quietly')).toBeInTheDocument();
+  });
+});
+
+describe('client dossier tabs', () => {
+  const maya: Client = {
+    id: 'c1', name: 'Maya Okafor', initials: 'MO', email: null, status: 'support', statusReason: 'No session logged in 9 days', channel: 'app',
+    program: { blockLabel: 'Strength', week: 6, weeks: 12, goal: 'Squat 100 kg' }, sessionsPerWeek: 4,
+    engagement8w: [8, 8, 8, 8, 8, 8, 4, 0], engagementTrend: 'falling', joinedAt: '2026-06-01T00:00:00.000Z', contraindications: [{ label: 'Left knee', active: true }],
+  };
+  beforeEach(() => {
+    api.client.mockResolvedValue({ client: maya });
+    api.timeline.mockResolvedValue({ events: [], nextCursor: null });
+  });
+
+  it('every tab is a working tab, and the URL decides which is open', async () => {
+    api.overview.mockResolvedValue({
+      summary: { text: 'Maya is in week 6 of 12 of Strength. Squat has stalled.', updatedAt: new Date().toISOString(), evidence: { reasons: ['Saved program: Strength, week 6 of 12'], sources: [{ kind: 'program', id: 'c1', label: 'Saved program' }] } },
+      stats: [{ label: 'Squat est. 1RM', value: '117 kg', delta: '0 kg', tone: 'amber' }, { label: '4-week adherence', value: '60%', delta: '10 of 16 sessions' }],
+      block: maya.program, openItems: [{ id: 'BRF-PAIN', headline: 'Maya mentioned pain', detail: 'In a message.', severity: 'attention' }], recentPrs: [],
+    });
+    renderAt('/personal-training/clients/c1/overview', <TimelinePage />);
+    const tabs = await screen.findAllByRole('tab');
+    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Timeline', 'Program', 'Notes']);
+    for (const t of tabs) expect(t).toBeEnabled();
+    expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByText('Maya is in week 6 of 12 of Strength. Squat has stalled.')).toBeInTheDocument();
+    expect(screen.getByText('117 kg')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Week 6 of 12' })).toBeInTheDocument();
+    expect(screen.getByText('Maya mentioned pain')).toBeInTheDocument();
+    expect(api.timeline).not.toHaveBeenCalled();
+  });
+
+  it('shows the program read-only with the current phase named', async () => {
+    api.program.mockResolvedValue({ program: {
+      goal: 'Squat 100 kg', daysPerWeek: 4, totalWeeks: 12, currentWeek: 6, startedAt: '2026-08-20T00:00:00.000Z',
+      phases: [
+        { name: 'Foundation', weeksLabel: 'Weeks 1 to 4', rationale: '', current: false, days: [] },
+        { name: 'Strength', weeksLabel: 'Weeks 5 to 8', rationale: 'Heavier triples', current: true, days: [{ day: 'Monday', focus: 'Lower', exercises: [{ name: 'Back squat', scheme: '5×3 · RPE 8', target: '100 kg' }] }] },
+      ],
+      pending: [{ id: 'p1', title: 'Hold back squat load this week', reasoning: 'RPE climbed', proposedAt: new Date().toISOString() }],
+    } });
+    renderAt('/personal-training/clients/c1/program', <TimelinePage />);
+    expect(await screen.findByText('Week 6 of 12 · 4 days a week · started 20 Aug')).toBeInTheDocument();
+    expect(screen.getByText('Current phase')).toBeInTheDocument();
+    expect(screen.getByText('Back squat')).toBeInTheDocument();
+    expect(screen.getByText('5×3 · RPE 8 · 100 kg')).toBeInTheDocument();
+    expect(screen.getByText('Hold back squat load this week')).toBeInTheDocument();
+    expect(screen.getByText(/Programs are edited by the client/)).toBeInTheDocument();
+  });
+
+  it('says so when there is no program', async () => {
+    api.program.mockResolvedValue({ program: null });
+    renderAt('/personal-training/clients/c1/program', <TimelinePage />);
+    expect(await screen.findByText('This client has no program yet.')).toBeInTheDocument();
+  });
+
+  it('adds a private note', async () => {
+    api.notes.mockResolvedValue({ notes: [{ id: 'n1', body: 'Prefers mornings.', authorName: 'Kofi Mensah', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }] });
+    api.addNote.mockResolvedValue({ note: {} });
+    renderAt('/personal-training/clients/c1/notes', <TimelinePage />);
+    expect(await screen.findByText('Prefers mornings.')).toBeInTheDocument();
+    expect(screen.getByText('Private to your practice. Clients never see these.')).toBeInTheDocument();
+    const add = screen.getByRole('button', { name: 'Add note' });
+    expect(add).toBeDisabled();
+    await userEvent.type(screen.getByRole('textbox', { name: 'Add note' }), 'Travelling next week');
+    await userEvent.click(add);
+    await waitFor(() => expect(api.addNote).toHaveBeenCalledWith('c1', 'Travelling next week'));
+  });
+
+  it('messages the client only on Send, then offers undo that restores the text', async () => {
+    api.messageClient.mockResolvedValue({ draft: { id: 'd1', clientId: 'c1', text: 'How did Thursday go?', channel: 'app', status: 'sending', undoUntil: future() } });
+    api.undoDraft.mockResolvedValue({ draft: { id: 'd1', clientId: 'c1', text: 'How did Thursday go?', channel: 'app', status: 'pending' } });
+    renderAt('/personal-training/clients/c1/timeline', <TimelinePage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Message Maya' }));
+    const send = await screen.findByRole('button', { name: 'Send message' });
+    expect(send).toBeDisabled();
+    await userEvent.type(screen.getByRole('textbox', { name: 'Write a message' }), 'How did Thursday go?');
+    expect(api.messageClient).not.toHaveBeenCalled();
+    await userEvent.click(send);
+    await waitFor(() => expect(api.messageClient).toHaveBeenCalledWith('c1', 'How did Thursday go?'));
+    await userEvent.click(await screen.findByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(api.undoDraft).toHaveBeenCalledWith('d1'));
+    expect(await screen.findByRole('textbox', { name: 'Write a message' })).toHaveValue('How did Thursday go?');
+  });
+
+  it('requests a check-in from the header and reports when one is already waiting', async () => {
+    api.requestCheckIns.mockResolvedValue({ requested: 0 });
+    renderAt('/personal-training/clients/c1/timeline', <TimelinePage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Request check-in' }));
+    expect(api.requestCheckIns).toHaveBeenCalledWith(['c1']);
+    expect(await screen.findByText('They already have a check-in waiting.')).toBeInTheDocument();
   });
 });

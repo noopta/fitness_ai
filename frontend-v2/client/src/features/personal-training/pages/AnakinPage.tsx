@@ -43,7 +43,8 @@ function AnswerView({ event, question, threadId, scope, onAsk }: { event: Answer
   const { add } = useScheduledActions();
   return (
     <div>
-      <p className="text-[15px] leading-relaxed">{event.text}</p>
+      {/* A conversational reply can run to more than one paragraph. */}
+      <p className="whitespace-pre-line text-[15px] leading-relaxed">{event.text}</p>
       {event.rows.length > 0 && (
         <ul className="mt-3 divide-y divide-border rounded-2xl border border-border">
           {event.rows.map((r) => (
@@ -61,16 +62,21 @@ function AnswerView({ event, question, threadId, scope, onAsk }: { event: Answer
         </ul>
       )}
       {event.note && <p className="mt-3 rounded-xl bg-axiom-zinc-50 px-3 py-2 text-xs leading-relaxed text-axiom-zinc-600">{event.note}</p>}
-      {event.actionable && (
+      {/* A filter and a schedule exist only for a roster query — not for small talk or one client's file. */}
+      {(event.actionable || event.sources) && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {event.rows.length > 0 && threadId && (
+          {event.actionable && event.rows.length > 0 && threadId && (
             <Button asChild variant="secondary" className="h-9 rounded-xl text-[13px]">
               <Link href={`/personal-training/clients?anakin=${threadId}:${event.messageId}`}>{COPY.anakin.applyFilter}</Link>
             </Button>
           )}
-          <Button variant="secondary" className="h-9 rounded-xl text-[13px]" disabled={add.isPending || add.isSuccess} onClick={() => add.mutate({ text: question, scope })}>
-            {add.isSuccess ? COPY.anakin.scheduledDone : COPY.anakin.runEveryMorning}
-          </Button>
+          {event.scheduleText && (
+            // Schedules the query itself, not whatever was typed, so it keeps one meaning every morning.
+            // Absent when the answer drew on several queries: there is no single question to re-run.
+            <Button variant="secondary" className="h-9 rounded-xl text-[13px]" disabled={add.isPending || add.isSuccess} onClick={() => add.mutate({ text: event.scheduleText ?? question, scope })}>
+              {add.isSuccess ? COPY.anakin.scheduledDone : COPY.anakin.runEveryMorning}
+            </Button>
+          )}
           {event.sources && <span className="text-xs text-axiom-zinc-500">{COPY.anakin.basedOn(event.sources)}</span>}
         </div>
       )}
@@ -97,7 +103,7 @@ function AssistantTurn({ turn, threadId, scope, onAsk, onClarify }: { turn: Turn
         {turn.pending && !e && (
           <p className="flex items-center gap-2 text-sm text-axiom-zinc-600">
             <span aria-hidden className="size-2 rounded-full bg-foreground motion-safe:animate-[pt-pulse_1.4s_ease-in-out_infinite]" />
-            {turn.status || 'Thinking'}
+            {turn.status || COPY.anakin.thinking}
           </p>
         )}
         {e?.type === 'answer' && <AnswerView event={e} question={turn.question ?? ''} threadId={threadId} scope={scope} onAsk={onAsk} />}

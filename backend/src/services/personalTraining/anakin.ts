@@ -66,6 +66,29 @@ const DEFAULT_DAYS: Partial<Record<Intent, number>> = { inactive: 7, pain: 14, p
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+/**
+ * A roster query written as a question that parseQuestion reads back to the
+ * same query. This is what "Run every morning" stores, so a scheduled
+ * question keeps a fixed meaning however the trainer first phrased it.
+ */
+export function canonicalQuestion(p: Parsed): string {
+  const days = p.days ?? DEFAULT_DAYS[p.intent] ?? 7;
+  switch (p.intent) {
+    case 'plateau': return p.lift ? `Who is on a plateau on ${LIFT_LABEL[p.lift].toLowerCase()}?` : 'Who is on a plateau?';
+    case 'inactive': return `Who has not trained in the last ${days} days?`;
+    case 'engagement': return 'Whose engagement is falling?';
+    case 'injuries': return 'Who has an active injury on file?';
+    case 'pain': return `Who mentioned pain in the last ${days} days?`;
+    case 'prs': return `Who set a PR in the last ${days} days?`;
+    case 'recovery': return `Who reported poor recovery in the last ${days} days?`;
+    case 'checkins': return `Which check-ins need me from the last ${days} days?`;
+    case 'programEnding': return 'Whose program is ending soon?';
+    case 'noProgram': return 'Who has no program?';
+    case 'unanswered': return 'Who is waiting on a reply from me?';
+    default: return '';
+  }
+}
+
 export function clarifyOptions(now: Date): string[] {
   return [`Since 1 ${MONTHS[now.getMonth()]}`, 'Last 30 days', 'Last 7 days'];
 }
@@ -341,26 +364,93 @@ export async function ask(input: {
   const data = await loadPracticeData(practiceId, trainerId, { now });
   emit({ type: 'status', text: `Reading ${count(scopeClients(data, scope).length, 'client', 'clients')}` });
 
+  // The conversational agent when it is available; the pattern-matched path
+  // below when it is not, or if it fails, so a question always gets an answer.
+  const { agentAvailable, runAnakinAgent } = await import('./anakinAgent.js');
+  let event: AnakinEvent | null = null;
+  if (agentAvailable()) {
+    try {
+      const [earlier, trainer] = await Promise.all([
+        prisma.ptAnakinMessage.findMany({ where: { threadId: thread.id, id: { not: reply.id } }, orderBy: { createdAt: 'desc' }, take: 13 }),
+        prisma.user.findUnique({ where: { id: trainerId }, select: { name: true } }),
+      ]);
+      event = await runAnakinAgent({
+        practiceId, trainerId, replyId: reply.id, data, scope, pref, emit,
+        trainerFirstName: trainer?.name?.trim().split(/\s+/)[0] ?? 'Coach',
+        messages: historyFor(earlier.reverse(), text, input.clarifyChoice),
+      });
+    } catch (err) {
+      console.error('[personal-training] anakin agent failed, using the pattern fallback:', (err as Error)?.message);
+      event = null;
+    }
+  }
+  if (event) {
+    await finish(thread.id, reply.id, event);
+    emit(event);
+    emit({ type: 'done' });
+    return;
+  }
+
   let parsed = parseQuestion(text);
   if (parsed.intent === 'unknown') parsed = { ...parsed, intent: await classifyWithModel(text) };
 
-  let event: AnakinEvent;
   if (parsed.intent === 'draft') {
     event = await draftForLastAnswer(thread.id, reply.id, practiceId, trainerId, data);
   } else if (parsed.ambiguousRange && DEFAULT_DAYS[parsed.intent] && !input.clarifyChoice) {
     event = { type: 'clarify', text: 'Which time range should I use?', options: clarifyOptions(now) };
   } else {
     if (input.clarifyChoice) parsed = { ...parsed, days: daysForChoice(input.clarifyChoice, now) ?? parsed.days };
-    event = { type: 'answer', messageId: reply.id, ...answerQuestion(parsed, data, scope, pref) };
+    const answer = answerQuestion(parsed, data, scope, pref);
+    event = { type: 'answer', messageId: reply.id, ...answer, ...(answer.actionable ? { scheduleText: canonicalQuestion(parsed) } : {}) };
   }
 
+  const fallback: AnakinEvent = event;
+  await finish(thread.id, reply.id, fallback);
+  emit(fallback);
+  emit({ type: 'done' });
+}
+
+async function finish(threadId: string, replyId: string, event: AnakinEvent) {
   await prisma.ptAnakinMessage.update({
-    where: { id: reply.id },
+    where: { id: replyId },
     data: { text: 'text' in event ? event.text : '', eventsJson: JSON.stringify([event]) },
   });
-  await prisma.ptAnakinThread.update({ where: { id: thread.id }, data: { updatedAt: new Date() } });
-  emit(event);
-  emit({ type: 'done' });
+  await prisma.ptAnakinThread.update({ where: { id: threadId }, data: { updatedAt: new Date() } });
+}
+
+/**
+ * The thread as model turns. An assistant turn carries the names it listed,
+ * so "draft a message to them" has something to refer to. A clarify choice is
+ * folded into the question it answers rather than sent as a turn of its own.
+ */
+export function historyFor(
+  earlier: { role: string; text: string; eventsJson: string | null }[],
+  question: string,
+  clarifyChoice?: string,
+): { role: 'user' | 'assistant'; content: string }[] {
+  const out: { role: 'user' | 'assistant'; content: string }[] = [];
+  for (const m of earlier) {
+    const role = m.role === 'assistant' ? 'assistant' : 'user';
+    let content = m.text.trim();
+    if (role === 'assistant') {
+      const e = parseEvents(m.eventsJson)[0];
+      if (e?.type === 'answer' && e.rows.length) content += `\n[Clients listed: ${e.rows.map((r) => r.client.name).join(', ')}]`;
+      if (e?.type === 'clarify') content += `\n[Options offered: ${e.options.join(' / ')}]`;
+      if (e?.type === 'drafts') content += `\n[Drafted for: ${e.drafts.map((d) => d.client.name).join(', ')}]`;
+    }
+    if (!content) continue;
+    // The API needs alternating turns; merge neighbours with the same role.
+    const last = out[out.length - 1];
+    if (last?.role === role) last.content += `\n${content}`;
+    else out.push({ role, content });
+  }
+  // On a clarify choice the question is already the last stored user turn.
+  const ask = clarifyChoice ? `Use this time range: ${clarifyChoice}` : question;
+  const last = out[out.length - 1];
+  if (last?.role === 'user') { if (clarifyChoice) last.content += `\n${ask}`; }
+  else out.push({ role: 'user', content: ask });
+  while (out[0]?.role === 'assistant') out.shift();
+  return out;
 }
 
 /** "Draft a message to these clients": one editable draft per client in the previous answer. */

@@ -1569,3 +1569,17 @@ model PtNotification {
   @@index([trainerId, tier, readAt])
   @@index([trainerId, at])
 }
+
+// A trainer's private note on a client. Shown to trainers of the practice on
+// the client's Notes tab and timeline; never to the client.
+model PtNote {
+  id         String   @id @default(uuid())
+  practiceId String
+  trainerId  String
+  clientId   String
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([practiceId, clientId, createdAt])
+}

@@ -33,8 +33,8 @@ export const KIND_LABEL: Record<TimelineKind, string> = {
   billing: 'Billing',
 };
 
-/** Kinds the v1 timeline can actually produce; the rest have no data source yet. */
-export const TIMELINE_FILTER_KINDS: TimelineKind[] = ['workout', 'checkin', 'message', 'measurement', 'program'];
+/** Kinds the timeline can actually produce; photos and billing have no data source yet. */
+export const TIMELINE_FILTER_KINDS: TimelineKind[] = ['workout', 'checkin', 'message', 'measurement', 'program', 'note'];
 
 export const COPY = {
   productName: 'Personal training',
@@ -94,6 +94,43 @@ export const COPY = {
   unavailable: {
     title: 'Personal training is not enabled for this account yet.',
     body: 'If you coach clients and want access, get in touch with the Axiom team.',
+  },
+  dossier: {
+    tabs: { overview: 'Overview', timeline: 'Timeline', program: 'Program', notes: 'Notes' },
+    message: 'Message',
+    messageTitle: (name: string) => `Message ${name}`,
+    messagePlaceholder: 'Write a message',
+    messageSend: 'Send message',
+    requestCheckIn: 'Request check-in',
+    checkInRequested: 'Check-in sent.',
+    checkInAlready: 'They already have a check-in waiting.',
+    summary: 'Summary',
+    summaryBasis: 'What is this based on?',
+    updated: (when: string) => `Updated ${when}`,
+    keyStats: 'Key stats',
+    currentBlock: 'Current block',
+    blockProgress: (week: number, weeks: number) => `Week ${week} of ${weeks}`,
+    openItems: 'Open items',
+    noOpenItems: 'Nothing is waiting on you for this client.',
+    openBriefing: 'Handle in briefing',
+    recentPrs: 'Recent PRs',
+    noProgram: 'This client has no program yet.',
+    programGoal: 'Goal',
+    programWeek: (week: number, weeks: number) => `Week ${week} of ${weeks}`,
+    programDays: (n: number) => `${n} ${n === 1 ? 'day' : 'days'} a week`,
+    currentPhase: 'Current phase',
+    pendingChanges: 'Suggested changes waiting on the client',
+    pendingHelp: 'Axiom proposed these in their app. The client accepts or declines them; you can recommend one by message.',
+    programReadOnly: 'Programs are edited by the client with Axiom in their app. Message them to recommend a change.',
+    notesHelp: 'Private to your practice. Clients never see these.',
+    notePlaceholder: 'Add a note about this client',
+    addNote: 'Add note',
+    saveNote: 'Save',
+    editNote: 'Edit',
+    deleteNote: 'Delete',
+    cancel: 'Cancel',
+    noNotes: 'No notes yet.',
+    loadFailed: 'Could not load this.',
   },
   timeline: {
     breadcrumb: 'Clients',
@@ -266,6 +303,8 @@ export const COPY = {
     clearFilter: 'Clear',
     failed: 'Something went wrong answering that.',
     remove: 'Remove',
+    thinking: 'Thinking',
+    threads: 'Questions',
   },
   notifications: {
     title: 'Notifications',

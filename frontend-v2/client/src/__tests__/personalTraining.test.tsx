@@ -15,6 +15,7 @@ import { PersonalTrainingApiError, type Client, type TimelineEvent } from '@axio
 const api = vi.hoisted(() => ({
   me: vi.fn(), createPractice: vi.fn(), roster: vi.fn(), client: vi.fn(), timeline: vi.fn(),
   invite: vi.fn(), invitePreview: vi.fn(), acceptInvite: vi.fn(), notifications: vi.fn(), markNotificationsRead: vi.fn(), anakinFilter: vi.fn(),
+  requestCheckIns: vi.fn(), messageClient: vi.fn(), overview: vi.fn(), program: vi.fn(), notes: vi.fn(),
 }));
 vi.mock('@/features/personal-training/api', () => ({ ptApi: api }));
 vi.mock('@/components/BrandLogo', () => ({ BrandLogo: () => <div data-testid="brand-logo" /> }));

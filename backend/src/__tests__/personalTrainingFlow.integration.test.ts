@@ -396,6 +396,65 @@ describe('Ask Anakin', () => {
   });
 });
 
+describe('client dossier', () => {
+  it('gives an overview whose summary shows its basis, and the open items', async () => {
+    const r = await request(app).get(`${api}/clients/${id.maya}/overview`).set('Authorization', as.trainer);
+    expect(r.status).toBe(200);
+    expect(r.body.summary.text).toMatch(/^Maya has no program yet\./);
+    expect(r.body.summary.evidence.reasons.length).toBeGreaterThan(1);
+    expect(r.body.stats.some((s: any) => s.label === 'Squat est. 1RM')).toBe(true);
+    expect((await request(app).get(`${api}/clients/${id.other}/overview`).set('Authorization', as.trainer)).status).toBe(404);
+    expect((await request(app).get(`${api}/clients/${id.maya}/overview`).set('Authorization', as.other)).status).toBe(404);
+  });
+
+  it('returns no program when the client has none', async () => {
+    const r = await request(app).get(`${api}/clients/${id.maya}/program`).set('Authorization', as.trainer);
+    expect(r.body).toEqual({ program: null });
+  });
+
+  it('keeps notes private to the practice and puts them on the timeline', async () => {
+    const made = await request(app).post(`${api}/clients/${id.maya}/notes`).set('Authorization', as.trainer).send({ body: ' Prefers morning sessions. ' });
+    expect(made.status).toBe(201);
+    expect(made.body.note).toMatchObject({ body: 'Prefers morning sessions.', authorName: 'Kofi Mensah' });
+    const noteId = made.body.note.id;
+
+    expect((await request(app).post(`${api}/clients/${id.maya}/notes`).set('Authorization', as.trainer).send({ body: '   ' })).status).toBe(400);
+    // Another practice cannot read, edit or delete it — nor can the client herself.
+    expect((await request(app).get(`${api}/clients/${id.maya}/notes`).set('Authorization', as.other)).status).toBe(404);
+    expect((await request(app).patch(`${api}/clients/${id.maya}/notes/${noteId}`).set('Authorization', as.other).send({ body: 'x' })).status).toBe(404);
+    expect((await request(app).get(`${api}/clients/${id.maya}/notes`).set('Authorization', as.maya)).status).toBe(404);
+    // A note id from one client cannot be reached through another client's URL.
+    expect((await request(app).delete(`${api}/clients/${id.jordan}/notes/${noteId}`).set('Authorization', as.trainer)).status).toBe(404);
+
+    const edited = await request(app).patch(`${api}/clients/${id.maya}/notes/${noteId}`).set('Authorization', as.trainer).send({ body: 'Prefers 7 AM sessions.' });
+    expect(edited.body.note.body).toBe('Prefers 7 AM sessions.');
+    const timeline = await request(app).get(`${api}/clients/${id.maya}/timeline?kind=note`).set('Authorization', as.trainer);
+    expect(timeline.body.events).toEqual([expect.objectContaining({ kind: 'note', title: 'Note · Kofi Mensah', body: 'Prefers 7 AM sessions.' })]);
+
+    expect((await request(app).delete(`${api}/clients/${id.maya}/notes/${noteId}`).set('Authorization', as.trainer)).status).toBe(200);
+    expect((await request(app).get(`${api}/clients/${id.maya}/notes`).set('Authorization', as.trainer)).body.notes).toEqual([]);
+  });
+
+  it('sends a message the trainer wrote through the same undo window and audit trail', async () => {
+    const before = (await trainerMessages()).length;
+    expect((await request(app).post(`${api}/clients/${id.maya}/message`).set('Authorization', as.trainer).send({ text: '  ' })).status).toBe(400);
+    expect((await request(app).post(`${api}/clients/${id.other}/message`).set('Authorization', as.trainer).send({ text: 'hello' })).status).toBe(404);
+    const r = await request(app).post(`${api}/clients/${id.maya}/message`).set('Authorization', as.trainer).send({ text: 'How did Thursday go?' });
+    expect(r.body.draft).toMatchObject({ status: 'sending', text: 'How did Thursday go?' });
+    expect((await trainerMessages()).length).toBe(before);
+
+    const undone = await request(app).delete(`${api}/drafts/${r.body.draft.id}/send`).set('Authorization', as.trainer);
+    expect(undone.body.draft.status).toBe('pending');
+    await deliverDueDrafts(new Date(Date.now() + 60_000));
+    expect((await trainerMessages()).length).toBe(before);
+
+    await request(app).post(`${api}/clients/${id.maya}/message`).set('Authorization', as.trainer).send({ text: 'How did Thursday go?' });
+    await deliverDueDrafts(new Date(Date.now() + 6_000));
+    const sent = (await trainerMessages()).slice(before);
+    expect(sent.map((m: any) => m.body)).toEqual(['How did Thursday go?']);
+  });
+});
+
 describe('the invariant', () => {
   it('every message the dashboard sent traces to a trainer action in the audit log', async () => {
     const sent = await trainerMessages();

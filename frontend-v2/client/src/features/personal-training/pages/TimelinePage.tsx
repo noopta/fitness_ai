@@ -1,9 +1,10 @@
-// Client timeline (design handoff §6.3): header with injuries, type filter
-// chips and a day-grouped feed, newest first, with cursor-based "Load earlier".
-// The other dossier tabs are out of scope for v1 and render disabled.
+// The client dossier (design handoff §6.3): header with injuries and actions,
+// then four tabs. Timeline is the type-filtered, day-grouped feed with
+// cursor-based "Load earlier"; Overview, Program and Notes live in
+// components/ClientDossier.tsx.
 
 import { useMemo, useState } from 'react';
-import { Link, useRoute } from 'wouter';
+import { Link, useLocation, useRoute } from 'wouter';
 import {
   Activity, ChevronRight, ClipboardCheck, CreditCard, Dumbbell, Image as ImageIcon, MessageSquare, Scale, Sparkles, StickyNote,
   type LucideIcon,
@@ -14,10 +15,11 @@ import {
 } from '@axiom/personal-training-core';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { MessageDialog, NotesTab, OverviewTab, ProgramTab } from '../components/ClientDossier';
 import { Gate } from '../components/Gate';
 import { Avatar, Eyebrow, FilterChip, Pill, SkeletonBlock, StatusPill } from '../components/primitives';
 import { Shell } from '../components/Shell';
-import { useClient, useTimeline } from '../hooks';
+import { useCheckInActions, useClient, useTimeline } from '../hooks';
 
 const KIND_ICON: Record<TimelineKind, LucideIcon> = {
   workout: Dumbbell,
@@ -30,7 +32,26 @@ const KIND_ICON: Record<TimelineKind, LucideIcon> = {
   billing: CreditCard,
 };
 
-const DOSSIER_TABS = ['Overview', COPY.timeline.tab, 'Program', 'Notes'];
+type DossierTab = 'overview' | 'timeline' | 'program' | 'notes';
+const DOSSIER_TABS: DossierTab[] = ['overview', 'timeline', 'program', 'notes'];
+const isTab = (v: string | undefined): v is DossierTab => !!v && (DOSSIER_TABS as string[]).includes(v);
+
+function HeaderActions({ client }: { client: Client }) {
+  const [messageOpen, setMessageOpen] = useState(false);
+  const { request } = useCheckInActions();
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      {/* Named for the client: the timeline below also has a "Message" filter chip. */}
+      <Button className="h-11 rounded-xl md:h-10" onClick={() => setMessageOpen(true)}>{COPY.dossier.messageTitle(client.name.split(' ')[0])}</Button>
+      <Button variant="secondary" className="h-11 rounded-xl md:h-10" disabled={request.isPending || request.isSuccess} onClick={() => request.mutate([client.id])}>
+        {COPY.dossier.requestCheckIn}
+      </Button>
+      {request.isSuccess && <p role="status" className="text-xs text-axiom-zinc-600">{request.data.requested ? COPY.dossier.checkInRequested : COPY.dossier.checkInAlready}</p>}
+      {request.isError && <p role="alert" className="text-xs text-axiom-destructive-ink">{(request.error as Error).message}</p>}
+      <MessageDialog clientId={client.id} clientName={client.name.split(' ')[0]} open={messageOpen} onOpenChange={setMessageOpen} />
+    </div>
+  );
+}
 
 function ClientHeader({ client }: { client: Client }) {
   const line = [
@@ -67,6 +88,7 @@ function ClientHeader({ client }: { client: Client }) {
           </li>
         ))}
       </ul>
+      <HeaderActions client={client} />
     </header>
   );
 }
@@ -149,12 +171,13 @@ function Feed({ clientId }: { clientId: string }) {
   );
 }
 
-function Timeline({ me, clientId }: { me: MeResponse; clientId: string }) {
+function Dossier({ me, clientId, tab }: { me: MeResponse; clientId: string; tab: DossierTab }) {
   const client = useClient(clientId);
+  const [, navigate] = useLocation();
   const notFound = client.error instanceof PersonalTrainingApiError && client.error.status === 404;
 
   return (
-    <Shell me={me} active="clients" title={client.data?.client.name ?? COPY.roster.title} width="narrow">
+    <Shell me={me} active="clients" title={client.data?.client.name ?? COPY.roster.title} width={tab === 'overview' ? 'wide' : 'narrow'}>
       <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1 text-xs text-axiom-zinc-500">
         <Link href="/personal-training/clients" className="rounded font-semibold hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15">
           {COPY.timeline.breadcrumb}
@@ -173,24 +196,31 @@ function Timeline({ me, clientId }: { me: MeResponse; clientId: string }) {
       ) : (
         <>
           <ClientHeader client={client.data.client} />
-          <div className="mb-5 flex gap-5 border-b border-border" role="tablist" aria-label="Client dossier">
-            {DOSSIER_TABS.map((tab) => {
-              const active = tab === COPY.timeline.tab;
-              return (
-                <span
-                  key={tab}
-                  role="tab"
-                  aria-selected={active}
-                  aria-disabled={!active}
-                  title={active ? undefined : COPY.nav.comingSoon}
-                  className={cn('-mb-px border-b-2 pb-2 text-[13px] font-semibold', active ? 'border-foreground text-foreground' : 'cursor-default border-transparent text-axiom-zinc-600 opacity-40')}
-                >
-                  {tab}
-                </span>
-              );
-            })}
+          <div className="mb-5 flex gap-5 overflow-x-auto border-b border-border" role="tablist" aria-label="Client dossier">
+            {DOSSIER_TABS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                id={`dossier-tab-${t}`}
+                aria-selected={t === tab}
+                aria-controls="dossier-panel"
+                onClick={() => navigate(`/personal-training/clients/${clientId}/${t}`)}
+                className={cn(
+                  '-mb-px min-h-11 shrink-0 border-b-2 px-0.5 pb-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15',
+                  t === tab ? 'border-foreground text-foreground' : 'border-transparent text-axiom-zinc-600 hover:text-foreground',
+                )}
+              >
+                {COPY.dossier.tabs[t]}
+              </button>
+            ))}
           </div>
-          <Feed clientId={clientId} />
+          <div id="dossier-panel" role="tabpanel" aria-labelledby={`dossier-tab-${tab}`}>
+            {tab === 'overview' && <OverviewTab clientId={clientId} />}
+            {tab === 'timeline' && <Feed clientId={clientId} />}
+            {tab === 'program' && <ProgramTab clientId={clientId} />}
+            {tab === 'notes' && <NotesTab clientId={clientId} />}
+          </div>
         </>
       )}
     </Shell>
@@ -198,7 +228,8 @@ function Timeline({ me, clientId }: { me: MeResponse; clientId: string }) {
 }
 
 export default function TimelinePage() {
-  const [, params] = useRoute('/personal-training/clients/:id/timeline');
+  const [, params] = useRoute('/personal-training/clients/:id/:tab');
   const clientId = params?.id ?? '';
-  return <Gate>{(me) => <Timeline me={me} clientId={clientId} />}</Gate>;
+  const tab: DossierTab = isTab(params?.tab) ? params.tab : 'timeline';
+  return <Gate>{(me) => <Dossier me={me} clientId={clientId} tab={tab} />}</Gate>;
 }

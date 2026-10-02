@@ -227,3 +227,36 @@ export function useSaveNotificationSettings() {
 }
 
 export type { Draft };
+
+// ── Client dossier ───────────────────────────────────────────────────────────
+
+export function useOverview(id: string, enabled = true) {
+  return useQuery({ queryKey: queryKeys.overview(id), queryFn: () => ptApi.overview(id), enabled: !!id && enabled, retry, ...LIVE });
+}
+
+export function useProgram(id: string, enabled = true) {
+  return useQuery({ queryKey: queryKeys.program(id), queryFn: () => ptApi.program(id), enabled: !!id && enabled, retry, ...LIVE });
+}
+
+export function useNotes(id: string, enabled = true) {
+  return useQuery({ queryKey: queryKeys.notes(id), queryFn: () => ptApi.notes(id), enabled: !!id && enabled, retry, ...LIVE });
+}
+
+export function useNoteActions(id: string) {
+  const qc = useQueryClient();
+  const refresh = () => {
+    void qc.invalidateQueries({ queryKey: queryKeys.notes(id) });
+    // Notes also appear on the timeline.
+    void qc.invalidateQueries({ queryKey: queryKeys.client(id) });
+  };
+  return {
+    add: useMutation({ mutationFn: (body: string) => ptApi.addNote(id, body), onSuccess: refresh }),
+    update: useMutation({ mutationFn: (v: { noteId: string; body: string }) => ptApi.updateNote(id, v.noteId, v.body), onSuccess: refresh }),
+    remove: useMutation({ mutationFn: (noteId: string) => ptApi.deleteNote(id, noteId), onSuccess: refresh }),
+  };
+}
+
+export function useMessageClient(id: string) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (text: string) => ptApi.messageClient(id, text), onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.client(id) }) });
+}

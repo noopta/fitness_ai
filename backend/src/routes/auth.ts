@@ -1260,6 +1260,7 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
       await tryDelete('ptNotificationSettings', () => t.ptNotificationSettings.deleteMany({ where: { trainerId: userId } }));
       await tryDelete('ptAnakinThread', () => t.ptAnakinThread.deleteMany({ where: { trainerId: userId } }));
       await tryDelete('ptScheduledQuestion', () => t.ptScheduledQuestion.deleteMany({ where: { trainerId: userId } }));
+      await tryDelete('ptNote', () => t.ptNote.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
       // The audit trail keeps that an action happened, not what was written to or about this person.
       await tryDelete('ptAuditLog', () => t.ptAuditLog.updateMany({ where: { clientId: userId }, data: { clientId: null, originalText: null, editedText: null } }));
       // Keyed by email, not a user FK, so the cascade doesn't reach it.

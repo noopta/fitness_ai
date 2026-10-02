@@ -17,7 +17,7 @@ import { claimInvite, findUsableInvite, InviteError } from '../services/institut
 import { bodyWeightKg, normalizePreference } from '../services/weightUnits.js';
 import { countStatuses, displayNameOf, initialsOf, loadClients } from '../services/personalTraining/roster.js';
 import {
-  TIMELINE_PAGE_SIZE, checkInEvent, decodeCursor, detectPrs, measurementEvent, messageEvent, pageEvents,
+  TIMELINE_PAGE_SIZE, checkInEvent, decodeCursor, detectPrs, measurementEvent, messageEvent, noteEvent, pageEvents,
   parseKinds, programEvent, workoutEvent,
 } from '../services/personalTraining/timeline.js';
 import type { ClientStatus, TimelineEvent } from '../services/personalTraining/types.js';
@@ -225,7 +225,7 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
 
     const [a, b] = trainerId < clientId ? [trainerId, clientId] : [clientId, trainerId];
 
-    const [viewer, workouts, checkIns, weights, proposals, conversation] = await Promise.all([
+    const [viewer, workouts, checkIns, weights, proposals, conversation, notes] = await Promise.all([
       prisma.user.findUnique({ where: { id: trainerId }, select: { unitPreference: true } }),
       // PR detection needs every session, oldest first, not just this page.
       want('workout')
@@ -255,7 +255,15 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
             select: { id: true },
           })
         : null,
+      // Private to the practice: scoped by practiceId, so another practice's notes on the same person never appear.
+      want('note')
+        ? prisma.ptNote.findMany({ where: { practiceId: req.practice!.id, clientId, ...before }, orderBy: { createdAt: 'desc' }, take })
+        : [],
     ]);
+    const authors = notes.length
+      ? await prisma.user.findMany({ where: { id: { in: [...new Set(notes.map((n) => n.trainerId))] } }, select: { id: true, name: true } })
+      : [];
+    const authorName = new Map(authors.map((a) => [a.id, a.name?.trim() || 'Trainer']));
 
     const messages = conversation
       ? await prisma.message.findMany({
@@ -285,6 +293,7 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
         .filter((e): e is TimelineEvent => e !== null),
       ...proposals.map((p) => programEvent(p, clientId)),
       ...messages.map((m) => messageEvent(m, clientId, clientName, latestMessage?.id ?? null)),
+      ...notes.map((n) => noteEvent({ id: n.id, createdAt: n.createdAt, body: n.body, authorName: authorName.get(n.trainerId) ?? 'Trainer' }, clientId)),
     ];
 
     return res.json(pageEvents(events, cursor));

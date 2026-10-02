@@ -9,8 +9,8 @@ import type { TimelineEvent, TimelineKind } from './types.js';
 
 export const TIMELINE_PAGE_SIZE = 30;
 
-/** Kinds with a data source today. photos / note / billing have none yet. */
-export const SUPPORTED_KINDS: TimelineKind[] = ['workout', 'checkin', 'message', 'measurement', 'program'];
+/** Kinds with a data source today. photos and billing have none yet. */
+export const SUPPORTED_KINDS: TimelineKind[] = ['workout', 'checkin', 'message', 'measurement', 'program', 'note'];
 
 export function parseKinds(raw: unknown): TimelineKind[] {
   if (typeof raw !== 'string' || !raw.trim()) return SUPPORTED_KINDS;
@@ -171,6 +171,14 @@ export function programEvent(row: ProposalRow, clientId: string): TimelineEvent 
     ai: true,
     ...(flag ? { flag } : {}),
   };
+}
+
+// ── The trainer's own notes ──────────────────────────────────────────────────
+
+export interface NoteRow { id: string; createdAt: Date; body: string; authorName: string }
+
+export function noteEvent(row: NoteRow, clientId: string): TimelineEvent {
+  return { id: `note:${row.id}`, clientId, kind: 'note', at: row.createdAt.toISOString(), title: `Note · ${row.authorName}`, body: row.body };
 }
 
 // ── Cursor paging across merged sources ──────────────────────────────────────

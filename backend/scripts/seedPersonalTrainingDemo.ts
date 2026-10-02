@@ -40,15 +40,32 @@ const dateStr = (d: number) => ago(d).toLocaleDateString('en-CA', { timeZone: 'A
 const every = (from: number, to: number, step: number) =>
   Array.from({ length: Math.floor((from - to) / step) + 1 }, (_, i) => from - i * step);
 
-function program(startedDaysAgo: number, daysPerWeek: number) {
-  const days = Array.from({ length: daysPerWeek }, () => ({}));
+const DAY_NAMES = ['Monday', 'Tuesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function program(startedDaysAgo: number, daysPerWeek: number, goal: string, squatKg: number, benchKg: number) {
+  const phase = (phaseName: string, rationale: string, sets: number, reps: string, intensity: string, bump: number) => ({
+    phaseName, rationale, durationWeeks: 4,
+    trainingDays: Array.from({ length: daysPerWeek }, (_, i) => (i % 2 === 0
+      ? { day: DAY_NAMES[i], focus: 'Lower', warmup: [], cooldown: [], exercises: [
+          { exercise: 'Back squat', sets, reps, intensity, targetWeightKg: squatKg + bump },
+          { exercise: 'Deadlift', sets: 2, reps: '5', intensity, targetWeightKg: Math.round(squatKg * 1.2) + bump },
+          { exercise: 'Romanian deadlift', sets: 3, reps: '8', intensity: 'RPE 7' },
+          { exercise: 'Walking lunge', sets: 3, reps: '12', intensity: 'RPE 7' },
+        ] }
+      : { day: DAY_NAMES[i], focus: 'Upper', warmup: [], cooldown: [], exercises: [
+          { exercise: 'Bench press', sets: sets + 1, reps, intensity, targetWeightKg: benchKg + bump },
+          { exercise: 'Barbell row', sets: 4, reps: '8', intensity: 'RPE 7' },
+          { exercise: 'Overhead press', sets: 3, reps: '8', intensity: 'RPE 7' },
+          { exercise: 'Pull-up', sets: 3, reps: '8', intensity: 'RPE 8' },
+        ] })),
+  });
   return {
     savedProgram: JSON.stringify({
-      daysPerWeek,
+      goal, daysPerWeek, durationWeeks: 12,
       phases: [
-        { phaseName: 'Foundation', durationWeeks: 4, trainingDays: days },
-        { phaseName: 'Strength', durationWeeks: 4, trainingDays: days },
-        { phaseName: 'Peak', durationWeeks: 4, trainingDays: days },
+        phase('Foundation', 'Groove the main lifts and build work capacity before loading them.', 3, '8', 'RPE 6 to 7', 0),
+        phase('Strength', 'Heavier sets of five on the main lifts; accessories hold steady.', 3, '5', 'RPE 8', 5),
+        phase('Peak', 'Lower volume and heavier triples to express the strength built so far.', 3, '3', 'RPE 8 to 9', 10),
       ],
     }),
     programStartDate: ago(startedDaysAgo),
@@ -94,6 +111,8 @@ interface DemoClient {
   proposals?: { daysAgo: number; title: string; reasoning: string; status: string; key: string }[];
   /** Thread with each trainer: [daysAgo, from, body]. */
   messages?: [number, 'trainer' | 'client', string][];
+  /** The trainer's private notes: [daysAgo, body]. */
+  notes?: [number, string][];
   /** Holds the same loads every session, so the plateau rule fires. */
   plateau?: boolean;
   /** A trainer check-in in the inbox: answered `daysAgo`, or missed. */
@@ -111,6 +130,10 @@ const CLIENTS: DemoClient[] = [
     checkIns: [[26, 4, 4, 7.5, 2], [19, 4, 3, 7, 3], [12, 3, 3, 6.5, 3]],
     bodyweight: [[30, 68.2], [23, 68.0], [16, 67.6], [10, 67.9]],
     lastSessionNote: 'Left knee felt tight on the last set',
+    notes: [
+      [100, 'Physio cleared her for squats to parallel. No deep flexion under load until the patellar tendon settles.'],
+      [21, 'Travels for work the second week of each month. Plan hotel-gym sessions in advance.'],
+    ],
     proposals: [
       { daysAgo: 17, key: 'load_change:romanian deadlift', title: 'Add 2.5 kg to Romanian deadlift', reasoning: 'Hit the top of the rep range in two consecutive sessions.', status: 'applied' },
       { daysAgo: 9, key: 'load_change:back squat', title: 'Hold back squat load this week', reasoning: 'RPE climbed from 7 to 9 at the same load across the last two sessions, and she noted knee tightness.', status: 'pending' },
@@ -235,6 +258,7 @@ async function remove() {
       await tx.ptNotification.deleteMany(scoped);
       await tx.ptNotificationSettings.deleteMany(scoped);
       await tx.ptScheduledQuestion.deleteMany(scoped);
+      await tx.ptNote.deleteMany(scoped);
       await tx.ptAuditLog.deleteMany(scoped);
       await tx.institutionInvite.deleteMany({ where: { institutionId: practice.id } });
       await tx.institutionMember.deleteMany({ where: { institutionId: practice.id } });
@@ -271,7 +295,7 @@ async function seed() {
           coachGoal: c.goal ?? null,
           constraintsText: c.constraintsText ?? null,
           coachProfile: c.injuries ? JSON.stringify({ injuryList: c.injuries }) : null,
-          ...(c.program ? program(c.program.startedDaysAgo, c.program.daysPerWeek) : {}),
+          ...(c.program ? program(c.program.startedDaysAgo, c.program.daysPerWeek, c.goal ?? '', c.squatKg, c.benchKg) : {}),
           reengagementOptOut: true,
           marketingEmailsOptOut: true,
           welcomeEmailSentAt: new Date(),
@@ -319,6 +343,10 @@ async function seed() {
           },
         });
       }
+      for (const [d, body] of c.notes ?? []) {
+        await tx.ptNote.create({ data: { practiceId: practice.id, trainerId: trainers[0].id, clientId: user.id, body, createdAt: ago(d, 11), updatedAt: ago(d, 11) } });
+      }
+
       // A check-in in the trainer's inbox, analysed by the same code a real submission runs through.
       const k = c.trainerCheckIn;
       if (k && 'daysAgo' in k) {

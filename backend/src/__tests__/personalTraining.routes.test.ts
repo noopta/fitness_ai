@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   adaptationProposal: { findMany: vi.fn() },
   directConversation: { findUnique: vi.fn() },
   message: { findMany: vi.fn(), findFirst: vi.fn() },
+  ptNote: { findMany: vi.fn() },
   $transaction: vi.fn(),
 }));
 vi.mock('@prisma/client', () => {
@@ -70,6 +71,7 @@ beforeEach(() => {
   mocks.bodyWeightLog.findMany.mockResolvedValue([]);
   mocks.adaptationProposal.findMany.mockResolvedValue([]);
   mocks.directConversation.findUnique.mockResolvedValue(null);
+  mocks.ptNote.findMany.mockResolvedValue([]);
 });
 
 describe('gates', () => {

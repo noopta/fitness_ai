@@ -21,7 +21,8 @@ import {
 } from '../services/personalTraining/checkins.js';
 import { loadPracticeData } from '../services/personalTraining/data.js';
 import { prisma } from '../services/personalTraining/db.js';
-import { DraftError, deliverDueDrafts, redraft, requestSend, undoSend } from '../services/personalTraining/drafts.js';
+import { DossierError, addNote, buildOverview, buildProgramView, deleteNote, listNotes, updateNote } from '../services/personalTraining/dossier.js';
+import { DraftError, createDraft, deliverDueDrafts, redraft, requestSend, undoSend } from '../services/personalTraining/drafts.js';
 import { isLiftKey } from '../services/personalTraining/lifts.js';
 import {
   SettingsError, applyPatch, describeSettings, loadSettings, markRead, notificationFeed, saveSettings, sweepNotifications,
@@ -29,6 +30,7 @@ import {
 import { buildProgress } from '../services/personalTraining/progress.js';
 import { ReportError, defaultMonth, getReport, isMonth, patchReport, sendReport, undoReport } from '../services/personalTraining/reports.js';
 import { loadClients } from '../services/personalTraining/roster.js';
+import { formatWeight } from '../services/weightUnits.js';
 
 const router = Router();
 const trainer: RequestHandler[] = [requireAuth, requirePersonalTraining, requireTrainer];
@@ -40,7 +42,7 @@ const handle = (name: string, fn: Handler): RequestHandler => async (req, res) =
   try {
     await fn(req, res);
   } catch (err: any) {
-    const known = err instanceof DraftError || err instanceof BriefingError || err instanceof CheckInError || err instanceof ReportError || err instanceof AnakinError;
+    const known = err instanceof DraftError || err instanceof BriefingError || err instanceof CheckInError || err instanceof ReportError || err instanceof AnakinError || err instanceof DossierError;
     if (known) return void (res.headersSent || res.status(err.status).json({ error: err.message }));
     if (err instanceof SettingsError) return void res.status(400).json({ error: err.message });
     console.error(`[personal-training] ${name}`, err);
@@ -220,6 +222,68 @@ router.delete('/reports/:id/send', ...trainer, handle('DELETE report send', asyn
   await undoReport(req.params.id, req.practice!.id, req.user!.id);
   const row = await prisma.ptReport.findUnique({ where: { id: req.params.id } });
   res.json({ report: await reportFor(req, row!.clientId, row!.month) });
+}));
+
+// ─── Client dossier: overview, program, notes, direct message ────────────────
+
+/** The one client, or 404. loadPracticeData with clientIds is the membership check. */
+async function dossierClient(req: Request) {
+  const { practiceId, trainerId } = ids(req);
+  const data = await loadPracticeData(practiceId, trainerId, { clientIds: [req.params.id] });
+  const client = data.clients[0];
+  if (!client) throw new DossierError('Client not found', 404);
+  return { practiceId, trainerId, data, client, clientData: data.byClient.get(client.id)! };
+}
+
+router.get('/clients/:id/overview', ...trainer, handle('GET overview', async (req, res) => {
+  const { practiceId, trainerId, data, client, clientData } = await dossierClient(req);
+  const [pref, checkIns] = await Promise.all([
+    unitPref(trainerId),
+    prisma.ptCheckIn.findMany({ where: { practiceId, clientId: client.id, status: 'submitted', reviewedAt: null, draftId: { not: null } }, select: { id: true, draftId: true } }),
+  ]);
+  res.json(buildOverview(client, clientData, pref, data.now, {
+    fmt: (kg) => formatWeight(kg, pref) ?? '',
+    // The dossier shows everything open for this client, whatever tier the trainer gave it.
+    tierOf: () => 'briefing',
+    checkInDraftIds: new Map(checkIns.map((k) => [k.id, k.draftId!])),
+  }));
+}));
+
+router.get('/clients/:id/program', ...trainer, handle('GET program', async (req, res) => {
+  const { trainerId, data, client, clientData } = await dossierClient(req);
+  const user = await prisma.user.findUnique({ where: { id: client.id }, select: { savedProgram: true, programStartDate: true, coachGoal: true } });
+  res.json({ program: user ? buildProgramView(user, clientData.proposals, await unitPref(trainerId), data.now) : null });
+}));
+
+router.get('/clients/:id/notes', ...trainer, handle('GET notes', async (req, res) => {
+  const { practiceId, client } = await dossierClient(req);
+  res.json({ notes: await listNotes(practiceId, client.id) });
+}));
+
+router.post('/clients/:id/notes', ...trainer, socialWriteLimiter, handle('POST note', async (req, res) => {
+  const { practiceId, trainerId, client } = await dossierClient(req);
+  res.status(201).json({ note: await addNote(practiceId, trainerId, client.id, req.body?.body) });
+}));
+
+router.patch('/clients/:id/notes/:noteId', ...trainer, handle('PATCH note', async (req, res) => {
+  const { practiceId, client } = await dossierClient(req);
+  res.json({ note: await updateNote(practiceId, client.id, req.params.noteId, req.body?.body) });
+}));
+
+router.delete('/clients/:id/notes/:noteId', ...trainer, handle('DELETE note', async (req, res) => {
+  const { practiceId, client } = await dossierClient(req);
+  await deleteNote(practiceId, client.id, req.params.noteId);
+  res.json({ ok: true });
+}));
+
+// A message the trainer wrote themselves. It takes the same road as an AI
+// draft: an undo window, then delivery, with an audit row at each step.
+router.post('/clients/:id/message', ...trainer, socialWriteLimiter, handle('POST client message', async (req, res) => {
+  const { practiceId, trainerId, client } = await dossierClient(req);
+  const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+  if (!text) return res.status(400).json({ error: 'Message is empty' });
+  const draft = await createDraft({ practiceId, trainerId, clientId: client.id, kind: 'direct', text });
+  res.json({ draft: await requestSend({ draftId: draft.id, practiceId, trainerId }) });
 }));
 
 // ─── Ask Anakin ──────────────────────────────────────────────────────────────

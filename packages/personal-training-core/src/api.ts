@@ -4,7 +4,7 @@
 
 import type {
   AnakinFilter, AnakinMessage, AnakinScope, AnakinThreadSummary, BriefingItem, BriefingResponse, CheckInInbox, CheckInRequest,
-  CheckInSchedule, Client, Draft, InvitePreview, InviteResponse, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
+  CheckInSchedule, Client, ClientNote, ClientOverview, ClientProgramView, Draft, InvitePreview, InviteResponse, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
   NotificationSettingsPatch, Practice, ProgressResponse, Report, ResolveAction, RosterResponse, ScheduledQuestion, TimelineKind,
   TimelinePage,
 } from './types';
@@ -42,6 +42,9 @@ export const queryKeys = {
   anakinThreads: ['personal-training', 'anakin', 'threads'] as const,
   anakinThread: (id: string) => ['personal-training', 'anakin', 'threads', id] as const,
   anakinFilter: (threadId: string, messageId: string) => ['personal-training', 'anakin', 'filter', threadId, messageId] as const,
+  overview: (id: string) => ['personal-training', 'clients', id, 'overview'] as const,
+  program: (id: string) => ['personal-training', 'clients', id, 'program'] as const,
+  notes: (id: string) => ['personal-training', 'clients', id, 'notes'] as const,
   notifications: ['personal-training', 'notifications'] as const,
   notificationSettings: ['personal-training', 'notification-settings'] as const,
 };
@@ -98,6 +101,19 @@ export function createApi(fetcher: Fetcher) {
       fetcher(`${API_PREFIX}/invites/${encodeURIComponent(token)}`) as Promise<InvitePreview>,
     acceptInvite: (token: string) =>
       fetcher(`${API_PREFIX}/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) as Promise<{ practice: Practice }>,
+
+    overview: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/overview`) as Promise<ClientOverview>,
+    program: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/program`) as Promise<{ program: ClientProgramView | null }>,
+    notes: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/notes`) as Promise<{ notes: ClientNote[] }>,
+    addNote: (id: string, body: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/notes`, { method: 'POST', body: JSON.stringify({ body }) }) as Promise<{ note: ClientNote }>,
+    updateNote: (id: string, noteId: string, body: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/notes/${noteId}`, { method: 'PATCH', body: JSON.stringify({ body }) }) as Promise<{ note: ClientNote }>,
+    deleteNote: (id: string, noteId: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/notes/${noteId}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+    /** Write to a client directly. Goes through the same send → undo window → deliver path as every draft. */
+    messageClient: (id: string, text: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/message`, { method: 'POST', body: JSON.stringify({ text }) }) as Promise<{ draft: Draft }>,
 
     briefing: () => fetcher(`${API_PREFIX}/briefing/today`) as Promise<BriefingResponse>,
     resolveItem: (id: string, action: ResolveAction, editedText?: string) =>
