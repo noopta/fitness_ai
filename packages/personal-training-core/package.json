@@ -1,0 +1,12 @@
+{
+  "name": "@axiom/personal-training-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Platform-agnostic core of the personal-training (human trainer) dashboard: the API contract types, the typed fetch client and query keys, roster filtering, timeline grouping, formatting and every UI string. Consumed as TypeScript source by frontend-v2 (Vite) and mobileAlt (Metro); views import from here, never the reverse.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "scripts": {
+    "test": "vitest run"
+  }
+}

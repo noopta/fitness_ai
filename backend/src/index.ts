@@ -41,6 +41,7 @@ import briefRoutes from './routes/brief.js';
 import onboardingV2Routes from './routes/onboardingV2.js';
 import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
+import personalTrainingRoutes from './routes/personalTraining.js';
 import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
 
@@ -235,6 +236,8 @@ if (growth) app.use('/api', growth.routes);
 // Clients call /api/institutions/*; mounting at /api left every institution
 // screen 404ing and made GET /api/:slug a catch-all.
 app.use('/api/institutions', institutionsRoutes);
+// Human-trainer dashboard. Its own prefix: /api/coach/* is the AI coach.
+app.use('/api/personal-training', personalTrainingRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', instagramWebhookRoutes);
 app.use('/api', trainTogetherRoutes);

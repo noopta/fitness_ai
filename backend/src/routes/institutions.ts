@@ -5,6 +5,7 @@ import { bodyWeightKg, displayWeight } from '../services/weightUnits.js';
 import { requireInstitutionRole } from '../middleware/requireInstitutionRole.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { computeStrengthProfile } from './strength.js';
+import { claimInvite, InviteError } from '../services/institutionInvites.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -85,53 +86,10 @@ router.get('/invite/:token', requireAuth, async (req, res) => {
 
 // POST /institutions/invite/:token/claim — claim an invite
 router.post('/invite/:token/claim', requireAuth, async (req, res) => {
-  const { token } = req.params;
-  const userId = req.user!.id;
-
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const invite = await tx.institutionInvite.findUnique({
-        where: { token },
-        include: { institution: true },
-      });
-      if (!invite) throw Object.assign(new Error('Invite not found'), { status: 404 });
-      if (invite.usedAt) throw Object.assign(new Error('Invite already used'), { status: 400 });
-      if (invite.expiresAt < new Date()) throw Object.assign(new Error('Invite expired'), { status: 400 });
-
-      // Bind the invite to the address it was issued to. Without this, whoever
-      // held the link got the role — including role:'coach', which grants the
-      // member roster (names and email addresses) for the whole institution.
-      // A forwarded or leaked link was a privilege grant to a stranger.
-      if (invite.email) {
-        const claimer = await tx.user.findUnique({ where: { id: userId }, select: { email: true } });
-        const claimerEmail = claimer?.email?.toLowerCase().trim();
-        if (!claimerEmail || claimerEmail !== invite.email.toLowerCase().trim()) {
-          throw Object.assign(
-            new Error('This invite was issued to a different email address.'),
-            { status: 403 },
-          );
-        }
-      }
-
-      // Create or reactivate member
-      const member = await tx.institutionMember.upsert({
-        where: { institutionId_userId: { institutionId: invite.institutionId, userId } },
-        update: { active: true, role: invite.role },
-        create: { institutionId: invite.institutionId, userId, role: invite.role, active: true },
-      });
-
-      // Mark invite as used
-      await tx.institutionInvite.update({
-        where: { id: invite.id },
-        data: { usedAt: new Date(), usedByUserId: userId },
-      });
-
-      return { institution: invite.institution, member };
-    });
-
-    return res.json(result);
+    return res.json(await claimInvite(req.params.token, req.user!.id));
   } catch (err: any) {
-    if (err.status) return res.status(err.status).json({ error: err.message });
+    if (err instanceof InviteError) return res.status(err.status).json({ error: err.message });
     console.error('[institutions] POST /invite/:token/claim', err);
     return res.status(500).json({ error: 'Internal server error' });
   }

@@ -143,3 +143,26 @@ export function uiV2AvailableFor(userId: string, email?: string | null): boolean
   if (UI_V2_ALLOWLIST.has(userId.toLowerCase())) return true;
   return !!email && UI_V2_ALLOWLIST.has(email.toLowerCase());
 }
+
+/** Global switch for the personal-training (human trainer) dashboard. Off unless '1'. */
+const PERSONAL_TRAINING_ENABLED = process.env.PERSONAL_TRAINING_ENABLED === '1';
+
+/** Per-user allowlist (ids and/or emails) of trainers piloting the dashboard. */
+const PERSONAL_TRAINING_ALLOWLIST = new Set(
+  (process.env.PERSONAL_TRAINING_USERS ?? '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+/**
+ * Whether this user may act as a personal trainer: set up a practice, invite
+ * clients and read their training data through /api/personal-training. This
+ * gates the trainer side only — a client accepting an invite is not flagged,
+ * because the invite itself can only have come from a trainer who is.
+ */
+export function personalTrainingAvailableFor(userId: string, email?: string | null): boolean {
+  if (PERSONAL_TRAINING_ENABLED) return true;
+  if (PERSONAL_TRAINING_ALLOWLIST.has(userId.toLowerCase())) return true;
+  return !!email && PERSONAL_TRAINING_ALLOWLIST.has(email.toLowerCase());
+}
