@@ -145,6 +145,6 @@ describe('roster ordering and counts', () => {
   });
   it('counts every status', () => {
     expect(countStatuses([c('1', 'a', 'support'), c('2', 'b', 'onPlan'), c('3', 'c', 'onPlan')]))
-      .toEqual({ all: 3, support: 1, new: 0, onPlan: 2, paused: 0 });
+      .toEqual({ all: 3, support: 1, new: 0, onPlan: 2, paused: 0, notJoined: 0 });
   });
 });

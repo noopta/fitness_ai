@@ -44,6 +44,8 @@ beforeAll(async () => {
   const { default: routes } = await import('../routes/personalTraining.js');
   app = express();
   app.use(express.json());
+  // The suite speaks as an up-to-date client; the "older app" case overrides this header.
+  app.use((req, _res, next) => { req.headers['x-pt-caps'] ??= 'not-joined'; next(); });
   app.use(api, routes);
 
   const user = (name: string, email: string, extra: object = {}) => prisma.user.create({ data: { name, email, emailVerified: true, unitPreference: 'metric', ...extra } });
@@ -452,6 +454,163 @@ describe('client dossier', () => {
     await deliverDueDrafts(new Date(Date.now() + 6_000));
     const sent = (await trainerMessages()).slice(before);
     expect(sent.map((m: any) => m.body)).toEqual(['How did Thursday go?']);
+  });
+});
+
+describe('spreadsheet import', () => {
+  const upload = {
+    fileName: 'clients.xlsx',
+    sheets: [
+      { name: 'Clients', rows: [['Name', 'Email', 'Goal', 'Injuries'], ['Priya Nair', 'priya@example.com', 'Lose 5 kg', 'Lower back'], ['Jordan Lee', 'jordan@example.com', 'Deadlift 200', ''], ['Leo Martins', '', 'Build muscle', '']] },
+      { name: 'Training', rows: [
+        ['Client', 'Date', 'Exercise', 'Sets', 'Reps', 'Weight (kg)'],
+        ['Priya Nair', '2026-08-03', 'Back squat', '3', '5', '60'], ['Priya Nair', '2026-08-10', 'Back squat', '3', '5', '62.5'],
+        ['Jordan Lee', '2025-12-01', 'Deadlift', '3', '5', '150'],
+        ['Leo Martins', 'sometime', 'Bench press', '3', '5', '70'],
+      ] },
+      { name: 'Weigh-ins', rows: [['Client', 'Date', 'Body weight'], ['Priya Nair', '2026-08-03', '70.5']] },
+    ],
+  };
+  let importId = '';
+  let priya = '';
+
+  it('proposes a reading and imports nothing on upload', async () => {
+    const r = await request(app).post(`${api}/imports`).set('Authorization', as.trainer).send(upload);
+    expect(r.status).toBe(201);
+    importId = r.body.id;
+    expect(r.body.status).toBe('review');
+    expect(r.body.sheets.map((s: any) => [s.name, s.mapping.kind])).toEqual([['Clients', 'clients'], ['Training', 'workouts'], ['Weigh-ins', 'bodyweight']]);
+    expect(r.body.summary).toEqual({ clients: 3, workouts: 3, bodyweights: 1, skippedRows: 1 });
+    expect(r.body.warnings).toContain('1 row skipped: date could not be read ("Training" row 5)');
+    const byName = Object.fromEntries(r.body.clients.map((c: any) => [c.name, c]));
+    // Jordan is already on the roster by email; Priya and Leo are new.
+    expect(byName['Jordan Lee'].matchesExisting).toBe(true);
+    expect(byName['Priya Nair']).toMatchObject({ matchesExisting: false, workouts: 2, bodyweights: 1, firstDate: '2026-08-03', lastDate: '2026-08-10' });
+    expect(byName['Priya Nair'].sample[0]).toEqual({ date: '2026-08-10', summary: 'Back squat 3×5 at 63 kg' });
+    expect(await prisma.ptProspect.count()).toBe(0);
+    expect(await prisma.ptImportedWorkout.count()).toBe(0);
+  });
+
+  it('is private to the practice and rejects an empty or oversized upload', async () => {
+    expect((await request(app).get(`${api}/imports/${importId}`).set('Authorization', as.other)).status).toBe(404);
+    expect((await request(app).post(`${api}/imports/${importId}/confirm`).set('Authorization', as.other)).status).toBe(404);
+    expect((await request(app).post(`${api}/imports`).set('Authorization', as.trainer).send({ fileName: 'x.csv', sheets: [{ name: 'A', rows: [['', '']] }] })).status).toBe(400);
+    expect((await request(app).post(`${api}/imports`).set('Authorization', as.maya).send(upload)).status).toBe(404);
+  });
+
+  it('re-reads the file when the trainer corrects the mapping', async () => {
+    const current = (await request(app).get(`${api}/imports/${importId}`).set('Authorization', as.trainer)).body;
+    const mappings = current.sheets.map((s: any) => (s.name === 'Weigh-ins' ? { ...s.mapping, kind: 'ignore' } : s.mapping));
+    const off = await request(app).put(`${api}/imports/${importId}/mapping`).set('Authorization', as.trainer).send({ mappings });
+    expect(off.body.summary.bodyweights).toBe(0);
+    expect(off.body.warnings).toContain('"Weigh-ins" was not read: no client, training or bodyweight columns were recognised');
+    const back = await request(app).put(`${api}/imports/${importId}/mapping`).set('Authorization', as.trainer).send({ mappings: current.sheets.map((s: any) => s.mapping) });
+    expect(back.body.summary.bodyweights).toBe(1);
+  });
+
+  it('imports once: new people as Not joined, a known email onto the existing client', async () => {
+    const r = await request(app).post(`${api}/imports/${importId}/confirm`).set('Authorization', as.trainer);
+    expect(r.status).toBe(200);
+    expect(r.body.import).toMatchObject({ status: 'imported', clients: 3, workouts: 3 });
+    expect((await request(app).post(`${api}/imports/${importId}/confirm`).set('Authorization', as.trainer)).status).toBe(409);
+    expect((await request(app).put(`${api}/imports/${importId}/mapping`).set('Authorization', as.trainer).send({ mappings: [] })).status).toBe(409);
+
+    const roster = await request(app).get(`${api}/clients`).set('Authorization', as.trainer);
+    expect(roster.body.counts.notJoined).toBe(2);
+    const notJoined = roster.body.clients.filter((c: any) => c.status === 'notJoined');
+    expect(notJoined.map((c: any) => c.name).sort()).toEqual(['Leo Martins', 'Priya Nair']);
+    const p = notJoined.find((c: any) => c.name === 'Priya Nair');
+    priya = p.id;
+    expect(priya).toMatch(/^prospect:/);
+    expect(p).toMatchObject({ email: 'priya@example.com', statusReason: 'Not on Axiom yet · 2 imported sessions', contraindications: [{ label: 'Lower back', active: true }] });
+    // Jordan stays one client, not two.
+    expect(roster.body.clients.filter((c: any) => c.name === 'Jordan Lee')).toHaveLength(1);
+    // Nothing was written into anyone's own account.
+    expect(await prisma.workoutLog.count({ where: { userId: id.jordan, date: '2025-12-01' } })).toBe(0);
+    expect(await prisma.ptAuditLog.count({ where: { action: 'import_confirmed' } })).toBe(1);
+  });
+
+  it('gives an app published before the import a status it can draw', async () => {
+    const old = await request(app).get(`${api}/clients`).set('Authorization', as.trainer).set('x-pt-caps', 'none');
+    const p = old.body.clients.find((c: any) => c.id === priya);
+    expect(p).toMatchObject({ status: 'new', statusReason: 'Not on Axiom yet · 2 imported sessions' });
+    expect(old.body.clients.some((c: any) => c.status === 'notJoined')).toBe(false);
+    const viaQuery = await request(app).get(`${api}/clients?caps=not-joined`).set('Authorization', as.trainer).set('x-pt-caps', 'none');
+    expect(viaQuery.body.clients.find((c: any) => c.id === priya).status).toBe('notJoined');
+  });
+
+  it('shows a not-joined client\'s imported history, and the existing client\'s alongside what they log', async () => {
+    const t = await request(app).get(`${api}/clients/${encodeURIComponent(priya)}/timeline`).set('Authorization', as.trainer);
+    expect(t.status).toBe(200);
+    expect(t.body.events.map((e: any) => [e.kind, e.flag?.label])).toEqual([['workout', 'PR · Back squat'], ['workout', 'Imported'], ['measurement', 'Imported']]);
+    const overview = await request(app).get(`${api}/clients/${encodeURIComponent(priya)}/overview`).set('Authorization', as.trainer);
+    expect(overview.body.summary.text).toBe('Priya has not joined Axiom yet, so this is their imported history only. 2 sessions were imported, the most recent from 10 Aug. Active injury on file: Lower back.');
+    // No plan means nothing to adhere to: the overview does not invent an adherence figure.
+    expect(overview.body.stats.map((x: any) => x.label)).not.toContain('4-week adherence');
+    expect(overview.body.openItems).toEqual([]);
+    expect((await request(app).get(`${api}/clients/${encodeURIComponent(priya)}/timeline`).set('Authorization', as.other)).status).toBe(404);
+
+    const jordan = await request(app).get(`${api}/clients/${id.jordan}/timeline?kind=workout`).set('Authorization', as.trainer);
+    const imported = jordan.body.events.filter((e: any) => e.flag?.label === 'Imported');
+    expect(imported).toHaveLength(1);
+    expect(imported[0].body).toContain('Deadlift 3×5 at 150 kg');
+  });
+
+  it('never sends to someone who has not joined', async () => {
+    const before = (await trainerMessages()).length;
+    const msg = await request(app).post(`${api}/clients/${encodeURIComponent(priya)}/message`).set('Authorization', as.trainer).send({ text: 'hello' });
+    expect(msg.status).toBe(409);
+    expect(msg.body.code).toBe('not_joined');
+    expect((await request(app).post(`${api}/check-ins/request`).set('Authorization', as.trainer).send({ clientIds: [priya] })).body).toEqual({ requested: 0 });
+    // The briefing is about people the trainer can reach; imported-only clients are not in it.
+    const briefing = await request(app).get(`${api}/briefing/today`).set('Authorization', as.trainer);
+    expect(briefing.body.clientCount).toBe(3);
+    await runSweeps();
+    expect(await prisma.ptNotification.count({ where: { clientId: priya } })).toBe(0);
+    expect((await trainerMessages()).length).toBe(before);
+  });
+
+  it('invites a not-joined client; when they accept, the record becomes theirs', async () => {
+    const leo = (await request(app).get(`${api}/clients?status=notJoined`).set('Authorization', as.trainer)).body.clients.find((c: any) => c.name === 'Leo Martins').id;
+    expect((await request(app).post(`${api}/clients/${encodeURIComponent(leo)}/invite`).set('Authorization', as.trainer).send({})).status).toBe(400); // no email on file
+    expect((await request(app).post(`${api}/clients/${id.jordan}/invite`).set('Authorization', as.trainer).send({})).status).toBe(400);
+    expect((await request(app).post(`${api}/clients/${encodeURIComponent(priya)}/invite`).set('Authorization', as.other).send({})).status).toBe(404);
+
+    await request(app).post(`${api}/clients/${encodeURIComponent(priya)}/notes`).set('Authorization', as.trainer).send({ body: 'Met at the gym open day.' });
+    const invite = await request(app).post(`${api}/clients/${encodeURIComponent(priya)}/invite`).set('Authorization', as.trainer).send({});
+    expect(invite.status).toBe(201);
+    expect(invite.body).toMatchObject({ email: 'priya@example.com', link: expect.stringContaining('/personal-training/join/') });
+
+    const account = await prisma.user.create({ data: { name: 'Priya Nair', email: 'priya@example.com', emailVerified: true } });
+    const asPriya = token(account.id, 'priya@example.com');
+    // The link is bound to her address: someone else cannot use it.
+    expect((await request(app).post(`${api}/invites/${invite.body.token}/accept`).set('Authorization', as.jordan)).status).toBe(403);
+    expect((await request(app).post(`${api}/invites/${invite.body.token}/accept`).set('Authorization', asPriya)).status).toBe(200);
+
+    const roster = await request(app).get(`${api}/clients`).set('Authorization', as.trainer);
+    const joined = roster.body.clients.filter((c: any) => c.name === 'Priya Nair');
+    expect(joined).toHaveLength(1);
+    expect(joined[0].id).toBe(account.id);
+    expect(joined[0].status).not.toBe('notJoined');
+    expect(roster.body.counts.notJoined).toBe(1);
+    // Her imported history and the note followed her; her own account holds none of it.
+    const t = await request(app).get(`${api}/clients/${account.id}/timeline`).set('Authorization', as.trainer);
+    expect(t.body.events.map((e: any) => e.kind).sort()).toEqual(['measurement', 'note', 'workout', 'workout']);
+    expect(await prisma.workoutLog.count({ where: { userId: account.id } })).toBe(0);
+    expect((await request(app).get(`${api}/clients/${encodeURIComponent(priya)}/timeline`).set('Authorization', as.trainer)).status).toBe(404);
+  });
+
+  it('undoes an import as a batch', async () => {
+    expect((await request(app).post(`${api}/imports/${importId}/undo`).set('Authorization', as.other)).status).toBe(404);
+    const r = await request(app).post(`${api}/imports/${importId}/undo`).set('Authorization', as.trainer);
+    expect(r.status).toBe(200);
+    expect(await prisma.ptImportedWorkout.count()).toBe(0);
+    expect(await prisma.ptImportedWeight.count()).toBe(0);
+    expect(await prisma.ptProspect.count()).toBe(0);
+    expect((await request(app).get(`${api}/clients`).set('Authorization', as.trainer)).body.counts.notJoined).toBe(0);
+    expect((await request(app).post(`${api}/imports/${importId}/undo`).set('Authorization', as.trainer)).status).toBe(409);
+    const list = await request(app).get(`${api}/imports`).set('Authorization', as.trainer);
+    expect(list.body.imports).toEqual([expect.objectContaining({ id: importId, status: 'undone', fileName: 'clients.xlsx' })]);
   });
 });
 

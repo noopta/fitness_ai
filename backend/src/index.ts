@@ -170,6 +170,8 @@ const LARGE_BODY_PATHS = [
   '/api/nutrition/recipes',
   '/api/nutrition/order-scan',
   '/api/nutrition/barcode/',
+  // A trainer's client spreadsheet, posted as its cells.
+  '/api/personal-training/imports',
 ];
 
 const largeJson = express.json({ limit: '10mb', verify: jsonVerify });

@@ -6,7 +6,7 @@
 import type { Client, RosterFilter, StatusCounts } from './types';
 
 export function countByStatus(clients: Client[]): StatusCounts {
-  const counts: StatusCounts = { all: clients.length, support: 0, new: 0, onPlan: 0, paused: 0 };
+  const counts: StatusCounts = { all: clients.length, support: 0, new: 0, onPlan: 0, paused: 0, notJoined: 0 };
   for (const c of clients) counts[c.status] += 1;
   return counts;
 }

@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => ({
   directConversation: { findUnique: vi.fn() },
   message: { findMany: vi.fn(), findFirst: vi.fn() },
   ptNote: { findMany: vi.fn() },
+  ptProspect: { findMany: vi.fn(), findUnique: vi.fn() },
+  ptImportedWorkout: { findMany: vi.fn() },
+  ptImportedWeight: { findMany: vi.fn() },
   $transaction: vi.fn(),
 }));
 vi.mock('@prisma/client', () => {
@@ -72,6 +75,9 @@ beforeEach(() => {
   mocks.adaptationProposal.findMany.mockResolvedValue([]);
   mocks.directConversation.findUnique.mockResolvedValue(null);
   mocks.ptNote.findMany.mockResolvedValue([]);
+  mocks.ptProspect.findMany.mockResolvedValue([]);
+  mocks.ptImportedWorkout.findMany.mockResolvedValue([]);
+  mocks.ptImportedWeight.findMany.mockResolvedValue([]);
 });
 
 describe('gates', () => {
@@ -145,7 +151,7 @@ describe('GET /clients', () => {
     const r = await request(app).get('/api/personal-training/clients').set(auth(trainerToken));
     expect(r.status).toBe(200);
     expect(mocks.institutionMember.findMany.mock.calls[0][0].where).toEqual({ institutionId: 'p-1', role: 'athlete', active: true });
-    expect(r.body.counts).toEqual({ all: 1, support: 0, new: 0, onPlan: 1, paused: 0 });
+    expect(r.body.counts).toEqual({ all: 1, support: 0, new: 0, onPlan: 1, paused: 0, notJoined: 0 });
     expect(r.body.clients[0]).toMatchObject({ id: 'c-1', name: 'Maya Okafor', initials: 'MO', status: 'onPlan', channel: 'app', program: null });
     expect(r.body.clients[0].engagement8w).toHaveLength(8);
   });
@@ -174,7 +180,7 @@ describe('GET /clients', () => {
   it('returns an empty roster without querying activity', async () => {
     mocks.institutionMember.findMany.mockResolvedValue([]);
     const r = await request(app).get('/api/personal-training/clients').set(auth(trainerToken));
-    expect(r.body).toEqual({ clients: [], counts: { all: 0, support: 0, new: 0, onPlan: 0, paused: 0 } });
+    expect(r.body).toEqual({ clients: [], counts: { all: 0, support: 0, new: 0, onPlan: 0, paused: 0, notJoined: 0 } });
     expect(mocks.workoutLog.findMany).not.toHaveBeenCalled();
   });
 });

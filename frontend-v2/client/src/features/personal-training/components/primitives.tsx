@@ -28,6 +28,7 @@ export const STATUS_TONE: Record<ClientStatus, Tone> = {
   new: 'zinc',
   onPlan: 'green',
   paused: 'zinc',
+  notJoined: 'zinc',
 };
 
 /** 6px dot + 11/600 label on a soft fill. The label means status is never colour-only. */

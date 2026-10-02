@@ -1583,3 +1583,83 @@ model PtNote {
 
   @@index([practiceId, clientId, createdAt])
 }
+
+// ─── Personal training: spreadsheet import ───────────────────────────────────
+// A trainer uploads their own client sheet. The raw grid is kept with the
+// reviewed column mapping so the import can be re-read, audited and undone.
+model PtImport {
+  id          String    @id @default(uuid())
+  practiceId  String
+  trainerId   String
+  fileName    String
+  // review | imported | undone
+  status      String    @default("review")
+  // [{name, rows: string[][]}] exactly as uploaded (after size limits).
+  sheetsJson  String
+  // SheetMapping[] — proposed by the model or rules, then corrected by the trainer.
+  mappingJson String
+  summaryJson String    @default("{}")
+  createdAt   DateTime  @default(now())
+  importedAt  DateTime?
+  undoneAt    DateTime?
+
+  @@index([practiceId, createdAt])
+}
+
+// A client from an import who has no Axiom account yet ("Not joined"). Once
+// they accept an invite, userId links the record to their account and the
+// imported history is shown alongside what they log; nothing is written into
+// their own account.
+model PtProspect {
+  id          String    @id @default(uuid())
+  practiceId  String
+  importId    String
+  // Lower-cased, whitespace-collapsed name: how rows across sheets and
+  // imports are recognised as the same person.
+  nameKey     String
+  name        String
+  email       String?
+  phone       String?
+  goal        String?
+  injuries    String?
+  notes       String?
+  userId      String?
+  inviteToken String?
+  invitedAt   DateTime?
+  joinedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([practiceId, nameKey])
+  @@index([practiceId, userId])
+  @@index([importId])
+}
+
+model PtImportedWorkout {
+  id         String   @id @default(uuid())
+  practiceId String
+  prospectId String
+  importId   String
+  // Calendar date from the sheet, and the same day as an instant for ordering.
+  date       String
+  at         DateTime
+  title      String?
+  // Same shape as WorkoutLog.exercises: [{name, sets, reps, weightKg, rpe}].
+  exercises  String
+  notes      String?
+
+  @@index([prospectId, at])
+  @@index([importId])
+}
+
+model PtImportedWeight {
+  id         String   @id @default(uuid())
+  practiceId String
+  prospectId String
+  importId   String
+  date       String
+  at         DateTime
+  weightKg   Float
+
+  @@index([prospectId, at])
+  @@index([importId])
+}

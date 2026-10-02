@@ -361,7 +361,7 @@ export async function ask(input: {
   const reply = await prisma.ptAnakinMessage.create({ data: { threadId: thread.id, role: 'assistant', text: '', scope } });
   emit({ type: 'thread', threadId: thread.id, messageId: reply.id });
 
-  const data = await loadPracticeData(practiceId, trainerId, { now });
+  const data = await loadPracticeData(practiceId, trainerId, { now, includeProspects: true });
   emit({ type: 'status', text: `Reading ${count(scopeClients(data, scope).length, 'client', 'clients')}` });
 
   // The conversational agent when it is available; the pattern-matched path

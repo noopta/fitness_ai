@@ -4,9 +4,9 @@
 
 import type {
   AnakinFilter, AnakinMessage, AnakinScope, AnakinThreadSummary, BriefingItem, BriefingResponse, CheckInInbox, CheckInRequest,
-  CheckInSchedule, Client, ClientNote, ClientOverview, ClientProgramView, Draft, InvitePreview, InviteResponse, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
+  CheckInSchedule, Client, ClientNote, ClientOverview, ClientProgramView, Draft, ImportPreview, ImportSummary, ImportUpload, InvitePreview, InviteResponse, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
   NotificationSettingsPatch, Practice, ProgressResponse, Report, ResolveAction, RosterResponse, ScheduledQuestion, TimelineKind,
-  TimelinePage,
+  SheetMapping, TimelinePage,
 } from './types';
 
 export const API_PREFIX = '/personal-training';
@@ -45,6 +45,7 @@ export const queryKeys = {
   overview: (id: string) => ['personal-training', 'clients', id, 'overview'] as const,
   program: (id: string) => ['personal-training', 'clients', id, 'program'] as const,
   notes: (id: string) => ['personal-training', 'clients', id, 'notes'] as const,
+  imports: ['personal-training', 'imports'] as const,
   notifications: ['personal-training', 'notifications'] as const,
   notificationSettings: ['personal-training', 'notification-settings'] as const,
 };
@@ -114,6 +115,16 @@ export function createApi(fetcher: Fetcher) {
     /** Write to a client directly. Goes through the same send → undo window → deliver path as every draft. */
     messageClient: (id: string, text: string) =>
       fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/message`, { method: 'POST', body: JSON.stringify({ text }) }) as Promise<{ draft: Draft }>,
+
+    imports: () => fetcher(`${API_PREFIX}/imports`) as Promise<{ imports: ImportSummary[] }>,
+    createImport: (upload: ImportUpload) => fetcher(`${API_PREFIX}/imports`, { method: 'POST', body: JSON.stringify(upload) }) as Promise<ImportPreview>,
+    updateImportMapping: (id: string, mappings: SheetMapping[]) =>
+      fetcher(`${API_PREFIX}/imports/${id}/mapping`, { method: 'PUT', body: JSON.stringify({ mappings }) }) as Promise<ImportPreview>,
+    confirmImport: (id: string) => fetcher(`${API_PREFIX}/imports/${id}/confirm`, { method: 'POST' }) as Promise<{ import: ImportSummary }>,
+    undoImport: (id: string) => fetcher(`${API_PREFIX}/imports/${id}/undo`, { method: 'POST' }) as Promise<{ ok: true }>,
+    /** An invite link for a "Not joined" client, bound to their email. */
+    inviteProspect: (id: string, email?: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/invite`, { method: 'POST', body: JSON.stringify(email ? { email } : {}) }) as Promise<InviteResponse>,
 
     briefing: () => fetcher(`${API_PREFIX}/briefing/today`) as Promise<BriefingResponse>,
     resolveItem: (id: string, action: ResolveAction, editedText?: string) =>

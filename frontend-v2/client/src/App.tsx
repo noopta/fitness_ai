@@ -54,6 +54,7 @@ import PersonalTrainingCheckInAnswerPage from "./features/personal-training/page
 import PersonalTrainingProgressPage from "./features/personal-training/pages/ProgressPage";
 import PersonalTrainingAnakinPage from "./features/personal-training/pages/AnakinPage";
 import PersonalTrainingNotificationSettingsPage from "./features/personal-training/pages/NotificationSettingsPage";
+import PersonalTrainingImportPage from "./features/personal-training/pages/ImportPage";
 import NavDemoPage from "./pages/nav-demo";
 import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
@@ -171,6 +172,7 @@ const ProtectedInstitutionCoach       = () => <ProtectedRoute component={Institu
 const ProtectedInstitutionAthleteDetail = () => <ProtectedRoute component={InstitutionAthleteDetailPage} />;
 // Human-trainer dashboard. Deliberately not under /coach, which is the AI coach.
 const ProtectedPersonalTrainingRoster   = () => <ProtectedRoute component={PersonalTrainingRosterPage} />;
+const ProtectedPersonalTrainingImport   = () => <ProtectedRoute component={PersonalTrainingImportPage} />;
 const ProtectedPersonalTrainingTimeline = () => <ProtectedRoute component={PersonalTrainingTimelinePage} />;
 const ProtectedPersonalTrainingJoin     = () => <ProtectedRoute component={PersonalTrainingJoinPage} />;
 const ProtectedPersonalTrainingBriefing = () => <ProtectedRoute component={PersonalTrainingBriefingPage} />;
@@ -241,6 +243,7 @@ function Router() {
       <Route path="/personal-training/join/:token" component={ProtectedPersonalTrainingJoin} />
       <Route path="/personal-training/clients/:id/:tab" component={ProtectedPersonalTrainingTimeline} />
       <Route path="/personal-training/clients" component={ProtectedPersonalTrainingRoster} />
+      <Route path="/personal-training/import" component={ProtectedPersonalTrainingImport} />
       <Route path="/personal-training/check-in/:id" component={ProtectedPersonalTrainingCheckInAnswer} />
       <Route path="/personal-training/check-ins" component={ProtectedPersonalTrainingCheckIns} />
       <Route path="/personal-training/progress" component={ProtectedPersonalTrainingProgress} />

@@ -5,12 +5,14 @@
 
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { COPY, relativeDay, shortDate, type ClientNote, type ClientOverview, type ClientProgramView, type Draft } from '@axiom/personal-training-core';
+import { COPY, PersonalTrainingApiError, relativeDay, shortDate, type ClientNote, type ClientOverview, type ClientProgramView, type Draft } from '@axiom/personal-training-core';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { useCanUndo, useMessageClient, useNoteActions, useNotes, useOverview, useProgram, useUndoDraft } from '../hooks';
+import { useCanUndo, useInviteProspect, useMessageClient, useNoteActions, useNotes, useOverview, useProgram, useUndoDraft } from '../hooks';
 import { SentRow } from './DraftReply';
 import { EvidenceList, Eyebrow, Notice, Pill, SkeletonBlock } from './primitives';
 
@@ -280,6 +282,58 @@ export function MessageDialog({ clientId, clientName, open, onOpenChange }: { cl
             <Textarea aria-label={COPY.dossier.messagePlaceholder} value={text} rows={5} maxLength={2000} placeholder={COPY.dossier.messagePlaceholder} onChange={(e) => setText(e.target.value)} className="rounded-xl text-sm leading-relaxed" autoFocus />
             {send.isError && <p role="alert" className="text-sm text-axiom-destructive-ink">{(send.error as Error).message}</p>}
             <Button type="submit" className="h-11 w-full rounded-xl md:h-10" disabled={!text.trim() || send.isPending}>{COPY.dossier.messageSend}</Button>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** An invite link for a "Not joined" client. The link is bound to their email, so the imported history can only become theirs. */
+export function ProspectInviteDialog({ clientId, clientName, email, open, onOpenChange }: {
+  clientId: string; clientName: string; email: string | null; open: boolean; onOpenChange: (open: boolean) => void;
+}) {
+  const [address, setAddress] = useState(email ?? '');
+  const [copied, setCopied] = useState(false);
+  const invite = useInviteProspect(clientId);
+  const close = (next: boolean) => { if (!next) { setCopied(false); invite.reset(); } onOpenChange(next); };
+
+  async function copy() {
+    if (!invite.data) return;
+    try {
+      await navigator.clipboard.writeText(invite.data.link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard can be blocked; the link stays selectable in the field.
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-[17px] font-semibold tracking-[-0.01em]">{COPY.import.inviteTitle(clientName)}</DialogTitle>
+          <DialogDescription className="text-sm leading-relaxed text-axiom-zinc-600">{COPY.import.inviteBody}</DialogDescription>
+        </DialogHeader>
+        {invite.data ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Input readOnly value={invite.data.link} aria-label="Invite link" className="flex-1 text-xs" onFocus={(e) => e.currentTarget.select()} />
+              <Button type="button" variant="secondary" className="h-10 shrink-0 rounded-xl" onClick={copy}>
+                <span aria-live="polite">{copied ? COPY.invite.copied : COPY.invite.copy}</span>
+              </Button>
+            </div>
+            <p className="text-xs text-axiom-zinc-500">{COPY.invite.expires(shortDate(new Date(invite.data.expiresAt)))} {invite.data.email}</p>
+          </div>
+        ) : (
+          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (address.trim()) invite.mutate(address.trim()); }}>
+            <div className="space-y-2">
+              <Label htmlFor="pt-prospect-email">{COPY.import.inviteEmail}</Label>
+              <Input id="pt-prospect-email" type="email" required value={address} onChange={(e) => setAddress(e.target.value)} placeholder="client@example.com" />
+            </div>
+            {invite.isError && <p role="alert" className="text-sm text-axiom-destructive-ink">{invite.error instanceof PersonalTrainingApiError && invite.error.status < 500 ? invite.error.message : COPY.invite.failed}</p>}
+            <Button type="submit" className="h-10 w-full rounded-xl" disabled={!address.trim() || invite.isPending}>{COPY.import.inviteCreate}</Button>
           </form>
         )}
       </DialogContent>

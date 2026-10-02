@@ -56,7 +56,7 @@ describe('roster', () => {
   ];
 
   it('counts every status, including empty ones', () => {
-    expect(countByStatus(clients)).toEqual({ all: 3, support: 1, new: 1, onPlan: 1, paused: 0 });
+    expect(countByStatus(clients)).toEqual({ all: 3, support: 1, new: 1, onPlan: 1, paused: 0, notJoined: 0 });
   });
 
   it('filters by status and by name, email or goal', () => {
@@ -142,5 +142,24 @@ describe('streamed endpoints', () => {
     expect(BRIEFING_STREAM_PATH).toBe('/personal-training/briefing/today/stream');
     expect(anakinMessagePath(null)).toBe('/personal-training/anakin/threads/new/messages');
     expect(anakinMessagePath('t 1')).toBe('/personal-training/anakin/threads/t%201/messages');
+  });
+});
+
+import { detectDelimiter, parseCsv } from '../src';
+
+describe('csv', () => {
+  it('reads quoted fields, embedded commas, quotes and line breaks', () => {
+    expect(parseCsv('Client,Notes\r\n"Okafor, Maya","said ""fine""\nthen left"\nJordan,ok')).toEqual([
+      ['Client', 'Notes'], ['Okafor, Maya', 'said "fine"\nthen left'], ['Jordan', 'ok'],
+    ]);
+  });
+  it('detects semicolon and tab exports and strips a byte-order mark', () => {
+    expect(detectDelimiter('a;b;c\n1;2;3')).toBe(';');
+    expect(parseCsv('\ufeffName;Kg\nMaya;62,5')).toEqual([['Name', 'Kg'], ['Maya', '62,5']]);
+    expect(parseCsv('a\tb\n1\t2')).toEqual([['a', 'b'], ['1', '2']]);
+  });
+  it('keeps empty cells and handles a file with no trailing newline', () => {
+    expect(parseCsv('a,,c\n,,')).toEqual([['a', '', 'c'], ['', '', '']]);
+    expect(parseCsv('')).toEqual([]);
   });
 });

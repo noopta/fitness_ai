@@ -7,7 +7,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import {
   PersonalTrainingApiError, queryKeys,
   type AnakinScope, type BriefingItem, type BriefingResponse, type CheckInSchedule, type Draft, type LiftKey,
-  type NotificationSettingsPatch, type Report, type ResolveAction, type TimelineKind, type TimelinePage,
+  type ImportUpload, type NotificationSettingsPatch, type Report, type ResolveAction, type SheetMapping, type TimelineKind, type TimelinePage,
 } from '@axiom/personal-training-core';
 import { ptApi } from './api';
 
@@ -259,4 +259,30 @@ export function useNoteActions(id: string) {
 export function useMessageClient(id: string) {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (text: string) => ptApi.messageClient(id, text), onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.client(id) }) });
+}
+
+// ── Spreadsheet import ───────────────────────────────────────────────────────
+
+export function useImports() {
+  return useQuery({ queryKey: queryKeys.imports, queryFn: ptApi.imports, retry, ...LIVE });
+}
+
+export function useImportActions() {
+  const qc = useQueryClient();
+  // An import adds people to the roster (and history to existing clients), so both lists are stale after it.
+  const refresh = () => {
+    void qc.invalidateQueries({ queryKey: queryKeys.imports });
+    void qc.invalidateQueries({ queryKey: queryKeys.roster });
+    void qc.invalidateQueries({ queryKey: ['personal-training', 'clients'] });
+  };
+  return {
+    create: useMutation({ mutationFn: (upload: ImportUpload) => ptApi.createImport(upload) }),
+    remap: useMutation({ mutationFn: (v: { id: string; mappings: SheetMapping[] }) => ptApi.updateImportMapping(v.id, v.mappings) }),
+    confirm: useMutation({ mutationFn: (id: string) => ptApi.confirmImport(id), onSuccess: refresh }),
+    undo: useMutation({ mutationFn: (id: string) => ptApi.undoImport(id), onSuccess: refresh }),
+  };
+}
+
+export function useInviteProspect(id: string) {
+  return useMutation({ mutationFn: (email?: string) => ptApi.inviteProspect(id, email) });
 }

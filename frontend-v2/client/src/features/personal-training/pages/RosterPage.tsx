@@ -65,10 +65,13 @@ function RosterTable({ clients, evidence }: { clients: Client[]; evidence: Map<s
                 ) : <p className="text-[13px] text-axiom-zinc-500">{COPY.roster.noProgram}</p>}
               </td>
               <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Sparkline series={c.engagement8w} trend={c.engagementTrend} />
-                  <span className="text-xs text-axiom-zinc-600">{TREND_LABEL[c.engagementTrend]}</span>
-                </div>
+                {/* Someone who has not joined has no engagement to chart. */}
+                {c.status === 'notJoined' ? <span className="text-xs text-axiom-zinc-500">—</span> : (
+                  <div className="flex items-center gap-3">
+                    <Sparkline series={c.engagement8w} trend={c.engagementTrend} />
+                    <span className="text-xs text-axiom-zinc-600">{TREND_LABEL[c.engagementTrend]}</span>
+                  </div>
+                )}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-[13px] tabular-nums text-axiom-zinc-600">
                 {relativeDay(c.lastCheckInAt) ?? COPY.roster.never}
@@ -89,7 +92,7 @@ function RosterList({ clients, evidence }: { clients: Client[]; evidence: Map<st
           <Link href={timelineHref(c)} className="flex min-h-16 items-center gap-3 px-3 py-2.5 active:scale-[.98] motion-reduce:active:scale-100">
             <Avatar initials={c.initials} size={36} status={c.status} />
             <div className="min-w-0 flex-1"><ClientCell client={c} evidence={evidence?.get(c.id)} /></div>
-            <Sparkline series={c.engagement8w} trend={c.engagementTrend} />
+            {c.status === 'notJoined' ? <StatusPill status={c.status} /> : <Sparkline series={c.engagement8w} trend={c.engagementTrend} />}
           </Link>
         </li>
       ))}
@@ -124,7 +127,10 @@ function Roster({ me }: { me: MeResponse }) {
           <h1 className="hidden text-[30px] font-bold leading-tight tracking-[-0.02em] md:block">{COPY.roster.title}</h1>
           {roster.data && <p className="text-sm text-axiom-zinc-600 md:mt-1">{COPY.roster.countLine(all.length)}</p>}
         </div>
-        <Button className="h-11 shrink-0 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.roster.invite}</Button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          <Button asChild variant="secondary" className="h-11 rounded-xl md:h-10"><Link href="/personal-training/import">{COPY.import.entry}</Link></Button>
+          <Button className="h-11 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.roster.invite}</Button>
+        </div>
       </div>
 
       {filterThread && (anakin.data || anakin.isError) && (

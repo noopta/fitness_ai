@@ -21,14 +21,32 @@ import {
   parseKinds, programEvent, workoutEvent,
 } from '../services/personalTraining/timeline.js';
 import type { ClientStatus, TimelineEvent } from '../services/personalTraining/types.js';
+import { PROSPECT_PREFIX, linkProspectsOnJoin } from '../services/personalTraining/imports.js';
 import surfaces from './personalTrainingSurfaces.js';
 
 const router = Router();
+
+// "Not joined" is a status added with spreadsheet import. A client that has not
+// said it understands it (an app bundle published before the import existed)
+// is given those clients as "new" instead — a status it can already draw —
+// so a newer server never hands an older app something it cannot render.
+// The web sends `?caps=not-joined`; non-browser clients may send `X-PT-Caps`.
+export const downgradeNotJoined = (text: string) => text.split('"status":"notJoined"').join('"status":"new"');
+router.use((req, res, next) => {
+  const caps = `${req.query.caps ?? ''},${req.get('x-pt-caps') ?? ''}`.split(',');
+  if (caps.includes('not-joined')) return next();
+  const json = res.json.bind(res);
+  res.json = (body: unknown) => json(body === undefined ? body : JSON.parse(downgradeNotJoined(JSON.stringify(body))));
+  // Streamed answers (Ask Anakin) are written as `data:` frames rather than through res.json.
+  const write = res.write.bind(res) as (...args: any[]) => boolean;
+  res.write = ((chunk: any, ...rest: any[]) => write(typeof chunk === 'string' ? downgradeNotJoined(chunk) : chunk, ...rest)) as typeof res.write;
+  next();
+});
 const prisma = new PrismaClient();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 const INVITE_TTL_HOURS = 7 * 24;
-const STATUSES: ClientStatus[] = ['support', 'new', 'onPlan', 'paused'];
+const STATUSES: ClientStatus[] = ['support', 'new', 'onPlan', 'paused', 'notJoined'];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const trainer: RequestHandler[] = [requireAuth, requirePersonalTraining, requireTrainer];
@@ -67,6 +85,8 @@ router.post('/invites/:token/accept', requireAuth, socialWriteLimiter, async (re
     const invite = await findUsableInvite(req.params.token);
     if (invite.role !== 'athlete') return res.status(404).json({ error: 'Invite not found' });
     const { institution } = await claimInvite(req.params.token, req.user!.id);
+    // If the trainer imported this person from a spreadsheet, their record now belongs to this account.
+    await linkProspectsOnJoin(institution.id, req.user!.id, req.params.token).catch((err) => console.error('[personal-training] link prospect', err));
     return res.json({
       practice: { id: institution.id, name: institution.name, slug: institution.slug, logoUrl: institution.logoUrl },
     });
@@ -135,7 +155,7 @@ router.get('/clients', ...trainer, async (req, res) => {
     const ids = typeof req.query.ids === 'string' && req.query.ids
       ? req.query.ids.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 500)
       : undefined;
-    let clients = await loadClients(req.practice!.id, { ids });
+    let clients = await loadClients(req.practice!.id, { ids, includeProspects: true });
 
     const q = typeof req.query.q === 'string' ? req.query.q.trim().toLowerCase() : '';
     if (q) {
@@ -192,7 +212,7 @@ router.post('/clients/invite', ...trainer, socialWriteLimiter, async (req, res) 
 // GET /personal-training/clients/:id — one client (timeline header)
 router.get('/clients/:id', ...trainer, async (req, res) => {
   try {
-    const [client] = await loadClients(req.practice!.id, { ids: [req.params.id] });
+    const [client] = await loadClients(req.practice!.id, { ids: [req.params.id], includeProspects: true });
     if (!client) return res.status(404).json({ error: 'Client not found' });
     return res.json({ client });
   } catch (err) {
@@ -201,6 +221,9 @@ router.get('/clients/:id', ...trainer, async (req, res) => {
   }
 });
 
+/** Mark an event as coming from a spreadsheet import, unless it already carries a flag (a PR). */
+const importedFlag = (e: TimelineEvent): TimelineEvent => (e.flag ? e : { ...e, flag: { label: 'Imported', tone: 'zinc' } });
+
 // GET /personal-training/clients/:id/timeline?kind=&cursor= — paginated events, newest first
 router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
   const clientId = req.params.id;
@@ -208,6 +231,29 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
   try {
     // The membership check is the authorisation: a trainer can only read
     // someone who is an active client of the practice they run.
+    // A "Not joined" client has no account: their timeline is what was imported for them, plus the trainer's notes.
+    if (clientId.startsWith(PROSPECT_PREFIX)) {
+      const prospect = await prisma.ptProspect.findUnique({ where: { id: clientId.slice(PROSPECT_PREFIX.length) } });
+      if (!prospect || prospect.practiceId !== req.practice!.id || prospect.userId) return res.status(404).json({ error: 'Client not found' });
+      const kinds = parseKinds(req.query.kind);
+      const pref = normalizePreference((await prisma.user.findUnique({ where: { id: trainerId }, select: { unitPreference: true } }))?.unitPreference);
+      const [sessions, weighIns, notes] = await Promise.all([
+        kinds.includes('workout') ? prisma.ptImportedWorkout.findMany({ where: { prospectId: prospect.id }, orderBy: { at: 'asc' } }) : [],
+        kinds.includes('measurement') ? prisma.ptImportedWeight.findMany({ where: { prospectId: prospect.id }, orderBy: { at: 'asc' } }) : [],
+        kinds.includes('note') ? prisma.ptNote.findMany({ where: { practiceId: req.practice!.id, clientId }, orderBy: { createdAt: 'desc' } }) : [],
+      ]);
+      const rows = sessions.map((s) => ({ id: `imp:${s.id}`, createdAt: s.at, title: s.title, exercises: s.exercises, notes: s.notes, duration: null }));
+      const prs = detectPrs(rows);
+      const authors = notes.length ? await prisma.user.findMany({ where: { id: { in: [...new Set(notes.map((n) => n.trainerId))] } }, select: { id: true, name: true } }) : [];
+      const nameOf = new Map(authors.map((a) => [a.id, a.name?.trim() || 'Trainer']));
+      const events: TimelineEvent[] = [
+        ...rows.map((w) => importedFlag(workoutEvent(w, clientId, pref, prs.get(w.id)))),
+        ...weighIns.map((w) => measurementEvent({ id: `imp:${w.id}`, createdAt: w.at, weightKg: w.weightKg, notes: null }, clientId, pref)).filter((e): e is TimelineEvent => e !== null).map(importedFlag),
+        ...notes.map((n) => noteEvent({ id: n.id, createdAt: n.createdAt, body: n.body, authorName: nameOf.get(n.trainerId) ?? 'Trainer' }, clientId)),
+      ];
+      return res.json(pageEvents(events, decodeCursor(req.query.cursor)));
+    }
+
     const member = await prisma.institutionMember.findUnique({
       where: { institutionId_userId: { institutionId: req.practice!.id, userId: clientId } },
       select: { active: true, role: true, user: { select: { name: true, email: true } } },
@@ -283,10 +329,25 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
 
     const pref = normalizePreference(viewer?.unitPreference);
     const clientName = displayNameOf(member.user.name, member.user.email);
-    const prs = detectPrs(workouts);
+    // What the trainer had on file for this client from before they joined sits beside what they log.
+    const linked = want('workout') || want('measurement')
+      ? await prisma.ptProspect.findMany({ where: { practiceId: req.practice!.id, userId: clientId }, select: { id: true } })
+      : [];
+    const [importedSessions, importedWeighIns] = linked.length
+      ? await Promise.all([
+          want('workout') ? prisma.ptImportedWorkout.findMany({ where: { prospectId: { in: linked.map((p) => p.id) } }, orderBy: { at: 'asc' } }) : [],
+          want('measurement') ? prisma.ptImportedWeight.findMany({ where: { prospectId: { in: linked.map((p) => p.id) }, ...(cursor ? { at: { lte: new Date(cursor.at) } } : {}) }, orderBy: { at: 'desc' }, take }) : [],
+        ])
+      : [[], []];
+    const allWorkouts = [
+      ...workouts,
+      ...importedSessions.map((s) => ({ id: `imp:${s.id}`, createdAt: s.at, title: s.title, exercises: s.exercises, notes: s.notes, duration: null })),
+    ].sort((x, y) => x.createdAt.getTime() - y.createdAt.getTime());
+    const prs = detectPrs(allWorkouts);
 
     const events: TimelineEvent[] = [
-      ...workouts.map((w) => workoutEvent(w, clientId, pref, prs.get(w.id))),
+      ...allWorkouts.map((w) => (w.id.startsWith('imp:') ? importedFlag(workoutEvent(w, clientId, pref, prs.get(w.id))) : workoutEvent(w, clientId, pref, prs.get(w.id)))),
+      ...importedWeighIns.map((w) => measurementEvent({ id: `imp:${w.id}`, createdAt: w.at, weightKg: w.weightKg, notes: null }, clientId, pref)).filter((e): e is TimelineEvent => e !== null).map(importedFlag),
       ...checkIns.map((c) => checkInEvent(c, clientId)),
       ...weights
         .map((w) => measurementEvent({ id: w.id, createdAt: w.createdAt, weightKg: bodyWeightKg(w), notes: w.notes }, clientId, pref))

@@ -1261,6 +1261,15 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
       await tryDelete('ptAnakinThread', () => t.ptAnakinThread.deleteMany({ where: { trainerId: userId } }));
       await tryDelete('ptScheduledQuestion', () => t.ptScheduledQuestion.deleteMany({ where: { trainerId: userId } }));
       await tryDelete('ptNote', () => t.ptNote.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
+      // What a trainer imported about this person before they joined goes with them.
+      await tryDelete('ptImported', async () => {
+        const linked = await t.ptProspect.findMany({ where: { userId }, select: { id: true } });
+        const ids = linked.map((p: { id: string }) => p.id);
+        await t.ptImportedWorkout.deleteMany({ where: { prospectId: { in: ids } } });
+        await t.ptImportedWeight.deleteMany({ where: { prospectId: { in: ids } } });
+        await t.ptProspect.deleteMany({ where: { id: { in: ids } } });
+      });
+      await tryDelete('ptImport', () => t.ptImport.deleteMany({ where: { trainerId: userId } }));
       // The audit trail keeps that an action happened, not what was written to or about this person.
       await tryDelete('ptAuditLog', () => t.ptAuditLog.updateMany({ where: { clientId: userId }, data: { clientId: null, originalText: null, editedText: null } }));
       // Keyed by email, not a user FK, so the cascade doesn't reach it.

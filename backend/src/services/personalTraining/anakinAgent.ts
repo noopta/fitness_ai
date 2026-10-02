@@ -120,7 +120,7 @@ function clientFacts(c: Client, data: PracticeData, pref: UnitPreference) {
   const checkIn = [...d.checkIns].reverse().find((k) => k.status === 'submitted');
   return {
     name: c.name,
-    status: c.status === 'support' ? 'might need support' : c.status === 'onPlan' ? 'on plan' : c.status,
+    status: c.status === 'support' ? 'might need support' : c.status === 'onPlan' ? 'on plan' : c.status === 'notJoined' ? 'not joined (imported from a spreadsheet; no Axiom account, cannot be messaged)' : c.status,
     statusReason: c.statusReason ?? null,
     clientSince: shortDay(new Date(c.joinedAt)),
     program: c.program ? `${c.program.blockLabel}, week ${c.program.week} of ${c.program.weeks}${c.program.goal ? `; goal: ${c.program.goal}` : ''}` : 'no program',
@@ -213,7 +213,8 @@ export async function runAnakinAgent(input: AgentInput): Promise<AnakinEvent> {
       const missing: string[] = [];
       for (const n of names) {
         const [c, ...more] = matchClients(clients, n);
-        if (!c || more.length) { missing.push(n); continue; }
+        // Someone who has not joined Axiom cannot be messaged, so there is nothing to draft.
+        if (!c || more.length || c.status === 'notJoined') { missing.push(n); continue; }
         if (drafts.some((d) => d.clientId === c.id)) continue;
         const first = c.name.split(' ')[0];
         const evidence = queries.flatMap((q) => q.answer.rows).find((r) => r.clientId === c.id)?.evidence;

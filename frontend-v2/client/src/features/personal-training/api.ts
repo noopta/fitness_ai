@@ -7,8 +7,14 @@ import { authFetch } from '@/lib/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
+/**
+ * Tells the API this client can draw the "Not joined" status. A query
+ * parameter rather than a header, so it needs no CORS allowance.
+ */
+const withCaps = (path: string) => `${path}${path.includes('?') ? '&' : '?'}caps=not-joined`;
+
 const fetcher: Fetcher = async (path, init) => {
-  const res = await authFetch(`${API_BASE}${path}`, init);
+  const res = await authFetch(`${API_BASE}${withCaps(path)}`, init);
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     throw new PersonalTrainingApiError(body?.error ?? res.statusText, res.status, body?.code ?? null);
@@ -27,7 +33,7 @@ export async function streamEvents<T>(
   init: { method?: string; body?: string; signal?: AbortSignal },
   onEvent: (event: T) => void,
 ): Promise<void> {
-  const res = await authFetch(`${API_BASE}${path}`, init);
+  const res = await authFetch(`${API_BASE}${withCaps(path)}`, init);
   if (!res.ok || !res.body) {
     const body = await res.json().catch(() => null);
     throw new PersonalTrainingApiError(body?.error ?? res.statusText, res.status, body?.code ?? null);

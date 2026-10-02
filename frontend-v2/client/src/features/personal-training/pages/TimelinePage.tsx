@@ -15,7 +15,7 @@ import {
 } from '@axiom/personal-training-core';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { MessageDialog, NotesTab, OverviewTab, ProgramTab } from '../components/ClientDossier';
+import { MessageDialog, NotesTab, OverviewTab, ProgramTab, ProspectInviteDialog } from '../components/ClientDossier';
 import { Gate } from '../components/Gate';
 import { Avatar, Eyebrow, FilterChip, Pill, SkeletonBlock, StatusPill } from '../components/primitives';
 import { Shell } from '../components/Shell';
@@ -37,6 +37,23 @@ const DOSSIER_TABS: DossierTab[] = ['overview', 'timeline', 'program', 'notes'];
 const isTab = (v: string | undefined): v is DossierTab => !!v && (DOSSIER_TABS as string[]).includes(v);
 
 function HeaderActions({ client }: { client: Client }) {
+  return client.status === 'notJoined' ? <NotJoinedActions client={client} /> : <JoinedActions client={client} />;
+}
+
+/** Someone imported from a spreadsheet has no account to message; the one thing to do is invite them. */
+function NotJoinedActions({ client }: { client: Client }) {
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const firstName = client.name.split(' ')[0];
+  return (
+    <div className="mt-4">
+      <p className="mb-3 rounded-xl bg-axiom-zinc-50 px-4 py-3 text-sm text-axiom-zinc-600">{COPY.import.notJoinedBanner(firstName)}</p>
+      <Button className="h-11 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.import.inviteProspect}</Button>
+      <ProspectInviteDialog clientId={client.id} clientName={firstName} email={client.email} open={inviteOpen} onOpenChange={setInviteOpen} />
+    </div>
+  );
+}
+
+function JoinedActions({ client }: { client: Client }) {
   const [messageOpen, setMessageOpen] = useState(false);
   const { request } = useCheckInActions();
   return (

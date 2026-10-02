@@ -65,20 +65,35 @@ export function buildOverview(c: Client, d: ClientData, pref: UnitPreference, no
     if (source && !sources.some((s) => s.kind === source.kind && s.id === source.id)) sources.push(source);
   };
 
-  if (c.program) {
-    say(
-      `${first} is in week ${c.program.week} of ${c.program.weeks} of ${c.program.blockLabel}${c.program.goal ? `, working towards "${c.program.goal}"` : ''}.`,
-      `Saved program: ${c.program.blockLabel}, week ${c.program.week} of ${c.program.weeks}`,
-      { kind: 'program', id: c.id, label: 'Saved program' },
-    );
+  const notJoined = c.status === 'notJoined';
+  if (notJoined) {
+    // No account means no plan to be on or off, so nothing is said about adherence or engagement:
+    // only what the spreadsheet held.
+    say(`${first} has not joined Axiom yet, so this is their imported history only.`, 'Imported from a spreadsheet; no Axiom account linked', { kind: 'intake', id: c.id, label: 'Spreadsheet import' });
+    const last = d.workouts[d.workouts.length - 1];
+    if (last) {
+      say(
+        `${d.workouts.length} ${d.workouts.length === 1 ? 'session was' : 'sessions were'} imported, the most recent from ${shortDay(last.createdAt)}.`,
+        `${d.workouts.length} imported ${d.workouts.length === 1 ? 'session' : 'sessions'}`,
+        { kind: 'session', id: 'imported', label: 'Imported sessions' },
+      );
+    }
   } else {
-    say(`${first} has no program yet.`, 'No saved program on their account', { kind: 'program', id: c.id, label: 'Saved program' });
+    if (c.program) {
+      say(
+        `${first} is in week ${c.program.week} of ${c.program.weeks} of ${c.program.blockLabel}${c.program.goal ? `, working towards "${c.program.goal}"` : ''}.`,
+        `Saved program: ${c.program.blockLabel}, week ${c.program.week} of ${c.program.weeks}`,
+        { kind: 'program', id: c.id, label: 'Saved program' },
+      );
+    } else {
+      say(`${first} has no program yet.`, 'No saved program on their account', { kind: 'program', id: c.id, label: 'Saved program' });
+    }
+    say(
+      `They logged ${adherence.logged} of ${adherence.planned} planned sessions in the last four weeks, and engagement is ${c.engagementTrend}.`,
+      `${adherence.logged} sessions logged in 28 days against ${c.sessionsPerWeek} a week; weekly engagement ${c.engagement8w.join(', ')}`,
+      { kind: 'session', id: 'last-28-days', label: 'Sessions logged in the last 4 weeks' },
+    );
   }
-  say(
-    `They logged ${adherence.logged} of ${adherence.planned} planned sessions in the last four weeks, and engagement is ${c.engagementTrend}.`,
-    `${adherence.logged} sessions logged in 28 days against ${c.sessionsPerWeek} a week; weekly engagement ${c.engagement8w.join(', ')}`,
-    { kind: 'session', id: 'last-28-days', label: 'Sessions logged in the last 4 weeks' },
-  );
   const trended = lifts.filter((l) => l.status !== 'noData');
   if (trended.length) {
     say(
@@ -87,7 +102,7 @@ export function buildOverview(c: Client, d: ClientData, pref: UnitPreference, no
       { kind: 'rule', id: 'PLAT-03', label: 'Lift trend rule' },
     );
   }
-  if (c.statusReason) say(`${c.statusReason}.`, c.statusReason, { kind: 'rule', id: 'PT-STATUS', label: 'Roster status rules' });
+  if (!notJoined && c.statusReason) say(`${c.statusReason}.`, c.statusReason, { kind: 'rule', id: 'PT-STATUS', label: 'Roster status rules' });
   if (active.length) {
     say(
       `Active ${active.length === 1 ? 'injury' : 'injuries'} on file: ${active.map((x) => x.label).join(', ')}.`,
@@ -110,7 +125,8 @@ export function buildOverview(c: Client, d: ClientData, pref: UnitPreference, no
     const delta = weights[weights.length - 1] - weights[0];
     stats.push({ label: 'Bodyweight', value: fmt(weights[weights.length - 1], 1), ...(weights.length > 1 ? { delta: signed(fmt(Math.abs(delta), 1), delta) } : {}) });
   }
-  stats.push({ label: '4-week adherence', value: `${adherence.pct}%`, delta: `${adherence.logged} of ${adherence.planned} sessions` });
+  if (notJoined) stats.push({ label: 'Imported sessions', value: String(d.workouts.length) });
+  else stats.push({ label: '4-week adherence', value: `${adherence.pct}%`, delta: `${adherence.logged} of ${adherence.planned} sessions` });
 
   const monthAgo = now.getTime() - 30 * DAY_MS;
   const evidence: Evidence = { reasons, sources };
@@ -118,7 +134,8 @@ export function buildOverview(c: Client, d: ClientData, pref: UnitPreference, no
     summary: { text: sentences.join(' '), updatedAt: now.toISOString(), evidence },
     stats,
     block: c.program,
-    openItems: candidatesFor(c, d, now, engine).map((x) => ({ id: x.ruleId, headline: x.headline, detail: x.detail, severity: x.severity })),
+    // Open items are things to send; nothing can be sent to someone who has not joined.
+    openItems: notJoined ? [] : candidatesFor(c, d, now, engine).map((x) => ({ id: x.ruleId, headline: x.headline, detail: x.detail, severity: x.severity })),
     recentPrs: prEvents(d.workouts)
       .filter((e) => e.at.getTime() > monthAgo)
       .slice(-5)

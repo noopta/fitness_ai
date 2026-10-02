@@ -4,7 +4,7 @@
 // Progress, Ask Anakin and notification detection all work from this snapshot.
 
 import { prisma } from './db.js';
-import { loadClients } from './roster.js';
+import { PROSPECT_PREFIX, loadClients } from './roster.js';
 import type { WorkoutLite } from './lifts.js';
 import type { Client } from './types.js';
 
@@ -41,14 +41,15 @@ export const emptyClientData = (): ClientData => ({ workouts: [], wellness: [], 
 export async function loadPracticeData(
   practiceId: string,
   trainerId: string,
-  opts: { now?: Date; clientIds?: string[] } = {},
+  opts: { now?: Date; clientIds?: string[]; includeProspects?: boolean } = {},
 ): Promise<PracticeData> {
   const now = opts.now ?? new Date();
-  const clients = await loadClients(practiceId, { now, ids: opts.clientIds });
+  const clients = await loadClients(practiceId, { now, ids: opts.clientIds, includeProspects: opts.includeProspects });
   const byClient = new Map<string, ClientData>(clients.map((c) => [c.id, emptyClientData()]));
   if (clients.length === 0) return { now, clients, byClient };
 
-  const ids = clients.map((c) => c.id);
+  // Prospect ids are not user ids; they match nothing in the user-keyed tables below.
+  const ids = clients.filter((c) => !c.id.startsWith(PROSPECT_PREFIX)).map((c) => c.id);
   const recent = new Date(now.getTime() - 60 * DAY_MS);
 
   const [workouts, wellness, proposals, weights, checkIns, conversations] = await Promise.all([
@@ -111,5 +112,47 @@ export async function loadPracticeData(
     }
   }
 
+  if (opts.includeProspects) await addImportedHistory(practiceId, clients.map((c) => c.id), byClient);
   return { now, clients, byClient };
+}
+
+/**
+ * History that came from a spreadsheet import: a "Not joined" client's whole
+ * record, and for a client who has since joined, what the trainer had on file
+ * from before. It is kept apart from what the client logs themselves and
+ * merged only here, for the trainer's view.
+ */
+async function addImportedHistory(practiceId: string, clientIds: string[], byClient: Map<string, ClientData>) {
+  const prospectIds = clientIds.filter((id) => id.startsWith(PROSPECT_PREFIX)).map((id) => id.slice(PROSPECT_PREFIX.length));
+  const userIds = clientIds.filter((id) => !id.startsWith(PROSPECT_PREFIX));
+  const linked = userIds.length
+    ? await prisma.ptProspect.findMany({ where: { practiceId, userId: { in: userIds } }, select: { id: true, userId: true } })
+    : [];
+  // prospect row id → the client id its history belongs under
+  const owner = new Map<string, string>([
+    ...prospectIds.map((id) => [id, `${PROSPECT_PREFIX}${id}`] as [string, string]),
+    ...linked.map((p) => [p.id, p.userId!] as [string, string]),
+  ]);
+  if (owner.size === 0) return;
+  const [workouts, weights] = await Promise.all([
+    prisma.ptImportedWorkout.findMany({ where: { practiceId, prospectId: { in: [...owner.keys()] } }, orderBy: { at: 'asc' } }),
+    prisma.ptImportedWeight.findMany({ where: { practiceId, prospectId: { in: [...owner.keys()] } }, orderBy: { at: 'asc' } }),
+  ]);
+  const touched = new Set<string>();
+  for (const w of workouts) {
+    const id = owner.get(w.prospectId)!;
+    byClient.get(id)?.workouts.push({ id: `imp:${w.id}`, createdAt: w.at, title: w.title, exercises: w.exercises, notes: w.notes });
+    touched.add(id);
+  }
+  for (const w of weights) {
+    const id = owner.get(w.prospectId)!;
+    byClient.get(id)?.weights.push({ id: `imp:${w.id}`, createdAt: w.at, weightKg: w.weightKg, weightLbs: null });
+    touched.add(id);
+  }
+  // PR and plateau rules read sessions oldest first.
+  for (const id of touched) {
+    const d = byClient.get(id)!;
+    d.workouts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    d.weights.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
 }

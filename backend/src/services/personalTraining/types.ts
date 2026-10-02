@@ -3,7 +3,7 @@
 // onward — the backend build compiles src/ only, so it cannot import from
 // packages/. personalTrainingContract.test.ts fails if the two drift.
 
-export type ClientStatus = 'support' | 'new' | 'onPlan' | 'paused';
+export type ClientStatus = 'support' | 'new' | 'onPlan' | 'paused' | 'notJoined';
 export type Channel = 'app' | 'webLink';
 export type EngagementTrend = 'rising' | 'steady' | 'falling';
 export type Tone = 'red' | 'amber' | 'green' | 'zinc';
@@ -493,4 +493,78 @@ export interface ClientNote {
   authorName: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Spreadsheet import ──────────────────────────────────────────────────────
+
+export type ImportSheetKind = 'clients' | 'workouts' | 'bodyweight' | 'ignore';
+export type ImportField =
+  | 'client' | 'email' | 'phone' | 'goal' | 'injuries' | 'notes'
+  | 'date' | 'exercise' | 'sets' | 'reps' | 'weight' | 'rpe' | 'sessionTitle' | 'bodyweight';
+
+/** How one sheet is read. Proposed automatically, then corrected by the trainer before anything is imported. */
+export interface SheetMapping {
+  sheet: string;
+  kind: ImportSheetKind;
+  /** Zero-based index of the row holding the column headers. */
+  headerRow: number;
+  /** Zero-based column index for each field the sheet has. */
+  columns: Partial<Record<ImportField, number>>;
+  /** Where the client's name comes from: a column, or the sheet's own name (one sheet per client). */
+  clientFrom: 'column' | 'sheetName';
+  unit: 'kg' | 'lb';
+  dateOrder: 'dmy' | 'mdy' | 'ymd';
+}
+
+export interface ImportUpload {
+  fileName: string;
+  sheets: { name: string; rows: string[][] }[];
+}
+
+export interface ImportSheetPreview {
+  name: string;
+  rowCount: number;
+  /** The first rows as uploaded, for checking the mapping against. */
+  sample: string[][];
+  mapping: SheetMapping;
+}
+
+export interface ImportClientPreview {
+  key: string;
+  name: string;
+  email: string | null;
+  workouts: number;
+  bodyweights: number;
+  firstDate: string | null;
+  lastDate: string | null;
+  /** Their email matches someone already on the roster; the history will attach to that client. */
+  matchesExisting: boolean;
+  goal?: string;
+  injuries?: string;
+  sample: { date: string; summary: string }[];
+}
+
+export interface ImportPreview {
+  id: string;
+  fileName: string;
+  status: 'review' | 'imported' | 'undone';
+  createdAt: string;
+  importedAt?: string;
+  sheets: ImportSheetPreview[];
+  summary: { clients: number; workouts: number; bodyweights: number; skippedRows: number };
+  /** What was assumed while reading (units, date order, filled-down names). */
+  assumptions: string[];
+  /** What could not be read, with where. */
+  warnings: string[];
+  clients: ImportClientPreview[];
+}
+
+export interface ImportSummary {
+  id: string;
+  fileName: string;
+  status: 'review' | 'imported' | 'undone';
+  clients: number;
+  workouts: number;
+  createdAt: string;
+  importedAt?: string;
 }

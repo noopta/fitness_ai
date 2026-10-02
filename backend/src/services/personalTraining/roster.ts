@@ -102,7 +102,7 @@ export function buildClient(user: ClientUserRow, joinedAt: Date, activity: Clien
   };
 }
 
-const STATUS_ORDER: Record<ClientStatus, number> = { support: 0, new: 1, onPlan: 2, paused: 3 };
+const STATUS_ORDER: Record<ClientStatus, number> = { support: 0, new: 1, onPlan: 2, paused: 3, notJoined: 4 };
 
 /** Clients who might need the trainer come first; names break ties. */
 export function sortClients(clients: Client[]): Client[] {
@@ -112,7 +112,7 @@ export function sortClients(clients: Client[]): Client[] {
 }
 
 export function countStatuses(clients: Client[]): Record<'all' | ClientStatus, number> {
-  const counts = { all: clients.length, support: 0, new: 0, onPlan: 0, paused: 0 };
+  const counts = { all: clients.length, support: 0, new: 0, onPlan: 0, paused: 0, notJoined: 0 };
   for (const c of clients) counts[c.status] += 1;
   return counts;
 }
@@ -127,14 +127,21 @@ const emptyActivity = (): ClientActivity => ({
  * narrows to specific clients and doubles as the membership check for a
  * single-client read: a user who is not an active client simply isn't returned.
  */
-export async function loadClients(practiceId: string, opts: { ids?: string[]; now?: Date } = {}): Promise<Client[]> {
+export async function loadClients(
+  practiceId: string,
+  opts: { ids?: string[]; now?: Date; includeProspects?: boolean } = {},
+): Promise<Client[]> {
   const now = opts.now ?? new Date();
-  const members = await prisma.institutionMember.findMany({
+  // "Not joined" clients from spreadsheet imports are opt-in: anything that
+  // sends to a client (briefing, check-ins, notifications) must not see them.
+  const prospects = opts.includeProspects ? await loadProspectClients(practiceId, now, opts.ids) : [];
+  const wantedUsers = opts.ids?.filter((id) => !id.startsWith(PROSPECT_PREFIX));
+  const members = wantedUsers && wantedUsers.length === 0 ? [] : await prisma.institutionMember.findMany({
     where: {
       institutionId: practiceId,
       role: 'athlete',
       active: true,
-      ...(opts.ids ? { userId: { in: opts.ids } } : {}),
+      ...(wantedUsers ? { userId: { in: wantedUsers } } : {}),
     },
     select: {
       joinedAt: true,
@@ -146,7 +153,7 @@ export async function loadClients(practiceId: string, opts: { ids?: string[]; no
       },
     },
   });
-  if (members.length === 0) return [];
+  if (members.length === 0) return sortClients(prospects);
 
   const userIds = members.map((m) => m.user.id);
   const since = estDateString(new Date(now.getTime() - ENGAGEMENT_WEEKS * 7 * DAY_MS));
@@ -183,5 +190,49 @@ export async function loadClients(practiceId: string, opts: { ids?: string[]; no
     if (a) a.lastCheckInAt = c._max.createdAt ?? null;
   }
 
-  return sortClients(members.map((m) => buildClient(m.user, m.joinedAt, activity.get(m.user.id)!, now)));
+  return sortClients([...members.map((m) => buildClient(m.user, m.joinedAt, activity.get(m.user.id)!, now)), ...prospects]);
+}
+
+// ── "Not joined" clients ─────────────────────────────────────────────────────
+
+export const PROSPECT_PREFIX = 'prospect:';
+
+/**
+ * Imported clients with no Axiom account, as roster rows. Their id is
+ * prefixed so it can never be mistaken for a user id, and their status is
+ * always 'notJoined' — the support rules are about people the trainer can
+ * actually reach.
+ */
+async function loadProspectClients(practiceId: string, now: Date, ids?: string[]): Promise<Client[]> {
+  const wanted = ids?.filter((id) => id.startsWith(PROSPECT_PREFIX)).map((id) => id.slice(PROSPECT_PREFIX.length));
+  if (wanted && wanted.length === 0) return [];
+  const rows = await prisma.ptProspect.findMany({ where: { practiceId, userId: null, ...(wanted ? { id: { in: wanted } } : {}) } });
+  if (rows.length === 0) return [];
+  const sessions = await prisma.ptImportedWorkout.findMany({
+    where: { prospectId: { in: rows.map((r) => r.id) } },
+    select: { prospectId: true, date: true, at: true },
+    orderBy: { at: 'asc' },
+  });
+  return rows.map((p) => {
+    const mine = sessions.filter((s) => s.prospectId === p.id);
+    const engagement8w = engagementSeries({ workoutDates: mine.map((s) => s.date), logDates: [], targetSessions: DEFAULT_WEEKLY_SESSIONS, now });
+    const last = mine[mine.length - 1];
+    return {
+      id: `${PROSPECT_PREFIX}${p.id}`,
+      name: p.name,
+      initials: initialsOf(p.name, p.email),
+      email: p.email,
+      status: 'notJoined' as const,
+      statusReason: `Not on Axiom yet${mine.length ? ` · ${mine.length} imported ${mine.length === 1 ? 'session' : 'sessions'}` : ''}${p.invitedAt ? ' · invited' : ''}`,
+      channel: 'app' as const,
+      program: null,
+      sessionsPerWeek: DEFAULT_WEEKLY_SESSIONS,
+      engagement8w,
+      engagementTrend: engagementTrend(engagement8w),
+      ...(last ? { lastSessionAt: last.at.toISOString() } : {}),
+      joinedAt: p.createdAt.toISOString(),
+      // Free text from the sheet: listed as-is, and treated as active because nothing says otherwise.
+      contraindications: (p.injuries ?? '').split(/[;,\n]/).map((s) => s.trim()).filter((s) => s && !/^(none|no|n\/a|-)$/i.test(s)).map((label) => ({ label, active: true })),
+    };
+  });
 }

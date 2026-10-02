@@ -23,6 +23,9 @@ import { loadPracticeData } from '../services/personalTraining/data.js';
 import { prisma } from '../services/personalTraining/db.js';
 import { DossierError, addNote, buildOverview, buildProgramView, deleteNote, listNotes, updateNote } from '../services/personalTraining/dossier.js';
 import { DraftError, createDraft, deliverDueDrafts, redraft, requestSend, undoSend } from '../services/personalTraining/drafts.js';
+import {
+  ImportError, confirmImport, createImport, getImport, inviteProspect, isProspectId, listImports, prospectDbId, undoImport, updateMappings,
+} from '../services/personalTraining/imports.js';
 import { isLiftKey } from '../services/personalTraining/lifts.js';
 import {
   SettingsError, applyPatch, describeSettings, loadSettings, markRead, notificationFeed, saveSettings, sweepNotifications,
@@ -42,7 +45,7 @@ const handle = (name: string, fn: Handler): RequestHandler => async (req, res) =
   try {
     await fn(req, res);
   } catch (err: any) {
-    const known = err instanceof DraftError || err instanceof BriefingError || err instanceof CheckInError || err instanceof ReportError || err instanceof AnakinError || err instanceof DossierError;
+    const known = err instanceof DraftError || err instanceof BriefingError || err instanceof CheckInError || err instanceof ReportError || err instanceof AnakinError || err instanceof DossierError || err instanceof ImportError;
     if (known) return void (res.headersSent || res.status(err.status).json({ error: err.message }));
     if (err instanceof SettingsError) return void res.status(400).json({ error: err.message });
     console.error(`[personal-training] ${name}`, err);
@@ -182,7 +185,7 @@ router.get('/progress', ...trainer, handle('GET progress', async (req, res) => {
   const { practiceId, trainerId } = ids(req);
   const lift = isLiftKey(req.query.lift) ? req.query.lift : 'squat';
   const weeks = Math.min(12, Math.max(4, parseInt(String(req.query.weeks ?? '6'), 10) || 6));
-  res.json(buildProgress(await loadPracticeData(practiceId, trainerId), lift, weeks, await unitPref(trainerId)));
+  res.json(buildProgress(await loadPracticeData(practiceId, trainerId, { includeProspects: true }), lift, weeks, await unitPref(trainerId)));
 }));
 
 async function reportFor(req: Request, clientId: string, month: string) {
@@ -229,7 +232,7 @@ router.delete('/reports/:id/send', ...trainer, handle('DELETE report send', asyn
 /** The one client, or 404. loadPracticeData with clientIds is the membership check. */
 async function dossierClient(req: Request) {
   const { practiceId, trainerId } = ids(req);
-  const data = await loadPracticeData(practiceId, trainerId, { clientIds: [req.params.id] });
+  const data = await loadPracticeData(practiceId, trainerId, { clientIds: [req.params.id], includeProspects: true });
   const client = data.clients[0];
   if (!client) throw new DossierError('Client not found', 404);
   return { practiceId, trainerId, data, client, clientData: data.byClient.get(client.id)! };
@@ -280,10 +283,47 @@ router.delete('/clients/:id/notes/:noteId', ...trainer, handle('DELETE note', as
 // draft: an undo window, then delivery, with an audit row at each step.
 router.post('/clients/:id/message', ...trainer, socialWriteLimiter, handle('POST client message', async (req, res) => {
   const { practiceId, trainerId, client } = await dossierClient(req);
+  if (client.status === 'notJoined') return res.status(409).json({ error: `${client.name} is not on Axiom yet. Invite them first.`, code: 'not_joined' });
   const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
   if (!text) return res.status(400).json({ error: 'Message is empty' });
   const draft = await createDraft({ practiceId, trainerId, clientId: client.id, kind: 'direct', text });
   res.json({ draft: await requestSend({ draftId: draft.id, practiceId, trainerId }) });
+}));
+
+// ─── Spreadsheet import ──────────────────────────────────────────────────────
+// The browser reads the file and posts its cells; the server proposes how to
+// read them, the trainer reviews, and only POST …/confirm imports anything.
+
+router.get('/imports', ...trainer, handle('GET imports', async (req, res) => {
+  res.json({ imports: await listImports(req.practice!.id) });
+}));
+
+router.post('/imports', ...trainer, aiLimiter, handle('POST import', async (req, res) => {
+  const { practiceId, trainerId } = ids(req);
+  res.status(201).json(await createImport({ practiceId, trainerId, fileName: req.body?.fileName, sheets: req.body?.sheets, pref: await unitPref(trainerId) }));
+}));
+
+router.get('/imports/:id', ...trainer, handle('GET import', async (req, res) => {
+  res.json(await getImport(req.params.id, req.practice!.id, await unitPref(req.user!.id)));
+}));
+
+router.put('/imports/:id/mapping', ...trainer, handle('PUT import mapping', async (req, res) => {
+  res.json(await updateMappings(req.params.id, req.practice!.id, req.body?.mappings, await unitPref(req.user!.id)));
+}));
+
+router.post('/imports/:id/confirm', ...trainer, socialWriteLimiter, handle('POST import confirm', async (req, res) => {
+  res.json({ import: await confirmImport(req.params.id, req.practice!.id, req.user!.id) });
+}));
+
+router.post('/imports/:id/undo', ...trainer, socialWriteLimiter, handle('POST import undo', async (req, res) => {
+  await undoImport(req.params.id, req.practice!.id, req.user!.id);
+  res.json({ ok: true });
+}));
+
+// POST /personal-training/clients/:id/invite — an invite link for a "Not joined" client
+router.post('/clients/:id/invite', ...trainer, socialWriteLimiter, handle('POST prospect invite', async (req, res) => {
+  if (!isProspectId(req.params.id)) return res.status(400).json({ error: 'This client has already joined' });
+  res.status(201).json(await inviteProspect({ prospectId: prospectDbId(req.params.id), practiceId: req.practice!.id, trainerId: req.user!.id, email: req.body?.email }));
 }));
 
 // ─── Ask Anakin ──────────────────────────────────────────────────────────────
