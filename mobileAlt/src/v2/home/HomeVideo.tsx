@@ -11,14 +11,22 @@
 // the shell's curve, like the art it replaces. Playback follows §5: plays only
 // while home is showing in brief with the app active; paused in chat (keeping
 // its time), off home, in the background, with Reduce Motion or Low Power Mode.
+//
+// The player is not trusted to be playing because it was told to: play is
+// asked again when the item becomes ready and once more by a watchdog, a
+// source that fails to load is retried from a file copied out by expo-asset,
+// and what the player actually did is reported once per launch
+// (`v2_home_video`) so a still background can be diagnosed without the device.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AppState, Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as Battery from 'expo-battery';
+import { Asset } from 'expo-asset';
+import { posthog } from '../../lib/analytics';
 import { v2 } from '../theme';
 
 const VIDEO = require('../../../assets/v2/axiom-home-loop.mp4');
@@ -82,11 +90,15 @@ function Faded({ box, mode, children }: { box: { width: number; height: number }
   );
 }
 
+/** Anything but an explicit background / inactive counts as active: the state can be unknown for a moment at launch, and no change event follows if it was already active. */
+const isActive = (s: string | null | undefined) => s !== 'background' && s !== 'inactive';
+let reported = false;
+
 function Player({ mode, homeVisible, box, poster }: Props & { box: { width: number; height: number }; poster: React.ReactNode }) {
   const reduced = useReducedMotion();
   const lowPower = useLowPowerMode();
-  const [appActive, setAppActive] = useState(AppState.currentState === 'active');
-  useEffect(() => { const sub = AppState.addEventListener('change', (s) => setAppActive(s === 'active')); return () => sub.remove(); }, []);
+  const [appActive, setAppActive] = useState(isActive(AppState.currentState));
+  useEffect(() => { const sub = AppState.addEventListener('change', (s) => setAppActive(isActive(s))); return () => sub.remove(); }, []);
 
   const player = useVideoPlayer(VIDEO, (p) => {
     p.loop = true;
@@ -98,9 +110,62 @@ function Player({ mode, homeVisible, box, poster }: Props & { box: { width: numb
   });
 
   const shouldPlay = homeVisible && mode === 'brief' && appActive && !reduced && !lowPower;
+  const want = useRef(shouldPlay);
+  want.current = shouldPlay;
+  const seen = useRef({ status: 'idle', error: '', firstFrame: false, retried: false, replays: 0 });
+
   useEffect(() => {
     try { if (shouldPlay) player.play(); else player.pause(); } catch { /* released */ }
   }, [shouldPlay, player]);
+
+  // Asking to play before the item is ready is normally honoured once it is; ask again anyway.
+  useEffect(() => {
+    const sub = player.addListener('statusChange', ({ status, error }) => {
+      seen.current.status = status;
+      if (status === 'readyToPlay' && want.current) { try { player.play(); } catch { /* released */ } }
+      if (status === 'error') {
+        seen.current.error = String(error?.message ?? 'unknown').slice(0, 200);
+        if (seen.current.retried) return;
+        seen.current.retried = true;
+        // The packaged source would not load: copy the asset out to a real .mp4 on disk and play that.
+        void Asset.fromModule(VIDEO).downloadAsync()
+          .then((a) => (a.localUri ? player.replaceAsync({ uri: a.localUri }) : undefined))
+          .then(() => { if (want.current) player.play(); })
+          .catch((e) => { seen.current.error += ` | retry: ${String(e?.message ?? e).slice(0, 120)}`; });
+      }
+    });
+    return () => sub.remove();
+  }, [player]);
+
+  // Watchdog: two seconds after it should be playing, check that it is.
+  useEffect(() => {
+    if (!shouldPlay) return;
+    const t = setTimeout(() => {
+      try { if (want.current && !player.playing) { seen.current.replays += 1; player.play(); } } catch { /* released */ }
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [shouldPlay, player]);
+
+  // One report per launch, once home has been showing for a few seconds.
+  const visible = homeVisible && mode === 'brief' && appActive;
+  useEffect(() => {
+    if (!visible || reported) return;
+    const t = setTimeout(() => {
+      if (reported) return;
+      reported = true;
+      let playing = false, time = -1;
+      try { playing = player.playing; time = Math.round(player.currentTime * 10) / 10; } catch { /* released */ }
+      try {
+        posthog.capture('v2_home_video', {
+          playing, time, status: seen.current.status, error: seen.current.error || null, first_frame: seen.current.firstFrame,
+          retried: seen.current.retried, replays: seen.current.replays, should_play: want.current,
+          low_power: lowPower, reduce_motion: reduced, app_state: String(AppState.currentState), platform: Platform.OS,
+        });
+        void posthog.flush();
+      } catch { /* analytics must never break home */ }
+    }, 6000);
+    return () => clearTimeout(t);
+  }, [visible, player, lowPower, reduced]);
 
   // Poster until the first real frame, then a 200 ms fade — never a black flash.
   const shown = useSharedValue(0);
@@ -121,7 +186,7 @@ function Player({ mode, homeVisible, box, poster }: Props & { box: { width: numb
             allowsPictureInPicture={false}
             // SurfaceView ignores parent opacity and masks on some Android devices.
             surfaceType="textureView"
-            onFirstFrameRender={() => { shown.value = withTiming(1, { duration: 200 }); }}
+            onFirstFrameRender={() => { seen.current.firstFrame = true; shown.value = withTiming(1, { duration: 200 }); }}
           />
         </Animated.View>
       )}
