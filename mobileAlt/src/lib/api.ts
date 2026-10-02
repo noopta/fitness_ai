@@ -925,7 +925,25 @@ export const workoutsApi = {
   // exposures, the program target, and how the last session scored.
   lastForExercises: (names: string[]): Promise<{ results: ExerciseLast[] }> =>
     apiFetch('/workouts/exercises/last', { method: 'POST', body: JSON.stringify({ names }) }),
+  // Workouts pasted from somewhere else (usually the notes app), read into
+  // sessions for the log sheet to prefill. Nothing is saved by this call.
+  parseNotes: (text: string): Promise<ParsedNotesResponse> =>
+    apiFetch('/workouts/parse-notes', { method: 'POST', body: JSON.stringify({ text }), timeoutMs: 60000 }),
 };
+
+export interface ParsedNoteExercise {
+  name: string;
+  sets: number;
+  reps: string;
+  /** In `unit`; null when unloaded or not written down. */
+  weight: number | null;
+  rpe: number | null;
+  notes: string | null;
+  bodyweight: boolean;
+  setEntries: Array<{ weight: number | null; reps: number; rpe: number | null }> | null;
+}
+export interface ParsedNoteWorkout { date: string | null; title: string | null; exercises: ParsedNoteExercise[] }
+export interface ParsedNotesResponse { workouts: ParsedNoteWorkout[]; unparsed: string[]; unit: 'kg' | 'lbs'; today: string }
 
 export interface ExerciseLast {
   name: string;

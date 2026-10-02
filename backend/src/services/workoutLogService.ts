@@ -108,12 +108,39 @@ function invalidate(userId: string) {
   recomputeStrengthProfileInBackground(userId);
 }
 
+/** A workout dated after the user's today. */
+export class WorkoutDateError extends Error {}
+
+/** Today in the user's timezone (ET when unknown), as YYYY-MM-DD. */
+export function todayForTz(tz: string | null | undefined, now = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: tz || 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
+export function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * How many days back a log still counts as "just done". Older logs are
+ * history being filled in: they count for streaks, PRs and progress, but do
+ * not send a PR push or propose a program change about a session from weeks ago.
+ */
+export const RECENT_DAYS = 2;
+
 export interface CreatedWorkout {
   log: any;
   exercises: WorkoutLogInput['exercises'];
   shareable: unknown;
   adaptationProposals: unknown[];
   prs: { displayName: string; e1RMLbs: number }[];
+  /** Logged for a day more than RECENT_DAYS ago. */
+  backdated: boolean;
 }
 
 /** Log a workout with every side effect the app has. `source` is analytics only. */
@@ -127,7 +154,11 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
 
   // Estimated calorie burn, stored on the row so /workouts/burn-today is a
   // cheap GROUP BY rather than a re-compute on every request.
-  const userForEstimate = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, unitPreference: true } });
+  const userForEstimate = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, unitPreference: true, timezone: true } });
+  const today = todayForTz(userForEstimate?.timezone);
+  // A day of slack for a phone a timezone ahead of the account's.
+  if (date > addDays(today, 1)) throw new WorkoutDateError('That date is in the future');
+  const backdated = date < addDays(today, -RECENT_DAYS);
   const unitPref = normalizePreference(userForEstimate?.unitPreference);
   const caloriesBurnedKcal = estimateWorkoutCalories(exercises, {
     bodyweightKg: userForEstimate?.weightKg ?? null,
@@ -156,9 +187,11 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
   let prs: { displayName: string; e1RMLbs: number }[] = [];
   try {
     prs = await detectStrengthPRs(prisma, userId, log.id, exercises);
-    for (const pr of prs) {
-      const { value, unit } = prDisplay(pr.e1RMLbs, unitPref);
-      notifyNewPR(userId, pr.displayName, value, unit).catch(() => {});
+    if (!backdated) {
+      for (const pr of prs) {
+        const { value, unit } = prDisplay(pr.e1RMLbs, unitPref);
+        notifyNewPR(userId, pr.displayName, value, unit).catch(() => {});
+      }
     }
     shareable = buildShareableWorkout({ title, exercises, durationMin: duration, loggedAt: log.createdAt }, prs as any);
   } catch (err) {
@@ -169,13 +202,13 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
   // Adaptive progression — never mutates the program; that takes a decide() tap.
   let adaptationProposals: unknown[] = [];
   try {
-    adaptationProposals = await runPostWorkout(userId, names);
+    if (!backdated) adaptationProposals = await runPostWorkout(userId, names);
   } catch (err: any) {
     console.error('[workouts] adaptation post-workout failed:', err?.message ?? err);
   }
 
   // Proactive agent drop-in (inert until AGENT_PROACTIVE_ENABLED).
-  void (async () => {
+  if (!backdated) void (async () => {
     try {
       const { runProactiveSweep } = await import('../agent/proactiveSweep.js');
       await runProactiveSweep('post_workout', [userId]);
@@ -186,7 +219,7 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
 
   // Chat logs already show these on their card; for a workout logged in the
   // app, Anakin raises the PR and any suggestion in the thread.
-  if (source === 'app' && (prs.length || adaptationProposals.length)) {
+  if (source === 'app' && !backdated && (prs.length || adaptationProposals.length)) {
     postInitiatedLater(userId, async () => {
       const { toolCtx } = await import('../agent/turn.js');
       const { adaptationCard } = await import('../agent/toolkits/adaptation.js');
@@ -201,9 +234,9 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
     });
   }
   logActivity(userId, 'workout').catch(() => {});
-  posthog.capture({ distinctId: userId, event: 'workout_logged', properties: { exercise_count: exercises.length, duration_minutes: duration ?? null, workout_date: date, source } });
+  posthog.capture({ distinctId: userId, event: 'workout_logged', properties: { exercise_count: exercises.length, duration_minutes: duration ?? null, workout_date: date, source, backdated, days_back: Math.max(0, Math.round((Date.parse(today) - Date.parse(date)) / 86_400_000)) } });
 
-  return { log, exercises, shareable, adaptationProposals, prs };
+  return { log, exercises, shareable, adaptationProposals, prs, backdated };
 }
 
 /** Replace a log's contents. Returns null when it isn't the user's. */

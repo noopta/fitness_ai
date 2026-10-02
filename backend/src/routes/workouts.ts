@@ -21,7 +21,8 @@ import posthog from '../services/posthogClient.js';
 import { estimateWorkoutCalories } from '../services/workoutCalories.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
 import { lastForExercises } from '../adaptation/proposalService.js';
-import { workoutLogSchema, createWorkoutLog, updateWorkoutLog, deleteWorkoutLog } from '../services/workoutLogService.js';
+import { workoutLogSchema, createWorkoutLog, updateWorkoutLog, deleteWorkoutLog, WorkoutDateError, todayForTz } from '../services/workoutLogService.js';
+import { parseWorkoutNotes, MAX_NOTES_CHARS } from '../services/workoutNotesParser.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -99,12 +100,34 @@ router.post('/workouts', requireAuth, async (req, res) => {
     }
     // Every side effect (streak, PRs, adaptation, strength recompute…) lives in
     // the shared service so chat-logged workouts behave identically.
-    const { log, exercises, shareable, adaptationProposals } = await createWorkoutLog(req.user!.id, parsed.data, 'app');
-    res.status(201).json({ ...log, exercises, shareable, adaptationProposals });
+    const { log, exercises, shareable, adaptationProposals, backdated } = await createWorkoutLog(req.user!.id, parsed.data, 'app');
+    res.status(201).json({ ...log, exercises, shareable, adaptationProposals, backdated });
   } catch (err) {
+    if (err instanceof WorkoutDateError) return res.status(400).json({ error: err.message, code: 'future_date' });
     posthog.captureException(err, req.user?.id);
     console.error('Create workout error:', err);
     res.status(500).json({ error: 'Failed to save workout log' });
+  }
+});
+
+// POST /api/workouts/parse-notes — read workouts pasted from somewhere else
+// (usually the phone's notes app) into sessions for the log form to prefill.
+// Nothing is saved here: each session is reviewed in the form first.
+router.post('/workouts/parse-notes', requireAuth, async (req, res) => {
+  const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+  if (!text) return res.status(400).json({ error: 'Paste your workout first' });
+  if (text.length > MAX_NOTES_CHARS) return res.status(400).json({ error: 'That is too much to read at once. Paste a few days at a time.', code: 'too_long' });
+  try {
+    const u = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { unitPreference: true, timezone: true } });
+    const unit = normalizePreference(u?.unitPreference);
+    const today = todayForTz(u?.timezone);
+    const result = await parseWorkoutNotes(text, unit, today);
+    posthog.capture({ distinctId: req.user!.id, event: 'workout_notes_parsed', properties: { chars: text.length, workouts: result.workouts.length, unparsed: result.unparsed.length } });
+    res.json({ ...result, unit: unit === 'metric' ? 'kg' : 'lbs', today });
+  } catch (err) {
+    posthog.captureException(err, req.user?.id);
+    console.error('Parse workout notes error:', err);
+    res.status(502).json({ error: 'Could not read that just now. Try again, or log it by hand.' });
   }
 });
 

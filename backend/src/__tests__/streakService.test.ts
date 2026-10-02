@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { recordActivity, todayString, STREAK_MILESTONES } from '../services/streakService.js';
+import { recordActivity, runEndingAt, todayString, STREAK_MILESTONES } from '../services/streakService.js';
 
 // Build a mutable fake user that mimics Prisma row state.
 function makeUser(over: Partial<any> = {}) {
@@ -206,5 +206,40 @@ describe('recordActivity — typical log hour smoothing', () => {
     await recordActivity(prisma, 'u1', 'nutrition', todayString());
     expect(current().typicalWorkoutLogHour).toBe(19); // untouched
     expect(current().typicalNutritionLogHour).not.toBeNull();
+  });
+});
+
+describe('backdated logs', () => {
+  const withLogs = (user: any, dates: string[]) => {
+    const h = makePrisma(user);
+    (h.prisma as any).workoutLog = { findMany: vi.fn(async () => dates.map((date) => ({ date }))) };
+    return h;
+  };
+
+  it('counts a consecutive run back from a day', () => {
+    expect(runEndingAt(['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-02'], '2026-09-30')).toBe(3);
+    expect(runEndingAt(['2026-09-28'], '2026-09-30')).toBe(0);
+  });
+
+  it('filling in the missed day repairs a broken streak', async () => {
+    // Trained Mon and Tue, forgot to log Wed, logged Thu (streak reset to 1), then fills in Wed.
+    const h = withLogs(makeUser({ currentStreak: 1, longestStreak: 2, lastWorkoutDate: '2026-10-01' }), ['2026-09-28', '2026-09-29', '2026-10-01', '2026-09-30']);
+    const r = await recordActivity(h.prisma, 'u1', 'workout', '2026-09-30');
+    expect(r).toMatchObject({ prevStreak: 1, newStreak: 4 });
+    expect(h.current()).toMatchObject({ currentStreak: 4, longestStreak: 4, lastWorkoutDate: '2026-10-01' });
+  });
+
+  it('never lowers a streak or moves the last logged day back', async () => {
+    const h = withLogs(makeUser({ currentStreak: 9, longestStreak: 9, lastWorkoutDate: '2026-10-01', streakFreezes: 1 }), ['2026-10-01']);
+    const r = await recordActivity(h.prisma, 'u1', 'workout', '2026-09-20');
+    expect(r).toMatchObject({ prevStreak: 9, newStreak: 9 });
+    expect(h.current().lastWorkoutDate).toBe('2026-10-01');
+  });
+
+  it('leaves the streak alone when the log dates cannot be read', async () => {
+    const h = makePrisma(makeUser({ currentStreak: 3, longestStreak: 3, lastWorkoutDate: '2026-10-01' }));
+    const r = await recordActivity(h.prisma, 'u1', 'workout', '2026-09-30');
+    expect(r?.newStreak).toBe(3);
+    expect(h.current().lastWorkoutDate).toBe('2026-10-01');
   });
 });

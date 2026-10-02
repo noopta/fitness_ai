@@ -1131,7 +1131,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
       <WorkoutLogModal
         visible={!!dayLogData}
         onClose={() => setDayLogData(null)}
-        onSaved={() => { const loggedDate = dayLogData?.date; setDayLogData(null); handleWorkoutSaved(loggedDate); }}
+        onSaved={(d) => { const loggedDate = d ?? dayLogData?.date; setDayLogData(null); handleWorkoutSaved(loggedDate); }}
         todayExercises={dayLogData?.exercises}
         date={dayLogData?.date}
         workoutTitle={dayLogData?.title}

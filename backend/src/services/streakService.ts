@@ -99,6 +99,34 @@ function smoothHour(prev: number | null, observed: number, alpha = 0.3): number 
   return Math.round(prev * (1 - alpha) + observed * alpha);
 }
 
+function shiftDay(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Consecutive logged days ending at `end` (inclusive), walking back through `dates`. */
+export function runEndingAt(dates: Iterable<string>, end: string): number {
+  const set = new Set(dates);
+  let n = 0;
+  let day = end;
+  while (set.has(day)) { n += 1; day = shiftDay(day, -1); }
+  return n;
+}
+
+/** Every date the user logged this kind in the last ~400 days. Best-effort: an empty list leaves the streak as it was. */
+async function loggedDates(prisma: PrismaClient, userId: string, kind: StreakKind, from: string): Promise<string[]> {
+  try {
+    const where = { userId, date: { gte: from } };
+    const rows = kind === 'workout'
+      ? await (prisma as any).workoutLog?.findMany({ where, select: { date: true } })
+      : await (prisma as any).nutritionLog?.findMany({ where, select: { date: true } });
+    return (rows ?? []).map((r: { date: string }) => r.date.slice(0, 10));
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Apply an activity log to the user's streak state.
  *
@@ -143,8 +171,13 @@ export async function recordActivity(
       freezeUsed = true;
       freezesAfter = user.streakFreezes - 1;
     } else if (gap < 0) {
-      // Backdated log — leave streak alone, just refresh lastDate (best-effort)
-      newStreak = prevStreak;
+      // Backdated log. Filling in a missed day can repair a broken streak, so
+      // the run ending at the latest logged day is counted again from the
+      // actual log dates. A backfill never lowers a streak (a freeze may have
+      // bridged a gap the dates alone would not), and never moves lastDate back.
+      const dates = await loggedDates(prisma, userId, kind, shiftDay(fields.lastDate, -400));
+      const recounted = runEndingAt([...dates, dateStr], fields.lastDate);
+      newStreak = Math.max(prevStreak, recounted);
     } else {
       // Multi-day gap with no freeze (or first kind log after a long break)
       isComeback = prevStreak >= 3 || readKindFields(user, kind).longest >= 3;
@@ -181,7 +214,7 @@ export async function recordActivity(
   const newHour = smoothHour(prevHour, observedHour);
 
   const updateData: KindUpdateData & { lastSurpriseRewardAt?: Date } = {
-    ...writeKindFields(kind, { streak: newStreak, longest: newLongest, lastDate: dateStr }),
+    ...writeKindFields(kind, { streak: newStreak, longest: newLongest, lastDate: fields.lastDate && fields.lastDate > dateStr ? fields.lastDate : dateStr }),
     streakFreezes: freezesAfter,
     [hourField]: newHour,
   };
