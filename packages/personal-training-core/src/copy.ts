@@ -68,6 +68,8 @@ export const COPY = {
     generate: 'Create invite link',
     copy: 'Copy link',
     copied: 'Copied',
+    share: 'Share link',
+    shareMessage: (practice: string, link: string) => `Join ${practice} on Axiom: ${link}`,
     expires: (when: string) => `Link expires ${when}.`,
     failed: 'Could not create the invite.',
   },
@@ -105,6 +107,10 @@ export const COPY = {
     cleared: 'cleared',
     loadFailed: 'Could not load this timeline.',
     notFound: 'This client is not on your roster.',
+  },
+  exit: {
+    myTraining: 'Go to my training',
+    menu: 'Account',
   },
   login: {
     toggle: 'Sign in as a personal trainer',

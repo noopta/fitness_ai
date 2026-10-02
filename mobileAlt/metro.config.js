@@ -11,12 +11,14 @@ const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
 const corePath = path.resolve(__dirname, '../packages/diagnostic-core');
 const agentUiCorePath = path.resolve(__dirname, '../packages/agent-ui-core');
+const personalTrainingCorePath = path.resolve(__dirname, '../packages/personal-training-core');
 
-config.watchFolders = [...(config.watchFolders ?? []), corePath, agentUiCorePath];
+config.watchFolders = [...(config.watchFolders ?? []), corePath, agentUiCorePath, personalTrainingCorePath];
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),
   '@axiom/diagnostic-core': corePath,
   '@axiom/agent-ui-core': agentUiCorePath,
+  '@axiom/personal-training-core': personalTrainingCorePath,
 };
 
 module.exports = config;

@@ -2,6 +2,7 @@ import { hasSeenFormHook, isOldEnoughForFormHook } from './storage';
 import { hasSeenDiagnosticFirst } from '../diagnosticFirst';
 import { diagnosticEntryRoute } from '../../diagnostic/entry';
 import { v2SuppressedSync } from '../../v2/crashGuard';
+import { TRAINER_HOME, loadTrainerMode } from '../../features/personal-training/mode';
 
 /**
  * Where a freshly-authenticated user belongs.
@@ -33,6 +34,11 @@ export async function postAuthDestination(
   features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
+  // Signed in as a personal trainer: the dashboard, ahead of every athlete
+  // funnel. A trainer is not a new athlete to be onboarded, and because every
+  // post-auth path (email, verify, Google, Apple, age check, the root gate)
+  // asks this one function, none of them can drop a trainer into the intake.
+  if (await loadTrainerMode()) return TRAINER_HOME;
   // Agent-first v2 shell: onboarded users land on the track; new users go
   // straight into the v2 program onboarding (program-first — the diagnostic
   // is offered inside it rather than gating it). Checked before every other

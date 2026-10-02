@@ -30,6 +30,7 @@ import { postAuthDestination } from '../src/onboarding/formhook/postAuthRoute';
 import { hasSeenDiagnosticFirst } from '../src/onboarding/diagnosticFirst';
 import { applyPendingUpdateWhileSignedOut } from '../src/lib/launchUpdate';
 import { v2SuppressedThisLaunch, v2SuppressedSync } from '../src/v2/crashGuard';
+import { TRAINER_HOME, loadTrainerMode } from '../src/features/personal-training/mode';
 import * as Sentry from '@sentry/react-native';
 // Sentry.init runs in index.js (the app entry) BEFORE any of these imports, so
 // it captures module-load startup errors. Here we only wrap the root component.
@@ -197,6 +198,22 @@ function RootNavigator() {
     if (user.coachOnboardingDone || !getFeatures().liftDiagnosticConversation) return;
     void hasSeenDiagnosticFirst().then((seen) => {
       if (!seen) router.replace('/diagnostic/conversation' as any);
+    });
+  }, [user, loading, needsDobCheck, segments]);
+
+  // Personal trainers: a cold start routes a signed-in user into the athlete
+  // app like anyone else. If this device last signed in as a trainer, send
+  // them back to the dashboard — once per launch, and only from the athlete
+  // home surfaces, so "Go to my training" (which clears the mode) and every
+  // pushed screen are left alone.
+  const trainerCatchDone = useRef(false);
+  useEffect(() => {
+    if (loading || !user || needsDobCheck || trainerCatchDone.current) return;
+    const root = segments[0] as string;
+    if (root !== '(tabs)' && root !== '(v2)') return;
+    trainerCatchDone.current = true;
+    void loadTrainerMode().then((on) => {
+      if (on) router.replace(TRAINER_HOME as any);
     });
   }, [user, loading, needsDobCheck, segments]);
 

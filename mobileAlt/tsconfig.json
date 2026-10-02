@@ -11,6 +11,9 @@
       ],
       "@axiom/agent-ui-core": [
         "../packages/agent-ui-core/src/index.ts"
+      ],
+      "@axiom/personal-training-core": [
+        "../packages/personal-training-core/src/index.ts"
       ]
     }
   },

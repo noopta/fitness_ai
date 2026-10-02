@@ -19,6 +19,11 @@ export const colors = {
   // Borders
   border: '#e4e4e7', // zinc-200
 
+  // Personal-training dashboard (design handoff §4): page wash and secondary text.
+  zinc50: '#fafafa',
+  zinc400: '#a1a1aa',
+  zinc600: '#52525b',
+
   // Semantic — only for badges/alerts
   destructive: '#ef4444',
   destructiveForeground: '#FFFFFF',

@@ -15,6 +15,8 @@ import { useAuth } from '../../src/context/AuthContext';
 import { Analytics } from '../../src/lib/analytics';
 import { colors, spacing, radius, fontSize, fontWeight } from '../../src/constants/theme';
 import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute';
+import { COPY as PT_COPY } from '@axiom/personal-training-core';
+import { setTrainerMode } from '../../src/features/personal-training/mode';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,9 +37,11 @@ export default function LoginScreen() {
     }
   }, []);
 
-  // Org mode state
-  const [orgMode, setOrgMode] = useState(false);
-  const [orgSlug, setOrgSlug] = useState('');
+  // Personal trainers sign in with the same account system — email, Google or
+  // Apple. The toggle only records that this sign-in is a trainer's, which
+  // postAuthDestination reads to land them on the dashboard instead of the
+  // athlete app. (This replaced the old organization-slug sign-in.)
+  const [trainerMode, setTrainerModeState] = useState(false);
 
   // C.1: collapse the email form behind a tap by default — OAuth gets the
   // visual weight. Returning users who default to email tap one extra time.
@@ -68,10 +72,6 @@ export default function LoginScreen() {
       Alert.alert('Missing Fields', 'Please enter your email and password.');
       return;
     }
-    if (orgMode && !orgSlug.trim()) {
-      Alert.alert('Missing Fields', 'Please enter your organization slug.');
-      return;
-    }
     setSubmitting(true);
     try {
       const pending = await login(email.trim(), password);
@@ -81,11 +81,7 @@ export default function LoginScreen() {
         router.replace({ pathname: '/(auth)/verify-email', params: { email: pending.email } });
         return;
       }
-      if (orgMode) {
-        router.replace(`/institution/athlete?slug=${encodeURIComponent(orgSlug.trim())}` as any);
-      } else {
-        router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
-      }
+      router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
     } catch (err: any) {
       Alert.alert('Sign In Failed', err?.message || 'Invalid email or password. Please try again.');
     } finally {
@@ -116,14 +112,11 @@ export default function LoginScreen() {
     }
   }
 
-  function handleToggleOrgMode() {
-    setOrgMode(true);
-    setOrgSlug('');
-  }
-
-  function handleCancelOrgMode() {
-    setOrgMode(false);
-    setOrgSlug('');
+  // Persisted before any sign-in starts, so the Google/Apple round trip —
+  // which can cold-start the app on the way back — still knows.
+  function handleTrainerMode(on: boolean) {
+    setTrainerModeState(on);
+    void setTrainerMode(on);
   }
 
   return (
@@ -144,11 +137,11 @@ export default function LoginScreen() {
           {/* Heading */}
           <Text style={styles.title}>Welcome back.</Text>
           <Text style={styles.subtitle}>
-            {orgMode ? 'Sign in to your organization' : 'Sign in to your account'}
+            {trainerMode ? PT_COPY.login.subtitle : 'Sign in to your account'}
           </Text>
 
-          {/* OAuth buttons — only shown outside org mode */}
-          {!orgMode && (
+          {/* OAuth buttons — trainers use them too */}
+          {(
             <>
               {/* Apple Sign In — only shown when native module is available */}
               {appleAvailable && (
@@ -180,9 +173,8 @@ export default function LoginScreen() {
             </>
           )}
 
-          {/* Email-form toggle — collapsed by default unless we're in org
-              mode (which requires email-based slug auth). C.1 conversion fix. */}
-          {!orgMode && !emailFormOpen ? (
+          {/* Email-form toggle — collapsed by default. C.1 conversion fix. */}
+          {!emailFormOpen ? (
             <TouchableOpacity
               style={styles.emailToggleBtn}
               activeOpacity={0.82}
@@ -197,7 +189,7 @@ export default function LoginScreen() {
             <>
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>{orgMode ? 'ORG' : 'OR EMAIL'}</Text>
+                <Text style={styles.dividerText}>OR EMAIL</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -219,29 +211,14 @@ export default function LoginScreen() {
                 placeholder="••••••••"
                 containerStyle={styles.inputContainer}
               />
-              {!orgMode && (
-                <Pressable
-                  onPress={() => router.push({ pathname: '/(auth)/reset-password', params: email.trim() ? { email: email.trim() } : {} } as any)}
-                  style={styles.forgotLink}
-                  hitSlop={8}
-                  accessibilityRole="link"
-                >
-                  <Text style={styles.registerLinkText}>Forgot password?</Text>
-                </Pressable>
-              )}
-
-              {/* Org slug field — shown only in org mode */}
-              {orgMode && (
-                <Input
-                  label="Organization slug"
-                  value={orgSlug}
-                  onChangeText={setOrgSlug}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="e.g. state-university"
-                  containerStyle={styles.inputContainer}
-                />
-              )}
+              <Pressable
+                onPress={() => router.push({ pathname: '/(auth)/reset-password', params: email.trim() ? { email: email.trim() } : {} } as any)}
+                style={styles.forgotLink}
+                hitSlop={8}
+                accessibilityRole="link"
+              >
+                <Text style={styles.registerLinkText}>Forgot password?</Text>
+              </Pressable>
 
               <TouchableOpacity
                 style={[styles.signInPill, submitting && { opacity: 0.5 }]}
@@ -252,8 +229,8 @@ export default function LoginScreen() {
                 <Text style={styles.signInPillText}>
                   {submitting
                     ? 'Signing in…'
-                    : orgMode
-                      ? 'Sign in to organization'
+                    : trainerMode
+                      ? PT_COPY.login.submit
                       : 'Sign in'}
                 </Text>
               </TouchableOpacity>
@@ -263,8 +240,9 @@ export default function LoginScreen() {
           {/* Social proof — replaces the previous diagnostic-preview teaser.
               "Join 200+ athletes using the most advanced training tech."
               Pulled live from /auth/user-count when possible, with a clean
-              fallback string so the UI stays confident when the call fails. */}
-          {!orgMode && (
+              fallback string so the UI stays confident when the call fails.
+              Athlete-facing, so it steps aside for a trainer signing in. */}
+          {!trainerMode && (
             <View style={styles.socialProofBox}>
               <Ionicons name="trophy" size={16} color={colors.primary} style={{ marginRight: 6 }} />
               <Text style={styles.socialProofText}>
@@ -275,8 +253,9 @@ export default function LoginScreen() {
             </View>
           )}
 
-          {/* Register link */}
-          {!orgMode && (
+          {/* Register link — a new trainer registers here too; trainer mode is
+              already persisted, so they land on the dashboard afterwards. */}
+          {(
             <Pressable
               onPress={() => router.push('/(auth)/register')}
               style={styles.registerLink}
@@ -288,16 +267,16 @@ export default function LoginScreen() {
             </Pressable>
           )}
 
-          {/* Org mode toggle / cancel */}
-          {orgMode ? (
-            <Pressable onPress={handleCancelOrgMode} style={styles.orgToggleLink}>
-              <Text style={styles.orgToggleLinkText}>Cancel</Text>
-            </Pressable>
-          ) : (
-            <Pressable onPress={handleToggleOrgMode} style={styles.orgToggleLink}>
-              <Text style={styles.orgToggleLinkText}>Sign in with organization</Text>
-            </Pressable>
-          )}
+          {/* Personal trainer sign-in toggle */}
+          <Pressable
+            onPress={() => handleTrainerMode(!trainerMode)}
+            style={styles.orgToggleLink}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityState={{ selected: trainerMode }}
+          >
+            <Text style={styles.orgToggleLinkText}>{trainerMode ? PT_COPY.login.cancel : PT_COPY.login.toggle}</Text>
+          </Pressable>
         </ScrollView>
     </SafeAreaView>
   );
