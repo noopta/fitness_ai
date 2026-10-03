@@ -167,6 +167,12 @@ export async function restorePurchases(): Promise<boolean> {
   return true;
 }
 
+/** Pro purchases the store says this device currently holds (no sign-in prompt). */
+export async function activeProPurchases(): Promise<Purchase[]> {
+  const purchases = await getAvailablePurchases();
+  return purchases.filter(p => GOOGLE_PRODUCT_IDS.includes(p.productId));
+}
+
 // ─── Listener helpers ─────────────────────────────────────────────────────────
 export function addPurchaseListener(
   onSuccess: (purchase: Purchase) => void,

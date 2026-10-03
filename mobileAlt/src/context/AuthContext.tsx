@@ -2,10 +2,12 @@ import React, { createContext, useContext, useEffect, useState, useRef, useCallb
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Alert, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import { authApi, getToken, setToken, clearToken, isVerifyPending, type AuthVerifyPending } from '../lib/api';
 import { clearLocalOnboardingState } from '../onboarding/testAccountReset';
 import { setTrainerMode } from '../features/personal-training/mode';
+import { resetEntitlementSync, syncStoreEntitlement } from '../lib/entitlementSync';
+import { invalidateCache } from '../lib/cache';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -217,6 +219,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init();
   }, []);
 
+  // ── Pro follows the user back into the app (lib/entitlementSync.ts) ──
+  // On every return to the foreground (at most every 30 s) the account is
+  // re-read, so a payment finished elsewhere — Stripe in a browser tab, or a
+  // store purchase completed after the upgrade sheet closed — shows at once.
+  // A user still on free also has the store asked for an unverified Pro
+  // purchase. Once at launch too, for a purchase left unfinished last time.
+  const lastReturnSync = useRef(0);
+  const syncEntitlement = useCallback(async () => {
+    if (!userRef.current) return;
+    lastReturnSync.current = Date.now();
+    const before = userRef.current.tier;
+    await refreshUser();
+    if (userRef.current && userRef.current.tier === 'free' && (await syncStoreEntitlement())) await refreshUser();
+    // Anything cached while free (gated answers, upgrade prompts) is stale once Pro.
+    if (userRef.current && userRef.current.tier !== before) invalidateCache('');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && Date.now() - lastReturnSync.current > 30_000) void syncEntitlement();
+    });
+    return () => sub.remove();
+  }, [syncEntitlement]);
+  useEffect(() => {
+    if (loading || !user) return;
+    const t = setTimeout(() => { if (Date.now() - lastReturnSync.current > 30_000) void syncEntitlement(); }, 5000);
+    return () => clearTimeout(t);
+  }, [loading, !!user]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /**
    * Catch the OAuth deep link wherever it comes from.
    *
@@ -298,6 +328,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     try { await authApi.logout(); } catch { /* ignore */ }
+    resetEntitlementSync();
     await clearToken();
     // The next person to sign in on this device is not assumed to be a trainer.
     await setTrainerMode(false);

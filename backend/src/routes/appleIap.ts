@@ -106,6 +106,18 @@ async function fetchTransaction(transactionId: string): Promise<ASAPITransaction
   throw new Error(`Transaction ${transactionId} not found in production or sandbox`);
 }
 
+/** A TestFlight / sandbox-tester purchase reaching the live server: free to make, so never Pro. */
+export function isSandboxInProduction(tx: Pick<ASAPITransaction, 'environment'>, isProd = IS_PROD): boolean {
+  return isProd && !!tx.environment && tx.environment !== 'Production';
+}
+
+/** The message the app shows when a purchase cannot be turned into Pro. */
+export function verifyFailure(tx: Pick<ASAPITransaction, 'environment'>, isProd = IS_PROD): { error: string; code: string } {
+  return isSandboxInProduction(tx, isProd)
+    ? { error: 'This was an App Store test purchase (TestFlight or a sandbox account), so no money was charged and it cannot unlock Pro in the live app.', code: 'sandbox_purchase' }
+    : { error: 'No active Pro subscription found for this transaction', code: 'inactive' };
+}
+
 function isActiveProTransaction(tx: ASAPITransaction): boolean {
   if (!PRO_PRODUCT_IDS.includes(tx.productId)) return false;
   if (tx.revocationDate) return false;
@@ -115,7 +127,7 @@ function isActiveProTransaction(tx: ASAPITransaction): boolean {
   // which is correct for TestFlight, but without this check a StoreKit sandbox
   // purchase (free, and creatable at will by anyone with a sandbox tester
   // account) verified as a real Pro subscription against the live app.
-  if (IS_PROD && tx.environment && tx.environment !== 'Production') {
+  if (isSandboxInProduction(tx)) {
     console.warn(`Apple IAP: rejecting ${tx.environment} transaction ${tx.transactionId} in production`);
     return false;
   }
@@ -254,7 +266,7 @@ router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
         expiresDate: tx.expiresDate,
         revocationDate: tx.revocationDate,
       });
-      return res.status(402).json({ error: 'No active Pro subscription found for this transaction' });
+      return res.status(402).json(verifyFailure(tx));
     }
 
     // Upgrade user — store originalTransactionId to link future lifecycle notifications
