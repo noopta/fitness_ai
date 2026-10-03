@@ -186,4 +186,22 @@ describe('proposeMoveLater', () => {
     expect(d['2026-10-01'].locked).toBe(true);
     expect(d['2026-09-30'].isSwapped).toBe(false);
   });
+
+  it('names the days in ordinary case even though the schedule labels them SUN, MON…', () => {
+    const w = week().map((d) => ({ ...d, dayLabel: d.dayLabel.toUpperCase() }));
+    const { rationale } = proposeMoveLater({ weekDays: w, date: '2026-10-03', sourceDate: '2026-10-02', today: '2026-10-02', loggedDates: new Set() });
+    expect(rationale).toBe('Moved Upper Vertical Push/Pull from Fri to Sat; Fri is now a rest day.');
+  });
+
+  it("moves Saturday's session into next week's Sunday", () => {
+    const w = [...week(), { date: '2026-10-04', dayLabel: 'SUN', session: null }, { date: '2026-10-05', dayLabel: 'MON', session: s('Bench') }];
+    w[6].session = s('Upper Vertical Push/Pull');
+    w[5].session = s('Squat');
+    const { proposedWeek, rationale } = proposeMoveLater({ weekDays: w, date: '2026-10-04', sourceDate: '2026-10-03', today: '2026-10-03', loggedDates: new Set() });
+    const d = byDate(proposedWeek);
+    expect(d['2026-10-03'].session).toBeNull();
+    expect(d['2026-10-04'].session.day).toBe('Upper Vertical Push/Pull');
+    expect(d['2026-10-05'].session.day).toBe('Bench');
+    expect(rationale).toBe('Moved Upper Vertical Push/Pull from Sat to next Sun; Sat is now a rest day.');
+  });
 });

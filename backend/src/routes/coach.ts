@@ -1202,15 +1202,21 @@ export async function buildSwapProposal(
   userId: string,
   date: string,        // target day (where the new workout will land — usually today)
   sourceDate: string,  // day whose workout we're pulling in
-): Promise<{ proposedWeek: any[]; rationale: string; chosenSessionName: string }> {
+): Promise<{ proposedWeek: any[]; rationale: string; chosenSessionName: string; beforeWeek?: any[] }> {
   if (date === sourceDate) throw new SwapProposalError('Pick a different day to swap in.');
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user || !user.savedProgram) throw new SwapProposalError('No active program');
 
   const today = getESTDateString();
-  const overrides = await fetchOverridesMap(userId, addDaysStr(today, -7), addDaysStr(today, 7));
-  const { weekDays } = buildScheduleData(user, overrides);
+  // A move can cross into next week ("Saturday's session to Sunday"): build two
+  // weeks then, and treat it as a straight move — the rebalance below only
+  // spaces sessions within this week.
+  const { weekDays: thisWeek } = buildScheduleData(user, await fetchOverridesMap(userId, addDaysStr(today, -7), addDaysStr(today, 7)));
+  const crossWeek = thisWeek.length > 0 && (date > thisWeek[thisWeek.length - 1].date || sourceDate > thisWeek[thisWeek.length - 1].date);
+  const weekDays = crossWeek
+    ? buildScheduleData(user, await fetchOverridesMap(userId, addDaysStr(today, -7), addDaysStr(today, 14)), 2).weekDays
+    : thisWeek;
 
   const weekStart = weekDays[0]?.date ?? today;
   const weekEnd = weekDays[weekDays.length - 1]?.date ?? today;
@@ -1222,20 +1228,21 @@ export async function buildSwapProposal(
 
   const targetDay = weekDays.find(d => d.date === date);
   const sourceDay = weekDays.find(d => d.date === sourceDate);
-  if (!targetDay) throw new SwapProposalError('Target day not in current week');
+  if (!targetDay) throw new SwapProposalError(crossWeek ? 'Pick a day within the next week.' : 'Target day not in current week');
   if (!sourceDay || !sourceDay.session) throw new SwapProposalError('Selected day has no workout to swap in');
 
   const chosenSession = sourceDay.session;
   const displacedSession = targetDay.session ?? null;
 
-  // Moving a session later ("do today's tomorrow") is its own case: the source
-  // day must give the session up. The rebalance below only pulls sessions earlier.
-  if (sourceDate < date) {
-    if (sourceDate < today) throw new SwapProposalError('That session is already in the past.');
+  // Moving a session later ("do today's tomorrow"), or across into next week,
+  // is a straight move: the source day must give the session up. The rebalance
+  // below only pulls sessions earlier within this week.
+  if (sourceDate < date || crossWeek) {
+    if (sourceDate < today || date < today) throw new SwapProposalError('That day is already in the past.');
     if (loggedDates.has(sourceDate)) throw new SwapProposalError('That session is already logged.');
     if (loggedDates.has(date)) throw new SwapProposalError('That day already has a logged workout.');
     const { proposedWeek, rationale } = proposeMoveLater({ weekDays, date, sourceDate, today, loggedDates });
-    return { proposedWeek, rationale, chosenSessionName: chosenSession.day };
+    return { proposedWeek, rationale, chosenSessionName: chosenSession.day, beforeWeek: weekDays };
   }
 
   const openSlots = weekDays.filter(d => d.date > date && !loggedDates.has(d.date));
@@ -1456,6 +1463,8 @@ function addDaysStr(dateStr: string, days: number): string {
 function buildScheduleData(
   user: { savedProgram: string | null; programStartDate: Date | null },
   overrides?: Map<string, any | null>,
+  /** How many Sunday-to-Saturday weeks to build from this week's Sunday (moves into next week need 2). */
+  weeks = 1,
 ) {
   if (!user.savedProgram) return { weekDays: [], weekNumber: null, phaseName: null };
 
@@ -1477,7 +1486,7 @@ function buildScheduleData(
   const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const weekDays = [];
 
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 7 * weeks; i++) {
     const date = new Date(sunday);
     date.setUTCDate(sunday.getUTCDate() + i);
     const daysForDate = Math.floor((date.getTime() - startMidnight.getTime()) / (1000 * 60 * 60 * 24));
@@ -1492,7 +1501,7 @@ function buildScheduleData(
 
     weekDays.push({
       date: dateEST,
-      dayLabel: DAY_LABELS[i],
+      dayLabel: DAY_LABELS[i % 7],
       dateNumber: parseInt(dateEST.split('-')[2]),
       monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),
       isToday: dateEST === getESTDateString(),

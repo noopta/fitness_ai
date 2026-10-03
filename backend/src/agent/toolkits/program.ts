@@ -305,15 +305,21 @@ export const PROGRAM_TOOLS = [
   }),
   tool({
     name: 'propose_workout_swap', kind: 'propose', core: true, fn: 'SCH-02',
-    description: "Propose moving a session to another day, either way. Earlier (sourceDate after date): the session is pulled into date and the rest of the week is rebalanced for recovery. Later (sourceDate before date, e.g. \"can't train today, do it tomorrow\": sourceDate = today, date = tomorrow): the session moves to date, date's own session (if any) takes sourceDate, otherwise sourceDate becomes a rest day. Read the week first. The user taps Apply on the week card; nothing changes until then. Describe the move the card shows — don't add changes it doesn't make.",
+    description: "Propose moving a session to another day, either way. Earlier (sourceDate after date): the session is pulled into date and the rest of the week is rebalanced for recovery. Moves can reach into next week (e.g. Saturday's session to Sunday) — those are straight moves, nothing else is rebalanced. Later (sourceDate before date, e.g. \"can't train today, do it tomorrow\": sourceDate = today, date = tomorrow): the session moves to date, date's own session (if any) takes sourceDate, otherwise sourceDate becomes a rest day. Read the week first. The user taps Apply on the week card; nothing changes until then. Describe the move the card shows — don't add changes it doesn't make.",
     input_schema: schema({ sourceDate: { type: 'string', description: 'YYYY-MM-DD whose session moves.' }, date: { type: 'string', description: 'YYYY-MM-DD day it moves to. Default today.' } }, ['sourceDate']),
     receipt: () => ({ verb: 'Proposed', text: 'Session move' }),
     execute: async (input, userId) => {
       const s: any = await getCurrentWeekSchedule(userId);
       const date = str(input.date) || s.today;
       try {
-        const { proposedWeek, rationale, chosenSessionName } = await buildSwapProposal(userId, date, str(input.sourceDate));
-        return { _proposal: true, kind: 'workout_swap', proposedWeek, rationale, sourceDate: str(input.sourceDate), chosenSessionName, summary: `Move ${chosenSessionName} to ${dayLabel(date)}`, weekDays: s.weekDays };
+        const { proposedWeek, rationale, chosenSessionName, beforeWeek } = await buildSwapProposal(userId, date, str(input.sourceDate));
+        // A move into next week shows the 7 days from the earlier of the two, so both ends are on the card.
+        const before: any[] = beforeWeek ?? s.weekDays;
+        const first = [str(input.sourceDate), date].sort()[0];
+        const start = before.length > 7 ? Math.max(0, Math.min(before.length - 7, before.findIndex((d: any) => d.date === first))) : 0;
+        const shown = before.slice(start, start + 7);
+        const isThisWeek = shown[0]?.date === s.weekDays?.[0]?.date;
+        return { _proposal: true, kind: 'workout_swap', proposedWeek, rationale, sourceDate: str(input.sourceDate), chosenSessionName, summary: `Move ${chosenSessionName} to ${dayLabel(date)}`, weekDays: shown, label: isThisWeek ? 'Proposed · this week' : 'Proposed · next 7 days' };
       } catch (err) {
         if (err instanceof SwapProposalError) return { error: err.message };
         throw err;
@@ -330,7 +336,7 @@ export const PROGRAM_TOOLS = [
         return moved ? { ...t, s: 'moved' as const } : t;
       });
       return {
-        fn: 'SCH-02', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · this week', open: { page: 'training' } }, tiles, why: r.rationale,
+        fn: 'SCH-02', pattern: 'proposal', rule: 'propose', meta: { label: r.label ?? 'Proposed · this week', open: { page: 'training' } }, tiles, why: r.rationale,
         actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
         entity: 'schedule:week',
         pending: { actions: { apply: { op: 'schedule.set_days', args: { days: r.proposedWeek.filter((d: any) => !d.locked).map((d: any) => ({ date: d.date, session: d.session ?? null })), reason: 'Moved in chat', summary: r.summary } }, keep: { kind: 'keep' } } },
