@@ -7,6 +7,7 @@
 // brief, keeps chat history.
 
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { v2 } from '../theme';
@@ -42,7 +43,7 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
   const progress = useSharedValue(0);
   const setMode = useCallback((m: HomeMode) => {
     setModeState(m);
-    progress.value = withTiming(m === 'chat' ? 1 : 0, { duration: v2.motion.briefChat, easing: v2.motion.easeIO });
+    progress.value = withTiming(m === 'chat' ? 1 : 0, { duration: m === 'chat' ? v2.motion.briefChat : v2.motion.chatBrief, easing: v2.motion.easeIO });
   }, [progress]);
   const [busy, setBusy] = useState(false);
   const [index, setIndex] = useState(0);
@@ -61,9 +62,11 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const goHome = useCallback(() => {
     try { if (router.canDismiss()) router.dismissAll(); } catch { /* not in a stack */ }
-    setMode('brief');
     goToRef.current(0);
-  }, [router]);
+    // Spec §3: the keyboard goes first, the close starts on the next frame — never both in one.
+    if (Keyboard.isVisible()) { Keyboard.dismiss(); requestAnimationFrame(() => setMode('brief')); }
+    else setMode('brief');
+  }, [router, setMode]);
 
   const value = useMemo<Shell>(() => ({ mode, progress, setMode, busy, setBusy, index, setIndex, goTo, registerGoTo, goHome, ask, registerAsk, pendingAsk }), [mode, progress, setMode, busy, index, goTo, registerGoTo, goHome, ask, registerAsk]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

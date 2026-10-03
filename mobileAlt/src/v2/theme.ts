@@ -64,11 +64,10 @@ export const v2 = {
   motion: {
     easeEnter: Easing.bezier(0.16, 1, 0.3, 1),
     easeTrack: Easing.bezier(0.2, 0.9, 0.25, 1),
-    /** Brief ↔ chat: background 850 ms, art opacity 750 ms, art transform 1000 ms, all on this curve. */
+    /** Brief ↔ chat (Dreamcore spec §2.2): one shared value, 650 ms open, 600 ms close, on this curve. */
     easeIO: Easing.bezier(0.65, 0, 0.35, 1),
-    briefChat: 850,
-    artFade: 750,
-    artMove: 1000,
+    briefChat: 650,
+    chatBrief: 600,
     press: 200,
     enter: 450,
     exit: 300,

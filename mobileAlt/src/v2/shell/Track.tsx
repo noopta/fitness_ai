@@ -87,12 +87,15 @@ export function Track({ pages }: Props) {
 
   const track = useAnimatedStyle(() => ({ transform: [{ translateX: -index.value * W + drag.value }] }));
   const title = TABS[nearest];
-  const isDark = nearest === 0 && mode !== 'chat';
+  // The status bar and the dark chrome flip at the morph's midpoint (Dreamcore spec §2.2), not on the tap.
+  const [chatSide, setChatSide] = useState(mode === 'chat');
+  useAnimatedReaction(() => chat.value >= 0.5, (now, prev) => { if (now !== prev) runOnJS(setChatSide)(now); }, [chat]);
+  const isDark = nearest === 0 && !chatSide;
   // 1 = fully dark (home, brief); fades with the swipe off home and with the brief → chat progress.
   const darkness = useDerivedValue(() => (1 - chat.value) * interpolate(pos.value, [0, 1], [1, 0], Extrapolation.CLAMP));
   const ground = useAnimatedStyle(() => ({ opacity: darkness.value }));
-  // The header mark appears only once the orb's flight has landed on it (or off home).
-  const markOpacity = useDerivedValue(() => Math.max(interpolate(pos.value, [0, 0.5], [0, 1], Extrapolation.CLAMP), interpolate(chat.value, [0.88, 1], [0, 1], Extrapolation.CLAMP)));
+  // The header mark appears only once the orb's flight has landed on it (p > .98), or off home.
+  const markOpacity = useDerivedValue(() => Math.max(interpolate(pos.value, [0, 0.5], [0, 1], Extrapolation.CLAMP), chat.value > 0.98 ? 1 : 0));
   const titleOpacity = useDerivedValue(() => {
     const n = Math.round(pos.value);
     return Math.max(0, 1 - Math.min(1, Math.abs(pos.value - n) * 2.2));

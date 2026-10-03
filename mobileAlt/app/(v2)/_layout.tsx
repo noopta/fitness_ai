@@ -11,6 +11,7 @@ import { Stack } from 'expo-router';
 import { v2 } from '../../src/v2/theme';
 import { useV2Fonts } from '../../src/v2/fonts';
 import { ShellProvider } from '../../src/v2/shell/ShellContext';
+import { HomeVideoProvider } from '../../src/v2/home/HomeVideo';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { markV2Boot } from '../../src/v2/crashGuard';
 
@@ -22,6 +23,8 @@ export default function V2Layout() {
   return (
     <ErrorBoundary>
     <ShellProvider>
+    {/* The home video's one player: above the track and the stack, so navigation never recreates it. */}
+    <HomeVideoProvider>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -37,6 +40,7 @@ export default function V2Layout() {
         <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="paywall" options={{ animation: 'fade', gestureEnabled: false }} />
       </Stack>
+    </HomeVideoProvider>
     </ShellProvider>
     </ErrorBoundary>
   );

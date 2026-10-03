@@ -1,24 +1,30 @@
 // Transition orb — the glow, 80 ring arcs and five petal layers that fly from
-// the video's orb to the header logo (home video spec §3–4; ring/glow code
-// from review #3 §C3). The engraving art, hand warp, fingertip follow and
-// threads are gone: the video carries the character now.
+// the video's orb to the header logo (Dreamcore spec §2.4; ring/glow values
+// from review #3 §C3–C4, scaled by r / 92; no threads).
 //
-// Frame 402 × 874 pt, scaled by s = screenWidth / 402. A0 = (146, 405, r 70),
-// the orb in the video → A1 = (42, 78, r 28), the header mark, by p (the
-// shell's shared progress). The canvas is invisible in brief (opacity
-// min(1, p × 5)) and does no per-frame work while p = 0. Once docked
-// (p > .995) the header mark takes over, so the orb becomes the logo.
+// Start: the orb in the video, (110, 400, r 44) in the 402 × 874 frame mapped
+// through the video's crop (HomeVideo.videoOrb). End: the header mark,
+// (42, 78, r 28) scaled by screenWidth / 402. Cubic ease-in-out on p.
+//
+// It draws only while it flies (.001 < p < .98): no per-frame work in brief or
+// in chat, the canvas invisible outside the flight, fading in over the
+// video's orb in the first part (min(1, p × 5)). At p > .98 it hides and the
+// real header logo shows. The 80 arcs are built as native paths (four, by
+// stroke width) on the UI thread — never 80 components, never parsed strings.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, useWindowDimensions, AppState } from 'react-native';
 import { useSharedValue, useDerivedValue, useFrameCallback, useReducedMotion, type SharedValue } from 'react-native-reanimated';
-import { Canvas, Group, Image as SkImage, Circle, Path, RadialGradient, BlendColor, useImage } from '@shopify/react-native-skia';
+import { Canvas, Group, Image as SkImage, Circle, Path, RadialGradient, BlendColor, useImage, usePathValue } from '@shopify/react-native-skia';
+import { videoOrb } from './HomeVideo';
+import { v2 } from '../theme';
 
 const MARK = require('../../../assets/v2/axiom-mark.png');
 
 const FRAME_W = 402;
-const A0 = { x: 146, y: 405, r: 70 };
 const A1 = { x: 42, y: 78, r: 28 };
+/** Ring radii in the particle table are for a 92 pt orb (review #3). */
+const RING_R = 92;
 const L0 = [0.18, 0.26, 0.36, 0.5, 0.82];
 const L1 = [0, 0, 0, 0, 1];
 const WHITE = [250, 250, 250] as const, INK = [9, 9, 11] as const, CRIMSON = [165, 28, 48] as const;
@@ -50,7 +56,9 @@ function Canvas_({ mode, progress, working, focused }: Props) {
   useEffect(() => { busy.value = working ? 1 : 0; }, [working, busy]);
   // Stop drawing entirely in chat once the transition is over.
   const [hidden, setHidden] = useState(false);
-  useEffect(() => { if (mode === 'chat') { const t = setTimeout(() => setHidden(true), 1150); return () => clearTimeout(t); } setHidden(false); }, [mode]);
+  useEffect(() => { if (mode === 'chat') { const t = setTimeout(() => setHidden(true), v2.motion.briefChat + 150); return () => clearTimeout(t); } setHidden(false); }, [mode]);
+  // The flight starts on the video's orb, wherever the crop puts it on this screen.
+  const A0 = useMemo(() => videoOrb(SW, SH), [SW, SH]);
 
   // ── Per-frame state (C1–C3) — only while the orb is in flight or docking ──
   const time = useSharedValue(0);
@@ -66,8 +74,8 @@ function Canvas_({ mode, progress, working, focused }: Props) {
 
   useFrameCallback((info) => {
     'worklet';
-    // In brief the canvas is invisible: no per-frame work at all.
-    if (!running.value || p.value <= 0) return;
+    // Only while it flies: no per-frame work in brief, or in chat once the logo has taken over.
+    if (!running.value || p.value <= 0.001 || p.value >= 0.98) return;
     const dt = Math.min(0.05, (info.timeSincePreviousFrame ?? 16) / 1000);
     time.value += dt;
     const w = busy.value;
@@ -83,11 +91,11 @@ function Canvas_({ mode, progress, working, focused }: Props) {
   const q = useDerivedValue(() => 1 - p.value);
   // Cubic ease-in-out on the flight path (spec §4).
   const e = useDerivedValue(() => { const t = p.value; return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; });
-  const cx = useDerivedValue(() => (A0.x + (A1.x - A0.x) * e.value) * s);
-  const cy = useDerivedValue(() => (A0.y + (A1.y - A0.y) * e.value) * s);
-  const S = useDerivedValue(() => (A0.r + (A1.r - A0.r) * e.value) * s);
-  // Fades in over the video's orb in the first ~190 ms, so the hand-off is invisible.
-  const canvasOpacity = useDerivedValue(() => Math.min(1, p.value * 5));
+  const cx = useDerivedValue(() => A0.x + (A1.x * s - A0.x) * e.value);
+  const cy = useDerivedValue(() => A0.y + (A1.y * s - A0.y) * e.value);
+  const S = useDerivedValue(() => A0.r + (A1.r * s - A0.r) * e.value);
+  // Visible only in flight; fades in over the video's orb first, so the hand-off is invisible.
+  const canvasOpacity = useDerivedValue(() => (p.value > 0.001 && p.value < 0.98 ? Math.min(1, p.value * 5) : 0));
   const breathe = useDerivedValue(() => 1 + 0.05 * Math.sin(bph.value) * q.value);
   const rgb = useDerivedValue(() => {
     const m = mix.value;
@@ -101,13 +109,13 @@ function Canvas_({ mode, progress, working, focused }: Props) {
   // Rings (C3): each particle is a short arc on its own tilted, flattened orbit. Batched into four
   // stroked paths by width so the canvas draws 4 paths, not 80 nodes.
   const BUCKETS = 4;
-  const ringPaths = Array.from({ length: BUCKETS }, (_, b) => useDerivedValue(() => {
-    const ang = angles.value; if (ang.length !== 80 || q.value <= 0.01) return '';
-    const k = S.value / (A0.r * s), br = breathe.value;
-    let d = '';
+  const ringPaths = Array.from({ length: BUCKETS }, (_, b) => usePathValue((path) => {
+    'worklet';
+    const ang = angles.value; if (ang.length !== 80 || q.value <= 0.01) return;
+    const k = S.value / RING_R, br = breathe.value;
     for (let i = b; i < 80; i += BUCKETS) {
       const pt = particles[i];
-      const rr = pt.rad * s * br * k;
+      const rr = pt.rad * br * k;
       const a1 = ang[i], a0 = a1 - 0.22 * Math.sign(pt.sp);
       const ct = Math.cos(pt.tilt), st = Math.sin(pt.tilt);
       // A 0.22 rad arc is under a point off its chord at these radii — two segments are enough.
@@ -115,10 +123,9 @@ function Canvas_({ mode, progress, working, focused }: Props) {
         const a = a0 + ((a1 - a0) * j) / 2;
         const ex = Math.cos(a) * rr, ey = Math.sin(a) * rr * pt.fl;      // scale(1, fl)
         const x = cx.value + ex * ct - ey * st, y = cy.value + ex * st + ey * ct; // rotate(tilt) → translate
-        d += (j === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+        if (j === 0) path.moveTo(x, y); else path.lineTo(x, y);
       }
     }
-    return d;
   }));
   const ringMeta = useMemo(() => Array.from({ length: BUCKETS }, (_, b) => {
     const ps = particles.filter((_, i) => i % BUCKETS === b);
