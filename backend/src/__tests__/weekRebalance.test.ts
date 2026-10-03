@@ -10,6 +10,7 @@ import {
   muscleBucketLabel,
   placeSessionsAvoidingConflicts,
   hasAdjacentConflict,
+  proposeMoveLater,
   type RebSession,
 } from '../services/weekRebalance.js';
 
@@ -143,5 +144,46 @@ describe('placeSessionsAvoidingConflicts', () => {
     const { placement } = placeSessionsAvoidingConflicts({ days, pool });
     // Slot 16 sits before a locked Lower → must not be a Lower.
     expect(placement.get('2026-06-16')?.day).toBe('Upper Z');
+  });
+});
+
+describe('proposeMoveLater', () => {
+  // The reported week: Sun–Sat, today Fri 2 Oct, Saturday a rest day.
+  const week = () => [
+    { date: '2026-09-27', dayLabel: 'Sun', session: s('Deadlift') },
+    { date: '2026-09-28', dayLabel: 'Mon', session: s('Bench') },
+    { date: '2026-09-29', dayLabel: 'Tue', session: s('Lower') },
+    { date: '2026-09-30', dayLabel: 'Wed', session: s('Upper Horizontal Push/Pull') },
+    { date: '2026-10-01', dayLabel: 'Thu', session: s('Squat') },
+    { date: '2026-10-02', dayLabel: 'Fri', session: s('Upper Vertical Push/Pull') },
+    { date: '2026-10-03', dayLabel: 'Sat', session: null },
+  ];
+  const byDate = (w: any[]) => Object.fromEntries(w.map((d) => [d.date, d]));
+
+  it("moves today's session to tomorrow and leaves today a rest day (the reported bug)", () => {
+    const { proposedWeek, rationale } = proposeMoveLater({ weekDays: week(), date: '2026-10-03', sourceDate: '2026-10-02', today: '2026-10-02', loggedDates: new Set() });
+    const d = byDate(proposedWeek);
+    expect(d['2026-10-02'].session).toBeNull();
+    expect(d['2026-10-02'].locked).toBe(false); // written on apply, so the session really leaves today
+    expect(d['2026-10-03'].session.day).toBe('Upper Vertical Push/Pull');
+    // The session exists exactly once.
+    expect(proposedWeek.filter((x) => x.session?.day === 'Upper Vertical Push/Pull')).toHaveLength(1);
+    expect(rationale).toBe('Moved Upper Vertical Push/Pull from Fri to Sat; Fri is now a rest day.');
+  });
+
+  it("swaps when the later day already has a session", () => {
+    const w = week();
+    w[6].session = s('Arms');
+    const d = byDate(proposeMoveLater({ weekDays: w, date: '2026-10-03', sourceDate: '2026-10-02', today: '2026-10-02', loggedDates: new Set() }).proposedWeek);
+    expect(d['2026-10-03'].session.day).toBe('Upper Vertical Push/Pull');
+    expect(d['2026-10-02'].session.day).toBe('Arms');
+  });
+
+  it('leaves every other day as it was, and locks past and logged days', () => {
+    const d = byDate(proposeMoveLater({ weekDays: week(), date: '2026-10-03', sourceDate: '2026-10-02', today: '2026-10-02', loggedDates: new Set(['2026-10-01']) }).proposedWeek);
+    expect(d['2026-09-30'].session.day).toBe('Upper Horizontal Push/Pull');
+    expect(d['2026-09-30'].locked).toBe(true);
+    expect(d['2026-10-01'].locked).toBe(true);
+    expect(d['2026-09-30'].isSwapped).toBe(false);
   });
 });

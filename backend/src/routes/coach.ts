@@ -15,7 +15,7 @@ import {
 import { chatStream } from '../services/chatClient.js';
 import { buildRAGContext } from '../services/ragService.js';
 import { buildPodcastContext } from '../services/podcast/podcastRagService.js';
-import { placeSessionsAvoidingConflicts, muscleBucketLabel } from '../services/weekRebalance.js';
+import { placeSessionsAvoidingConflicts, muscleBucketLabel, proposeMoveLater } from '../services/weekRebalance.js';
 import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { adaptationEnabledFor, seedTargetsForNewProgram } from '../adaptation/proposalService.js';
 import { logBodyWeight, deleteBodyWeight } from '../services/bodyWeightService.js';
@@ -1227,6 +1227,16 @@ export async function buildSwapProposal(
 
   const chosenSession = sourceDay.session;
   const displacedSession = targetDay.session ?? null;
+
+  // Moving a session later ("do today's tomorrow") is its own case: the source
+  // day must give the session up. The rebalance below only pulls sessions earlier.
+  if (sourceDate < date) {
+    if (sourceDate < today) throw new SwapProposalError('That session is already in the past.');
+    if (loggedDates.has(sourceDate)) throw new SwapProposalError('That session is already logged.');
+    if (loggedDates.has(date)) throw new SwapProposalError('That day already has a logged workout.');
+    const { proposedWeek, rationale } = proposeMoveLater({ weekDays, date, sourceDate, today, loggedDates });
+    return { proposedWeek, rationale, chosenSessionName: chosenSession.day };
+  }
 
   const openSlots = weekDays.filter(d => d.date > date && !loggedDates.has(d.date));
 

@@ -127,3 +127,45 @@ export function hasAdjacentConflict(sessions: Array<RebSession | null>): boolean
   }
   return false;
 }
+
+/**
+ * Moving a session LATER in the week (sourceDate < date) — "I can't train
+ * today, do it tomorrow". The session lands on `date`; `date`'s own session,
+ * if it had one, takes `sourceDate` (a straight swap), otherwise `sourceDate`
+ * becomes a rest day. Nothing else moves.
+ *
+ * The rebalancer in buildSwapProposal only handles pulling a session EARLIER:
+ * it locks every day before the target as "past". Used for a move later, that
+ * locked the source day too, so the session was added to the new day and never
+ * removed from the old one — the same workout twice.
+ *
+ * Days before `today` and days with a logged workout are locked (never written).
+ */
+export function proposeMoveLater<D extends { date: string; dayLabel?: string; session?: RebSession | null }>(params: {
+  weekDays: D[];
+  date: string;
+  sourceDate: string;
+  today: string;
+  loggedDates: Set<string>;
+}): { proposedWeek: Array<D & { session: RebSession | null; isTrainingDay: boolean; isSwapped: boolean; locked: boolean }>; rationale: string } {
+  const { weekDays, date, sourceDate, today, loggedDates } = params;
+  const source = weekDays.find((d) => d.date === sourceDate);
+  const target = weekDays.find((d) => d.date === date);
+  const chosen = source?.session ?? null;
+  if (!source || !target || !chosen) throw new Error('proposeMoveLater: source and target must be in the week, and the source must have a session');
+  const displaced = target.session ?? null;
+
+  const proposedWeek = weekDays.map((d) => {
+    const locked = d.date < today || loggedDates.has(d.date);
+    if (d.date === date) return { ...d, session: chosen, isTrainingDay: true, isSwapped: true, locked: false };
+    if (d.date === sourceDate) return { ...d, session: displaced, isTrainingDay: !!displaced, isSwapped: true, locked: false };
+    return { ...d, session: d.session ?? null, isTrainingDay: !!d.session, isSwapped: false, locked };
+  });
+
+  const from = source.dayLabel ?? sourceDate;
+  const to = target.dayLabel ?? date;
+  const rationale = displaced
+    ? `Moved ${chosen.day} from ${from} to ${to}; ${displaced.day} takes ${from} instead.`
+    : `Moved ${chosen.day} from ${from} to ${to}; ${from} is now a rest day.`;
+  return { proposedWeek, rationale };
+}

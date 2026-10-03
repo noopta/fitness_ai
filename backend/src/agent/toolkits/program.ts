@@ -305,8 +305,8 @@ export const PROGRAM_TOOLS = [
   }),
   tool({
     name: 'propose_workout_swap', kind: 'propose', core: true, fn: 'SCH-02',
-    description: "Propose moving a session: pull the session from sourceDate into date (default today) and rebalance the rest of the week for recovery. Read the week first. The user taps Apply on the week card; nothing changes until then.",
-    input_schema: schema({ sourceDate: { type: 'string', description: 'YYYY-MM-DD whose session moves.' }, date: { type: 'string', description: 'YYYY-MM-DD target day. Default today.' } }, ['sourceDate']),
+    description: "Propose moving a session to another day, either way. Earlier (sourceDate after date): the session is pulled into date and the rest of the week is rebalanced for recovery. Later (sourceDate before date, e.g. \"can't train today, do it tomorrow\": sourceDate = today, date = tomorrow): the session moves to date, date's own session (if any) takes sourceDate, otherwise sourceDate becomes a rest day. Read the week first. The user taps Apply on the week card; nothing changes until then. Describe the move the card shows — don't add changes it doesn't make.",
+    input_schema: schema({ sourceDate: { type: 'string', description: 'YYYY-MM-DD whose session moves.' }, date: { type: 'string', description: 'YYYY-MM-DD day it moves to. Default today.' } }, ['sourceDate']),
     receipt: () => ({ verb: 'Proposed', text: 'Session move' }),
     execute: async (input, userId) => {
       const s: any = await getCurrentWeekSchedule(userId);
@@ -324,7 +324,9 @@ export const PROGRAM_TOOLS = [
       const byDate = new Map<string, any>(r.proposedWeek.map((d: any) => [d.date, d]));
       const tiles = weekTiles(r.weekDays.map((d: any) => ({ ...d, session: byDate.has(d.date) ? byDate.get(d.date).session : d.session }))).map((t: any) => {
         const before = r.weekDays.find((d: any) => d.date === t.date);
-        const moved = JSON.stringify(before?.session?.name ?? null) !== JSON.stringify(byDate.get(t.date)?.session?.name ?? before?.session?.name ?? null);
+        // Sessions are named by `day` ("Upper Vertical Push/Pull"); a day is moved when its session changed.
+        const after = byDate.has(t.date) ? byDate.get(t.date).session : before?.session;
+        const moved = (before?.session?.day ?? null) !== (after?.day ?? null);
         return moved ? { ...t, s: 'moved' as const } : t;
       });
       return {
