@@ -35,7 +35,7 @@ const prisma = new PrismaClient();
 
 // Returns the current calendar date string (YYYY-MM-DD) in America/New_York (EST/EDT).
 // The server runs UTC; without this, after 7 PM EST (midnight UTC) the "today" date flips a day early.
-function getESTDateString(date: Date = new Date()): string {
+export function getESTDateString(date: Date = new Date()): string {
   return date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // 'YYYY-MM-DD'
 }
 
@@ -1433,7 +1433,7 @@ router.post('/coach/apply-week-plan', requireAuth, async (req, res) => {
 // Load per-date schedule overrides for a user within a date window and return
 // them as a Map<dateStr, session|null>. A row with null sessionJson is an
 // explicit rest day.
-async function fetchOverridesMap(userId: string, fromDate: string, toDate: string): Promise<Map<string, any | null>> {
+export async function fetchOverridesMap(userId: string, fromDate: string, toDate: string): Promise<Map<string, any | null>> {
   const rows = await prisma.scheduleOverride.findMany({
     where: { userId, date: { gte: fromDate, lte: toDate } },
   });
@@ -1445,7 +1445,7 @@ async function fetchOverridesMap(userId: string, fromDate: string, toDate: strin
 }
 
 // Add/subtract whole days from a YYYY-MM-DD string (EST-noon anchored).
-function addDaysStr(dateStr: string, days: number): string {
+export function addDaysStr(dateStr: string, days: number): string {
   const d = new Date(dateStr + 'T12:00:00Z');
   d.setUTCDate(d.getUTCDate() + days);
   return d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
@@ -1453,9 +1453,11 @@ function addDaysStr(dateStr: string, days: number): string {
 
 // GET /api/coach/schedule - Get the current week's schedule (Mon–Sun)
 // Shared helper — computes schedule data for a user with a saved program.
-function buildScheduleData(
+// `weekStart: 'mon'` gives Mon–Sun (Training · Focus bands); the default stays Sun–Sat.
+export function buildScheduleData(
   user: { savedProgram: string | null; programStartDate: Date | null },
   overrides?: Map<string, any | null>,
+  opts: { weekStart?: 'sun' | 'mon' } = {},
 ) {
   if (!user.savedProgram) return { weekDays: [], weekNumber: null, phaseName: null };
 
@@ -1471,8 +1473,9 @@ function buildScheduleData(
   const totalDays = trainingDays.length;
 
   const dow = new Date(getESTDateString() + 'T12:00:00Z').getUTCDay();
+  const back = opts.weekStart === 'mon' ? (dow + 6) % 7 : dow;
   const sunday = new Date(todayMidnight);
-  sunday.setUTCDate(todayMidnight.getUTCDate() - dow);
+  sunday.setUTCDate(todayMidnight.getUTCDate() - back);
 
   const DAY_LABELS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const weekDays = [];
@@ -1492,7 +1495,7 @@ function buildScheduleData(
 
     weekDays.push({
       date: dateEST,
-      dayLabel: DAY_LABELS[i],
+      dayLabel: DAY_LABELS[(i + (opts.weekStart === 'mon' ? 1 : 0)) % 7],
       dateNumber: parseInt(dateEST.split('-')[2]),
       monthLabel: date.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short' }),
       isToday: dateEST === getESTDateString(),

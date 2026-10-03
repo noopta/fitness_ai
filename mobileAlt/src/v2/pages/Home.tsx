@@ -372,6 +372,7 @@ export function HomePage() {
   answerAskRef.current = answerAsk;
   const onAskPick = useCallback((turn: Turn, o: string) => answerAskRef.current(turn, o), []);
   const askInComposer = useCallback((m: string) => { setText(m); inputRef.current?.focus(); }, []);
+  useEffect(() => { shell.registerPrefill(askInComposer); }, [shell, askInComposer]);
   const onBlur = () => {
     setFocus(false);
     clearTimeout(blurTimer.current);
