@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { isLive, type Card, type CardAction } from '@axiom/agent-ui-core';
 import { K } from './tokens';
 import { useCardHandlers } from './context';
@@ -17,6 +17,8 @@ import {
 import { Hero, Sparkline, Bars, WeekTiles, Media, Skeleton, CapturePlaceholder } from './charts';
 
 const REVEAL_MS = 30_000;
+/** Acted-on cards fold to their meta line over 350 ms (signed-turns spec §4, "Old cards"). */
+const COLLAPSE = LinearTransition.duration(350).easing(Easing.bezier(0.16, 1, 0.3, 1));
 
 export function CardView({ card }: { card: Card }) {
   const h = useCardHandlers();
@@ -30,7 +32,9 @@ export function CardView({ card }: { card: Card }) {
   useEffect(() => { if (!revealed) return; const t = setTimeout(() => setRevealed(false), REVEAL_MS); return () => clearTimeout(t); }, [revealed]);
   useEffect(() => { if (!live) setChosen(null); }, [live]);
 
-  // Acted on / replaced → body dims over 300 ms; Pro previews sit at .40 while live.
+  // Acted on (applied, undone, replaced, logged, changed) → the card folds to its meta line at .45
+  // plus one state line at full ink ("Applied 1:58 · Undo"); Pro previews sit at .40 while live.
+  const collapsed = !live && !!card.state?.line;
   const target = !live ? K.actedOpacity : card.pro ? K.proOpacity : 1;
   const o = useSharedValue(target);
   useEffect(() => { o.value = withTiming(target, { duration: K.fade }); }, [target, o]);
@@ -48,10 +52,11 @@ export function CardView({ card }: { card: Card }) {
   const videoAction = card.actions?.find((a) => a.client?.action === 'play_video');
 
   return (
-    <View ref={shellRef} collapsable={false} style={st.shell} accessible={false}
+    <Animated.View ref={shellRef as any} collapsable={false} style={st.shell} layout={COLLAPSE} accessible={false}
       accessibilityRole="summary" accessibilityLabel={`${card.meta?.label ?? card.fn}, ${card.pattern}`}>
       <Animated.View style={[st.body, body]} pointerEvents={live ? 'auto' : 'box-none'}>
         {card.meta ? <MetaLine label={card.step ? `${card.meta.label} · ${card.step.i} of ${card.step.n}` : card.meta.label} onOpen={open} /> : null}
+        {collapsed ? null : (<>
         {card.step?.done.length ? <FlowProgress done={card.step.done} /> : null}
         {card.hero ? (masked ? <Rows card={card} rows={[{ key: card.meta?.label ?? 'Value', value: card.hero.value }]} masked onReveal={reveal} /> : <Hero cardId={card.id} hero={card.hero} />) : null}
         {card.line?.length ? <Sparkline cardId={card.id} data={card.line} /> : null}
@@ -79,6 +84,7 @@ export function CardView({ card }: { card: Card }) {
         {card.empty ? <EmptyLine text={card.empty} /> : null}
         {card.skeleton ? <Skeleton rows={card.skeleton} /> : null}
         {card.handoff && live ? <HandoffButton label={card.handoff.label} onPress={() => void run({ id: 'handoff', label: card.handoff!.label, kind: 'primary', client: { action: card.handoff!.action, args: card.handoff!.args } })} /> : null}
+        </>)}
       </Animated.View>
 
       {/* Actions stay at full opacity on a Pro preview ("Unlock with Pro →"); they unmount once acted on. */}
@@ -88,7 +94,7 @@ export function CardView({ card }: { card: Card }) {
       {!live && card.state?.line ? (
         <StateLine card={card} line={card.state.line} onUndo={() => void h.undo(card)} onOpen={open} onReplaced={h.scrollToLatest} />
       ) : null}
-    </View>
+    </Animated.View>
   );
 }
 

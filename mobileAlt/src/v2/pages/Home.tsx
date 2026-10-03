@@ -33,23 +33,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import * as ScreenCapture from 'expo-screen-capture';
-import { receiptSummary, composerMode, latestAgentCards, allCards, type Turn, type Card } from '@axiom/agent-ui-core';
-import { CardView, CardSkeleton } from '../chat/card/CardView';
+import { composerMode, latestAgentCards, allCards, signedLayout, type Turn, type Card } from '@axiom/agent-ui-core';
+import { LinearGradient } from 'expo-linear-gradient';
 import { CardHandlersProvider, type CardHandlers, type EditSession } from '../chat/card/context';
 import { useCardActions } from '../chat/useCardActions';
 import { v2Api } from '../api';
 import { v2, T } from '../theme';
 import { Enter } from '../primitives/Enter';
-import { ReceiptList, Caret } from '../primitives/Receipt';
-import { Ask } from '../primitives/Ask';
+import { ReceiptList } from '../primitives/Receipt';
 import { headerClearance } from '../shell/Header';
 import { useShell } from '../shell/ShellContext';
 import { useBrief, useInvalidate } from '../data';
-import { useThread, type Thread } from '../chat/useThread';
-import { TurnCard } from '../chat/Cards';
+import { useThread } from '../chat/useThread';
+import { SignedTurn, TURN_GAP } from '../chat/SignedTurn';
 import { Orb } from '../home/Orb';
 import { HomeVideo, useHomePlayer } from '../home/HomeVideo';
-import { MarkdownText } from '../../components/ui/MarkdownText';
 import { coachApi } from '../../lib/api';
 import { posthog } from '../../lib/analytics';
 import { haptics } from '../haptics';
@@ -69,6 +67,8 @@ const COMPOSER_H = 56;
 const BRIEF_BOTTOM = 112;
 const CHAT_BOTTOM = 40;
 const IOS = Platform.OS === 'ios';
+/** In chat the composer sits CHAT_BOTTOM from the screen edge; with the keyboard up, 12 pt above it. This much of the keyboard is absorbed before anything moves. */
+const KB_FREE = CHAT_BOTTOM - 12;
 
 /**
  * Frame times of each brief ↔ chat morph, measured on the UI thread and
@@ -204,8 +204,8 @@ export function HomePage() {
       if (IOS) {
         // The thread itself rises with the keyboard; count only the part of that rise still to come,
         // and never ask for more scroll than there is content.
-        const lift = Math.max(0, kbH - bottomInset);
-        const applied = Math.max(0, -kbHeight.value - bottomInset);
+        const lift = Math.max(0, kbH - KB_FREE);
+        const applied = Math.max(0, -kbHeight.value - KB_FREE);
         over = Math.min(over - Math.max(0, lift - applied), Math.max(0, fromBottom.current));
       }
       if (over > 0) scrollRef.current?.scrollTo({ y: scrollY.current + over, animated: true });
@@ -269,26 +269,30 @@ export function HomePage() {
   }));
   const chatLine = useAnimatedStyle(() => ({ opacity: interpolate(p.value, [0.5, 1], [0, 1], Extrapolation.CLAMP) }));
   const chatBody = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ translateY: 24 * (1 - p.value) }] }));
+  // The hairline goes ink while the composer is focused, over 150 ms.
+  const focusP = useSharedValue(0);
+  useEffect(() => { focusP.value = withTiming(focus ? 1 : 0, { duration: 150 }); }, [focus]); // eslint-disable-line react-hooks/exhaustive-deps
   const inputWrap = useAnimatedStyle(() => ({
-    borderTopColor: interpolateColor(p.value, [0, 1], [C.darkInputLine, focus ? C.ink : C.hairline]),
+    borderTopColor: interpolateColor(p.value, [0, 1], [C.darkInputLine, interpolateColor(focusP.value, [0, 1], [C.hairline, C.ink]) as string]),
     backgroundColor: interpolateColor(p.value, [0, 1], ['rgba(255,255,255,0)', 'rgba(255,255,255,1)']),
-  }), [focus]);
+  }));
   // Down 72 pt to its chat place as the tab bar leaves, then up with the keyboard.
   const composerMove = useAnimatedStyle(() => ({
-    transform: [{ translateY: (BRIEF_BOTTOM - CHAT_BOTTOM) * p.value - Math.max(0, -kbHeight.value - bottomInset) * p.value }],
-  }), [bottomInset]);
+    transform: [{ translateY: (BRIEF_BOTTOM - CHAT_BOTTOM) * p.value - Math.max(0, -kbHeight.value - KB_FREE) * p.value }],
+  }));
   // iOS: the thread rides the keyboard by transform — no layout, no change of content size, nothing for JS to re-pin.
   // Android keeps the growing pad (it has no contentInset to keep the top of the thread reachable).
-  const threadPad = useAnimatedStyle(() => ({ height: 72 + (IOS ? 0 : Math.max(0, -kbHeight.value - bottomInset)) }));
-  const threadLift = useAnimatedStyle(() => ({ transform: [{ translateY: IOS ? -Math.max(0, -kbHeight.value - bottomInset) : 0 }] }));
+  // After the last turn: 24 pt, then the composer (signed-turns spec §2).
+  const threadPad = useAnimatedStyle(() => ({ height: 24 + (IOS ? 0 : Math.max(0, -kbHeight.value - KB_FREE)) }));
+  const threadLift = useAnimatedStyle(() => ({ transform: [{ translateY: IOS ? -Math.max(0, -kbHeight.value - KB_FREE) : 0 }] }));
   // What the lift pushes under the top edge stays reachable by scrolling.
   const [kbLift, setKbLift] = useState(0);
   useEffect(() => {
     if (!IOS) return;
-    const a = Keyboard.addListener('keyboardDidShow', (e) => setKbLift(Math.max(0, e.endCoordinates.height - bottomInset)));
+    const a = Keyboard.addListener('keyboardDidShow', (e) => setKbLift(Math.max(0, e.endCoordinates.height - KB_FREE)));
     const b = Keyboard.addListener('keyboardDidHide', () => setKbLift(0));
     return () => { a.remove(); b.remove(); };
-  }, [bottomInset]);
+  }, []);
   const inputText = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]) }));
 
   const loaded = !!brief.data;
@@ -375,6 +379,8 @@ export function HomePage() {
   };
   useEffect(() => () => clearTimeout(blurTimer.current), []);
   const busy = thread.state.busy;
+  // Who signs what, where the time stamps go (signed-turns spec §4).
+  const slots = useMemo(() => signedLayout(thread.state.turns, Date.now()), [thread.state.turns]);
   const emptyThread = thread.state.turns.length === 0;
 
   // Tap → first committed chat render, on the JS thread; reported with the frame times.
@@ -409,7 +415,7 @@ export function HomePage() {
           <View style={[styles.flex, { overflow: 'hidden' }]}>
             <Animated.ScrollView ref={scrollRef as any} style={[styles.flex, threadLift]}
               contentInset={IOS ? { top: kbLift } : undefined}
-              contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}
+              contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}
               onScrollBeginDrag={() => { dragging.current = true; }} onScrollEndDrag={onDragEnd} onMomentumScrollEnd={onDragEnd}
               onContentSizeChange={followIfPinned} onLayout={followIfPinned}>
               {emptyThread ? (
@@ -422,14 +428,18 @@ export function HomePage() {
               <CardHandlersProvider value={handlers}>
               {thread.state.turns.map((t, i) => {
                 if (away && !awayOpen && i >= away.start && i < away.end) {
-                  return i === away.start ? <AwayRow key="away" count={away.count} onPress={() => setAwayOpen(true)} /> : null;
+                  return i === away.start ? <View key="away" style={{ marginTop: i === 0 ? 0 : TURN_GAP }}><AwayRow count={away.count} onPress={() => setAwayOpen(true)} /></View> : null;
                 }
-                return <TurnView key={t.id} turn={t} dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />;
+                const sl = slots[i];
+                return <SignedTurn key={t.id} turn={t} first={i === 0} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
+                  dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />;
               })}
               </CardHandlersProvider>
               {thread.state.error ? <Text style={T.caption}>{thread.state.error}</Text> : null}
               <Animated.View style={threadPad} />
             </Animated.ScrollView>
+            {/* The thread fades out under the header rather than being cut by it. */}
+            <LinearGradient pointerEvents="none" colors={['#ffffff', 'rgba(255,255,255,0)']} style={styles.topFade} />
             {showNew && chat ? (
               <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.newPillWrap} pointerEvents="box-none">
                 <Pressable onPress={toEnd} style={styles.newPill} accessibilityRole="button" accessibilityLabel="Scroll to new messages">
@@ -550,44 +560,6 @@ function sessionLabel(session: NonNullable<BriefSession>): string {
   return `${session.isToday ? '' : 'Tomorrow · '}${sessionTitle(session.name)}${session.minutes ? ` · ${session.minutes} min` : ''}`;
 }
 
-const TurnView = React.memo(function TurnView({ turn, dispatch, ask, onAsk }: { turn: Turn; dispatch: Thread['dispatch']; ask: (m: string) => void; onAsk: (turn: Turn, o: string) => void }) {
-  const toggle = () => dispatch({ type: 'toggle', id: turn.id });
-  const patch = (pch: Record<string, any>) => dispatch({ type: 'card_state', agentId: turn.id, patch: pch });
-  const resolve = (line: string) => dispatch({ type: 'resolve', agentId: turn.id, resolution: line });
-  if (turn.kind === 'user') {
-    return <Enter exit={false}><Text style={[styles.userTurn]}>{turn.text}</Text></Enter>;
-  }
-  const streaming = !turn.done;
-  const live = streaming && turn.receipts.length && !turn.text ? turn.receipts.length - 1 : -1;
-  const summary = receiptSummary(turn);
-  const showList = turn.open || (streaming && !turn.text);
-  return (
-    <Enter exit={false}>
-      <View>
-        {summary ? (
-          <Pressable onPress={toggle} hitSlop={6} disabled={streaming && !turn.text}>
-            <Text style={T.caption}>{summary}{turn.done && turn.receipts.length && !turn.open ? ' →' : ''}</Text>
-          </Pressable>
-        ) : null}
-        {showList && turn.receipts.length ? <View style={{ marginTop: 8 }}><ReceiptList items={turn.receipts} liveIndex={live} animate={streaming} /></View> : null}
-        {turn.ask && !turn.resolution ? <View style={{ marginTop: 12 }}><Ask question={turn.ask.question} reason={turn.ask.reason} options={turn.ask.options} size="read" onPick={(o) => onAsk(turn, o)} /></View> : null}
-        {turn.text ? (
-          <View style={{ marginTop: summary ? 10 : 0, flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <View style={{ flex: 1 }}><MarkdownText text={turn.text} style={styles.agentText} /></View>
-            {streaming ? <Caret /> : null}
-          </View>
-        ) : null}
-        {turn.cards?.length ? (
-          <View style={{ marginTop: 18, gap: 28 }}>
-            {turn.cards.map((c, i) => <Enter key={c.id} index={i} exit={false}><CardView card={c} /></Enter>)}
-          </View>
-        ) : turn.done ? <TurnCard turn={turn} patch={patch} resolve={resolve} ask={ask} /> : <PendingCard turn={turn} />}
-        {turn.resolution ? <View style={{ marginTop: 12 }}><Text style={[T.caption, { color: /^(Adjusted|Logged)/.test(turn.resolution) ? C.crimson : C.muted }]}>{turn.resolution}</Text></View> : null}
-      </View>
-    </Enter>
-  );
-});
-
 export function dismissKeyboard() { Keyboard.dismiss(); }
 
 /** "While you were away · 3" — one collapsed row; tapping expands the cards in order. */
@@ -600,19 +572,6 @@ function AwayRow({ count, onPress }: { count: number; onPress: () => void }) {
       </Pressable>
     </Enter>
   );
-}
-
-/** Skeleton in the card slot while a tool runs longer than 400 ms (§6.4) — never for fast results. */
-function PendingCard({ turn }: { turn: Turn }) {
-  const [show, setShow] = useState(false);
-  const running = !turn.done && turn.receipts.length > 0 && !turn.text;
-  useEffect(() => {
-    if (!running) { setShow(false); return; }
-    const t = setTimeout(() => setShow(true), 400);
-    return () => clearTimeout(t);
-  }, [running, turn.receipts.length]);
-  if (!running || !show) return null;
-  return <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)} style={{ marginTop: 18 }}><CardSkeleton /></Animated.View>;
 }
 
 /** First launch with nothing cached (review #5 §1.4): the read slot says so, pulsing 1 → .25 → 1 over 1.6 s — never a blank area. */
@@ -639,8 +598,7 @@ const styles = StyleSheet.create({
   inputWrap: { height: COMPOSER_H, flexDirection: 'row', alignItems: 'center', gap: 12, borderTopWidth: 1 },
   input: { flex: 1, fontFamily: v2.font.regular, fontSize: 17, padding: 0 },
   send: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
-  userTurn: { fontFamily: v2.font.regular, fontSize: 17, lineHeight: 25, color: C.ink, textAlign: 'right', alignSelf: 'flex-end', maxWidth: '86%' },
-  agentText: { fontFamily: v2.font.regular, fontSize: 17, lineHeight: 25.5, color: C.ink },
+  topFade: { position: 'absolute', left: 0, right: 0, top: 0, height: 56 },
   awayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.hairline },
   saveBar: { justifyContent: 'space-between' },
   editingRow: { position: 'absolute', left: 0, right: 0, bottom: COMPOSER_H, height: 32, flexDirection: 'row', alignItems: 'center', backgroundColor: C.white },
