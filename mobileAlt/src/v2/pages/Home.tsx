@@ -18,7 +18,7 @@
 //   chat body     row + thread: opacity p, 24 pt rise
 //   composer      one place: drops 72 pt as the tab bar leaves; hairline,
 //                 ground and text recolour; rides the keyboard by transform
-// The keyboard is asked for at p ≥ .6, not on the tap: bringing it up is work
+// The keyboard is asked for once the open has landed, not on the tap: bringing it up is work
 // on the UI thread, the thread that runs the morph. A tapped suggestion opens
 // chat and sends without the keyboard. Closing dismisses the keyboard first.
 //
@@ -60,8 +60,13 @@ let askSeq = 0;
 const settle = (delay: number) => FadeInDown.duration(500).delay(delay).easing(v2.motion.easeEnter).withInitialValues({ opacity: 0, transform: [{ translateY: 8 }] });
 const READ_LINE = 33; // the read's line height — its slot is reserved so a new read never moves the layout
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
-/** The keyboard is asked for once the morph is this far along (spec §2.3). */
-const KEYBOARD_AT_P = 0.6;
+/**
+ * The keyboard is asked for once the open has landed. The spec says p ≥ .6,
+ * but the phone's own frame reports (v2_morph_perf, 3 Oct) showed every open
+ * with 2–3 frames of 50–120 ms while every close — no keyboard — stayed
+ * smooth: bringing the keyboard up stalls the UI thread that runs the morph.
+ */
+const KEYBOARD_AT_P = 1;
 /** The composer: one height in both states, 112 pt up in brief (above the tab bar), 40 pt in chat. */
 const COMPOSER_H = 56;
 const BRIEF_BOTTOM = 112;
@@ -82,11 +87,14 @@ function useMorphProbe(p: SharedValue<number>, context: () => Record<string, unk
   const over34 = useSharedValue(0);
   const over50 = useSharedValue(0);
   const from = useSharedValue(0);
-  const report = useCallback((to: 'chat' | 'brief', frames: number, ms: number, max: number, a: number, b: number, c: number) => {
+  // Where the slow frames fall: progress at each frame over 34 ms (first 8), so a hitch can be placed — tap, mid-flight, keyboard.
+  const slowAt = useSharedValue<number[]>([]);
+  const report = useCallback((to: 'chat' | 'brief', frames: number, ms: number, max: number, a: number, b: number, c: number, at: number[]) => {
     try {
       posthog.capture('v2_morph_perf', {
         to, frames, duration_ms: Math.round(ms), avg_ms: Math.round((ms / Math.max(1, frames)) * 10) / 10, max_ms: Math.round(max),
-        over_20ms: a, over_34ms: b, over_50ms: c, platform: Platform.OS, ...context(),
+        over_20ms: a, over_34ms: b, over_50ms: c, slow_at_p: at.map((x) => Math.round(x * 100) / 100), keyboard_at_p: KEYBOARD_AT_P,
+        platform: Platform.OS, ...context(),
       });
     } catch { /* analytics must never break home */ }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -101,13 +109,13 @@ function useMorphProbe(p: SharedValue<number>, context: () => Record<string, unk
         total.value += dt;
         if (dt > worst.value) worst.value = dt;
         if (dt > 20) over20.value += 1;
-        if (dt > 34) over34.value += 1;
+        if (dt > 34) { over34.value += 1; if (slowAt.value.length < 8) slowAt.value = [...slowAt.value, v]; }
         if (dt > 50) over50.value += 1;
       }
       n.value += 1;
     } else if (n.value > 0) {
-      if (n.value > 5) runOnJS(report)(v >= 1 ? 'chat' : 'brief', n.value - 1, total.value, worst.value, over20.value, over34.value, over50.value);
-      n.value = 0; total.value = 0; worst.value = 0; over20.value = 0; over34.value = 0; over50.value = 0;
+      if (n.value > 5) runOnJS(report)(v >= 1 ? 'chat' : 'brief', n.value - 1, total.value, worst.value, over20.value, over34.value, over50.value, slowAt.value);
+      n.value = 0; total.value = 0; worst.value = 0; over20.value = 0; over34.value = 0; over50.value = 0; slowAt.value = [];
     }
   }, true);
 }
@@ -327,7 +335,7 @@ export function HomePage() {
       thread.dispatch({ type: 'append_agent', turn: { id: `ask${Date.now().toString(36)}${askSeq++}`, kind: 'agent', text: '', receipts: [{ id: 'r-ask', verb: 'Checked', text: 'Wellness — no check-in today' }], done: true, ask } });
     }
   };
-  // Tap on the composer in brief: the morph starts now, the keyboard at p ≥ .6.
+  // Tap on the composer in brief: the morph starts now, the keyboard once it lands.
   const wantKeyboard = useSharedValue(0);
   const focusInput = useCallback(() => { inputRef.current?.focus(); }, []);
   useAnimatedReaction(
@@ -472,7 +480,7 @@ export function HomePage() {
             ref={inputRef}
             value={text}
             onChangeText={setText}
-            // Brief: the row below takes the tap (morph first, keyboard at p ≥ .6).
+            // Brief: the row below takes the tap (morph first, keyboard once it lands).
             editable={chat}
             onFocus={() => { setFocus(true); enterChat(); setBriefOpen(false); }}
             onBlur={() => { setAnswering(false); onBlur(); }}
