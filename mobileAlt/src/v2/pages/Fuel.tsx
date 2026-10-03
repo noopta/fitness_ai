@@ -1,6 +1,10 @@
 // Fuel (index 2): the calorie ring with macro-hue segments, Anakin's read,
 // body systems and gaps rows, today's meals, and the dock — Snap · Scan ·
-// Describe. Every log streams receipts and updates the ring.
+// Describe · More. Every log streams receipts and updates the ring.
+//
+// More opens the other ways to log that the classic app has: Manual entry,
+// Voice, Saved foods, Recipes and Order · receipt. Manual, Voice, the recipe
+// builder and the order scan are the classic sheets, reused as they are.
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
@@ -18,6 +22,13 @@ import { nutritionApi } from '../../lib/api';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
 import { haptics } from '../haptics';
 import type { ReceiptVerb } from '@axiom/agent-ui-core';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { ManualEntrySheet } from '../../components/coach/nutrition/sheets/ManualEntrySheet';
+import { VoiceSheet } from '../../components/coach/nutrition/sheets/VoiceSheet';
+import { RecipeSheet } from '../../components/coach/nutrition/sheets/RecipeSheet';
+import { OrderScanFlow } from '../../components/coach/nutrition/gut/OrderScanFlow';
+
+type Sheet = null | 'manual' | 'voice' | 'recipe' | 'order';
 
 const TARGET_DEFAULT = { calories: 2400, proteinG: 150, carbsG: 260, fatG: 80 };
 
@@ -37,6 +48,18 @@ export function FuelPage() {
   const [dock, setDock] = useState<'idle' | 'typing' | 'busy'>('idle');
   const [text, setText] = useState('');
   const [log, setLog] = useState<{ verb: ReceiptVerb; text: string }[]>([]);
+  const [more, setMore] = useState(false);
+  const [sheet, setSheet] = useState<Sheet>(null);
+  const logged = async () => { setSheet(null); haptics.success(); await invalidate.afterMeal(); };
+  const openSheet = (s: Sheet) => { setMore(false); haptics.select(); setSheet(s); };
+  const openPage = (key: string) => { setMore(false); haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key } } as any); };
+  const moreItems: { label: string; sub: string; go: () => void }[] = [
+    { label: 'Manual entry', sub: 'Name and macros, or from your saved foods', go: () => openSheet('manual') },
+    { label: 'Voice', sub: 'Say what you ate', go: () => openSheet('voice') },
+    { label: 'Saved foods', sub: 'What you log most', go: () => openPage('savedfoods') },
+    { label: 'Recipes', sub: 'Log a serving, or build a new one', go: () => openPage('recipes') },
+    { label: 'Order · receipt', sub: 'Scan a takeout order or receipt', go: () => openSheet('order') },
+  ];
 
   const rows: any[] = meals.data?.meals ?? meals.data?.entries ?? (Array.isArray(meals.data) ? meals.data : []);
   const targets = meals.data?.targets ?? meals.data?.plan ?? TARGET_DEFAULT;
@@ -128,16 +151,39 @@ export function FuelPage() {
         ) : null}
       </TabPage>
 
-      {/* Dock — three equal columns above the tab bar. Snap / Scan / Describe all open the capture surface. */}
+      {/* Dock — four equal columns above the tab bar. Snap / Scan / Describe open the capture surface; More lists the rest. */}
       <View style={styles.dock} pointerEvents="box-none">
+        {more ? (
+          <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(140)} style={styles.morePanel}>
+            {moreItems.map((it) => (
+              <Pressable key={it.label} onPress={it.go} style={styles.moreRow} accessibilityRole="button" accessibilityLabel={`${it.label}. ${it.sub}`}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[T.rowStrong, { fontSize: 15 }]}>{it.label}</Text>
+                  <Text style={T.caption}>{it.sub}</Text>
+                </View>
+                <Text style={[T.rowStrong, { fontSize: 15, color: v2.color.muted }]}>→</Text>
+              </Pressable>
+            ))}
+          </Animated.View>
+        ) : null}
         <View style={styles.dockRow}>
           {([['Snap', 'photo'], ['Scan', 'barcode'], ['Describe', 'describe']] as const).map(([label, mode]) => (
-            <Pressable key={label} onPress={() => { haptics.select(); router.push({ pathname: '/(v2)/capture', params: { mode } } as any); }} style={styles.dockItem} hitSlop={8} accessibilityRole="button">
+            <Pressable key={label} onPress={() => { setMore(false); haptics.select(); router.push({ pathname: '/(v2)/capture', params: { mode } } as any); }} style={styles.dockItem} hitSlop={8} accessibilityRole="button">
               <Text style={[T.rowStrong, { fontSize: 15 }]}>{label}</Text>
             </Pressable>
           ))}
+          <Pressable onPress={() => { haptics.select(); setMore((m) => !m); }} style={styles.dockItem} hitSlop={8} accessibilityRole="button" accessibilityState={{ expanded: more }} accessibilityLabel={more ? 'Close more ways to log' : 'More ways to log'}>
+            <Text style={[T.rowStrong, { fontSize: 15, color: more ? v2.color.muted : v2.color.ink }]}>{more ? 'Close' : 'More'}</Text>
+          </Pressable>
         </View>
       </View>
+
+      <ManualEntrySheet visible={sheet === 'manual'} onClose={() => setSheet(null)} onLogged={logged}
+        onCreateRecipe={() => { setSheet(null); setTimeout(() => setSheet('recipe'), 380); }} />
+      <VoiceSheet visible={sheet === 'voice'} onClose={() => setSheet(null)} onLogged={logged} />
+      {/* A saved recipe goes back to Manual entry, where it can be logged. */}
+      <RecipeSheet visible={sheet === 'recipe'} onClose={() => setSheet(null)} onSaved={() => { setSheet(null); setTimeout(() => setSheet('manual'), 380); }} />
+      <OrderScanFlow visible={sheet === 'order'} onClose={() => setSheet(null)} onLogged={() => void logged()} />
     </KeyboardAvoider>
   );
 }
@@ -172,6 +218,8 @@ const styles = StyleSheet.create({
   dock: { position: 'absolute', left: 0, right: 0, bottom: v2.space.tabBarClearance - 8, paddingHorizontal: v2.space.gutter },
   dockRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: v2.color.hairline, backgroundColor: v2.color.white },
   dockItem: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  morePanel: { backgroundColor: v2.color.white, borderTopWidth: 1, borderTopColor: v2.color.hairline },
+  moreRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: v2.color.hairline },
   describe: { flexDirection: 'row', alignItems: 'center', gap: 16, borderTopWidth: 1, borderTopColor: v2.color.ink, paddingTop: 12, backgroundColor: v2.color.white },
   input: { flex: 1, ...T.body, fontSize: 17, padding: 0 },
 });

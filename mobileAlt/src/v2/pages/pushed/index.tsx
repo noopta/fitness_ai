@@ -271,6 +271,9 @@ function MealPage({ id }: { id: string }) {
 
 // ─── You ─────────────────────────────────────────────────────────────────────
 
+/** Short axis names for the radar — the side labels have ~65 pt before the screen edge. Rows below keep the full names. */
+const radarName = (name: string) => name.replace('Overhead Press', 'OHP').replace('Romanian DL', 'RDL');
+
 function StrengthPage() {
   const router = useRouter();
   const s = useStrength();
@@ -282,7 +285,7 @@ function StrengthPage() {
   const out = ratios.filter((r) => r.status === 'high' || r.status === 'low').length;
   const conf = Math.round((d?.athleteModel?.confidence ?? 0) * 100);
   const read = strengthRead(d);
-  const axes = ratios.filter((r) => r.value != null).map((r) => { const k = (r.value - (r.band[0] + r.band[1]) / 2) / (r.band[1] - r.band[0]); return { t: r.name.replace(' : ', ':'), v: r.value.toFixed(2), r: Math.max(0.12, Math.min(1.08, 0.75 + k * 0.35)), hot: r.status !== 'in-band' }; });
+  const axes = ratios.filter((r) => r.value != null).map((r) => { const k = (r.value - (r.band[0] + r.band[1]) / 2) / (r.band[1] - r.band[0]); return { t: radarName(r.name), v: r.value.toFixed(2), r: Math.max(0.12, Math.min(1, 0.75 + k * 0.35)), hot: r.status !== 'in-band' }; });
   return (
     <PushedPage back="You" meta={conf ? `${conf}% confidence` : null} title="Strength profile" lead={read} loading={s.isLoading}
       visual={axes.length >= 3 ? <Radar axes={axes} band={[0.575, 0.925]} size={330} /> : null}>

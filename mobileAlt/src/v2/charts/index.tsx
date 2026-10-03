@@ -3,7 +3,7 @@
 
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle, Polyline, Line, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Polyline, Polygon, Line, Rect, Text as SvgText } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay, useReducedMotion } from 'react-native-reanimated';
 import { v2, T, type MacroKey } from '../theme';
 
@@ -146,33 +146,59 @@ export function ProgressHairline({ fraction, crimson = true, height = 2, track =
 }
 
 /** Small radar for the systems / strength pages (hairline rings, ink polygon, crimson dots when out of band). */
+/**
+ * Radar: one axis per ratio, the shape inside the outer ring always. Values
+ * are clamped to the ring (0–1 of it), never drawn past it. Axis labels are
+ * React Native text placed around the SVG rather than SVG text, so they wrap
+ * to two lines and stay inside the chart's box instead of running off the
+ * screen edge ("Front Squat : Back Squat" used to show as "Squat:Back Squat").
+ */
 export function Radar({ axes, band, size = 320 }: { axes: { t: string; v: string; r: number; hot?: boolean }[]; band?: [number, number]; size?: number }) {
-  const C = size / 2, Rr = size * 0.3, n = axes.length;
-  const pt = (i: number, r: number) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / n; return [C + Math.cos(a) * r, C + Math.sin(a) * r]; };
+  const n = axes.length;
+  const LABEL_GAP = 14;
+  const LABEL_W = Math.round(size * 0.3);
+  const Rr = size * 0.27;
+  const C = size / 2;
+  // Room above and below for a two-line label plus its value.
+  const H = Math.round(2 * (Rr + LABEL_GAP + 44));
+  const CY = H / 2;
+  const clamp = (r: number) => Math.max(0.05, Math.min(1, r));
+  const pt = (i: number, r: number) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / n; return [C + Math.cos(a) * r, CY + Math.sin(a) * r]; };
   const poly = (r: number) => axes.map((_, i) => pt(i, r).map((v) => v.toFixed(1)).join(',')).join(' ');
-  const shape = axes.map((a, i) => pt(i, Math.max(0.05, a.r) * Rr).map((v) => v.toFixed(1)).join(',')).join(' ');
+  const shape = axes.map((a, i) => pt(i, clamp(a.r) * Rr).map((v) => v.toFixed(1)).join(',')).join(' ');
   return (
-    <Svg width={size} height={size * 0.85} viewBox={`0 0 ${size} ${size * 0.85}`}>
-      {band ? <Polyline points={poly(band[1] * Rr)} fill={v2.color.surface} stroke="none" /> : null}
-      {band ? <Polyline points={poly(band[0] * Rr)} fill={v2.color.white} stroke="none" /> : null}
-      {[0.33, 0.66, 1].map((k) => <Polyline key={k} points={poly(k * Rr)} fill="none" stroke={v2.color.hairline} strokeWidth={1} />)}
-      {axes.map((_, i) => { const [x, y] = pt(i, Rr); return <Line key={i} x1={C} y1={C} x2={x} y2={y} stroke={v2.color.hairline} />; })}
-      <Polyline points={shape} fill="rgba(9,9,11,.06)" stroke={v2.color.ink} strokeWidth={1.5} strokeLinejoin="round" />
-      {axes.map((a, i) => { const [x, y] = pt(i, Math.max(0.05, a.r) * Rr); return <Circle key={i} cx={x} cy={y} r={a.hot ? 4.5 : 3} fill={a.hot ? v2.color.crimson : v2.color.ink} />; })}
+    <View style={{ width: size, height: H, alignSelf: 'center' }}>
+      <Svg width={size} height={H} viewBox={`0 0 ${size} ${H}`}>
+        {band ? <Polygon points={poly(Math.min(1, band[1]) * Rr)} fill={v2.color.surface} stroke="none" /> : null}
+        {band ? <Polygon points={poly(Math.min(1, band[0]) * Rr)} fill={v2.color.white} stroke="none" /> : null}
+        {[0.33, 0.66, 1].map((k) => <Polygon key={k} points={poly(k * Rr)} fill="none" stroke={v2.color.hairline} strokeWidth={1} />)}
+        {axes.map((_, i) => { const [x, y] = pt(i, Rr); return <Line key={i} x1={C} y1={CY} x2={x} y2={y} stroke={v2.color.hairline} />; })}
+        <Polygon points={shape} fill="rgba(9,9,11,.06)" stroke={v2.color.ink} strokeWidth={1.5} strokeLinejoin="round" />
+        {axes.map((a, i) => { const [x, y] = pt(i, clamp(a.r) * Rr); return <Circle key={i} cx={x} cy={y} r={a.hot ? 4.5 : 3} fill={a.hot ? v2.color.crimson : v2.color.ink} />; })}
+      </Svg>
       {axes.map((a, i) => {
-        const [x, y] = pt(i, Rr + 22);
-        const an = Math.abs(x - C) < 8 ? 'middle' : x < C ? 'end' : 'start';
-        const top = y < C - 40;
+        const [x, y] = pt(i, Rr + LABEL_GAP);
+        const side = Math.abs(x - C) < 8 ? 'middle' : x < C ? 'left' : 'right';
+        const above = y < CY - Rr * 0.5;
+        // Left labels end at the point, right labels start at it, the top/bottom ones centre on it — each kept inside the box.
+        const w = side === 'middle' ? LABEL_W : Math.max(60, Math.min(LABEL_W, side === 'left' ? x - 2 : size - x - 2));
+        const left = side === 'middle' ? x - w / 2 : side === 'left' ? x - w : x;
+        const align = side === 'middle' ? 'center' : side === 'left' ? 'right' : 'left';
         return (
-          <React.Fragment key={`l${i}`}>
-            <SvgText x={x} y={top ? y - 10 : y + 4} textAnchor={an} fontSize={11} fill={v2.color.muted} fontFamily={v2.font.regular}>{a.t}</SvgText>
-            <SvgText x={x} y={top ? y + 6 : y + 20} textAnchor={an} fontSize={12} fontWeight="700" fill={a.hot ? v2.color.crimson : v2.color.ink} fontFamily={v2.font.bold}>{a.v}</SvgText>
-          </React.Fragment>
+          <View key={`l${i}`} pointerEvents="none"
+            style={{ position: 'absolute', left: Math.max(0, Math.min(size - w, left)), width: w, ...(above ? { bottom: H - y } : { top: y }) }}>
+            <Text style={[styles.radarLabel, { textAlign: align }]} numberOfLines={2}>{a.t}</Text>
+            <Text style={[styles.radarValue, { textAlign: align, color: a.hot ? v2.color.crimson : v2.color.ink }]}>{a.v}</Text>
+          </View>
         );
       })}
-    </Svg>
+    </View>
   );
 }
 
 export const chartStyles = StyleSheet.create({ axis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 } });
+const styles = StyleSheet.create({
+  radarLabel: { fontFamily: v2.font.regular, fontSize: 11, lineHeight: 14, color: v2.color.muted },
+  radarValue: { fontFamily: v2.font.bold, fontSize: 12, lineHeight: 16 },
+});
 export { Rect };

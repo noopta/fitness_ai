@@ -12,6 +12,11 @@ import { Row } from '../primitives/Row';
 import { Enter } from '../primitives/Enter';
 import { useStrength, useStreak, useMemory } from '../data';
 
+/** "A", "A and B", "A, B and C". */
+function listOf(xs: string[]): string {
+  return xs.length <= 2 ? xs.join(' and ') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
+}
+
 export function strengthRead(s: any): string | null {
   const ins: any[] = s?.athleteModel?.insights ?? [];
   const conf: number = s?.athleteModel?.confidence ?? 0;
@@ -20,9 +25,12 @@ export function strengthRead(s: any): string | null {
   const stalls = ins.filter((i) => i.kind === 'stagnation');
   const imb = ins.filter((i) => i.kind === 'imbalance');
   if (stalls.length) {
-    const lock = /lock is your ([a-z -]+)/i.exec(stalls[0].detail ?? '')?.[1];
-    const names = stalls.map((x) => String(x.title).replace(/ has stalled| is sliding backward/i, '')).join(' and ');
-    return lock ? `${names} ${stalls.length > 1 ? 'both stalled' : 'stalled'} on the same link — your ${lock}. That's the lock, not the lift.` : `${names} ${stalls.length > 1 ? 'have' : 'has'} stalled. Change the stimulus before adding weight.`;
+    const lock = /lock is your ([a-z -]+)/i.exec(stalls[0].detail ?? '')?.[1]?.trim();
+    const names = listOf(stalls.map((x) => String(x.title).replace(/ has stalled| is sliding backward/i, '').trim()));
+    const n = stalls.length;
+    return lock
+      ? `${names} ${n === 1 ? 'stalled' : n === 2 ? 'both stalled' : 'all stalled'} on the same link — your ${lock}. That's the lock, not the lift.`
+      : `${names} ${n > 1 ? 'have' : 'has'} stalled. Change the stimulus before adding weight.`;
   }
   if (imb.length) return `${imb[0].title}. ${imb[0].detail ?? ''}`.trim();
   if (ins.some((i) => i.kind === 'win')) return 'Nothing\'s holding you back. Balanced and progressing — keep the current stimulus.';
