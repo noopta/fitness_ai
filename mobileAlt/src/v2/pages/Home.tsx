@@ -17,10 +17,19 @@
 // work on the UI thread — the same thread that runs the morph — so asking for
 // both on the tap made the morph stutter. In brief the composer is therefore a
 // button over a non-editable input; in chat it is the input.
+//
+// The thread's scroll view never changes size or content during either beat.
+// It is laid out once at its chat height and anchored to the bottom of the
+// growing (clipping) container, and on iOS it rides the keyboard by transform.
+// Resizing it per frame meant a layout pass over the whole thread per frame,
+// plus a round trip to JS to re-pin the scroll position each time — which
+// always arrived a frame or two late, so the messages visibly trailed the
+// morph and the keyboard. Each morph's frame times are reported
+// (`v2_morph_perf`) so the next change to this screen is made from numbers.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, interpolate, interpolateColor, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, useFrameCallback, runOnJS, interpolate, interpolateColor, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
@@ -43,6 +52,7 @@ import { Orb } from '../home/Orb';
 import { HomeVideo } from '../home/HomeVideo';
 import { MarkdownText } from '../../components/ui/MarkdownText';
 import { coachApi } from '../../lib/api';
+import { posthog } from '../../lib/analytics';
 import { haptics } from '../haptics';
 import { sessionTitle, sessionCaption } from '../format';
 
@@ -55,6 +65,53 @@ const READ_LINE = 33; // the read's line height — its slot is reserved so a ne
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 /** When the keyboard is asked for after the tap: the morph is ~96 % of the way there and slowing. */
 const KEYBOARD_AT = Math.round(v2.motion.briefChat * 0.8);
+/** Chat-state heights of what shares the column with the thread: the session row (1 + 10 + 22 + 10 + 1) and the composer (60 + 40 margin). */
+const ROW_CHAT_H = 44;
+const COMPOSER_CHAT_H = 100;
+const EDITING_ROW_H = 32;
+const IOS = Platform.OS === 'ios';
+
+/**
+ * Frame times of each brief ↔ chat morph, measured on the UI thread and
+ * reported when it lands. Idle cost is one comparison per frame.
+ */
+function useMorphProbe(p: SharedValue<number>, context: () => Record<string, unknown>) {
+  const n = useSharedValue(0);
+  const total = useSharedValue(0);
+  const worst = useSharedValue(0);
+  const over20 = useSharedValue(0);
+  const over34 = useSharedValue(0);
+  const over50 = useSharedValue(0);
+  const from = useSharedValue(0);
+  const report = useCallback((to: 'chat' | 'brief', frames: number, ms: number, max: number, a: number, b: number, c: number) => {
+    try {
+      posthog.capture('v2_morph_perf', {
+        to, frames, duration_ms: Math.round(ms), avg_ms: Math.round((ms / Math.max(1, frames)) * 10) / 10, max_ms: Math.round(max),
+        over_20ms: a, over_34ms: b, over_50ms: c, platform: Platform.OS, ...context(),
+      });
+    } catch { /* analytics must never break home */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useFrameCallback((info) => {
+    'worklet';
+    const v = p.value;
+    if (v > 0 && v < 1) {
+      if (n.value === 0) from.value = v;
+      const dt = info.timeSincePreviousFrame ?? 16;
+      // The first frame's interval includes the idle time before the tap; skip it.
+      if (n.value > 0) {
+        total.value += dt;
+        if (dt > worst.value) worst.value = dt;
+        if (dt > 20) over20.value += 1;
+        if (dt > 34) over34.value += 1;
+        if (dt > 50) over50.value += 1;
+      }
+      n.value += 1;
+    } else if (n.value > 0) {
+      if (n.value > 5) runOnJS(report)(v >= 1 ? 'chat' : 'brief', n.value - 1, total.value, worst.value, over20.value, over34.value, over50.value);
+      n.value = 0; total.value = 0; worst.value = 0; over20.value = 0; over34.value = 0; over50.value = 0;
+    }
+  }, true);
+}
 
 export function HomePage() {
   const insets = useSafeAreaInsets();
@@ -82,6 +139,12 @@ export function HomePage() {
   // Measured once (§D.2): the receipts line and the session caption collapse from their own heights.
   const summaryH = useSharedValue(0);
   const captionH = useSharedValue(0);
+  // The thread's height in chat. Estimated from the column before chat has ever
+  // opened, then replaced by the measured value each time chat settles.
+  const [columnH, setColumnH] = useState(0);
+  const [readH, setReadH] = useState(0);
+  const [measuredThreadH, setMeasuredThreadH] = useState(0);
+  const threadBox = useRef<View>(null);
 
   useEffect(() => {
     shell.registerAsk((m) => { void thread.send(m); });
@@ -137,6 +200,10 @@ export function HomePage() {
   const kbOn = screenFocused && shell.index === 0;
   useEffect(() => { kc.setEnabled(kbOn); }, [kbOn]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // keyboard-controller's height is negative while the keyboard is up.
+  const { height: kbHeight } = useReanimatedKeyboardAnimation();
+  const bottomInset = insets.bottom;
+
   // Reveal (§7.1.3): the node's bottom sits 16 pt above the composer / Save bar once the keyboard is up.
   const pendingReveal = useRef<View | null>(null);
   const doReveal = useCallback((kbH: number) => {
@@ -144,10 +211,17 @@ export function HomePage() {
     pendingReveal.current = null;
     node?.measureInWindow((_x, y, _w, h) => {
       const limit = Dimensions.get('window').height - kbH - 60 - 16;
-      const over = y + h - limit;
+      let over = y + h - limit;
+      if (IOS) {
+        // The thread itself rises with the keyboard; count only the part of that rise still to come,
+        // and never ask for more scroll than there is content.
+        const lift = Math.max(0, kbH - bottomInset);
+        const applied = Math.max(0, -kbHeight.value - bottomInset);
+        over = Math.min(over - Math.max(0, lift - applied), Math.max(0, fromBottom.current));
+      }
       if (over > 0) scrollRef.current?.scrollTo({ y: scrollY.current + over, animated: true });
     });
-  }, []);
+  }, [bottomInset, kbHeight]);
   useEffect(() => {
     const sub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => { if (pendingReveal.current) doReveal(e.endCoordinates.height); });
     return () => sub.remove();
@@ -212,9 +286,6 @@ export function HomePage() {
   const captionStyle = useAnimatedStyle(() => ({ height: captionH.value ? captionH.value * (1 - p.value) : undefined, opacity: 1 - p.value }));
   const beginStyle = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]) }));
   const threadStyle = useAnimatedStyle(() => ({ flexGrow: p.value, opacity: p.value, flexBasis: 0 }));
-  // keyboard-controller's height is negative while the keyboard is up.
-  const { height: kbHeight } = useReanimatedKeyboardAnimation();
-  const bottomInset = insets.bottom;
   const inputWrap = useAnimatedStyle(() => ({
     height: 52 + 8 * p.value,
     marginBottom: 112 + (40 - 112) * p.value,
@@ -222,7 +293,18 @@ export function HomePage() {
     backgroundColor: interpolateColor(p.value, [0, 1], ['rgba(255,255,255,0)', 'rgba(255,255,255,1)']),
     transform: [{ translateY: -Math.max(0, -kbHeight.value - bottomInset) * p.value }],
   }), [focus, bottomInset]);
-  const threadPad = useAnimatedStyle(() => ({ height: 72 + Math.max(0, -kbHeight.value - bottomInset) }));
+  // iOS: the thread rides the keyboard by transform — no layout, no change of content size, nothing for JS to re-pin.
+  // Android keeps the growing pad (it has no contentInset to keep the top of the thread reachable).
+  const threadPad = useAnimatedStyle(() => ({ height: 72 + (IOS ? 0 : Math.max(0, -kbHeight.value - bottomInset)) }));
+  const threadLift = useAnimatedStyle(() => ({ transform: [{ translateY: IOS ? -Math.max(0, -kbHeight.value - bottomInset) : 0 }] }));
+  // What the lift pushes under the top edge stays reachable by scrolling.
+  const [kbLift, setKbLift] = useState(0);
+  useEffect(() => {
+    if (!IOS) return;
+    const a = Keyboard.addListener('keyboardDidShow', (e) => setKbLift(Math.max(0, e.endCoordinates.height - bottomInset)));
+    const b = Keyboard.addListener('keyboardDidHide', () => setKbLift(0));
+    return () => { a.remove(); b.remove(); };
+  }, [bottomInset]);
   const inputText = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]) }));
 
   const loaded = !!brief.data;
@@ -243,6 +325,7 @@ export function HomePage() {
 
   const enterChat = () => {
     if (chat) return;
+    tapAt.current = Date.now();
     shell.setMode('chat');
     if (ask && !askAppended.current) {
       askAppended.current = true;
@@ -300,6 +383,32 @@ export function HomePage() {
   useEffect(() => () => clearTimeout(blurTimer.current), []);
   const busy = thread.state.busy;
   const emptyThread = thread.state.turns.length === 0;
+
+  const editingDraft = !!draftEdit && cmode.kind === 'draft';
+  const estimatedThreadH = columnH > 0 && (readH > 0 || !sentence)
+    ? Math.max(0, columnH - headerClearance(insets.top) - (readH || READ_LINE) - (session ? ROW_CHAT_H : 0) - COMPOSER_CHAT_H - (editingDraft ? EDITING_ROW_H : 0))
+    : 0;
+  const threadH = measuredThreadH || estimatedThreadH;
+  // Whatever the estimate missed is corrected once chat has settled, and again when the things around the thread change.
+  useEffect(() => {
+    if (!chat) return;
+    const t = setTimeout(() => {
+      (threadBox.current as any)?.measure?.((_x: number, _y: number, _w: number, h: number) => { if (h > 0) setMeasuredThreadH((prev) => (Math.abs(prev - h) > 0.5 ? h : prev)); });
+    }, v2.motion.briefChat + 120);
+    return () => clearTimeout(t);
+  }, [chat, editingDraft, sentence, !!session, columnH, readH]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A measurement is only valid for the surroundings it was taken in.
+  useEffect(() => { setMeasuredThreadH(0); }, [editingDraft, !!session, columnH, readH]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tap → first committed chat render, on the JS thread; reported with the frame times.
+  const tapAt = useRef(0);
+  const jsRenderMs = useRef(0);
+  useEffect(() => { if (tapAt.current) { jsRenderMs.current = Date.now() - tapAt.current; tapAt.current = 0; } }, [chat]);
+  const turnCount = useRef(0);
+  turnCount.current = thread.state.turns.length;
+  const fixedThread = useRef(false);
+  fixedThread.current = threadH > 0;
+  useMorphProbe(p, () => ({ js_render_ms: jsRenderMs.current, turns: turnCount.current, fixed_thread: fixedThread.current }));
   const onSummaryLayout = (e: LayoutChangeEvent) => { if (!summaryH.value) summaryH.value = e.nativeEvent.layout.height; };
   const onCaptionLayout = (e: LayoutChangeEvent) => { if (!captionH.value) captionH.value = e.nativeEvent.layout.height; };
 
@@ -308,7 +417,7 @@ export function HomePage() {
       <HomeVideo mode={chat ? 'chat' : 'brief'} homeVisible={screenFocused && shell.index === 0} />
       <Orb mode={chat ? 'chat' : 'brief'} progress={p} working={busy} focused={screenFocused && shell.index === 0} />
 
-      <View style={[styles.flex, { paddingTop: headerClearance(insets.top), paddingHorizontal: v2.space.gutter }]}>
+      <View style={[styles.flex, { paddingTop: headerClearance(insets.top), paddingHorizontal: v2.space.gutter }]} onLayout={(e) => setColumnH(e.nativeEvent.layout.height)}>
         {/* Top spacer: pushes the brief to the bottom; collapses in chat. */}
         <Animated.View style={spacer} />
 
@@ -327,11 +436,13 @@ export function HomePage() {
         {/* The read: 27 / 600 / −0.02em / 1.22 in brief; scales to 15 and recolours in chat. */}
         <Animated.View entering={settle(240)}>
           <Animated.View style={readBox}>
+            <View onLayout={(e) => setReadH(e.nativeEvent.layout.height)}>
             {sentence ? (
               <Animated.Text key={sentence} entering={swapRead ? settle(0) : undefined} exiting={FadeOut.duration(200)} style={[styles.read, { transformOrigin: 'left top' } as any, readStyle]} numberOfLines={readLines}>{sentence}</Animated.Text>
             ) : (
               <Checking />
             )}
+            </View>
           </Animated.View>
         </Animated.View>
 
@@ -357,8 +468,10 @@ export function HomePage() {
         ) : null}
 
         {/* Thread: fills in chat; suggestions only while empty; 44 between turns; bottom padding grows with the keyboard. */}
-        <Animated.View style={[threadStyle, { overflow: 'hidden' }]} pointerEvents={chat ? 'auto' : 'none'}>
-          <Animated.ScrollView ref={scrollRef as any} style={styles.flex} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}
+        <Animated.View ref={threadBox as any} style={[threadStyle, { overflow: 'hidden' }]} pointerEvents={chat ? 'auto' : 'none'}>
+          <Animated.ScrollView ref={scrollRef as any} style={[threadH > 0 ? [styles.threadFixed, { height: threadH }] : styles.flex, threadLift]}
+            contentInset={IOS ? { top: kbLift } : undefined}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingTop: 24, gap: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" onScroll={onScroll} scrollEventThrottle={32}
             onScrollBeginDrag={() => { dragging.current = true; }} onScrollEndDrag={onDragEnd} onMomentumScrollEnd={onDragEnd}
             onContentSizeChange={followIfPinned} onLayout={followIfPinned}>
             {emptyThread ? (
@@ -514,6 +627,7 @@ function Checking() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  threadFixed: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   read: { fontFamily: v2.font.semibold, fontSize: 27, lineHeight: 33, letterSpacing: -0.54 },
   sessionRow: { flexDirection: 'row', alignItems: 'center', gap: 16, borderTopWidth: 1, borderBottomWidth: 1 },
   rowName: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
