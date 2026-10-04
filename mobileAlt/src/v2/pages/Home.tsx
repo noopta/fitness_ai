@@ -268,13 +268,18 @@ export function HomePage() {
     transform: [{ translateY: -40 * p.value }],
   }));
   const chatLine = useAnimatedStyle(() => ({ opacity: interpolate(p.value, [0.5, 1], [0, 1], Extrapolation.CLAMP) }));
+  // The white chat ground (spec §2.2): a full-screen #fff under the chat, opacity p. Without it the
+  // chat's white pieces (the header fade, the composer) sat on a half-faded video as solid blocks.
+  const whiteGround = useAnimatedStyle(() => ({ opacity: p.value }));
+  // The header fade and the composer's white come in last, once the ground under them is nearly white.
+  const topFadeIn = useAnimatedStyle(() => ({ opacity: interpolate(p.value, [0.8, 1], [0, 1], Extrapolation.CLAMP) }));
   const chatBody = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ translateY: 24 * (1 - p.value) }] }));
   // The hairline goes ink while the composer is focused, over 150 ms.
   const focusP = useSharedValue(0);
   useEffect(() => { focusP.value = withTiming(focus ? 1 : 0, { duration: 150 }); }, [focus]); // eslint-disable-line react-hooks/exhaustive-deps
   const inputWrap = useAnimatedStyle(() => ({
     borderTopColor: interpolateColor(p.value, [0, 1], [C.darkInputLine, interpolateColor(focusP.value, [0, 1], [C.hairline, C.ink]) as string]),
-    backgroundColor: interpolateColor(p.value, [0, 1], ['rgba(255,255,255,0)', 'rgba(255,255,255,1)']),
+    backgroundColor: interpolateColor(p.value, [0, 0.6, 1], ['rgba(255,255,255,0)', 'rgba(255,255,255,0)', 'rgba(255,255,255,1)']),
   }));
   // Down 72 pt to its chat place as the tab bar leaves, then up with the keyboard.
   const composerMove = useAnimatedStyle(() => ({
@@ -398,6 +403,7 @@ export function HomePage() {
   return (
     <View style={styles.flex}>
       <HomeVideo mode={chat ? 'chat' : 'brief'} progress={p} homeVisible={screenFocused && shell.index === 0} />
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: C.white }, whiteGround]} />
       <Orb mode={chat ? 'chat' : 'brief'} progress={p} working={busy} focused={screenFocused && shell.index === 0} />
 
       {/* Brief: bottom-anchored over the video, just above the composer. Fades and lifts away; never resized. */}
@@ -440,7 +446,9 @@ export function HomePage() {
               <Animated.View style={threadPad} />
             </Animated.ScrollView>
             {/* The thread fades out under the header rather than being cut by it. */}
-            <LinearGradient pointerEvents="none" colors={['#ffffff', 'rgba(255,255,255,0)']} style={styles.topFade} />
+            <Animated.View pointerEvents="none" style={[styles.topFade, topFadeIn]}>
+              <LinearGradient colors={['#ffffff', 'rgba(255,255,255,0)']} style={StyleSheet.absoluteFill} />
+            </Animated.View>
             {showNew && chat ? (
               <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.newPillWrap} pointerEvents="box-none">
                 <Pressable onPress={toEnd} style={styles.newPill} accessibilityRole="button" accessibilityLabel="Scroll to new messages">
