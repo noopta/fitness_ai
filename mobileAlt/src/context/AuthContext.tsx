@@ -112,7 +112,7 @@ interface AuthContextType {
    */
   getLatestUser: () => AuthUser | null;
   /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
-  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean };
+  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -147,9 +147,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // any re-render has happened. Defaults to everything off, so a server that
   // does not send the block (or a request that failed) leaves gated features
   // dark rather than showing a flow the backend will refuse.
-  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean }>({
+  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean }>({
     onboardingFormHook: false,
     diagnosticFirstOnboarding: false,
+    directEntryPaywall: false,
     liftDiagnosticConversation: false,
     onboardingTestAccount: false,
     uiV2: false,
@@ -158,6 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     featuresRef.current = {
       onboardingFormHook: f?.onboardingFormHook === true,
       diagnosticFirstOnboarding: f?.diagnosticFirstOnboarding === true,
+      // Classic paywall: new users go straight into the app; the coach tab is Pro.
+      directEntryPaywall: f?.directEntryPaywall === true,
       liftDiagnosticConversation: f?.liftDiagnosticConversation === true,
       onboardingTestAccount: f?.onboardingTestAccount === true,
       uiV2: f?.uiV2 === true,

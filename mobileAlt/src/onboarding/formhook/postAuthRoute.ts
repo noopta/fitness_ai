@@ -30,7 +30,7 @@ import { v2SuppressedSync } from '../../v2/crashGuard';
  */
 export async function postAuthDestination(
   user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
-  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean },
+  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean; directEntryPaywall?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
   // Agent-first v2 shell: onboarded users land on the track; new users go
@@ -39,6 +39,10 @@ export async function postAuthDestination(
   // funnel flag so the v1 funnels never fire for a v2 user.
   if (features?.uiV2 && !v2SuppressedSync()) return user.coachOnboardingDone ? '/(v2)' : '/(v2)/onboarding';
   if (user.coachOnboardingDone) return '/(tabs)';
+  // Classic paywall (server flag): new users go straight into the app. The coach
+  // tab is Pro-only there, so no free intake, diagnostic or form hook first.
+  // The funnels below stay in place for when the flag is off.
+  if (features?.directEntryPaywall) return '/(tabs)';
   // Diagnostic-first funnel: the cold start is the lift diagnostic, not the
   // intake — verdict first, paywall on the verdict, intake only inside the
   // trial. Takes precedence over the form hook: when both flags are on the

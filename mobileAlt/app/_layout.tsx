@@ -193,7 +193,7 @@ function RootNavigator() {
     if ((segments[0] as string) === 'diagnostic') { diagnosticCatchDone.current = true; return; }
     if ((segments[0] as string) !== '(tabs)') return;
     diagnosticCatchDone.current = true;
-    if (user.coachOnboardingDone || !getFeatures().liftDiagnosticConversation) return;
+    if (user.coachOnboardingDone || !getFeatures().liftDiagnosticConversation || getFeatures().directEntryPaywall) return;
     void hasSeenDiagnosticFirst().then((seen) => {
       if (!seen) router.replace('/diagnostic/conversation' as any);
     });
@@ -228,7 +228,9 @@ function RootNavigator() {
     if (!user && !inAuthGroup && !inCinematic && !inAuthCallback && !inFormHook) {
       // Signed-out users: first-timers (downloaded the app, not signed in) get the
       // cinematic onboarding; users who've already seen it go straight to login.
-      router.replace(seenCinematic ? '/(auth)/welcome' : ('/onboarding-cinematic' as any));
+      // The cinematic slideshow is switched off (founder, 4 Oct 2026); the screen and its
+      // scenes stay in the codebase. Flip SHOW_CINEMATIC_ONBOARDING to bring it back.
+      router.replace(SHOW_CINEMATIC_ONBOARDING && !seenCinematic ? ('/onboarding-cinematic' as any) : '/(auth)/welcome');
     } else if (user && needsDobCheck && !inAgeCheck) {
       router.replace('/age-check' as any);
     } else if (user && !needsDobCheck && (inAuthGroup || inCinematic)) {
@@ -276,6 +278,9 @@ function RootNavigator() {
     </>
   );
 }
+
+/** The pre-sign-in cinematic slideshow. Off: new users go straight to sign-in, then into the app. */
+const SHOW_CINEMATIC_ONBOARDING = false;
 
 function RootLayout() {
   return (

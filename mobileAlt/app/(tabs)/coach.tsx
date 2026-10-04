@@ -29,6 +29,7 @@ import { CoachDashboardSkeleton } from '../../src/components/ui/Skeleton';
 import { CoachMarkTooltip } from '../../src/components/CoachMarkTooltip';
 import { TOURS } from '../../src/lib/coachMarks';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
+import { UpgradePrompt } from '../../src/components/UpgradePrompt';
 import { maybeShowPostPlanPaywall } from '../../src/lib/paywallTriggers';
 import { peekNutritionPrefill, consumeNutritionTabRequest } from '../../src/lib/nutritionPrefill';
 
@@ -377,6 +378,39 @@ function CoachScreenInner() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <CoachDashboardSkeleton />
+      </SafeAreaView>
+    );
+  }
+
+  // Classic paywall (server flag): the coach tab is Pro. Free users see the
+  // upgrade screen at every stage — no free intake, no free program. This is
+  // the gate the tab had before 2026-04-20, restored behind a flag.
+  if (getFeatures().directEntryPaywall && !isPro) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.upgradeContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.upgradeHeader}>
+            <Text style={styles.upgradeTitle}>AI Coach</Text>
+            <Text style={styles.upgradeSub}>Powered by Anakin</Text>
+          </View>
+          <UpgradePrompt
+            userId={user?.id}
+            reason="AI Coach requires a Pro subscription. Get personalized programming, nutrition, and 1-on-1 coaching from Anakin."
+            onUpgrade={() => { Analytics.paywallViewed('coach_tab_locked'); setUpgradeVisible(true); }}
+          />
+          <TouchableOpacity
+            style={styles.alreadyUpgradedBtn}
+            activeOpacity={0.7}
+            onPress={() => { refreshUser().catch(() => {}); }}
+          >
+            <Text style={styles.alreadyUpgradedText}>Already upgraded? Tap to refresh</Text>
+          </TouchableOpacity>
+        </ScrollView>
+        <UpgradeSheet
+          visible={upgradeVisible}
+          onClose={() => setUpgradeVisible(false)}
+          onSuccess={() => { setUpgradeVisible(false); refreshUser(); }}
+        />
       </SafeAreaView>
     );
   }
