@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor } from '../services/featureFlags.js';
 import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
@@ -890,6 +890,8 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         onboardingFormHook: onboardingHookAvailableFor(user.id, user.email),
         diagnosticFirstOnboarding: diagnosticFirstAvailableFor(user.id, user.email),
         liftDiagnosticConversation: liftConversationAvailableFor(user.id, user.email),
+        // Classic paywall: straight into the app, coach tab Pro-only.
+        directEntryPaywall: directEntryPaywallEnabled(),
         // Disposable onboarding-test account. The client clears its own
         // device-local first-run keys when this is set — the server reset
         // alone is invisible, because the gates that skip the cold start

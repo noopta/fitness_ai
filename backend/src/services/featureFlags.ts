@@ -166,3 +166,14 @@ export function personalTrainingAvailableFor(userId: string, email?: string | nu
   if (PERSONAL_TRAINING_ALLOWLIST.has(userId.toLowerCase())) return true;
   return !!email && PERSONAL_TRAINING_ALLOWLIST.has(email.toLowerCase());
 }
+
+/**
+ * Classic paywall (founder, 4 Oct 2026): new users go straight into the app
+ * — no diagnostic cold start, no free intake — and the coach tab is Pro-only,
+ * the gate it had before April. The diagnostic-first funnel stays in the code
+ * behind its own flag. Off unless '1'.
+ */
+const DIRECT_ENTRY_PAYWALL = process.env.DIRECT_ENTRY_PAYWALL_ENABLED === '1';
+export function directEntryPaywallEnabled(): boolean {
+  return DIRECT_ENTRY_PAYWALL;
+}
