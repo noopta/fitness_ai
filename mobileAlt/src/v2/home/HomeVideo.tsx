@@ -16,7 +16,8 @@
 // opacity 1 − p, lift −70p, scale 1 + .06p. Playback: paused the moment chat
 // opens (the decoder is freed for the morph), played again once the close has
 // landed, and otherwise only while home shows in brief with the app active —
-// never with Reduce Motion or Low Power Mode.
+// never with Reduce Motion. It plays in Low Power Mode too (founder, 4 Oct —
+// the spec paused it there; Low Power Mode is still reported, not obeyed).
 //
 // The player is not trusted to be playing because it was told to: play is
 // asked again when the item becomes ready and once more by a watchdog, a
@@ -200,7 +201,7 @@ function Player({ mode, progress, homeVisible, ctx, box }: Props & { ctx: HomeVi
   const [settled, setSettled] = useState(true);
   useAnimatedReaction(() => progress.value <= 0.001, (now, prev) => { if (now !== prev) runOnJS(setSettled)(now); }, [progress]);
 
-  const shouldPlay = homeVisible && mode === 'brief' && settled && appActive && !reduced && !lowPower;
+  const shouldPlay = homeVisible && mode === 'brief' && settled && appActive && !reduced;
   want.current = shouldPlay;
 
   useEffect(() => {
@@ -241,7 +242,7 @@ function Player({ mode, progress, homeVisible, ctx, box }: Props & { ctx: HomeVi
   // Poster until the first real frame, then 250 ms — never a black flash.
   const shown = useSharedValue(seen.current.firstFrame ? 1 : 0);
   const videoStyle = useAnimatedStyle(() => ({ opacity: shown.value }));
-  if (reduced || lowPower) return null;
+  if (reduced) return null;
   return (
     <Animated.View style={[styles.media, box, videoStyle]}>
       <VideoView
