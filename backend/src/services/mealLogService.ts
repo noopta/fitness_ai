@@ -95,8 +95,27 @@ export function deriveNutrientMap(
 export type MealEntryInput = z.input<typeof mealEntrySchema>;
 
 /** Log a meal with every side effect the app has. Throws ZodError on bad input. */
+/**
+ * Today's date in the user's own timezone (YYYY-MM-DD) — for a meal logged
+ * without one. The v2 capture screen and Fuel's quick logs sent no date and
+ * every one was rejected ("Some meal fields were invalid", 4 Oct); a missing
+ * date means "now" to the person logging, so fill it rather than refuse.
+ */
+export async function todayForUser(userId: string, now: Date = new Date()): Promise<string> {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } }).catch(() => null);
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: u?.timezone || 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  } catch {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  }
+}
+
 export async function createMealEntry(userId: string, input: MealEntryInput) {
-    const data = mealEntrySchema.parse(input);
+    // A missing date is filled with the user's today; a malformed one is still refused.
+    const dated = input && typeof input === 'object' && (input as any).date == null
+      ? { ...(input as any), date: await todayForUser(userId) }
+      : input;
+    const data = mealEntrySchema.parse(dated);
     const nutrients = normalizeMicronutrients(data.nutrients);
     const ingredients = data.ingredients.map(v => v.trim()).filter(Boolean);
     const tags = data.tags.map(v => v.trim().toLowerCase()).filter(Boolean);

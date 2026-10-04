@@ -19,6 +19,7 @@ import { Ring } from '../charts';
 import { useMeals, useNpDay, useNpWeek, useInvalidate } from '../data';
 import { useQuery } from '@tanstack/react-query';
 import { nutritionApi } from '../../lib/api';
+import { todayStr } from '../../lib/localDate';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
 import { haptics } from '../haptics';
 import type { ReceiptVerb } from '@axiom/agent-ui-core';
@@ -87,7 +88,7 @@ export function FuelPage() {
     const u = usual.data; if (!u) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `Last ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} — ${u.name ?? 'meal'}` }]);
     try {
-      await nutritionApi.logMeal({ name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), source: 'usual' } as any);
+      await nutritionApi.logMeal({ date: todayStr(), name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), source: 'usual' } as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${u.name ?? 'The usual'} — ${Math.round(u.calories ?? 0)} kcal` }]);
       haptics.success(); await invalidate.afterMeal();
       setTimeout(() => { setDock('idle'); setLog([]); }, 1200);
@@ -100,7 +101,7 @@ export function FuelPage() {
       const parsed: any = await nutritionApi.parseMeal(t);
       const item = parsed?.meal ?? parsed?.items?.[0] ?? parsed;
       setLog((l) => [...l, { verb: 'Searched', text: item?.name ? `${item.name} — matched` : 'Matched' }]);
-      const body = { name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe' };
+      const body = { date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe' };
       await nutritionApi.logMeal(body as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${body.name} — ${body.calories} kcal · ${body.proteinG} P · ${body.carbsG} C · ${body.fatG} F` }]);
       haptics.success();

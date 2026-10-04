@@ -24,6 +24,7 @@ import { Row } from '../../src/v2/primitives/Row';
 import { ReceiptList } from '../../src/v2/primitives/Receipt';
 import { Enter } from '../../src/v2/primitives/Enter';
 import { nutritionApi } from '../../src/lib/api';
+import { todayStr } from '../../src/lib/localDate';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
 import type { ReceiptVerb } from '@axiom/agent-ui-core';
@@ -120,7 +121,7 @@ export default function CaptureScreen() {
     setBusy(true);
     const tot = items.reduce((a, i) => ({ calories: a.calories + i.calories, proteinG: a.proteinG + i.proteinG, carbsG: a.carbsG + i.carbsG, fatG: a.fatG + i.fatG }), { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
     try {
-      const m: any = await nutritionApi.logMeal({ name: items.map((i) => i.name).join(', '), mealType: mealType(), ...tot, source: 'photo', items } as any);
+      const m: any = await nutritionApi.logMeal({ date: todayStr(), name: items.map((i) => i.name).join(', '), mealType: mealType(), ...tot, source: 'photo', items } as any);
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
@@ -130,7 +131,7 @@ export default function CaptureScreen() {
     setBusy(true);
     const k = (v: any) => Math.round((Number(v) || 0) * servings);
     try {
-      const m: any = await nutritionApi.logMeal({ name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: mealType(), calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), source: 'barcode', barcode: product.code } as any);
+      const m: any = await nutritionApi.logMeal({ date: todayStr(), name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: mealType(), calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), source: 'barcode', barcode: product.code } as any);
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
