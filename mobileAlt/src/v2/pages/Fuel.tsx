@@ -6,7 +6,7 @@
 // Voice, Saved foods, Recipes and Order · receipt. Manual, Voice, the recipe
 // builder and the order scan are the classic sheets, reused as they are.
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { v2, T } from '../theme';
@@ -50,6 +50,15 @@ export function FuelPage() {
   const [log, setLog] = useState<{ verb: ReceiptVerb; text: string }[]>([]);
   const [more, setMore] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
+  // The classic sheets mount only once opened, and stay mounted just long enough
+  // to slide out. Mounted at launch, the voice sheet's audio recorder shared the
+  // audio session with the home video from the moment the app started.
+  const [mountedSheet, setMountedSheet] = useState<Sheet>(null);
+  useEffect(() => {
+    if (sheet) { setMountedSheet(sheet); return; }
+    const t = setTimeout(() => setMountedSheet(null), 400);
+    return () => clearTimeout(t);
+  }, [sheet]);
   const logged = async () => { setSheet(null); haptics.success(); await invalidate.afterMeal(); };
   const openSheet = (s: Sheet) => { setMore(false); haptics.select(); setSheet(s); };
   const openPage = (key: string) => { setMore(false); haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key } } as any); };
@@ -178,12 +187,14 @@ export function FuelPage() {
         </View>
       </View>
 
-      <ManualEntrySheet visible={sheet === 'manual'} onClose={() => setSheet(null)} onLogged={logged}
-        onCreateRecipe={() => { setSheet(null); setTimeout(() => setSheet('recipe'), 380); }} />
-      <VoiceSheet visible={sheet === 'voice'} onClose={() => setSheet(null)} onLogged={logged} />
+      {mountedSheet === 'manual' ? (
+        <ManualEntrySheet visible={sheet === 'manual'} onClose={() => setSheet(null)} onLogged={logged}
+          onCreateRecipe={() => { setSheet(null); setTimeout(() => setSheet('recipe'), 450); }} />
+      ) : null}
+      {mountedSheet === 'voice' ? <VoiceSheet visible={sheet === 'voice'} onClose={() => setSheet(null)} onLogged={logged} /> : null}
       {/* A saved recipe goes back to Manual entry, where it can be logged. */}
-      <RecipeSheet visible={sheet === 'recipe'} onClose={() => setSheet(null)} onSaved={() => { setSheet(null); setTimeout(() => setSheet('manual'), 380); }} />
-      <OrderScanFlow visible={sheet === 'order'} onClose={() => setSheet(null)} onLogged={() => void logged()} />
+      {mountedSheet === 'recipe' ? <RecipeSheet visible={sheet === 'recipe'} onClose={() => setSheet(null)} onSaved={() => { setSheet(null); setTimeout(() => setSheet('manual'), 450); }} /> : null}
+      {mountedSheet === 'order' ? <OrderScanFlow visible={sheet === 'order'} onClose={() => setSheet(null)} onLogged={() => void logged()} /> : null}
     </KeyboardAvoider>
   );
 }

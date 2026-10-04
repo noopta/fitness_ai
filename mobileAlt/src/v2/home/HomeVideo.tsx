@@ -86,6 +86,30 @@ export function HomeVideoProvider({ children }: { children: React.ReactNode }) {
   const seen = useRef<Seen>({ status: 'idle', error: '', firstFrame: false, retried: false, replays: 0 });
   const want = useRef(false);
 
+  // Anything that pauses it while it should be playing — another part of the app
+  // taking the audio session, an interruption, a stall — is undone, and reported
+  // once per launch (`v2_home_video_resumed`) so the cause can be traced.
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
+    let told = false;
+    const sub = player.addListener('playingChange', ({ isPlaying }) => {
+      if (isPlaying || !want.current) return;
+      if (t) clearTimeout(t);
+      t = setTimeout(() => {
+        try {
+          if (!want.current || player.playing) return;
+          seen.current.replays += 1;
+          player.play();
+          if (!told) {
+            told = true;
+            posthog.capture('v2_home_video_resumed', { status: seen.current.status, time: Math.round(player.currentTime * 10) / 10, platform: Platform.OS });
+          }
+        } catch { /* released */ }
+      }, 300);
+    });
+    return () => { sub.remove(); if (t) clearTimeout(t); };
+  }, [player]);
+
   // Asking to play before the item is ready is normally honoured once it is; ask again anyway.
   useEffect(() => {
     const sub = player.addListener('statusChange', ({ status, error }) => {
@@ -131,7 +155,11 @@ function useLowPowerMode() {
 class VideoBoundary extends React.Component<{ children: React.ReactNode; fallback: React.ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(err: unknown) { console.warn('[v2] home video failed; showing the poster', err); }
+  componentDidCatch(err: unknown) {
+    console.warn('[v2] home video failed; showing the poster', err);
+    // The poster alone looks like a video that won't play — say why.
+    try { posthog.capture('v2_home_video_failed', { error: String((err as any)?.message ?? err).slice(0, 300), platform: Platform.OS }); } catch { /* never break home */ }
+  }
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
