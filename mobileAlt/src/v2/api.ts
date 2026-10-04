@@ -35,7 +35,31 @@ export interface Brief {
   pending?: boolean;
 }
 
+/** GET /training/overview — the four Training bands (RN spec "Focus bands", 3 Oct 2026). */
+export interface TrainingOverview {
+  unit: 'lb' | 'kg';
+  goal: {
+    text: string | null;
+    lifts: { name: string; start: number; current: number; target: number; reps: string; pace: 'ahead' | 'on' | 'behind'; progress: number; targetSource: 'goal' | 'projected' }[];
+    pct: number;
+  };
+  program: {
+    week: number; totalWeeks: number; currentPhase: number;
+    phases: { name: string; focus: string; weeks: number; from: number; why: string; sessions: string; effort: string; focusLine: string }[];
+  } | null;
+  week: {
+    done: number; planned: number;
+    days: { dow: string; date: string; name: string; minutes: number | null; status: 'done' | 'today' | 'planned' | 'rest'; exercises: { name: string; spec: string }[] }[];
+  };
+  archive: {
+    count: number;
+    items: { kind: 'program' | 'diagnostic'; title: string; sub: string; value: string; id: string; source?: 'form' | 'lift'; flow?: 'conversation' | 'wizard'; done?: boolean }[];
+  };
+}
+
 export const v2Api = {
+  trainingOverview: (): Promise<TrainingOverview> => apiFetch('/training/overview'),
+
   brief: (): Promise<Brief> => apiFetch('/coach/brief', { timeoutMs: LONG_TIMEOUT_MS }),
 
   /** Legacy non-streaming turn — the fallback when the stream can't open. */

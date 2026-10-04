@@ -12,8 +12,8 @@ import { TextAction } from '../../primitives/TextAction';
 import { ReceiptList } from '../../primitives/Receipt';
 import { LineForecast, RatioBand, CoverageBar, WeekBars, Radar } from '../../charts';
 import { v2, T } from '../../theme';
-import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, qk } from '../../data';
-import { programPhases } from '../Training';
+import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, qk } from '../../data';
+import { programPhases, archiveHref, ArchiveRow } from '../Training';
 import { strengthRead } from '../You';
 import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
@@ -30,6 +30,7 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'past': return <PastPage />;
     case 'pastprogram': return <PastProgramPage id={arg} />;
     case 'diag': return <DiagPage />;
+    case 'archive': return <ArchivePage />;
     case 'systems': return <SystemsPage />;
     case 'sys': return <SystemPage id={arg} />;
     case 'micros': return <MicrosPage />;
@@ -154,6 +155,25 @@ function DiagPage() {
         })}
       </View>
       {!analyses.length && !sessions.length && !q.isLoading ? <Text style={T.bodyMuted}>Nothing yet.</Text> : null}
+    </PushedPage>
+  );
+}
+
+/** Training → Archive → "All N": programs first, then diagnostics, newest first. */
+function ArchivePage() {
+  const router = useRouter();
+  const q = useTrainingOverview();
+  const items = q.data?.archive.items ?? [];
+  const programs = items.filter((i) => i.kind === 'program');
+  const diags = items.filter((i) => i.kind === 'diagnostic');
+  const open = (i: (typeof items)[number]) => router.push(archiveHref(i));
+  return (
+    <PushedPage back="Training" meta={`${items.length} total`} title="Archive" lead="Finished programs and every diagnostic Anakin has run. Anakin reads these before writing the next block." loading={q.isLoading && !items.length}>
+      {programs.length ? <Eyebrow>Programs</Eyebrow> : null}
+      <View style={{ marginTop: 10 }}>{programs.map((i) => <ArchiveRow key={i.id} item={i} onPress={open} />)}</View>
+      {diags.length ? <Eyebrow style={{ marginTop: programs.length ? 28 : 0 }}>Diagnostics</Eyebrow> : null}
+      <View style={{ marginTop: 10 }}>{diags.map((i) => <ArchiveRow key={i.id} item={i} onPress={open} />)}</View>
+      {!items.length && !q.isLoading ? <Text style={T.bodyMuted}>Nothing yet.</Text> : null}
     </PushedPage>
   );
 }

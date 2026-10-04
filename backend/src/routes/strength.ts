@@ -21,7 +21,7 @@ function parseLowerReps(repsStr: string): number {
   return match ? parseInt(match[1], 10) : 0;
 }
 
-function toWeekKey(dateStr: string): string {
+export function toWeekKey(dateStr: string): string {
   const d = new Date(dateStr);
   const jan1 = new Date(d.getFullYear(), 0, 1);
   const week = Math.ceil(((d.getTime() - jan1.getTime()) / 86400000 + jan1.getDay() + 1) / 7);
@@ -357,6 +357,16 @@ export function forecastFromSeries(
 }
 
 // ─── GET /api/strength/profile ────────────────────────────────────────────────
+
+/** The cached profile, computing and caching it on a miss. */
+export async function getStrengthProfileCached(userId: string) {
+  const cacheKey = CACHE_KEY(userId);
+  const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(cacheKey);
+  if (cached) return cached;
+  const profile = await computeStrengthProfile(userId);
+  cacheSet(cacheKey, profile);
+  return profile;
+}
 
 router.get('/strength/profile', requireAuth, async (req, res) => {
   try {

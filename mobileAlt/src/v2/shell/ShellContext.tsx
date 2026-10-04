@@ -31,6 +31,9 @@ interface Shell {
   /** Send a message into the home chat from elsewhere (session → "Something hurts"). */
   ask: (message: string) => void;
   registerAsk: (fn: (m: string) => void) => void;
+  /** Open the home chat with `message` in the composer, unsent (Training → "Ask Anakin to change this phase"). */
+  prefill: (message: string) => void;
+  registerPrefill: (fn: (m: string) => void) => void;
   /** Queue a message to send once the home chat mounts. */
   pendingAsk: React.MutableRefObject<string | null>;
 }
@@ -49,11 +52,19 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
   const [index, setIndex] = useState(0);
   const goToRef = useRef<(i: number) => void>(() => {});
   const askRef = useRef<((m: string) => void) | null>(null);
+  const prefillRef = useRef<((m: string) => void) | null>(null);
   const pendingAsk = useRef<string | null>(null);
 
   const goTo = useCallback((i: number) => goToRef.current(i), []);
   const registerGoTo = useCallback((fn: (i: number) => void) => { goToRef.current = fn; }, []);
   const registerAsk = useCallback((fn: (m: string) => void) => { askRef.current = fn; }, []);
+  const registerPrefill = useCallback((fn: (m: string) => void) => { prefillRef.current = fn; }, []);
+  const prefill = useCallback((m: string) => {
+    setMode('chat');
+    goToRef.current(0);
+    // After the track starts moving, so the composer focus doesn't fight the swipe.
+    requestAnimationFrame(() => prefillRef.current?.(m));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const ask = useCallback((m: string) => {
     if (askRef.current) askRef.current(m);
     else pendingAsk.current = m;
@@ -68,7 +79,7 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
     else setMode('brief');
   }, [router, setMode]);
 
-  const value = useMemo<Shell>(() => ({ mode, progress, setMode, busy, setBusy, index, setIndex, goTo, registerGoTo, goHome, ask, registerAsk, pendingAsk }), [mode, progress, setMode, busy, index, goTo, registerGoTo, goHome, ask, registerAsk]);
+  const value = useMemo<Shell>(() => ({ mode, progress, setMode, busy, setBusy, index, setIndex, goTo, registerGoTo, goHome, ask, registerAsk, prefill, registerPrefill, pendingAsk }), [mode, progress, setMode, busy, index, goTo, registerGoTo, goHome, ask, registerAsk, prefill, registerPrefill]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

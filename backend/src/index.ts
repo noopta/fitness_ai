@@ -29,6 +29,7 @@ import wellnessRoutes from './routes/wellness.js';
 import workoutsRoutes from './routes/workouts.js';
 import adaptationRoutes from './routes/adaptation.js';
 import strengthRoutes from './routes/strength.js';
+import trainingRoutes from './routes/training.js';
 import affiliatesRoutes from './routes/affiliates.js';
 import adminRoutes from './routes/admin.js';
 import blogRoutes from './routes/blog.js';
@@ -211,6 +212,7 @@ app.use('/api', wellnessRoutes);
 app.use('/api', workoutsRoutes);
 app.use('/api', adaptationRoutes);
 app.use('/api', strengthRoutes);
+app.use('/api', trainingRoutes);
 app.use('/api', libraryRoutes);
 app.use('/api', sessionsRoutes);
 // Conversational lift diagnostic (single-thread flow, turn transcript).
