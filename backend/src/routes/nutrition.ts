@@ -41,6 +41,8 @@ import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
 import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/mealLogService.js';
+import { rankFoodResults } from '../services/food/foodSearch.js';
+import { searchUsdaCandidates } from '../services/food/usdaLookup.js';
 
 
 const router = Router();
@@ -403,6 +405,33 @@ router.get('/nutrition/foods', requireAuth, async (req, res) => {
   } catch (err: any) {
     console.error('Saved foods fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch saved foods' });
+  }
+});
+
+// GET /api/nutrition/food-search?q=&scope=all|mine|recipes — the search-first
+// logging page (RN spec bug fixes 5 Oct, 4a): your foods, then your recipes,
+// then USDA. Without a query: your recent foods and recipes.
+router.get('/nutrition/food-search', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 80) : '';
+    const scope = (['all', 'mine', 'recipes'] as const).find((s) => s === req.query.scope) ?? 'all';
+    const [foods, recipes, usda] = await Promise.all([
+      scope === 'recipes' ? Promise.resolve([]) : prisma.savedFood.findMany({
+        where: { userId, ...(q ? { OR: [{ name: { contains: q } }, { normalizedName: { contains: normalizeFoodName(q) } }] } : {}) },
+        orderBy: [{ useCount: 'desc' }, { updatedAt: 'desc' }], take: 40,
+      }),
+      // Recipes are few; match them in the ranker, case-insensitively.
+      scope === 'mine' ? Promise.resolve([]) : prisma.recipe.findMany({
+        where: { userId }, orderBy: [{ useCount: 'desc' }, { updatedAt: 'desc' }], take: 100,
+      }),
+      scope === 'all' && q.length >= 2 ? searchUsdaCandidates(q) : Promise.resolve(null),
+    ]);
+    // Prisma's contains is case-sensitive on SQLite: foods match on normalizedName; the ranker re-matches names case-insensitively.
+    res.json({ q, scope, results: rankFoodResults({ q, scope, foods: foods as any, recipes: recipes as any, usda }) });
+  } catch (err: any) {
+    console.error('Food search error:', err);
+    res.status(500).json({ error: 'Failed to search foods' });
   }
 });
 

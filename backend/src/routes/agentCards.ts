@@ -6,8 +6,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { applyCardAction, undoCard, editCardField, toggleCardField, answerCard, editDraftBody, getCard, CardError } from '../agent/cards/store.js';
-import { revertChange, listChanges, UndoError } from '../agent/ops.js';
+import { applyCardAction, undoCard, editCardField, toggleCardField, answerCard, editDraftBody, getCard, saveCard, CardError } from '../agent/cards/store.js';
+import { revertChange, listChanges, UndoError, executeOp, withWriteGuard } from '../agent/ops.js';
+import { appendInitiated } from '../agent/conversation.js';
+import { cardRef } from '../agent/cardNotes.js';
 import '../agent/toolkits/index.js';
 
 const router = Router();
@@ -44,6 +46,23 @@ router.get('/coach/agent/cards', requireAuth, access, async (req, res) => {
 
 router.get('/coach/agent/cards/:id', requireAuth, access, async (req, res) => {
   try { res.json({ card: await getCard(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'load the card'); }
+});
+
+// A meal logged outside chat — Fuel's food search opened from a chat "Log
+// food" (bug fixes 5 Oct, 4b) — lands in the thread as a Logged card that owns
+// its Undo, exactly like a capture's.
+const loggedSchema = z.object({ mealIds: z.array(z.string().min(1).max(64)).min(1).max(10) });
+router.post('/coach/agent/cards/logged', requireAuth, access, async (req, res) => {
+  try {
+    const { mealIds } = loggedSchema.parse(req.body);
+    const userId = req.user!.id;
+    const change = await withWriteGuard('allow', 'logged:search', () => executeOp(userId, 'capture.meal_logged', { value: mealIds.join(',') }));
+    const draft = (change.result as any)?.nextCard;
+    if (!draft) return res.status(400).json({ error: 'Nothing was logged.' });
+    const card = await saveCard(userId, draft, { change });
+    await appendInitiated(userId, '', [cardRef(card)]);
+    res.json({ card });
+  } catch (e) { fail(res, e, 'add that to chat'); }
 });
 
 // Apply / Keep / Send / Delete / any action on the card.

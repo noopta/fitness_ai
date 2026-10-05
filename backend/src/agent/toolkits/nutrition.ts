@@ -324,7 +324,8 @@ export const NUTRITION_TOOLS = [
         ...(r.burn ? [{ key: 'Workout', value: `+${num(r.burn)} kcal`, mark: 'muted' as const }] : []),
       ],
       ...(r.meals.length ? {} : { empty: 'Nothing logged yet today.' }),
-      actions: [{ id: 'log', label: 'Log food', kind: 'primary', client: { action: 'open_camera', args: { mode: 'describe' } } }],
+      // Search-first logging (bug fixes 5 Oct, 4a); `from: chat` makes the logged meal a Logged card here.
+      actions: [{ id: 'log', label: 'Log food', kind: 'primary', client: { action: 'open_page', args: { page: 'foodsearch', from: 'chat' } } }],
     }),
   }),
   tool({
