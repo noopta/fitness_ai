@@ -8,6 +8,7 @@ import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSou
 import { putImageBase64, objectUrl } from '../services/blobStore.js';
 import { moderateText, moderatePost } from '../services/moderationService.js';
 import { socialWriteLimiter } from '../middleware/rateLimiter.js';
+import { savedPostRow, savedArticleRow, mergeSaved, postMatches, postTitle, isWorkoutPost } from '../services/feedSaved.js';
 
 /** Length caps for user-to-user text. All of these were previously unbounded. */
 const MAX_MESSAGE_LEN = 4000;
@@ -650,6 +651,7 @@ const FEED_INCLUDE = {
 
   sharer: { select: { id: true, name: true, username: true, avatarBase64: true } },
   reactions: { select: { userId: true, type: true } },
+  saves: { select: { userId: true } },
   comments: {
     select: { id: true, text: true, createdAt: true, author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'asc' as const },
@@ -697,11 +699,14 @@ function serializeFeedItem(item: any, viewerId: string, slim = false) {
     }
   }
 
+  // Only whether the viewer saved it leaves the server, not who else did.
+  const { saves, ...rest } = item;
   return {
-    ...item,
+    ...rest,
     payload,
     reactionCount: item.reactions?.length ?? 0,
     likedByMe: item.reactions?.some((r: any) => r.userId === viewerId) ?? false,
+    savedByMe: saves?.some((s: any) => s.userId === viewerId) ?? false,
     commentCount: item.comments?.length ?? 0,
     comments: item.comments ?? [],
   };
@@ -948,6 +953,9 @@ router.get('/social/feed', wrap(async (req, res) => {
   const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 && requestedLimit <= 50
     ? requestedLimit
     : 25;
+  // Cursor (v2 Feed, FlashList): `?before=<createdAt of the last post>` pages back.
+  const beforeRaw = typeof req.query.before === 'string' ? new Date(req.query.before) : null;
+  const before = beforeRaw && !Number.isNaN(beforeRaw.getTime()) ? beforeRaw : null;
   const t0 = Date.now();
 
   // Phase 1: friendships + (optionally) goal tags — independent, run in parallel
@@ -972,6 +980,7 @@ router.get('/social/feed', wrap(async (req, res) => {
     prisma.sharedItem.findMany({
       where: {
         visibility: { not: 'hidden' },
+        ...(before ? { createdAt: { lt: before } } : {}),
         OR: [
           { recipientId: userId },
           { sharerId: userId },
@@ -1059,6 +1068,9 @@ router.get('/social/feed', wrap(async (req, res) => {
   // latestPostAt lets the client poll /social/feed/new-count for a Twitter-
   // style "N new posts" pill without re-fetching the whole feed body.
   const latestPostAt = friendPosts[0]?.data?.createdAt ?? null;
+  // A full page means there may be more: the next page starts before the last raw row.
+  const lastRaw = rawItems[rawItems.length - 1];
+  const nextCursor = rawItems.length === limit && lastRaw ? new Date(lastRaw.createdAt).toISOString() : null;
 
   // authors=1: hoist duplicate avatars into a lookup map (see extractAuthors).
   // Opt-in on its OWN flag rather than reusing `slim`, because the currently
@@ -1066,9 +1078,9 @@ router.get('/social/feed', wrap(async (req, res) => {
   // — folding this into slim would blank every avatar until the OTA landed.
   if (dedupeAuthors) {
     const authors = extractAuthors(result);
-    return res.json({ items: result, exhausted, latestPostAt, authors });
+    return res.json({ items: result, exhausted, latestPostAt, nextCursor, authors });
   }
-  res.json({ items: result, exhausted, latestPostAt });
+  res.json({ items: result, exhausted, latestPostAt, nextCursor });
 }));
 
 // GET /api/social/feed/articles — research/article items only. Called when the
@@ -1398,6 +1410,78 @@ router.post('/social/posts/:id/react', wrap(async (req, res) => {
       sendPushToUser(post.sharerId, 'New like', `${display} liked your post`, { type: 'reaction', postId }).catch(() => {});
     }
   }
+}));
+
+// ─── Saved posts & search (v2 Feed, bug fixes 5 Oct 2026 — 3c/3d) ────────────
+
+// POST /api/social/posts/:id/save — save a post or workout you can see.
+router.post('/social/posts/:id/save', wrap(async (req, res) => {
+  if (!(await loadViewablePost(req, res, { id: true }))) return;
+  await prisma.savedPost.upsert({
+    where: { userId_postId: { userId: req.user!.id, postId: req.params.id } },
+    create: { userId: req.user!.id, postId: req.params.id },
+    update: {},
+  });
+  res.json({ saved: true });
+}));
+
+// DELETE /api/social/posts/:id/save
+router.delete('/social/posts/:id/save', wrap(async (req, res) => {
+  await prisma.savedPost.deleteMany({ where: { userId: req.user!.id, postId: req.params.id } });
+  res.json({ saved: false });
+}));
+
+// GET /api/social/saved?type=all|workouts|posts|articles — saved posts,
+// workouts and articles in one list, newest first. A saved post that has
+// since become hidden from the viewer drops out.
+router.get('/social/saved', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const type = (['all', 'workouts', 'posts', 'articles'] as const).find((t) => t === req.query.type) ?? 'all';
+  const [posts, articles] = await Promise.all([
+    type === 'articles' ? Promise.resolve([]) : prisma.savedPost.findMany({
+      where: { userId }, orderBy: { savedAt: 'desc' }, take: 200,
+      include: { post: { select: { id: true, itemType: true, payload: true, caption: true, sharerId: true, recipientId: true, visibility: true, sharer: { select: { name: true, username: true } } } } },
+    }),
+    type === 'workouts' || type === 'posts' ? Promise.resolve([]) : prisma.savedArticle.findMany({
+      where: { userId }, orderBy: { savedAt: 'desc' }, take: 200,
+      include: { feedItem: { select: { id: true, title: true, source: true, url: true } } },
+    }),
+  ]);
+  const visible = [];
+  for (const s of posts as any[]) if (await canViewPost(userId, s.post)) visible.push(savedPostRow(s));
+  res.json({ items: mergeSaved([...visible, ...(articles as any[]).map(savedArticleRow)], type) });
+}));
+
+// GET /api/social/posts/search?q= — posts the viewer can see whose caption,
+// text, title or exercise names match. Newest first, 30 at most.
+router.get('/social/posts/search', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const q = String(req.query.q ?? '').trim().slice(0, 80);
+  if (q.length < 2) return res.json({ items: [] });
+  const friendships = await prisma.friendship.findMany({
+    where: { OR: [{ requesterId: userId }, { addresseeId: userId }], status: 'accepted' },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIds = friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId));
+  const rows = await prisma.sharedItem.findMany({
+    where: {
+      visibility: { not: 'hidden' },
+      // Broadcasts only (recipient = sharer) — a direct share is a message, not a post.
+      OR: [
+        { sharerId: userId },
+        ...(friendIds.length ? [{ sharerId: { in: friendIds }, visibility: 'friends' }] : []),
+        { visibility: 'public' },
+      ],
+    },
+    select: { id: true, itemType: true, payload: true, caption: true, createdAt: true, sharerId: true, recipientId: true, sharer: { select: { id: true, name: true, username: true } } },
+    orderBy: { createdAt: 'desc' },
+    take: 400,
+  });
+  const items = rows
+    .filter((r) => r.recipientId === r.sharerId && postMatches(r, q))
+    .slice(0, 30)
+    .map((r) => ({ id: r.id, title: postTitle(r), author: r.sharer, workout: isWorkoutPost(r), createdAt: r.createdAt }));
+  res.json({ items });
 }));
 
 // ─── Comments ─────────────────────────────────────────────────────────────────

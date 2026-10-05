@@ -134,6 +134,7 @@ model User {
   inviteUsed               UserInvite?           @relation("InviteUsed")
   feedViews                UserFeedView[]
   savedArticles            SavedArticle[]
+  savedPosts               SavedPost[]
   agentMemory              AgentMemory?
   agentCards               AgentCard[]
   agentChanges             AgentChange[]
@@ -852,6 +853,7 @@ model SharedItem {
   recipient   User     @relation("SharedWithMe", fields: [recipientId], references: [id])
   reactions   PostReaction[]
   comments    PostComment[]
+  saves       SavedPost[]
   @@index([recipientId, createdAt])
   @@index([visibility, createdAt])
 }
@@ -865,6 +867,20 @@ model PostReaction {
   post      SharedItem @relation(fields: [postId],  references: [id], onDelete: Cascade)
   user      User       @relation("UserReactions", fields: [userId], references: [id])
   @@unique([postId, userId])
+}
+
+// A post or workout the user saved from the feed (Feed · Saved, bug fixes
+// 5 Oct 2026, 3d). Articles keep their own SavedArticle table.
+model SavedPost {
+  id      String     @id @default(uuid())
+  userId  String
+  postId  String
+  savedAt DateTime   @default(now())
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    SharedItem @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, savedAt])
 }
 
 model PostComment {

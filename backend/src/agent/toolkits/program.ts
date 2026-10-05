@@ -512,6 +512,33 @@ export const PROGRAM_TOOLS = [
     }),
   }),
   tool({
+    // Feed · Saved → "Try it" (bug fixes 5 Oct 2026, 3d): the client sends
+    // "program.fitWorkout(<id>)"; this reads the workout next to the program
+    // so the reply can be a propose_program_edit card.
+    name: 'fit_workout', kind: 'read', fn: 'PRG-16',
+    description: 'Read a workout the user saved or posted from the feed (by post id, e.g. from "program.fitWorkout(<id>)") next to their program days, to fit it in. Follow with propose_program_edit — usually add_day, or add/remove on the closest day — so the reply is a Proposal card. Change as little as possible.',
+    input_schema: schema({ id: { type: 'string', description: 'The post id.' } }, ['id']),
+    receipt: () => ({ verb: 'Read', text: 'Saved workout' }),
+    execute: async (input, userId) => {
+      const id = str(input.id).replace(/^program\.fitWorkout\(|\)$/g, '');
+      // Only a workout the user saved or posted — the feed decided they could see it then.
+      const post = await prisma.sharedItem.findFirst({
+        where: { id, OR: [{ sharerId: userId }, { saves: { some: { userId } } }] },
+        select: { payload: true, caption: true, sharer: { select: { name: true, username: true } } },
+      });
+      if (!post) throw new Error('That workout isn’t in your saved list.');
+      const p = parseJson<any>(post.payload, {});
+      const exercises: any[] = Array.isArray(p?.exercises) ? p.exercises : [];
+      if (!exercises.length) throw new Error('That post has no exercises to fit in.');
+      const program = await loadProgram(userId);
+      const phase = program ? program.phases?.[await currentPhaseIndex(userId, program)] : null;
+      return {
+        workout: { title: p.title ?? post.caption ?? null, from: post.sharer?.name ?? post.sharer?.username ?? null, exercises: exercises.map((e) => ({ exercise: String(e.name ?? e.exercise ?? 'Exercise'), sets: e.sets ?? null, reps: e.reps ?? null })) },
+        program: program ? { goal: program.goal ?? null, days: (phase?.trainingDays ?? []).map((d: any) => ({ day: d.day, focus: d.focus ?? null, exercises: (d.exercises ?? []).map((e: any) => e.exercise ?? e.name) })) } : null,
+      };
+    },
+  }),
+  tool({
     name: 'propose_exercise_swap', kind: 'propose', core: true, fn: 'PRG-07',
     description: "Propose swapping ONE exercise for another. Read the week first for exact stored names and today's day label. scope 'day' (default, that day only) or 'program' (everywhere). If the name is ambiguous you get { error, candidates } — call again with the exact name. Give a one-line rationale.",
     input_schema: schema({ fromExerciseName: { type: 'string' }, toExerciseName: { type: 'string' }, scope: { type: 'string', enum: ['day', 'program'] }, day: { type: 'string' }, toSets: { type: 'string' }, toReps: { type: 'string' }, rationale: { type: 'string' } }, ['fromExerciseName', 'toExerciseName']),
