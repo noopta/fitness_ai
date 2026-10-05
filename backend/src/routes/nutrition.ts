@@ -14,7 +14,11 @@ import {
   consumeMealLoggingQuota,
   updateNutritionStreakInBackground,
 } from '../services/nutritionShared.js';
-import { parseMealMacros, analyzeMealPhoto, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
+import { parseMealMacros, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
+import { mealPhotoV2AvailableFor } from '../services/featureFlags.js';
+import { coerceExistingItems, MAX_MEAL_PHOTOS } from '../services/food/mealPhotoSchema.js';
+import { consumeAddPhotoGrant } from '../services/food/mealPhotoCache.js';
+import { runMealPhotoAnalysis } from '../services/food/mealPhotoPipeline.js';
 import type { Micronutrients } from '../services/llmService.js';
 import { logActivity } from '../services/activityService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
@@ -683,37 +687,68 @@ router.get('/nutrition/history', requireAuth, async (req, res) => {
 });
 
 // POST /api/nutrition/analyze-photo — Gemini vision meal photo analysis
+//
+// Contract 8 (docs/FREESTYLE_RELEASE_2026-10.md). Legacy single-photo body
+// still accepted; v2 clients send `images` (1–3 photos of one meal) and, for
+// "add photo", `existingItems`. The itemised pipeline runs only behind
+// mealPhotoV2 — flag off keeps today's analysis, with the contract-8 fields
+// added so the v2 capture screen renders either way.
+const PHOTO_MIME = z.string().regex(/^image\/(jpeg|png|webp|heic)$/);
+// Was `.min(1)` with no ceiling, so the only cap was the global 10MB body
+// limit. ~8MB of base64 is ~6MB of image, well past anything a phone camera
+// needs to send for macro estimation. Applies to each image.
+const PHOTO_B64 = z.string().min(1).max(8_000_000);
 const photoSchema = z.object({
-  // Was `.min(1)` with no ceiling, so the only cap was the global 10MB body
-  // limit. ~8MB of base64 is ~6MB of image, well past anything a phone camera
-  // needs to send for macro estimation.
-  imageBase64: z.string().min(1).max(8_000_000),
-  mimeType: z.string().regex(/^image\/(jpeg|png|webp|heic)$/),
-});
+  imageBase64: PHOTO_B64.optional(),
+  mimeType: PHOTO_MIME.optional(),
+  images: z.array(z.object({ base64: PHOTO_B64, mimeType: PHOTO_MIME })).min(1).max(MAX_MEAL_PHOTOS).optional(),
+  // Read leniently (coerceExistingItems): descriptive fields on these items
+  // (visibility, preparation, source…) must never 400 a scan.
+  existingItems: z.array(z.unknown()).max(40).optional(),
+  regionHint: z.string().max(40).optional(),
+}).refine((b) => !!b.images?.length || (!!b.imageBase64 && !!b.mimeType));
 
 router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res) => {
   try {
-    const { imageBase64, mimeType } = photoSchema.parse(req.body);
+    const body = photoSchema.parse(req.body);
+    const images = body.images?.length
+      ? body.images
+      : [{ base64: body.imageBase64!, mimeType: body.mimeType! }];
     const userId = req.user!.id;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Shared daily quota with /parse-meal so an attacker can't double the
-    // limit by bouncing between endpoints.
-    const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
-    if (!ok) return;
+    const v2 = mealPhotoV2AvailableFor(userId, user.email);
+    // The legacy analyzer can't honour existingItems, so it only means
+    // anything on the v2 path.
+    const existingItems = v2 ? coerceExistingItems(body.existingItems) : [];
 
-    const parsed = await analyzeMealPhoto(imageBase64, mimeType, normalizeFoodRegion(user.foodRegion));
-    const { detail, meta } = await enrichMealDetailHybrid(parsed, { region: normalizeFoodRegion(user.foodRegion) });
-    res.json({
-      ...detail,
-      source: 'photo',
-      enrichment: meta,
-    });
-    // Fire an encouraging indulgent-meal push if applicable (non-blocking, after response sent)
-    if (isJunkFood(detail.name, detail.tags ?? [], detail.calories)) {
-      sendJunkFoodEncouragement(userId, detail.name, detail.calories).catch(() => {});
+    // Shared daily quota with /parse-meal so an attacker can't double the
+    // limit by bouncing between endpoints. A multi-photo request is one
+    // scan; an add-photo call is free only when it extends a recent scan of
+    // this user's (verified by item id — see mealPhotoCache.ts).
+    const addPhotoGrant = existingItems.length ? consumeAddPhotoGrant(userId, existingItems) : null;
+    if (!addPhotoGrant) {
+      const ok = await consumeMealLoggingQuota(prisma, userId, user.tier, res);
+      if (!ok) return;
+    }
+
+    const region = normalizeFoodRegion(body.regionHint ?? user.foodRegion);
+    const result = await runMealPhotoAnalysis(
+      { userId, images, existingItems, region, v2, addPhotoGrant },
+      {
+        model: MEAL_PHOTO_V2_MODEL,
+        analyzeV2: analyzeMealPhotoItems,
+        analyzeLegacy: analyzeMealPhoto,
+        enrich: enrichMealDetailHybrid,
+      },
+    );
+    res.json(result);
+    // Fire an encouraging indulgent-meal push if applicable (non-blocking,
+    // after response sent). Not on add-photo calls — that's the same meal.
+    if (!existingItems.length && !result.noFoodDetected && isJunkFood(result.name, result.tags ?? [], result.calories)) {
+      sendJunkFoodEncouragement(userId, result.name, result.calories).catch(() => {});
     }
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request' });

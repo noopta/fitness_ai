@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { parseModelJson } from './modelJson.js';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, type MediaResolution } from '@google/genai';
 import { getLiftById } from '../data/lifts.js';
 import { getBiomechanicsForLift } from '../data/biomechanics.js';
 import { getApprovedAccessories, getStabilityExercises, generateIntensityRecommendation } from '../engine/rulesEngine.js';
@@ -8,9 +8,17 @@ import { runDiagnosticEngine, type DiagnosticSignals, type SnapshotInput, type S
 import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
 import { buildRAGContext, retrieveProgramSources, type ProgramSource } from './ragService.js';
 import { kgToLb, type UnitPreference } from './weightUnits.js';
+import { buildExposures, makeKeyFn, type KeyFn, type RawWorkout } from '../adaptation/history.js';
 import { chatComplete } from './chatClient.js';
 import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
+import {
+  buildMealPhotoV2Prompt,
+  coerceMealPhotoV2Response,
+  MEAL_PHOTO_V2_SCHEMA,
+  type ExistingItemRef,
+  type MealPhotoV2Raw,
+} from './food/mealPhotoSchema.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -1206,6 +1214,173 @@ export interface TrainingProgram {
   progressionNotes?: string[];
 }
 
+// ── Program generator: training-age scaling + logged performance ─────────────
+//
+// The generator used to open EVERY program >4 weeks with a "Foundation /
+// Correction" phase and default an unknown training age to "intermediate" —
+// so a lifter with five years under the bar got a beginner's first month.
+// Foundation now scales with training age, and the prompt is fed what the
+// athlete actually lifts (logged e1RMs) so week-1 loads start from real
+// numbers instead of conservative guesses.
+
+export type ProgramTrainingTier = 'beginner' | 'novice' | 'intermediate' | 'advanced';
+
+/**
+ * Training age arrives as whatever the writing surface stored: enum values
+ * ('beginner', 'early_intermediate' from CoachOnboarding), v2 onboarding
+ * labels ('Under a year', '1–3 years', '3+ years'), or free text ('<6 months').
+ * null = unknown (the caller decides the fallback).
+ */
+export function normalizeProgramTrainingAge(raw: string | null | undefined): ProgramTrainingTier | null {
+  if (!raw || typeof raw !== 'string') return null;
+  const t = raw.toLowerCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim();
+  if (!t) return null;
+  if (/beginner|<\s*6|under 6|less than 6|0-6|just start|never|brand new|^new\b/.test(t)) return 'beginner';
+  if (/novice|under a year|under 1\b|<\s*1\b|less than (a|1) year|6-12|6 months/.test(t)) return 'novice';
+  if (/advanced|elite|expert|competit|3\+|3-5|5\+|5-10|10\+|more than 3|over 3|[3-9] years|1\d years/.test(t)) {
+    // "1-3 years" also contains "3 years" — that's intermediate.
+    if (/1 ?- ?3|1 to 3/.test(t)) return 'intermediate';
+    return 'advanced';
+  }
+  if (/intermediate|1 ?- ?3|1 to 3|1-2|2 years|1 year|^1\+/.test(t)) return 'intermediate';
+  return null;
+}
+
+export interface ProgramArchitecture {
+  tier: ProgramTrainingTier;
+  phaseStructure: string;
+  phaseNames: string;
+  examplePhaseName: string;
+  exampleFocus: string;
+  intensityRule: string;
+}
+
+/** Phase layout + starting-intensity rule for a duration and training tier. */
+export function programArchitecture(durationWeeks: number, tier: ProgramTrainingTier): ProgramArchitecture {
+  if (tier === 'beginner' || tier === 'novice') {
+    // Unchanged from the original generator: real beginners do need it.
+    const phaseStructure = durationWeeks <= 4
+      ? '1 phase (Foundation only)'
+      : durationWeeks <= 8
+        ? '2 phases: Phase 1 Foundation (first half), Phase 2 Build (second half)'
+        : '3 phases: Phase 1 Foundation (~1/3), Phase 2 Build (~1/3), Phase 3 Peak (~1/3)';
+    return {
+      tier,
+      phaseStructure,
+      phaseNames: 'Foundation/Correction, Build/Hypertrophy, or Peak/Strength.',
+      examplePhaseName: 'Foundation',
+      exampleFocus: 'Corrective strength',
+      intensityRule: tier === 'beginner'
+        ? 'Start conservatively (RPE 6–7), prioritise technique, progress load session to session.'
+        : 'Start at RPE 6–7 and progress load weekly; technique work stays in the warm-up.',
+    };
+  }
+  if (tier === 'intermediate') {
+    const phaseStructure = durationWeeks <= 4
+      ? '1 phase: Accumulation at working intensities (no foundation/technique phase)'
+      : durationWeeks <= 8
+        ? '2 phases: Phase 1 Accumulation (~1/4 of the weeks — a short base block of volume at working intensities, NOT a correction/technique phase), Phase 2 Intensification (~3/4)'
+        : '3 phases: Phase 1 Accumulation (~1/4 — short base block at working intensities), Phase 2 Intensification (~1/2), Phase 3 Peak/Realization (~1/4)';
+    return {
+      tier,
+      phaseStructure,
+      phaseNames: 'Accumulation, Intensification, Peak/Realization. Do NOT name or frame any phase "Foundation" or "Correction" — this athlete is past that; address limiters inside the working blocks.',
+      examplePhaseName: 'Accumulation',
+      exampleFocus: 'Volume at working loads',
+      intensityRule: 'Week-1 working sets at RPE 7–8 — no RPE-6 "learning" weeks. Progress weekly via load or reps.',
+    };
+  }
+  const phaseStructure = durationWeeks <= 4
+    ? '1 phase: Intensification block (heavy working sets from week 1, no foundation)'
+    : durationWeeks <= 8
+      ? '2 phases: Phase 1 Accumulation (first half), Phase 2 Intensification→Peak (second half). No foundation phase.'
+      : '3 phases: Phase 1 Accumulation (~1/3), Phase 2 Intensification (~1/3), Phase 3 Peak (~1/3). No foundation phase.';
+  return {
+    tier,
+    phaseStructure,
+    phaseNames: 'Accumulation, Intensification, Peak. Never "Foundation" or "Correction" — this is an experienced lifter.',
+    examplePhaseName: 'Accumulation',
+    exampleFocus: 'High-volume working sets',
+    intensityRule: 'Week-1 working sets at RPE 7–8, top sets reaching RPE 8–9 in intensification; block/undulating progression, not novice linear progression.',
+  };
+}
+
+/**
+ * Strength self-assessment from the coach profile. The prompt used to read
+ * only `profile.strengthLevel`, which nothing writes; v2 onboarding stores
+ * the answer in `answers.current` (+ `answers.stall`), and the classic intake
+ * stores stated working sets as benchWeight/benchSets/benchReps etc.
+ */
+export function strengthSelfAssessmentLines(profile: any): string[] {
+  if (!profile || typeof profile !== 'object') return [];
+  const lines: string[] = [];
+  const answers = profile.answers && typeof profile.answers === 'object' ? profile.answers : {};
+  const level = profile.strengthLevel || answers.current;
+  if (level) lines.push(`- Strength level self-assessment (main lift today): ${level}`);
+  if (answers.stall) lines.push(`- Current progress on that lift: ${answers.stall} — if stalled or going backward, open with a short reset/variation block rather than more of the same`);
+  const stated: string[] = [];
+  for (const [key, label] of [['bench', 'Bench'], ['squat', 'Squat'], ['deadlift', 'Deadlift'], ['ohp', 'Overhead press'], ['row', 'Row']] as const) {
+    const w = String(profile[`${key}Weight`] ?? '').trim();
+    if (!w) continue;
+    const sets = String(profile[`${key}Sets`] ?? '').trim();
+    const reps = String(profile[`${key}Reps`] ?? '').trim();
+    stated.push(`${label} ${w}${reps ? ` × ${reps}` : ''}${sets ? ` × ${sets} sets` : ''}`);
+  }
+  if (stated.length) lines.push(`- Stated working sets at intake (user's display unit): ${stated.join('; ')}`);
+  return lines;
+}
+
+export interface RecentLiftPerformance {
+  name: string;
+  bestE1rmKg: number;
+  topSet: { weightKg: number; reps: number; rpe: number | null };
+  topSetDate: string;
+  sessions: number;
+}
+
+const MAIN_LIFT = /squat|bench|deadlift|press|row|pull-?up|chin-?up|lunge|hip thrust|clean|snatch|dip/;
+
+/**
+ * Best e1RM + its top set per main lift over the last `weeks` weeks, from raw
+ * WorkoutLog rows. Pure and read-only (adaptation/history does the parsing
+ * and name canonicalisation). Main compound lifts first, then by frequency.
+ */
+export function summarizeRecentPerformance(
+  workouts: RawWorkout[],
+  now: Date = new Date(),
+  opts: { weeks?: number; limit?: number; keyFn?: KeyFn } = {},
+): RecentLiftPerformance[] {
+  const since = new Date(now.getTime() - (opts.weeks ?? 8) * 7 * 86_400_000).toISOString().slice(0, 10);
+  const recent = workouts.filter((w) => typeof w.date === 'string' && w.date.slice(0, 10) >= since);
+  const byKey = buildExposures(recent, opts.keyFn ?? makeKeyFn());
+  const out: Array<RecentLiftPerformance & { main: boolean }> = [];
+  for (const [key, exposures] of byKey) {
+    let best = exposures[0];
+    for (const e of exposures) if (e.e1rmKg > best.e1rmKg) best = e;
+    if (!best?.top || !(best.e1rmKg > 0) || best.top.weightKg == null) continue;
+    out.push({
+      name: best.displayName,
+      bestE1rmKg: Math.round(best.e1rmKg * 10) / 10,
+      topSet: { weightKg: best.top.weightKg, reps: best.top.reps, rpe: best.top.rpe },
+      topSetDate: best.date.slice(0, 10),
+      sessions: exposures.length,
+      main: MAIN_LIFT.test(key),
+    });
+  }
+  out.sort((a, b) => Number(b.main) - Number(a.main) || b.sessions - a.sessions || b.bestE1rmKg - a.bestE1rmKg);
+  return out.slice(0, opts.limit ?? 6).map(({ main: _main, ...rest }) => rest);
+}
+
+/** Prompt block for logged performance; '' when there is none. */
+export function recentPerformanceBlock(lifts: RecentLiftPerformance[]): string {
+  if (!lifts.length) return '';
+  const kgLb = (kg: number) => `${Math.round(kg * 10) / 10} kg (${Math.round(kgToLb(kg))} lb)`;
+  const rows = lifts.map((l) =>
+    `- ${l.name}: best e1RM ${kgLb(l.bestE1rmKg)}; top set ${kgLb(l.topSet.weightKg)} × ${l.topSet.reps}${l.topSet.rpe != null ? ` @ RPE ${l.topSet.rpe}` : ''} on ${l.topSetDate}; ${l.sessions} session${l.sessions === 1 ? '' : 's'}`);
+  return `\nRECENT LOGGED PERFORMANCE (last 8 weeks of workout logs — more reliable than any self-assessment):\n${rows.join('\n')}
+SET STARTING LOADS FROM THESE NUMBERS: for every one of these lifts (or a close variation) in the program, put the week-1 load in "intensity", e.g. "RPE 7 (~100 kg)", at roughly 70–80% of the e1RM depending on reps. Do not start below what they already lift for the same reps unless an injury or limiter above requires it.`;
+}
+
 export async function generateTrainingProgram(params: {
   goal: string;
   daysPerWeek: number;
@@ -1223,12 +1398,17 @@ export async function generateTrainingProgram(params: {
     indices?: Record<string, { value: number; confidence: number } | null>;
   } | null;
   gender?: string | null;
+  // Raw WorkoutLog rows (any window; the last 8 weeks are used). Loaded by
+  // the caller so this stays DB-free.
+  recentWorkouts?: RawWorkout[] | null;
 }): Promise<TrainingProgram> {
   // Parse coachProfile for richer context
   let profileContext = '';
+  let profileObj: any = null;
   if (params.coachProfile) {
     try {
       const profile = JSON.parse(params.coachProfile);
+      profileObj = profile;
       const lines: string[] = [];
       if (profile.primaryGoal) lines.push(`- Primary goal: ${profile.primaryGoal}`);
       if (profile.goalWhy) lines.push(`- Goal motivation: ${profile.goalWhy}`);
@@ -1241,7 +1421,7 @@ export async function generateTrainingProgram(params: {
       if (profile.injuries) lines.push(`- Injuries/constraints: ${profile.injuries}`);
       if (profile.hormonal) lines.push(`- Hormonal notes: ${profile.hormonal}`);
       if (profile.currentRoutine) lines.push(`- Current routine: ${profile.currentRoutine}`);
-      if (profile.strengthLevel) lines.push(`- Strength level self-assessment: ${profile.strengthLevel}`);
+      lines.push(...strengthSelfAssessmentLines(profile));
       if (profile.trainingPreference) lines.push(`- Training style preference: ${profile.trainingPreference}`);
       if (profile.sleep) lines.push(`- Sleep quality: ${profile.sleep} — if poor/very_poor, reduce volume and add extra deload frequency`);
       if (profile.stressEnergy) lines.push(`- Stress/energy levels: ${profile.stressEnergy} — if high_stress/burnout, reduce intensity and volume targets`);
@@ -1280,15 +1460,23 @@ export async function generateTrainingProgram(params: {
     signalsContext = lines.length > 0 ? `\nBIOMECHANICS & DIAGNOSTIC DATA:\n${lines.join('\n')}` : '';
   }
 
-  // Determine how many phases based on duration
-  let phaseStructure: string;
-  if (params.durationWeeks <= 4) {
-    phaseStructure = '1 phase (Foundation only)';
-  } else if (params.durationWeeks <= 8) {
-    phaseStructure = '2 phases: Phase 1 Foundation (first half), Phase 2 Build (second half)';
-  } else {
-    phaseStructure = '3 phases: Phase 1 Foundation (~1/3), Phase 2 Build (~1/3), Phase 3 Peak (~1/3)';
-  }
+  // Phase layout scales with training age. Unknown age: if there's evidence
+  // they already train (logged lifts, a stated strength level other than
+  // "just learning"), plan as an intermediate; with no evidence at all keep
+  // the original foundation-first layout — the safe default for a real
+  // beginner who skipped the question.
+  const recentLifts = params.recentWorkouts?.length ? summarizeRecentPerformance(params.recentWorkouts) : [];
+  const statedTier = normalizeProgramTrainingAge(params.trainingAge ?? profileObj?.trainingAge ?? null);
+  const selfLevel = String(profileObj?.strengthLevel ?? profileObj?.answers?.current ?? '').toLowerCase();
+  const tier: ProgramTrainingTier = statedTier
+    ?? (/just learning|never/.test(selfLevel) ? 'beginner'
+      : recentLifts.length || selfLevel ? 'intermediate'
+      : 'novice');
+  const arch = programArchitecture(params.durationWeeks, tier);
+  const trainingAgeLine = params.trainingAge
+    ? `${params.trainingAge} (→ ${tier})`
+    : `not stated (planning as ${tier}${statedTier ? '' : recentLifts.length ? ', inferred from logged training' : ''})`;
+  const performanceContext = recentPerformanceBlock(recentLifts);
 
   const prompt = `You are an elite strength & conditioning coach (NSCA-CSCS, with 15+ years experience designing individualized programs for elite athletes and serious recreational lifters). Generate a comprehensive, phased training program.
 
@@ -1296,17 +1484,18 @@ ATHLETE PROFILE:
 - Training goal: ${params.goal}
 - Days per week: ${params.daysPerWeek}
 - Total duration: ${params.durationWeeks} weeks
-- Training age: ${params.trainingAge || 'intermediate'}
+- Training age: ${trainingAgeLine}
 - Equipment available: ${params.equipment || 'commercial gym'}
 - Primary lift focus: ${params.selectedLift || 'general strength'}
 - Primary mechanical weakness identified: ${params.primaryLimiter || 'none identified'}
-- Prescribed accessories from diagnostic analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}${profileContext}${signalsContext}
+- Prescribed accessories from diagnostic analysis: ${params.accessories.length > 0 ? params.accessories.join(', ') : 'none'}${profileContext}${signalsContext}${performanceContext}
 
 PROGRAM ARCHITECTURE:
-Use ${phaseStructure}.
+Use ${arch.phaseStructure}.
+Starting intensity: ${arch.intensityRule}
 
 REQUIREMENTS (be concise — brevity is critical for all text fields):
-1. Phase names: Foundation/Correction, Build/Hypertrophy, or Peak/Strength.
+1. Phase names: ${arch.phaseNames}
 2. rationale: 2 sentences max, specific to this athlete's profile/diagnostic data.
 3. Exercise selection must address the identified weak phase/limiter. notes: ≤8 words.
 4. warmup: exactly 3 items (short phrases). cooldown: exactly 2 items (short phrases).
@@ -1321,14 +1510,14 @@ OUTPUT FORMAT — Return valid JSON only:
   "phases": [
     {
       "phaseNumber": 1,
-      "phaseName": "Foundation",
+      "phaseName": "${arch.examplePhaseName}",
       "rationale": "2 sentences why this phase suits this specific athlete.",
       "durationWeeks": 4,
       "weeksLabel": "Weeks 1–4",
       "trainingDays": [
         {
           "day": "Upper — Horizontal Push/Pull",
-          "focus": "Corrective strength",
+          "focus": "${arch.exampleFocus}",
           "warmup": ["Band pull-aparts 2x20", "Wall slides 2x10", "Shoulder CARs 1x5/side"],
           "exercises": [
             {"exercise": "Bench Press", "sets": 4, "reps": "6", "intensity": "RPE 7", "notes": "Scapular retraction throughout"}
@@ -2466,6 +2655,87 @@ ${regionPromptBlock(region, 'photo')}`;
       '[meal-photo] JSON parse failed, response tail:', tail,
       `finishReason=${(result as any).candidates?.[0]?.finishReason ?? 'unknown'}`,
     );
+    throw new Error(`Meal photo response was malformed: ${err?.message ?? 'unknown'}`);
+  }
+}
+
+// ── Meal photo v2: itemised analysis (behind mealPhotoV2) ───────────────────
+//
+// Same model and client as analyzeMealPhoto, different contract: a response
+// schema that lists items first and has no meal-total fields, 1–3 photos of
+// one meal, and an optional "already logged" list for add-photo. Calories are
+// priced server-side (services/food/mealPhotoItems.ts), so this call does not
+// ask for micronutrients either — the legacy `nutrients` block is rebuilt by
+// the enrichment pipeline from the item list.
+//
+// Temperature/seed deliberately left at defaults: Google's Gemini 3 guidance
+// is that lowering temperature degrades reasoning and can cause looping.
+// Retake consistency comes from the schema, USDA pricing and the image-hash
+// cache instead.
+
+export const MEAL_PHOTO_V2_MODEL = GEMINI_VISION_MODEL;
+
+export async function analyzeMealPhotoItems(
+  images: Array<{ base64: string; mimeType: string }>,
+  opts: { existingItems?: ExistingItemRef[]; region?: FoodRegion } = {},
+): Promise<MealPhotoV2Raw> {
+  if (!images.length) throw new Error('No images supplied.');
+  const prompt = buildMealPhotoV2Prompt({
+    imageCount: images.length,
+    existingItems: opts.existingItems,
+    region: opts.region ?? 'global',
+  });
+
+  const result = await gemini.models.generateContent({
+    model: GEMINI_VISION_MODEL,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: MEAL_PHOTO_V2_SCHEMA,
+      // High resolution: the misses users report are small things — a
+      // ramekin of dressing, butter on toast, a glass at the edge — which
+      // are exactly what downsampled tiles lose.
+      mediaResolution: 'MEDIA_RESOLUTION_HIGH' as unknown as MediaResolution,
+      // 4096 (was 1024 on the legacy prompt): the job is now an exhaustive
+      // enumeration with hidden/stacked items, cooking fat and cross-photo
+      // de-duplication — the deliberation is where recall comes from. The
+      // output itself is small (no micronutrient block), so the budget moves
+      // from output to thinking; ~2-4 s extra latency, acceptable for a scan.
+      thinkingConfig: { thinkingBudget: 4096 },
+      maxOutputTokens: 12288,
+    },
+    contents: [{ role: 'user', parts: [
+      { text: prompt },
+      ...images.map((img) => ({ inlineData: { mimeType: img.mimeType, data: img.base64 } })),
+    ]}],
+  });
+
+  const raw = result.text?.trim();
+  if (!raw) throw new Error('Gemini vision returned an empty response.');
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  // parseModelJson's lenient fallback can extract the inner `[...]` items
+  // array from a truncated object; that is a parse failure here, not "no items".
+  const parseObject = (t: string) => {
+    const v = parseModelJson(t);
+    if (!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('expected a JSON object');
+    return v;
+  };
+  try {
+    return coerceMealPhotoV2Response(parseObject(text));
+  } catch (err: any) {
+    // Items come first in the schema, so a truncated payload usually still
+    // has the full item list; salvage it like the legacy path does.
+    const repaired = repairTruncatedJson(text);
+    if (repaired) {
+      try {
+        const parsed = coerceMealPhotoV2Response(parseObject(repaired));
+        console.warn('[meal-photo] v2 response was truncated; salvaged items.',
+          `finishReason=${(result as any).candidates?.[0]?.finishReason ?? 'unknown'}`);
+        return parsed;
+      } catch { /* fall through */ }
+    }
+    const tail = text.length > 300 ? '…' + text.slice(-300) : text;
+    console.error('[meal-photo] v2 JSON parse failed, response tail:', tail,
+      `finishReason=${(result as any).candidates?.[0]?.finishReason ?? 'unknown'}`);
     throw new Error(`Meal photo response was malformed: ${err?.message ?? 'unknown'}`);
   }
 }

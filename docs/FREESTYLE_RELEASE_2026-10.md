@@ -147,6 +147,14 @@ interface MealItem {
   source: 'usda' | 'model';
 }
 ```
+**Amendment (food backend):** item `id`s are server-issued (`<10-hex>-<n>`) —
+clients MUST send back the ids they were given in `existingItems`. An add-photo
+call is free only if one of its ids was issued to the same user within 2h,
+max 3 free add-photos per original scan; otherwise it counts as a scan (still
+works). With the `mealPhotoV2` flag OFF the server ignores `existingItems` and
+uses only `images[0]` — clients must only offer add-photo / multi-photo when
+`features.mealPhotoV2` is true.
+
 With `existingItems`, `items` contains only newly found items; legacy totals
 cover only those new items too (client merges). Multi-photo or add-photo calls
 count as ONE scan against the free quota (add-photo calls with

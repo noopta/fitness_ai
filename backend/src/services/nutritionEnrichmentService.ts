@@ -1,6 +1,8 @@
 import type { ParsedMealDetail, Micronutrients } from './llmService.js';
 import { estimateMicronutrientsOnly } from './llmService.js';
 import type { FoodRegion } from './prompts/regionPrompts.js';
+// Nutrient ids + extraction are shared with the meal-photo v2 USDA lookup.
+import { NUTRIENT_IDS, extractNutrient } from './food/usdaLookup.js';
 
 const USDA_API_KEY = process.env.USDA_API_KEY || '';
 const USDA_SEARCH_URL = 'https://api.nal.usda.gov/fdc/v1/foods/search';
@@ -9,28 +11,6 @@ type UsdaFoodNutrients = {
   caloriesPer100g: number;
   nutrients: Micronutrients;
 };
-
-const NUTRIENT_IDS = {
-  calories: [1008],
-  fiberG: [1079],
-  sugarG: [2000, 1063],
-  sodiumMg: [1093],
-  saturatedFatG: [1258],
-  cholesterolMg: [1253],
-  vitaminAIU: [1104],
-  vitaminCMg: [1162],
-  vitaminDIU: [1114, 1110],
-  vitaminEMg: [1109],
-  vitaminB12Mcg: [1178],
-  folateMcg: [1177],
-  ironMg: [1089],
-  calciumMg: [1087],
-  magnesiumMg: [1090],
-  zincMg: [1095],
-  potassiumMg: [1092],
-  omega3G: [1270, 1271, 1272, 1273],
-  omega6G: [1316, 1317, 1318],
-} as const;
 
 export interface HybridEnrichmentMeta {
   provider: 'hybrid_llm_usda';
@@ -151,19 +131,6 @@ function blendMicros(llm: Micronutrients, usda: Micronutrients, usdaWeight: numb
   return out;
 }
 
-function extractNutrient(food: any, ids: readonly number[]): number {
-  const nutrients = Array.isArray(food?.foodNutrients) ? food.foodNutrients : [];
-  let sum = 0;
-  for (const n of nutrients) {
-    const nutrientId = n?.nutrientId;
-    const value = n?.value;
-    if (!ids.includes(nutrientId)) continue;
-    if (typeof value !== 'number' || Number.isNaN(value)) continue;
-    sum += value;
-  }
-  return sum;
-}
-
 async function fetchUsdaFoodNutrients(query: string): Promise<UsdaFoodNutrients | null> {
   if (!USDA_API_KEY) return null;
   const q = query.trim();
@@ -260,7 +227,15 @@ export async function enrichMealDetailHybrid(
   // Additive and defaulted, so every existing caller keeps its exact behaviour.
   // Only used for the micro backfill today; Wave 2 will also use it to order
   // the composition sources (local West African table before USDA).
-  opts: { region?: FoodRegion } = {},
+  //
+  // `usdaMicros`: meal-photo v2 has already matched each item to a USDA food
+  // with a real gram weight, so it passes the summed micros of the matched
+  // items and the ingredient search loop (sequential, and guessing grams from
+  // a calorie share) is skipped. Same coverage-weighted blend either way.
+  opts: {
+    region?: FoodRegion;
+    usdaMicros?: { micros: Partial<Record<keyof Micronutrients, number>>; matched: number; total: number };
+  } = {},
 ): Promise<{ detail: ParsedMealDetail; meta: HybridEnrichmentMeta }> {
   const region = opts.region ?? 'global';
   // Backfill net (gut-health feature): the primary parse intermittently
@@ -281,6 +256,24 @@ export async function enrichMealDetailHybrid(
     }
   }
   const llmMicros = toMicros(detail.nutrients);
+  if (opts.usdaMicros) {
+    const { matched, total } = opts.usdaMicros;
+    const coverage = total > 0 ? matched / total : 0;
+    const usdaWeight = Math.min(0.8, Math.max(0, coverage));
+    const blended = matched > 0
+      ? blendMicros(llmMicros, toMicros(opts.usdaMicros.micros as Partial<Micronutrients>), usdaWeight)
+      : llmMicros;
+    return {
+      detail: { ...detail, nutrients: blended, nutrientMap: mergeMicrosIntoMap(detail.nutrientMap, blended) },
+      meta: {
+        provider: 'hybrid_llm_usda',
+        matchedIngredients: matched,
+        totalIngredients: total,
+        usdaCoveragePct: safeRound(coverage * 100, 0),
+        usedFallback: matched === 0,
+      },
+    };
+  }
   const ingredients = (detail.ingredients || []).map(i => i.trim()).filter(Boolean).slice(0, 10);
   if (!USDA_API_KEY || ingredients.length === 0) {
     return {
