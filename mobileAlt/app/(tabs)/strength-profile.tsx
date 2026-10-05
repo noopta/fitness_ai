@@ -35,6 +35,8 @@ import { StrengthBalance } from '../../src/components/strength/StrengthBalance';
 import { PatternCoverage } from '../../src/components/strength/PatternCoverage';
 import { RelativeStrength } from '../../src/components/strength/RelativeStrength';
 import { useUnits } from '../../src/context/UnitsContext';
+import { useAuth } from '../../src/context/AuthContext';
+import { WorkoutLogModal } from '../../src/components/coach/WorkoutLogModal';
 import type { AthleteModel } from '../../src/lib/athleteModel';
 import {
   buildAxesForLevel, MOVEMENT_TO_MUSCLES, type RadarLevel, type MovementBucket,
@@ -466,6 +468,17 @@ function StrengthProfileScreenInner() {
   // Two-finger long-press on the radar toggles the dashed target polygon —
   // power-user shortcut from the handoff. Default visible.
   const [showRadarTarget, setShowRadarTarget] = useState(true);
+  // "Log set" opens the log sheet right here, prefilled with the lift (all
+  // tiers) — behind the freestyle flag; off = the old jump to the Coach tab.
+  const { getFeatures } = useAuth();
+  const [logLift, setLogLift] = useState<string | null>(null);
+  const openLogSet = useCallback((liftName: string, fromSheet: boolean) => {
+    if (!getFeatures().freestyle) { router.push('/(tabs)/coach'); return; }
+    // Let a closing sheet finish sliding away before the next modal presents
+    // (two modals transitioning at once drops one on iOS).
+    if (fromSheet) setTimeout(() => setLogLift(liftName), 320);
+    else setLogLift(liftName);
+  }, [getFeatures, router]);
 
   const loadData = useCallback(async () => {
     try {
@@ -520,7 +533,7 @@ function StrengthProfileScreenInner() {
       lift.name,
       undefined,
       [
-        { text: 'Log set',     onPress: () => router.push('/(tabs)/coach') },
+        { text: 'Log set',     onPress: () => openLogSet(lift.name, false) },
         { text: 'View history', onPress: () => router.push('/(tabs)/history') },
         { text: 'Mute', style: 'destructive', onPress: () => Alert.alert('Mute coming soon') },
         { text: 'Cancel', style: 'cancel' },
@@ -674,8 +687,14 @@ function StrengthProfileScreenInner() {
         onClose={() => setLiftSheet(null)}
         lift={liftSheet}
         percentile={null}
-        onLogSet={() => { setLiftSheet(null); router.push('/(tabs)/coach'); }}
+        onLogSet={(lift) => { setLiftSheet(null); openLogSet(lift?.name ?? liftSheet?.name ?? '', true); }}
         onHistory={() => { setLiftSheet(null); router.push('/(tabs)/history'); }}
+      />
+      <WorkoutLogModal
+        visible={!!logLift}
+        onClose={() => setLogLift(null)}
+        onSaved={() => { setLogLift(null); loadData(); }}
+        todayExercises={logLift ? [{ name: logLift }] : undefined}
       />
       <RadarAxisDrillSheet
         visible={!!axisSheet}

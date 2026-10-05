@@ -30,7 +30,7 @@ import { v2SuppressedSync } from '../../v2/crashGuard';
  */
 export async function postAuthDestination(
   user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
-  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean; directEntryPaywall?: boolean },
+  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean; directEntryPaywall?: boolean; freestyle?: boolean; logAdaptation?: boolean; phaseInference?: boolean; mealPhotoV2?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
   // Agent-first v2 shell: onboarded users land on the track; new users go

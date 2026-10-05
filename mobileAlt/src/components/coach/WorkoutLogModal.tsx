@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
 import { RpeHelpButton } from '../ui/RpeHelpButton';
-import { workoutsApi, socialApi, type ExerciseLast, type ParsedNoteWorkout } from '../../lib/api';
+import { workoutsApi, socialApi, type ExerciseLast, type ExerciseSuggestion, type ParsedNoteWorkout } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
+import { ACTION_LABEL } from './AdaptationCard';
 import { DateChips, PasteFromNotes, SessionQueueBar, dayLabel, localDateStr } from './LogDateAndNotes';
 import { invalidateCache } from '../../lib/cache';
 import { Analytics } from '../../lib/analytics';
@@ -156,6 +158,15 @@ function buildInitialExercises(
 
 export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, date, workoutTitle, programDayRef }: Props) {
   const { unit, toKg, fromKg } = useUnits();
+  const { getFeatures } = useAuth();
+  // Freestyle release: server-backed exercise picker + history/suggestion for
+  // ad-hoc exercises. Off = the static list and program-only history, as before.
+  const freestyleLogging = (() => { const f = getFeatures(); return f.freestyle || f.logAdaptation; })();
+  // Names whose "last time" was already requested this open (lower-cased), so
+  // blur/pick/submit never refetch the same lift.
+  const requestedLastRef = useRef<Set<string>>(new Set());
+  const suggestTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestSeqRef = useRef(0);
   // "Last time" per exercise name — fetched once per open for the prefilled
   // session so the sheet can show what the lifter did last and the plan target.
   const [lastByName, setLastByName] = useState<Record<string, ExerciseLast>>({});
@@ -190,12 +201,14 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       setShareToFeed(false);
       setShareCaption('');
       setLastByName({});
+      requestedLastRef.current = new Set();
       setLogDate((date ?? todayDateStr()).slice(0, 10));
       setQueue(null);
       setTitleOverride(null);
       const names = (todayExercises ?? []).map(ex => (ex.exercise ?? ex.name ?? '').trim()).filter(Boolean);
       if (names.length > 0) {
         let cancelled = false;
+        for (const n of names) requestedLastRef.current.add(n.toLowerCase());
         workoutsApi.lastForExercises(names)
           .then(res => {
             if (cancelled) return;
@@ -219,6 +232,64 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     setDuration('');
     setSuggestions([]);
     setLastByName({});
+    requestedLastRef.current = new Set();
+    if (freestyleLogging) {
+      const names = w.exercises.map(e => e.name.trim()).filter(Boolean);
+      if (names.length) fetchLast(names);
+    }
+  }
+
+  // "Last time" + next-session suggestion for exercises added by hand (typed,
+  // picked, or read from notes). Program-day exercises are fetched on open.
+  function fetchLast(names: string[]) {
+    if (!freestyleLogging) return;
+    const fresh = names
+      .map(n => n.trim())
+      .filter(n => n.length >= 2 && !requestedLastRef.current.has(n.toLowerCase()));
+    if (fresh.length === 0) return;
+    for (const n of fresh) requestedLastRef.current.add(n.toLowerCase());
+    workoutsApi.lastForExercises(fresh)
+      .then(res => {
+        const results = res?.results ?? [];
+        if (!results.length) return;
+        setLastByName(prev => {
+          const next = { ...prev };
+          for (const r of results) next[r.name.toLowerCase()] = r;
+          return next;
+        });
+      })
+      .catch(() => {
+        // Let a later blur retry rather than caching the failure.
+        for (const n of fresh) requestedLastRef.current.delete(n.toLowerCase());
+      });
+  }
+
+  // One-tap "Use" on the suggestion line: fills weight/reps/sets (and RPE when
+  // empty). Everything stays editable before saving — that's the Adjust path.
+  function applySuggestion(index: number, sug: ExerciseSuggestion) {
+    const w = sug.weightKg != null ? String(fromKg(sug.weightKg)) : '';
+    const sets = sug.sets > 0 ? String(sug.sets) : '';
+    setExercises(prev => prev.map((ex, i) => {
+      if (i !== index) return ex;
+      const next: ExerciseEntry = {
+        ...ex,
+        weight: sug.weightKg != null ? w : ex.weight,
+        reps: sug.reps || ex.reps,
+        sets: sets || ex.sets,
+        rpe: ex.rpe.trim() || (sug.rpe != null ? String(sug.rpe) : ''),
+      };
+      if (ex.perSetMode) {
+        const count = Math.max(parseInt(next.sets, 10) || ex.setEntries.length || 1, 1);
+        const repsN = parseInt(sug.reps, 10);
+        const firstRep = Number.isFinite(repsN) ? String(repsN) : '';
+        next.setEntries = Array.from({ length: count }, (_, j) => ({
+          weight: sug.weightKg != null ? w : (ex.setEntries[j]?.weight ?? ''),
+          reps: firstRep || (ex.setEntries[j]?.reps ?? ''),
+          rpe: ex.setEntries[j]?.rpe ?? '',
+        }));
+      }
+      return next;
+    }));
   }
 
   function nextSession(): boolean {
@@ -242,9 +313,33 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     }));
   }
 
+  function renderSuggestion(index: number, sug: ExerciseSuggestion | null | undefined) {
+    if (!sug) return null;
+    const load = sug.weightKg != null ? `${fromKg(sug.weightKg)} ${unit}` : 'Bodyweight';
+    return (
+      <TouchableOpacity
+        style={styles.suggestHint}
+        activeOpacity={0.7}
+        onPress={() => applySuggestion(index, sug)}
+        accessibilityRole="button"
+        accessibilityLabel={`Use suggestion: ${load} for ${sug.reps} reps, ${sug.sets} sets`}
+      >
+        <Ionicons name="trending-up-outline" size={12} color={colors.foreground} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.suggestHintText} numberOfLines={1}>
+            {ACTION_LABEL[sug.action] ?? 'Next'}: {load} × {sug.reps} · {sug.sets} set{sug.sets === 1 ? '' : 's'}{sug.rpe != null ? ` @ RPE ${sug.rpe}` : ''}
+          </Text>
+          {sug.note ? <Text style={styles.historyHintText} numberOfLines={2}>{sug.note}</Text> : null}
+        </View>
+        <Text style={styles.historyHintAction}>Use</Text>
+      </TouchableOpacity>
+    );
+  }
+
   function renderHistoryHint(ex: ExerciseEntry, index: number) {
     const last = lastByName[ex.name.trim().toLowerCase()];
     if (!last) return null;
+    const suggestionEl = renderSuggestion(index, last.suggestion);
     const e = last.exposures[0];
     const target = last.target;
     const targetLine = target?.targetWeightKg != null
@@ -252,32 +347,68 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       : null;
     if (!e || !e.top) {
       return (
-        <View style={styles.historyHint}>
-          <Ionicons name="time-outline" size={12} color={colors.mutedForeground} />
-          <Text style={styles.historyHintText} numberOfLines={2}>
-            {targetLine ? `${targetLine} · no history yet` : 'No history yet — log your working sets and Axiom will set a target.'}
-          </Text>
-        </View>
+        <>
+          <View style={styles.historyHint}>
+            <Ionicons name="time-outline" size={12} color={colors.mutedForeground} />
+            <Text style={styles.historyHintText} numberOfLines={2}>
+              {targetLine ? `${targetLine} · no history yet` : 'No history yet — log your working sets and Axiom will set a target.'}
+            </Text>
+          </View>
+          {suggestionEl}
+        </>
       );
     }
     const reps = e.sets.filter(s => s.weightKg != null).map(s => s.reps).join(', ');
     const lastLine = `Last ${e.top.weightKg != null ? `${fromKg(e.top.weightKg)} ${unit} × ` : ''}${reps || e.top.reps}${e.top.rpe != null ? ` @ RPE ${e.top.rpe}` : ''}`;
     const scoreWord = last.lastScore?.result === 'exceeded' ? ' · ahead of plan' : last.lastScore?.result === 'missed' ? ' · below plan' : '';
     return (
-      <TouchableOpacity style={styles.historyHint} activeOpacity={0.7} onPress={() => prefillFromLast(index, last)}>
-        <Ionicons name="time-outline" size={12} color={colors.mutedForeground} />
-        <Text style={styles.historyHintText} numberOfLines={2}>
-          {lastLine}{targetLine ? `  ·  ${targetLine}` : ''}{scoreWord}
-        </Text>
-        {!ex.weight.trim() ? <Text style={styles.historyHintAction}>Use</Text> : null}
-      </TouchableOpacity>
+      <>
+        <TouchableOpacity style={styles.historyHint} activeOpacity={0.7} onPress={() => prefillFromLast(index, last)}>
+          <Ionicons name="time-outline" size={12} color={colors.mutedForeground} />
+          <Text style={styles.historyHintText} numberOfLines={2}>
+            {lastLine}{targetLine ? `  ·  ${targetLine}` : ''}{scoreWord}
+          </Text>
+          {!ex.weight.trim() && !suggestionEl ? <Text style={styles.historyHintAction}>Use</Text> : null}
+        </TouchableOpacity>
+        {suggestionEl}
+      </>
     );
   }
+
+  // Exercise picker. With the freestyle flags, names come from the server
+  // (the user's own history first, then the library) — debounced, and stale
+  // responses are dropped. Offline / error / flags off → the static list.
+  function staticSuggestions(q: string): string[] {
+    return COMMON_EXERCISES.filter(e => e.toLowerCase().includes(q)).slice(0, 5);
+  }
+  function requestSuggestions(value: string) {
+    const q = value.trim().toLowerCase();
+    if (suggestTimerRef.current) { clearTimeout(suggestTimerRef.current); suggestTimerRef.current = null; }
+    // Empty field: the user's recent lifts (history first); 1 char: wait.
+    if (q.length === 1) { suggestSeqRef.current++; setSuggestions([]); return; }
+    const seq = ++suggestSeqRef.current;
+    suggestTimerRef.current = setTimeout(() => {
+      workoutsApi.exerciseNames(q, q ? 8 : 6)
+        .then(res => {
+          if (seq !== suggestSeqRef.current) return;
+          const names = (res?.names ?? []).map(n => n.name).filter(Boolean);
+          const unique = Array.from(new Set(names)).filter(n => n.toLowerCase() !== q).slice(0, 6);
+          setSuggestions(unique.length || !q ? unique : staticSuggestions(q));
+        })
+        .catch(() => {
+          if (seq !== suggestSeqRef.current) return;
+          setSuggestions(q.length >= 2 ? staticSuggestions(q) : []);
+        });
+    }, 200);
+  }
+  useEffect(() => () => { if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current); }, []);
 
   function updateExercise(index: number, field: keyof ExerciseEntry, value: string) {
     setExercises(prev => prev.map((ex, i) => i === index ? { ...ex, [field]: value } : ex));
     if (field === 'name') {
-      if (value.length >= 2) {
+      if (freestyleLogging) {
+        requestSuggestions(value);
+      } else if (value.length >= 2) {
         const q = value.toLowerCase();
         setSuggestions(
           COMMON_EXERCISES.filter(e => e.toLowerCase().includes(q)).slice(0, 5)
@@ -291,6 +422,8 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   function pickSuggestion(index: number, name: string) {
     setExercises(prev => prev.map((ex, i) => i === index ? { ...ex, name } : ex));
     setSuggestions([]);
+    suggestSeqRef.current++;
+    fetchLast([name]);
   }
 
   function addExercise() {
@@ -589,8 +722,20 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
                     placeholderTextColor={colors.mutedForeground}
                     value={ex.name}
                     onChangeText={v => updateExercise(i, 'name', v)}
-                    onFocus={() => setFocusedExIndex(i)}
-                    onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+                    onFocus={() => {
+                      setFocusedExIndex(i);
+                      if (freestyleLogging && !ex.name.trim()) requestSuggestions('');
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setSuggestions([]), 150);
+                      if (freestyleLogging) {
+                        // Drop any in-flight lookup so it can't reopen the list.
+                        if (suggestTimerRef.current) { clearTimeout(suggestTimerRef.current); suggestTimerRef.current = null; }
+                        suggestSeqRef.current++;
+                        fetchLast([ex.name]);
+                      }
+                    }}
+                    onSubmitEditing={() => { if (freestyleLogging) fetchLast([ex.name]); }}
                     returnKeyType="done"
                     inputAccessoryViewID={KEYBOARD_DONE_ID}
                   />
@@ -903,6 +1048,11 @@ const styles = StyleSheet.create({
   exerciseHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   historyHint: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 2, marginBottom: 2 },
   historyHintText: { flex: 1, fontSize: 11.5, color: colors.mutedForeground, fontVariant: ['tabular-nums'] },
+  suggestHint: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 8,
+    marginBottom: 4, borderRadius: radius.sm, backgroundColor: colors.muted,
+  },
+  suggestHintText: { fontSize: 12, fontWeight: '600', color: colors.foreground, fontVariant: ['tabular-nums'] },
   historyHintAction: { fontSize: 11.5, fontWeight: '700', color: colors.foreground, textDecorationLine: 'underline' },
   exerciseNum: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
   removeBtn: { padding: 4 },

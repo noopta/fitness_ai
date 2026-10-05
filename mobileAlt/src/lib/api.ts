@@ -422,6 +422,13 @@ export const coachApi = {
   // Finished-programs archive: history of prior programs with stats.
   getCompletedPrograms: () => apiFetch('/coach/completed-programs'),
   getCompletedProgram: (id: string) => apiFetch(`/coach/completed-programs/${id}`),
+  // Freestyle (contract 4): archive the current program (reason 'freestyle')
+  // and train from logs; restore brings back the most recent such archive
+  // (404 when there is none).
+  goFreestyle: (): Promise<{ ok: true; archivedId: string }> =>
+    apiFetch('/coach/program/freestyle', { method: 'POST' }),
+  restoreProgram: (): Promise<{ ok: true }> =>
+    apiFetch('/coach/program/restore', { method: 'POST', silent404: true } as any),
   generateProgram: (data: any) =>
     apiFetch('/coach/program', { method: 'POST', body: JSON.stringify(data), timeoutMs: LONG_TIMEOUT_MS }),
   updateProgram: (data: any) =>
@@ -584,6 +591,38 @@ export interface BarcodeLookupResult {
   verified?: boolean;
 }
 
+/** Contract 8 meal-photo item. Unknown `visibility` values are tolerated. */
+export interface MealPhotoItem {
+  id: string;
+  name: string;
+  preparation: string | null;
+  grams: number | null;
+  visibility: 'full' | 'partial' | 'inferred' | string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  per100g: { calories: number; proteinG: number; carbsG: number; fatG: number } | null;
+  source: 'usda' | 'model' | string;
+}
+
+export interface MealPhotoAnalysis {
+  name?: string;
+  calories?: number;
+  proteinG?: number;
+  carbsG?: number;
+  fatG?: number;
+  confidence?: 'high' | 'medium' | 'low' | string;
+  notes?: string;
+  ingredients?: string[];
+  nutrients?: Record<string, unknown>;
+  items?: MealPhotoItem[];
+  framingWarning?: string | null;
+  noFoodDetected?: boolean;
+  analysisId?: string;
+  [k: string]: any;
+}
+
 export const nutritionApi = {
   // Look up a UPC/EAN/GTIN barcode in OpenFoodFacts. Throws on 404 (barcode
   // not in DB) — caller should fall through to manual entry / LLM parse.
@@ -661,6 +700,10 @@ export const nutritionApi = {
     plants?: string[];
     fermentedFoods?: string[];
     ultraProcessed?: boolean;
+    // Itemised photo breakdown (contract 8). Persisted via ingredients /
+    // ingredientNutrients today; `items` is forward-compatible (stripped by
+    // servers that don't store it).
+    items?: Array<Record<string, unknown>>;
   }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }),
   deleteMeal: (id: string) =>
     apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
@@ -694,6 +737,24 @@ export const nutritionApi = {
   // Gemini vision — analyze a photo of a meal, get macros back
   analyzePhoto: (imageBase64: string, mimeType: string) =>
     apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }), timeoutMs: LONG_TIMEOUT_MS }),
+  // Contract 8: 1–3 photos of ONE meal, and/or "add photo" with the items
+  // already on the review list (the response then carries only NEW items).
+  // images[] only — the photos are the bulk of the upload, so the first one
+  // isn't duplicated as the legacy imageBase64 (the backend ships first).
+  analyzePhotos: (input: {
+    images: Array<{ base64: string; mimeType: string }>;
+    existingItems?: MealPhotoItem[];
+    regionHint?: string;
+  }): Promise<MealPhotoAnalysis> =>
+    apiFetch('/nutrition/analyze-photo', {
+      method: 'POST',
+      body: JSON.stringify({
+        images: input.images,
+        ...(input.existingItems ? { existingItems: input.existingItems } : {}),
+        ...(input.regionHint ? { regionHint: input.regionHint } : {}),
+      }),
+      timeoutMs: LONG_TIMEOUT_MS,
+    }),
 
   /**
    * Anakin-ranked meal suggestions tailored to today's remaining macros.
@@ -922,7 +983,35 @@ export const workoutsApi = {
   // sessions for the log sheet to prefill. Nothing is saved by this call.
   parseNotes: (text: string): Promise<ParsedNotesResponse> =>
     apiFetch('/workouts/parse-notes', { method: 'POST', body: JSON.stringify({ text }), timeoutMs: 60000 }),
+  // Exercise picker (contract 2): the user's own logged names first, then the
+  // seed library. Works regardless of flags; callers fall back to a static
+  // list when offline.
+  exerciseNames: (q: string, limit = 20): Promise<{ names: ExerciseNameOption[] }> =>
+    apiFetch(`/workouts/exercise-names?q=${encodeURIComponent(q)}&limit=${limit}`, { timeoutMs: 8000 }),
 };
+
+export interface ExerciseNameOption {
+  name: string;
+  canonical: string;
+  source: 'history' | 'library';
+  lastDate: string | null;
+  count: number;
+}
+
+export type SuggestionAction =
+  | 'add_load' | 'add_rep' | 'add_set' | 'hold' | 'reset' | 'resume' | 'deload' | 'drop_set' | 'repeat';
+
+/** Next-session suggestion (contract 1). Null when logAdaptation is off or < 2 exposures. */
+export interface ExerciseSuggestion {
+  weightKg: number | null;
+  reps: string;
+  sets: number;
+  rpe: number | null;
+  action: SuggestionAction;
+  basis: 'applied_target' | 'program_target' | 'trend';
+  note: string;
+  proposalId: string | null;
+}
 
 export interface ParsedNoteExercise {
   name: string;
@@ -951,6 +1040,8 @@ export interface ExerciseLast {
   target: { targetWeightKg: number | null; targetRPE: number | null; reps: string; sets: number } | null;
   lastScore: { result: string; note: string; rpeDelta: number | null; loadDeltaKg: number | null } | null;
   unitPref: 'metric' | 'imperial';
+  /** Additive (contract 1) — absent on older servers. */
+  suggestion?: ExerciseSuggestion | null;
 }
 
 // ─── Adaptive progression ─────────────────────────────────────────────────────
@@ -963,12 +1054,62 @@ export const adaptationApi = {
   // history" proposal; everyone else gets a cohort label and nothing pending.
   bootstrap: (): Promise<{ enabled: boolean; cohort: string; proposal?: any }> =>
     apiFetch('/adaptation/bootstrap', { method: 'POST' }),
+  // `edits` (the "Adjust" path): load_change edits carry { key, targetWeightKg };
+  // next_session edits may also carry reps/sets (contract 5 — targetWeightKg
+  // is the edited toWeightKg).
   decide: (
     id: string,
     action: 'apply' | 'decline' | 'snooze',
-    opts: { edits?: Array<{ key: string; targetWeightKg: number | null }>; snoozeDays?: number } = {},
+    opts: { edits?: Array<{ key: string; targetWeightKg: number | null; reps?: string; sets?: number }>; snoozeDays?: number } = {},
   ) => apiFetch(`/adaptation/${id}/decide`, { method: 'POST', body: JSON.stringify({ action, ...opts }) }),
   undo: (id: string) => apiFetch(`/adaptation/${id}/undo`, { method: 'POST' }),
+};
+
+// ─── Freestyle training + phase (Oct 2026) ───────────────────────────────────
+
+export type TrainingPhase =
+  | 'building_strength' | 'cutting' | 'cut_too_aggressive' | 'building_muscle'
+  | 'recomp' | 'plateau' | 'rebuilding_consistency' | 'unknown';
+
+/** Contract 6. */
+export interface PhaseResult {
+  inferred: TrainingPhase;
+  confidence: number;
+  evidence: Array<{ label: string; value: string }>;
+  since: string | null;
+  confirmed: { phase: TrainingPhase; confirmedAt: string; source: 'confirmed' | 'user_set' } | null;
+  effective: TrainingPhase;
+  maintenanceKcal: number | null;
+  maintenanceSource: 'adaptive' | 'formula' | null;
+  statedGoalMismatch: string | null;
+}
+
+export interface FreestyleLiftTrend {
+  key: string;
+  name: string;
+  trend: 'progressing' | 'plateau' | 'declining' | 'insufficient';
+  pctPerWeek: number;
+  spark: number[];
+  lastTop: { weightKg: number | null; reps: number; rpe: number | null } | null;
+  lastDate: string;
+}
+
+/** Contract 3. */
+export interface FreestyleHome {
+  enabled: boolean;
+  hasProgram: boolean;
+  recentSessions: Array<{ id: string; date: string; title: string | null; exerciseCount: number; setCount: number; topLifts: string[] }>;
+  liftTrends: FreestyleLiftTrend[];
+  phase: PhaseResult | null;
+  pendingProposals: number;
+  weeklySessions: number[];
+}
+
+export const trainingApi = {
+  freestyle: (): Promise<FreestyleHome> => apiFetch('/training/freestyle'),
+  phase: (): Promise<PhaseResult> => apiFetch('/training/phase'),
+  setPhase: (phase: TrainingPhase | 'auto'): Promise<PhaseResult | { ok: true }> =>
+    apiFetch('/training/phase', { method: 'POST', body: JSON.stringify({ phase }) }),
 };
 
 // ─── Social API ───────────────────────────────────────────────────────────────

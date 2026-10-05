@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useUnits } from '../../context/UnitsContext';
 import { KEYBOARD_DONE_ID } from '../ui/KeyboardDoneBar';
+import { PHASE_LABEL } from './phaseLabels';
+import type { SuggestionAction, TrainingPhase } from '../../lib/api';
 
 export interface AdaptationEvidence { label: string; value: string }
 
@@ -36,6 +38,13 @@ export type AdaptationPayload =
       windowWeeks: number; sessions: number; weeks: number; sessionsPerWeek: number; split: string; goal: string; medianReps: number;
       days: Array<{ label: string; day: string; sessions: number; exercises: Array<{ exercise: string; sets: number; reps: number; weightKg: number | null; frequency: number }> }>;
     } }
+  // Freestyle release (contract 5)
+  | { kind: 'next_session'; key: string; exercise: string; action: SuggestionAction;
+      fromWeightKg: number | null; toWeightKg: number | null; reps: string; sets: number; rpe: number | null }
+  | { kind: 'deload'; keys: string[]; exercises: string[]; volumeCutPct: number; weeks: 1; reason: 'systemic_fatigue' | 'plateau_high_volume' | string }
+  | { kind: 'volume_balance'; muscle: string; currentSets: number; suggestedSets: number; direction: 'add' | 'reduce' | 'rebalance' | string; note: string }
+  | { kind: 'phase_confirm'; phase: TrainingPhase; previous: TrainingPhase | null; evidence: AdaptationEvidence[] }
+  | { kind: 'calorie_adjust'; fromKcal: number; toKcal: number; reason: 'cut_too_aggressive' | 'surplus_too_large' | string }
   | { kind: string; [k: string]: any };
 
 export interface AdaptationProposalData {
@@ -52,7 +61,22 @@ export interface AdaptationProposalData {
 
 export type AdaptationCardState = 'idle' | 'working' | 'applied' | 'snoozed' | 'declined' | 'failed' | 'undone';
 
-export interface TargetEdit { key: string; targetWeightKg: number | null }
+// reps/sets ride along only for next_session (the "Adjust" path, contract 5);
+// targetWeightKg is that card's edited toWeightKg.
+export interface TargetEdit { key: string; targetWeightKg: number | null; reps?: string; sets?: number }
+
+/** Plain-language label for a next-session action. */
+export const ACTION_LABEL: Record<string, string> = {
+  add_load: 'Add load',
+  add_rep: 'Add a rep',
+  add_set: 'Add a set',
+  hold: 'Hold steady',
+  reset: 'Reset the load',
+  resume: 'Ease back in',
+  deload: 'Deload',
+  drop_set: 'Drop a set',
+  repeat: 'Repeat it',
+};
 
 const INK = '#09090b';
 const SUCCESS_SOFT = '#dcfce7';
@@ -78,6 +102,11 @@ function kindLabel(kind: string): string {
     case 'program_from_logs': return 'Your training';
     case 'load_change': return 'Load';
     case 'calibration': return 'Calibration';
+    case 'next_session': return 'Next session';
+    case 'deload': return 'Recovery';
+    case 'volume_balance': return 'Volume';
+    case 'phase_confirm': return 'Your phase';
+    case 'calorie_adjust': return 'Calories';
     default: return kind.replace(/_/g, ' ');
   }
 }
@@ -122,13 +151,41 @@ export function AdaptationCard({
   const isRetrofit = payload.kind === 'retrofit';
   const isLoad = payload.kind === 'load_change';
   const isProgram = payload.kind === 'program_from_logs';
-  const canEdit = isRetrofit || isLoad;
+  const isNext = payload.kind === 'next_session';
+  const isDeload = payload.kind === 'deload';
+  const isVolume = payload.kind === 'volume_balance';
+  const isPhase = payload.kind === 'phase_confirm';
+  const isCalorie = payload.kind === 'calorie_adjust';
+  const canEdit = isRetrofit || isLoad || isNext;
 
   const confidencePct = Math.round((proposal.confidence ?? 0) * 100);
   const confidenceNote = confidencePct < 70 ? 'log RPE to sharpen this' : null;
 
   function collectEdits(): TargetEdit[] | undefined {
     if (!editing) return undefined;
+    if (isNext) {
+      // One edit carrying only what the user changed. Echoing the card's own
+      // reps/sets would read as an override and rewrite the program's
+      // prescription (e.g. a "6-8" range) when only the weight was adjusted.
+      const p = payload as Extract<AdaptationPayload, { kind: 'next_session' }>;
+      const w = (edits.__w ?? '').trim();
+      const r = (edits.__r ?? '').trim();
+      const st = (edits.__s ?? '').trim();
+      if (!w && !r && !st) return undefined;
+      let weight = p.toWeightKg;
+      if (w) {
+        const n = parseFloat(w);
+        if (Number.isFinite(n) && n >= 0) weight = n === 0 ? null : Math.round(toKg(n) * 100) / 100;
+      }
+      const sets = st && Number.isFinite(parseInt(st, 10)) && parseInt(st, 10) > 0 ? parseInt(st, 10) : null;
+      const reps = r && /^\d{1,2}(\s*[-–]\s*\d{1,2})?$/.test(r) ? r.replace(/\s|–/g, (c) => (c === '–' ? '-' : '')) : null;
+      return [{
+        key: p.key,
+        targetWeightKg: weight,
+        ...(reps != null && reps !== String(p.reps) ? { reps } : {}),
+        ...(sets != null && sets !== p.sets ? { sets } : {}),
+      }];
+    }
     const out: TargetEdit[] = [];
     for (const [key, raw] of Object.entries(edits)) {
       const t = raw.trim();
@@ -146,8 +203,29 @@ export function AdaptationCard({
       return `About your suggestion to move my ${p.exercise} from ${fmt(p.fromWeightKg)} to ${fmt(p.toWeightKg)} — `;
     }
     if (isProgram) return `About the program you built from my training logs — I'd rather `;
+    if (isNext) {
+      const p = payload as Extract<AdaptationPayload, { kind: 'next_session' }>;
+      return `About your suggestion for my next ${p.exercise} session (${fmt(p.toWeightKg)} × ${p.reps}, ${p.sets} sets) — `;
+    }
+    if (isPhase) {
+      const p = payload as Extract<AdaptationPayload, { kind: 'phase_confirm' }>;
+      return `About you thinking I'm ${(PHASE_LABEL[p.phase] ?? p.phase).toLowerCase()} right now — `;
+    }
+    if (isCalorie) {
+      const p = payload as Extract<AdaptationPayload, { kind: 'calorie_adjust' }>;
+      return `About moving my calories from ${p.fromKcal} to ${p.toKcal} kcal — `;
+    }
     return `About your "${proposal.title}" card and the targets you proposed from my history — `;
   }, [isLoad, payload, unit]);
+
+  const appliedLabel = isRetrofit ? 'Targets set'
+    : isProgram ? 'This is now your program'
+    : isNext ? 'Set as your next-session target'
+    : isDeload ? 'Deload week on'
+    : isVolume ? 'Noted — suggestions will follow it'
+    : isPhase ? 'Coaching for this phase'
+    : isCalorie ? 'Calorie target updated'
+    : 'Applied to your program';
 
   if (state === 'declined' || state === 'snoozed') {
     return (
@@ -192,7 +270,128 @@ export function AdaptationCard({
 
       {/* 3 · Proposed change */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{isRetrofit ? 'PROPOSED TARGETS' : isProgram ? 'PROPOSED PROGRAM' : 'PROPOSED CHANGE'}</Text>
+        <Text style={styles.sectionLabel}>{isRetrofit ? 'PROPOSED TARGETS' : isProgram ? 'PROPOSED PROGRAM' : isNext ? 'NEXT SESSION' : isPhase ? 'PROPOSED PHASE' : 'PROPOSED CHANGE'}</Text>
+
+        {isNext ? (() => {
+          const p = payload as Extract<AdaptationPayload, { kind: 'next_session' }>;
+          return (
+            <View>
+              <View style={styles.changeRow}>
+                <Text style={styles.changeName} numberOfLines={1}>{p.exercise}</Text>
+                <Text style={[styles.changeFrom, applied && styles.struck]}>{fmt(p.fromWeightKg)}</Text>
+                <Ionicons name="arrow-forward" size={12} color={colors.mutedForeground} style={{ marginHorizontal: 6 }} />
+                {editing ? (
+                  <TextInput
+                    style={styles.editInput}
+                    keyboardType="decimal-pad"
+                    defaultValue={p.toWeightKg != null ? String(fromKg(p.toWeightKg)) : ''}
+                    placeholder="BW"
+                    placeholderTextColor={colors.mutedForeground}
+                    onChangeText={v => setEdits(prev => ({ ...prev, __w: v }))}
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
+                    accessibilityLabel={`Next ${p.exercise} weight in ${unit}`}
+                  />
+                ) : (
+                  <Text style={styles.changeTo}>{p.toWeightKg == null ? 'bodyweight' : fmt(p.toWeightKg)}</Text>
+                )}
+              </View>
+              <View style={styles.nextMetaRow}>
+                <View style={[styles.pill, { backgroundColor: colors.muted }]}>
+                  <Text style={[styles.pillText, { color: colors.foreground }]}>{ACTION_LABEL[p.action] ?? String(p.action).replace(/_/g, ' ')}</Text>
+                </View>
+                {editing ? (
+                  <View style={styles.nextEditRow}>
+                    <TextInput
+                      style={[styles.editInput, styles.editSmall]}
+                      keyboardType="numbers-and-punctuation"
+                      defaultValue={String(p.reps)}
+                      onChangeText={v => setEdits(prev => ({ ...prev, __r: v }))}
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
+                      accessibilityLabel="Reps"
+                    />
+                    <Text style={styles.targetScheme}>reps ×</Text>
+                    <TextInput
+                      style={[styles.editInput, styles.editSmall]}
+                      keyboardType="number-pad"
+                      defaultValue={String(p.sets)}
+                      onChangeText={v => setEdits(prev => ({ ...prev, __s: v }))}
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
+                      accessibilityLabel="Sets"
+                    />
+                    <Text style={styles.targetScheme}>sets</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.targetSummary}>{p.reps} reps × {p.sets} sets{p.rpe != null ? ` @ RPE ${p.rpe}` : ''}</Text>
+                )}
+              </View>
+            </View>
+          );
+        })() : null}
+
+        {isDeload ? (() => {
+          const p = payload as Extract<AdaptationPayload, { kind: 'deload' }>;
+          return (
+            <View style={styles.targetList}>
+              <Text style={styles.programSummary}>Cut volume {Math.round(p.volumeCutPct)}% · {p.weeks ?? 1} week</Text>
+              {(p.exercises ?? []).map((name, i) => (
+                <View key={`${name}-${i}`} style={styles.programExRow}>
+                  <Text style={styles.programExName} numberOfLines={1}>{name}</Text>
+                  <Text style={styles.programExScheme}>−{Math.round(p.volumeCutPct)}% sets</Text>
+                </View>
+              ))}
+            </View>
+          );
+        })() : null}
+
+        {isVolume ? (() => {
+          const p = payload as Extract<AdaptationPayload, { kind: 'volume_balance' }>;
+          return (
+            <View>
+              <View style={styles.changeRow}>
+                <Text style={[styles.changeName, { textTransform: 'capitalize' }]} numberOfLines={1}>{p.muscle}</Text>
+                <Text style={[styles.changeFrom, applied && styles.struck]}>{p.currentSets} sets/wk</Text>
+                <Ionicons name="arrow-forward" size={12} color={colors.mutedForeground} style={{ marginHorizontal: 6 }} />
+                <Text style={styles.changeTo}>{p.suggestedSets} sets/wk</Text>
+              </View>
+              {p.note ? <Text style={styles.targetSummary}>{p.note}</Text> : null}
+            </View>
+          );
+        })() : null}
+
+        {isPhase ? (() => {
+          const p = payload as Extract<AdaptationPayload, { kind: 'phase_confirm' }>;
+          return (
+            <View>
+              <View style={styles.changeRow}>
+                {p.previous ? (
+                  <>
+                    <Text style={[styles.changeFrom, applied && styles.struck]}>{PHASE_LABEL[p.previous] ?? p.previous}</Text>
+                    <Ionicons name="arrow-forward" size={12} color={colors.mutedForeground} style={{ marginHorizontal: 6 }} />
+                  </>
+                ) : null}
+                <Text style={styles.changeTo}>{PHASE_LABEL[p.phase] ?? p.phase}</Text>
+              </View>
+              {(p.evidence ?? []).filter(e => !(proposal.evidence ?? []).some(pe => pe.label === e.label)).map((e, i) => (
+                <View key={i} style={styles.evidenceRow}>
+                  <Text style={styles.evidenceLabel} numberOfLines={1}>{e.label}</Text>
+                  <Text style={styles.evidenceValue}>{e.value}</Text>
+                </View>
+              ))}
+            </View>
+          );
+        })() : null}
+
+        {isCalorie ? (() => {
+          const p = payload as Extract<AdaptationPayload, { kind: 'calorie_adjust' }>;
+          return (
+            <View style={styles.changeRow}>
+              <Text style={styles.changeName} numberOfLines={1}>Daily calories</Text>
+              <Text style={[styles.changeFrom, applied && styles.struck]}>{Math.round(p.fromKcal)} kcal</Text>
+              <Ionicons name="arrow-forward" size={12} color={colors.mutedForeground} style={{ marginHorizontal: 6 }} />
+              <Text style={styles.changeTo}>{Math.round(p.toKcal)} kcal</Text>
+            </View>
+          );
+        })() : null}
 
         {isProgram ? (() => {
           const p = payload as Extract<AdaptationPayload, { kind: 'program_from_logs' }>;
@@ -288,7 +487,7 @@ export function AdaptationCard({
       {applied ? (
         <View style={styles.appliedStrip}>
           <Ionicons name="checkmark-circle" size={15} color={SUCCESS_INK} />
-          <Text style={styles.appliedText}>{isRetrofit ? 'Targets set' : isProgram ? 'This is now your program' : 'Applied to your program'}</Text>
+          <Text style={styles.appliedText}>{appliedLabel}</Text>
           <View style={{ flex: 1 }} />
           {onUndo ? (
             <Pressable hitSlop={10} onPress={onUndo}>
@@ -306,14 +505,14 @@ export function AdaptationCard({
             </Pressable>
             <Pressable style={[styles.btn, styles.btnPrimary, working && { opacity: 0.6 }]} onPress={() => onApply(collectEdits())} disabled={working} hitSlop={6}>
               {working ? <ActivityIndicator size="small" color="#fff" /> : (
-                <Text style={styles.btnPrimaryText}>{failed ? 'Retry' : isRetrofit ? (editing ? 'Use edited targets' : 'Use these') : isProgram ? 'Make this my program' : 'Apply'}</Text>
+                <Text style={styles.btnPrimaryText}>{failed ? 'Retry' : isRetrofit ? (editing ? 'Use edited targets' : 'Use these') : isProgram ? 'Make this my program' : isPhase ? 'Yes, coach me for this' : isNext && editing ? 'Use my numbers' : 'Apply'}</Text>
               )}
             </Pressable>
           </View>
           <View style={styles.linkRow}>
             {canEdit ? (
               <Pressable hitSlop={8} onPress={() => setEditing(e => !e)}>
-                <Text style={styles.link}>{editing ? 'Stop editing' : 'Let me edit'}</Text>
+                <Text style={styles.link}>{editing ? 'Stop editing' : isNext ? 'Adjust' : 'Let me edit'}</Text>
               </Pressable>
             ) : null}
             {onAskCoach ? (
@@ -387,6 +586,10 @@ const styles = StyleSheet.create({
     minWidth: 64, borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5,
     fontSize: 13, fontWeight: '700', color: colors.foreground, textAlign: 'right', backgroundColor: colors.muted, ...MONO,
   },
+
+  nextMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2, flexWrap: 'wrap' },
+  nextEditRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  editSmall: { minWidth: 44, paddingVertical: 4, textAlign: 'center' },
 
   confidence: { fontSize: 11, color: colors.mutedForeground, marginTop: 8, ...MONO },
 
