@@ -34,6 +34,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import * as ScreenCapture from 'expo-screen-capture';
 import { composerMode, latestAgentCards, allCards, signedLayout, type Turn, type Card } from '@axiom/agent-ui-core';
+import { threadBus } from '../chat/captureBus';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CardHandlersProvider, type CardHandlers, type EditSession } from '../chat/card/context';
 import { useCardActions } from '../chat/useCardActions';
@@ -151,6 +152,7 @@ export function HomePage() {
   const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
   const [awayOpen, setAwayOpen] = useState(false);
   useEffect(() => { void thread.hydrate().then(setAway); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => threadBus.on(() => { void thread.hydrate(); }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Scroll: the thread stays pinned to its end unless the user drags it up
   //    more than 120 pt (then "↓ New"). Opening chat grows the viewport over

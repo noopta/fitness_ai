@@ -76,8 +76,26 @@ export interface NutritionPlanSummary {
   generatedAt: string;
 }
 
+/** GET /nutrition/food-search — one ranked row (bug fixes 5 Oct, 4a). */
+export interface FoodResult {
+  kind: 'mine' | 'recipe' | 'usda';
+  id: string;
+  name: string;
+  caption: string;
+  kcal: number;
+  portion: { grams: number | null; label: string };
+  macros: { calories: number; proteinG: number; carbsG: number; fatG: number };
+  per100g: { calories: number; proteinG: number; carbsG: number; fatG: number } | null;
+  nutrients: Record<string, number> | null;
+}
+
 export const v2Api = {
   /** Null when there's no plan yet (the endpoint 404s). */
+  foodSearch: (q: string, scope: 'all' | 'mine' | 'recipes'): Promise<{ results: FoodResult[] }> =>
+    apiFetch(`/nutrition/food-search?q=${encodeURIComponent(q)}&scope=${scope}`) as Promise<{ results: FoodResult[] }>,
+  /** A meal logged from search opened from chat → a Logged card in the thread. */
+  loggedCard: (mealIds: string[]): Promise<{ card: Card }> =>
+    apiFetch('/coach/agent/cards/logged', { method: 'POST', body: JSON.stringify({ mealIds }) }) as Promise<{ card: Card }>,
   nutritionPlan: async (): Promise<NutritionPlanSummary | null> => {
     try { return await apiFetch('/nutrition/plan', { silent404: true } as any) as NutritionPlanSummary; }
     catch (e: any) { if (e?.status === 404 || /no nutrition plan/i.test(String(e?.message))) return null; throw e; }

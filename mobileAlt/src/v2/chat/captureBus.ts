@@ -13,3 +13,11 @@ export const captureBus = {
     for (const fn of listeners) fn(cardId, ids);
   },
 };
+
+// A turn added to the thread outside a reply (a Logged card from food search):
+// the home chat re-reads its history so the card shows up in place.
+const rehydrators = new Set<() => void>();
+export const threadBus = {
+  on(fn: () => void) { rehydrators.add(fn); return () => { rehydrators.delete(fn); }; },
+  rehydrate() { for (const fn of rehydrators) fn(); },
+};

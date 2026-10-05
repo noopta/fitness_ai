@@ -5,3 +5,4 @@ export * from './workout';
 export * from './onboarding';
 export * from './cards';
 export * from './signed';
+export * from './portion';
