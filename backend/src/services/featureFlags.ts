@@ -177,3 +177,36 @@ const DIRECT_ENTRY_PAYWALL = process.env.DIRECT_ENTRY_PAYWALL_ENABLED === '1';
 export function directEntryPaywallEnabled(): boolean {
   return DIRECT_ENTRY_PAYWALL;
 }
+
+/**
+ * Freestyle release (Oct 2026, from user feedback). Four independent kill
+ * switches, each: global '1' or a per-user allowlist (ids and/or emails) so
+ * the release can go to the founders + the requesting user first.
+ *  - FREESTYLE: log-as-you-go home for users without a program, history-aware
+ *    log sheet, "go freestyle" from a program.
+ *  - LOG_ADAPTATION: adaptation rules driven by log trends, with or without a
+ *    program (getting easier, plateau, decline, fatigue, time off, volume).
+ *  - PHASE_INFERENCE: infer the training phase (strength / cut / bulk / recomp
+ *    …) from training + bodyweight + intake; rules read the confirmed phase.
+ *  - MEAL_PHOTO_V2: itemized meal-photo analysis (per-item grams, DB-computed
+ *    calories, multi-photo, framing warning).
+ */
+function flagFor(globalVar: string, usersVar: string): (userId: string, email?: string | null) => boolean {
+  const on = process.env[globalVar] === '1';
+  const allow = new Set(
+    (process.env[usersVar] ?? '')
+      .split(',')
+      .map((v) => v.trim().toLowerCase())
+      .filter(Boolean),
+  );
+  return (userId, email) => {
+    if (on) return true;
+    if (allow.has(userId.toLowerCase())) return true;
+    return !!email && allow.has(email.toLowerCase());
+  };
+}
+
+export const freestyleAvailableFor = flagFor('FREESTYLE_ENABLED', 'FREESTYLE_USERS');
+export const logAdaptationAvailableFor = flagFor('LOG_ADAPTATION_ENABLED', 'LOG_ADAPTATION_USERS');
+export const phaseInferenceAvailableFor = flagFor('PHASE_INFERENCE_ENABLED', 'PHASE_INFERENCE_USERS');
+export const mealPhotoV2AvailableFor = flagFor('MEAL_PHOTO_V2_ENABLED', 'MEAL_PHOTO_V2_USERS');
