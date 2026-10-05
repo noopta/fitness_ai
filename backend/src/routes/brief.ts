@@ -15,6 +15,7 @@ import { runAgentTask } from '../agent/tasks.js';
 import { getCurrentWeekSchedule } from './coach.js';
 import { cacheGet, cacheSet } from '../services/cacheService.js';
 import type { Receipt } from '../agent/receipts.js';
+import { sessionMinutes } from '../services/sessionMinutes.js';
 
 const router = Router();
 
@@ -79,13 +80,6 @@ export function tidySentence(raw: string): string {
   return t;
 }
 
-function estimateMinutes(session: any): number | null {
-  const ex = Array.isArray(session?.exercises) ? session.exercises.length : 0;
-  if (!ex) return null;
-  // ~9 min per exercise incl. warm-up + rest — a rough, honest estimate that the
-  // live session replaces with the real clock.
-  return Math.round(ex * 9 + 8);
-}
 
 function pickSession(schedule: any): BriefSession | null {
   const days: any[] = Array.isArray(schedule?.weekDays) ? schedule.weekDays : [];
@@ -96,7 +90,7 @@ function pickSession(schedule: any): BriefSession | null {
   return {
     name: String(s.name ?? s.day ?? 'Session'),
     focus: s.focus ?? null,
-    minutes: estimateMinutes(s),
+    minutes: sessionMinutes(s),
     exerciseCount: Array.isArray(s.exercises) ? s.exercises.length : 0,
     date: String(next.date ?? ''),
     isToday: !!next.isToday,

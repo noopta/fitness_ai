@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildTrainingOverview, parseGoalTargets, exerciseSpec, sessionTitle, type OverviewInput } from '../services/trainingOverview.js';
+import { buildTrainingOverview, parseGoalTargets, exerciseSpec, sessionTitle, sentenceCase, type OverviewInput } from '../services/trainingOverview.js';
+import { sessionMinutes } from '../services/sessionMinutes.js';
 
 const LB = 0.45359237;
 
@@ -86,8 +87,41 @@ describe('buildTrainingOverview', () => {
     expect(w.days.map((d) => d.dow)).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
     expect(w.days.map((d) => d.status)).toEqual(['done', 'rest', 'today', 'rest', 'planned', 'rest', 'planned']);
     expect(w).toMatchObject({ done: 1, planned: 4 });
-    expect(w.days[2]).toMatchObject({ name: 'Lower', minutes: 26 });
-    expect(w.days[2].exercises[1]).toEqual({ name: 'Deadlift', spec: '3 × 5 · 310 lb' });
+    expect(w.days[2]).toMatchObject({ name: 'Lower', minutes: sessionMinutes(program.phases[0].trainingDays[1]) });
+    // lb users: every load is in lb, so the unit is dropped.
+    expect(w.days[2].exercises[1]).toEqual({ name: 'Deadlift', spec: '3 × 5 · 310' });
+  });
+
+  it("gives each day its own session's duration, not one flat number", () => {
+    const upper = { day: 'Upper', exercises: [{ exercise: 'Bench Press', sets: 3, reps: '12' }] };
+    const lower = { day: 'Lower', estimatedMinutes: 71, exercises: [{ exercise: 'Back Squat', sets: 3, reps: '12' }] };
+    const weekDays = [upper, lower].map((session, i) => ({ date: `2026-10-0${i + 1}`, isToday: false, session }));
+    const w = buildTrainingOverview(base({ weekDays })).week;
+    expect(w.days[0].minutes).toBe(sessionMinutes(upper));
+    expect(w.days[1].minutes).toBe(71);
+  });
+
+  it('keeps the unit for kg users and sentence-cases exercise names', () => {
+    const session = { day: 'Upper', exercises: [{ exercise: 'Close-Grip Bench Press', sets: 3, reps: '8', targetWeightKg: 80 }] };
+    const w = buildTrainingOverview(base({ unitPref: 'kg' as any, weekDays: [{ date: '2026-10-01', isToday: true, session }] })).week;
+    expect(w.days[0].exercises[0]).toEqual({ name: 'Close-grip bench press', spec: '3 × 8 · 80 kg' });
+  });
+
+  it('does not read 0% after a light session since the best week', () => {
+    // Last session was light (current1RMkg 270) but the best week since the start was 300.
+    const lifts = [{ canonicalName: 'Deadlift', current1RMkg: 270 * LB, sessionCount: 12,
+      weekSeries: [{ week: '2026-W30', rm: 280 * LB }, { week: '2026-W36', rm: 300 * LB }, { week: '2026-W38', rm: 270 * LB }] }];
+    const g = buildTrainingOverview(base({ lifts })).goal;
+    expect(g.lifts[0]).toMatchObject({ start: 280, current: 300, target: 350 });
+    expect(g.lifts[0].progress).toBeCloseTo(20 / 70, 2);
+    expect(g.pct).toBe(Math.round((20 / 70) * 100));
+  });
+
+  it("is the mean of each lift's (current − start) / (target − start)", () => {
+    const o = buildTrainingOverview(base());
+    const mean = o.goal.lifts.reduce((s, l) => s + l.progress, 0) / o.goal.lifts.length;
+    expect(o.goal.pct).toBe(Math.round(mean * 100));
+    expect(o.goal.pct).toBeGreaterThan(0);
   });
 
   it('orders the archive programs first, then diagnostics newest first', () => {
@@ -119,6 +153,14 @@ describe('copy helpers', () => {
     expect(exerciseSpec({ sets: 3, reps: '5', targetWeightKg: 100 }, 'kg' as any)).toBe('3 × 5 · 100 kg');
     expect(exerciseSpec({ sets: 4, reps: '8', intensity: 'RPE 7' }, 'lbs' as any)).toBe('4 × 8 · RPE 7');
     expect(exerciseSpec({ sets: 2, reps: '10' }, 'lbs' as any)).toBe('2 × 10');
+  });
+  it('sentence-cases exercise names, keeping short acronyms', () => {
+    expect(sentenceCase('Close-Grip Bench Press')).toBe('Close-grip bench press');
+    expect(sentenceCase('DB Romanian Deadlift')).toBe('DB romanian deadlift');
+    expect(sentenceCase('back squat')).toBe('Back squat');
+  });
+  it('drops the unit on request', () => {
+    expect(exerciseSpec({ sets: 3, reps: '5', targetWeightKg: 100 }, 'lbs' as any, { unit: false })).toBe('3 × 5 · 220');
   });
   it('shortens session names to a title', () => {
     expect(sessionTitle('Upper Body — Arms/Chest Emphasis')).toBe('Upper');

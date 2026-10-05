@@ -13,6 +13,7 @@ import { cacheDelete, cacheClearByPrefix } from '../../services/cacheService.js'
 import { dayLabel, shiftDate, weight, plural } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
+import { sessionMinutes } from '../../services/sessionMinutes.js';
 
 function invalidateProgram(userId: string) {
   cacheDelete(`program:${userId}`);
@@ -391,11 +392,11 @@ export const PROGRAM_TOOLS = [
       const session = t?.session ?? t?.todaySession ?? null;
       const exs: any[] = session?.exercises ?? t?.exercises ?? [];
       const loads = await loadsFor(userId, exs.map(exName));
-      return { restDay: !exs.length, name: session?.name ?? t?.dayName ?? null, focus: session?.focus ?? t?.dayFocus ?? null, exercises: exs.map((e) => ({ exercise: exName(e), sets: e.sets, reps: e.reps, intensity: e.intensity, loadKg: loads.get(exName(e).toLowerCase()) ?? null })), tips: t?.tips ?? t?.coachingTips ?? null, phaseName: t?.phaseName ?? null, weekNumber: t?.weekNumber ?? null };
+      return { restDay: !exs.length, minutes: sessionMinutes(session ?? { exercises: exs }), name: session?.name ?? t?.dayName ?? null, focus: session?.focus ?? t?.dayFocus ?? null, exercises: exs.map((e) => ({ exercise: exName(e), sets: e.sets, reps: e.reps, intensity: e.intensity, loadKg: loads.get(exName(e).toLowerCase()) ?? null })), tips: t?.tips ?? t?.coachingTips ?? null, phaseName: t?.phaseName ?? null, weekNumber: t?.weekNumber ?? null };
     },
     card: (_i, r, ctx) => {
       if (r.restDay) return { fn: 'SCH-05', pattern: 'glance', rule: 'show', meta: { label: 'Rest day' }, rows: (Array.isArray(r.tips) ? r.tips.slice(0, 3) : ['A 20–30 minute walk', '10 minutes of mobility for your hips and upper back', 'Hit your protein target — recovery happens today']).map((t: any) => ({ key: typeof t === 'string' ? t : t.text ?? String(t) })) };
-      const minutes = Math.round(r.exercises.length * 9 + 8);
+      const minutes = r.minutes ?? sessionMinutes({ exercises: r.exercises });
       const loads = new Map<string, number | null>(r.exercises.map((e: any) => [e.exercise.toLowerCase(), e.loadKg]));
       return {
         fn: 'SCH-04', pattern: 'glance', rule: 'show', meta: { label: `Today · ${String(r.name ?? 'Session').split(/[—–·/]/)[0].trim()} · ${minutes} min`, open: { page: 'session' } },

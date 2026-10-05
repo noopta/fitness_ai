@@ -1179,6 +1179,8 @@ export interface ProgramDay {
   warmup: string[];       // e.g. ["3 min rowing", "Hip 90/90 x 5/side", "Band pull-aparts 2x15"]
   exercises: ProgramExercise[];
   cooldown: string[];     // e.g. ["Doorway pec stretch 2x30s", "T-spine rotation 2x10"]
+  /** Whole session incl. warm-up, rest and cool-down. Older programs lack it — see sessionMinutes(). */
+  estimatedMinutes?: number;
 }
 
 export interface ProgramPhase {
@@ -1501,6 +1503,7 @@ REQUIREMENTS (be concise — brevity is critical for all text fields):
 4. warmup: exactly 3 items (short phrases). cooldown: exactly 2 items (short phrases).
 5. deloadProtocol: 1 sentence. progressionNotes: 2 items max, concise.
 6. All intensity uses RPE. autoregulationRules: 2 items. trackingMetrics: 2 items.
+7. estimatedMinutes: each training day's realistic total in minutes (warm-up, working sets with rest, cool-down). Days differ — heavy low-rep days run longer.
 
 OUTPUT FORMAT — Return valid JSON only:
 {
@@ -1522,7 +1525,8 @@ OUTPUT FORMAT — Return valid JSON only:
           "exercises": [
             {"exercise": "Bench Press", "sets": 4, "reps": "6", "intensity": "RPE 7", "notes": "Scapular retraction throughout"}
           ],
-          "cooldown": ["Doorway pec stretch 2x30s", "Child's pose 60s"]
+          "cooldown": ["Doorway pec stretch 2x30s", "Child's pose 60s"],
+          "estimatedMinutes": 55
         }
       ],
       "progressionNotes": ["Add 2.5 lbs when RPE ≤7", "Move to Phase 2 after 2 clean sessions"],

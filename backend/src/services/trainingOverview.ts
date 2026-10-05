@@ -3,6 +3,7 @@
 // the rows, this shapes them, so the shaping is unit-tested without a DB.
 
 import { kgToLb, type UnitPreference } from './weightUnits.js';
+import { sessionMinutes } from './sessionMinutes.js';
 
 export type Pace = 'ahead' | 'on' | 'behind';
 export type DayStatus = 'done' | 'today' | 'planned' | 'rest';
@@ -158,18 +159,28 @@ function phaseFocusLine(phase: any): string {
   return seen.map((t, i) => (i ? t.toLowerCase() : t)).join(' · ');
 }
 
-/** "4 × 6 · 225 lb" — the load when there's a target, otherwise the RPE. */
-export function exerciseSpec(e: any, pref: UnitPreference): string {
+/** "4 × 6 · 225 lb" — the load when there's a target, otherwise the RPE. `unit: false` drops the unit. */
+export function exerciseSpec(e: any, pref: UnitPreference, opts: { unit?: boolean } = {}): string {
   const sr = `${e?.sets ?? '—'} × ${e?.reps ?? '—'}`;
-  if (typeof e?.targetWeightKg === 'number' && e.targetWeightKg > 0) return `${sr} · ${displayLoad(e.targetWeightKg, pref)} ${isKg(pref) ? 'kg' : 'lb'}`;
+  if (typeof e?.targetWeightKg === 'number' && e.targetWeightKg > 0) {
+    const load = displayLoad(e.targetWeightKg, pref);
+    return opts.unit === false ? `${sr} · ${load}` : `${sr} · ${load} ${isKg(pref) ? 'kg' : 'lb'}`;
+  }
   const rpe = String(e?.intensity ?? '').match(/RPE\s*[\d.–-]+/i)?.[0];
   return rpe ? `${sr} · ${rpe.replace(/\s+/, ' ')}` : sr;
 }
 
 const exName = (e: any) => String(e?.exercise ?? e?.name ?? e?.exerciseName ?? 'Exercise');
 
-/** Same estimate the brief uses: ~9 min per exercise + 8 warm-up. */
-const estimateMinutes = (n: number) => (n ? Math.round(n * 9 + 8) : null);
+/** "Close-Grip Bench Press" → "Close-grip bench press". Short all-caps words (RDL, DB, OHP) stay. */
+export function sentenceCase(raw: string): string {
+  const words = String(raw).trim().split(/\s+/);
+  return words.map((w, i) => {
+    if (/^[A-Z0-9]{2,4}s?$/.test(w)) return w;
+    const lower = w.toLowerCase();
+    return i === 0 ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
+  }).join(' ');
+}
 
 const month = (d: Date | string) => new Date(d).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
 const day = (d: Date | string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -219,6 +230,11 @@ function buildGoal(input: OverviewInput, unit: 'lb' | 'kg'): TrainingOverview['g
     const series = (l.weekSeries ?? []).filter((p) => p.rm > 0);
     const atStart = input.startWeekKey ? [...series].reverse().find((p) => p.week <= input.startWeekKey!) ?? series[0] : series[0];
     const startKg = atStart?.rm ?? l.current1RMkg;
+    // `current1RMkg` is the last session's e1RM, but start is a weekly best —
+    // one light day put current under start and every lift read 0%. Measure
+    // current the same way: the best week since the program started.
+    const since = input.startWeekKey ? series.filter((p) => p.week >= input.startWeekKey!) : series.slice(-1);
+    const currentKg = Math.max(l.current1RMkg, ...since.map((p) => p.rm));
     const key = LIFT_WORDS.find(([re]) => re.test(l.canonicalName))?.[1];
     const g = key ? parsed.get(key) : undefined;
     let targetKg: number;
@@ -233,15 +249,17 @@ function buildGoal(input: OverviewInput, unit: 'lb' | 'kg'): TrainingOverview['g
       targetKg = startKg * (1 + 0.006 * totalWeeks);
     }
     const start = displayLoad(startKg, input.unitPref);
-    const current = displayLoad(l.current1RMkg, input.unitPref);
+    const current = displayLoad(currentKg, input.unitPref);
     // A rep target is shown at its working weight, not its 1RM equivalent.
     const shownTarget = g?.reps && g.reps > 1 ? g.value : displayLoad(targetKg, input.unitPref);
     const target = Math.max(shownTarget, start + (unit === 'kg' ? 2.5 : 5));
-    const raw = (l.current1RMkg - startKg) / Math.max(1e-6, targetKg - startKg);
+    // (current − start) / (target − start), on e1RM so a rep goal compares like with like.
+    const raw = (currentKg - startKg) / Math.max(1e-6, targetKg - startKg);
     const pace: Pace = raw >= expected + 0.08 ? 'ahead' : raw < expected - 0.08 ? 'behind' : 'on';
     const progress = Math.round(Math.max(0, Math.min(1, raw)) * 1000) / 1000;
     return { name: l.canonicalName, start, current, target, reps, pace, progress, targetSource };
   });
+  // Goal % = the mean, over lifts, of each lift's share of its start → target distance.
   const pct = lifts.length ? Math.round((lifts.reduce((s, l) => s + l.progress, 0) / lifts.length) * 100) : 0;
   return { text: goalText, lifts, pct };
 }
@@ -274,6 +292,8 @@ function buildProgram(input: OverviewInput): TrainingOverview['program'] {
 // ─── Week ───────────────────────────────────────────────────────────────────
 
 function buildWeek(input: OverviewInput): TrainingOverview['week'] {
+  // Every load on the page is in the user's unit; for lb users the unit is implied and dropped.
+  const unit = isKg(input.unitPref);
   const days: OverviewDay[] = input.weekDays.slice(0, 7).map((d, i) => {
     const s = d.session;
     const exercises: any[] = s?.exercises ?? [];
@@ -282,9 +302,9 @@ function buildWeek(input: OverviewInput): TrainingOverview['week'] {
       dow: DOW[i],
       date: String(d.date).slice(0, 10),
       name: s ? sessionTitle(s.day ?? s.name) : 'Rest',
-      minutes: s ? estimateMinutes(exercises.length) : null,
+      minutes: s ? sessionMinutes(s) : null,
       status,
-      exercises: exercises.map((e) => ({ name: exName(e), spec: exerciseSpec(e, input.unitPref) })),
+      exercises: exercises.map((e) => ({ name: sentenceCase(exName(e)), spec: exerciseSpec(e, input.unitPref, { unit }) })),
     };
   });
   return { done: days.filter((d) => d.status === 'done').length, planned: days.filter((d) => d.status !== 'rest').length, days };

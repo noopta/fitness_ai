@@ -36,10 +36,15 @@ const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 const BAND_MS = 560;
 const DAY_MS = 450;
 const TRAINING_INDEX = 1;
-const ROW_H = 42;
+const ROW_H = 44;
 const ROW_H_TIGHT = 36;
 const DETAIL_3 = 110;
 const DETAIL_2 = 90;
+// This week row grid (bug fixes 5 Oct, 1a): wide enough for "Wed" at any weight.
+const DOT_W = 9;
+const DOW_W = 44;
+const DAY_GAP = 12;
+const NAME_X = DOT_W + DAY_GAP + DOW_W + DAY_GAP; // 77
 
 /** Where an archive row opens. Shared with the full list page. */
 export function archiveHref(item: ArchiveItem): any {
@@ -512,14 +517,15 @@ const styles = StyleSheet.create({
   info: { height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, borderTopWidth: 1, borderTopColor: C.surface },
 
   dayWrap: { borderTopWidth: 1, borderTopColor: C.surface },
-  dayRow: { flexDirection: 'row', alignItems: 'center' },
-  dot: { width: 9, height: 9, borderRadius: 4.5, marginRight: 14 },
-  dow: { width: 30, fontFamily: v2.font.regular, fontSize: 13, color: C.muted },
-  dayName: { flex: 1, fontSize: 15, lineHeight: 20 },
-  mins: { fontFamily: v2.font.regular, fontSize: 13, color: C.muted, fontVariant: ['tabular-nums'], marginLeft: 12 },
+  // Grid row: [dot 9] 12 [day 44] 12 [name flex] 12 [duration auto] — the name always starts at x = 77.
+  dayRow: { flexDirection: 'row', alignItems: 'center', gap: DAY_GAP },
+  dot: { width: DOT_W, height: DOT_W, borderRadius: DOT_W / 2 },
+  dow: { width: DOW_W, fontFamily: v2.font.regular, fontSize: 13, lineHeight: 18, color: C.muted, fontVariant: ['tabular-nums'] },
+  dayName: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20 },
+  mins: { fontFamily: v2.font.regular, fontSize: 13, color: C.muted, fontVariant: ['tabular-nums'] },
   detailClip: { overflow: 'hidden' },
-  // Indented 53 (9 dot + 14 gap + 30 day) so it sits under the session name.
-  detail: { position: 'absolute', left: 53, right: 0, top: 0, gap: 6, paddingBottom: 12 },
+  // Indented 77 so the exercises line up with the session name.
+  detail: { position: 'absolute', left: NAME_X, right: 0, top: 0, gap: 6, paddingBottom: 12 },
   exLine: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   action: { fontFamily: v2.font.semibold, fontSize: 13, lineHeight: 19.5, color: C.crimson, marginTop: 2 },
 
