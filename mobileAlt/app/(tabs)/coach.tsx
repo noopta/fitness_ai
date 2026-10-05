@@ -41,6 +41,7 @@ type Stage = 'loading' | 'onboarding' | 'setup' | 'reveal' | 'walkthrough' | 'da
 type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
 const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
+const FREESTYLE_TABS: TabId[] = ['Overview', 'Nutrition', 'Wellness', 'Chat'];
 
 // What Pro actually buys, stated as things the coach DOES rather than features
 // you get. This card is shown at the highest-intent moment in the funnel — the
@@ -536,6 +537,10 @@ function CoachScreenInner() {
   }
 
   if (stage === 'freestyle') {
+    // Same tab bar as the dashboard, minus Program (there isn't one — the
+    // home itself offers build / restore). Overview IS the freestyle home, so
+    // Nutrition, Wellness and Chat stay one tap away without a program.
+    const tab: TabId = activeTab === 'Program' ? 'Overview' : activeTab;
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.header}>
@@ -548,12 +553,54 @@ function CoachScreenInner() {
           </View>
           <View style={styles.onlineDot} />
         </View>
-        <ErrorBoundary label="coach:Freestyle" message="This screen hit an unexpected error. Tap try again.">
-          <FreestyleHome
-            onBuildProgram={handleBuildProgramFromFreestyle}
-            onRestored={reloadProgramState}
-          />
-        </ErrorBoundary>
+        <View style={styles.flex}>
+          <View style={styles.tabBarWrapper}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBar}>
+              {FREESTYLE_TABS.map((t) => {
+                const isActive = tab === t;
+                return (
+                  <Pressable key={t} onPress={() => setActiveTab(t)} style={styles.tabItem}>
+                    <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{t}</Text>
+                    {isActive && <View style={styles.tabUnderline} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+          <View style={styles.tabContent}>
+            <ErrorBoundary
+              key={tab}
+              label={tab === 'Overview' ? 'coach:Freestyle' : `coach:${tab}`}
+              message="This tab hit an unexpected error. Tap try again."
+            >
+              {tab === 'Overview' && (
+                <FreestyleHome
+                  onBuildProgram={handleBuildProgramFromFreestyle}
+                  onRestored={reloadProgramState}
+                />
+              )}
+              {tab === 'Nutrition' && (
+                <NutritionTab
+                  coachData={coachData}
+                  coachGoal={user?.coachGoal ?? null}
+                  coachBudget={user?.coachBudget ?? null}
+                  onRefresh={initCoach}
+                  userId={user?.id}
+                />
+              )}
+              {tab === 'Wellness' && (
+                <WellnessTab coachData={coachData} />
+              )}
+              {tab === 'Chat' && (
+                <ChatTab
+                  coachData={coachData}
+                  initialPrompt={pendingChatPrompt ?? undefined}
+                  onInitialPromptConsumed={() => setPendingChatPrompt(null)}
+                />
+              )}
+            </ErrorBoundary>
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
