@@ -5,8 +5,12 @@ on:
     branches:
       - dev
       - main
+      # Older store runtimes (e.g. backport/3.1.0-*) — main's JS can't run on
+      # those binaries, so their OTAs publish from their own branch.
+      - 'backport/**'
     paths:
       - 'mobileAlt/**'
+      - '.github/workflows/mobile.yml'
   workflow_dispatch:
     inputs:
       build_production:
@@ -62,6 +66,33 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           npx eas-cli update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
+
+  # ── Backport branches: OTA for an older store runtime ─────────────────────
+  # The runtime comes from the branch's own app.json, so a 3.1.0 backport only
+  # reaches 3.1.0 binaries. iOS only — Android backports are published by hand
+  # when wanted. Bundling here (not on the EC2 box, which also serves prod and
+  # thrashes on Metro's ~1.8 GB peak) is the point of this job.
+  ota-backport:
+    name: OTA Update → production (backport runtime, iOS)
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/backport/')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobileAlt/package-lock.json
+      - name: Install dependencies
+        working-directory: mobileAlt
+        run: npm ci
+      - name: Push OTA → production (iOS)
+        working-directory: mobileAlt
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          npx eas-cli update --branch production --platform ios --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
 
   # ── Manual trigger only: full build + TestFlight submit ───────────────────
   build-and-submit:
