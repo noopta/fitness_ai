@@ -2674,6 +2674,8 @@ ${regionPromptBlock(region, 'photo')}`;
 // cache instead.
 
 export const MEAL_PHOTO_V2_MODEL = GEMINI_VISION_MODEL;
+const MEAL_PHOTO_THINKING_BUDGET = Math.max(0, Math.min(16384, Number(process.env.MEAL_PHOTO_THINKING_BUDGET) || 4096));
+const MEAL_PHOTO_MEDIA_RESOLUTION = `MEDIA_RESOLUTION_${(['HIGH', 'MEDIUM', 'LOW'].includes((process.env.MEAL_PHOTO_MEDIA_RESOLUTION ?? '').toUpperCase()) ? process.env.MEAL_PHOTO_MEDIA_RESOLUTION!.toUpperCase() : 'HIGH')}`;
 
 export async function analyzeMealPhotoItems(
   images: Array<{ base64: string; mimeType: string }>,
@@ -2694,13 +2696,14 @@ export async function analyzeMealPhotoItems(
       // High resolution: the misses users report are small things — a
       // ramekin of dressing, butter on toast, a glass at the edge — which
       // are exactly what downsampled tiles lose.
-      mediaResolution: 'MEDIA_RESOLUTION_HIGH' as unknown as MediaResolution,
-      // 4096 (was 1024 on the legacy prompt): the job is now an exhaustive
+      // MEAL_PHOTO_MEDIA_RESOLUTION (HIGH | MEDIUM | LOW) tunes it in prod.
+      mediaResolution: MEAL_PHOTO_MEDIA_RESOLUTION as unknown as MediaResolution,
+      // Thinking (legacy prompt used 1024): the job is an exhaustive
       // enumeration with hidden/stacked items, cooking fat and cross-photo
-      // de-duplication — the deliberation is where recall comes from. The
-      // output itself is small (no micronutrient block), so the budget moves
-      // from output to thinking; ~2-4 s extra latency, acceptable for a scan.
-      thinkingConfig: { thinkingBudget: 4096 },
+      // de-duplication — the deliberation is where recall comes from. Each
+      // extra 1k tokens costs seconds of scan latency, so it's
+      // MEAL_PHOTO_THINKING_BUDGET-tunable; default from the Oct 2026 benchmark.
+      thinkingConfig: { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
       maxOutputTokens: 12288,
     },
     contents: [{ role: 'user', parts: [

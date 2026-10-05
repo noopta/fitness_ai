@@ -11,6 +11,7 @@
 //   - item recall: share of labeled items found (fuzzy token match on names)
 //   - same-photo calorie spread: (max − min) / mean across the N runs
 //   - kcal vs label: mean absolute % error against approxKcal, when given
+//   - latency: median and max seconds per analysis
 //
 // v2 runs bypass the image-hash cache on purpose (it would make the spread
 // trivially 0) — this measures the model + USDA pricing, the thing the cache
@@ -66,6 +67,12 @@ function spread(values: number[]): number {
   return mean > 0 ? (Math.max(...values) - Math.min(...values)) / mean : 0;
 }
 
+function median(xs: number[]): number {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+}
+
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
 async function main() {
@@ -85,16 +92,21 @@ async function main() {
   for (const [name, analyze] of analyzers) {
     let found = 0, wanted = 0, kcalErrSum = 0, kcalErrN = 0;
     const spreads: number[] = [];
+    const allSecs: number[] = [];
     console.log(`\n=== ${name} (${runs} run(s) per photo) ===`);
     for (const label of labels) {
       if (!present.has(label.file)) { console.warn(`  skip ${label.file}: not found`); continue; }
       const mime = MIME[extname(label.file).toLowerCase()] ?? 'image/jpeg';
       const b64 = readFileSync(join(dir, label.file)).toString('base64');
       const kcals: number[] = [];
+      const secs: number[] = [];
       let photoFound = 0;
       for (let i = 0; i < runs; i++) {
         try {
+          const t0 = Date.now();
           const r = await analyze(b64, mime);
+          secs.push((Date.now() - t0) / 1000);
+          allSecs.push(secs[secs.length - 1]);
           kcals.push(r.kcal);
           const hit = label.items.filter((it) => itemFound(it, r.names)).length;
           photoFound += hit;
@@ -108,10 +120,10 @@ async function main() {
       const s = spread(kcals);
       spreads.push(s);
       const recall = label.items.length && kcals.length ? photoFound / (label.items.length * kcals.length) : 0;
-      console.log(`  ${label.file}: recall ${pct(recall)}  kcal [${kcals.join(', ')}]  spread ${pct(s)}${label.approxKcal ? `  label ${label.approxKcal}` : ''}`);
+      console.log(`  ${label.file}: recall ${pct(recall)}  kcal [${kcals.join(', ')}]  spread ${pct(s)}  ${secs.map((x) => x.toFixed(1)).join('/')}s${label.approxKcal ? `  label ${label.approxKcal}` : ''}`);
     }
     const meanSpread = spreads.length ? spreads.reduce((a, b) => a + b, 0) / spreads.length : 0;
-    console.log(`  -- item recall ${wanted ? pct(found / wanted) : 'n/a'} | mean same-photo spread ${pct(meanSpread)} | max spread ${pct(Math.max(0, ...spreads))} | kcal vs label MAPE ${kcalErrN ? pct(kcalErrSum / kcalErrN) : 'n/a'}`);
+    console.log(`  -- item recall ${wanted ? pct(found / wanted) : 'n/a'} | mean same-photo spread ${pct(meanSpread)} | max spread ${pct(Math.max(0, ...spreads))} | kcal vs label MAPE ${kcalErrN ? pct(kcalErrSum / kcalErrN) : 'n/a'} | latency median ${median(allSecs).toFixed(1)}s max ${Math.max(0, ...allSecs).toFixed(1)}s`);
   }
 }
 
