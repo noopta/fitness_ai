@@ -27,6 +27,7 @@ jobs:
   ota-dev:
     name: OTA Update → dev channel
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.ref == 'refs/heads/dev'
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +43,7 @@ jobs:
         working-directory: mobileAlt
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_SKIP_AUTO_FINGERPRINT: '1'
         run: |
           npx eas-cli update --branch dev --message "${{ github.event.head_commit.message }}" --non-interactive
 
@@ -49,6 +51,7 @@ jobs:
   ota-production:
     name: OTA Update → production channel
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.ref == 'refs/heads/main' && github.event.inputs.build_production != 'true'
     steps:
       - uses: actions/checkout@v4
@@ -64,6 +67,7 @@ jobs:
         working-directory: mobileAlt
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_SKIP_AUTO_FINGERPRINT: '1'
         run: |
           npx eas-cli update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
 
@@ -75,6 +79,7 @@ jobs:
   ota-backport:
     name: OTA Update → production (backport runtime, iOS)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: startsWith(github.ref, 'refs/heads/backport/')
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +95,7 @@ jobs:
         working-directory: mobileAlt
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_SKIP_AUTO_FINGERPRINT: '1'
           MSG: ${{ github.event.head_commit.message }}
         run: |
           npx eas-cli update --branch production --platform ios --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
