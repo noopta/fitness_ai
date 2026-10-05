@@ -17,11 +17,15 @@ import { programPhases, archiveHref, ArchiveRow } from '../Training';
 import { strengthRead } from '../You';
 import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
-import { nutritionApi, socialApi, groupsApi, trainTogetherApi, paymentsApi, apiFetch } from '../../../lib/api';
+import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
 import { ProfilePage, NotificationsPage, RecipesPage, SavedFoodsPage, PlanPage, ConsentRows } from './agentPages';
 import { NutritionPlanPage, PlanSourcesPage } from './nutritionPlan';
+import { MessagesPage, ThreadPage } from '../feed/Messages';
+import { FeedSearchPage } from '../feed/Search';
+import { SavedPage, PostPage } from '../feed/Saved';
+import { GroupsList, LeaderboardList, TogetherList } from '../feed/lists';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -56,6 +60,11 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'plan': return <PlanPage />;
     case 'fuelplan': return <NutritionPlanPage />;
     case 'plansources': return <PlanSourcesPage />;
+    case 'messages': return <MessagesPage />;
+    case 'thread': return <ThreadPage id={arg} name={params.name} />;
+    case 'feedsearch': return <FeedSearchPage initialScope={params.scope} />;
+    case 'saved': return <SavedPage />;
+    case 'post': return <PostPage id={arg} />;
     default: return <PushedPage back="Back" title="Not here yet" lead="That page hasn't been built in the new shell. Ask Anakin — or open it from the classic screens." />;
   }
 }
@@ -440,7 +449,6 @@ function PrefsPage() {
       <Row name="Profile" sub="What Anakin plans around" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'profile' } } as any)} />
       <Row name="Notifications" sub="Only when Anakin needs you" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'notifications' } } as any)} />
       <Row name="Plan and usage" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'plan' } } as any)} />
-      <Row name="Classic app" sub="The previous tabs, still here" onPress={() => router.push('/(tabs)' as any)} />
       <Row name="Export my data" sub="A link that works for 10 minutes" onPress={() => void exportData()} />
       <Row name="Sign out" onPress={() => Alert.alert('Sign out?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign out', style: 'destructive', onPress: () => void logout() }])} last />
       <Text style={[T.eyebrow, { marginTop: 32, marginBottom: 8 }]}>What Anakin can use</Text>
@@ -452,53 +460,15 @@ function PrefsPage() {
 // ─── Feed ────────────────────────────────────────────────────────────────────
 
 function GroupsPage() {
-  const router = useRouter();
-  const [data, setData] = React.useState<any>(null);
-  React.useEffect(() => { (groupsApi.list() as Promise<any>).then(setData).catch(() => setData({ groups: [] })); }, []);
-  const groups: any[] = data?.groups ?? (Array.isArray(data) ? data : []);
-  return (
-    <PushedPage back="Feed" meta={data ? `${groups.length} group${groups.length === 1 ? '' : 's'}` : null} title="Groups" loading={!data}>
-      {groups.map((g, i) => <Row key={g.id} name={g.name} sub={`${g.memberCount ?? g.members?.length ?? '?'} people`} last={false} onPress={() => router.push(`/groups/${g.id}` as any)} />)}
-      <Row name="Find a group" onPress={() => router.push('/groups' as any)} last />
-    </PushedPage>
-  );
+  return <PushedPage back="Feed" title="Groups"><GroupsList /></PushedPage>;
 }
 
 function LeaderboardPage() {
-  const [data, setData] = React.useState<any>(null);
-  const [lift, setLift] = React.useState<string | null>(null);
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const lifts: any = await socialApi.getLeaderboardLifts();
-        const list: string[] = lifts?.lifts ?? (Array.isArray(lifts) ? lifts : []);
-        const first = list[0] ?? 'deadlift';
-        setLift(first);
-        const r: any = await socialApi.getLeaderboard(String(first));
-        setData(r);
-      } catch { setData({ entries: [] }); }
-    })();
-  }, []);
-  const entries: any[] = data?.entries ?? data?.leaderboard ?? (Array.isArray(data) ? data : []);
-  return (
-    <PushedPage back="Feed" meta={lift ? liftName(lift) : null} title="Leaderboard" lead="By estimated 1RM on the lift, among people you train with." loading={!data}>
-      {entries.slice(0, 20).map((e, i) => <Row key={e.userId ?? e.id ?? i} name={e.name ?? e.username ?? 'Someone'} sub={e.goal ?? e.phase ?? undefined} value={String(e.e1rm ?? e.oneRm ?? e.value ?? e.score ?? e.sessions ?? '—')} bigValue last={i === Math.min(entries.length, 20) - 1} />)}
-      {!entries.length && data ? <Text style={T.bodyMuted}>No one on the board yet this week.</Text> : null}
-    </PushedPage>
-  );
+  return <PushedPage back="Feed" title="Leaderboard" lead="By estimated 1RM on the lift, among people you train with."><LeaderboardList /></PushedPage>;
 }
 
 function TogetherPage() {
-  const router = useRouter();
-  const [data, setData] = React.useState<any>(null);
-  React.useEffect(() => { (trainTogetherApi.getPins() as Promise<any>).then(setData).catch(() => setData({ pins: [] })); }, []);
-  const pins: any[] = data?.pins ?? (Array.isArray(data) ? data : []);
-  return (
-    <PushedPage back="Feed" meta="Near you" title="Train together" loading={!data}>
-      {pins.map((p, i) => <Row key={p.id} name={`${p.hostName ?? p.host?.name ?? 'Someone'} · ${fmtWhen(p.startsAt ?? p.date)}`} sub={[p.sessionName ?? p.title, p.location ?? p.gym].filter(Boolean).join(' · ')} value="Join" last={false} onPress={() => router.push(`/train-together/pin/${p.id}` as any)} />)}
-      <Row name="Post a session" onPress={() => router.push('/train-together' as any)} last />
-    </PushedPage>
-  );
+  return <PushedPage back="Feed" meta="Near you" title="Train together"><TogetherList /></PushedPage>;
 }
 
 function PersonPage({ id, params }: { id: string; params: Record<string, string> }) {
@@ -519,6 +489,5 @@ function PersonPage({ id, params }: { id: string; params: Record<string, string>
 function safeJson(s: string): any { try { return JSON.parse(s); } catch { return {}; } }
 function fmtMonth(d?: string): string { if (!d) return '?'; const x = new Date(d); return Number.isNaN(x.getTime()) ? String(d) : x.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }); }
 function fmtDay(d?: string): string { if (!d) return ''; const x = new Date(d); return Number.isNaN(x.getTime()) ? String(d) : x.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }); }
-function fmtWhen(d?: string): string { if (!d) return ''; const x = new Date(d); return Number.isNaN(x.getTime()) ? String(d) : x.toLocaleDateString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }); }
 function liftName(k?: string): string { return String(k ?? 'Lift').split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
 export { useQueryClient, qk, ReceiptList, TextAction };

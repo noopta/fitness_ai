@@ -1209,12 +1209,15 @@ export const socialApi = {
   // rehydrateAuthors() puts the avatars back before anything downstream sees
   // the data, so PostCard and friends keep reading `sharer.avatarBase64` and
   // need no changes — the dedup exists only on the wire.
-  getFeed: async (opts?: { fresh?: boolean; includeResearch?: boolean }) => {
+  getFeed: async (opts?: { fresh?: boolean; includeResearch?: boolean; before?: string | null; limit?: number }) => {
     const params = new URLSearchParams();
     params.set('slim', '1');
     params.set('authors', '1');
     if (opts?.fresh) params.set('fresh', '1');
     if (opts?.includeResearch === false) params.set('include_research', '0');
+    // v2 Feed paging: the server returns nextCursor; pass it back as `before`.
+    if (opts?.before) params.set('before', opts.before);
+    if (opts?.limit) params.set('limit', String(opts.limit));
     // 15s cap: the default (cached) feed returns in well under a second; if the
     // server is stuck, fail fast with a clean error instead of hanging the tab.
     const res = await apiFetch(`/social/feed?${params.toString()}`, { timeoutMs: 15000 });
@@ -1239,6 +1242,13 @@ export const socialApi = {
       method: 'POST',
       body: JSON.stringify({ recipientId, message }),
     }),
+
+  // Saved posts & workouts (v2 Feed · Saved) and post search
+  savePost: (postId: string) => apiFetch(`/social/posts/${postId}/save`, { method: 'POST' }),
+  unsavePost: (postId: string) => apiFetch(`/social/posts/${postId}/save`, { method: 'DELETE' }),
+  getSaved: (type: 'all' | 'workouts' | 'posts' | 'articles' = 'all') => apiFetch(`/social/saved?type=${type}`),
+  searchPosts: (q: string) => apiFetch(`/social/posts/search?q=${encodeURIComponent(q)}`),
+  getPost: (postId: string) => apiFetch(`/social/posts/${postId}`),
 
   // Reactions
   reactToPost: (postId: string) =>

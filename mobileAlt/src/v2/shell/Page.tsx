@@ -73,6 +73,8 @@ export function AnakinRead({ text, size = 'body', working, dark }: { text: strin
 interface PushedProps {
   back: string;
   meta?: string | null;
+  /** In place of meta: a header action on the right (Messages → "New"). */
+  right?: React.ReactNode;
   eyebrow?: string | null;
   title: string;
   /** Hero number line (64pt) rendered above the read when present. */
@@ -91,7 +93,7 @@ interface PushedProps {
   onRefresh?: () => void;
 }
 
-export function PushedPage({ back, meta, eyebrow, title, hero, lead, children, visual, proposed, cta, foot, onBack, loading, error, onRetry, refreshing, onRefresh }: PushedProps) {
+export function PushedPage({ back, meta, right, eyebrow, title, hero, lead, children, visual, proposed, cta, foot, onBack, loading, error, onRetry, refreshing, onRefresh }: PushedProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const goBack = () => { haptics.select(); if (onBack) onBack(); else if (router.canGoBack()) router.back(); else router.replace('/(v2)' as any); };
@@ -109,7 +111,7 @@ export function PushedPage({ back, meta, eyebrow, title, hero, lead, children, v
           <Pressable onPress={goBack} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Back to ${back}`}>
             <Text style={[T.body, { color: v2.color.muted }]}>← {back}</Text>
           </Pressable>
-          {meta ? <Text style={[T.caption]}>{meta}</Text> : null}
+          {right ?? (meta ? <Text style={[T.caption]}>{meta}</Text> : null)}
         </View>
         <View style={{ height: 28 }} />
         {eyebrow ? <Enter exit={false}><Text style={[T.eyebrow, { marginBottom: 10 }]}>{eyebrow}</Text></Enter> : null}

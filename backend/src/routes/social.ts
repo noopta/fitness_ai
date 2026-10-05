@@ -1484,6 +1484,15 @@ router.get('/social/posts/search', wrap(async (req, res) => {
   res.json({ items });
 }));
 
+// GET /api/social/posts/:id — one post you can see, shaped like a feed item
+// (the v2 post page opens posts from Saved and Search, not just the feed).
+// Registered after /social/posts/search so "search" never reads as an id.
+router.get('/social/posts/:id', wrap(async (req, res) => {
+  const row = await prisma.sharedItem.findUnique({ where: { id: req.params.id }, include: FEED_INCLUDE });
+  if (!row || !(await canViewPost(req.user!.id, row as any))) return res.status(404).json({ error: 'Post not found' });
+  res.json({ post: serializeFeedItem(row, req.user!.id, true) });
+}));
+
 // ─── Comments ─────────────────────────────────────────────────────────────────
 
 // GET /api/social/posts/:id/comments

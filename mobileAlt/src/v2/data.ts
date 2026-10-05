@@ -2,8 +2,8 @@
 // API client so the new screens share caches with each other and the cost
 // of a tab switch is a cache read.
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiFetch, coachApi, nutritionApi, nutritionProfileApi, workoutsApi, socialApi, liftCoachApi, formAnalysisApi, authApi } from '../lib/api';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, coachApi, nutritionApi, nutritionProfileApi, workoutsApi, socialApi, groupsApi, liftCoachApi, formAnalysisApi, authApi } from '../lib/api';
 import { v2Api, type Brief, type TrainingOverview } from './api';
 import { getCached, setCached } from '../lib/cache';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,12 @@ export const qk = {
   // Under 'np' so a logged meal refreshes the plan's coverage.
   nutritionPlan: ['v2', 'np', 'plan'] as const,
   feed: ['v2', 'feed'] as const,
+  feedPages: ['v2', 'feed', 'pages'] as const,
+  socialCounts: ['v2', 'social', 'counts'] as const,
+  conversations: ['v2', 'social', 'conversations'] as const,
+  friendRequests: ['v2', 'social', 'requests'] as const,
+  groups: ['v2', 'social', 'groups'] as const,
+  saved: (type: string) => ['v2', 'social', 'saved', type] as const,
   leaderboard: ['v2', 'leaderboard'] as const,
   workouts: ['v2', 'workouts'] as const,
   diagnostics: ['v2', 'diagnostics'] as const,
@@ -76,6 +82,19 @@ export const useNpWeek = () => useQuery({ queryKey: ['v2', 'np', 'week'], queryF
 export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, undefined, '7d' as any), staleTime: STALE, enabled: !!id });
 export const useNutritionPlan = () => useQuery({ queryKey: qk.nutritionPlan, queryFn: () => v2Api.nutritionPlan(), staleTime: STALE });
 export const useNpNutrient = (key: string) => useQuery({ queryKey: qk.npNutrient(key), queryFn: () => nutritionProfileApi.getNutrient(key, undefined, '7d' as any), staleTime: STALE, enabled: !!key });
+// Feed tab (bug fixes 5 Oct, 3a): friends' posts, 20 a page, paged by the server's cursor.
+export const useFeedPages = () => useInfiniteQuery({
+  queryKey: qk.feedPages,
+  initialPageParam: null as string | null,
+  queryFn: ({ pageParam }) => socialApi.getFeed({ includeResearch: false, before: pageParam, limit: 20 }) as Promise<any>,
+  getNextPageParam: (last: any) => last?.nextCursor ?? undefined,
+  staleTime: STALE,
+});
+export const useSocialCounts = () => useQuery({ queryKey: qk.socialCounts, queryFn: () => socialApi.getNotificationCounts() as Promise<any>, staleTime: 30_000, refetchInterval: 60_000 });
+export const useConversations = () => useQuery({ queryKey: qk.conversations, queryFn: () => socialApi.getConversations() as Promise<any[]>, staleTime: 15_000 });
+export const useFriendRequests = () => useQuery({ queryKey: qk.friendRequests, queryFn: () => socialApi.getFriendRequests() as Promise<any[]>, staleTime: 30_000 });
+export const useGroups = () => useQuery({ queryKey: qk.groups, queryFn: () => groupsApi.list() as Promise<any>, staleTime: STALE });
+export const useSaved = (type: 'all' | 'workouts' | 'posts' | 'articles') => useQuery({ queryKey: qk.saved(type), queryFn: () => socialApi.getSaved(type) as Promise<any>, staleTime: 15_000 });
 export const useFeed = () => useQuery({ queryKey: qk.feed, queryFn: () => socialApi.getFeed({ includeResearch: false }) as Promise<any>, staleTime: STALE });
 export const useWorkouts = () => useQuery({ queryKey: qk.workouts, queryFn: () => workoutsApi.getWorkouts() as Promise<any>, staleTime: STALE });
 export const useMemory = () => useQuery({ queryKey: qk.memory, queryFn: v2Api.memory, staleTime: STALE });

@@ -19,8 +19,10 @@ const PUSHED: Record<string, string | null> = {
   profile: null, notifications: null, recipes: null, savedfoods: null, plan: null,
   // The nutrition plan page and its sources (bug fixes 5 Oct, 2b).
   fuelplan: null, plansources: null,
+  // Feed pages (bug fixes 5 Oct, 3b–3d): Messages, a thread, Search, Saved, a post.
+  messages: null, thread: 'id', feedsearch: null, saved: null, post: 'id',
 };
-const ALIAS: Record<string, string> = { traintogether: 'together', account: 'prefs', usage: 'plan', saved_foods: 'savedfoods', history: 'past', gut: 'systems' };
+const ALIAS: Record<string, string> = { conversation: 'thread', search: 'feedsearch', traintogether: 'together', account: 'prefs', usage: 'plan', saved_foods: 'savedfoods', history: 'past', gut: 'systems' };
 
 export function destinationFor(route: CardRoute): Destination | null {
   const page = ALIAS[route.page] ?? route.page;
@@ -34,8 +36,6 @@ export function destinationFor(route: CardRoute): Destination | null {
   }
   // Classic screens.
   switch (page) {
-    case 'conversation': return { kind: 'push', pathname: '/social/conversation', params: p };
-    case 'messages': return { kind: 'push', pathname: '/social/messages' };
     case 'report': return { kind: 'push', pathname: '/diagnostic/report', params: { sessionId: p.id ?? p.sessionId ?? '' } };
     // The lift diagnostic is a hand-off to its own conversational screen.
     case 'diagnostic': return { kind: 'push', pathname: '/diagnostic/conversation', params: p.id ? { sessionId: p.id } : {} };

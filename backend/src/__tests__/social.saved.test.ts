@@ -116,6 +116,23 @@ describe('GET /social/posts/search', () => {
   });
 });
 
+describe('GET /social/posts/:id', () => {
+  it('returns a post you can see, shaped like a feed item', async () => {
+    sharedItem.findUnique.mockResolvedValue(post('p1', { saves: [{ userId: 'me' }] }));
+    const r = await request(app).get('/api/social/posts/p1');
+    expect(r.status).toBe(200);
+    expect(r.body.post).toMatchObject({ id: 'p1', savedByMe: true, likedByMe: false });
+  });
+  it('404s on one you can’t', async () => {
+    sharedItem.findUnique.mockResolvedValue(post('p1', { sharerId: 'x', recipientId: 'x', visibility: 'hidden' }));
+    expect((await request(app).get('/api/social/posts/p1')).status).toBe(404);
+  });
+  it('does not treat "search" as an id', async () => {
+    await request(app).get('/api/social/posts/search?q=ab');
+    expect(sharedItem.findUnique).not.toHaveBeenCalled();
+  });
+});
+
 describe('feedSaved helpers', () => {
   it('knows a workout post by type or by its exercises', () => {
     expect(isWorkoutPost({ itemType: 'workout', payload: '{}' })).toBe(true);

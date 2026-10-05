@@ -1,75 +1,113 @@
-// Feed (index 3): activity rows — name + what they did + when. Groups,
-// leaderboard and train-together push their own pages. Composing, reactions
-// and comments stay on the v1 Social screen under v2 chrome until redesigned.
+// Feed (index 3) — the tab IS the feed (bug fixes 5 Oct 2026, 3a).
+//
+// Header right: Search · Messages (crimson dot when unread) · Saved, each a
+// pushed page. Under the header, text links swap the list below — Friends
+// (posts, FlashList, cursor-paged) · Groups · N · Leaderboard · Train
+// together. They never push and never swipe: the track owns horizontal
+// gestures. No menu rows, and nothing here routes to the classic tabs.
 
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { T, v2 } from '../theme';
-import { TabPage, PageTitle } from '../shell/Page';
-import { Row } from '../primitives/Row';
-import { Enter } from '../primitives/Enter';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlashList } from '@shopify/flash-list';
+import { v2, T } from '../theme';
+import { headerClearance } from '../shell/Header';
 import { TextAction } from '../primitives/TextAction';
-import { useFeed } from '../data';
+import { useFeedPages, useGroups, useSocialCounts } from '../data';
+import { useUnits } from '../../context/UnitsContext';
+import { FeedHeaderActions, LinkTabs } from './feed/common';
+import { Post, type PostModel } from './feed/Post';
+import { GroupsList, LeaderboardList, TogetherList, groupsOf } from './feed/lists';
 
-function when(iso?: string): string {
-  if (!iso) return '';
-  const ms = Date.now() - new Date(iso).getTime();
-  const m = Math.round(ms / 60000);
-  if (m < 60) return `${Math.max(1, m)} min`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h} h`;
-  const d = Math.round(h / 24);
-  return d === 1 ? 'Yesterday' : `${d} d`;
-}
+type List = 'friends' | 'groups' | 'leaderboard' | 'together';
 
-export function describe(item: any): string {
-  const t = String(item?.itemType ?? item?.type ?? '');
-  const p = item?.payload ?? {};
-  if (item?.caption) return String(item.caption);
-  switch (t) {
-    case 'workout': case 'workout_log': return p.title ? `logged ${p.title}` : 'logged a session';
-    case 'pr': case 'personal_record': return p.exercise ? `hit a PR — ${p.exercise} ${p.weight ?? ''}` : 'hit a PR';
-    case 'program': case 'program_started': return p.goal ? `started a new program — ${p.goal}` : 'started a new program';
-    case 'streak': return p.days ? `${p.days}-day streak` : 'kept the streak';
-    case 'nutrition': case 'meal': return 'logged a meal';
-    default: return p.summary || p.text || t.replace(/_/g, ' ') || 'was active';
-  }
+/** The header's right side on the Feed page. */
+export function FeedHeaderRight() {
+  const counts = useSocialCounts();
+  return <FeedHeaderActions unread={(counts.data?.unreadMessages ?? 0) > 0} />;
 }
 
 export function FeedPage() {
   const router = useRouter();
-  const feed = useFeed();
-  const items: any[] = feed.data?.items ?? feed.data?.feed ?? feed.data?.posts ?? (Array.isArray(feed.data) ? feed.data : []);
-  const social = items.filter((i) => i?.sharer || i?.author || i?.user);
+  const insets = useSafeAreaInsets();
+  const { unit } = useUnits();
+  const [list, setList] = useState<List>('friends');
+  const feed = useFeedPages();
+  const groups = useGroups();
+  const nGroups = groupsOf(groups.data).length;
+
+  const posts = useMemo<PostModel[]>(() => {
+    const seen = new Set<string>();
+    const out: PostModel[] = [];
+    for (const page of feed.data?.pages ?? []) {
+      for (const it of page?.items ?? []) {
+        if (it?.kind !== 'post' || !it.data?.id || seen.has(it.data.id)) continue;
+        seen.add(it.data.id);
+        out.push(it.data);
+      }
+    }
+    return out;
+  }, [feed.data]);
+
+  const openPost = useCallback((p: PostModel) => router.push({ pathname: '/(v2)/p/[key]', params: { key: `post:${p.id}` } } as any), [router]);
+  const openAuthor = useCallback((p: PostModel) => router.push({ pathname: '/(v2)/p/[key]', params: { key: `person:${p.sharer?.id ?? ''}`, name: p.sharer?.name ?? p.sharer?.username ?? '' } } as any), [router]);
+  const renderItem = useCallback(({ item }: { item: PostModel }) => (
+    <Post post={item} unit={unit === 'kg' ? 'kg' : 'lbs'} onOpen={openPost} onComment={openPost} onAuthor={openAuthor} />
+  ), [unit, openPost, openAuthor]);
+
+  const pad = { paddingHorizontal: v2.space.gutter };
+  const bottom = v2.space.tabBarClearance + insets.bottom;
+  const tabs = [
+    { key: 'friends' as const, label: 'Friends' },
+    { key: 'groups' as const, label: nGroups ? `Groups · ${nGroups}` : 'Groups' },
+    { key: 'leaderboard' as const, label: 'Leaderboard' },
+    { key: 'together' as const, label: 'Train together' },
+  ];
+
   return (
-    <TabPage refreshing={feed.isFetching} onRefresh={() => void feed.refetch()}>
-      <PageTitle title="Feed" caption={social.length ? `${social.length} updates from people you follow` : 'People you follow, what they did, when'} />
-      <View style={{ marginTop: 28 }}>
-        {social.length === 0 && !feed.isLoading ? (
-          <View>
-            <Text style={T.bodyMuted}>Nothing yet. Follow someone, or post a session and they'll see it here.</Text>
-            <TextAction muted size={15} onPress={() => router.push('/(tabs)/social' as any)} style={{ marginTop: 10 }}>Open the social screen</TextAction>
-          </View>
-        ) : null}
-        {social.slice(0, 30).map((it, i) => {
-          const who = it.sharer ?? it.author ?? it.user ?? {};
-          const name = who.name || who.username || 'Someone';
-          return (
-            <Enter key={it.id ?? i} index={Math.min(i, 8) + 1} exit={false}>
-              <Row name={name} sub={describe(it)} value={when(it.createdAt)} last={i === social.length - 1}
-                onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `person:${who.id ?? ''}`, name, goal: who.goal ?? '', did: describe(it), whenAt: when(it.createdAt) } } as any)} />
-            </Enter>
-          );
-        })}
-      </View>
-      <View style={{ marginTop: 34 }}>
-        <Row name="Groups" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'groups' } } as any)} />
-        <Row name="Leaderboard" sub="Sessions completed, not weight lifted" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'leaderboard' } } as any)} />
-        <Row name="Train together" sub="Near you" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'together' } } as any)} />
-        <Row name="Messages, search, saved" sub="Opens the social screen" onPress={() => router.push('/(tabs)/social' as any)} last />
-      </View>
-      <Text style={[T.caption, { marginTop: 20, color: v2.color.placeholder }]}>Posting and comments open the social screen for now.</Text>
-    </TabPage>
+    <View style={[styles.page, { paddingTop: headerClearance(insets.top) }]}>
+      <LinkTabs items={tabs} value={list} onChange={setList} style={[pad, { paddingTop: 8, paddingBottom: 4 }]} />
+      {list === 'friends' ? (
+        <FlashList
+          data={posts}
+          keyExtractor={(p) => p.id}
+          renderItem={renderItem}
+          ItemSeparatorComponent={Separator}
+          contentContainerStyle={{ ...pad, paddingBottom: bottom }}
+          onEndReachedThreshold={0.6}
+          onEndReached={() => { if (feed.hasNextPage && !feed.isFetchingNextPage) void feed.fetchNextPage(); }}
+          refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => void feed.refetch()} tintColor={v2.color.muted} />}
+          ListEmptyComponent={feed.isLoading ? <Text style={[T.caption, { marginTop: 18 }]}>Reading…</Text>
+            : feed.isError ? <View style={{ marginTop: 18 }}><Text style={T.bodyMuted}>Couldn’t load the feed.</Text><TextAction onPress={() => void feed.refetch()} style={{ marginTop: 8 }}>Try again</TextAction></View>
+            : <Empty onFind={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'feedsearch' } } as any)} />}
+          ListFooterComponent={feed.isFetchingNextPage ? <Text style={[T.caption, { paddingVertical: 18 }]}>Reading…</Text> : null}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      ) : (
+        <ScrollView contentContainerStyle={{ ...pad, paddingTop: 14, paddingBottom: bottom }} showsVerticalScrollIndicator={false}>
+          {list === 'groups' ? <GroupsList /> : list === 'leaderboard' ? <LeaderboardList /> : <TogetherList />}
+        </ScrollView>
+      )}
+    </View>
   );
 }
+
+function Separator() {
+  return <View style={styles.hairline} />;
+}
+
+function Empty({ onFind }: { onFind: () => void }) {
+  return (
+    <View style={{ marginTop: 18 }}>
+      <Text style={T.bodyMuted}>Nothing yet. Add a friend, or post your next session.</Text>
+      <TextAction size={15} onPress={onFind} style={{ marginTop: 10 }}>Find people</TextAction>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: v2.color.white },
+  hairline: { height: 1, backgroundColor: v2.color.hairline },
+});

@@ -23,9 +23,11 @@ import { useShell } from './ShellContext';
 
 interface Props {
   pages: React.ReactNode[];
+  /** Per-page header right (Feed: Search · Messages · Saved). Fades with the title. */
+  headerRight?: (React.ReactNode | null)[];
 }
 
-export function Track({ pages }: Props) {
+export function Track({ pages, headerRight }: Props) {
   const { width: W } = useWindowDimensions();
   const shell = useShell();
   const { mode } = shell;
@@ -117,7 +119,7 @@ export function Track({ pages }: Props) {
               </View>
             ))}
           </Animated.View>
-          <Header title={title} titleOpacity={titleOpacity} markOpacity={markOpacity} dark={isDark} />
+          <Header title={title} titleOpacity={titleOpacity} markOpacity={markOpacity} dark={isDark} right={headerRight?.[nearest] ?? null} />
           <TabBar position={pos} active={nearest} onSelect={goTo} hidden={barHidden} darkness={darkness} dark={isDark} />
         </Animated.View>
       </GestureDetector>
