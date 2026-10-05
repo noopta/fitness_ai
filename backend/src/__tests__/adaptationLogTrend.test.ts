@@ -6,7 +6,7 @@ import {
   detectLiftSignal, detectSystemicFatigue, detectVolumeBalance, weeklySetsByMuscle, wellnessFlags,
 } from '../adaptation/detectors.js';
 import { planForSignal, buildLogTrendDrafts, variationFor } from '../adaptation/rules/logTrend.js';
-import { computeSuggestion } from '../adaptation/suggestion.js';
+import { computeSuggestion, pendingStale } from '../adaptation/suggestion.js';
 import type { Exposure, PlannedExercise } from '../adaptation/types.js';
 
 const NOW = new Date('2026-10-05T12:00:00Z');
@@ -308,6 +308,31 @@ describe('computeSuggestion (contract 1)', () => {
   it('a pending card backs the suggestion verbatim', () => {
     const pending = { ...appliedRow({ toWeightKg: 85, note: 'pending note' }), id: 'p9', status: 'pending', decidedAt: null };
     expect(computeSuggestion({ ...base, exposures: benchList(), pending: [pending as any] })).toMatchObject({ proposalId: 'p9', weightKg: 85, note: 'pending note' });
+  });
+  it('a pending card goes stale once a later session of the lift is logged, or after 14 days', () => {
+    const card = (createdAgoDays: number) => ({ ...appliedRow({ toWeightKg: 85, note: 'pending note' }), id: 'p9', status: 'pending', decidedAt: null, createdAt: new Date(NOW.getTime() - createdAgoDays * 86400000) });
+    // Created 3 days ago; bench was logged today → stale, the trend wins.
+    expect(computeSuggestion({ ...base, exposures: benchList(), pending: [card(3) as any] })).toMatchObject({ basis: 'trend', weightKg: 82.5, proposalId: null });
+    // Created today (by today's session) → still current, used verbatim.
+    expect(computeSuggestion({ ...base, exposures: benchList(), pending: [card(0) as any] })).toMatchObject({ proposalId: 'p9', weightKg: 85 });
+    // Older than 14 days even with no later session → stale.
+    const quiet = one('Bench Press', [[30, sets(3, 80, 8, 8)], [20, sets(3, 80, 8, 8)]]);
+    expect(pendingStale(new Date(NOW.getTime() - 15 * 86400000), quiet, NOW)).toBe(true);
+    expect(pendingStale(new Date(NOW.getTime() - 13 * 86400000), quiet, NOW)).toBe(false);
+    // A stale card no longer lends its id to a program-target suggestion either.
+    expect(computeSuggestion({ ...base, exposures: benchList(), planned, pending: [card(3) as any] })!.proposalId).toBeNull();
+  });
+  it("judges 'later' and 'today' on the user's local calendar", () => {
+    // Card created 23:30 on Oct 4 in New York (03:30 UTC Oct 5); a session
+    // logged Oct 5 (local) is the next day — the UTC date calls it the same day.
+    const created = new Date('2026-10-05T03:30:00Z');
+    const list = one('Bench Press', [[7, sets(3, 80, 8)], [0, sets(3, 80, 8)]]); // d(0) = 2026-10-05
+    expect(pendingStale(created, list, NOW)).toBe(false);
+    expect(pendingStale(created, list, NOW, (x) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(x))).toBe(true);
+    // Resume gap: 14 days by the UTC date, 13 by a local today one day behind.
+    const away = one('Bench Press', [[27, sets(3, 100, 5)], [14, sets(3, 100, 5)]]);
+    expect(computeSuggestion({ ...base, exposures: away })!.action).toBe('resume');
+    expect(computeSuggestion({ ...base, exposures: away, today: d(1) })!.action).not.toBe('resume');
   });
   it('an applied deload (7 days) turns it into a deload session — same weight, fewer sets', () => {
     const deload = { id: 'd1', kind: 'deload', dedupeKey: 'deload:systemic', status: 'applied', decidedAt: new Date(NOW.getTime() - 2 * 86400000), proposal: { kind: 'deload', keys: ['bench press'], exercises: ['Bench Press'], volumeCutPct: 50, weeks: 1, reason: 'systemic_fatigue' } };

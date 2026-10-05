@@ -32,7 +32,11 @@ vi.mock('@prisma/client', () => ({
         store.proposals.push(row); return row;
       }),
       update: vi.fn(async (args: any) => { const r = store.proposals.find(p => p.id === args.where.id); Object.assign(r, args.data); return r; }),
-      updateMany: vi.fn(async () => ({ count: 0 })),
+      updateMany: vi.fn(async (args: any) => {
+        const rows = store.proposals.filter(p => matches(p, args?.where));
+        for (const r of rows) Object.assign(r, args.data);
+        return { count: rows.length };
+      }),
     };
   }),
 }));
@@ -57,6 +61,7 @@ function matches(row: any, where: any): boolean {
     if (v && typeof v === 'object' && !(v instanceof Date)) {
       const o = v as any;
       if ('in' in o && !o.in.includes(row[k])) return false;
+      if ('not' in o && row[k] === o.not) return false;
       if ('gte' in o && !(row[k] != null && row[k] >= o.gte)) return false;
       if ('lte' in o && !(row[k] != null && row[k] <= o.lte)) return false;
       continue;
@@ -86,7 +91,8 @@ const draft = (key: string, priority = 40, kind = 'next_session') => ({
 const seed = (data: any) => { const row = { id: 'p' + (++store.seq), userId: 'u1', status: 'pending', inverse: null, decidedAt: null, snoozeUntil: null, createdAt: new Date(), evidence: '[]', reasoning: 'r', title: 't', confidence: 0.7, trigger: 'post_workout', ...data, proposal: JSON.stringify(data.proposal ?? {}) }; store.proposals.push(row); return row; };
 
 beforeEach(() => {
-  store.user = { savedProgram: null, unitPreference: 'metric', email: 'a@b.c', prefsJson: null, dailyCalorieTarget: 1800, programStartDate: null, splitLabel: null };
+  // Fixture dates are UTC dates, so the user lives in UTC.
+  store.user = { savedProgram: null, unitPreference: 'metric', email: 'a@b.c', prefsJson: null, dailyCalorieTarget: 1800, programStartDate: null, splitLabel: null, timezone: 'UTC' };
   store.workouts = []; store.proposals = []; store.seq = 0;
   store.flags = { log: false, phase: false };
   store.phase = null; store.confirmed = null;
@@ -170,6 +176,30 @@ describe('apply / undo — new kinds', () => {
     ex = JSON.parse(store.user.savedProgram).phases[0].trainingDays[0].exercises[0];
     expect(ex).toMatchObject({ targetWeightKg: 80, sets: 3 });
   });
+  it('Adjust edits that merely echo the card\'s reps / sets do not overwrite the program prescription', async () => {
+    store.user.savedProgram = JSON.stringify(program());
+    // add_load card: "8" × 3 — the program says "6-8".
+    const row = seed({ kind: 'next_session', dedupeKey: 'lift:bench press', proposal: { ...draft('bench press').proposal } });
+    await decide('u1', row.id, 'apply', { edits: [{ key: 'bench press', targetWeightKg: 82.5, reps: '8', sets: 3 }] });
+    const ex = JSON.parse(store.user.savedProgram).phases[0].trainingDays[0].exercises[0];
+    expect(ex).toMatchObject({ targetWeightKg: 82.5, reps: '6-8', sets: 3 });
+  });
+  it('Adjust edits that change reps / sets do override — in the current phase only', async () => {
+    store.user.savedProgram = JSON.stringify({ phases: [
+      { durationWeeks: 4, trainingDays: [{ day: 'A', exercises: [{ exercise: 'Bench Press', sets: 3, reps: '6-8', targetWeightKg: 80 }] }] },
+      { durationWeeks: 4, trainingDays: [{ day: 'A', exercises: [{ exercise: 'Bench Press', sets: 5, reps: '3', targetWeightKg: 80 }] }] },
+    ] });
+    store.user.programStartDate = new Date(); // week 1 → phase 0
+    const row = seed({ kind: 'next_session', dedupeKey: 'lift:bench press', proposal: { ...draft('bench press').proposal } });
+    await decide('u1', row.id, 'apply', { edits: [{ key: 'bench press', targetWeightKg: 82.5, reps: '6', sets: 4 }] });
+    let phases = JSON.parse(store.user.savedProgram).phases;
+    expect(phases[0].trainingDays[0].exercises[0]).toMatchObject({ reps: '6', sets: 4, targetWeightKg: 82.5 });
+    expect(phases[1].trainingDays[0].exercises[0]).toMatchObject({ reps: '3', sets: 5 });
+    await undo('u1', row.id);
+    phases = JSON.parse(store.user.savedProgram).phases;
+    expect(phases[0].trainingDays[0].exercises[0]).toMatchObject({ reps: '6-8', sets: 3, targetWeightKg: 80 });
+    expect(phases[1].trainingDays[0].exercises[0]).toMatchObject({ reps: '3', sets: 5, targetWeightKg: 80 });
+  });
   it('next_session for a lift not in the program falls back to record-only', async () => {
     store.user.savedProgram = JSON.stringify(program());
     const row = seed({ kind: 'next_session', dedupeKey: 'lift:squat', proposal: { ...draft('squat').proposal } });
@@ -202,6 +232,40 @@ describe('apply / undo — new kinds', () => {
   it('decline is just a decline (the 14-day snooze is enforced at creation)', async () => {
     const row = seed({ kind: 'next_session', dedupeKey: 'lift:a', proposal: draft('a').proposal });
     expect((await decide('u1', row.id, 'decline')).proposal.status).toBe('declined');
+  });
+});
+
+describe('stale pending cards', () => {
+  it('a later session of the lift supersedes its pending card, and a fresh card replaces it', async () => {
+    store.flags.log = true;
+    store.workouts = easierBench();
+    // Card created 3 days ago (after w2, before today's w3).
+    const stale = seed({ kind: 'next_session', dedupeKey: 'lift:bench press', createdAt: new Date(Date.now() - 3 * 86400000), proposal: { ...draft('bench press').proposal, toWeightKg: 90 } });
+    const rows = await runPostWorkout('u1', ['Bench Press']);
+    expect(stale.status).toBe('superseded');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ kind: 'next_session', dedupeKey: 'lift:bench press' });
+    expect(rows[0].proposal).toMatchObject({ toWeightKg: 82.5 });
+  });
+  it('a card created by today\'s session stays pending (and keeps blocking a duplicate)', async () => {
+    store.flags.log = true;
+    store.workouts = easierBench();
+    const current = seed({ kind: 'next_session', dedupeKey: 'lift:bench press', createdAt: new Date(), proposal: draft('bench press').proposal });
+    expect(await runPostWorkout('u1', ['Bench Press'])).toEqual([]);
+    expect(current.status).toBe('pending');
+  });
+  it('the weekly sweep retires cards older than 14 days', async () => {
+    store.flags.log = true;
+    const old = seed({ kind: 'next_session', dedupeKey: 'lift:squat', createdAt: new Date(Date.now() - 20 * 86400000), proposal: { ...draft('squat').proposal } });
+    await runWeeklyForUser('u1');
+    expect(old.status).toBe('superseded');
+  });
+  it('the suggestion ignores a stale pending card until the run retires it', async () => {
+    store.flags.log = true;
+    store.workouts = easierBench();
+    seed({ kind: 'next_session', dedupeKey: 'lift:bench press', createdAt: new Date(Date.now() - 3 * 86400000), proposal: { ...draft('bench press').proposal, toWeightKg: 90 } });
+    const [r] = await lastForExercises('u1', ['Bench Press']);
+    expect(r.suggestion).toMatchObject({ basis: 'trend', weightKg: 82.5, proposalId: null });
   });
 });
 

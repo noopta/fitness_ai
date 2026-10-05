@@ -134,6 +134,45 @@ describe('buildTrainingSummary', () => {
     expect(await buildTrainingSummary('u1', { cachedProfile: () => null })).toBeNull();
   });
 
+  it("anchors on the user's LOCAL today and reads only the 12-week window", async () => {
+    // 03:00 UTC on Oct 5 is still Oct 4 in Los Angeles: the 14-day window
+    // reaches back to Sep 21 there (Sep 22 by the UTC date).
+    mocks.user.findUnique.mockResolvedValue({ unitPreference: 'metric', savedProgram: null, email: 'a@b.c', timezone: 'America/Los_Angeles' });
+    mocks.workoutLog.findMany.mockResolvedValue([...rows(), { id: 'w9', date: '2026-09-21', title: null, exercises: JSON.stringify([ex('Squat', 120, 5)]) }]);
+    const now = new Date('2026-10-05T03:00:00Z');
+    const la = (await buildTrainingSummary('u1', { cachedProfile: () => null, pendingTitles: [], now }))!;
+    expect(la).toContain('4 sessions in the last 14 days');
+    expect(mocks.workoutLog.findMany.mock.calls[0][0].where).toEqual({ userId: 'u1', date: { gte: '2026-07-12' } });
+    mocks.user.findUnique.mockResolvedValue({ unitPreference: 'metric', savedProgram: null, email: 'a@b.c', timezone: 'UTC' });
+    expect(await buildTrainingSummary('u1', { cachedProfile: () => null, pendingTitles: [], now })).toContain('3 sessions in the last 14 days');
+  });
+
+  it('uses pending titles the caller already fetched (no second read)', async () => {
+    const listPendingTitles = vi.fn(async () => ['should not be read']);
+    const out = (await buildTrainingSummary('u1', { cachedProfile: () => null, pendingTitles: ['Try 82.5 kg'], listPendingTitles, now: new Date(`${TODAY}T12:00:00Z`) }))!;
+    expect(out).toContain('"Try 82.5 kg"');
+    expect(listPendingTitles).not.toHaveBeenCalled();
+  });
+
+  it('serves the per-user cache without touching the database, and writes it after a build', async () => {
+    const cache = await import('../services/cacheService.js');
+    (cache.cacheGet as any).mockReturnValueOnce({ text: 'cached summary' });
+    expect(await buildTrainingSummary('u1')).toBe('cached summary');
+    expect(mocks.user.findUnique).not.toHaveBeenCalled();
+    const out = await buildTrainingSummary('u1', { cachedProfile: () => null, pendingTitles: [], now: new Date(`${TODAY}T12:00:00Z`) });
+    expect(cache.cacheSet).toHaveBeenCalledWith('training:summary:u1', { text: out }, 5 * 60 * 1000);
+  });
+
+  it('older history with nothing in the window still summarizes; never-logged is null', async () => {
+    mocks.workoutLog.findMany.mockResolvedValue([]);
+    (mocks.workoutLog as any).count = vi.fn(async () => 12);
+    const out = await buildTrainingSummary('u1', { cachedProfile: () => null, pendingTitles: [], now: new Date(`${TODAY}T12:00:00Z`) });
+    expect(out).toContain('nothing logged in the last 14 days');
+    (mocks.workoutLog as any).count = vi.fn(async () => 0);
+    expect(await buildTrainingSummary('u1', { cachedProfile: () => null, pendingTitles: [], now: new Date(`${TODAY}T12:00:00Z`) })).toBeNull();
+    delete (mocks.workoutLog as any).count;
+  });
+
   it('is gated on freestyle OR logAdaptation', () => {
     expect(trainingSummaryEnabledFor('u1')).toBe(false);
     flags.logAdaptation = true;
@@ -165,6 +204,14 @@ describe('agent context injection', () => {
     expect(text).toContain('## Training log');
     expect(text).toContain('suggest_session');
     expect(text).toContain('how am I doing');
+  });
+
+  it('builds the summary alongside the other reads, reusing the pending titles it fetched', async () => {
+    flags.freestyle = true;
+    mocks.adaptationProposal.findMany.mockResolvedValue([{ title: 'Bench: try 82.5 kg' }]);
+    const ctx = await assembleContext('u1');
+    expect(ctx.trainingSummary).toContain('"Bench: try 82.5 kg"');
+    expect(mocks.adaptationProposal.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('respects the logs consent switch', async () => {

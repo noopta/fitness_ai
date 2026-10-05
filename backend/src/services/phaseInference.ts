@@ -26,10 +26,11 @@ import { PrismaClient } from '@prisma/client';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
 import { buildExposures, makeKeyFn, weeklyBestSeries } from '../adaptation/history.js';
 import { classifyTrend } from '../adaptation/rules/retrofit.js';
-import { daysBetween, dateStr } from '../adaptation/detectors.js';
+import { daysFrom, dateStr } from '../adaptation/detectors.js';
 import { isoWeekKey } from './muscleLedgerService.js';
 import { bodyWeightKg, formatWeight, normalizePreference, type UnitPreference } from './weightUnits.js';
 import { cacheDelete, cacheGet, cacheSet } from './cacheService.js';
+import { todayForTz } from './localDate.js';
 import { TRAINING_PHASES, type ConfirmedPhase, type Exposure, type PhaseResult, type TrainingPhase } from '../adaptation/types.js';
 
 export type { PhaseResult, TrainingPhase, ConfirmedPhase };
@@ -80,15 +81,14 @@ function olsSlope(xs: number[], ys: number[]): number {
 export interface BwPoint { date: string; kg: number }
 
 /** Bodyweight trend over the last `windowDays`: least-squares slope as %/week. */
-export function summarizeBodyweight(points: BwPoint[], now: Date, windowDays = 35): PhaseInput['bodyweight'] {
-  const today = dateStr(now);
+export function summarizeBodyweight(points: BwPoint[], now: Date, windowDays = 35, today = dateStr(now)): PhaseInput['bodyweight'] {
   const pts = points
-    .filter(p => p.kg > 0 && daysBetween(today, p.date) >= 0 && daysBetween(today, p.date) <= windowDays)
+    .filter(p => p.kg > 0 && daysFrom(p.date, today) >= 0 && daysFrom(p.date, today) <= windowDays)
     .sort((a, b) => a.date.localeCompare(b.date));
   if (pts.length < 3) return { pctPerWeek: null, points: pts.length, spanDays: 0, startKg: pts[0]?.kg ?? null, endKg: pts[pts.length - 1]?.kg ?? null, since: null };
-  const spanDays = daysBetween(pts[pts.length - 1].date, pts[0].date);
+  const spanDays = daysFrom(pts[0].date, pts[pts.length - 1].date);
   if (spanDays < 10) return { pctPerWeek: null, points: pts.length, spanDays, startKg: pts[0].kg, endKg: pts[pts.length - 1].kg, since: null };
-  const xs = pts.map(p => daysBetween(p.date, pts[0].date));
+  const xs = pts.map(p => daysFrom(pts[0].date, p.date));
   const ys = pts.map(p => p.kg);
   const slopePerDay = olsSlope(xs, ys);
   const meanKg = ys.reduce((s, y) => s + y, 0) / ys.length;
@@ -101,9 +101,8 @@ export function summarizeBodyweight(points: BwPoint[], now: Date, windowDays = 3
 
 export interface IntakeDay { date: string; kcal: number }
 
-export function summarizeIntake(days: IntakeDay[], now: Date, windowDays = 28): PhaseInput['intake'] {
-  const today = dateStr(now);
-  const full = days.filter(d => d.kcal >= MIN_DAY_KCAL && daysBetween(today, d.date) >= 0 && daysBetween(today, d.date) <= windowDays);
+export function summarizeIntake(days: IntakeDay[], now: Date, windowDays = 28, today = dateStr(now)): PhaseInput['intake'] {
+  const full = days.filter(d => d.kcal >= MIN_DAY_KCAL && daysFrom(d.date, today) >= 0 && daysFrom(d.date, today) <= windowDays);
   if (full.length === 0) return { avgKcal: null, loggedDays: 0 };
   return { avgKcal: Math.round(full.reduce((s, d) => s + d.kcal, 0) / full.length), loggedDays: full.length };
 }
@@ -112,26 +111,24 @@ export function summarizeIntake(days: IntakeDay[], now: Date, windowDays = 28): 
  * Adaptive maintenance: what intake would have held weight flat. Needs ≥14
  * days spanned, ≥10 fully-logged days and ≥3 weigh-ins; null otherwise.
  */
-export function adaptiveMaintenance(days: IntakeDay[], points: BwPoint[], now: Date, windowDays = 28): number | null {
-  const today = dateStr(now);
-  const within = (d: string) => daysBetween(today, d) >= 0 && daysBetween(today, d) <= windowDays;
+export function adaptiveMaintenance(days: IntakeDay[], points: BwPoint[], now: Date, windowDays = 28, today = dateStr(now)): number | null {
+  const within = (d: string) => daysFrom(d, today) >= 0 && daysFrom(d, today) <= windowDays;
   const intake = days.filter(d => d.kcal >= MIN_DAY_KCAL && within(d.date));
   const pts = points.filter(p => p.kg > 0 && within(p.date)).sort((a, b) => a.date.localeCompare(b.date));
   if (intake.length < 10 || pts.length < 3) return null;
-  const span = daysBetween(pts[pts.length - 1].date, pts[0].date);
+  const span = daysFrom(pts[0].date, pts[pts.length - 1].date);
   if (span < 14) return null;
   const avg = intake.reduce((s, d) => s + d.kcal, 0) / intake.length;
-  const slopeKgPerDay = olsSlope(pts.map(p => daysBetween(p.date, pts[0].date)), pts.map(p => p.kg));
+  const slopeKgPerDay = olsSlope(pts.map(p => daysFrom(pts[0].date, p.date)), pts.map(p => p.kg));
   const m = avg - slopeKgPerDay * KCAL_PER_KG;
   return m > 1000 && m < 6000 ? Math.round(m / 10) * 10 : null;
 }
 
 /** Median weekly e1RM trend across the main lifts (≥4 exposures in 8 weeks, top 5 by count). */
-export function summarizeStrength(exposuresByKey: Map<string, Exposure[]>, now: Date): PhaseInput['strength'] {
-  const today = dateStr(now);
+export function summarizeStrength(exposuresByKey: Map<string, Exposure[]>, now: Date, today = dateStr(now)): PhaseInput['strength'] {
   const candidates: Array<{ count: number; pct: number; since: string; weeks: number }> = [];
   for (const list of exposuresByKey.values()) {
-    const recent = list.filter(e => e.e1rmKg > 0 && daysBetween(today, e.date) <= 56 && daysBetween(today, e.date) >= 0);
+    const recent = list.filter(e => e.e1rmKg > 0 && daysFrom(e.date, today) <= 56 && daysFrom(e.date, today) >= 0);
     if (recent.length < 4) continue;
     const series = weeklyBestSeries(recent, isoWeekKey);
     const t = classifyTrend(series);
@@ -151,12 +148,11 @@ export function summarizeStrength(exposuresByKey: Map<string, Exposure[]>, now: 
 }
 
 /** Share of loaded working sets in the last 4 weeks at ≤6 reps / ≥8 reps. */
-export function summarizeRepMix(exposuresByKey: Map<string, Exposure[]>, now: Date): PhaseInput['repMix'] {
-  const today = dateStr(now);
+export function summarizeRepMix(exposuresByKey: Map<string, Exposure[]>, now: Date, today = dateStr(now)): PhaseInput['repMix'] {
   let low = 0, high = 0, total = 0;
   for (const list of exposuresByKey.values())
     for (const e of list) {
-      if (daysBetween(today, e.date) > 28 || daysBetween(today, e.date) < 0) continue;
+      if (daysFrom(e.date, today) > 28 || daysFrom(e.date, today) < 0) continue;
       for (const s of e.sets) {
         if (s.weightKg == null) continue;
         total++;
@@ -168,20 +164,19 @@ export function summarizeRepMix(exposuresByKey: Map<string, Exposure[]>, now: Da
 }
 
 /** Sessions/week (last 4 vs prior 4 weeks), days since the last session, and a recent return from ≥14 days off. */
-export function summarizeFrequency(workoutDates: string[], now: Date): PhaseInput['frequency'] {
-  const today = dateStr(now);
-  const dates = [...new Set(workoutDates)].filter(d => daysBetween(today, d) >= 0).sort().reverse();
-  const inRange = (lo: number, hi: number) => dates.filter(d => { const a = daysBetween(today, d); return a >= lo && a < hi; }).length;
+export function summarizeFrequency(workoutDates: string[], now: Date, today = dateStr(now)): PhaseInput['frequency'] {
+  const dates = [...new Set(workoutDates)].filter(d => daysFrom(d, today) >= 0).sort().reverse();
+  const inRange = (lo: number, hi: number) => dates.filter(d => { const a = daysFrom(d, today); return a >= lo && a < hi; }).length;
   let returnedOn: string | null = null, gapDays: number | null = null;
   for (let i = 0; i < dates.length - 1; i++) {
-    if (daysBetween(today, dates[i]) > 21) break;
-    const g = daysBetween(dates[i], dates[i + 1]);
+    if (daysFrom(dates[i], today) > 21) break;
+    const g = daysFrom(dates[i + 1], dates[i]);
     if (g >= 14) { returnedOn = dates[i]; gapDays = g; }
   }
   return {
     sessionsPerWeek: Math.round((inRange(0, 28) / 4) * 10) / 10,
     prevSessionsPerWeek: Math.round((inRange(28, 56) / 4) * 10) / 10,
-    daysSinceLast: dates.length ? daysBetween(today, dates[0]) : null,
+    daysSinceLast: dates.length ? daysFrom(dates[0], today) : null,
     returnedOn, gapDays,
   };
 }
@@ -338,12 +333,13 @@ export async function inferPhaseDetailed(
     const hit = cacheGet<PhaseResult & { signals: PhaseSignals }>(phaseCacheKey(userId));
     if (hit) return hit;
   }
-  const today = dateStr(now);
-  const since = (days: number) => dateStr(new Date(now.getTime() - days * 86_400_000));
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { coachProfile: true, coachGoal: true, weightKg: true, heightCm: true, dateOfBirth: true, unitPreference: true },
+    select: { coachProfile: true, coachGoal: true, weightKg: true, heightCm: true, dateOfBirth: true, unitPreference: true, timezone: true },
   });
+  // Log / meal / weigh-in dates are the user's local dates.
+  const today = todayForTz(user?.timezone, now);
+  const since = (days: number) => { const d = new Date(`${today}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0, 10); };
   let profile: any = {};
   try { profile = user?.coachProfile ? JSON.parse(user.coachProfile) : {}; } catch { profile = {}; }
 
@@ -371,8 +367,8 @@ export async function inferPhaseDetailed(
   for (const l of legacy) if (!byDay.has(l.date)) byDay.set(l.date, (byDay.get(l.date) ?? 0) + (l.calories || 0));
   const intakeDays: IntakeDay[] = [...byDay.entries()].map(([date, kcal]) => ({ date, kcal }));
 
-  const frequency = summarizeFrequency(workoutDates, now);
-  let maintenanceKcal = adaptiveMaintenance(intakeDays, bwPoints, now);
+  const frequency = summarizeFrequency(workoutDates, now, today);
+  let maintenanceKcal = adaptiveMaintenance(intakeDays, bwPoints, now, 28, today);
   let maintenanceSource: 'adaptive' | 'formula' | null = maintenanceKcal != null ? 'adaptive' : null;
   if (maintenanceKcal == null) {
     try {
@@ -394,11 +390,11 @@ export async function inferPhaseDetailed(
   const result = classifyPhase({
     now,
     unitPref: normalizePreference(user?.unitPreference),
-    strength: summarizeStrength(exposuresByKey, now),
-    bodyweight: summarizeBodyweight(bwPoints, now),
-    intake: summarizeIntake(intakeDays, now),
+    strength: summarizeStrength(exposuresByKey, now, today),
+    bodyweight: summarizeBodyweight(bwPoints, now, 35, today),
+    intake: summarizeIntake(intakeDays, now, 28, today),
     maintenance: { kcal: maintenanceKcal, source: maintenanceSource },
-    repMix: summarizeRepMix(exposuresByKey, now),
+    repMix: summarizeRepMix(exposuresByKey, now, today),
     frequency,
     statedGoal: statedGoalOf(user?.coachGoal, profile),
     confirmed: parseConfirmedPhase(profile),

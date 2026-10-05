@@ -26,7 +26,7 @@
 import { classifyLoad, loadForReps, nextLoad, roundToIncrement } from '../targets.js';
 import { formatWeight, type UnitPreference } from '../../services/weightUnits.js';
 import {
-  detectLiftSignal, detectSystemicFatigue, detectVolumeBalance, weeklySetsByMuscle, daysBetween, dateStr,
+  detectLiftSignal, detectSystemicFatigue, detectVolumeBalance, weeklySetsByMuscle, daysFrom, dateStr,
   type LiftSignal, type WellnessPoint, type SystemicFatigue, type VolumeFinding,
 } from '../detectors.js';
 import type { EvidenceLine, Exposure, ProposalDraft, SuggestionAction, TrainingPhase, NextSessionPayload } from '../types.js';
@@ -393,6 +393,8 @@ export interface LogTrendInput {
   exposuresByKey: Map<string, Exposure[]>;
   unitPref: UnitPreference;
   now: Date;
+  /** The user's local date at `now` (log dates are local). Defaults to `now`'s UTC date. */
+  today?: string;
   phase: TrainingPhase;
   wellness: WellnessPoint[];
   /** Per-lift rules only for these keys (post-workout). Omit = every lift active in 21 days. */
@@ -407,12 +409,11 @@ export interface LogTrendInput {
   volume?: boolean;
 }
 
-export function signalsFor(exposuresByKey: Map<string, Exposure[]>, now: Date, activeDays = 21): LiftSignal[] {
-  const today = dateStr(now);
+export function signalsFor(exposuresByKey: Map<string, Exposure[]>, now: Date, activeDays = 21, today = dateStr(now)): LiftSignal[] {
   const out: LiftSignal[] = [];
   for (const list of exposuresByKey.values()) {
-    if (!list.length || daysBetween(today, list[0].date) > activeDays) continue;
-    out.push(detectLiftSignal(list, now));
+    if (!list.length || daysFrom(list[0].date, today) > activeDays) continue;
+    out.push(detectLiftSignal(list, now, today));
   }
   return out;
 }
@@ -420,16 +421,16 @@ export function signalsFor(exposuresByKey: Map<string, Exposure[]>, now: Date, a
 /** Every log-trend draft for one run, highest priority first. */
 export function buildLogTrendDrafts(input: LogTrendInput): ProposalDraft[] {
   const pref = input.unitPref;
-  const signals = signalsFor(input.exposuresByKey, input.now);
+  const today = input.today ?? dateStr(input.now);
+  const signals = signalsFor(input.exposuresByKey, input.now, 21, today);
   const drafts: ProposalDraft[] = [];
   const covered = new Set<string>(input.skipKeys ?? []);
 
   if (input.systemic !== false) {
-    const sys = detectSystemicFatigue(signals, input.wellness, input.now);
+    const sys = detectSystemicFatigue(signals, input.wellness, input.now, today);
     const touches = !input.keys || sys?.lifts.some(l => input.keys!.has(l.key));
     if (sys && touches && input.phase !== 'rebuilding_consistency') {
-      const today = dateStr(input.now);
-      const also = signals.filter(s => s.lastDate && daysBetween(today, s.lastDate) <= 10).map(s => ({ key: s.key, name: s.name }));
+      const also = signals.filter(s => s.lastDate && daysFrom(s.lastDate, today) <= 10).map(s => ({ key: s.key, name: s.name }));
       const d = systemicDeloadDraft(sys, also, pref);
       drafts.push(d);
       for (const k of (d.proposal as any).keys as string[]) covered.add(k);
@@ -446,7 +447,7 @@ export function buildLogTrendDrafts(input: LogTrendInput): ProposalDraft[] {
   }
 
   if (input.volume) {
-    const findings = detectVolumeBalance(weeklySetsByMuscle(input.exposuresByKey, input.now));
+    const findings = detectVolumeBalance(weeklySetsByMuscle(input.exposuresByKey, input.now, undefined, today));
     // One volume card at a time — the most out-of-band muscle.
     if (findings[0]) drafts.push(volumeDraft(findings[0]));
   }

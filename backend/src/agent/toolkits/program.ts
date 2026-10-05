@@ -7,7 +7,7 @@ import { defineOp } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
 import { getCurrentWeekSchedule, buildSwapProposal, applyProposedWeek, generateProgramForUser, saveProgramForUser, SwapProposalError } from '../../routes/coach.js';
-import { buildPlanPatchProposal, REBUILD_MARKER } from '../applyTools.js';
+import { buildPlanPatchProposal, issueRebuild, REBUILD_MARKER } from '../applyTools.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
 import { cacheDelete, cacheClearByPrefix } from '../../services/cacheService.js';
 import { dayLabel, shiftDate, weight, plural } from '../cards/format.js';
@@ -638,7 +638,9 @@ export const PROGRAM_TOOLS = [
           // Apply goes through confirm-proposal → applyProgramUpdate, which sees
           // the rebuild marker and activates it like "Make this my program".
           _proposal: true, kind: 'program_update', summary, changedDays: firstDays,
-          updatedProgram: { ...program, [REBUILD_MARKER]: { goalChange } },
+          // The marker is only an opaque id; the program + goalChange are kept
+          // server-side (issueRebuild) so the confirm tap can't be forged.
+          updatedProgram: { ...program, [REBUILD_MARKER]: { id: issueRebuild(userId, program, goalChange) } },
         };
       } catch (err: any) {
         if (err?.status === 403) return { proOnly: true, daysPerWeek, durationWeeks, goal: baseGoal ?? null };

@@ -7,15 +7,17 @@
 //      reaches it (then it's done its job)
 //   3. trend-derived           (detectors + planForSignal — the same logic a
 //      card would use, so the sheet and the card never disagree; a pending
-//      card's numbers are used verbatim)
+//      card's numbers are used verbatim while it is still current — see
+//      pendingStale)
 // An applied deload covering the lift (7 days) turns any of these into a
 // deload session — same weight, fewer sets. An accepted volume_balance for
 // the lift's muscle adds / removes a set on trend and applied suggestions.
 
 import { parseRepRange } from './targets.js';
-import { detectLiftSignal, daysBetween, dateStr, GAP_DAYS, primaryMuscleOf } from './detectors.js';
+import { detectLiftSignal, daysFrom, dateStr, GAP_DAYS, primaryMuscleOf } from './detectors.js';
 import { planForSignal, fmtKg, liftDedupeKey } from './rules/logTrend.js';
 import { roundToIncrement } from './targets.js';
+import { todayForTz } from '../services/localDate.js';
 import type { UnitPreference } from '../services/weightUnits.js';
 import type { Exposure, PlannedExercise, ProposalPayload, SuggestionAction, TrainingPhase, NextSessionPayload } from './types.js';
 
@@ -38,6 +40,8 @@ export interface SuggestionProposalRow {
   status: string;
   proposal: ProposalPayload | null;
   decidedAt: Date | null;
+  /** When the card was created — pending rows go stale from here. */
+  createdAt?: Date | null;
 }
 
 export interface SuggestionInput {
@@ -53,20 +57,31 @@ export interface SuggestionInput {
   unitPref: UnitPreference;
   phase: TrainingPhase;
   now: Date;
+  /** The user's local date at `now` (log dates are local). Defaults to `now`'s UTC date. */
+  today?: string;
+  /** User.timezone — turns decidedAt / createdAt into local dates. Omitted = UTC. */
+  timeZone?: string | null;
   plateauStep?: number;
 }
 
 export const APPLIED_TARGET_DAYS = 21;
 export const DELOAD_DAYS = 7;
+/** A pending next_session card older than this no longer describes the lifter. */
+export const PENDING_STALE_DAYS = 14;
 const r2 = (n: number | null) => (n == null ? null : Math.round(n * 100) / 100);
 
 function ageDays(d: Date | null, now: Date): number {
   return d ? (now.getTime() - new Date(d).getTime()) / 86_400_000 : Infinity;
 }
 
+/** Local calendar day of a stored timestamp (UTC when no timezone was given). */
+function localDayFn(timeZone: string | null | undefined): (d: Date) => string {
+  return timeZone === undefined ? dateStr : (d: Date) => todayForTz(timeZone, d);
+}
+
 /** An applied target is used up once a session on/after it reached it. */
-function consumed(p: NextSessionPayload, decidedAt: Date, exposures: Exposure[]): boolean {
-  const from = dateStr(new Date(decidedAt));
+function consumed(p: NextSessionPayload, decidedAt: Date, exposures: Exposure[], dayOf: (d: Date) => string = dateStr): boolean {
+  const from = dayOf(new Date(decidedAt));
   const minReps = parseRepRange(p.reps).min;
   return exposures.some(e =>
     // Strictly after: the session that triggered the card is the one it's
@@ -76,12 +91,30 @@ function consumed(p: NextSessionPayload, decidedAt: Date, exposures: Exposure[])
     e.minReps >= minReps);
 }
 
+/**
+ * A pending next_session card is stale once a later session of that lift has
+ * been logged (the session it was about has been answered — the numbers on
+ * it are out of date) or after PENDING_STALE_DAYS. Stale cards are marked
+ * 'superseded' by the post-workout / weekly runs and ignored here in between.
+ */
+export function pendingStale(
+  createdAt: Date | null | undefined, exposures: Exposure[], now: Date, dayOf: (d: Date) => string = dateStr,
+): boolean {
+  if (!createdAt) return false;
+  if (ageDays(createdAt, now) > PENDING_STALE_DAYS) return true;
+  const from = dayOf(new Date(createdAt));
+  return exposures.some(e => e.date > from);
+}
+
 export function computeSuggestion(input: SuggestionInput): Suggestion | null {
   const { key, name, exposures, planned, unitPref: pref, now } = input;
   if (exposures.length < 2) return null;
   const last = exposures[0];
   const lastTopKg = last.top?.weightKg ?? null;
-  const pendingRow = input.pending.find(p => p.dedupeKey === liftDedupeKey(key) && p.proposal?.kind === 'next_session') ?? null;
+  const dayOf = localDayFn(input.timeZone);
+  const today = input.today ?? dateStr(now);
+  const pendingRow = input.pending.find(p =>
+    p.dedupeKey === liftDedupeKey(key) && p.proposal?.kind === 'next_session' && !pendingStale(p.createdAt, exposures, now, dayOf)) ?? null;
 
   let base: Suggestion;
   let baseAt = 0; // when the base was decided (ms) — a newer deload overrides
@@ -102,7 +135,7 @@ export function computeSuggestion(input: SuggestionInput): Suggestion | null {
       note: `Program: ${fmtKg(target, pref)} × ${reps}${planned.targetRPE != null ? ` @ RPE ${planned.targetRPE}` : ''}`,
       proposalId: pendingRow?.id ?? null,
     };
-  } else if (appliedNext && !consumed(appliedNext.proposal as NextSessionPayload, appliedNext.decidedAt!, exposures)) {
+  } else if (appliedNext && !consumed(appliedNext.proposal as NextSessionPayload, appliedNext.decidedAt!, exposures, dayOf)) {
     const p = appliedNext.proposal as NextSessionPayload;
     base = {
       weightKg: r2(p.toWeightKg), reps: p.reps, sets: p.sets, rpe: p.rpe, action: p.action, basis: 'applied_target',
@@ -114,7 +147,7 @@ export function computeSuggestion(input: SuggestionInput): Suggestion | null {
     const p = pendingRow.proposal as NextSessionPayload;
     base = { weightKg: r2(p.toWeightKg), reps: p.reps, sets: p.sets, rpe: p.rpe, action: p.action, basis: 'trend', note: p.note || '', proposalId: pendingRow.id };
   } else {
-    const away = daysBetween(dateStr(now), last.date);
+    const away = daysFrom(last.date, today);
     if (away >= GAP_DAYS && lastTopKg != null) {
       const to = roundToIncrement(lastTopKg * 0.9, name, pref);
       const reps = String(last.top?.reps ?? last.minReps);
@@ -124,7 +157,7 @@ export function computeSuggestion(input: SuggestionInput): Suggestion | null {
         proposalId: null,
       };
     } else {
-      const sig = detectLiftSignal(exposures, now);
+      const sig = detectLiftSignal(exposures, now, today);
       const plan = planForSignal(sig, pref, { phase: input.phase, plateauStep: input.plateauStep ?? 0 });
       base = { weightKg: r2(plan.toWeightKg), reps: plan.reps, sets: plan.sets, rpe: plan.rpe, action: plan.action, basis: 'trend', note: plan.note, proposalId: null };
     }

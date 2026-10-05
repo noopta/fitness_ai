@@ -10,6 +10,7 @@ import { listPending, listRecent, decide, undo, type ProposalRow } from '../../a
 import { weight, dayLabel } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
+import { PHASE_LABEL } from '../../services/trainingSummary.js';
 
 defineOp({
   name: 'adapt.decide',
@@ -42,6 +43,27 @@ function targetRows(p: ProposalRow, ctx: ToolCtx): { rows: CardRow[]; edits: Rec
   else if (p.kind === 'calibration') add(pay.key, pay.exercise ?? pay.key, null, pay.targetWeightKg, pay.targetRPE ? ` · RPE ${pay.targetRPE}` : '');
   else if (p.kind === 'set_targets' || p.kind === 'retrofit') for (const t of (pay.targets ?? []).slice(0, 8)) add(t.key, t.exercise ?? t.name ?? t.key, t.fromWeightKg ?? null, t.targetWeightKg, t.targetRPE ? ` · RPE ${t.targetRPE}` : '');
   else if (p.kind === 'program_from_logs') for (const ph of (pay.program?.phases ?? []).slice(0, 4)) rows.push({ key: ph.phaseName, value: `${ph.durationWeeks ?? '—'} wk` });
+  // Freestyle-release kinds: the numbers before Apply, every time.
+  else if (p.kind === 'next_session') {
+    const name = pay.exercise ?? pay.key;
+    if (pay.toWeightKg != null) add(pay.key, name, pay.fromWeightKg, pay.toWeightKg);
+    else rows.push({ key: name, value: 'Bodyweight', mark: 'chg' });
+    rows.push({ key: 'Sets × reps', value: `${pay.sets ?? '—'} × ${pay.reps ?? '—'}${pay.rpe != null ? ` @ RPE ${pay.rpe}` : ''}`, mark: 'chg' });
+  } else if (p.kind === 'deload') {
+    const names: string[] = pay.exercises ?? pay.keys ?? [];
+    rows.push({ key: 'Lifts', value: `${names.slice(0, 4).join(', ')}${names.length > 4 ? ` +${names.length - 4} more` : ''}` || '—' });
+    rows.push({ key: 'Volume', value: `−${pay.volumeCutPct ?? 40}% sets for ${pay.weeks ?? 1} week${(pay.weeks ?? 1) === 1 ? '' : 's'}`, sub: 'same weights, fewer sets', mark: 'chg' });
+  } else if (p.kind === 'volume_balance') {
+    const muscle = String(pay.muscle ?? 'muscle');
+    rows.push({ key: `${muscle[0].toUpperCase()}${muscle.slice(1)} · hard sets / week`, value: `${pay.suggestedSets ?? '—'}`, sub: pay.currentSets != null ? `now ${pay.currentSets}` : undefined, mark: 'chg' });
+  } else if (p.kind === 'phase_confirm') {
+    const label = (ph: string | null | undefined) => (ph ? PHASE_LABEL[ph] ?? ph : null);
+    const was = label(pay.previous);
+    rows.push({ key: 'Training phase', value: label(pay.phase) ?? '—', sub: was ? `was ${was}` : undefined, mark: 'chg' });
+  } else if (p.kind === 'calorie_adjust') {
+    const kcal = (n: number | null | undefined) => (n != null ? `${Math.round(n).toLocaleString('en-US')} kcal` : '—');
+    rows.push({ key: 'Daily calories', value: kcal(pay.toKcal), sub: pay.fromKcal != null ? `was ${kcal(pay.fromKcal)}` : undefined, mark: 'chg' });
+  }
   return { rows, edits };
 }
 

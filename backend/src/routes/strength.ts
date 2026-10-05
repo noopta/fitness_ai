@@ -10,6 +10,8 @@ import { e1rmWithRpe } from '../engine/e1rm.js';
 import { buildAthleteModel } from '../services/athleteModelService.js';
 import { workingSets } from '../adaptation/history.js';
 import { liftResolver, toLedgerExercises, type RawExercise } from '../services/liftCanonical.js';
+import { trainingSummaryCacheKey } from '../services/trainingSummary.js';
+import { phaseCacheKey } from '../services/phaseInference.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -65,9 +67,13 @@ export async function computeStrengthProfile(userId: string) {
   // new one. Display name + classification come from the same lookup.
   const liftNames = liftResolver(allNorms);
 
+  // Keyed by the resolver's stable `key`, never by the display name: the
+  // display name can change mid-pass (an unknown spelling seen first, a known
+  // one later) and keying by it split one lift into two entries.
   const liftDayBest = new Map<string, Map<string, number>>();
   const liftTonnage = new Map<string, number>();
   const liftMeta = new Map<string, { category: string; primaryMuscle: string; isCompound: boolean }>();
+  const liftDisplay = new Map<string, string>();
   const categoryVolume = new Map<string, number>();
   // Parsed once; reused by month tonnage and the athlete model below.
   const parsedLogs = logs.map((log) => ({ date: log.date, exercises: parseExercises(log.exercises) }));
@@ -79,9 +85,11 @@ export async function computeStrengthProfile(userId: string) {
       const loaded = workingSets(ex).filter(s => s.weightKg != null);
       if (loaded.length === 0) continue;
 
-      const { canonical, meta } = liftNames.of(ex.name);
-      if (meta && !liftMeta.has(canonical)) {
-        liftMeta.set(canonical, { category: meta.category, primaryMuscle: meta.primaryMuscle, isCompound: meta.isCompound });
+      const { key, canonical, meta } = liftNames.of(ex.name);
+      // Last write wins = the settled display name for this key.
+      liftDisplay.set(key, canonical);
+      if (meta && !liftMeta.has(key)) {
+        liftMeta.set(key, { category: meta.category, primaryMuscle: meta.primaryMuscle, isCompound: meta.isCompound });
       }
 
       // RPE-aware e1RM per set: credits reps left in the tank (logged RPE, or
@@ -95,13 +103,13 @@ export async function computeStrengthProfile(userId: string) {
       }
 
       if (oneRM > 0) {
-        if (!liftDayBest.has(canonical)) liftDayBest.set(canonical, new Map());
-        const dayMap = liftDayBest.get(canonical)!;
+        if (!liftDayBest.has(key)) liftDayBest.set(key, new Map());
+        const dayMap = liftDayBest.get(key)!;
         const prev = dayMap.get(log.date) ?? 0;
         if (oneRM > prev) dayMap.set(log.date, oneRM);
       }
 
-      liftTonnage.set(canonical, (liftTonnage.get(canonical) ?? 0) + tonnage);
+      liftTonnage.set(key, (liftTonnage.get(key) ?? 0) + tonnage);
 
       const cat = meta?.category ?? 'push';
       categoryVolume.set(cat, (categoryVolume.get(cat) ?? 0) + tonnage);
@@ -116,7 +124,8 @@ export async function computeStrengthProfile(userId: string) {
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
   const sixtyKey = sixtyDaysAgo.toISOString().split('T')[0];
 
-  const lifts = Array.from(liftDayBest.entries()).map(([canonical, dayMap]) => {
+  const lifts = Array.from(liftDayBest.entries()).map(([key, dayMap]) => {
+    const canonical = liftDisplay.get(key) ?? key;
     const sortedDays = Array.from(dayMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     const current1RM = sortedDays[sortedDays.length - 1]?.[1] ?? 0;
 
@@ -138,7 +147,7 @@ export async function computeStrengthProfile(userId: string) {
       .slice(-8)
       .map(([week, rm]) => ({ week, rm, rmLbs: kgToLbs(rm) }));
 
-    const meta = liftMeta.get(canonical);
+    const meta = liftMeta.get(key);
     const forecast = forecastFromSeries(weekSeries);
 
     return {
@@ -149,7 +158,7 @@ export async function computeStrengthProfile(userId: string) {
       current1RMkg: current1RM,
       current1RMLbs: kgToLbs(current1RM),
       monthlyGainPct,
-      totalTonnageKg: Math.round(liftTonnage.get(canonical) ?? 0),
+      totalTonnageKg: Math.round(liftTonnage.get(key) ?? 0),
       sessionCount: sortedDays.length,
       weekSeries,
       // v2 lift-history page + bench chat card: where the e1RM lands in six
@@ -308,6 +317,9 @@ export function recomputeStrengthProfileInBackground(userId: string): void {
   // Evict the stale cache after a workout mutation, then recompute and
   // re-warm so the next profile request is a cache hit.
   cacheDelete(CACHE_KEY(userId));
+  // The agent's training summary and the inferred phase read the same logs.
+  cacheDelete(trainingSummaryCacheKey(userId));
+  cacheDelete(phaseCacheKey(userId));
 
   computeStrengthProfile(userId)
     .then(profile => {

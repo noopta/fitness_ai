@@ -87,8 +87,10 @@ function mode(xs: number[]): number {
   return best;
 }
 
-function isoDateDaysAgo(now: Date, days: number): string {
-  const d = new Date(now.getTime() - days * 86400000);
+/** `days` before the user's local today (ctx.today), else before `now`'s UTC date. */
+function isoDateDaysAgo(ctx: Pick<AdaptationContext, 'now' | 'today'>, days: number): string {
+  const d = ctx.today ? new Date(`${ctx.today}T00:00:00Z`) : new Date(ctx.now.getTime());
+  d.setUTCDate(d.getUTCDate() - days);
   return d.toISOString().slice(0, 10);
 }
 
@@ -127,7 +129,7 @@ export interface InferredProgram {
  * exposures. Null when there isn't enough loaded history to say anything.
  */
 export function inferProgramFromContext(ctx: AdaptationContext): InferredProgram | null {
-  const cutoff = isoDateDaysAgo(ctx.now, WINDOW_WEEKS * 7);
+  const cutoff = isoDateDaysAgo(ctx, WINDOW_WEEKS * 7);
   const byWorkout = new Map<string, SessionView>();
   for (const list of ctx.exposuresByKey.values()) {
     for (const e of list) {
@@ -293,7 +295,7 @@ export function buildInferredProgramProposal(ctx: AdaptationContext, reason: 'no
 /** True when the lifter has a program but their recent sessions don't use it. */
 export function programLooksAbandoned(ctx: AdaptationContext, minSessions = 3, windowDays = 21, maxOverlap = 0.3): boolean {
   if (!ctx.program || ctx.planned.length === 0) return false;
-  const cutoff = isoDateDaysAgo(ctx.now, windowDays);
+  const cutoff = isoDateDaysAgo(ctx, windowDays);
   const plannedKeys = new Set(ctx.planned.map(p => p.key));
   const byWorkout = new Map<string, Set<string>>();
   for (const [key, list] of ctx.exposuresByKey) {

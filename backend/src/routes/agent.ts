@@ -257,7 +257,8 @@ router.post('/coach/agent/confirm-proposal', requireAuth, requireAgentAccess, as
 
     // program_update path — updatedProgram is present (existing behavior).
     if (parsed.updatedProgram && typeof parsed.updatedProgram === 'object') {
-      const result = await applyProgramUpdate(req.user!.id, parsed.updatedProgram);
+      // The user's tap: a rebuild marker may activate its server-side record.
+      const result = await applyProgramUpdate(req.user!.id, parsed.updatedProgram, { allowRebuild: true });
       return res.json({ ...result, kind: 'program_update' });
     }
 

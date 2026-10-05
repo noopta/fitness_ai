@@ -209,3 +209,45 @@ describe('coaching profile canonical keys', () => {
     expect(blob.injuryList).toHaveLength(2);
   });
 });
+
+describe('adaptation cards show the numbers before Apply (every kind)', () => {
+  const ctx = (unit: 'metric' | 'imperial') => ({ userId: 'u1', unit, tz: 'UTC', today: '2026-10-05' });
+  const row = (kind: string, proposal: any) => ({
+    id: 'p1', kind, dedupeKey: `k:${kind}`, title: 't', evidence: [], reasoning: 'r', proposal: { kind, ...proposal },
+    inverse: null, confidence: 0.7, status: 'pending', trigger: 'weekly', createdAt: new Date(), decidedAt: null, snoozeUntil: null,
+  }) as any;
+  const card = async (kind: string, proposal: any, unit: 'metric' | 'imperial' = 'metric') => {
+    const { adaptationCard } = await import('../agent/toolkits/adaptation.js');
+    return adaptationCard(row(kind, proposal), ctx(unit));
+  };
+
+  it('next_session: from → to in the user unit (editable) + sets × reps', async () => {
+    const c = await card('next_session', { key: 'bench press', exercise: 'Bench Press', action: 'add_load', fromWeightKg: 80, toWeightKg: 82.5, reps: '8', sets: 3, rpe: 8 }, 'imperial');
+    expect(c.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'Bench Press', value: '182 lb', sub: 'was 176 lb', editable: expect.anything() }),
+      expect.objectContaining({ key: 'Sets × reps', value: '3 × 8 @ RPE 8' }),
+    ]));
+    const bw = await card('next_session', { key: 'pull up', exercise: 'Pull-Up', action: 'add_rep', fromWeightKg: null, toWeightKg: null, reps: '9', sets: 3, rpe: null });
+    expect(bw.rows!.map((r) => [r.key, r.value])).toEqual([['Pull-Up', 'Bodyweight'], ['Sets × reps', '3 × 9']]);
+  });
+
+  it('deload: the lifts and the volume cut', async () => {
+    const c = await card('deload', { keys: ['bench press', 'squat'], exercises: ['Bench Press', 'Squat'], volumeCutPct: 40, weeks: 1, reason: 'systemic_fatigue' });
+    expect(c.rows!.map((r) => [r.key, r.value])).toEqual([['Lifts', 'Bench Press, Squat'], ['Volume', '−40% sets for 1 week']]);
+  });
+
+  it('volume_balance: muscle sets current → suggested', async () => {
+    const c = await card('volume_balance', { muscle: 'chest', currentSets: 6, suggestedSets: 10, direction: 'add', note: '' });
+    expect(c.rows).toEqual([expect.objectContaining({ key: 'Chest · hard sets / week', value: '10', sub: 'now 6' })]);
+  });
+
+  it('phase_confirm: the phase (and the one it replaces)', async () => {
+    const c = await card('phase_confirm', { phase: 'cutting', previous: 'building_muscle', evidence: [] });
+    expect(c.rows).toEqual([expect.objectContaining({ key: 'Training phase', value: 'cutting', sub: 'was building muscle' })]);
+  });
+
+  it('calorie_adjust: kcal from → to', async () => {
+    const c = await card('calorie_adjust', { fromKcal: 1800, toKcal: 2050, reason: 'cut_too_aggressive' });
+    expect(c.rows).toEqual([expect.objectContaining({ key: 'Daily calories', value: '2,050 kcal', sub: 'was 1,800 kcal' })]);
+  });
+});

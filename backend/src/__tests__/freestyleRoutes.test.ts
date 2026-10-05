@@ -100,7 +100,8 @@ const w = (id: string, ago: number, names: Array<[string, number, number]>, titl
 beforeEach(() => {
   store.workouts = []; store.norm = []; store.completed = []; store.phaseSet = []; store.decideArgs = null;
   store.flags = { freestyle: false, phase: false, log: false };
-  store.user = { savedProgram: null, programStartDate: null, unitPreference: 'metric', splitLabel: null };
+  // Fixture dates are UTC dates, so the user lives in UTC (log dates are the user's local dates).
+  store.user = { savedProgram: null, programStartDate: null, unitPreference: 'metric', splitLabel: null, timezone: 'UTC' };
 });
 
 describe('exercise picker (contract 2)', () => {

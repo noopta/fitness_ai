@@ -151,6 +151,43 @@ describe('applyTargetsToProgram', () => {
     const { program: next } = applyTargetsToProgram(p, [{ key: 'bench press', targetWeightKg: 80 }], keyFn, 't0');
     expect(next.weeks[0].days[0].sessions[0].targetWeightKg).toBe(80);
   });
+  it('reps / sets go only into the given phase; undo restores every location exactly', () => {
+    const keyFn = makeKeyFn();
+    const p: any = {
+      goal: 'strength',
+      phases: [
+        { durationWeeks: 1, trainingDays: [
+          { day: 'A', exercises: [{ exercise: 'Bench Press', sets: 4, reps: '6-8' }] },
+          { day: 'B', exercises: [{ exercise: 'Bench Press', sets: 3, reps: '10-12' }] },
+        ] },
+        { durationWeeks: 1, trainingDays: [{ day: 'A', exercises: [{ exercise: 'Bench Press', sets: 5, reps: '3' }] }] },
+      ],
+    };
+    p.weeks = [
+      { weekNumber: 1, days: [{ day: 'A', sessions: [{ exercise: 'Bench Press', sets: 4, reps: '6-8' }] }] },
+      { weekNumber: 2, days: [{ day: 'A', sessions: [{ exercise: 'Bench Press', sets: 5, reps: '3' }] }] },
+    ];
+    const { program: next, previous } = applyTargetsToProgram(p, [{ key: 'bench press', targetWeightKg: 80, reps: '8-10', sets: 4, phaseIndex: 0 }], keyFn, 't0');
+    // Current phase (0): both days rewritten.
+    expect(next.phases[0].trainingDays.map((d: any) => [d.exercises[0].sets, d.exercises[0].reps])).toEqual([[4, '8-10'], [4, '8-10']]);
+    // Other phase keeps its prescription; the load target still applies everywhere (as before).
+    expect(next.phases[1].trainingDays[0].exercises[0]).toMatchObject({ sets: 5, reps: '3', targetWeightKg: 80 });
+    expect(next.weeks[0].days[0].sessions[0]).toMatchObject({ sets: 4, reps: '8-10' });
+    expect(next.weeks[1].days[0].sessions[0]).toMatchObject({ sets: 5, reps: '3' });
+    // Previous: one entry per location written, with that location's own values.
+    expect(previous[0].reps).toBeUndefined();
+    expect(previous[0].prescriptionAt).toEqual([
+      { at: { phase: 0, day: 0, ex: 0 }, reps: '6-8', sets: 4 },
+      { at: { phase: 0, day: 1, ex: 0 }, reps: '10-12', sets: 3 },
+      { at: { week: 0, day: 0, ex: 0 }, reps: '6-8', sets: 4 },
+    ]);
+    // Undo puts every occurrence back exactly — including the day that had 3 × 10-12.
+    const { program: back } = applyTargetsToProgram(next, previous, keyFn, 't1');
+    expect(back.phases[0].trainingDays.map((d: any) => [d.exercises[0].sets, d.exercises[0].reps])).toEqual([[4, '6-8'], [3, '10-12']]);
+    expect(back.phases[1].trainingDays[0].exercises[0]).toMatchObject({ sets: 5, reps: '3' });
+    expect(back.weeks[0].days[0].sessions[0]).toMatchObject({ sets: 4, reps: '6-8' });
+    expect(back.phases[0].trainingDays[0].exercises[0]).not.toHaveProperty('targetWeightKg');
+  });
   it('a load_change on an exercise already carrying a target records the old load as previous', () => {
     const keyFn = makeKeyFn();
     const { program: seeded } = applyTargetsToProgram(program(), [{ key: 'bench press', targetWeightKg: 80 }], keyFn, 't0');

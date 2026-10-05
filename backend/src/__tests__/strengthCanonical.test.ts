@@ -108,6 +108,21 @@ describe('computeStrengthProfile (per-set + canonical names)', () => {
     expect(p.lifts[0].sessionCount).toBe(2);
   });
 
+  it('keeps one lift when its display name settles mid-pass (unknown spelling first)', async () => {
+    // 'zercher squat' is unknown to the seed (display = raw); the DB row seen
+    // later names the same key 'Zercher Squat'. Keyed by display name, the
+    // pass used to split this into two lifts.
+    mocks.exerciseNormalization.findMany.mockResolvedValue([{ rawName: 'ZS', canonicalName: 'Zercher Squat', category: 'legs', primaryMuscle: 'quads', isCompound: true }]);
+    mocks.workoutLog.findMany.mockResolvedValue([
+      { date: '2026-09-01', exercises: JSON.stringify([{ name: 'zercher squat', sets: 1, reps: '5', weightKg: 80 }]) },
+      { date: '2026-09-08', exercises: JSON.stringify([{ name: 'ZS', sets: 1, reps: '5', weightKg: 90 }]) },
+    ]);
+    const p: any = await computeStrengthProfile('u1');
+    expect(p.lifts).toHaveLength(1);
+    expect(p.lifts[0]).toMatchObject({ canonicalName: 'Zercher Squat', sessionCount: 2, category: 'legs', isCompound: true });
+    expect(p.lifts[0].totalTonnageKg).toBe(80 * 5 + 90 * 5);
+  });
+
   it('skips bodyweight-only sets and survives unparseable logs', async () => {
     mocks.workoutLog.findMany.mockResolvedValue([
       { date: '2026-09-01', exercises: 'not json' },
@@ -122,6 +137,9 @@ describe('computeStrengthProfile (per-set + canonical names)', () => {
     mocks.workoutLog.findMany.mockResolvedValue([]);
     recomputeStrengthProfileInBackground('u1');
     expect(cacheDelete).toHaveBeenCalledWith('strength:profile:u1');
+    // A logged workout also drops the agent's training summary and the inferred phase.
+    expect(cacheDelete).toHaveBeenCalledWith('training:summary:u1');
+    expect(cacheDelete).toHaveBeenCalledWith('phase:u1');
   });
 });
 

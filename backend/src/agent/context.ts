@@ -25,16 +25,33 @@ export async function assembleContext(userId: string): Promise<UserContext> {
   const date = todayStr();
 
   // Run the independent reads in parallel — they don't depend on each other.
-  const [user, meals, bwLogs, wellness, memory, pendingAdaptation] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        name: true, email: true, tier: true, heightCm: true, weightKg: true,
-        unitPreference: true,
-        trainingAge: true, equipment: true, constraintsText: true,
-        coachGoal: true, coachBudget: true, coachProfile: true,
-      },
-    }),
+  const userP = prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      name: true, email: true, tier: true, heightCm: true, weightKg: true,
+      unitPreference: true,
+      trainingAge: true, equipment: true, constraintsText: true,
+      coachGoal: true, coachBudget: true, coachProfile: true,
+    },
+  });
+  // Promise.resolve wrapper: tolerate test mocks / old clients where the
+  // adaptationProposal model doesn't exist (sync throw, not a rejection).
+  const pendingP = Promise.resolve()
+    .then(() => prisma.adaptationProposal.findMany({ where: { userId, status: 'pending' }, orderBy: { createdAt: 'desc' }, take: 3, select: { title: true } }))
+    .catch(() => [] as Array<{ title: string }>);
+  // Workout history (contract 7) — behind the freestyle / log-adaptation
+  // flags, and only when the user hasn't switched off log access. Runs
+  // alongside the other reads (it only needs the user row for its gate) and
+  // reuses the pending titles fetched here. Fails soft: null means the block
+  // is simply left out.
+  const summaryP = Promise.all([userP, pendingP])
+    .then(([u, pending]) => (u && parseConsent(u.coachProfile).logs !== false && trainingSummaryEnabledFor(userId, u.email)
+      ? buildTrainingSummary(userId, { pendingTitles: pending.map((p) => p.title) })
+      : null))
+    .catch(() => null);
+
+  const [user, meals, bwLogs, wellness, memory, pendingAdaptation, trainingSummary] = await Promise.all([
+    userP,
     prisma.mealEntry.findMany({
       where: { userId, date },
       select: { calories: true, proteinG: true, carbsG: true, fatG: true },
@@ -49,22 +66,12 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       orderBy: { date: 'desc' },
     }),
     readMemory(userId),
-    // Promise.resolve wrapper: tolerate test mocks / old clients where the
-    // adaptationProposal model doesn't exist (sync throw, not a rejection).
-    Promise.resolve()
-      .then(() => prisma.adaptationProposal.findMany({ where: { userId, status: 'pending' }, orderBy: { createdAt: 'desc' }, take: 3, select: { title: true } }))
-      .catch(() => [] as Array<{ title: string }>),
+    pendingP,
+    summaryP,
   ]);
 
   if (!user) throw new Error('User not found');
   const consent = parseConsent(user.coachProfile);
-
-  // Workout history (contract 7) — behind the freestyle / log-adaptation
-  // flags, and only when the user hasn't switched off log access. Fails soft:
-  // null means the block is simply left out.
-  const trainingSummary = consent.logs !== false && trainingSummaryEnabledFor(userId, user.email)
-    ? await buildTrainingSummary(userId).catch(() => null)
-    : null;
 
   // Today's nutrition rollup.
   const todayNutrition = consent.nutrition && meals.length

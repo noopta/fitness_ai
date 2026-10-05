@@ -171,6 +171,11 @@ export function extractPlannedExercises(program: any, keyFn: KeyFn): PlannedExer
   return [...byKey.values()];
 }
 
+/** Where one exercise sits in the program: the `phases` tree or the legacy `weeks` view. */
+export type ExerciseLocation =
+  | { phase: number; day: number; ex: number }
+  | { week: number; day: number; ex: number };
+
 export interface TargetWrite {
   key: string;
   targetWeightKg: number | null;
@@ -178,14 +183,33 @@ export interface TargetWrite {
   confidence?: number | null;
   basis?: string | null;
   /** Optional prescription changes (next_session add_set / rep-range shift).
-   *  Only written — and only recorded in `previous` — when present. */
+   *  Only written when present, and only inside `phaseIndex` when given. */
   reps?: string;
   sets?: number;
+  /** Restrict reps / sets writes to this phase (index into program.phases).
+   *  Load targets still go everywhere the lift appears (as they always have). */
+  phaseIndex?: number;
+  /** Undo only: the exact reps / sets each location had before, restored
+   *  location by location (an occurrence that has since changed lift is left alone). */
+  prescriptionAt?: Array<{ at: ExerciseLocation; reps?: string; sets?: number }>;
+}
+
+/** Phase index for each entry of the legacy `weeks` view (phases expanded by duration). */
+function weekPhaseIndex(program: any): number[] {
+  const out: number[] = [];
+  (program?.phases ?? []).forEach((ph: any, i: number) => {
+    const n = Math.max(1, Math.round(Number(ph?.durationWeeks ?? ph?.weeks ?? 1)) || 1);
+    for (let w = 0; w < n; w++) out.push(i);
+  });
+  return out;
 }
 
 /**
  * Return a DEEP COPY of the program with targets written onto every exercise
  * whose key matches, plus the previous values so the change can be undone.
+ * Reps / sets changes stay inside the write's phase (the current phase, as
+ * propose_program_edit defaults), and their previous values are recorded per
+ * location so undo puts every occurrence back exactly.
  */
 export function applyTargetsToProgram(
   program: any,
@@ -196,8 +220,9 @@ export function applyTargetsToProgram(
   const copy = JSON.parse(JSON.stringify(program ?? {}));
   const wanted = new Map(targets.map(t => [t.key, t]));
   const previous = new Map<string, TargetWrite>();
+  const weekPhase = weekPhaseIndex(copy);
   let touched = 0;
-  const writeTo = (ex: any) => {
+  const writeTo = (ex: any, at: ExerciseLocation, phaseIdx: number | null) => {
     const name = String(ex?.exercise ?? ex?.name ?? '').trim();
     const key = keyFn(name);
     const t = wanted.get(key);
@@ -209,12 +234,31 @@ export function applyTargetsToProgram(
         targetRPE: typeof ex.targetRPE === 'number' ? ex.targetRPE : null,
         confidence: typeof ex.targetConfidence === 'number' ? ex.targetConfidence : null,
         basis: ex.targetBasis ?? null,
-        ...(t.reps !== undefined ? { reps: String(ex.reps ?? '') } : {}),
-        ...(t.sets !== undefined ? { sets: Number(ex.sets) || 0 } : {}),
       });
     }
-    if (t.reps !== undefined && t.reps !== '') ex.reps = t.reps;
-    if (t.sets !== undefined && t.sets > 0) ex.sets = t.sets;
+    // Undo of a prescription change: exact per-location restore.
+    if (t.prescriptionAt) {
+      const sameAt = (a: ExerciseLocation, b: ExerciseLocation) =>
+        a.day === b.day && a.ex === b.ex && ('phase' in a ? 'phase' in b && a.phase === b.phase : 'week' in b && a.week === b.week);
+      const hit = t.prescriptionAt.find(p => sameAt(p.at, at));
+      if (hit) {
+        if (hit.reps !== undefined) ex.reps = hit.reps;
+        if (hit.sets !== undefined) ex.sets = hit.sets;
+      }
+    }
+    const wantsPrescription = (t.reps !== undefined && t.reps !== '') || (t.sets !== undefined && t.sets > 0);
+    const inPhase = t.phaseIndex == null || phaseIdx === t.phaseIndex;
+    if (wantsPrescription && inPhase) {
+      const prev = previous.get(key)!;
+      prev.prescriptionAt = prev.prescriptionAt ?? [];
+      prev.prescriptionAt.push({
+        at,
+        ...(t.reps !== undefined && t.reps !== '' ? { reps: String(ex.reps ?? '') } : {}),
+        ...(t.sets !== undefined && t.sets > 0 ? { sets: Number(ex.sets) || 0 } : {}),
+      });
+      if (t.reps !== undefined && t.reps !== '') ex.reps = t.reps;
+      if (t.sets !== undefined && t.sets > 0) ex.sets = t.sets;
+    }
     if (t.targetWeightKg == null) {
       delete ex.targetWeightKg; delete ex.targetConfidence; delete ex.targetBasis; delete ex.targetSetAt;
     } else {
@@ -228,15 +272,15 @@ export function applyTargetsToProgram(
     }
     touched += 1;
   };
-  for (const phase of copy?.phases ?? [])
-    for (const day of phase?.trainingDays ?? phase?.days ?? [])
-      for (const ex of day?.exercises ?? day?.sessions ?? []) writeTo(ex);
+  (copy?.phases ?? []).forEach((phase: any, pi: number) =>
+    (phase?.trainingDays ?? phase?.days ?? []).forEach((day: any, di: number) =>
+      (day?.exercises ?? day?.sessions ?? []).forEach((ex: any, ei: number) => writeTo(ex, { phase: pi, day: di, ex: ei }, pi))));
   // The generator also synthesizes a legacy `weeks` view for old clients —
   // after JSON round-trips its exercise objects are independent copies, so
   // they must be written too or old UIs keep showing the stale plan.
-  for (const week of copy?.weeks ?? [])
-    for (const day of week?.days ?? [])
-      for (const ex of day?.sessions ?? day?.exercises ?? []) writeTo(ex);
+  (copy?.weeks ?? []).forEach((week: any, wi: number) =>
+    (week?.days ?? []).forEach((day: any, di: number) =>
+      (day?.sessions ?? day?.exercises ?? []).forEach((ex: any, ei: number) => writeTo(ex, { week: wi, day: di, ex: ei }, weekPhase[wi] ?? null))));
   return { program: copy, previous: [...previous.values()], touched };
 }
 

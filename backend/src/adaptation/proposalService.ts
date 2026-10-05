@@ -9,7 +9,7 @@ import { parseUserPrefs } from '../services/userPrefs.js';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizePreference, type UnitPreference } from '../services/weightUnits.js';
-import { parseSavedProgram } from '../services/programPhaseService.js';
+import { computePhaseState, parseSavedProgram } from '../services/programPhaseService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
 import { deriveSplitLabel } from '../services/trainTogetherService.js';
 import { buildExposures, makeKeyFn, type KeyFn } from './history.js';
@@ -17,7 +17,9 @@ import { applyTargetsToProgram, extractPlannedExercises, type TargetWrite } from
 import { runBootstrapRules, runPostWorkoutRules } from './engine.js';
 import { buildLogTrendDrafts, LOG_TREND_KINDS, liftDedupeKey } from './rules/logTrend.js';
 import { buildPhaseDrafts } from './rules/phaseRules.js';
-import { computeSuggestion, type Suggestion, type SuggestionProposalRow } from './suggestion.js';
+import { computeSuggestion, pendingStale, type Suggestion, type SuggestionProposalRow } from './suggestion.js';
+import { todayForTz } from '../services/localDate.js';
+import { trainingSummaryCacheKey } from '../services/trainingSummary.js';
 import type { WellnessPoint } from './detectors.js';
 import { logAdaptationAvailableFor, phaseInferenceAvailableFor } from '../services/featureFlags.js';
 import { inferPhaseDetailed, restoreConfirmedPhase, setConfirmedPhase } from '../services/phaseInference.js';
@@ -42,6 +44,11 @@ const SNOOZE_DAYS_DEFAULT = 7;
 const DECLINE_SUPPRESS_COUNT = 3;
 const DECLINE_WINDOW_DAYS = 60;
 
+/** The agent's training summary lists pending cards — drop it when they change. */
+function invalidateSummary(userId: string) {
+  cacheDelete(trainingSummaryCacheKey(userId));
+}
+
 function invalidateProgramCaches(userId: string) {
   cacheDelete(`program:${userId}`);
   cacheClearByPrefix(`today:${userId}:`);
@@ -55,8 +62,9 @@ function invalidateProgramCaches(userId: string) {
 export async function loadContext(userId: string, now = new Date()): Promise<AdaptationContext> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { savedProgram: true, unitPreference: true, email: true },
+    select: { savedProgram: true, unitPreference: true, email: true, timezone: true },
   });
+  const timeZone = user?.timezone ?? null;
   const workouts = await prisma.workoutLog.findMany({
     where: { userId },
     orderBy: { date: 'asc' },
@@ -101,6 +109,8 @@ export async function loadContext(userId: string, now = new Date()): Promise<Ada
     email: (user as any)?.email ?? null,
     keyFn,
     workoutDates: workouts.map(w => w.date),
+    today: todayForTz(timeZone, now),
+    timeZone,
   };
 }
 
@@ -190,6 +200,7 @@ export async function createProposals(userId: string, drafts: ProposalDraft[], t
     });
     created.push(rowToProposal(row));
   }
+  if (created.length) invalidateSummary(userId);
   return created;
 }
 
@@ -291,6 +302,17 @@ export function withNextSessionEdits(p: NextSessionPayload, edits?: ProposalEdit
   };
 }
 
+/** Which next_session prescription fields the Adjust edits really changed —
+ *  an edit equal to the card's own value is an echo, not an override. */
+export function nextSessionEditChanges(p: NextSessionPayload, edits?: ProposalEdit[]): { repsChanged: boolean; setsChanged: boolean } {
+  const e = edits?.find(x => x.key === p.key);
+  const reps = e?.reps != null ? String(e.reps).trim() : '';
+  return {
+    repsChanged: reps !== '' && reps !== String(p.reps ?? '').trim(),
+    setsChanged: e?.sets != null && e.sets > 0 && e.sets !== p.sets,
+  };
+}
+
 /**
  * Apply a freestyle-release proposal. With a program, next_session patches the
  * program target like load_change; otherwise (or when the lift isn't in the
@@ -306,20 +328,26 @@ async function applyLogTrend(
   if (payload.kind === 'next_session') {
     const merged = withNextSessionEdits(payload, edits);
     stored = merged;
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, programStartDate: true } });
     const program = parseSavedProgram(user?.savedProgram ?? null);
     if (program) {
       const keyFn = await keyFnFor(program);
+      // Reps / sets changes land in the phase the user is in now — not in
+      // every phase the lift appears in (a Build-phase "3" must not overwrite
+      // Foundation's "8").
+      const phaseIndex = computePhaseState(program, user?.programStartDate ? new Date(user.programStartDate) : null, now).phaseIndex;
       const planned = extractPlannedExercises(program, keyFn).find(p => p.key === merged.key);
       if (planned) {
-        const edited = edits?.find(e => e.key === payload.key);
+        const { repsChanged, setsChanged } = nextSessionEditChanges(payload, edits);
         // No load on the card (bodyweight work) → keep the program's target;
         // applyTargetsToProgram treats null as "clear".
-        const write: TargetWrite = { key: merged.key, targetWeightKg: merged.toWeightKg ?? planned.targetWeightKg, confidence: 0.95, basis: 'progression' };
+        const write: TargetWrite = { key: merged.key, targetWeightKg: merged.toWeightKg ?? planned.targetWeightKg, confidence: 0.95, basis: 'progression', phaseIndex };
         // Prescription changes only where the card is about them — an add_rep
-        // "9" must not overwrite a "6-8" range.
-        if (merged.action === 'add_set' || merged.action === 'drop_set' || edited?.sets != null) write.sets = merged.sets;
-        if (merged.strategy === 'rep_range' || edited?.reps != null) write.reps = merged.reps;
+        // "9" must not overwrite a "6-8" range — or where the user actually
+        // changed the number (a client echoing the card's own values is not
+        // an override of the program's prescription).
+        if (merged.action === 'add_set' || merged.action === 'drop_set' || setsChanged) write.sets = merged.sets;
+        if (merged.strategy === 'rep_range' || repsChanged) write.reps = merged.reps;
         const res = applyTargetsToProgram(program, [write], keyFn, now.toISOString());
         if (res.touched > 0) {
           touched = res.touched;
@@ -358,6 +386,7 @@ export async function decide(
   const row = await prisma.adaptationProposal.findUnique({ where: { id: proposalId } });
   if (!row || row.userId !== userId) throw new Error('Proposal not found');
   if (row.status !== 'pending' && row.status !== 'snoozed') throw new Error(`Proposal is already ${row.status}`);
+  invalidateSummary(userId);
 
   if (action === 'decline') {
     const updated = await prisma.adaptationProposal.update({ where: { id: proposalId }, data: { status: 'declined', decidedAt: now } });
@@ -417,6 +446,7 @@ export async function undo(userId: string, proposalId: string, now = new Date())
   const row = await prisma.adaptationProposal.findUnique({ where: { id: proposalId } });
   if (!row || row.userId !== userId) throw new Error('Proposal not found');
   if (row.status !== 'applied' || !row.inverse) throw new Error('Nothing to undo');
+  invalidateSummary(userId);
   const inverse = JSON.parse(row.inverse) as ProposalPayload;
   if (inverse.kind === 'revert_record' || inverse.kind === 'restore_phase' || inverse.kind === 'restore_calories') {
     if (inverse.kind === 'restore_phase') await restoreConfirmedPhase(userId, inverse.previous);
@@ -481,7 +511,8 @@ export async function createLogTrendProposals(userId: string, drafts: ProposalDr
   if (drafts.length === 0) return [];
   const weekAgo = new Date(now.getTime() - 7 * 86400000);
   const recent = await prisma.adaptationProposal.findMany({
-    where: { userId, kind: { in: [...LOG_TREND_KINDS] }, createdAt: { gte: weekAgo } },
+    // A card replaced by a fresher one for the same lift isn't extra noise.
+    where: { userId, kind: { in: [...LOG_TREND_KINDS] }, createdAt: { gte: weekAgo }, status: { not: 'superseded' } },
     select: { id: true },
   });
   const capacity = LOG_TREND_WEEKLY_CAP - recent.length;
@@ -516,6 +547,34 @@ export async function createLogTrendProposals(userId: string, drafts: ProposalDr
     .sort((a, b) => b.priority - a.priority)
     .slice(0, capacity);
   return createProposals(userId, eligible, trigger, now);
+}
+
+/**
+ * Retire pending next_session cards the logs have moved past: a later session
+ * of that lift was logged after the card was created, or it is older than
+ * PENDING_STALE_DAYS. Marked 'superseded' (not deleted) so history stays
+ * honest, and so the one-open-card-per-lift guard stops blocking a fresh card.
+ * Runs before drafts are generated. Returns how many were retired.
+ */
+export async function supersedeStaleLiftCards(userId: string, ctx: AdaptationContext): Promise<number> {
+  const rows = await prisma.adaptationProposal.findMany({
+    where: { userId, status: 'pending', kind: 'next_session' },
+    select: { id: true, proposal: true, createdAt: true },
+  });
+  const dayOf = (d: Date) => todayForTz(ctx.timeZone, d);
+  const stale: string[] = [];
+  for (const r of rows) {
+    let key: string | null = null;
+    try { key = JSON.parse(r.proposal)?.key ?? null; } catch { /* unparseable → age rule only */ }
+    if (pendingStale(r.createdAt, key ? ctx.exposuresByKey.get(key) ?? [] : [], ctx.now, dayOf)) stale.push(r.id);
+  }
+  if (stale.length === 0) return 0;
+  await prisma.adaptationProposal.updateMany({
+    where: { id: { in: stale }, userId, status: 'pending' },
+    data: { status: 'superseded', decidedAt: ctx.now },
+  });
+  invalidateSummary(userId);
+  return stale.length;
 }
 
 async function loadWellness(userId: string, now: Date): Promise<WellnessPoint[]> {
@@ -586,11 +645,12 @@ export async function runPostWorkout(userId: string, loggedNames: string[]): Pro
   const keyFn = ctx.keyFn ?? makeKeyFn();
   const keys = new Set(loggedNames.map(keyFn).filter(Boolean));
   if (keys.size === 0) return created;
+  await supersedeStaleLiftCards(userId, ctx);
   const [phase, wellness, plateauSteps] = await Promise.all([
     effectivePhase(ctx), loadWellness(userId, ctx.now), loadPlateauSteps(userId, ctx.now),
   ]);
   const drafts = buildLogTrendDrafts({
-    exposuresByKey: ctx.exposuresByKey, unitPref: ctx.unitPref, now: ctx.now, phase, wellness,
+    exposuresByKey: ctx.exposuresByKey, unitPref: ctx.unitPref, now: ctx.now, today: ctx.today, phase, wellness,
     keys, skipKeys: covered, plateauSteps, systemic: true, volume: false,
   });
   created.push(...await createLogTrendProposals(userId, drafts, 'post_workout', ctx.now));
@@ -619,9 +679,10 @@ export async function runWeeklyForUser(userId: string, now = new Date()): Promis
     drafts.push(...buildPhaseDrafts({ result, signals, dailyCalorieTarget: (user as any)?.dailyCalorieTarget ?? null }));
   }
   if (logOn) {
+    await supersedeStaleLiftCards(userId, ctx);
     const [wellness, plateauSteps] = await Promise.all([loadWellness(userId, now), loadPlateauSteps(userId, now)]);
     drafts.push(...buildLogTrendDrafts({
-      exposuresByKey: ctx.exposuresByKey, unitPref: ctx.unitPref, now, phase, wellness,
+      exposuresByKey: ctx.exposuresByKey, unitPref: ctx.unitPref, now, today: ctx.today, phase, wellness,
       plateauSteps, liftKinds: new Set(['plateau']), systemic: true, volume: true,
     }));
   }
@@ -717,12 +778,12 @@ async function suggestionRows(userId: string, now: Date): Promise<{ applied: Sug
   const since = new Date(now.getTime() - 21 * 86400000);
   const rows = await prisma.adaptationProposal.findMany({
     where: { userId, kind: { in: ['next_session', 'deload', 'volume_balance'] }, OR: [{ status: 'pending' }, { status: 'applied', decidedAt: { gte: since } }] },
-    select: { id: true, kind: true, dedupeKey: true, status: true, proposal: true, decidedAt: true },
+    select: { id: true, kind: true, dedupeKey: true, status: true, proposal: true, decidedAt: true, createdAt: true },
   });
   const parsed = rows.map(r => {
     let proposal: any = null;
     try { proposal = JSON.parse(r.proposal); } catch { /* skip */ }
-    return { id: r.id, kind: r.kind, dedupeKey: r.dedupeKey, status: r.status, proposal, decidedAt: r.decidedAt };
+    return { id: r.id, kind: r.kind, dedupeKey: r.dedupeKey, status: r.status, proposal, decidedAt: r.decidedAt, createdAt: r.createdAt };
   });
   return { applied: parsed.filter(r => r.status === 'applied'), pending: parsed.filter(r => r.status === 'pending') };
 }
@@ -759,6 +820,7 @@ export async function lastForExercises(userId: string, names: string[], limit = 
         suggestion = computeSuggestion({
           key, name, exposures: all, planned: plannedByKey.get(key) ?? null,
           applied: rows.applied, pending: rows.pending, unitPref: ctx.unitPref, phase, now: ctx.now,
+          today: ctx.today, timeZone: ctx.timeZone ?? null,
           plateauStep: plateauSteps.get(key) ?? 0,
         });
       } catch (err: any) {

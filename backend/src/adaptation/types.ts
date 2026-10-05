@@ -198,4 +198,9 @@ export interface AdaptationContext {
   keyFn?: (name: string) => string;
   /** Every logged workout date (ascending). */
   workoutDates?: string[];
+  /** The user's local date (YYYY-MM-DD) at `now` — log dates are local, so
+   *  every "days ago" comparison anchors here, not on `now`'s UTC date. */
+  today?: string;
+  /** User.timezone, for turning stored timestamps into local dates. */
+  timeZone?: string | null;
 }

@@ -15,11 +15,13 @@
 import { PrismaClient } from '@prisma/client';
 import { buildExposures, weeklyBestSeries, type RawWorkout } from '../adaptation/history.js';
 import { classifyTrend, type Trend } from '../adaptation/rules/retrofit.js';
+import { daysFrom } from '../adaptation/detectors.js';
 import type { Exposure, PhaseResult } from '../adaptation/types.js';
 import { isoWeekKey } from './muscleLedgerService.js';
 import { liftResolver, loadNormRows, type CanonicalMeta } from './liftCanonical.js';
 import { formatWeight, normalizePreference, type UnitPreference } from './weightUnits.js';
-import { cacheGet } from './cacheService.js';
+import { cacheGet, cacheSet } from './cacheService.js';
+import { todayForTz } from './localDate.js';
 import { freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor } from './featureFlags.js';
 
 const prisma = new PrismaClient();
@@ -28,6 +30,9 @@ export const SUMMARY_MAX_CHARS = 1200;
 const SESSION_WINDOW_DAYS = 14;
 const TREND_WINDOW_WEEKS = 12;
 const MAX_TRENDS = 6;
+/** Built once per user per 5 minutes; a logged workout drops it (strength.ts). */
+const SUMMARY_CACHE_TTL_MS = 5 * 60 * 1000;
+export function trainingSummaryCacheKey(userId: string): string { return `training:summary:${userId}`; }
 
 /** Contract 7 gate: the summary rides on the freestyle / log-adaptation flags. */
 export function trainingSummaryEnabledFor(userId: string, email?: string | null): boolean {
@@ -72,10 +77,10 @@ export function historyFromRows(
   return { workouts, exposures, displayName: (k) => display.get(k) ?? k, meta: (k) => metaByKey.get(k) ?? null, names };
 }
 
-/** Every workout for the user, keyed canonically. */
-export async function loadTrainingHistory(userId: string): Promise<TrainingHistory> {
+/** The user's workouts (all of them, or from `sinceDate` on), keyed canonically. */
+export async function loadTrainingHistory(userId: string, sinceDate?: string): Promise<TrainingHistory> {
   const rows = await prisma.workoutLog.findMany({
-    where: { userId },
+    where: sinceDate ? { userId, date: { gte: sinceDate } } : { userId },
     orderBy: { date: 'asc' },
     select: { id: true, date: true, title: true, exercises: true, programDayRef: true },
   });
@@ -88,9 +93,6 @@ export async function loadTrainingHistory(userId: string): Promise<TrainingHisto
 
 // ─── Pure summary pieces ─────────────────────────────────────────────────────
 
-export function daysBetween(a: string, b: string): number {
-  return Math.round((new Date(b + 'T00:00:00Z').getTime() - new Date(a + 'T00:00:00Z').getTime()) / 86400000);
-}
 function shiftDay(date: string, days: number): string {
   const d = new Date(date + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + days);
@@ -140,7 +142,7 @@ export function liftTrends(h: TrainingHistory, today: string, unit: UnitPreferen
     const loaded = list.filter((e) => e.e1rmKg > 0 && e.date >= since && e.date <= today);
     if (loaded.length === 0) continue;
     const recent8 = loaded.filter((e) => e.date >= shiftDay(today, -56)).length;
-    const ago = daysBetween(loaded[0].date, today);
+    const ago = daysFrom(loaded[0].date, today);
     scored.push({ key, loaded, score: (recent8 + 0.25 * loaded.length) / (1 + ago / 7) });
   }
   scored.sort((a, b) => b.score - a.score);
@@ -162,7 +164,7 @@ export function profileHighlights(profile: any): ProfileHighlights | null {
   return h.wins.length + h.imbalances.length + h.neglected.length + h.stalled.length ? h : null;
 }
 
-const PHASE_LABEL: Record<string, string> = {
+export const PHASE_LABEL: Record<string, string> = {
   building_strength: 'building strength', cutting: 'cutting', cut_too_aggressive: 'cutting too aggressively',
   building_muscle: 'building muscle', recomp: 'recomp', plateau: 'plateau', rebuilding_consistency: 'rebuilding consistency', unknown: 'unclear',
 };
@@ -229,8 +231,12 @@ export function renderTrainingSummary(d: SummaryData, max = SUMMARY_MAX_CHARS): 
 export interface SummaryDeps {
   inferPhase?: (userId: string) => Promise<PhaseResult>;
   listPendingTitles?: (userId: string) => Promise<string[]>;
+  /** Pending titles the caller already fetched (agent context) — skips the read. */
+  pendingTitles?: string[];
   cachedProfile?: (userId: string) => any;
   now?: Date;
+  /** Read/write the 5-minute per-user cache. Default true. */
+  useCache?: boolean;
 }
 
 const warming = new Set<string>();
@@ -249,8 +255,11 @@ function cachedStrengthProfile(userId: string): any {
 }
 
 async function defaultInferPhase(userId: string): Promise<PhaseResult> {
-  const { inferPhase } = await import('./phaseInference.js');
-  return inferPhase(userId);
+  // The cached path: phase inference is ~4 reads, and its own cache is
+  // dropped when a workout is logged.
+  const { inferPhaseDetailed } = await import('./phaseInference.js');
+  const { signals: _signals, ...result } = await inferPhaseDetailed(userId, new Date(), { useCache: true });
+  return result;
 }
 async function defaultPendingTitles(userId: string): Promise<string[]> {
   const { listPending } = await import('../adaptation/proposalService.js');
@@ -262,35 +271,53 @@ async function defaultPendingTitles(userId: string): Promise<string[]> {
  * anything failed). Callers gate on trainingSummaryEnabledFor.
  */
 export async function buildTrainingSummary(userId: string, deps: SummaryDeps = {}): Promise<string | null> {
+  const useCache = deps.useCache !== false;
+  if (useCache) {
+    const hit = cacheGet<{ text: string | null }>(trainingSummaryCacheKey(userId));
+    if (hit) return hit.text;
+  }
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, savedProgram: true, email: true } });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, savedProgram: true, email: true, timezone: true } });
     if (!user) return null;
     const unit = normalizePreference(user.unitPreference);
     const now = deps.now ?? new Date();
-    const today = now.toISOString().slice(0, 10);
-    const history = await loadTrainingHistory(userId);
-    if (history.workouts.length === 0) return null;
+    // Log dates are the user's local dates.
+    const today = todayForTz(user.timezone, now);
 
     const soft = async <T>(fn: () => Promise<T>, fallback: T): Promise<T> => { try { return await fn(); } catch { return fallback; } };
-    const [phase, pending] = await Promise.all([
+    // Only the window the summary reads (trends look back 12 weeks; sessions 14 days).
+    const [history, phase, pending] = await Promise.all([
+      loadTrainingHistory(userId, shiftDay(today, -TREND_WINDOW_WEEKS * 7)),
       phaseInferenceAvailableFor(userId, user.email)
         ? soft(() => (deps.inferPhase ?? defaultInferPhase)(userId), null as PhaseResult | null)
         : Promise.resolve(null),
-      soft(() => (deps.listPendingTitles ?? defaultPendingTitles)(userId), [] as string[]),
+      deps.pendingTitles
+        ? Promise.resolve(deps.pendingTitles.filter(Boolean))
+        : soft(() => (deps.listPendingTitles ?? defaultPendingTitles)(userId), [] as string[]),
     ]);
+    // Nothing in the window: still a summary ("nothing logged lately") for a
+    // lifter with older history; null only for someone who never logged.
+    const totalWorkouts = history.workouts.length
+      || await Promise.resolve().then(() => prisma.workoutLog.count({ where: { userId } })).catch(() => 0);
+    if (totalWorkouts === 0) {
+      if (useCache) cacheSet(trainingSummaryCacheKey(userId), { text: null }, SUMMARY_CACHE_TTL_MS);
+      return null;
+    }
     const profile = (deps.cachedProfile ?? cachedStrengthProfile)(userId);
 
-    return renderTrainingSummary({
+    const text = renderTrainingSummary({
       unit,
       today,
       hasProgram: !!user.savedProgram,
-      totalWorkouts: history.workouts.length,
+      totalWorkouts,
       sessions: recentSessions(history, today, unit),
       trends: liftTrends(history, today, unit),
       highlights: profileHighlights(profile),
       phase: phase && phase.effective ? phase : null,
       pending: pending.slice(0, 3),
     });
+    if (useCache) cacheSet(trainingSummaryCacheKey(userId), { text }, SUMMARY_CACHE_TTL_MS);
+    return text;
   } catch (err: any) {
     console.warn('[trainingSummary] failed:', err?.message ?? err);
     return null;

@@ -14,7 +14,8 @@ import { SEED } from '../../services/exerciseCanonical.js';
 import { buildMuscleLedger, type MuscleLedger } from '../../services/muscleLedgerService.js';
 import { muscleWeightsFor, type MuscleGroup } from '../../data/muscleAttribution.js';
 import { toLedgerExercises } from '../../services/liftCanonical.js';
-import { daysBetween, loadTrainingHistory, type TrainingHistory } from '../../services/trainingSummary.js';
+import { loadTrainingHistory, type TrainingHistory } from '../../services/trainingSummary.js';
+import { daysFrom } from '../../adaptation/detectors.js';
 import { freestyleAvailableFor, logAdaptationAvailableFor } from '../../services/featureFlags.js';
 import { readProfile } from '../profile/coachProfile.js';
 import type { Exposure } from '../../adaptation/types.js';
@@ -131,11 +132,11 @@ export function planSession(input: PlanInput): SessionPlan {
     const name = h.displayName(key);
     candidates.push({
       key, name, region, isCompound: !!h.meta(key)?.isCompound, lastDate: past[0].date,
-      daysSince: daysBetween(past[0].date, today), last: past[0], fromLibrary: false,
+      daysSince: daysFrom(past[0].date, today), last: past[0], fromLibrary: false,
       freq8: past.filter((e) => e.date >= from56).length,
     });
   }
-  for (const st of status.values()) st.daysSince = st.lastDate ? daysBetween(st.lastDate, today) : null;
+  for (const st of status.values()) st.daysSince = st.lastDate ? daysFrom(st.lastDate, today) : null;
   const regions = [...status.values()];
   const insufficientHistory = h.workouts.filter((w) => w.date <= today).length < 2 || candidates.length === 0;
 

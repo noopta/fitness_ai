@@ -9,6 +9,7 @@
 // structure before persisting. The agent is also instructed (task framing) to
 // propose the change and wait for the user's confirmation before applying.
 
+import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
@@ -88,10 +89,41 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
  * client renders it as a program-change card and sends it back through
  * /coach/agent/confirm-proposal; applyProgramUpdate sees the marker and
  * activates it as a NEW program (archive the current one, restart the start
- * date) instead of overwriting in place. `goalChange` records whether the
- * user asked for a different goal.
+ * date) instead of overwriting in place.
+ *
+ * The marker carries ONLY an opaque id (`{ id }`). The rebuild intent — the
+ * program itself and whether the user asked for a different goal — is kept
+ * server-side under that id (issueRebuild), bound to the user, for a few
+ * hours. Nothing in the request body is trusted: a forged or expired marker
+ * can't archive the program, change the goal, or create a first program.
  */
 export const REBUILD_MARKER = '_agentRebuild';
+
+const REBUILD_TTL_MS = 6 * 60 * 60 * 1000;
+const REBUILD_MAX = 500;
+interface RebuildRecord { userId: string; program: any; goalChange: boolean; expiresAt: number }
+const rebuilds = new Map<string, RebuildRecord>();
+
+/** Record a proposed rebuild server-side; returns the opaque id the card carries. */
+export function issueRebuild(userId: string, program: any, goalChange: boolean, now = Date.now()): string {
+  for (const [id, r] of rebuilds) if (r.expiresAt <= now) rebuilds.delete(id);
+  while (rebuilds.size >= REBUILD_MAX) rebuilds.delete(rebuilds.keys().next().value as string);
+  const id = randomUUID();
+  rebuilds.set(id, { userId, program: JSON.parse(JSON.stringify(program)), goalChange, expiresAt: now + REBUILD_TTL_MS });
+  return id;
+}
+
+/** The live rebuild record for this user and id, or null (unknown, expired, someone else's). */
+function findRebuild(userId: string, id: unknown, now = Date.now()): RebuildRecord | null {
+  if (typeof id !== 'string') return null;
+  const r = rebuilds.get(id);
+  if (!r || r.userId !== userId) return null;
+  if (r.expiresAt <= now) { rebuilds.delete(id); return null; }
+  return r;
+}
+
+/** Test seam. */
+export function resetRebuildsForTests(): void { rebuilds.clear(); }
 
 /** Validate a proposed program before persisting. Throws with a clear reason
  *  the agent can act on. Returns the program to save — with the current goal
@@ -405,9 +437,28 @@ export async function applyExerciseSwap(
   };
 }
 
-export async function applyProgramUpdate(userId: string, proposed: any, opts: { allowGoalChange?: boolean } = {}) {
-  const rebuild = proposed && typeof proposed === 'object' ? proposed[REBUILD_MARKER] : null;
-  if (rebuild) return activateRebuild(userId, proposed);
+/**
+ * Persist a proposed program. `allowRebuild` is set only by the user's own
+ * confirm tap (POST /coach/agent/confirm-proposal): there a rebuild marker is
+ * resolved against the server-side record and activates THAT stored program;
+ * a marker that doesn't resolve is refused. Everywhere else (the agent's own
+ * apply_program_update tool) the marker is stripped and this is an ordinary
+ * goal-locked update — the model can't self-confirm a rebuild.
+ */
+export async function applyProgramUpdate(userId: string, proposed: any, opts: { allowGoalChange?: boolean; allowRebuild?: boolean } = {}) {
+  const hasMarker = !!proposed && typeof proposed === 'object' && REBUILD_MARKER in proposed;
+  if (hasMarker) {
+    const { [REBUILD_MARKER]: marker, ...body } = proposed;
+    if (opts.allowRebuild) {
+      const id = marker && typeof marker === 'object' ? (marker as any).id : undefined;
+      const rec = findRebuild(userId, id);
+      if (!rec) throw new Error('This new-program proposal has expired — ask the coach to build it again.');
+      const out = await activateRebuild(userId, rec.program, rec.goalChange);
+      rebuilds.delete(id as string);
+      return out;
+    }
+    proposed = body;
+  }
 
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
@@ -436,11 +487,10 @@ export async function applyProgramUpdate(userId: string, proposed: any, opts: { 
  * saved the same way "Make this my program" saves it — the current program is
  * archived and the start date resets. A first program needs no prior one.
  */
-async function activateRebuild(userId: string, proposed: any) {
-  const { [REBUILD_MARKER]: marker, ...program } = proposed;
+async function activateRebuild(userId: string, program: any, goalChange: boolean) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   const current = user?.savedProgram ? parseJsonObjectColumn<any>(user.savedProgram) : null;
-  const toSave = validateProgram(program, current?.goal ?? null, !!marker?.goalChange || !current);
+  const toSave = validateProgram(program, current?.goal ?? null, goalChange || !current);
   // Lazy: routes/coach.ts imports the agent stack; a static import would cycle.
   const { saveProgramForUser } = await import('../routes/coach.js');
   await saveProgramForUser(userId, toSave);

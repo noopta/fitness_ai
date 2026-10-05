@@ -75,10 +75,16 @@ const MIN_EASIER_SPAN_DAYS = 12;   // "≥3 exposures over ≥2 weeks" — 12 da
 const PLATEAU_MIN_WEEKS = 4;
 const DECLINE_DROP = 0.03;         // newest week ≥3% under the recent peak
 
-export function daysBetween(a: string, b: string): number {
-  return Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / 86_400_000);
+/** Whole days from `earlier` to `later` (YYYY-MM-DD): positive when `later`
+ *  is after `earlier`. The one day-difference helper for log dates — named
+ *  for its argument order so call sites can't read it backwards. */
+export function daysFrom(earlier: string, later: string): number {
+  return Math.round((Date.parse(`${later}T00:00:00Z`) - Date.parse(`${earlier}T00:00:00Z`)) / 86_400_000);
 }
 
+/** UTC date of `d`. Only a fallback anchor for pure callers/tests — log
+ *  dates are the user's LOCAL date, so loaders pass a user-local `today`
+ *  (services/localDate.ts todayForTz) to every function that takes one. */
 export function dateStr(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
@@ -117,10 +123,11 @@ function emptySignal(key: string, name: string, list: Exposure[]): LiftSignal {
 }
 
 /**
- * What one lift's logs say. `exposures` newest first; `now` anchors the
- * 4-week volume / frequency window.
+ * What one lift's logs say. `exposures` newest first; `today` (the user's
+ * local date; defaults to `now`'s UTC date) anchors the 4-week volume /
+ * frequency window.
  */
-export function detectLiftSignal(exposures: Exposure[], now: Date): LiftSignal {
+export function detectLiftSignal(exposures: Exposure[], now: Date, today = dateStr(now)): LiftSignal {
   const key = exposures[0]?.key ?? '';
   const name = exposures[0]?.displayName ?? key;
   const loaded = exposures.filter(e => e.top && e.e1rmKg > 0);
@@ -128,10 +135,9 @@ export function detectLiftSignal(exposures: Exposure[], now: Date): LiftSignal {
   if (loaded.length < 2) return sig;
 
   // 4-week volume / frequency / effort (all loaded exposures, gap or not).
-  const today = dateStr(now);
-  const last28 = loaded.filter(e => daysBetween(today, e.date) <= 28);
+  const last28 = loaded.filter(e => daysFrom(e.date, today) <= 28);
   const weeksCovered = last28.length
-    ? Math.min(4, Math.max(1, Math.ceil((daysBetween(today, last28[last28.length - 1].date) + 1) / 7)))
+    ? Math.min(4, Math.max(1, Math.ceil((daysFrom(last28[last28.length - 1].date, today) + 1) / 7)))
     : 4;
   sig.weeklySets = Math.round((last28.reduce((s, e) => s + loadedSets(e).length, 0) / weeksCovered) * 10) / 10;
   sig.sessionsPerWeek = Math.round((last28.length / weeksCovered) * 10) / 10;
@@ -141,12 +147,12 @@ export function detectLiftSignal(exposures: Exposure[], now: Date): LiftSignal {
   // ── Time off: the newest ≥14-day gap splits the history ─────────────────
   let gapIdx = -1;
   for (let i = 0; i < loaded.length - 1; i++) {
-    if (daysBetween(loaded[i].date, loaded[i + 1].date) >= GAP_DAYS) { gapIdx = i; break; }
+    if (daysFrom(loaded[i + 1].date, loaded[i].date) >= GAP_DAYS) { gapIdx = i; break; }
   }
   if (gapIdx >= 0) {
     const post = loaded.slice(0, gapIdx + 1);
     const pre = loaded.slice(gapIdx + 1);
-    sig.gapDays = daysBetween(loaded[gapIdx].date, loaded[gapIdx + 1].date);
+    sig.gapDays = daysFrom(loaded[gapIdx + 1].date, loaded[gapIdx].date);
     sig.postGapSessions = post.length;
     if (post.length <= 2) {
       const refE1 = Math.max(...pre.slice(0, 3).map(e => e.e1rmKg));
@@ -162,18 +168,18 @@ export function detectLiftSignal(exposures: Exposure[], now: Date): LiftSignal {
       // all, not a plateau or a decline.
       return sig;
     }
-    return classifyWindow(sig, post, now);
+    return classifyWindow(sig, post, today);
   }
-  return classifyWindow(sig, loaded, now);
+  return classifyWindow(sig, loaded, today);
 }
 
 /** Trend + same-load analysis over a gap-free window (newest first). */
-function classifyWindow(sig: LiftSignal, win: Exposure[], now: Date): LiftSignal {
+function classifyWindow(sig: LiftSignal, win: Exposure[], today: string): LiftSignal {
   // Trend detection looks at the last 8 weeks only.
   const newest = win[0].date;
-  const recent = win.filter(e => daysBetween(newest, e.date) <= 56);
+  const recent = win.filter(e => daysFrom(e.date, newest) <= 56);
   sig.window = recent;
-  sig.spanDays = daysBetween(newest, recent[recent.length - 1].date);
+  sig.spanDays = daysFrom(recent[recent.length - 1].date, newest);
   const spark = weeklyBestSeries(recent, isoWeekKey).map(v => Math.round(v * 10) / 10);
   sig.spark = spark;
   const { trend, pctPerWeek } = classifyTrend(spark.slice(-6));
@@ -187,7 +193,7 @@ function classifyWindow(sig: LiftSignal, win: Exposure[], now: Date): LiftSignal
   }
   sig.chainLength = chain.length;
   const oldest = chain[chain.length - 1];
-  const chainSpan = daysBetween(chain[0].date, oldest.date);
+  const chainSpan = daysFrom(oldest.date, chain[0].date);
   const rpeDelta = chain[0].top!.rpe != null && oldest.top!.rpe != null && chain.length >= 2
     ? Math.round((chain[0].top!.rpe - oldest.top!.rpe) * 10) / 10 : null;
   const repsDelta = chain.length >= 2 ? chain[0].minReps - oldest.minReps : null;
@@ -206,7 +212,7 @@ function classifyWindow(sig: LiftSignal, win: Exposure[], now: Date): LiftSignal
 
   // ── Decline: weekly best falling over 2–3 weeks, ≥3% under the peak ─────
   const last4 = spark.slice(-4);
-  if (last4.length >= 3 && recent.filter(e => daysBetween(newest, e.date) <= 28).length >= 3) {
+  if (last4.length >= 3 && recent.filter(e => daysFrom(e.date, newest) <= 28).length >= 3) {
     const n = last4.length;
     const peak = Math.max(...last4.slice(0, n - 2));
     if (last4[n - 2] < peak * 0.99 && last4[n - 1] < peak * (1 - DECLINE_DROP)) {
@@ -247,7 +253,7 @@ function classifyWindow(sig: LiftSignal, win: Exposure[], now: Date): LiftSignal
 
   // ── Plateau: weekly best flat ≥4 weeks with regular exposure ────────────
   if (spark.length >= PLATEAU_MIN_WEEKS && trend === 'plateau') {
-    const lastSix = recent.filter(e => daysBetween(dateStr(now), e.date) <= 42);
+    const lastSix = recent.filter(e => daysFrom(e.date, today) <= 42);
     const weeksWithExposure = new Set(lastSix.map(e => isoWeekKey(e.date))).size;
     const s = spark.slice(-6);
     const noNewBest = Math.max(...s.slice(-2)) <= Math.max(...s.slice(0, -2)) * 1.01;
@@ -293,9 +299,8 @@ export interface SystemicFatigue {
 }
 
 /** Wellness flags over the last 14 days: poor sleep (<6.5 h) / high stress (≥7 of 10). */
-export function wellnessFlags(wellness: WellnessPoint[], now: Date): string[] {
-  const today = dateStr(now);
-  const recent = wellness.filter(w => daysBetween(today, w.date) <= 14 && daysBetween(today, w.date) >= 0);
+export function wellnessFlags(wellness: WellnessPoint[], now: Date, today = dateStr(now)): string[] {
+  const recent = wellness.filter(w => daysFrom(w.date, today) <= 14 && daysFrom(w.date, today) >= 0);
   if (recent.length < 3) return [];
   const flags: string[] = [];
   const sleep = recent.map(w => w.sleepHours).filter(h => h > 0);
@@ -309,11 +314,10 @@ export function wellnessFlags(wellness: WellnessPoint[], now: Date): string[] {
  * Several lifts sliding (or RPE creeping) at once points at recovery, not at
  * any one lift: ≥3 lifts, or ≥2 lifts plus poor sleep / high stress.
  */
-export function detectSystemicFatigue(signals: LiftSignal[], wellness: WellnessPoint[], now: Date): SystemicFatigue | null {
-  const today = dateStr(now);
+export function detectSystemicFatigue(signals: LiftSignal[], wellness: WellnessPoint[], now: Date, today = dateStr(now)): SystemicFatigue | null {
   const lifts = signals.filter(s =>
-    (s.kind === 'decline' || s.kind === 'early_fatigue') && s.lastDate != null && daysBetween(today, s.lastDate) <= 14);
-  const flags = wellnessFlags(wellness, now);
+    (s.kind === 'decline' || s.kind === 'early_fatigue') && s.lastDate != null && daysFrom(s.lastDate, today) <= 14);
+  const flags = wellnessFlags(wellness, now, today);
   if (lifts.length >= 3 || (lifts.length >= 2 && flags.length >= 1)) {
     const confidence = Math.min(0.9, 0.55 + 0.1 * lifts.length + 0.1 * flags.length);
     return { lifts, wellnessFlags: flags, confidence: Math.round(confidence * 100) / 100 };
@@ -352,13 +356,12 @@ export function primaryMuscleOf(name: string): string | null {
  * muscle in full (the way volume landmarks are usually counted), not the
  * fractional split the radar uses. Returns [] with under 2 weeks of history.
  */
-export function weeklySetsByMuscle(exposuresByKey: Map<string, Exposure[]>, now: Date, muscleOf = primaryMuscleOf): MuscleVolume[] {
-  const today = dateStr(now);
+export function weeklySetsByMuscle(exposuresByKey: Map<string, Exposure[]>, now: Date, muscleOf = primaryMuscleOf, today = dateStr(now)): MuscleVolume[] {
   let oldest: string | null = null;
   const sets = new Map<string, number>();
   for (const list of exposuresByKey.values()) {
     for (const e of list) {
-      const age = daysBetween(today, e.date);
+      const age = daysFrom(e.date, today);
       if (age < 0 || age > 21) continue;
       if (!oldest || e.date < oldest) oldest = e.date;
       const m = muscleOf(e.displayName);
@@ -368,7 +371,7 @@ export function weeklySetsByMuscle(exposuresByKey: Map<string, Exposure[]>, now:
     }
   }
   if (!oldest) return [];
-  const span = daysBetween(today, oldest) + 1;
+  const span = daysFrom(oldest, today) + 1;
   if (span < 14) return [];
   const weeks = Math.min(3, span / 7);
   return [...sets.entries()].map(([muscle, n]) => ({ muscle, weeklySets: Math.round((n / weeks) * 10) / 10 }));

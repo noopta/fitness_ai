@@ -27,7 +27,7 @@ process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test';
 process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'test';
 await import('../agent/toolkits/index.js');
 const { applyProgramEdits, splitLabel, levelOf, PROGRAM_TOOLS } = await import('../agent/toolkits/program.js');
-const { applyProgramUpdate, REBUILD_MARKER } = await import('../agent/applyTools.js');
+const { applyProgramUpdate, REBUILD_MARKER, issueRebuild, resetRebuildsForTests } = await import('../agent/applyTools.js');
 const { getOp } = await import('../agent/ops.js');
 const { toolsFor, resetRegistryForTests } = await import('../agent/registry.js');
 const { exerciseMatcher, WORKOUT_TOOLS } = await import('../agent/toolkits/workouts.js');
@@ -135,7 +135,9 @@ describe('rebuild (propose_new_program) on the classic app', () => {
     expect(r._proposal).toBe(true);
     expect(r.kind).toBe('program_update');
     expect(r.summary).toContain('Push/Pull/Legs');
-    expect(r.updatedProgram[REBUILD_MARKER]).toEqual({ goalChange: false });
+    // Only an opaque id rides on the card; the intent stays server-side.
+    expect(Object.keys(r.updatedProgram[REBUILD_MARKER])).toEqual(['id']);
+    expect(typeof r.updatedProgram[REBUILD_MARKER].id).toBe('string');
     expect(r.program[REBUILD_MARKER]).toBeUndefined(); // the v2 card activates a clean copy
   });
 
@@ -156,29 +158,80 @@ describe('rebuild (propose_new_program) on the classic app', () => {
     expect(r._proposal).toBeUndefined();
   });
 
-  it('confirm-proposal path: applyProgramUpdate activates the rebuild (archive + restart), marker stripped', async () => {
+  const confirm = { allowRebuild: true };
+
+  it('confirm-proposal path: applyProgramUpdate activates the STORED rebuild (archive + restart)', async () => {
+    resetRebuildsForTests();
     mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(program()) });
-    const out: any = await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { goalChange: false } });
+    const id = issueRebuild('u1', generated(), false);
+    // The body the client echoes is ignored — the server copy is activated.
+    const out: any = await applyProgramUpdate('u1', { goal: 'tampered', phases: [{ trainingDays: [{ day: 'X', exercises: [{ exercise: 'Curl' }] }] }], [REBUILD_MARKER]: { id } }, confirm);
     expect(out).toMatchObject({ applied: true, rebuilt: true, goal: 'strength' });
     const saved = (coach.saveProgramForUser.mock.calls[0] as any[])[1];
     expect(saved[REBUILD_MARKER]).toBeUndefined();
     expect(saved.goal).toBe('strength');
+    expect(saved.phases[0].phaseName).toBe('Accumulate');
     expect(mocks.user.update).not.toHaveBeenCalled();
 
     mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(program()) });
-    await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { goalChange: true } });
+    const id2 = issueRebuild('u1', generated(), true);
+    await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { id: id2 } }, confirm);
     expect((coach.saveProgramForUser.mock.calls[1] as any[])[1].goal).toBe('Hypertrophy-focused PPL');
   });
 
+  it('a record is single-use and bound to its user', async () => {
+    resetRebuildsForTests();
+    const id = issueRebuild('u1', generated(), true);
+    await expect(applyProgramUpdate('u2', { ...generated(), [REBUILD_MARKER]: { id } }, confirm)).rejects.toThrow(/expired/);
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(program()) });
+    await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { id } }, confirm);
+    await expect(applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { id } }, confirm)).rejects.toThrow(/expired/);
+    expect(coach.saveProgramForUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('a forged marker (client-supplied goalChange, unknown id) is refused on confirm — no archive, no goal change', async () => {
+    resetRebuildsForTests();
+    mocks.user.findUnique.mockResolvedValue({ savedProgram: JSON.stringify(program()) });
+    await expect(applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { goalChange: true } }, confirm)).rejects.toThrow(/expired/);
+    await expect(applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { id: 'made-up', goalChange: true } }, confirm)).rejects.toThrow(/expired/);
+    expect(coach.saveProgramForUser).not.toHaveBeenCalled();
+    expect(mocks.user.update).not.toHaveBeenCalled();
+  });
+
+  it('a forged marker cannot create a first program for a user with none', async () => {
+    resetRebuildsForTests();
+    mocks.user.findUnique.mockResolvedValue({ savedProgram: null });
+    await expect(applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { goalChange: false } }, confirm)).rejects.toThrow();
+    await expect(applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { goalChange: false } })).rejects.toThrow(/No saved program/);
+    expect(coach.saveProgramForUser).not.toHaveBeenCalled();
+  });
+
+  it('outside the confirm tap (the agent tool) a marker — even a valid one — is stripped: plain goal-locked update', async () => {
+    resetRebuildsForTests();
+    const id = issueRebuild('u1', generated(), true);
+    mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(program()) });
+    const out: any = await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { id } });
+    expect(out.rebuilt).toBeUndefined();
+    expect(out.goal).toBe('strength');
+    expect(coach.saveProgramForUser).not.toHaveBeenCalled();
+    const saved = JSON.parse(mocks.user.update.mock.calls[0][0].data.savedProgram);
+    expect(saved[REBUILD_MARKER]).toBeUndefined();
+    expect(saved.goal).toBe('strength');
+  });
+
   it('a first program (nothing saved) can be applied from the card', async () => {
+    resetRebuildsForTests();
     mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: null });
-    const out: any = await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { goalChange: false } });
+    const id = issueRebuild('u1', generated(), false);
+    const out: any = await applyProgramUpdate('u1', { ...generated(), [REBUILD_MARKER]: { id } }, confirm);
     expect(out.goal).toBe('Hypertrophy-focused PPL');
   });
 
   it('still validates the structure', async () => {
+    resetRebuildsForTests();
     mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(program()) });
-    await expect(applyProgramUpdate('u1', { goal: 'x', phases: [], [REBUILD_MARKER]: { goalChange: false } })).rejects.toThrow(/phases/);
+    const id = issueRebuild('u1', { goal: 'x', phases: [] }, false);
+    await expect(applyProgramUpdate('u1', { goal: 'x', phases: [], [REBUILD_MARKER]: { id } }, confirm)).rejects.toThrow(/phases/);
   });
 });
 

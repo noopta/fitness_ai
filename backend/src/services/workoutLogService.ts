@@ -19,6 +19,7 @@ import { buildShareableWorkout } from './shareableWorkout.js';
 import { logActivity } from './activityService.js';
 import posthog from './posthogClient.js';
 import { estimateWorkoutCalories } from './workoutCalories.js';
+import { todayForTz } from './localDate.js';
 import { runPostWorkout } from '../adaptation/proposalService.js';
 import { postInitiatedLater } from '../agent/initiated.js';
 
@@ -111,14 +112,10 @@ function invalidate(userId: string) {
 /** A workout dated after the user's today. */
 export class WorkoutDateError extends Error {}
 
-/** Today in the user's timezone (ET when unknown), as YYYY-MM-DD. */
-export function todayForTz(tz: string | null | undefined, now = new Date()): string {
-  try {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: tz || 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-  } catch {
-    return now.toISOString().slice(0, 10);
-  }
-}
+/** Today in the user's timezone (ET when unknown), as YYYY-MM-DD. Lives in
+ *  localDate.ts so the adaptation engine can share it; re-exported here for
+ *  existing callers. */
+export { todayForTz };
 
 export function addDays(date: string, days: number): string {
   const d = new Date(`${date}T00:00:00Z`);

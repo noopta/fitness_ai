@@ -122,6 +122,14 @@ describe('phase helpers', () => {
     const f = summarizeFrequency([d(1), d(3), d(25), d(30)], NOW);
     expect(f).toMatchObject({ daysSinceLast: 1, returnedOn: d(3), gapDays: 22 });
   });
+  it("windows anchor on the user's local today when given (log dates are local)", () => {
+    // A session on d(-1) is "tomorrow" by NOW's UTC date but today for a user
+    // already past midnight — it must count, not be dropped as future.
+    expect(summarizeFrequency([d(-1), d(6)], NOW).daysSinceLast).toBe(6);
+    expect(summarizeFrequency([d(-1), d(6)], NOW, d(-1)).daysSinceLast).toBe(0);
+    expect(summarizeIntake([{ date: d(-1), kcal: 2400 }], NOW, 28, d(-1))).toEqual({ avgKcal: 2400, loggedDays: 1 });
+    expect(summarizeIntake([{ date: d(-1), kcal: 2400 }], NOW)).toEqual({ avgKcal: null, loggedDays: 0 });
+  });
   it('statedGoalOf / parseConfirmedPhase', () => {
     expect(statedGoalOf('Lose fat', {})).toBe('cut');
     expect(statedGoalOf(null, { primaryGoal: 'Build muscle' })).toBe('bulk');
