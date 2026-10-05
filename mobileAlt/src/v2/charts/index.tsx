@@ -99,7 +99,7 @@ export function RatioBand({ lo, hi, value, width = 346 }: { lo: number; hi: numb
 }
 
 /** Coverage fill: 2pt ink bar to pct/100 (capped), grey when covered. */
-export function CoverageBar({ pct, width = 346, covered }: { pct: number; width?: number; covered?: boolean }) {
+export function CoverageBar({ pct, width = 346, covered }: { pct: number; width?: number | `${number}%`; covered?: boolean }) {
   const reduced = useReducedMotion();
   const p = useSharedValue(reduced ? 1 : 0);
   useEffect(() => { p.value = withDelay(60, withTiming(1, { duration: 600, easing: v2.motion.easeEnter })); }, [p]);

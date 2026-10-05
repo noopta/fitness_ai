@@ -21,6 +21,7 @@ import { nutritionApi, socialApi, groupsApi, trainTogetherApi, paymentsApi, apiF
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
 import { ProfilePage, NotificationsPage, RecipesPage, SavedFoodsPage, PlanPage, ConsentRows } from './agentPages';
+import { NutritionPlanPage, PlanSourcesPage } from './nutritionPlan';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -53,6 +54,8 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'recipes': return <RecipesPage />;
     case 'savedfoods': return <SavedFoodsPage />;
     case 'plan': return <PlanPage />;
+    case 'fuelplan': return <NutritionPlanPage />;
+    case 'plansources': return <PlanSourcesPage />;
     default: return <PushedPage back="Back" title="Not here yet" lead="That page hasn't been built in the new shell. Ask Anakin — or open it from the classic screens." />;
   }
 }

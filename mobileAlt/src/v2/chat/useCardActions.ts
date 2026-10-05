@@ -29,6 +29,12 @@ async function dismissKeyboard() {
   await new Promise((r) => setTimeout(r, 250));
 }
 
+/** "Fiber target 30 g → 38 g; Vitamin D3 dropped" — the first two rows of a proposal's diff. */
+export function diffLine(diff: NonNullable<Card['diff']>): string {
+  const parts = diff.slice(0, 2).map((d) => (d.removed ? `${d.key} dropped` : d.from ? `${d.key} ${d.from} → ${d.to}` : `${d.key} ${d.to}`));
+  return diff.length > 2 ? `${parts.join('; ')} +${diff.length - 2}` : parts.join('; ');
+}
+
 export function useCardActions(thread: Thread) {
   const router = useRouter();
   const shell = useShellOptional();
@@ -127,10 +133,12 @@ export function useCardActions(thread: Thread) {
     try {
       const r = await v2Api.cardAction(card.id, action.id, extra);
       setCard(r.card);
+      // Proposal (P-04) applied: an `Adjusted —` receipt names what changed; the card itself freezes to "Applied · Undo".
+      if (card.pattern === 'proposal' && r.card.state?.status === 'applied' && card.diff?.length) receiptOnCard(card.id, 'Adjusted', diffLine(card.diff));
       if (r.card.state?.status !== 'live' && r.card.state?.status !== 'cancelled' && r.card.state?.status !== 'kept') { haptics.success(); void invalidate.all(); }
       void thread.refreshLive();
     } catch (e) { noteError(find(card.id) ?? card, e); }
-  }, [undo, runClient, invalidate, thread]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [undo, runClient, invalidate, thread, receiptOnCard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const edit = useCallback(async (card: Card, field: string, value: string) => {
     const current = find(card.id) ?? card;

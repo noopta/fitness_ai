@@ -17,8 +17,10 @@ const PUSHED: Record<string, string | null> = {
   groups: null, leaderboard: null, together: 'id', person: 'id',
   // New pages for chat Open → targets (spec §10).
   profile: null, notifications: null, recipes: null, savedfoods: null, plan: null,
+  // The nutrition plan page and its sources (bug fixes 5 Oct, 2b).
+  fuelplan: null, plansources: null,
 };
-const ALIAS: Record<string, string> = { traintogether: 'together', account: 'prefs', usage: 'plan', saved_foods: 'savedfoods', history: 'past', gut: 'systems', fuelplan: 'fuel' };
+const ALIAS: Record<string, string> = { traintogether: 'together', account: 'prefs', usage: 'plan', saved_foods: 'savedfoods', history: 'past', gut: 'systems' };
 
 export function destinationFor(route: CardRoute): Destination | null {
   const page = ALIAS[route.page] ?? route.page;

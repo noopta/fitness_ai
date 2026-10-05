@@ -21,6 +21,8 @@ export const qk = {
   npDay: ['v2', 'np', 'day'] as const,
   npEffect: (id: string) => ['v2', 'np', 'effect', id] as const,
   npNutrient: (key: string) => ['v2', 'np', 'nutrient', key] as const,
+  // Under 'np' so a logged meal refreshes the plan's coverage.
+  nutritionPlan: ['v2', 'np', 'plan'] as const,
   feed: ['v2', 'feed'] as const,
   leaderboard: ['v2', 'leaderboard'] as const,
   workouts: ['v2', 'workouts'] as const,
@@ -72,6 +74,7 @@ export const useMeals = (date?: string) => useQuery({ queryKey: qk.meals(date), 
 export const useNpDay = () => useQuery({ queryKey: qk.npDay, queryFn: () => nutritionProfileApi.getDay(), staleTime: STALE });
 export const useNpWeek = () => useQuery({ queryKey: ['v2', 'np', 'week'], queryFn: () => nutritionProfileApi.getDay(undefined, '7d'), staleTime: 5 * 60_000 });
 export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, undefined, '7d' as any), staleTime: STALE, enabled: !!id });
+export const useNutritionPlan = () => useQuery({ queryKey: qk.nutritionPlan, queryFn: () => v2Api.nutritionPlan(), staleTime: STALE });
 export const useNpNutrient = (key: string) => useQuery({ queryKey: qk.npNutrient(key), queryFn: () => nutritionProfileApi.getNutrient(key, undefined, '7d' as any), staleTime: STALE, enabled: !!key });
 export const useFeed = () => useQuery({ queryKey: qk.feed, queryFn: () => socialApi.getFeed({ includeResearch: false }) as Promise<any>, staleTime: STALE });
 export const useWorkouts = () => useQuery({ queryKey: qk.workouts, queryFn: () => workoutsApi.getWorkouts() as Promise<any>, staleTime: STALE });

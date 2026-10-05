@@ -57,7 +57,32 @@ export interface TrainingOverview {
   };
 }
 
+/** GET /nutrition/plan — the plan page summary (bug fixes 5 Oct, 2b). 404 → no plan yet. */
+export interface NutritionPlanSummary {
+  week: number;
+  weeks: number;
+  onTrack: number;
+  total: number;
+  focus: { key: string; nutrient: string; amount: number; target: number; unit: string; onTrack: boolean }[];
+  gut: {
+    plants: { n: number; target: number };
+    fiberG: { n: number; target: number };
+    fermentedDays: { n: number; target: number };
+    upfPct: { n: number; max: number };
+  };
+  supplements: { name: string; dose: string; when: string | null }[];
+  sources: { id: number; type: string; title: string; detail?: string | null; url?: string | null }[];
+  plan: { summary?: string; focusNutrients?: { key: string; why?: string }[] };
+  generatedAt: string;
+}
+
 export const v2Api = {
+  /** Null when there's no plan yet (the endpoint 404s). */
+  nutritionPlan: async (): Promise<NutritionPlanSummary | null> => {
+    try { return await apiFetch('/nutrition/plan', { silent404: true } as any) as NutritionPlanSummary; }
+    catch (e: any) { if (e?.status === 404 || /no nutrition plan/i.test(String(e?.message))) return null; throw e; }
+  },
+
   trainingOverview: (): Promise<TrainingOverview> => apiFetch('/training/overview'),
 
   brief: (): Promise<Brief> => apiFetch('/coach/brief', { timeoutMs: LONG_TIMEOUT_MS }),
