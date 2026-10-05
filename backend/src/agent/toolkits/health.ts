@@ -15,7 +15,6 @@ import { dayNutrition } from './nutrition.js';
 import { bodyWeight, dayLabel, kgTo, toKg, num, plural, shiftDate } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
-import { latestNutritionPlan } from '../../services/nutritionPlanService.js';
 import { planChanges, applyChanges, changeSummary, type PlanChange, type PlanState, type StoredPlan, type RequestedChange } from '../../services/nutritionPlanSummary.js';
 
 const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn.js')).toolCtx(userId);
@@ -66,6 +65,8 @@ defineOp({
 // targets and macros. Plan edits save a new plan row (the old one stays in
 // history), so Undo removes the new row; macro edits restore the old macros.
 async function planState(userId: string): Promise<PlanState & { generatedAt: Date | null; sources: unknown[]; dailyCalorieTarget: number | null }> {
+  // Lazy: the plan service pulls in the RAG client, which needs OpenAI configured at import.
+  const { latestNutritionPlan } = await import('../../services/nutritionPlanService.js');
   const [cur, u] = await Promise.all([
     latestNutritionPlan(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, dailyCalorieTarget: true } }),

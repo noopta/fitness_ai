@@ -537,6 +537,8 @@ export const PROGRAM_TOOLS = [
         program: program ? { goal: program.goal ?? null, days: (phase?.trainingDays ?? []).map((d: any) => ({ day: d.day, focus: d.focus ?? null, exercises: (d.exercises ?? []).map((e: any) => e.exercise ?? e.name) })) } : null,
       };
     },
+    // No card of its own: the propose_program_edit that follows is the reply.
+    card: () => null,
   }),
   tool({
     name: 'propose_exercise_swap', kind: 'propose', core: true, fn: 'PRG-07',
