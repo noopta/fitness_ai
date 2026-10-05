@@ -15,7 +15,7 @@ import {
   updateNutritionStreakInBackground,
 } from '../services/nutritionShared.js';
 import { parseMealMacros, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
-import { mealPhotoV2AvailableFor } from '../services/featureFlags.js';
+import { mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
 import { coerceExistingItems, MAX_MEAL_PHOTOS } from '../services/food/mealPhotoSchema.js';
 import { consumeAddPhotoGrant } from '../services/food/mealPhotoCache.js';
 import { runMealPhotoAnalysis } from '../services/food/mealPhotoPipeline.js';
@@ -40,6 +40,7 @@ import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nut
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
 import { lookupOpenFoodFacts } from '../services/food/openFoodFacts.js';
+import { webLookupBarcode, cachedWebLookup, type WebProduct } from '../services/food/webFoodLookup.js';
 import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/mealLogService.js';
 import { rankFoodResults } from '../services/food/foodSearch.js';
@@ -216,11 +217,11 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
         console.warn(`[nutrition/barcode] OpenFoodFacts unavailable (${off.reason}${off.upstream ? ` ${off.upstream}` : ''}) for ${code}`);
         // Still offer the label scan: the user can recover without waiting
         // for OFF to come back.
-        return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: off.upstream, canScanLabel: true });
+        return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: off.upstream, canScanLabel: true, canWebSearch: webFoodSearchAvailableFor(req.user!.id, req.user!.email) });
       }
       // canScanLabel tells the client a recovery path exists, instead of the
       // dead end it used to hit ("try the meal-photo scan instead").
-      return res.status(404).json({ error: 'Barcode not in database', code, canScanLabel: true });
+      return res.status(404).json({ error: 'Barcode not in database', code, canScanLabel: true, canWebSearch: webFoodSearchAvailableFor(req.user!.id, req.user!.email) });
     }
     const p = off.product;
     const nut = p.nutriments ?? {};
@@ -266,6 +267,93 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
     return res.status(502).json({ error: 'Lookup failed', message: err?.message });
   }
 });
+// GET /api/nutrition/barcode/:code/web — the barcode missed OpenFoodFacts and
+// the community table: search the web for it (Gemini + Google Search). Slow
+// (~25 s) and can be wrong, so the client shows it as "Is this your product?"
+// and the label scan stays available alongside. Per-user daily cap — each
+// search is a grounded model call.
+const WEB_SEARCH_DAILY_CAP = 20;
+const webSearchCounts = new Map<string, { day: string; n: number }>();
+function webSearchAllowed(userId: string): boolean {
+  const day = new Date().toISOString().slice(0, 10);
+  const cur = webSearchCounts.get(userId);
+  if (!cur || cur.day !== day) { webSearchCounts.set(userId, { day, n: 1 }); return true; }
+  if (cur.n >= WEB_SEARCH_DAILY_CAP) return false;
+  cur.n++;
+  return true;
+}
+
+export function serializeWebProduct(code: string, p: WebProduct) {
+  return {
+    code,
+    name: p.name,
+    brand: p.brand,
+    imageUrl: null,
+    per100g: { calories: p.caloriesPer100g, proteinG: p.proteinG, carbsG: p.carbsG, fatG: p.fatG },
+    servingSize: p.servingSize,
+    servingQuantityG: p.servingQuantityG,
+    source: 'web_search' as const,
+    sources: p.sources,
+    needsConfirmation: true,
+  };
+}
+
+router.get('/nutrition/barcode/:code/web', requireAuth, async (req, res) => {
+  const code = String(req.params.code ?? '').trim();
+  if (!/^[0-9]{6,14}$/.test(code)) return res.status(400).json({ error: 'Invalid barcode format' });
+  if (!webFoodSearchAvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Web search unavailable' });
+  if (!cachedWebLookup(code) && !webSearchAllowed(req.user!.id)) {
+    return res.status(429).json({ error: 'Web search limit reached for today — scan the label instead.' });
+  }
+  const t0 = Date.now();
+  const result = await webLookupBarcode(code);
+  console.log('[barcode-web]', JSON.stringify({ code, userId: req.user!.id, kind: result.kind, reason: result.kind === 'found' ? null : result.reason, ms: Date.now() - t0 }));
+  if (result.kind === 'found') return res.json(serializeWebProduct(code, result.product));
+  if (result.kind === 'unavailable') return res.status(503).json({ error: 'Web search is unavailable right now', canScanLabel: true });
+  return res.status(404).json({ error: 'Not found on the web', canScanLabel: true });
+});
+
+// POST /api/nutrition/barcode/:code/web/confirm — the user said "yes, this is
+// my product". Cache the web result for everyone, using the SERVER's answer
+// (the client's numbers may carry the user's own edits for their log). A row
+// read from the actual label (user_label_scan / curated) is never replaced.
+router.post('/nutrition/barcode/:code/web/confirm', requireAuth, async (req, res) => {
+  const code = String(req.params.code ?? '').trim();
+  if (!/^[0-9]{6,14}$/.test(code)) return res.status(400).json({ error: 'Invalid barcode format' });
+  const cached = cachedWebLookup(code);
+  if (!cached || cached.kind !== 'found') return res.status(409).json({ error: 'No web result to confirm' });
+  const p = cached.product;
+  try {
+    const existing = await prisma.productBarcode.findUnique({ where: { code } });
+    if (existing && existing.source !== 'web_search') return res.json({ saved: false, reason: 'label_exists' });
+    if (existing) {
+      await prisma.productBarcode.update({ where: { code }, data: { scanCount: { increment: 1 } } });
+      return res.json({ saved: true, existing: true });
+    }
+    await prisma.productBarcode.create({
+      data: {
+        code,
+        name: p.name,
+        brand: p.brand,
+        caloriesPer100g: p.caloriesPer100g,
+        proteinG: p.proteinG,
+        carbsG: p.carbsG,
+        fatG: p.fatG,
+        nutrientsJson: JSON.stringify({ sources: p.sources }),
+        servingSize: p.servingSize,
+        servingQuantityG: p.servingQuantityG,
+        source: 'web_search',
+        contributedByUserId: req.user!.id,
+        verified: false,
+      },
+    });
+    return res.json({ saved: true });
+  } catch (err: any) {
+    console.error('[barcode-web] confirm failed:', err?.message ?? err);
+    return res.status(500).json({ error: 'Could not save' });
+  }
+});
+
 function num(v: unknown): number | null {
   const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : NaN);
   return Number.isFinite(n) ? n : null;

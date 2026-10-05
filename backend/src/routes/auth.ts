@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
 import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import twilio from 'twilio';
@@ -906,6 +906,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         logAdaptation: logAdaptationAvailableFor(user.id, user.email),
         phaseInference: phaseInferenceAvailableFor(user.id, user.email),
         mealPhotoV2: mealPhotoV2AvailableFor(user.id, user.email),
+        webFoodSearch: webFoodSearchAvailableFor(user.id, user.email),
       },
     });
   } catch (err) {

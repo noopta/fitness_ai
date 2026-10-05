@@ -13,7 +13,7 @@
 // and needs no native module, so this whole screen ships over-the-air to
 // binaries already in users' hands.
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert,
 } from 'react-native';
@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { nutritionApi, type BarcodeLookupResult } from '../src/lib/api';
 import { Analytics } from '../src/lib/analytics';
+import { useAuth } from '../src/context/AuthContext';
 import { colors, spacing, radius, fontSize, fontWeight } from '../src/constants/theme';
 
 export default function BarcodeLabelScanScreen() {
@@ -33,6 +34,51 @@ export default function BarcodeLabelScanScreen() {
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Web search runs alongside: the label scan stays usable the whole time,
+  // and a web hit is only a candidate until the user says it's their product.
+  const { getFeatures } = useAuth();
+  type WebHit = BarcodeLookupResult & { sources?: Array<{ title: string | null; uri: string }> };
+  const [web, setWeb] = useState<{ state: 'off' | 'searching' | 'found' | 'none'; hit?: WebHit }>(
+    { state: getFeatures().webFoodSearch && barcode ? 'searching' : 'off' },
+  );
+  useEffect(() => {
+    if (web.state !== 'searching') return;
+    let live = true;
+    nutritionApi.webLookupBarcode(barcode)
+      .then((hit) => { if (live) setWeb({ state: 'found', hit }); })
+      .catch(() => { if (live) setWeb({ state: 'none' }); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function pickWebHit(hit: WebHit) {
+    void nutritionApi.confirmWebBarcode(barcode).catch(() => {});
+    Analytics.foodBarcodeLogged?.({ code: barcode, name: hit.name, servingsLogged: 0 });
+    router.replace({
+      pathname: '/barcode-confirm',
+      params: {
+        code: barcode,
+        name: hit.name,
+        brand: hit.brand ?? '',
+        calories: String(hit.per100g.calories ?? 0),
+        proteinG: String(hit.per100g.proteinG ?? 0),
+        carbsG:   String(hit.per100g.carbsG ?? 0),
+        fatG:     String(hit.per100g.fatG ?? 0),
+        nutrients: JSON.stringify(hit.per100g),
+        servingSize: hit.servingSize ?? '',
+        servingQuantityG: hit.servingQuantityG != null ? String(hit.servingQuantityG) : '',
+        imageUrl: '',
+      },
+    });
+  }
+
+  function sourceHost(hit: WebHit): string | null {
+    const s = hit.sources?.[0];
+    if (!s) return null;
+    if (s.title) return s.title;
+    try { return new URL(s.uri).hostname.replace(/^www\./, ''); } catch { return null; }
+  }
 
   async function ensurePermission(kind: 'camera' | 'library'): Promise<boolean> {
     const req = kind === 'camera'
@@ -117,6 +163,37 @@ export default function BarcodeLabelScanScreen() {
       </View>
 
       <View style={styles.body}>
+        {web.state === 'searching' ? (
+          <View style={styles.webCard}>
+            <View style={styles.readingRow}>
+              <ActivityIndicator color={colors.primary} />
+              <Text style={styles.readingText}>Searching the web for this product…</Text>
+            </View>
+            <Text style={styles.webNote}>This can take up to a minute — you can scan the label meanwhile.</Text>
+          </View>
+        ) : null}
+        {web.state === 'found' && web.hit ? (
+          <View style={styles.webCard}>
+            <Text style={styles.webEyebrow}>FOUND ON THE WEB · IS THIS YOUR PRODUCT?</Text>
+            <Text style={styles.webName}>{web.hit.name}{web.hit.brand ? ` · ${web.hit.brand}` : ''}</Text>
+            <Text style={styles.webMacros}>
+              {web.hit.servingQuantityG
+                ? `${Math.round((web.hit.per100g.calories ?? 0) * web.hit.servingQuantityG / 100)} kcal per ${web.hit.servingSize || `${web.hit.servingQuantityG} g`}`
+                : `${Math.round(web.hit.per100g.calories ?? 0)} kcal per 100 g`}
+              {`  ·  P ${web.hit.per100g.proteinG ?? 0} / C ${web.hit.per100g.carbsG ?? 0} / F ${web.hit.per100g.fatG ?? 0} g per 100 g`}
+            </Text>
+            {sourceHost(web.hit) ? <Text style={styles.webNote}>Source: {sourceHost(web.hit)}</Text> : null}
+            <View style={styles.webActions}>
+              <TouchableOpacity style={[styles.primaryBtn, styles.webBtn]} onPress={() => pickWebHit(web.hit!)} activeOpacity={0.85} accessibilityRole="button">
+                <Text style={styles.primaryBtnText}>Yes, use this</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.secondaryBtn, styles.webBtn]} onPress={() => setWeb({ state: 'none' })} activeOpacity={0.85} accessibilityRole="button">
+                <Text style={styles.secondaryBtnText}>Not it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+
         {previewUri ? (
           <Image source={{ uri: previewUri }} style={styles.preview} resizeMode="contain" />
         ) : (
@@ -170,6 +247,21 @@ export default function BarcodeLabelScanScreen() {
 }
 
 const styles = StyleSheet.create({
+  webCard: {
+    alignSelf: 'stretch',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: 6,
+  },
+  webEyebrow: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, color: colors.mutedForeground, letterSpacing: 0.6 },
+  webName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.foreground },
+  webMacros: { fontSize: fontSize.sm, color: colors.foreground },
+  webNote: { fontSize: fontSize.xs, color: colors.mutedForeground },
+  webActions: { flexDirection: 'row', gap: spacing.sm, marginTop: 4 },
+  webBtn: { flex: 1, marginTop: 0 },
   safeArea: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

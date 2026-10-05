@@ -640,6 +640,13 @@ export const nutritionApi = {
   // we read it. The result is cached globally, so the next person to scan that
   // product gets it instantly — this is how coverage gets built for Nigerian
   // and Gambian goods OpenFoodFacts doesn't carry.
+  // Barcode missed OpenFoodFacts and the community table: a grounded web
+  // search (~25-40 s). The result is a candidate the user must confirm.
+  webLookupBarcode: (code: string): Promise<BarcodeLookupResult & { sources?: Array<{ title: string | null; uri: string }>; needsConfirmation?: boolean }> =>
+    apiFetch(`/nutrition/barcode/${encodeURIComponent(code)}/web`, { timeoutMs: LONG_TIMEOUT_MS }),
+  // "Yes, that's my product" — caches the server's web answer for everyone.
+  confirmWebBarcode: (code: string): Promise<{ saved: boolean }> =>
+    apiFetch(`/nutrition/barcode/${encodeURIComponent(code)}/web/confirm`, { method: 'POST' }),
   scanNutritionLabel: (
     code: string, imageBase64: string, mimeType: string,
   ): Promise<BarcodeLookupResult> =>

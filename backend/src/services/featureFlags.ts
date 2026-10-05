@@ -210,3 +210,7 @@ export const freestyleAvailableFor = flagFor('FREESTYLE_ENABLED', 'FREESTYLE_USE
 export const logAdaptationAvailableFor = flagFor('LOG_ADAPTATION_ENABLED', 'LOG_ADAPTATION_USERS');
 export const phaseInferenceAvailableFor = flagFor('PHASE_INFERENCE_ENABLED', 'PHASE_INFERENCE_USERS');
 export const mealPhotoV2AvailableFor = flagFor('MEAL_PHOTO_V2_ENABLED', 'MEAL_PHOTO_V2_USERS');
+
+/** Web (Google Search–grounded) lookup for barcodes OpenFoodFacts and the
+ *  community table don't have. WEB_FOOD_SEARCH_ENABLED=1 or _USERS allowlist. */
+export const webFoodSearchAvailableFor = flagFor('WEB_FOOD_SEARCH_ENABLED', 'WEB_FOOD_SEARCH_USERS');
