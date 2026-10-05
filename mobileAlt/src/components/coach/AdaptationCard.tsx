@@ -164,8 +164,9 @@ export function AdaptationCard({
   function collectEdits(): TargetEdit[] | undefined {
     if (!editing) return undefined;
     if (isNext) {
-      // One edit carrying whatever the user changed; untouched fields keep the
-      // proposal's values so the server never has to merge partials.
+      // One edit carrying only what the user changed. Echoing the card's own
+      // reps/sets would read as an override and rewrite the program's
+      // prescription (e.g. a "6-8" range) when only the weight was adjusted.
       const p = payload as Extract<AdaptationPayload, { kind: 'next_session' }>;
       const w = (edits.__w ?? '').trim();
       const r = (edits.__r ?? '').trim();
@@ -176,9 +177,14 @@ export function AdaptationCard({
         const n = parseFloat(w);
         if (Number.isFinite(n) && n >= 0) weight = n === 0 ? null : Math.round(toKg(n) * 100) / 100;
       }
-      const sets = st && Number.isFinite(parseInt(st, 10)) && parseInt(st, 10) > 0 ? parseInt(st, 10) : p.sets;
-      const reps = r && /^\d{1,2}(\s*[-–]\s*\d{1,2})?$/.test(r) ? r.replace(/\s|–/g, (c) => (c === '–' ? '-' : '')) : p.reps;
-      return [{ key: p.key, targetWeightKg: weight, reps, sets }];
+      const sets = st && Number.isFinite(parseInt(st, 10)) && parseInt(st, 10) > 0 ? parseInt(st, 10) : null;
+      const reps = r && /^\d{1,2}(\s*[-–]\s*\d{1,2})?$/.test(r) ? r.replace(/\s|–/g, (c) => (c === '–' ? '-' : '')) : null;
+      return [{
+        key: p.key,
+        targetWeightKg: weight,
+        ...(reps != null && reps !== String(p.reps) ? { reps } : {}),
+        ...(sets != null && sets !== p.sets ? { sets } : {}),
+      }];
     }
     const out: TargetEdit[] = [];
     for (const [key, raw] of Object.entries(edits)) {

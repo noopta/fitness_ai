@@ -746,8 +746,8 @@ export const nutritionApi = {
     apiFetch('/nutrition/analyze-photo', { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }), timeoutMs: LONG_TIMEOUT_MS }),
   // Contract 8: 1–3 photos of ONE meal, and/or "add photo" with the items
   // already on the review list (the response then carries only NEW items).
-  // The first image also rides as the legacy imageBase64/mimeType so a server
-  // without multi-photo support still reads something.
+  // images[] only — the photos are the bulk of the upload, so the first one
+  // isn't duplicated as the legacy imageBase64 (the backend ships first).
   analyzePhotos: (input: {
     images: Array<{ base64: string; mimeType: string }>;
     existingItems?: MealPhotoItem[];
@@ -756,8 +756,6 @@ export const nutritionApi = {
     apiFetch('/nutrition/analyze-photo', {
       method: 'POST',
       body: JSON.stringify({
-        imageBase64: input.images[0]?.base64,
-        mimeType: input.images[0]?.mimeType,
         images: input.images,
         ...(input.existingItems ? { existingItems: input.existingItems } : {}),
         ...(input.regionHint ? { regionHint: input.regionHint } : {}),
