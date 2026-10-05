@@ -418,6 +418,14 @@ scheduleAt(14, null, () => {
     .catch(err => console.error('[scheduler] affiliate payout error:', err));
 });
 scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
+// Freestyle log-trend sweep — Mondays 10:00 server time (UTC). Plateaus,
+// systemic fatigue, volume balance, phase confirm. Per-user flag-gated inside
+// (no-op while LOG_ADAPTATION / PHASE_INFERENCE are off); never pushes.
+scheduleAt(10, 1, () => {
+  import('./adaptation/weeklySweep.js')
+    .then(m => m.runWeeklyAdaptationSweep())
+    .catch(err => console.error('[scheduler] adaptation weekly sweep error:', err));
+});
 scheduleAt(18, null, () => runReengagementCheck().catch(err => console.error('[scheduler] reengagement error:', err)));
 // Streak-at-risk loss-aversion pass — runs at 7pm and 9pm so we cover both
 // "evening loggers" and "late-night loggers" without waking up the early crowd.

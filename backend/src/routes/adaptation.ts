@@ -14,13 +14,18 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import {
   adaptationEnabledFor, bootstrap, decide, listPending, listRecent, undo,
 } from '../adaptation/proposalService.js';
+import { logAdaptationAvailableFor, phaseInferenceAvailableFor } from '../services/featureFlags.js';
 
 const router = Router();
 
 router.get('/adaptation/pending', requireAuth, async (req, res) => {
   try {
-    if (!adaptationEnabledFor(req.user!.id)) return res.json({ enabled: false, proposals: [] });
-    const proposals = await listPending(req.user!.id);
+    const u = req.user!;
+    // Log-trend / phase cards (freestyle release) count too, so a user on
+    // those flags sees their cards even where program adaptation is off.
+    const on = adaptationEnabledFor(u.id) || logAdaptationAvailableFor(u.id, u.email) || phaseInferenceAvailableFor(u.id, u.email);
+    if (!on) return res.json({ enabled: false, proposals: [] });
+    const proposals = await listPending(u.id);
     res.json({ enabled: true, proposals });
   } catch (err: any) {
     console.error('[adaptation] pending failed:', err?.message ?? err);
@@ -49,9 +54,21 @@ router.post('/adaptation/bootstrap', requireAuth, async (req, res) => {
   }
 });
 
+// `edits` is the Adjust path. targetWeightKg (alias toWeightKg) is the load;
+// reps / sets override a next_session card's prescription.
+const editSchema = z.object({
+  key: z.string().min(1),
+  targetWeightKg: z.number().nonnegative().nullable().optional(),
+  toWeightKg: z.number().nonnegative().nullable().optional(),
+  reps: z.union([z.string(), z.number()]).transform(v => String(v).trim()).optional(),
+  sets: z.number().int().min(1).max(20).optional(),
+}).transform(({ toWeightKg, ...e }) => ({
+  ...e,
+  targetWeightKg: e.targetWeightKg !== undefined ? e.targetWeightKg : toWeightKg,
+}));
 const decideSchema = z.object({
   action: z.enum(['apply', 'decline', 'snooze']),
-  edits: z.array(z.object({ key: z.string().min(1), targetWeightKg: z.number().nonnegative().nullable() })).max(60).optional(),
+  edits: z.array(editSchema).max(60).optional(),
   snoozeDays: z.number().int().min(1).max(60).optional(),
 });
 

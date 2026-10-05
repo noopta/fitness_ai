@@ -67,7 +67,67 @@ export type ProposalKind =
   | 'calibration'
   | 'program_from_logs'  // Cohort C — formalize the program the logs describe
   | 'set_targets'        // internal — the inverse of retrofit / load_change
-  | 'restore_program';   // internal — the inverse of program_from_logs
+  | 'restore_program'    // internal — the inverse of program_from_logs
+  // Freestyle release (log-trend rules, with or without a program):
+  | 'next_session'       // per-lift target for the next session
+  | 'deload'             // one lighter week: volume down, intensity kept
+  | 'volume_balance'     // weekly hard sets per muscle out of band / push-pull skew
+  | 'phase_confirm'      // "looks like you're cutting — right?"
+  | 'calorie_adjust'     // nudge dailyCalorieTarget (cut too aggressive / surplus too big)
+  | 'revert_record'      // internal — inverse of a record-only apply (nothing to write back)
+  | 'restore_phase'      // internal — inverse of phase_confirm
+  | 'restore_calories';  // internal — inverse of calorie_adjust
+
+/** What a next-session suggestion asks the lifter to do. */
+export type SuggestionAction =
+  | 'add_load' | 'add_rep' | 'add_set' | 'hold' | 'reset' | 'resume' | 'deload' | 'drop_set' | 'repeat';
+
+/** Training phase (contract 6). */
+export type TrainingPhase =
+  | 'building_strength' | 'cutting' | 'cut_too_aggressive' | 'building_muscle'
+  | 'recomp' | 'plateau' | 'rebuilding_consistency' | 'unknown';
+
+export const TRAINING_PHASES: TrainingPhase[] = [
+  'building_strength', 'cutting', 'cut_too_aggressive', 'building_muscle',
+  'recomp', 'plateau', 'rebuilding_consistency', 'unknown',
+];
+
+export interface ConfirmedPhase {
+  phase: TrainingPhase;
+  confirmedAt: string;
+  source: 'confirmed' | 'user_set';
+}
+
+export interface PhaseResult {
+  inferred: TrainingPhase;
+  confidence: number;
+  evidence: Array<{ label: string; value: string }>;
+  since: string | null;
+  confirmed: ConfirmedPhase | null;
+  effective: TrainingPhase;
+  maintenanceKcal: number | null;
+  maintenanceSource: 'adaptive' | 'formula' | null;
+  statedGoalMismatch: string | null;
+}
+
+/** next_session payload. `strategy` / `note` are additive extras the card may
+ *  show; `toWeightKg` null = bodyweight / unloaded. */
+export interface NextSessionPayload {
+  kind: 'next_session';
+  key: string;
+  exercise: string;
+  action: SuggestionAction;
+  fromWeightKg: number | null;
+  toWeightKg: number | null;
+  reps: string;
+  sets: number;
+  rpe: number | null;
+  /** Which detector produced it — lets the ladder / analytics tell them apart. */
+  signal?: string;
+  /** Plateau ladder step or other strategy (rep_range | variation | frequency | volume). */
+  strategy?: string;
+  note?: string;
+}
 
 export interface EvidenceLine {
   label: string;
@@ -110,7 +170,15 @@ export type ProposalPayload =
   | { kind: 'calibration'; key: string; exercise: string; targetWeightKg: number; targetRPE: number | null }
   | { kind: 'set_targets'; targets: Array<{ key: string; targetWeightKg: number | null; targetRPE?: number | null; confidence?: number | null; basis?: string | null }> }
   | { kind: 'program_from_logs'; program: any; observed: any; reason: 'no_program' | 'abandoned' }
-  | { kind: 'restore_program'; savedProgram: string | null; programStartDate: string | null; splitLabel: string | null };
+  | { kind: 'restore_program'; savedProgram: string | null; programStartDate: string | null; splitLabel: string | null }
+  | NextSessionPayload
+  | { kind: 'deload'; keys: string[]; exercises: string[]; volumeCutPct: number; weeks: 1; reason: 'systemic_fatigue' | 'plateau_high_volume' }
+  | { kind: 'volume_balance'; muscle: string; currentSets: number; suggestedSets: number; direction: 'add' | 'reduce' | 'rebalance'; note: string }
+  | { kind: 'phase_confirm'; phase: TrainingPhase; previous: TrainingPhase | null; evidence: EvidenceLine[] }
+  | { kind: 'calorie_adjust'; fromKcal: number; toKcal: number; reason: 'cut_too_aggressive' | 'surplus_too_large' }
+  | { kind: 'revert_record' }
+  | { kind: 'restore_phase'; previous: ConfirmedPhase | null }
+  | { kind: 'restore_calories'; dailyCalorieTarget: number | null };
 
 /** Everything the rules need, loaded once per run. */
 export interface AdaptationContext {
@@ -124,4 +192,10 @@ export interface AdaptationContext {
   workoutCount: number;
   firstWorkoutDate: string | null;
   now: Date;
+  /** For per-user feature flags (allowlists accept emails). */
+  email?: string | null;
+  /** The key function the exposures were built with. */
+  keyFn?: (name: string) => string;
+  /** Every logged workout date (ascending). */
+  workoutDates?: string[];
 }

@@ -20,6 +20,7 @@ import { computePhaseState, parseSavedProgram } from '../services/programPhaseSe
 import { adaptationEnabledFor, seedTargetsForNewProgram } from '../adaptation/proposalService.js';
 import { logBodyWeight, deleteBodyWeight } from '../services/bodyWeightService.js';
 import { archiveProgram } from '../services/completedProgramService.js';
+import { freestyleAvailableFor } from '../services/featureFlags.js';
 import { checkPinsAfterScheduleChange, deriveSplitLabel } from '../services/trainTogetherService.js';
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 
@@ -342,7 +343,7 @@ async function buildFullUserContext(userId: string): Promise<string> {
       const summary = exs.map((e: any) =>
         e.freeform
           ? e.name
-          : `${e.name} ${e.sets}×${e.reps}${e.weightKg != null ? ` @ ${e.weightKg} lbs` : ''}${e.rpe ? ` RPE ${e.rpe}` : ''}`
+          : `${e.name} ${e.sets}×${e.reps}${e.weightKg != null ? ` @ ${e.weightKg} kg` : ''}${e.rpe ? ` RPE ${e.rpe}` : ''}`
       ).join(' | ');
       lines.push(`  ${log.date} — ${log.title || 'Workout'}: ${summary}`);
       if (log.notes) lines.push(`    Notes: ${log.notes}`);
@@ -472,7 +473,7 @@ router.post('/coach/chat/stream', requireAuth, aiLimiter, async (req, res) => {
       `You have full access to this athlete's complete profile, training history, nutrition data, wellness check-ins, and active program below.`,
       `Reference specific data from their profile when relevant. Be direct, evidence-based, practical, and encouraging.`,
       `When you draw on the Expert Podcast Reference, attribute the claim to the speaker by name (e.g. "Dr. Layne Norton notes…").`,
-      `Use markdown formatting for structured responses. All weights are in lbs.`,
+      `Use markdown formatting for structured responses. Logged workout weights above are in kg; answer in the athlete's preferred unit per the unit directive.`,
       // Attached only when the classifier saw self-harm / disordered-eating
       // signals in the user's message. The model is told to respond with care
       // rather than the message being refused.
@@ -720,6 +721,19 @@ export async function generateProgramForUser(
   const goal = opts.goal || inferGoalFromProfile(coachProfileObj?.trainingPreference, coachProfileObj?.primaryGoal);
   const bodyCompositionGoal = opts.bodyCompositionGoal || extractBodyCompositionGoal(coachProfileObj?.primaryGoal);
 
+  // Last 8 weeks of logs so the generator can start loads from real numbers
+  // (read-only; summarised inside generateTrainingProgram). Best-effort.
+  const since8w = new Date(Date.now() - 56 * 86_400_000).toISOString().slice(0, 10);
+  let recentWorkouts: Array<{ id: string; date: string; exercises: string; programDayRef: string | null }> = [];
+  try {
+    recentWorkouts = await prisma.workoutLog.findMany({
+      where: { userId, date: { gte: since8w } },
+      orderBy: { date: 'desc' },
+      take: 120,
+      select: { id: true, date: true, exercises: true, programDayRef: true },
+    });
+  } catch { /* generate without logged numbers */ }
+
   const [program, nutritionPlan] = await Promise.all([
     generateTrainingProgram({
       goal, daysPerWeek: opts.daysPerWeek, durationWeeks: opts.durationWeeks,
@@ -727,6 +741,7 @@ export async function generateProgramForUser(
       primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
       selectedLift: user.sessions[0]?.selectedLift || null,
       accessories, coachProfile: user.coachProfile, diagnosticSignals, gender: resolvedGender,
+      recentWorkouts,
     }),
     generateNutritionPlan({
       goal, bodyCompositionGoal, weightKg: user.weightKg || null, heightCm: user.heightCm || null,
@@ -854,6 +869,34 @@ router.put('/coach/program', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Save program error:', err);
     res.status(500).json({ error: 'Failed to save program' });
+  }
+});
+
+// POST /api/coach/program/freestyle — set the program aside and log as you go
+// (contract 4). Archives it as a CompletedProgram with reason 'freestyle'.
+// POST /api/coach/program/restore — bring the most recent one back.
+// Both gated by the freestyle flag (403 when off).
+router.post('/coach/program/freestyle', requireAuth, async (req, res) => {
+  if (!freestyleAvailableFor(req.user!.id, req.user!.email)) return res.status(403).json({ error: 'Not available', code: 'freestyle_disabled' });
+  try {
+    const { goFreestyle } = await import('../adaptation/programMode.js');
+    res.json(await goFreestyle(req.user!.id));
+  } catch (err: any) {
+    if (err?.status) return res.status(err.status).json({ error: err.message });
+    console.error('Go freestyle error:', err);
+    res.status(500).json({ error: 'Failed to switch to freestyle' });
+  }
+});
+
+router.post('/coach/program/restore', requireAuth, async (req, res) => {
+  if (!freestyleAvailableFor(req.user!.id, req.user!.email)) return res.status(403).json({ error: 'Not available', code: 'freestyle_disabled' });
+  try {
+    const { restoreProgram } = await import('../adaptation/programMode.js');
+    res.json(await restoreProgram(req.user!.id));
+  } catch (err: any) {
+    if (err?.status) return res.status(err.status).json({ error: err.message });
+    console.error('Restore program error:', err);
+    res.status(500).json({ error: 'Failed to restore program' });
   }
 });
 

@@ -229,7 +229,14 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
         ...(prs.length ? [prCard(prs.map((p) => ({ name: p.displayName, e1rmLbs: p.e1RMLbs })), ctx.unit)] : []),
         ...(adaptationProposals as any[]).slice(0, 2).map((p) => adaptationCard(p, ctx)),
       ];
-      const text = prs.length ? `New best on ${prs.map((p) => p.displayName).join(' and ')}.` : 'Your last session says a lift is ready to move.';
+      const first = (adaptationProposals as any[])[0];
+      // Log-trend cards (freestyle release) aren't all "ready to move" — a
+      // deload or a reset needs a different opener.
+      const text = prs.length
+        ? `New best on ${prs.map((p) => p.displayName).join(' and ')}.`
+        : first?.kind === 'deload' ? 'Your last few sessions point to a lighter week.'
+        : first?.kind === 'next_session' ? `I have a suggestion for your next ${first?.proposal?.exercise ?? 'session'}.`
+        : 'Your last session says a lift is ready to move.';
       return { text, cards };
     });
   }

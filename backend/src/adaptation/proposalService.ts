@@ -15,7 +15,13 @@ import { deriveSplitLabel } from '../services/trainTogetherService.js';
 import { buildExposures, makeKeyFn, type KeyFn } from './history.js';
 import { applyTargetsToProgram, extractPlannedExercises, type TargetWrite } from './targets.js';
 import { runBootstrapRules, runPostWorkoutRules } from './engine.js';
-import type { AdaptationContext, EvidenceLine, ProposalDraft, ProposalPayload } from './types.js';
+import { buildLogTrendDrafts, LOG_TREND_KINDS, liftDedupeKey } from './rules/logTrend.js';
+import { buildPhaseDrafts } from './rules/phaseRules.js';
+import { computeSuggestion, type Suggestion, type SuggestionProposalRow } from './suggestion.js';
+import type { WellnessPoint } from './detectors.js';
+import { logAdaptationAvailableFor, phaseInferenceAvailableFor } from '../services/featureFlags.js';
+import { inferPhaseDetailed, restoreConfirmedPhase, setConfirmedPhase } from '../services/phaseInference.js';
+import type { AdaptationContext, EvidenceLine, NextSessionPayload, ProposalDraft, ProposalPayload, TrainingPhase } from './types.js';
 
 const prisma = new PrismaClient();
 
@@ -49,7 +55,7 @@ function invalidateProgramCaches(userId: string) {
 export async function loadContext(userId: string, now = new Date()): Promise<AdaptationContext> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { savedProgram: true, unitPreference: true },
+    select: { savedProgram: true, unitPreference: true, email: true },
   });
   const workouts = await prisma.workoutLog.findMany({
     where: { userId },
@@ -92,6 +98,9 @@ export async function loadContext(userId: string, now = new Date()): Promise<Ada
     workoutCount: workouts.length,
     firstWorkoutDate: workouts[0]?.date ?? null,
     now,
+    email: (user as any)?.email ?? null,
+    keyFn,
+    workoutDates: workouts.map(w => w.date),
   };
 }
 
@@ -211,8 +220,8 @@ export async function listRecent(userId: string, limit = 20): Promise<ProposalRo
 
 /** Turn a proposal payload into target writes. Edited targets (from the
  *  retrofit "Let me edit" flow) override the stored ones by key. */
-function targetWritesFor(payload: ProposalPayload, edits?: Array<{ key: string; targetWeightKg: number | null }>): TargetWrite[] {
-  const editMap = new Map((edits ?? []).map(e => [e.key, e.targetWeightKg]));
+function targetWritesFor(payload: ProposalPayload, edits?: ProposalEdit[]): TargetWrite[] {
+  const editMap = new Map((edits ?? []).filter(e => e.targetWeightKg !== undefined).map(e => [e.key, e.targetWeightKg ?? null]));
   switch (payload.kind) {
     case 'retrofit':
       return payload.targets
@@ -262,11 +271,88 @@ async function replaceProgram(userId: string, program: any, now: Date): Promise<
 
 export type DecideAction = 'apply' | 'decline' | 'snooze';
 
+/** The "Adjust" path. `targetWeightKg` is the load (toWeightKg for
+ *  next_session); `reps` / `sets` only apply to next_session. */
+export interface ProposalEdit { key: string; targetWeightKg?: number | null; reps?: string; sets?: number }
+
+/** Kinds from the freestyle release — applied by applyLogTrend, never by the
+ *  program-target path below (so a missing program never throws for them). */
+const LOG_TREND_KIND_SET = new Set<string>(LOG_TREND_KINDS);
+
+/** next_session with the user's Adjust edits folded in. */
+export function withNextSessionEdits(p: NextSessionPayload, edits?: ProposalEdit[]): NextSessionPayload {
+  const e = edits?.find(x => x.key === p.key);
+  if (!e) return p;
+  return {
+    ...p,
+    toWeightKg: e.targetWeightKg !== undefined ? e.targetWeightKg : p.toWeightKg,
+    reps: e.reps != null && String(e.reps).trim() ? String(e.reps).trim() : p.reps,
+    sets: e.sets != null && e.sets > 0 ? e.sets : p.sets,
+  };
+}
+
+/**
+ * Apply a freestyle-release proposal. With a program, next_session patches the
+ * program target like load_change; otherwise (or when the lift isn't in the
+ * program) the applied row itself IS the target (contract 1 `applied_target`).
+ * deload / volume_balance are record-only — the suggestion reads them.
+ */
+async function applyLogTrend(
+  userId: string, row: any, payload: ProposalPayload, edits: ProposalEdit[] | undefined, now: Date,
+): Promise<{ proposal: ProposalRow; touched?: number }> {
+  let inverse: ProposalPayload = { kind: 'revert_record' };
+  let stored: ProposalPayload = payload;
+  let touched = 0;
+  if (payload.kind === 'next_session') {
+    const merged = withNextSessionEdits(payload, edits);
+    stored = merged;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+    const program = parseSavedProgram(user?.savedProgram ?? null);
+    if (program) {
+      const keyFn = await keyFnFor(program);
+      const planned = extractPlannedExercises(program, keyFn).find(p => p.key === merged.key);
+      if (planned) {
+        const edited = edits?.find(e => e.key === payload.key);
+        // No load on the card (bodyweight work) → keep the program's target;
+        // applyTargetsToProgram treats null as "clear".
+        const write: TargetWrite = { key: merged.key, targetWeightKg: merged.toWeightKg ?? planned.targetWeightKg, confidence: 0.95, basis: 'progression' };
+        // Prescription changes only where the card is about them — an add_rep
+        // "9" must not overwrite a "6-8" range.
+        if (merged.action === 'add_set' || merged.action === 'drop_set' || edited?.sets != null) write.sets = merged.sets;
+        if (merged.strategy === 'rep_range' || edited?.reps != null) write.reps = merged.reps;
+        const res = applyTargetsToProgram(program, [write], keyFn, now.toISOString());
+        if (res.touched > 0) {
+          touched = res.touched;
+          inverse = { kind: 'set_targets', targets: res.previous };
+          await prisma.user.update({ where: { id: userId }, data: { savedProgram: JSON.stringify(res.program) } });
+          invalidateProgramCaches(userId);
+        }
+      }
+    }
+  } else if (payload.kind === 'phase_confirm') {
+    const previous = await setConfirmedPhase(userId, payload.phase, 'confirmed', now);
+    inverse = { kind: 'restore_phase', previous };
+    touched = 1;
+  } else if (payload.kind === 'calorie_adjust') {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { dailyCalorieTarget: true } });
+    inverse = { kind: 'restore_calories', dailyCalorieTarget: user?.dailyCalorieTarget ?? null };
+    await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: payload.toKcal } });
+    cacheDelete(`userctx:${userId}`);
+    cacheClearByPrefix(`dashboard:${userId}:`);
+    touched = 1;
+  }
+  const updated = await prisma.adaptationProposal.update({
+    where: { id: row.id },
+    data: { status: 'applied', decidedAt: now, inverse: JSON.stringify(inverse), proposal: JSON.stringify(stored) },
+  });
+  return { proposal: rowToProposal(updated), touched };
+}
+
 export async function decide(
   userId: string,
   proposalId: string,
   action: DecideAction,
-  opts: { edits?: Array<{ key: string; targetWeightKg: number | null }>; snoozeDays?: number; now?: Date } = {},
+  opts: { edits?: ProposalEdit[]; snoozeDays?: number; now?: Date } = {},
 ): Promise<{ proposal: ProposalRow; touched?: number }> {
   const now = opts.now ?? new Date();
   const row = await prisma.adaptationProposal.findUnique({ where: { id: proposalId } });
@@ -286,6 +372,7 @@ export async function decide(
 
   // apply
   const payload = JSON.parse(row.proposal) as ProposalPayload;
+  if (LOG_TREND_KIND_SET.has(payload.kind)) return applyLogTrend(userId, row, payload, opts.edits, now);
   if (payload.kind === 'program_from_logs') {
     if (!payload.program?.phases?.length) throw new Error('Inferred program is empty');
     const inverse = await replaceProgram(userId, payload.program, now);
@@ -315,9 +402,10 @@ export async function decide(
 }
 
 /** Record the user's edits on the stored proposal so history shows what was actually applied. */
-function withEdits(payload: ProposalPayload, edits?: Array<{ key: string; targetWeightKg: number | null }>): ProposalPayload {
-  if (!edits?.length) return payload;
-  const m = new Map(edits.map(e => [e.key, e.targetWeightKg]));
+function withEdits(payload: ProposalPayload, edits?: ProposalEdit[]): ProposalPayload {
+  const loads = (edits ?? []).filter(e => e.targetWeightKg !== undefined);
+  if (!loads.length) return payload;
+  const m = new Map(loads.map(e => [e.key, e.targetWeightKg ?? null]));
   if (payload.kind === 'retrofit') {
     return { ...payload, targets: payload.targets.map(t => (m.has(t.key) ? { ...t, targetWeightKg: m.get(t.key)!, basis: 'user' as const, confidence: 0.95 } : t)) };
   }
@@ -330,6 +418,17 @@ export async function undo(userId: string, proposalId: string, now = new Date())
   if (!row || row.userId !== userId) throw new Error('Proposal not found');
   if (row.status !== 'applied' || !row.inverse) throw new Error('Nothing to undo');
   const inverse = JSON.parse(row.inverse) as ProposalPayload;
+  if (inverse.kind === 'revert_record' || inverse.kind === 'restore_phase' || inverse.kind === 'restore_calories') {
+    if (inverse.kind === 'restore_phase') await restoreConfirmedPhase(userId, inverse.previous);
+    if (inverse.kind === 'restore_calories') {
+      await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: inverse.dailyCalorieTarget } });
+      cacheDelete(`userctx:${userId}`);
+      cacheClearByPrefix(`dashboard:${userId}:`);
+    }
+    // revert_record: the applied row was the target; marking it undone is the undo.
+    const updated = await prisma.adaptationProposal.update({ where: { id: proposalId }, data: { status: 'undone', decidedAt: now } });
+    return { proposal: rowToProposal(updated), touched: inverse.kind === 'revert_record' ? 0 : 1 };
+  }
   if (inverse.kind === 'restore_program') {
     await prisma.user.update({
       where: { id: userId },
@@ -356,18 +455,177 @@ export async function undo(userId: string, proposalId: string, now = new Date())
 
 // ─── Triggers ────────────────────────────────────────────────────────────────
 
-/** After a workout is logged: evaluate the lifts in that workout. */
+// ─── Log-trend guardrails ────────────────────────────────────────────────────
+
+/** At most this many new log-trend cards per user per rolling 7 days. */
+export const LOG_TREND_WEEKLY_CAP = 3;
+/** A declined lift card keeps that lift quiet this long. */
+export const LIFT_DECLINE_SNOOZE_DAYS = 14;
+/** A declined phase isn't re-asked for this long. */
+export const PHASE_DECLINE_SNOOZE_DAYS = 21;
+
+function liftKeyOf(d: ProposalDraft): string | null {
+  const p = d.proposal as any;
+  return p?.kind === 'next_session' ? p.key : p?.kind === 'deload' && p.keys?.length === 1 ? p.keys[0] : null;
+}
+
+/**
+ * Persist log-trend drafts behind the freestyle guardrails, on top of
+ * createProposals' own dedupe / snooze / 3×-declined machinery:
+ *   - one open card per lift (dedupeKey `lift:<key>`; also blocked while a
+ *     program load_change for that lift is pending)
+ *   - a declined lift is quiet for 14 days; a declined phase for 21
+ *   - max 3 new cards per rolling 7 days, highest priority first
+ */
+export async function createLogTrendProposals(userId: string, drafts: ProposalDraft[], trigger: string, now = new Date()): Promise<ProposalRow[]> {
+  if (drafts.length === 0) return [];
+  const weekAgo = new Date(now.getTime() - 7 * 86400000);
+  const recent = await prisma.adaptationProposal.findMany({
+    where: { userId, kind: { in: [...LOG_TREND_KINDS] }, createdAt: { gte: weekAgo } },
+    select: { id: true },
+  });
+  const capacity = LOG_TREND_WEEKLY_CAP - recent.length;
+  if (capacity <= 0) return [];
+
+  const keys = new Set<string>();
+  for (const d of drafts) {
+    keys.add(d.dedupeKey);
+    const k = liftKeyOf(d);
+    if (k) { keys.add(`load_change:${k}`); keys.add(liftDedupeKey(k)); }
+  }
+  const declineFloor = new Date(now.getTime() - Math.max(LIFT_DECLINE_SNOOZE_DAYS, PHASE_DECLINE_SNOOZE_DAYS) * 86400000);
+  const rows = await prisma.adaptationProposal.findMany({
+    where: { userId, dedupeKey: { in: [...keys] }, OR: [{ status: 'pending' }, { status: 'snoozed' }, { status: 'declined', decidedAt: { gte: declineFloor } }] },
+    select: { dedupeKey: true, status: true, snoozeUntil: true, decidedAt: true },
+  });
+  const blocked = new Set<string>();
+  for (const r of rows) {
+    if (r.status === 'pending') blocked.add(r.dedupeKey);
+    else if (r.status === 'snoozed' && r.snoozeUntil && r.snoozeUntil > now) blocked.add(r.dedupeKey);
+    else if (r.status === 'declined' && r.decidedAt) {
+      const days = r.dedupeKey.startsWith('phase_confirm:') ? PHASE_DECLINE_SNOOZE_DAYS : LIFT_DECLINE_SNOOZE_DAYS;
+      if (now.getTime() - new Date(r.decidedAt).getTime() < days * 86400000) blocked.add(r.dedupeKey);
+    }
+  }
+  const eligible = drafts
+    .filter(d => {
+      if (blocked.has(d.dedupeKey)) return false;
+      const k = liftKeyOf(d);
+      return !(k && (blocked.has(`load_change:${k}`) || blocked.has(liftDedupeKey(k))));
+    })
+    .sort((a, b) => b.priority - a.priority)
+    .slice(0, capacity);
+  return createProposals(userId, eligible, trigger, now);
+}
+
+async function loadWellness(userId: string, now: Date): Promise<WellnessPoint[]> {
+  const since = new Date(now.getTime() - 14 * 86400000).toISOString().slice(0, 10);
+  try {
+    const rows = await (prisma as any).wellnessCheckin?.findMany({ where: { userId, date: { gte: since } }, select: { date: true, sleepHours: true, stress: true, energy: true } });
+    return Array.isArray(rows) ? rows : [];
+  } catch { return []; }
+}
+
+/** How many plateau cards each lift has already had (the ladder step). */
+async function loadPlateauSteps(userId: string, now: Date): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  const since = new Date(now.getTime() - 120 * 86400000);
+  const rows = await prisma.adaptationProposal.findMany({
+    where: { userId, kind: { in: ['next_session'] }, createdAt: { gte: since } },
+    select: { proposal: true, status: true },
+  });
+  for (const r of rows) {
+    if (r.status === 'pending') continue;
+    try {
+      const p = JSON.parse(r.proposal);
+      if (p?.signal === 'plateau' && p.strategy && p.strategy !== 'volume' && p.key) out.set(p.key, (out.get(p.key) ?? 0) + 1);
+    } catch { /* skip */ }
+  }
+  return out;
+}
+
+/** Effective phase when phase inference is on for this user, else 'unknown'. */
+async function effectivePhase(ctx: AdaptationContext, useCache = true): Promise<TrainingPhase> {
+  if (!phaseInferenceAvailableFor(ctx.userId, ctx.email)) return 'unknown';
+  try {
+    const r = await inferPhaseDetailed(ctx.userId, ctx.now, { exposuresByKey: ctx.exposuresByKey, workoutDates: ctx.workoutDates, useCache });
+    return r.effective;
+  } catch (err: any) {
+    console.error('[adaptation] phase inference failed:', err?.message ?? err);
+    return 'unknown';
+  }
+}
+
+// ─── Triggers ────────────────────────────────────────────────────────────────
+
+/**
+ * After a workout is logged: evaluate the lifts in that workout.
+ *   - program + ADAPTATION flag → double progression for planned lifts (as before)
+ *   - LOG_ADAPTATION flag       → log-trend rules for the logged lifts, with or
+ *     without a program, skipping any lift double progression already covered
+ * Backdated logs never reach here (workoutLogService skips them).
+ */
 export async function runPostWorkout(userId: string, loggedNames: string[]): Promise<ProposalRow[]> {
-  if (!adaptationEnabledFor(userId)) return [];
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { prefsJson: true, email: true } }).catch(() => null);
+  const legacyOn = adaptationEnabledFor(userId);
+  const logOn = logAdaptationAvailableFor(userId, (user as any)?.email ?? null);
+  if (!legacyOn && !logOn) return [];
   // Per-user switch (PRF-13, "stop suggesting weight increases").
-  const prefs = await prisma.user.findUnique({ where: { id: userId }, select: { prefsJson: true } }).catch(() => null);
-  if (parseUserPrefs(prefs?.prefsJson).adaptationEnabled === false) return [];
+  if (parseUserPrefs((user as any)?.prefsJson).adaptationEnabled === false) return [];
   const ctx = await loadContext(userId);
-  if (!ctx.program) return [];
-  const keyFn = await keyFnFor(ctx.program);
+  const created: ProposalRow[] = [];
+  const covered = new Set<string>();
+  if (legacyOn && ctx.program) {
+    const keyFn = await keyFnFor(ctx.program);
+    const keys = new Set(loggedNames.map(keyFn).filter(Boolean));
+    const drafts = runPostWorkoutRules(ctx, keys);
+    for (const d of drafts) if ((d.proposal as any).key) covered.add((d.proposal as any).key);
+    created.push(...await createProposals(userId, drafts, 'post_workout', ctx.now));
+  }
+  if (!logOn) return created;
+  const keyFn = ctx.keyFn ?? makeKeyFn();
   const keys = new Set(loggedNames.map(keyFn).filter(Boolean));
-  const drafts = runPostWorkoutRules(ctx, keys);
-  return createProposals(userId, drafts, 'post_workout', ctx.now);
+  if (keys.size === 0) return created;
+  const [phase, wellness, plateauSteps] = await Promise.all([
+    effectivePhase(ctx), loadWellness(userId, ctx.now), loadPlateauSteps(userId, ctx.now),
+  ]);
+  const drafts = buildLogTrendDrafts({
+    exposuresByKey: ctx.exposuresByKey, unitPref: ctx.unitPref, now: ctx.now, phase, wellness,
+    keys, skipKeys: covered, plateauSteps, systemic: true, volume: false,
+  });
+  created.push(...await createLogTrendProposals(userId, drafts, 'post_workout', ctx.now));
+  return created;
+}
+
+/**
+ * Weekly sweep for one user: systemic fatigue, plateaus, volume balance
+ * (LOG_ADAPTATION) and phase confirm / calorie nudges (PHASE_INFERENCE).
+ * Never sends a push — cards wait in the pending list.
+ */
+export async function runWeeklyForUser(userId: string, now = new Date()): Promise<ProposalRow[]> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { prefsJson: true, email: true, dailyCalorieTarget: true } }).catch(() => null);
+  const email = (user as any)?.email ?? null;
+  const logOn = logAdaptationAvailableFor(userId, email);
+  const phaseOn = phaseInferenceAvailableFor(userId, email);
+  if (!logOn && !phaseOn) return [];
+  if (parseUserPrefs((user as any)?.prefsJson).adaptationEnabled === false) return [];
+  const ctx = await loadContext(userId, now);
+  const drafts: ProposalDraft[] = [];
+  let phase: TrainingPhase = 'unknown';
+  if (phaseOn) {
+    const r = await inferPhaseDetailed(userId, now, { exposuresByKey: ctx.exposuresByKey, workoutDates: ctx.workoutDates });
+    phase = r.effective;
+    const { signals, ...result } = r;
+    drafts.push(...buildPhaseDrafts({ result, signals, dailyCalorieTarget: (user as any)?.dailyCalorieTarget ?? null }));
+  }
+  if (logOn) {
+    const [wellness, plateauSteps] = await Promise.all([loadWellness(userId, now), loadPlateauSteps(userId, now)]);
+    drafts.push(...buildLogTrendDrafts({
+      exposuresByKey: ctx.exposuresByKey, unitPref: ctx.unitPref, now, phase, wellness,
+      plateauSteps, liftKinds: new Set(['plateau']), systemic: true, volume: true,
+    }));
+  }
+  return createLogTrendProposals(userId, drafts, 'weekly', now);
 }
 
 export type BootstrapResult =
@@ -450,6 +708,23 @@ export interface ExerciseLast {
   /** How the most recent exposure scored against the plan, if both exist. */
   lastScore: { result: string; note: string; rpeDelta: number | null; loadDeltaKg: number | null } | null;
   unitPref: UnitPreference;
+  /** Next-session suggestion (contract 1). Null when LOG_ADAPTATION is off or < 2 exposures. */
+  suggestion: Suggestion | null;
+}
+
+/** Applied + pending rows the suggestion reads, parsed. */
+async function suggestionRows(userId: string, now: Date): Promise<{ applied: SuggestionProposalRow[]; pending: SuggestionProposalRow[] }> {
+  const since = new Date(now.getTime() - 21 * 86400000);
+  const rows = await prisma.adaptationProposal.findMany({
+    where: { userId, kind: { in: ['next_session', 'deload', 'volume_balance'] }, OR: [{ status: 'pending' }, { status: 'applied', decidedAt: { gte: since } }] },
+    select: { id: true, kind: true, dedupeKey: true, status: true, proposal: true, decidedAt: true },
+  });
+  const parsed = rows.map(r => {
+    let proposal: any = null;
+    try { proposal = JSON.parse(r.proposal); } catch { /* skip */ }
+    return { id: r.id, kind: r.kind, dedupeKey: r.dedupeKey, status: r.status, proposal, decidedAt: r.decidedAt };
+  });
+  return { applied: parsed.filter(r => r.status === 'applied'), pending: parsed.filter(r => r.status === 'pending') };
 }
 
 /**
@@ -458,12 +733,38 @@ export interface ExerciseLast {
  */
 export async function lastForExercises(userId: string, names: string[], limit = 3): Promise<ExerciseLast[]> {
   const ctx = await loadContext(userId);
-  const keyFn = await keyFnFor(ctx.program ?? { phases: [] });
+  // Same key function the exposures + planned list were built with.
+  const keyFn = ctx.keyFn ?? await keyFnFor(ctx.program ?? { phases: [] });
   const { scoreExposure } = await import('./score.js');
   const plannedByKey = new Map(ctx.planned.map(p => [p.key, p]));
+  // Suggestions are LOG_ADAPTATION-gated; everything else here is unchanged.
+  const suggest = logAdaptationAvailableFor(userId, ctx.email ?? null);
+  let rows: { applied: SuggestionProposalRow[]; pending: SuggestionProposalRow[] } = { applied: [], pending: [] };
+  let phase: TrainingPhase = 'unknown';
+  let plateauSteps = new Map<string, number>();
+  if (suggest) {
+    try {
+      [rows, phase, plateauSteps] = await Promise.all([suggestionRows(userId, ctx.now), effectivePhase(ctx), loadPlateauSteps(userId, ctx.now)]);
+    } catch (err: any) {
+      console.error('[adaptation] suggestion context failed:', err?.message ?? err);
+    }
+  }
   return names.map(name => {
     const key = keyFn(name) || null;
-    const exposures = (key ? ctx.exposuresByKey.get(key) ?? [] : []).slice(0, limit);
+    const all = key ? ctx.exposuresByKey.get(key) ?? [] : [];
+    const exposures = all.slice(0, limit);
+    let suggestion: Suggestion | null = null;
+    if (suggest && key) {
+      try {
+        suggestion = computeSuggestion({
+          key, name, exposures: all, planned: plannedByKey.get(key) ?? null,
+          applied: rows.applied, pending: rows.pending, unitPref: ctx.unitPref, phase, now: ctx.now,
+          plateauStep: plateauSteps.get(key) ?? 0,
+        });
+      } catch (err: any) {
+        console.error('[adaptation] suggestion failed:', err?.message ?? err);
+      }
+    }
     const planned = key ? plannedByKey.get(key) ?? null : null;
     const target = planned
       ? { targetWeightKg: planned.targetWeightKg, targetRPE: planned.targetRPE, reps: planned.repsRaw, sets: planned.sets }
@@ -477,6 +778,7 @@ export async function lastForExercises(userId: string, names: string[], limit = 
       target,
       lastScore: score ? { result: score.result, note: score.note, rpeDelta: score.rpeDelta, loadDeltaKg: score.loadDeltaKg } : null,
       unitPref: ctx.unitPref,
+      suggestion,
     };
   });
 }

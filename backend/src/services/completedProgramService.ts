@@ -114,7 +114,7 @@ export async function archiveProgram(
   userId: string,
   savedProgramJson: string | null,
   startDate: Date | null,
-  reason: 'replaced' | 'completed',
+  reason: 'replaced' | 'completed' | 'freestyle',
 ): Promise<{ id: string } | null> {
   if (!savedProgramJson) return null;
   const programObj = safeParse(savedProgramJson);

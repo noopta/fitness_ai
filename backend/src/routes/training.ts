@@ -11,6 +11,11 @@ import { parseJsonObjectColumn } from '../services/jsonColumn.js';
 import { buildTrainingOverview } from '../services/trainingOverview.js';
 import { buildScheduleData, fetchOverridesMap, getESTDateString, addDaysStr } from './coach.js';
 import { getStrengthProfileCached, toWeekKey } from './strength.js';
+import { z } from 'zod';
+import { freestyleAvailableFor, phaseInferenceAvailableFor } from '../services/featureFlags.js';
+import { inferPhase, inferPhaseDetailed, setConfirmedPhase } from '../services/phaseInference.js';
+import { loadFreestyleHome } from '../adaptation/freestyleHome.js';
+import { TRAINING_PHASES } from '../adaptation/types.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -26,6 +31,7 @@ router.get('/training/overview', requireAuth, async (req, res) => {
 
     const program = parseJsonObjectColumn<any>(user.savedProgram);
     const phase = computePhaseState(program, user.programStartDate);
+    const freestyleOn = freestyleAvailableFor(userId, req.user!.email);
 
     // Mon–Sun, with overrides and logged days, same rules as /coach/schedule.
     const today = getESTDateString();
@@ -42,7 +48,8 @@ router.get('/training/overview', requireAuth, async (req, res) => {
     }
 
     const [strength, completed, formAnalyses, sessions] = await Promise.all([
-      program ? getStrengthProfileCached(userId).catch(() => null) : Promise.resolve(null),
+      // Freestyle users (no program) still get their strength profile.
+      program || freestyleOn ? getStrengthProfileCached(userId).catch(() => null) : Promise.resolve(null),
       prisma.completedProgram.findMany({
         where: { userId }, orderBy: { endDate: 'desc' }, take: 30,
         select: { id: true, goal: true, startDate: true, endDate: true, durationWeeks: true, reason: true },
@@ -57,7 +64,7 @@ router.get('/training/overview', requireAuth, async (req, res) => {
       }),
     ]);
 
-    res.json(buildTrainingOverview({
+    const overview = buildTrainingOverview({
       program,
       weekNumber: phase.weekNumber,
       phaseIndex: phase.phaseIndex,
@@ -75,10 +82,72 @@ router.get('/training/overview', requireAuth, async (req, res) => {
         status: s.plans.length ? 'complete' : 'in_progress',
         updatedAt: s.updatedAt,
       })),
-    }));
+    });
+    // The goal band is program-shaped; without a program (freestyle flag on)
+    // the strength profile still ships as `strength` so the tab isn't empty.
+    if (!program && freestyleOn) {
+      const lifts = ((strength?.lifts ?? []) as any[])
+        .filter((l) => (l?.current1RMkg ?? 0) > 0)
+        .sort((a, b) => (b.sessionCount ?? 0) - (a.sessionCount ?? 0))
+        .slice(0, 6)
+        .map((l) => ({ name: l.canonicalName, current1RMkg: l.current1RMkg, sessionCount: l.sessionCount ?? null, weekSeries: l.weekSeries ?? [] }));
+      return res.json({ ...overview, strength: { lifts } });
+    }
+    res.json(overview);
   } catch (err) {
     console.error('Training overview error:', err);
     res.status(500).json({ error: 'Failed to load training' });
+  }
+});
+
+// GET /api/training/freestyle — the freestyle home (contract 3). Always
+// answers (enabled reflects the flag); `phase` only when phase inference is on.
+router.get('/training/freestyle', requireAuth, async (req, res) => {
+  try {
+    const { id, email } = req.user!;
+    const phaseOn = phaseInferenceAvailableFor(id, email);
+    const home = await loadFreestyleHome(id, {
+      enabled: freestyleAvailableFor(id, email),
+      phase: async (exposuresByKey, workoutDates) => {
+        if (!phaseOn) return null;
+        const { signals: _s, ...r } = await inferPhaseDetailed(id, new Date(), { exposuresByKey, workoutDates, useCache: true });
+        return r;
+      },
+    });
+    res.json(home);
+  } catch (err) {
+    console.error('Freestyle home error:', err);
+    res.status(500).json({ error: 'Failed to load freestyle home' });
+  }
+});
+
+// GET /api/training/phase — contract 6. Flag off → 200 { enabled: false }
+// (same shape the /adaptation routes use), never a 404 the client must special-case.
+router.get('/training/phase', requireAuth, async (req, res) => {
+  try {
+    const { id, email } = req.user!;
+    if (!phaseInferenceAvailableFor(id, email)) return res.json({ enabled: false });
+    res.json({ enabled: true, ...(await inferPhase(id)) });
+  } catch (err) {
+    console.error('Training phase error:', err);
+    res.status(500).json({ error: 'Failed to load training phase' });
+  }
+});
+
+// POST /api/training/phase { phase: TrainingPhase | 'auto' } — set (user_set)
+// or clear the confirmed phase. Flag off → 403 { enabled: false }.
+const phaseBody = z.object({ phase: z.enum(['auto', ...TRAINING_PHASES] as [string, ...string[]]) });
+router.post('/training/phase', requireAuth, async (req, res) => {
+  const { id, email } = req.user!;
+  if (!phaseInferenceAvailableFor(id, email)) return res.status(403).json({ enabled: false, error: 'Not available' });
+  const parsed = phaseBody.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Invalid phase', details: parsed.error.issues });
+  try {
+    await setConfirmedPhase(id, parsed.data.phase as any, 'user_set');
+    res.json({ enabled: true, ...(await inferPhase(id)) });
+  } catch (err) {
+    console.error('Set training phase error:', err);
+    res.status(500).json({ error: 'Failed to set training phase' });
   }
 });
 

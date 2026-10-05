@@ -21,6 +21,7 @@ import posthog from '../services/posthogClient.js';
 import { estimateWorkoutCalories } from '../services/workoutCalories.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
 import { lastForExercises } from '../adaptation/proposalService.js';
+import { listExerciseNames } from '../adaptation/exerciseNames.js';
 import { workoutLogSchema, createWorkoutLog, updateWorkoutLog, deleteWorkoutLog, WorkoutDateError, todayForTz } from '../services/workoutLogService.js';
 import { parseWorkoutNotes, MAX_NOTES_CHARS } from '../services/workoutNotesParser.js';
 
@@ -49,7 +50,7 @@ router.get('/workouts/exercise/:name/last', requireAuth, async (req, res) => {
     const name = String(req.params.name ?? '').trim();
     if (!name) return res.status(400).json({ error: 'name required' });
     const [result] = await lastForExercises(req.user!.id, [name]);
-    res.json(result ?? { name, key: null, exposures: [], target: null, lastScore: null });
+    res.json(result ?? { name, key: null, exposures: [], target: null, lastScore: null, suggestion: null });
   } catch (err) {
     console.error('Get exercise history error:', err);
     res.status(500).json({ error: 'Failed to fetch exercise history' });
@@ -69,6 +70,23 @@ router.post('/workouts/exercises/last', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Batch exercise history error:', err);
     res.status(500).json({ error: 'Failed to fetch exercise history' });
+  }
+});
+
+// GET /api/workouts/exercise-names?q=<text>&limit=20 — exercise picker
+// (contract 2): the user's canonicalized history first (most recent), then
+// the seed library. Registered before /workouts/:date, which would otherwise
+// swallow it. Not flag-gated.
+router.get('/workouts/exercise-names', requireAuth, async (req, res) => {
+  try {
+    const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 80) : '';
+    const n = parseInt(String(req.query.limit ?? '20'), 10);
+    const limit = Number.isFinite(n) ? Math.max(1, Math.min(50, n)) : 20;
+    const names = await listExerciseNames(req.user!.id, q, limit);
+    res.json({ names });
+  } catch (err) {
+    console.error('Exercise names error:', err);
+    res.status(500).json({ error: 'Failed to load exercise names' });
   }
 });
 

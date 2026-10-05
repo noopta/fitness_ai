@@ -177,6 +177,10 @@ export interface TargetWrite {
   targetRPE?: number | null;
   confidence?: number | null;
   basis?: string | null;
+  /** Optional prescription changes (next_session add_set / rep-range shift).
+   *  Only written — and only recorded in `previous` — when present. */
+  reps?: string;
+  sets?: number;
 }
 
 /**
@@ -205,8 +209,12 @@ export function applyTargetsToProgram(
         targetRPE: typeof ex.targetRPE === 'number' ? ex.targetRPE : null,
         confidence: typeof ex.targetConfidence === 'number' ? ex.targetConfidence : null,
         basis: ex.targetBasis ?? null,
+        ...(t.reps !== undefined ? { reps: String(ex.reps ?? '') } : {}),
+        ...(t.sets !== undefined ? { sets: Number(ex.sets) || 0 } : {}),
       });
     }
+    if (t.reps !== undefined && t.reps !== '') ex.reps = t.reps;
+    if (t.sets !== undefined && t.sets > 0) ex.sets = t.sets;
     if (t.targetWeightKg == null) {
       delete ex.targetWeightKg; delete ex.targetConfidence; delete ex.targetBasis; delete ex.targetSetAt;
     } else {
