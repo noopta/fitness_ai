@@ -10,6 +10,7 @@ import { createWorkoutLog, updateWorkoutLog, deleteWorkoutLog, restoreWorkoutLog
 import { computeStrengthProfile } from '../../routes/strength.js';
 import { cacheGet } from '../../services/cacheService.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
+import { loadCanonicalResolver } from '../../services/liftCanonical.js';
 import { adaptationCard } from './adaptation.js';
 import { weight, toKg, kgTo, dayLabel, plural, num } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
@@ -142,6 +143,30 @@ async function findLog(userId: string, input: Record<string, unknown>, ctx: Tool
   return (ex ? recent.find((l) => l.exercises.toLowerCase().includes(ex)) : null) ?? recent[0] ?? null;
 }
 
+/**
+ * "Does this logged name mean the exercise the user asked about?" — the same
+ * canonical key the adaptation engine uses ("bench" ≠ "Bench Press" by key,
+ * but "barbell bench press" = "Bench Press"), with the old substring match
+ * kept for fragments ("bench", "squat"). Empty query matches everything.
+ */
+export async function exerciseMatcher(query: string, names: string[]): Promise<(name: string) => boolean> {
+  const q = str(query).toLowerCase();
+  if (!q) return () => true;
+  const resolver = await loadCanonicalResolver(prisma, [query, ...names]);
+  const qKey = resolver.key(query);
+  const qCanon = resolver.resolve(query)?.canonicalName.toLowerCase() ?? null;
+  return (name: string) => {
+    const n = String(name ?? '');
+    if (!n) return false;
+    if (n.toLowerCase().includes(q)) return true;
+    const k = resolver.key(n);
+    if (qKey && k === qKey) return true;
+    // A fragment that names a canonical lift ("bench") also matches its variants.
+    const canon = resolver.resolve(n)?.canonicalName.toLowerCase() ?? null;
+    return !!canon && (canon.includes(q) || (!!qCanon && canon === qCanon));
+  };
+}
+
 function loggedCard(fn: string, logId: string, date: string, title: string | null, exercises: any[], ctx: ToolCtx, extra: Partial<CardDraft> = {}): CardDraft {
   const rows: CardRow[] = exercises.map((e, i) => ({ key: e.name, value: exLine(e, ctx.unit), editable: { field: `ex${i}`, kind: 'weightReps' } }));
   const edits = Object.fromEntries(exercises.map((_e, i) => [`ex${i}`, { op: 'workout.edit_set', args: { id: logId, exIndex: i, unit: ctx.unit }, valueKey: 'value', parse: 'weightReps' as const }]));
@@ -258,10 +283,10 @@ export const WORKOUT_TOOLS = [
       const to = /^\d{4}-\d{2}-\d{2}$/.test(str(input.to)) ? str(input.to) : '9999-12-31';
       const from = /^\d{4}-\d{2}-\d{2}$/.test(str(input.from)) ? str(input.from) : new Date(Date.now() - (numOr(input.days) ?? 14) * 86400000).toISOString().slice(0, 10);
       const logs = await prisma.workoutLog.findMany({ where: { userId, date: { gte: from, lte: to } }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 40 });
-      const ex = str(input.exercise).toLowerCase();
-      const list = logs.map((l) => ({ id: l.id, date: l.date, title: l.title, duration: l.duration, exercises: parseJson<any[]>(l.exercises, []) }))
-        .filter((l) => !ex || l.exercises.some((e) => String(e.name).toLowerCase().includes(ex)));
-      return { count: list.length, workouts: list.map((l) => ({ ...l, exercises: l.exercises.map((e) => ({ name: e.name, line: exLine(e, unit) })) })) };
+      const parsed = logs.map((l) => ({ id: l.id, date: l.date, title: l.title, duration: l.duration, exercises: parseJson<any[]>(l.exercises, []) }));
+      const match = await exerciseMatcher(str(input.exercise), parsed.flatMap((l) => l.exercises.map((e) => String(e?.name ?? ''))));
+      const list = parsed.filter((l) => l.exercises.some((e) => match(String(e?.name ?? ''))));
+      return { count: list.length, workouts: list.map((l) => ({ ...l, exercises: l.exercises.map((e) => ({ name: e.name, line: exLine(e, unit), ...(str(input.exercise) && match(String(e?.name ?? '')) ? { hit: true } : {}) })) })) };
     },
     card: (input, r) => {
       if (!r.count) return { fn: 'WRK-07', pattern: 'glance', rule: 'show', meta: { label: 'Workout history' }, empty: str(input.exercise) ? `No ${str(input.exercise)} in that window.` : 'No workouts logged in that window.', actions: [{ id: 'log', label: 'Log a workout', kind: 'primary', client: { action: 'send_message', args: { text: 'Log a workout.' } } }] };
@@ -269,7 +294,7 @@ export const WORKOUT_TOOLS = [
       return {
         fn: 'WRK-07', pattern: 'glance', rule: 'show', meta: { label: ex ? `History · ${str(input.exercise)}` : `Workouts · ${plural(r.count, 'session')}`, open: { page: 'history' } },
         rows: r.workouts.slice(0, 10).map((w: any) => {
-          const hit = ex ? w.exercises.find((e: any) => e.name.toLowerCase().includes(ex)) : null;
+          const hit = ex ? w.exercises.find((e: any) => e.hit) ?? w.exercises.find((e: any) => String(e.name).toLowerCase().includes(ex)) : null;
           return { key: dayLabel(w.date), value: hit ? hit.line : (w.title ?? 'Workout'), sub: hit ? undefined : w.exercises.map((e: any) => e.name).slice(0, 4).join(', ') };
         }),
       };
@@ -303,17 +328,22 @@ export const WORKOUT_TOOLS = [
     execute: async (input, userId) => {
       const logs = await prisma.workoutLog.findMany({ where: { userId }, select: { date: true, exercises: true }, orderBy: { date: 'asc' } });
       const best = new Map<string, { name: string; e1rmKg: number; weightKg: number; reps: number; date: string }>();
-      for (const l of logs) for (const e of parseJson<any[]>(l.exercises, [])) {
+      const parsed = logs.map((l) => ({ date: l.date, exercises: parseJson<any[]>(l.exercises, []).filter((e) => e?.name) }));
+      // One lift, many spellings: group by the canonical key so "Bench Press"
+      // and "barbell bench press" share one best.
+      const names = await loadCanonicalResolver(prisma, parsed.flatMap((l) => l.exercises.map((e) => String(e.name))));
+      for (const l of parsed) for (const e of l.exercises) {
         const sets = Array.isArray(e.setEntries) && e.setEntries.length ? e.setEntries : [{ weightKg: e.weightKg, reps: Number(e.reps) || 0 }];
+        const k = names.key(String(e.name)) || String(e.name).toLowerCase().trim();
+        const display = names.resolve(String(e.name))?.canonicalName ?? e.name;
         for (const s of sets) {
           if (!s.weightKg || !s.reps) continue;
           const v = e1rm(s.weightKg, s.reps);
-          const k = String(e.name).toLowerCase().trim();
-          if (!best.has(k) || best.get(k)!.e1rmKg < v) best.set(k, { name: e.name, e1rmKg: v, weightKg: s.weightKg, reps: s.reps, date: l.date });
+          if (!best.has(k) || best.get(k)!.e1rmKg < v) best.set(k, { name: display, e1rmKg: v, weightKg: s.weightKg, reps: s.reps, date: l.date });
         }
       }
-      const f = str(input.lift).toLowerCase();
-      const list = [...best.values()].filter((b) => !f || b.name.toLowerCase().includes(f)).sort((a, b) => b.e1rmKg - a.e1rmKg).slice(0, 10);
+      const match = await exerciseMatcher(str(input.lift), [...best.values()].map((b) => b.name));
+      const list = [...best.values()].filter((b) => match(b.name)).sort((a, b) => b.e1rmKg - a.e1rmKg).slice(0, 10);
       return { prs: list };
     },
     card: (_i, r, ctx) => r.prs.length

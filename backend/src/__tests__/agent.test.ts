@@ -692,11 +692,14 @@ describe('applyProgramUpdate', () => {
     expect(out.goal).toBe('strength');
   });
 
-  it('refuses to change the goal', async () => {
+  it('keeps the existing goal instead of changing (or refusing) it', async () => {
     mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: JSON.stringify(SAMPLE_PROGRAM) });
+    mocks.user.update.mockResolvedValueOnce({});
     const updated = JSON.parse(JSON.stringify(SAMPLE_PROGRAM));
     updated.goal = 'hypertrophy';
-    await expect(applyProgramUpdate(USER, updated)).rejects.toThrow(/goal/i);
+    const out: any = await applyProgramUpdate(USER, updated);
+    expect(out.goal).toBe('strength');
+    expect(JSON.parse(mocks.user.update.mock.calls[0][0].data.savedProgram).goal).toBe('strength');
   });
 
   it('refuses a structure that drops exercises', async () => {

@@ -56,6 +56,9 @@ export interface UserContext {
   /** Adaptive-progression snapshot — a pending proposal is usually what a
    *  user means by "your suggestion"; details come from read_adaptation. */
   adaptation?: { pendingCount: number; latestTitle: string | null } | null;
+  /** Compact workout-history block (services/trainingSummary.ts, contract 7);
+   *  null when the flags are off, logs consent is off, or there's no history. */
+  trainingSummary?: string | null;
   /** Consent sources the user switched off (You › Privacy); kept out of context. */
   consentOff?: Array<'logs' | 'health' | 'research' | 'nutrition'>;
   profile: {

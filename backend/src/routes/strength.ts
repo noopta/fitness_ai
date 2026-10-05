@@ -6,8 +6,10 @@ import { bodyWeightKg, kgToLb, normalizePreference } from '../services/weightUni
 import { generateStrengthProfileInsights } from '../services/llmService.js';
 import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
-import { e1rmWithRpe, parseRPE } from '../engine/e1rm.js';
+import { e1rmWithRpe } from '../engine/e1rm.js';
 import { buildAthleteModel } from '../services/athleteModelService.js';
+import { workingSets } from '../adaptation/history.js';
+import { liftResolver, toLedgerExercises, type RawExercise } from '../services/liftCanonical.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -16,16 +18,18 @@ const CACHE_KEY = (userId: string) => `strength:profile:${userId}`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function parseLowerReps(repsStr: string): number {
-  const match = repsStr.match(/^(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
-}
-
 export function toWeekKey(dateStr: string): string {
   const d = new Date(dateStr);
   const jan1 = new Date(d.getFullYear(), 0, 1);
   const week = Math.ceil(((d.getTime() - jan1.getTime()) / 86400000 + jan1.getDay() + 1) / 7);
   return `${d.getFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
+function parseExercises(raw: string): RawExercise[] {
+  try {
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list.filter((e: any) => e && typeof e.name === 'string' && e.name.trim()) : [];
+  } catch { return []; }
 }
 
 function kgToLbs(kg: number): number {
@@ -56,33 +60,38 @@ export async function computeStrengthProfile(userId: string) {
   });
 
   const allNorms = await prisma.exerciseNormalization.findMany();
-  const normMap = new Map(allNorms.map(n => [n.rawName, n]));
+  // Same canonical key as the adaptation engine (DB row → seed → collapse), so
+  // a new spelling of a known lift joins its history instead of starting a
+  // new one. Display name + classification come from the same lookup.
+  const liftNames = liftResolver(allNorms);
 
   const liftDayBest = new Map<string, Map<string, number>>();
   const liftTonnage = new Map<string, number>();
   const liftMeta = new Map<string, { category: string; primaryMuscle: string; isCompound: boolean }>();
   const categoryVolume = new Map<string, number>();
+  // Parsed once; reused by month tonnage and the athlete model below.
+  const parsedLogs = logs.map((log) => ({ date: log.date, exercises: parseExercises(log.exercises) }));
 
-  for (const log of logs) {
-    let exercises: Array<{ name: string; sets: number; reps: string; weightKg?: number | null; rpe?: string | number | null }>;
-    try { exercises = JSON.parse(log.exercises); } catch { continue; }
+  for (const log of parsedLogs) {
+    for (const ex of log.exercises) {
+      // Per-set truth: setEntries when the logger recorded them, else the
+      // uniform weight × reps × sets shape (adaptation/history.ts semantics).
+      const loaded = workingSets(ex).filter(s => s.weightKg != null);
+      if (loaded.length === 0) continue;
 
-    for (const ex of exercises) {
-      if (!ex.weightKg || ex.weightKg <= 0) continue;
+      const { canonical, meta } = liftNames.of(ex.name);
+      if (meta && !liftMeta.has(canonical)) {
+        liftMeta.set(canonical, { category: meta.category, primaryMuscle: meta.primaryMuscle, isCompound: meta.isCompound });
+      }
 
-      const norm = normMap.get(ex.name.trim());
-      const canonical = norm?.canonicalName ?? ex.name.trim();
-      const reps = parseLowerReps(ex.reps);
-      // RPE-aware e1RM: credits reps left in the tank (logged RPE, or a
-      // rep-range-aware assumed value) so a sub-failure set isn't under-counted.
-      const oneRM = e1rmWithRpe(ex.weightKg, reps, parseRPE(ex.rpe));
-
-      if (norm && !liftMeta.has(canonical)) {
-        liftMeta.set(canonical, {
-          category: norm.category,
-          primaryMuscle: norm.primaryMuscle,
-          isCompound: norm.isCompound,
-        });
+      // RPE-aware e1RM per set: credits reps left in the tank (logged RPE, or
+      // a rep-range-aware assumed value) so a sub-failure set isn't
+      // under-counted. The heaviest set drives the day's best, not an average.
+      let oneRM = 0;
+      let tonnage = 0;
+      for (const set of loaded) {
+        oneRM = Math.max(oneRM, e1rmWithRpe(set.weightKg!, set.reps, set.rpe));
+        tonnage += set.weightKg! * set.reps;
       }
 
       if (oneRM > 0) {
@@ -92,10 +101,9 @@ export async function computeStrengthProfile(userId: string) {
         if (oneRM > prev) dayMap.set(log.date, oneRM);
       }
 
-      const tonnage = ex.weightKg * ex.sets * reps;
       liftTonnage.set(canonical, (liftTonnage.get(canonical) ?? 0) + tonnage);
 
-      const cat = norm?.category ?? 'push';
+      const cat = meta?.category ?? 'push';
       categoryVolume.set(cat, (categoryVolume.get(cat) ?? 0) + tonnage);
     }
   }
@@ -181,13 +189,10 @@ export async function computeStrengthProfile(userId: string) {
   );
 
   let monthTonnage = 0;
-  for (const log of logs) {
+  for (const log of parsedLogs) {
     if (log.date < thirtyKey) continue;
-    let exs: Array<{ weightKg?: number | null; sets: number; reps: string }>;
-    try { exs = JSON.parse(log.exercises); } catch { continue; }
-    for (const ex of exs) {
-      if (!ex.weightKg) continue;
-      monthTonnage += ex.weightKg * ex.sets * parseLowerReps(ex.reps);
+    for (const ex of log.exercises) {
+      for (const set of workingSets(ex)) if (set.weightKg != null) monthTonnage += set.weightKg * set.reps;
     }
   }
 
@@ -244,20 +249,10 @@ export async function computeStrengthProfile(userId: string) {
   let athleteModel: ReturnType<typeof buildAthleteModel> | undefined;
   try {
     // Re-parse logs into the canonical-named, dated shape the assembler wants.
-    const ledgerWorkouts = logs.map((log) => {
-      let exs: Array<{ name: string; sets: number; reps: string; weightKg?: number | null; rpe?: string | number | null }> = [];
-      try { exs = JSON.parse(log.exercises); } catch { /* skip */ }
-      return {
-        date: log.date,
-        exercises: exs.map((ex) => ({
-          name: normMap.get(ex.name?.trim())?.canonicalName ?? ex.name?.trim() ?? '',
-          sets: ex.sets,
-          reps: ex.reps,
-          weightKg: ex.weightKg,
-          rpe: ex.rpe,
-        })),
-      };
-    });
+    const ledgerWorkouts = parsedLogs.map((log) => ({
+      date: log.date,
+      exercises: log.exercises.flatMap((ex) => toLedgerExercises(ex, liftNames.of(ex.name).canonical)),
+    }));
 
     // Recovery/diet data — trailing 70 days is enough for the factor checks.
     const recoveryWindowKey = (() => {
@@ -439,22 +434,20 @@ router.get('/strength/share-card/:userId', optionalAuth, async (req, res) => {
     });
 
     const allNorms = await prisma.exerciseNormalization.findMany();
-    const normMap = new Map(allNorms.map(n => [n.rawName, n]));
+    const liftNames = liftResolver(allNorms);
 
     const liftBest = new Map<string, number>();
 
     for (const log of logs) {
-      let exercises: Array<{ name: string; sets: number; reps: string; weightKg?: number | null }>;
-      try { exercises = JSON.parse(log.exercises); } catch { continue; }
-
-      for (const ex of exercises) {
-        if (!ex.weightKg || ex.weightKg <= 0) continue;
-        const norm = normMap.get(ex.name.trim());
-        if (!norm?.isCompound) continue; // Only show compound lifts on share card
-        const canonical = norm.canonicalName;
-        const reps = parseInt(ex.reps.match(/^(\d+)/)?.[1] ?? '0', 10);
-        const oneRM = reps > 0 && reps <= 15 ? Math.round(ex.weightKg * (1 + reps / 30)) : 0;
-        if (oneRM > (liftBest.get(canonical) ?? 0)) liftBest.set(canonical, oneRM);
+      for (const ex of parseExercises(log.exercises)) {
+        const { canonical, meta } = liftNames.of(ex.name);
+        if (!meta?.isCompound) continue; // Only show compound lifts on share card
+        // Per-set when logged that way; the heaviest qualifying set wins.
+        for (const set of workingSets(ex)) {
+          if (set.weightKg == null) continue;
+          const oneRM = set.reps > 0 && set.reps <= 15 ? Math.round(set.weightKg * (1 + set.reps / 30)) : 0;
+          if (oneRM > (liftBest.get(canonical) ?? 0)) liftBest.set(canonical, oneRM);
+        }
       }
     }
 

@@ -83,17 +83,23 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
   return { macros, expectedOutcomes: program?.nutritionPlan?.expectedOutcomes ?? null };
 }
 
+/**
+ * Marks a program built by propose_new_program for the classic app. The v1
+ * client renders it as a program-change card and sends it back through
+ * /coach/agent/confirm-proposal; applyProgramUpdate sees the marker and
+ * activates it as a NEW program (archive the current one, restart the start
+ * date) instead of overwriting in place. `goalChange` records whether the
+ * user asked for a different goal.
+ */
+export const REBUILD_MARKER = '_agentRebuild';
+
 /** Validate a proposed program before persisting. Throws with a clear reason
- *  the agent can act on. Goal preservation is enforced here. */
-function validateProgram(updated: any, currentGoal: string | null): void {
+ *  the agent can act on. Returns the program to save — with the current goal
+ *  kept unless `allowGoalChange`. */
+function validateProgram(updated: any, currentGoal: string | null, allowGoalChange = false): any {
   if (!updated || typeof updated !== 'object') throw new Error('updatedProgram must be an object.');
   if (!Array.isArray(updated.phases) || updated.phases.length === 0) {
     throw new Error('updatedProgram.phases must be a non-empty array — preserve the program structure.');
-  }
-  // Goal is the priority: do not let an "apply" silently change what the user
-  // is training for.
-  if (currentGoal && updated.goal && updated.goal !== currentGoal) {
-    throw new Error(`Refusing to change the program goal (${currentGoal} → ${updated.goal}). Apply changes that keep the existing goal.`);
   }
   for (const phase of updated.phases) {
     if (!Array.isArray(phase.trainingDays) || phase.trainingDays.length === 0) {
@@ -105,6 +111,11 @@ function validateProgram(updated: any, currentGoal: string | null): void {
       }
     }
   }
+  // Goal is the priority: an edit never silently changes what the user is
+  // training for. A reworded goal string used to refuse the whole edit (and
+  // dead-end the chat); now the existing goal is simply kept.
+  if (currentGoal && updated.goal !== currentGoal && !allowGoalChange) return { ...updated, goal: currentGoal };
+  return updated;
 }
 
 /**
@@ -394,12 +405,15 @@ export async function applyExerciseSwap(
   };
 }
 
-export async function applyProgramUpdate(userId: string, updatedProgram: any) {
+export async function applyProgramUpdate(userId: string, proposed: any, opts: { allowGoalChange?: boolean } = {}) {
+  const rebuild = proposed && typeof proposed === 'object' ? proposed[REBUILD_MARKER] : null;
+  if (rebuild) return activateRebuild(userId, proposed);
+
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
   const current = requireProgram(user.savedProgram, 'updated');
 
-  validateProgram(updatedProgram, current?.goal ?? null);
+  const updatedProgram = validateProgram(proposed, current?.goal ?? null, !!opts.allowGoalChange);
 
   // Sync calorie target if the updated program carries nutrition macros.
   const programCalories = updatedProgram?.nutritionPlan?.macros?.calories ?? null;
@@ -415,4 +429,22 @@ export async function applyProgramUpdate(userId: string, updatedProgram: any) {
 
   const dayCount = updatedProgram.phases.reduce((n: number, p: any) => n + (p.trainingDays?.length ?? 0), 0);
   return { applied: true, phases: updatedProgram.phases.length, trainingDays: dayCount, goal: updatedProgram.goal };
+}
+
+/**
+ * A rebuilt program (propose_new_program on the classic app): validated, then
+ * saved the same way "Make this my program" saves it — the current program is
+ * archived and the start date resets. A first program needs no prior one.
+ */
+async function activateRebuild(userId: string, proposed: any) {
+  const { [REBUILD_MARKER]: marker, ...program } = proposed;
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+  const current = user?.savedProgram ? parseJsonObjectColumn<any>(user.savedProgram) : null;
+  const toSave = validateProgram(program, current?.goal ?? null, !!marker?.goalChange || !current);
+  // Lazy: routes/coach.ts imports the agent stack; a static import would cycle.
+  const { saveProgramForUser } = await import('../routes/coach.js');
+  await saveProgramForUser(userId, toSave);
+  invalidateProgramCaches(userId);
+  const dayCount = toSave.phases.reduce((n: number, p: any) => n + (p.trainingDays?.length ?? 0), 0);
+  return { applied: true, rebuilt: true, phases: toSave.phases.length, trainingDays: dayCount, goal: toSave.goal };
 }

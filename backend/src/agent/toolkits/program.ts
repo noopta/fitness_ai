@@ -7,7 +7,7 @@ import { defineOp } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
 import { getCurrentWeekSchedule, buildSwapProposal, applyProposedWeek, generateProgramForUser, saveProgramForUser, SwapProposalError } from '../../routes/coach.js';
-import { buildPlanPatchProposal } from '../applyTools.js';
+import { buildPlanPatchProposal, REBUILD_MARKER } from '../applyTools.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
 import { cacheDelete, cacheClearByPrefix } from '../../services/cacheService.js';
 import { dayLabel, shiftDate, weight, plural } from '../cards/format.js';
@@ -41,8 +41,11 @@ defineOp({
     const next = args.program as any;
     const cur = JSON.parse(prev.savedProgram);
     if (!next?.phases?.length) throw new Error('That program has no phases.');
-    if (cur.goal && next.goal && cur.goal !== next.goal) throw new Error('A goal change needs a new program, not an edit.');
-    await prisma.user.update({ where: { id: userId }, data: { savedProgram: JSON.stringify(next) } });
+    // An edit keeps the goal. A reworded goal string ("Strength" vs "Build
+    // strength") used to refuse the whole edit; now the existing goal is kept
+    // unless the change was explicitly a goal change.
+    const program = cur.goal && next.goal !== cur.goal && !args.goalChange ? { ...next, goal: cur.goal } : next;
+    await prisma.user.update({ where: { id: userId }, data: { savedProgram: JSON.stringify(program) } });
     invalidateProgram(userId);
     return { inverse: { op: 'program.set_raw', args: { savedProgram: prev.savedProgram } }, summary: String(args.summary ?? 'Program updated') };
   },
@@ -130,7 +133,10 @@ type EditOp =
   | { type: 'remove'; day: string; exercise: string }
   | { type: 'reorder'; day: string; order: string[] }
   | { type: 'focus'; day: string; focus: string }
-  | { type: 'set_target'; day?: string; exercise: string; targetWeightKg: number };
+  | { type: 'set_target'; day?: string; exercise: string; targetWeightKg: number }
+  | { type: 'add_day'; day: string; focus?: string; exercises?: Array<{ exercise: string; sets?: number | string; reps?: string; intensity?: string }>; copyFrom?: string; after?: string }
+  | { type: 'remove_day'; day: string }
+  | { type: 'set_days_per_week'; daysPerWeek: number };
 
 function norm(s: string) { return s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
 function findDay(phase: any, label: string): any | null {
@@ -152,6 +158,13 @@ export function applyProgramEdits(program: any, edits: EditOp[], opts: { phaseIn
   const diff: { key: string; from?: string; to: string; removed?: boolean }[] = [];
   const phases = opts.allPhases ? p.phases.map((_: any, i: number) => i) : [Math.min(opts.phaseIndex, p.phases.length - 1)];
   for (const e of edits) {
+    // Day-level edits (add / remove a training day, days per week) change
+    // the week's shape: the schedule maps trainingDays[i] to the i-th
+    // training day of the week, so daysPerWeek follows the day count.
+    if (e.type === 'add_day' || e.type === 'remove_day' || e.type === 'set_days_per_week') {
+      applyDayEdit(p, e, phases, diff);
+      continue;
+    }
     let touched = false;
     for (const pi of phases) {
       const phase = p.phases[pi];
@@ -201,6 +214,70 @@ export function applyProgramEdits(program: any, edits: EditOp[], opts: { phaseIn
   return { program: p, diff };
 }
 
+const MIN_DAYS = 1;
+const MAX_DAYS = 7;
+const dayExerciseCount = (d: any) => (d?.exercises ?? []).length;
+
+function syncDaysPerWeek(p: any, phases: number[]) {
+  const n = p.phases[phases[0]]?.trainingDays?.length;
+  if (n) p.daysPerWeek = n;
+}
+
+/** add_day / remove_day / set_days_per_week on the selected phases (mutates p). */
+function applyDayEdit(p: any, e: Extract<EditOp, { type: 'add_day' | 'remove_day' | 'set_days_per_week' }>, phases: number[], diff: { key: string; from?: string; to: string; removed?: boolean }[]) {
+  let first = true;
+  for (const pi of phases) {
+    const phase = p.phases[pi];
+    const days: any[] = phase.trainingDays ?? (phase.trainingDays = []);
+    if (e.type === 'add_day') {
+      if (days.length >= MAX_DAYS) throw new Error(`There are already ${days.length} training days — remove one first.`);
+      if (!str(e.day)) throw new Error('Name the new day (e.g. "Arms" or "Day 5 — Upper").');
+      if (days.some((d) => norm(d.day ?? '') === norm(e.day))) throw new Error(`There’s already a day called "${e.day}".`);
+      const source = e.copyFrom ? findDay(phase, e.copyFrom) : null;
+      if (e.copyFrom && !source) throw new Error(`Couldn’t find "${e.copyFrom}" to copy. Read the schedule for exact day names.`);
+      const exercises = (e.exercises ?? []).filter((x) => str(x?.exercise)).map((x) => ({ exercise: str(x.exercise), sets: x.sets ?? 3, reps: String(x.reps ?? '8-12'), intensity: x.intensity ?? 'RPE 7' }));
+      const list = exercises.length ? exercises : source ? JSON.parse(JSON.stringify(source.exercises ?? [])) : [];
+      if (!list.length) throw new Error('A new day needs exercises — list them, or copyFrom an existing day.');
+      const day = { day: str(e.day), focus: e.focus ?? source?.focus ?? str(e.day), exercises: list };
+      const at = e.after ? days.indexOf(findDay(phase, e.after)) : -1;
+      if (at >= 0) days.splice(at + 1, 0, day); else days.push(day);
+      if (first) diff.push({ key: `+ ${day.day}`, to: `${list.length} exercises${source ? ` · copy of ${source.day}` : ''}` });
+    } else if (e.type === 'remove_day') {
+      const day = findDay(phase, e.day);
+      if (!day) throw new Error(`Couldn’t find "${e.day}" in the program. Read the schedule for exact day names.`);
+      if (days.length <= MIN_DAYS) throw new Error('The program needs at least one training day.');
+      days.splice(days.indexOf(day), 1);
+      if (first) diff.push({ key: `− ${day.day}`, from: `${dayExerciseCount(day)} exercises`, to: 'Removed', removed: true });
+    } else {
+      const target = Math.round(Number(e.daysPerWeek));
+      if (!Number.isFinite(target) || target < MIN_DAYS || target > MAX_DAYS) throw new Error(`Days per week must be ${MIN_DAYS}–${MAX_DAYS}.`);
+      const before = days.length;
+      if (target < before) {
+        // Drop from the end of the week; the remaining days keep their order.
+        const dropped = days.splice(target);
+        if (first) diff.push({ key: 'Days per week', from: String(before), to: `${target} · drops ${dropped.map((d) => d.day).join(', ')}` });
+      } else if (target > before) {
+        if (!before) throw new Error('There are no days to build from — add a day with its exercises.');
+        // Add days by repeating the existing ones in order (A/B rotation),
+        // labelled so the user sees what was repeated. Specific new content
+        // goes through add_day instead.
+        const added: string[] = [];
+        for (let i = before; i < target; i++) {
+          const src = days[(i - before) % before];
+          const label = `${String(src.day ?? `Day ${i + 1}`).split(/[—–·]/)[0].trim()} (repeat)`;
+          days.push({ ...JSON.parse(JSON.stringify(src)), day: days.some((d) => d.day === label) ? `${label} ${i + 1}` : label });
+          added.push(days[days.length - 1].day);
+        }
+        if (first) diff.push({ key: 'Days per week', from: String(before), to: `${target} · adds ${added.join(', ')}` });
+      } else if (first) {
+        diff.push({ key: 'Days per week', from: String(before), to: `${target} · unchanged` });
+      }
+    }
+    first = false;
+  }
+  syncDaysPerWeek(p, phases);
+}
+
 async function currentPhaseIndex(userId: string, program: any): Promise<number> {
   const s = await getCurrentWeekSchedule(userId).catch(() => null) as any;
   const name = s?.phaseName;
@@ -230,6 +307,33 @@ async function loadsFor(userId: string, names: string[]): Promise<Map<string, nu
     for (const l of last) out.set(l.name.toLowerCase(), l.target?.targetWeightKg ?? l.exposures?.[0]?.top?.weightKg ?? null);
   } catch { /* loads are best-effort */ }
   return out;
+}
+
+// ── Rebuild inputs ───────────────────────────────────────────────────────────
+type SplitId = 'ppl' | 'upper_lower' | 'full_body' | 'bro_split' | 'custom';
+const SPLITS: Record<Exclude<SplitId, 'custom'>, { label: string; hint: string; match: RegExp }> = {
+  ppl: { label: 'Push/Pull/Legs', hint: 'push days: chest, shoulders, triceps; pull days: back, biceps; leg days', match: /\bppl\b|push.?pull.?legs?/i },
+  upper_lower: { label: 'Upper/Lower', hint: 'alternate upper-body and lower-body days', match: /upper.?lower|\bul\b/i },
+  full_body: { label: 'Full body', hint: 'every session trains the whole body', match: /full.?body|total.?body|\bfb\b/i },
+  bro_split: { label: 'Body-part split', hint: 'one or two muscle groups per day (chest, back, shoulders, arms, legs)', match: /bro.?split|body.?part/i },
+};
+const SPLIT_DAYS: Record<SplitId, number | null> = { ppl: 6, upper_lower: 4, full_body: 3, bro_split: 5, custom: null };
+
+/** Free-text split → a known split (or the user's words). */
+export function splitLabel(v: unknown): { id: SplitId; label: string; hint: string } | null {
+  const s = str(v);
+  if (!s) return null;
+  const k = s.toLowerCase().replace(/[\s-]+/g, '_');
+  for (const [id, sp] of Object.entries(SPLITS) as [Exclude<SplitId, 'custom'>, typeof SPLITS['ppl']][]) {
+    if (k === id || sp.match.test(s)) return { id, label: sp.label, hint: sp.hint };
+  }
+  return { id: 'custom', label: s.slice(0, 60), hint: 'as the user described' };
+}
+const LEVELS = ['beginner', 'intermediate', 'advanced', 'elite'] as const;
+export function levelOf(v: unknown): typeof LEVELS[number] | null {
+  const s = str(v).toLowerCase();
+  if (!s) return null;
+  return LEVELS.find((l) => s.includes(l)) ?? (/novice|new/.test(s) ? 'beginner' : /intermed/.test(s) ? 'intermediate' : /advan|experienced/.test(s) ? 'advanced' : null);
 }
 
 export const PROGRAM_TOOLS = [
@@ -378,9 +482,9 @@ export const PROGRAM_TOOLS = [
   }),
   tool({
     name: 'propose_program_edit', kind: 'propose', core: true, fn: 'PRG-05',
-    description: 'Propose small program edits the user asked for. edits = list of: set_scheme {day, exercise, sets?, reps?, intensity?}; add {day, exercise, sets, reps, intensity?, after?}; remove {day, exercise}; reorder {day, order:[names]}; focus {day, focus}; set_target {exercise, day?, targetWeight (user unit)}. Applies to the current phase unless allPhases. Use exact day labels and exercise names from read_schedule_week or read_program. Keep the goal and structure; change as little as possible.',
+    description: 'Propose program edits the user asked for. edits = list of: set_scheme {day, exercise, sets?, reps?, intensity?}; add {day, exercise, sets, reps, intensity?, after?}; remove {day, exercise}; reorder {day, order:[names]}; focus {day, focus}; set_target {exercise, day?, targetWeight (user unit)}; add_day {day (new label), focus?, exercises?:[{exercise, sets, reps, intensity?}], copyFrom? (existing day), after?}; remove_day {day}; set_days_per_week {daysPerWeek} (fewer drops days from the end of the week, more repeats existing days — use add_day for new content). Applies to the current phase unless allPhases (use allPhases for day changes so every phase keeps the same week). Use exact day labels and exercise names from read_schedule_week or read_program. Keep the goal; change as little as possible.',
     input_schema: schema({
-      edits: { type: 'array', items: { type: 'object', properties: { type: { type: 'string', enum: ['set_scheme', 'add', 'remove', 'reorder', 'focus', 'set_target'] }, day: { type: 'string' }, exercise: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, intensity: { type: 'string' }, after: { type: 'string' }, order: { type: 'array', items: { type: 'string' } }, focus: { type: 'string' }, targetWeight: { type: 'number' } }, required: ['type'] } },
+      edits: { type: 'array', items: { type: 'object', properties: { type: { type: 'string', enum: ['set_scheme', 'add', 'remove', 'reorder', 'focus', 'set_target', 'add_day', 'remove_day', 'set_days_per_week'] }, day: { type: 'string' }, exercise: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, intensity: { type: 'string' }, after: { type: 'string' }, order: { type: 'array', items: { type: 'string' } }, focus: { type: 'string' }, targetWeight: { type: 'number' }, exercises: { type: 'array', items: { type: 'object', properties: { exercise: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, intensity: { type: 'string' } }, required: ['exercise'] } }, copyFrom: { type: 'string' }, daysPerWeek: { type: 'number' } }, required: ['type'] } },
       allPhases: { type: 'boolean' },
       why: { type: 'string', description: 'One sentence shown on the card.' },
     }, ['edits']),
@@ -395,7 +499,7 @@ export const PROGRAM_TOOLS = [
       const kinds = new Set(edits.map((e) => e.type));
       const summary = diff.map((d) => d.key).join('; ');
       // _proposal/updatedProgram: the classic app renders this as its program diff card.
-      return { diff, why: str(input.why), fn: kinds.has('set_target') ? 'PRG-15' : kinds.has('add') || kinds.has('remove') ? 'PRG-06' : kinds.has('reorder') || kinds.has('focus') ? 'PRG-08' : 'PRG-05', _programNext: next, summary,
+      return { diff, why: str(input.why), fn: kinds.has('set_target') ? 'PRG-15' : kinds.has('add') || kinds.has('remove') || kinds.has('add_day') || kinds.has('remove_day') || kinds.has('set_days_per_week') ? 'PRG-06' : kinds.has('reorder') || kinds.has('focus') ? 'PRG-08' : 'PRG-05', _programNext: next, summary,
         _proposal: true, kind: 'program_update', updatedProgram: next, changedDays: [...new Set(edits.map((e: any) => e.day).filter(Boolean))] };
     },
     card: (_i, r, ctx) => ({
@@ -488,19 +592,56 @@ export const PROGRAM_TOOLS = [
   }),
   tool({
     name: 'propose_new_program', kind: 'propose', fn: 'PRG-04',
-    description: 'Build a new program (for a new goal, a new schedule, or when the current one is finished). Ask for anything important that’s missing first (goal, weeks, days per week). The card shows the phases; the user taps "Make this my program". Their current program is archived; Undo restores it. Pro feature when they already have a program.',
-    input_schema: schema({ goal: { type: 'string' }, daysPerWeek: { type: 'number' }, durationWeeks: { type: 'number' }, bodyCompositionGoal: { type: 'string', enum: ['fat_loss', 'muscle_gain', 'recomp', 'maintenance'] } }),
+    description: 'Build a new program: a new goal, a new schedule, a different split ("give me a PPL split", "upper/lower"), a level change ("I\'m intermediate now", "make it more advanced"), or when the current one is finished. Ask for anything important that\'s missing first (days per week, weeks). Pass goal ONLY when the user wants a different goal — otherwise their current goal is kept. trainingAge = the level they state (call update_coaching_profile with trainingAge first so it sticks); split = ppl | upper_lower | full_body | bro_split | or their words. The card shows the phases; the user taps to make it their program. Their current program is archived; Undo restores it. Pro feature when they already have a program.',
+    input_schema: schema({
+      goal: { type: 'string', description: 'Only for a goal change.' },
+      daysPerWeek: { type: 'number' }, durationWeeks: { type: 'number' },
+      bodyCompositionGoal: { type: 'string', enum: ['fat_loss', 'muscle_gain', 'recomp', 'maintenance'] },
+      trainingAge: { type: 'string', description: 'beginner | intermediate | advanced | elite' },
+      split: { type: 'string', description: 'ppl | upper_lower | full_body | bro_split | free text' },
+    }),
     receipt: () => ({ verb: 'Proposed', text: 'New program' }),
     execute: async (input, userId) => {
-      const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachGoal: true, tier: true, coachProfile: true } });
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachGoal: true, tier: true, coachProfile: true, trainingAge: true, savedProgram: true } });
       const blob = parseJson<any>(u?.coachProfile, {});
-      const daysPerWeek = Math.min(6, Math.max(2, Math.round(numOr(input.daysPerWeek) ?? numOr(blob.daysPerWeek) ?? 4)));
+      const current = parseJson<any>(u?.savedProgram, null);
+      const split = splitLabel(input.split);
+      const level = levelOf(input.trainingAge);
+      const daysPerWeek = Math.min(6, Math.max(2, Math.round(numOr(input.daysPerWeek) ?? (split ? SPLIT_DAYS[split.id] : null) ?? numOr(blob.daysPerWeek) ?? numOr(current?.daysPerWeek) ?? 4)));
       const durationWeeks = Math.min(16, Math.max(2, Math.round(numOr(input.durationWeeks) ?? 12)));
+      // Goal: an explicit new goal is a goal change; otherwise keep what the
+      // current program trains for (a split or level change isn't a new goal).
+      const keepGoal: string | null = current?.goal ?? null;
+      const askedGoal = str(input.goal);
+      const goalChange = !!askedGoal && (!keepGoal || norm(askedGoal) !== norm(keepGoal));
+      const baseGoal = askedGoal || keepGoal || u?.coachGoal || undefined;
+      const levelChanged = !!level && level !== String(u?.trainingAge ?? '').toLowerCase();
+      // generateProgramForUser has no split / level inputs: the brief rides on
+      // the goal line it puts in the prompt (and the level is also read from the
+      // profile, which update_coaching_profile updates). The clean goal is
+      // restored on the result below.
+      const brief = [
+        baseGoal ?? 'balanced strength and muscle',
+        split ? `structure the week as a ${split.label} split (${split.hint})` : '',
+        level ? `program it for a${/^[aeiou]/.test(level) ? 'n' : ''} ${level} lifter` : '',
+      ].filter(Boolean).join(' — ');
       try {
-        const program = await generateProgramForUser(userId, { goal: str(input.goal) || u?.coachGoal || undefined, daysPerWeek, durationWeeks, bodyCompositionGoal: input.bodyCompositionGoal as any, save: false });
-        return { program, daysPerWeek, durationWeeks, phases: (program?.phases ?? []).map((ph: any) => `${ph.phaseName} (${ph.durationWeeks} wk)`), goal: program?.goal };
+        const generated = await generateProgramForUser(userId, { goal: split || level ? brief : baseGoal, daysPerWeek, durationWeeks, bodyCompositionGoal: input.bodyCompositionGoal as any, save: false });
+        const program = { ...generated, goal: goalChange ? (generated?.goal || askedGoal) : (keepGoal ?? (split || level ? baseGoal ?? generated?.goal : generated?.goal)) };
+        const phases = (program?.phases ?? []).map((ph: any) => `${ph.phaseName} (${ph.durationWeeks} wk)`);
+        const firstDays = ((program?.phases ?? [])[0]?.trainingDays ?? []).map((d: any) => String(d.day ?? '')).filter(Boolean);
+        const summary = `New ${program.durationWeeks ?? durationWeeks}-week program · ${program.daysPerWeek ?? daysPerWeek} days a week${split ? ` · ${split.label}` : ''}${level ? ` · ${level}` : ''}. ${phases.length ? `Phases: ${phases.join(', ')}. ` : ''}${current ? 'Your current program is saved in past programs.' : ''}`.trim();
+        return {
+          program, daysPerWeek, durationWeeks, phases, goal: program?.goal, goalChange, split: split?.label ?? null, trainingAge: level,
+          ...(levelChanged ? { profileNote: `Their saved level is "${u?.trainingAge ?? 'not set'}" — call update_coaching_profile with trainingAge "${level}" so it sticks.` } : {}),
+          // Classic app (card contract 1): rendered as its program-change card;
+          // Apply goes through confirm-proposal → applyProgramUpdate, which sees
+          // the rebuild marker and activates it like "Make this my program".
+          _proposal: true, kind: 'program_update', summary, changedDays: firstDays,
+          updatedProgram: { ...program, [REBUILD_MARKER]: { goalChange } },
+        };
       } catch (err: any) {
-        if (err?.status === 403) return { proOnly: true, daysPerWeek, durationWeeks, goal: str(input.goal) || u?.coachGoal };
+        if (err?.status === 403) return { proOnly: true, daysPerWeek, durationWeeks, goal: baseGoal ?? null };
         throw err;
       }
     },

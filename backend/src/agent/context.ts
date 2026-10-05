@@ -8,6 +8,7 @@ import { readMemory } from './memory.js';
 import { bodyWeightKg, displayWeight, normalizePreference, unitLabel } from '../services/weightUnits.js';
 import type { UserContext } from './types.js';
 import { CONSENT_LABEL, parseConsent, type ConsentKey } from './consent.js';
+import { buildTrainingSummary, trainingSummaryEnabledFor } from '../services/trainingSummary.js';
 
 const prisma = new PrismaClient();
 
@@ -28,7 +29,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     prisma.user.findUnique({
       where: { id: userId },
       select: {
-        name: true, tier: true, heightCm: true, weightKg: true,
+        name: true, email: true, tier: true, heightCm: true, weightKg: true,
         unitPreference: true,
         trainingAge: true, equipment: true, constraintsText: true,
         coachGoal: true, coachBudget: true, coachProfile: true,
@@ -57,6 +58,13 @@ export async function assembleContext(userId: string): Promise<UserContext> {
 
   if (!user) throw new Error('User not found');
   const consent = parseConsent(user.coachProfile);
+
+  // Workout history (contract 7) — behind the freestyle / log-adaptation
+  // flags, and only when the user hasn't switched off log access. Fails soft:
+  // null means the block is simply left out.
+  const trainingSummary = consent.logs !== false && trainingSummaryEnabledFor(userId, user.email)
+    ? await buildTrainingSummary(userId).catch(() => null)
+    : null;
 
   // Today's nutrition rollup.
   const todayNutrition = consent.nutrition && meals.length
@@ -125,6 +133,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     memory,
     consentOff: (Object.keys(consent) as ConsentKey[]).filter((k) => !consent[k]),
     adaptation: { pendingCount: pendingAdaptation.length, latestTitle: pendingAdaptation[0]?.title ?? null },
+    trainingSummary,
   };
 }
 
@@ -151,6 +160,11 @@ export function renderContext(ctx: UserContext): string {
 
   if (ctx.adaptation && ctx.adaptation.pendingCount > 0) {
     lines.push(`Adaptive progression — ${ctx.adaptation.pendingCount} proposal(s) PENDING the user's decision${ctx.adaptation.latestTitle ? ` (latest: "${ctx.adaptation.latestTitle}")` : ''}. If the user mentions targets, suggestions, or "the card", call read_adaptation for the details before answering.`);
+  }
+
+  if (ctx.trainingSummary) {
+    lines.push(ctx.trainingSummary);
+    lines.push('Use the training log above for "how am I doing", "am I progressing", "adjust my training" — cite their real numbers, then pull detail with read tools if needed. For "what should I train today" or when they don\'t follow a program, call suggest_session (search for it if it isn\'t loaded) and word its plan; don\'t invent loads.');
   }
 
   const off = ctx.consentOff ?? [];

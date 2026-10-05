@@ -40,11 +40,15 @@ function build(): AgentTool[] {
 /**
  * The classic app (card contract 1) can't render the new cards. It keeps the
  * tools it can show today: reads, logs, settings, the three proposal kinds it
- * renders (week move, exercise swap, program diff) and its two direct-apply
+ * renders (week move, exercise swap, program diff — which also carries a
+ * rebuilt program) and its two direct-apply
  * tools. Proposal/draft/confirm/intent tools without a v1 rendering are left
  * out so a v1 user is never shown "tap Apply" with nothing to tap.
  */
-const V1_PROPOSALS = new Set(['propose_workout_swap', 'propose_exercise_swap', 'propose_program_edit', 'propose_program_update']);
+// propose_new_program also returns a program_update proposal (with a rebuild
+// marker applyProgramUpdate understands), so "give me a PPL split" / "I'm
+// intermediate now" no longer dead-ends on the classic app.
+const V1_PROPOSALS = new Set(['propose_workout_swap', 'propose_exercise_swap', 'propose_program_edit', 'propose_program_update', 'propose_new_program']);
 // Legacy tools only the classic app gets (its Strength "Apply to your program"
 // diff comes from propose_program_update).
 const V1_DIRECT = new Set(['adjust_macros', 'apply_program_update', 'propose_program_update']);

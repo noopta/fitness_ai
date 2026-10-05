@@ -11,6 +11,7 @@ import {
   notifyWeightProgress,
 } from './notificationService.js';
 import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, type UnitPreference } from './weightUnits.js';
+import { loadCanonicalResolver } from './liftCanonical.js';
 
 /** Render a canonical-lbs e1RM as the user's preferred (value, unit) for a PR push. */
 export function prDisplay(e1RMLbs: number, pref: UnitPreference): { value: number; unit: 'lbs' | 'kg' } {
@@ -65,7 +66,10 @@ function normalizeLiftName(name: string): string {
  *
  * weightKg → lbs since notifications/UI use imperial units.
  */
-export function bestE1RMByLift(exercises: LoggedExercise[]): Map<string, { displayName: string; e1RMLbs: number }> {
+export function bestE1RMByLift(
+  exercises: LoggedExercise[],
+  keyFn: (name: string) => string = normalizeLiftName,
+): Map<string, { displayName: string; e1RMLbs: number }> {
   const out = new Map<string, { displayName: string; e1RMLbs: number }>();
 
   function consider(key: string, displayName: string, e1RMLbs: number) {
@@ -76,7 +80,8 @@ export function bestE1RMByLift(exercises: LoggedExercise[]): Map<string, { displ
   }
 
   for (const ex of exercises) {
-    const key = normalizeLiftName(ex.name);
+    if (!ex?.name) continue;
+    const key = keyFn(ex.name) || normalizeLiftName(ex.name);
     const displayName = ex.name.trim();
 
     if (ex.setEntries && ex.setEntries.length > 0) {
@@ -129,8 +134,7 @@ export async function detectStrengthPRs(
   newWorkoutId: string,
   newExercises: LoggedExercise[],
 ): Promise<DetectedPR[]> {
-  const newBests = bestE1RMByLift(newExercises);
-  if (newBests.size === 0) return [];
+  if (bestE1RMByLift(newExercises).size === 0) return [];
 
   // Pull prior logs (excluding this one) — keep this bounded; 200 most recent
   // workouts is enough to establish a lifetime PR baseline for typical users.
@@ -141,12 +145,22 @@ export async function detectStrengthPRs(
     select: { exercises: true },
   });
 
-  const lifetimeBest = new Map<string, number>();
+  // Parse once, then key BOTH sides (today's lifts and the history) through the
+  // same canonical key function — so "Barbell Bench Press" last month and
+  // "bench press" today are one lift, whatever spelling the history used.
+  const priorLists: LoggedExercise[][] = [];
   for (const log of prior) {
     let exs: LoggedExercise[];
     try { exs = JSON.parse(log.exercises); } catch { continue; }
-    if (!Array.isArray(exs)) continue;
-    const bests = bestE1RMByLift(exs);
+    if (Array.isArray(exs)) priorLists.push(exs);
+  }
+  const names = [...newExercises, ...priorLists.flat()].map((e) => e?.name).filter(Boolean) as string[];
+  const { key: liftKey } = await loadCanonicalResolver(prisma, names);
+  const newBests = bestE1RMByLift(newExercises, liftKey);
+
+  const lifetimeBest = new Map<string, number>();
+  for (const exs of priorLists) {
+    const bests = bestE1RMByLift(exs, liftKey);
     for (const [k, v] of bests) {
       const cur = lifetimeBest.get(k) ?? 0;
       if (v.e1RMLbs > cur) lifetimeBest.set(k, v.e1RMLbs);
