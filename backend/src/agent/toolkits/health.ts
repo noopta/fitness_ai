@@ -15,6 +15,8 @@ import { dayNutrition } from './nutrition.js';
 import { bodyWeight, dayLabel, kgTo, toKg, num, plural, shiftDate } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
+import { latestNutritionPlan } from '../../services/nutritionPlanService.js';
+import { planChanges, applyChanges, changeSummary, type PlanChange, type PlanState, type StoredPlan, type RequestedChange } from '../../services/nutritionPlanSummary.js';
 
 const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn.js')).toolCtx(userId);
 
@@ -57,6 +59,59 @@ defineOp({
     await prisma.nutritionPlan.deleteMany({ where: { id: String(args.id), userId } });
     cacheClearByPrefix(`nutrition_profile:${userId}`);
     return { inverse: null, summary: 'Previous nutrition plan is current again' };
+  },
+});
+
+// Plan changes from a Proposal card (P-04): targets, focus, supplements, gut
+// targets and macros. Plan edits save a new plan row (the old one stays in
+// history), so Undo removes the new row; macro edits restore the old macros.
+async function planState(userId: string): Promise<PlanState & { generatedAt: Date | null; sources: unknown[]; dailyCalorieTarget: number | null }> {
+  const [cur, u] = await Promise.all([
+    latestNutritionPlan(userId),
+    prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, dailyCalorieTarget: true } }),
+  ]);
+  return {
+    plan: (cur?.plan as StoredPlan) ?? null, targets: cur?.targets ?? null, generatedAt: cur?.generatedAt ?? null, sources: cur?.sources ?? [],
+    macros: parseJson<any>(u?.savedProgram, null)?.nutritionPlan?.macros ?? null, dailyCalorieTarget: u?.dailyCalorieTarget ?? null,
+  };
+}
+defineOp({
+  name: 'nutrition.plan.apply',
+  run: async (userId, args) => {
+    const st = await planState(userId);
+    // Re-validated against the plan as it is now, not as it was when proposed.
+    const changes = planChanges(st, args.changes as RequestedChange[]);
+    const macro = Object.fromEntries(changes.filter((c) => c.kind === 'macro').map((c) => [c.field, c.to as number]));
+    const planEdits = changes.filter((c) => c.kind !== 'macro');
+    let planId: string | null = null;
+    if (planEdits.length && st.plan && st.targets && st.generatedAt) {
+      const next = applyChanges(st.plan, st.targets, planEdits, st.generatedAt);
+      const row = await prisma.nutritionPlan.create({
+        data: { userId, planJson: JSON.stringify(next.plan), microTargetsJson: JSON.stringify(next.targets), sourcesJson: JSON.stringify(st.sources) },
+        select: { id: true },
+      });
+      planId = row.id;
+    }
+    if (Object.keys(macro).length) await applyMacroChange(userId, macro);
+    cacheClearByPrefix(`nutrition_profile:${userId}`);
+    const prevMacros = Object.keys(macro).length && st.macros ? Object.fromEntries(Object.keys(macro).map((k) => [k, (st.macros as any)[k]])) : null;
+    return {
+      result: { planId, changes: changes.map((c) => c.row) },
+      inverse: { op: 'nutrition.plan.revert', args: { planId, macros: prevMacros, dailyCalorieTarget: st.dailyCalorieTarget } },
+      summary: `Nutrition plan · ${changeSummary(changes)}`,
+    };
+  },
+});
+defineOp({
+  name: 'nutrition.plan.revert',
+  run: async (userId, args) => {
+    if (args.planId) await prisma.nutritionPlan.deleteMany({ where: { id: String(args.planId), userId } });
+    if (args.macros) {
+      await applyMacroChange(userId, args.macros as any);
+      await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: (args.dailyCalorieTarget as number | null) ?? null } });
+    }
+    cacheClearByPrefix(`nutrition_profile:${userId}`);
+    return { inverse: null, summary: 'Nutrition plan restored' };
   },
 });
 
@@ -205,9 +260,10 @@ export const HEALTH_TOOLS = [
       return { change, before: np.macros, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why) };
     },
     card: (_i, r, ctx) => ({
-      fn: 'NTP-02', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · daily targets', open: { page: 'fuel' } },
+      fn: 'NTP-02', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },
       diff: Object.keys(r.change).map((k) => ({ key: LABEL[k], from: `${num(r.before[k])}${UNIT[k]}`, to: `${num(r.change[k])}${UNIT[k]}` })),
-      why: [r.why, r.weeklyLb != null ? `Projected ${r.weeklyLb > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(r.weeklyLb) * 0.45359237)} a week.` : ''].filter(Boolean).join(' '),
+      // One consequence line (P-04): the projected weekly change, else the reason.
+      why: r.weeklyLb != null ? `Projected ${r.weeklyLb > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(r.weeklyLb) * 0.45359237)} a week.` : (r.why || undefined),
       actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
       entity: 'nutrition:targets',
       pending: { actions: { apply: { op: 'nutrition.set_macros', args: { change: r.change } }, keep: { kind: 'keep' } } },
@@ -233,12 +289,40 @@ export const HEALTH_TOOLS = [
       return { hasAssessment: has, current: cur ? (cur.plan?.focusNutrients ?? []).map((f: any) => f.label) : null };
     },
     card: (_i, r) => r.hasAssessment
-      ? { fn: 'NTP-05', pattern: 'proposal', rule: 'propose', meta: { label: r.current ? 'Refresh nutrition plan' : 'Build nutrition plan', open: { page: 'fuelplan' } },
-          rows: [{ key: 'From', value: 'Your answers, diet and the last 7 days of logs' }, ...(r.current ? [{ key: 'Current focus', value: r.current.slice(0, 3).join(', ') }] : [])],
-          why: 'Focus nutrients, a gut protocol and where food alone falls short, with sources.',
-          actions: [{ id: 'apply', label: r.current ? 'Refresh plan' : 'Build plan', kind: 'primary' }, { id: 'keep', label: 'Not now', kind: 'secondary' }],
-          pending: { actions: { apply: { op: 'nutrition.generate_plan', args: {}, line: 'Plan saved' }, keep: { kind: 'keep' } } } }
+      ? { fn: 'NTP-05', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },
+          diff: [{ key: 'Plan', from: r.current ? `Focus · ${r.current.slice(0, 3).join(', ')}` : 'None', to: 'Rebuilt from your answers and 7 days of logs' }],
+          why: r.current ? 'The current plan stays in history — Undo brings it back.' : 'Focus nutrients, a gut protocol and where food alone falls short, with sources.',
+          actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
+          entity: 'nutrition:plan',
+          pending: { actions: { apply: { op: 'nutrition.generate_plan', args: {}, line: 'Applied' }, keep: { kind: 'keep' } } } }
       : { fn: 'NTP-05', pattern: 'glance', rule: 'show', meta: { label: 'Nutrition plan' }, empty: 'It builds from 13 quick questions first.', actions: [{ id: 'start', label: 'Answer the questions', kind: 'primary', client: { action: 'send_message', args: { text: 'Start my gut and nutrition questions.' } } }] },
+  }),
+  tool({
+    name: 'propose_nutrition_plan_change', kind: 'propose', fn: 'NTP-13',
+    description: 'Propose a change to the user’s nutrition plan: a nutrient target ("raise my fiber target" → field "fiberG"), the focus nutrients ("focus on iron instead" → field "focus", to: the full new list), a supplement (field "supplement" with name; to: null drops it, to: { dose, when } adds or changes it), a gut target (field "plants" / "fermentedDays" / "upfMax") or daily macros (calories / proteinG / carbsG / fatG). Use ramp.weeks to step a target up gradually (fiber especially). Add one short consequence line when there is one (cost, comfort, timing), e.g. "+$9 a week". The card shows before → after; the user applies it, and Undo restores the old plan.',
+    input_schema: schema({
+      changes: { type: 'array', items: { type: 'object', properties: {
+        field: { type: 'string' },
+        to: { description: 'New value: a number, a list of nutrients for focus, { dose, when } for a supplement, or null to drop a supplement.' },
+        name: { type: 'string', description: 'Supplement name, for field "supplement".' },
+        ramp: { type: 'object', properties: { weeks: { type: 'number' } } },
+      }, required: ['field'] } },
+      consequence: { type: 'string', description: 'One short line, e.g. "+$9 a week" or "Expect more gas for a week".' },
+    }, ['changes']),
+    receipt: () => ({ verb: 'Proposed', text: 'Nutrition plan change' }),
+    execute: async (input, userId) => {
+      const st = await planState(userId);
+      const changes: PlanChange[] = planChanges(st, (Array.isArray(input.changes) ? input.changes : []) as RequestedChange[]);
+      return { changes: changes.map((c) => ({ field: c.field, to: c.to, name: c.name, ramp: c.ramp ?? null })), diff: changes.map((c) => c.row), consequence: str(input.consequence) };
+    },
+    card: (_i, r) => ({
+      fn: 'NTP-13', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },
+      diff: r.diff,
+      ...(r.consequence ? { why: String(r.consequence).slice(0, 120) } : {}),
+      actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
+      entity: 'nutrition:plan',
+      pending: { actions: { apply: { op: 'nutrition.plan.apply', args: { changes: r.changes }, line: 'Applied' }, keep: { kind: 'keep' } } },
+    }),
   }),
   tool({
     name: 'read_micro_status', kind: 'read', fn: 'NTP-06',

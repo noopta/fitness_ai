@@ -72,6 +72,8 @@ export interface GeneratedNutritionPlan {
   supplements: Array<{
     name: string;
     doseRange: string;
+    /** "with dinner" — when to take it; the plan page shows it beside the dose. */
+    when?: string | null;
     rationale: string;
     citationIds: number[];
   }>;
@@ -138,6 +140,7 @@ function coercePlan(
     ? raw.supplements.slice(0, 5).map((s: any) => ({
         name: String(s?.name ?? '').slice(0, 80),
         doseRange: String(s?.doseRange ?? '').slice(0, 80),
+        when: s?.when ? String(s.when).slice(0, 40) : null,
         rationale: String(s?.rationale ?? '').slice(0, 240),
         citationIds: Array.isArray(s?.citationIds)
           ? s.citationIds.map((n: unknown) => Number(n)).filter(Number.isFinite)
@@ -247,7 +250,7 @@ Write JSON only:
   "summary": "3-4 sentences addressed to the user: what this plan optimizes and why, referencing their stated goals and day-to-day reality.",
   "focusNutrients": [{ "key": "<focus key>", "why": "1 sentence tied to THEIR goals/assessment", "foods": ["specific food with rough serving", ...4-6], "citationIds": [1] }],
   "gutProtocol": { "principles": [{ "pillar": "fiber|plants|ferment|avoid|rhythm", "guidance": "1-2 specific, doable sentences tuned to their habits", "citationIds": [] } ...all 5 pillars] },
-  "supplements": [{ "name": "...", "doseRange": "DOSE ONLY, short, e.g. '200-400mg' — timing/format goes in rationale, never here", "rationale": "food-first framing: when diet alone likely falls short for THEM", "citationIds": [] } 0-4 items],
+  "supplements": [{ "name": "...", "doseRange": "DOSE ONLY, short, e.g. '200-400mg' — timing goes in when, never here", "when": "short timing, e.g. 'with dinner'", "rationale": "food-first framing: when diet alone likely falls short for THEM", "citationIds": [] } 0-4 items],
   "seeProfessional": ${hasMedicalFlags}
 }
 

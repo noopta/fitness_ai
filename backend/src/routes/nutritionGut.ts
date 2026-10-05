@@ -27,6 +27,7 @@ import { consumeMealLoggingQuota, nutritionProfileCacheKey } from '../services/n
 import { cacheDelete } from '../services/cacheService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
+import { summarizePlan, type StoredPlan } from '../services/nutritionPlanSummary.js';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -112,11 +113,28 @@ router.post('/nutrition/plan/generate', requireAuth, async (req, res) => {
   }
 });
 
+// The plan as stored (plan, targets, sources, generatedAt — the classic gut
+// section and the agent read these) plus the plan page summary (RN spec bug
+// fixes 5 Oct, 2b): week N of 8, focus coverage, the gut week, supplements.
 router.get('/nutrition/plan', requireAuth, async (req, res) => {
   try {
-    const plan = await latestNutritionPlan(req.user!.id);
+    const userId = req.user!.id;
+    const plan = await latestNutritionPlan(userId);
     if (!plan) return res.status(404).json({ error: 'No nutrition plan yet' });
-    res.json(plan);
+    const end = new Date().toISOString().split('T')[0];
+    const start = dateNDaysAgo(6, end);
+    const [meals, firstEver] = await Promise.all([
+      prisma.mealEntry.findMany({
+        where: { userId, date: { gte: start, lte: end } },
+        select: { date: true, nutrientsJson: true, plantsJson: true, fermentedJson: true, ultraProcessed: true },
+      }),
+      prisma.mealEntry.findFirst({ where: { userId }, orderBy: { date: 'asc' }, select: { date: true } }),
+    ]);
+    const summary = summarizePlan({
+      plan: plan.plan as StoredPlan, targets: plan.targets, sources: plan.sources, generatedAt: plan.generatedAt,
+      meals, days: observedDays(firstEver?.date ?? null, start, end), now: new Date(),
+    });
+    res.json({ ...plan, ...summary });
   } catch (err) {
     console.error('[nutrition/plan] read failed:', err);
     res.status(500).json({ error: 'Failed to read nutrition plan' });
@@ -199,6 +217,14 @@ function dateNDaysAgo(n: number, from: string): string {
   return d.toISOString().split('T')[0];
 }
 
+/** Days of the 7-day window the account has existed for — a 2-day-old account isn't held to a 7-day bar. */
+function observedDays(firstDate: string | null, start: string, end: string): number {
+  if (!firstDate || firstDate <= start) return 7;
+  const first = new Date(`${firstDate}T00:00:00Z`).getTime();
+  const endMs = new Date(`${end}T00:00:00Z`).getTime();
+  return Math.max(1, Math.min(7, Math.round((endMs - first) / 86400000) + 1));
+}
+
 router.get('/nutrition/gut/week', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
@@ -220,13 +246,7 @@ router.get('/nutrition/gut/week', requireAuth, async (req, res) => {
       userTargets(userId),
     ]);
 
-    // Observed window: don't hold a 2-day-old account to a 7-day bar.
-    let days = 7;
-    if (firstEver && firstEver.date > start) {
-      const first = new Date(`${firstEver.date}T00:00:00Z`).getTime();
-      const endMs = new Date(`${end}T00:00:00Z`).getTime();
-      days = Math.max(1, Math.min(7, Math.round((endMs - first) / 86400000) + 1));
-    }
+    const days = observedDays(firstEver?.date ?? null, start, end);
 
     const byDate = new Map<string, number>();
     let fiberTotal = 0;

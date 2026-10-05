@@ -113,6 +113,28 @@ describe('GET /nutrition/plan', () => {
     expect(res.status).toBe(200);
     expect(res.body.plan.summary).toBe('x');
   });
+
+  it('adds the plan page summary: week, focus coverage, gut week, supplements', async () => {
+    mockLatest.mockResolvedValue({
+      plan: { summary: 'x', focusNutrients: [], supplements: [{ name: 'Vitamin D3', doseRange: '1000 IU', when: 'with breakfast', rationale: '' }] },
+      targets: { focus: ['ironMg'], targets: [{ key: 'ironMg', label: 'Iron', unit: 'mg', target: 18, direction: 'meet', rationale: [] }, { key: 'fiberG', label: 'Fiber', unit: 'g', target: 30, direction: 'meet', rationale: [] }] },
+      sources: [{ id: 1, type: 'library', title: 'Library' }],
+      generatedAt: new Date(Date.now() - 8 * 86_400_000),
+    });
+    prismaMealEntry.findMany.mockResolvedValue([
+      { date: '2026-10-05', nutrientsJson: JSON.stringify({ ironMg: 14 * 7, fiberG: 21 }), plantsJson: JSON.stringify(['oats', 'kale']), fermentedJson: JSON.stringify(['kefir']), ultraProcessed: false },
+    ]);
+    const res = await auth(request(app).get('/api/nutrition/plan'));
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      week: 2, weeks: 8, onTrack: 1, total: 1,
+      focus: [{ nutrient: 'Iron', amount: 14, target: 18, unit: 'mg', onTrack: true }],
+      gut: { plants: { n: 2, target: 30 }, fiberG: { n: 3, target: 30 }, fermentedDays: { n: 1 }, upfPct: { n: 0 } },
+      supplements: [{ name: 'Vitamin D3', dose: '1000 IU', when: 'with breakfast' }],
+    });
+    expect(res.body.sources).toHaveLength(1);
+    expect(res.body.plan.summary).toBe('x'); // stored shape still there
+  });
 });
 
 describe('POST /nutrition/plan/generate', () => {
