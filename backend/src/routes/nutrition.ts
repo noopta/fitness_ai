@@ -39,6 +39,7 @@ import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
+import { lookupOpenFoodFacts } from '../services/food/openFoodFacts.js';
 import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/mealLogService.js';
 import { rankFoodResults } from '../services/food/foodSearch.js';
@@ -189,11 +190,10 @@ router.get('/nutrition/meals', requireAuth, async (req, res) => {
 });
 
 // GET /api/nutrition/barcode/:code — look up a food product by barcode (UPC/EAN/GTIN).
-// Source: OpenFoodFacts (free, no API key, 3M+ products globally). Falls
-// back gracefully when the barcode isn't in their DB so the client can
-// route the user to manual entry or LLM-photo parse. Public-API spec:
-//   https://world.openfoodfacts.org/api/v3/product/<barcode>.json
-const OFF_BASE = 'https://world.openfoodfacts.org/api/v3/product';
+// Source: OpenFoodFacts (free, no API key, 3M+ products globally) via
+// lookupOpenFoodFacts, which tells a miss (their 404) apart from an outage.
+// A miss falls back to the community table, then to a 404 with
+// canScanLabel so the client offers the label scan; only a real outage is 502.
 router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
   const code = String(req.params.code ?? '').trim();
   if (!/^[0-9]{6,14}$/.test(code)) {
@@ -206,26 +206,23 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
   const communityRow = prisma.productBarcode.findUnique({ where: { code } }).catch(() => null);
 
   try {
-    const r = await fetch(`${OFF_BASE}/${code}.json`, {
-      headers: { 'User-Agent': 'Axiom-Fitness/2.0.2 (https://axiomtraining.io)' },
-      signal: AbortSignal.timeout(8000),
-    }).catch(() => null);
+    const off = await lookupOpenFoodFacts(code);
 
-    const json: any = r && r.ok ? await r.json().catch(() => null) : null;
-    const offHasProduct = !!json && json.status !== 0 && !!json.product;
-
-    if (!offHasProduct) {
+    if (off.kind !== 'found') {
       // Fall back to a label a user has already photographed for us.
       const local = await communityRow;
       if (local) return res.json(serializeCommunityProduct(local));
-      if (r && !r.ok) {
-        return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: r.status });
+      if (off.kind === 'unavailable') {
+        console.warn(`[nutrition/barcode] OpenFoodFacts unavailable (${off.reason}${off.upstream ? ` ${off.upstream}` : ''}) for ${code}`);
+        // Still offer the label scan: the user can recover without waiting
+        // for OFF to come back.
+        return res.status(502).json({ error: 'OpenFoodFacts unreachable', upstream: off.upstream, canScanLabel: true });
       }
       // canScanLabel tells the client a recovery path exists, instead of the
       // dead end it used to hit ("try the meal-photo scan instead").
       return res.status(404).json({ error: 'Barcode not in database', code, canScanLabel: true });
     }
-    const p = json.product;
+    const p = off.product;
     const nut = p.nutriments ?? {};
     // OFF returns per-100g values. We pass them through plus the typical
     // serving size if available so the client can show both default-100g

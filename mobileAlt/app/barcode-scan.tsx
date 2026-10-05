@@ -97,7 +97,9 @@ function BarcodeScanScreenInner() {
       const msg = err?.message ?? '';
       const notFound = err?.status === 404 || /not in database/i.test(msg);
       Analytics.foodBarcodeLookupFailed?.({ code, reason: notFound ? 'not_found' : 'error' });
-      if (notFound) {
+      // The server sets canScanLabel on a miss AND when OpenFoodFacts is down —
+      // either way reading the label is a working path, so take it.
+      if (notFound || err?.body?.canScanLabel) {
         // Not a dead end any more: OpenFoodFacts barely covers Nigerian and
         // Gambian packaged goods, so offer to read the label ourselves and
         // cache it globally for the next person who scans this product.
@@ -105,8 +107,11 @@ function BarcodeScanScreenInner() {
         return;
       }
       setError(msg || 'Lookup failed. Try again or enter manually.');
-      firedRef.current = false;
       setLookingUp(false);
+      // The barcode is still in frame, so re-arming at once re-fires the same
+      // failing lookup in a loop (8 calls in 20 s seen in production). Give
+      // the user a beat to read the error or move the camera.
+      setTimeout(() => { firedRef.current = false; }, 3000);
     }
   }
 
