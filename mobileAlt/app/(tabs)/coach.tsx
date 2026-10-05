@@ -24,6 +24,7 @@ import { ProgramTab } from '../../src/components/coach/ProgramTab';
 import { NutritionTab } from '../../src/components/coach/NutritionTab';
 import { WellnessTab } from '../../src/components/coach/WellnessTab';
 import { ChatTab } from '../../src/components/coach/ChatTab';
+import { FreestyleHome } from '../../src/components/coach/FreestyleHome';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { CoachDashboardSkeleton } from '../../src/components/ui/Skeleton';
 import { CoachMarkTooltip } from '../../src/components/CoachMarkTooltip';
@@ -35,7 +36,8 @@ import { peekNutritionPrefill, consumeNutritionTabRequest } from '../../src/lib/
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Stage = 'loading' | 'onboarding' | 'setup' | 'reveal' | 'walkthrough' | 'dashboard';
+// 'freestyle' — no program and the `freestyle` flag on: log-as-you-go home.
+type Stage = 'loading' | 'onboarding' | 'setup' | 'reveal' | 'walkthrough' | 'dashboard' | 'freestyle';
 type TabId = 'Overview' | 'Program' | 'Nutrition' | 'Wellness' | 'Chat';
 
 const TABS: TabId[] = ['Overview', 'Program', 'Nutrition', 'Wellness', 'Chat'];
@@ -103,7 +105,7 @@ function CoachScreenInner() {
   const [loading, setLoading] = useState(cachedInit === null);
   const [coachData, setCoachData] = useState<any>(cachedInit?.coachData ?? null);
   const [stage, setStage] = useState<Stage>(
-    cachedInit ? (cachedInit.hasProgram ? 'dashboard' : 'onboarding') : 'loading'
+    cachedInit ? (cachedInit.hasProgram ? 'dashboard' : (getFeatures().freestyle ? 'freestyle' : 'onboarding')) : 'loading'
   );
   const [activeTab, setActiveTab] = useState<TabId>('Overview');
   // Suggested-prompt routing: a chip tap on Overview stashes the prompt here
@@ -166,7 +168,60 @@ function CoachScreenInner() {
   // completed it once, left before tapping Generate, and every return greeted
   // them with the full quiz again.
   function resumeStageForNoProgram(): Stage {
+    // Freestyle (flag): no program is a valid way to train, not a funnel
+    // step — land on the log-as-you-go home; "Build me a program" is there.
+    if (getFeatures().freestyle) return 'freestyle';
     return user?.coachOnboardingDone ? 'setup' : 'onboarding';
+  }
+
+  // "Build me a program" from the freestyle home: the same path a no-program
+  // user takes without the flag (intake first if it was never finished).
+  function handleBuildProgramFromFreestyle() {
+    if (!user?.coachOnboardingDone) {
+      setOnboardingKey(k => k + 1);
+      setSetupReturnStage('freestyle');
+      setStage('onboarding');
+      return;
+    }
+    setSetupReturnStage('freestyle');
+    setStage('setup');
+  }
+
+  // Re-read the program after it changed server-side (go freestyle / restore).
+  // refreshUser first, and no user.savedProgram fallback: the auth copy is
+  // stale at this point and would resurrect an archived program.
+  async function reloadProgramState() {
+    invalidateCache('coach:');
+    try { await refreshUser(); } catch { /* best effort */ }
+    try {
+      const fresh = await fetchCoachInit();
+      if (user?.id) setCached(coachInitCacheKey(user.id), fresh);
+      setCoachData(fresh.coachData);
+      setStage(fresh.hasProgram ? 'dashboard' : resumeStageForNoProgram());
+    } catch {
+      setStage(resumeStageForNoProgram());
+    }
+  }
+
+  // "Go freestyle" from the program dashboard — confirm, archive, reload.
+  function handleGoFreestyle() {
+    Alert.alert(
+      'Go freestyle?',
+      "Your program is archived (you can restore it any time) and you log workouts as you go. Axiom keeps reading your sessions and suggests what's next.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Go freestyle', onPress: async () => {
+            try {
+              await coachApi.goFreestyle();
+              await reloadProgramState();
+            } catch (e: any) {
+              Alert.alert("Couldn't switch", e?.message ?? 'Try again in a moment.');
+            }
+          },
+        },
+      ],
+    );
   }
 
   async function initCoach() {
@@ -257,7 +312,7 @@ function CoachScreenInner() {
           setCached(key, fresh);
           if (!sameProgram) {
             setCoachData(fresh.coachData);
-            setStage(fresh.hasProgram ? 'dashboard' : 'onboarding');
+            setStage(fresh.hasProgram ? 'dashboard' : (getFeatures().freestyle ? 'freestyle' : 'onboarding'));
           } else {
             // Same program shape — still refresh chat-message data silently.
             setCoachData(fresh.coachData);
@@ -467,10 +522,38 @@ function CoachScreenInner() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.stageHeader}>
+          {setupReturnStage === 'freestyle' && getFeatures().freestyle ? (
+            <TouchableOpacity onPress={() => setStage('freestyle')} hitSlop={10} style={{ marginBottom: 6 }} accessibilityRole="button">
+              <Text style={styles.stageHeaderSub}>← Back to freestyle</Text>
+            </TouchableOpacity>
+          ) : null}
           <Text style={styles.stageHeaderTitle}>Welcome to Anakin</Text>
           <Text style={styles.stageHeaderSub}>Let's set up your profile</Text>
         </View>
         <CoachOnboarding key={onboardingKey} onComplete={handleOnboardingComplete} />
+      </SafeAreaView>
+    );
+  }
+
+  if (stage === 'freestyle') {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerAvatar}>
+            <Text style={styles.headerAvatarText}>A</Text>
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Anakin</Text>
+            <Text style={styles.headerSubtitle}>Freestyle training</Text>
+          </View>
+          <View style={styles.onlineDot} />
+        </View>
+        <ErrorBoundary label="coach:Freestyle" message="This screen hit an unexpected error. Tap try again.">
+          <FreestyleHome
+            onBuildProgram={handleBuildProgramFromFreestyle}
+            onRestored={reloadProgramState}
+          />
+        </ErrorBoundary>
       </SafeAreaView>
     );
   }
@@ -628,6 +711,7 @@ function CoachScreenInner() {
                 coachData={coachData}
                 onGoToProgram={() => setActiveTab('Program')}
                 onRefresh={initCoach}
+                onGoFreestyle={getFeatures().freestyle ? handleGoFreestyle : undefined}
                 onAskAnakin={(prompt) => {
                   setPendingChatPrompt(prompt);
                   setActiveTab('Chat');

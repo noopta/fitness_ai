@@ -31,7 +31,7 @@ import { TRAINER_HOME, loadTrainerMode } from '../../features/personal-training/
  */
 export async function postAuthDestination(
   user: { coachOnboardingDone?: boolean; dateOfBirth?: string | null } | null | undefined,
-  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean; directEntryPaywall?: boolean },
+  features?: { onboardingFormHook?: boolean; diagnosticFirstOnboarding?: boolean; liftDiagnosticConversation?: boolean; uiV2?: boolean; directEntryPaywall?: boolean; freestyle?: boolean; logAdaptation?: boolean; phaseInference?: boolean; mealPhotoV2?: boolean },
 ): Promise<string> {
   if (!user) return '/(auth)/welcome';
   // Signed in as a personal trainer: the dashboard, ahead of every athlete

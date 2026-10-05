@@ -27,6 +27,7 @@ import { LifeHappenedModal } from './LifeHappenedModal';
 import { WorkoutLogModal } from './WorkoutLogModal';
 import { AdaptationCard, type AdaptationProposalData, type AdaptationCardState, type TargetEdit } from './AdaptationCard';
 import { SwapWorkoutModal } from './SwapWorkoutModal';
+import { PhaseCard } from './PhaseCard';
 import { ShareToFriendSheet, type FriendForShare } from '../social/ShareToFriendSheet';
 import { Analytics } from '../../lib/analytics';
 import { UpgradeSheet } from '../UpgradeSheet';
@@ -99,6 +100,8 @@ interface OverviewTabProps {
    * blank-cursor problem; one-tap chips collapse the friction.
    */
   onAskAnakin?: (prompt: string) => void;
+  /** Freestyle flag: archive the program and log as you go (parent confirms). */
+  onGoFreestyle?: () => void;
 }
 
 /** Starter prompts surfaced on the Overview screen so new users have one-tap
@@ -368,8 +371,8 @@ function todayESTString(): string {
 // cached again.
 const OVERVIEW_TTL_MS = 30 * 60 * 1000;
 
-export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }: OverviewTabProps) {
-  const { user } = useAuth();
+export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin, onGoFreestyle }: OverviewTabProps) {
+  const { user, getFeatures } = useAuth();
   const router = useRouter();
   const { unit } = useUnits();
   // Protein guidance is unit-aware: ~0.8–1 g/lb ≈ 1.6–2.2 g/kg of bodyweight.
@@ -854,6 +857,9 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
           </Text>
         ) : null}
 
+        {/* ── Training phase (phaseInference flag) ─────────────────────── */}
+        {getFeatures().phaseInference ? <PhaseCard onChanged={() => { void loadProposals(); }} /> : null}
+
         {/* ── Action buttons ───────────────────────────────────────────────── */}
         <TouchableOpacity
           style={[styles.actionBtn, styles.logBtn]}
@@ -1049,6 +1055,19 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin }
                   <Text style={styles.progressSub}>Week {currentWeek} of {totalWeeks}</Text>
                 </View>
               )}
+
+              {onGoFreestyle ? (
+                <TouchableOpacity
+                  style={styles.freestyleLink}
+                  onPress={onGoFreestyle}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Go freestyle — archive this program and log as you go"
+                >
+                  <Ionicons name="shuffle-outline" size={14} color={colors.mutedForeground} />
+                  <Text style={styles.freestyleLinkText}>Go freestyle — train without a schedule</Text>
+                </TouchableOpacity>
+              ) : null}
             </CardContent>
           </Card>
         )}
@@ -1373,6 +1392,11 @@ const videoStyles = StyleSheet.create({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  freestyleLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.md,
+    paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border,
+  },
+  freestyleLinkText: { fontSize: fontSize.sm, color: colors.mutedForeground, fontWeight: fontWeight.medium },
   container: {
     flex: 1,
     backgroundColor: colors.background,

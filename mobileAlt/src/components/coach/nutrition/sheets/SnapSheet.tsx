@@ -7,6 +7,12 @@
 //      "Log" commits via nutritionApi.logMeal.
 // The vision endpoint can take 5-8s on cold paths; we show a "Anakin is
 // looking at it…" placeholder rather than blocking the user behind a spinner.
+//
+// mealPhotoV2 flag (contract 8): photos are resized to ~1600 px, the library
+// takes up to 3 shots of one meal, review is an editable ITEM list (grams
+// rescale from per100g), "+ Add photo" sends the current items as
+// existingItems and appends only what's new, and framingWarning /
+// noFoodDetected are surfaced inline. Flag off = the original flow, unchanged.
 
 import React, { useState } from 'react';
 import {
@@ -14,6 +20,7 @@ import {
   Image, Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { nutritionApi } from '../../../../lib/api';
 import { Analytics } from '../../../../lib/analytics';
@@ -21,6 +28,15 @@ import { colors, fontWeight } from '../../../../constants/theme';
 import { BottomSheet } from './BottomSheet';
 import { slotForNow, todayStr, type MealSlotApi, richLogFields } from './sheetHelpers';
 import { MicroPreview } from './MicroPreview';
+import { useAuth } from '../../../../context/AuthContext';
+import { preparePhoto, type PreparedPhoto } from '../mealPhotoPrep';
+import {
+  itemsFromParse, itemsFromPhoto, itemLogFields, mealNameFrom, mergeItems, toMealPhotoItems, totalsOf,
+  type ReviewItem,
+} from '../mealItems';
+import { MealItemsReview } from './MealItemsReview';
+
+const NO_FOOD_MSG = "We couldn't spot any food in that photo. Try again from above with the whole plate in frame.";
 
 interface Props {
   visible: boolean;
@@ -49,15 +65,32 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
   const [parsedDetail, setParsedDetail] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [slot, setSlot] = useState<MealSlotApi>(slotForNow());
+  // ── mealPhotoV2 state ──
+  const { getFeatures } = useAuth();
+  const photoV2 = getFeatures().mealPhotoV2;
+  const [items, setItems] = useState<ReviewItem[] | null>(null);
+  const [extraUris, setExtraUris] = useState<string[]>([]);
+  const [framingWarning, setFramingWarning] = useState<string | null>(null);
+  const [addingPhoto, setAddingPhoto] = useState(false);
+  const [addingText, setAddingText] = useState(false);
+  const [inlineNote, setInlineNote] = useState<string | null>(null);
 
   const reset = () => {
     setStage('capture'); setImageUri(null); setImageBase64(null); setParsed(null);
     setParsedDetail(null);
     setError(null); setSlot(slotForNow());
+    setItems(null); setExtraUris([]); setFramingWarning(null); setInlineNote(null);
+    setAddingPhoto(false); setAddingText(false);
+  };
+  // "Retake" keeps the chosen slot — the user already told us which meal it is.
+  const retake = () => {
+    const keep = slot;
+    reset();
+    setSlot(keep);
   };
 
   const handleClose = () => {
-    if (stage === 'analyzing' || stage === 'saving') return;
+    if (stage === 'analyzing' || stage === 'saving' || addingPhoto) return;
     reset();
     onClose();
   };
@@ -76,7 +109,129 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
     return true;
   };
 
+  // ── mealPhotoV2: capture 1–3 photos, resized, base64 ──
+  const capturePhotos = async (kind: 'camera' | 'library', allowMulti: boolean): Promise<PreparedPhoto[] | null> => {
+    if (!await ensurePermission(kind)) return null;
+    const opts: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ['images'],
+      // Resize happens in preparePhoto; the picker's own base64 is only the
+      // fallback if the manipulator ever fails.
+      base64: false,
+      quality: 0.9,
+      allowsEditing: false,
+      ...(kind === 'library' && allowMulti ? { allowsMultipleSelection: true, selectionLimit: 3 } : {}),
+    };
+    const res = kind === 'camera'
+      ? await ImagePicker.launchCameraAsync(opts)
+      : await ImagePicker.launchImageLibraryAsync(opts);
+    if (res.canceled || !res.assets?.length) return null;
+    const prepared: PreparedPhoto[] = [];
+    for (const a of res.assets.slice(0, 3)) {
+      const p = await preparePhoto(a.uri, { width: a.width, height: a.height }, a.base64 ?? null, a.mimeType ?? 'image/jpeg');
+      if (p) prepared.push(p);
+    }
+    if (!prepared.length) {
+      setError('Could not read that image. Try again.');
+      return [];
+    }
+    return prepared;
+  };
+
+  const applyPhotoResult = (res: any) => {
+    const meal = res?.meal ?? res;
+    const found = itemsFromPhoto(res);
+    setParsedDetail(meal);
+    setFramingWarning(typeof meal?.framingWarning === 'string' && meal.framingWarning ? meal.framingWarning : null);
+    setItems(found);
+    const t = totalsOf(found);
+    setParsed({
+      name: String(meal?.name ?? '').trim() || mealNameFrom(found),
+      calories: t.calories, proteinG: t.proteinG, carbsG: t.carbsG, fatG: t.fatG,
+      raw: res,
+    });
+  };
+
+  const pickV2 = async (kind: 'camera' | 'library') => {
+    setError(null);
+    const photos = await capturePhotos(kind, true);
+    if (!photos || !photos.length) return;
+    setImageUri(photos[0].uri);
+    setExtraUris(photos.slice(1).map((p) => p.uri));
+    setStage('analyzing');
+    try {
+      const res = await nutritionApi.analyzePhotos({ images: photos.map((p) => ({ base64: p.base64, mimeType: p.mimeType })) });
+      if ((res as any)?.noFoodDetected || (res as any)?.meal?.noFoodDetected) {
+        setError(NO_FOOD_MSG);
+        setStage('capture');
+        return;
+      }
+      applyPhotoResult(res);
+      setStage('review');
+    } catch (err: any) {
+      setError(err?.message ?? "Anakin couldn't read that photo. Try again or describe it instead.");
+      setStage('capture');
+    }
+  };
+
+  // "+ Add photo": another angle of the SAME meal. Sends what's already on the
+  // list so the server returns only new items, which we append.
+  const addPhoto = async (kind: 'camera' | 'library') => {
+    if (!items || addingPhoto) return;
+    setInlineNote(null);
+    const photos = await capturePhotos(kind, true);
+    if (!photos || !photos.length) return;
+    setAddingPhoto(true);
+    try {
+      const res = await nutritionApi.analyzePhotos({
+        images: photos.map((p) => ({ base64: p.base64, mimeType: p.mimeType })),
+        existingItems: toMealPhotoItems(items),
+      });
+      setExtraUris((u) => [...u, ...photos.map((p) => p.uri)].slice(-5));
+      const meal = (res as any)?.meal ?? res;
+      const fresh = (res as any)?.noFoodDetected ? [] : itemsFromPhoto(res);
+      // Legacy fallback: an older server returns the whole meal again as one
+      // meal-level item — never double-count it.
+      const newOnes = Array.isArray(meal?.items) ? fresh : [];
+      setFramingWarning(typeof meal?.framingWarning === 'string' && meal.framingWarning ? meal.framingWarning : null);
+      if (newOnes.length) {
+        setItems((cur) => mergeItems(cur ?? [], newOnes));
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        setInlineNote(`Added ${newOnes.length} item${newOnes.length === 1 ? '' : 's'} from the new photo.`);
+      } else {
+        setInlineNote('Nothing new in that photo — your list is unchanged.');
+      }
+    } catch (err: any) {
+      setInlineNote(err?.message ?? "Couldn't read that photo. Try again.");
+    } finally {
+      setAddingPhoto(false);
+    }
+  };
+
+  const chooseAddPhotoSource = () => {
+    Alert.alert('Add a photo', 'Another angle of the same meal — sides, drinks, anything cut off.', [
+      { text: 'Take photo', onPress: () => void addPhoto('camera') },
+      { text: 'From library', onPress: () => void addPhoto('library') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  // "Missed anything?" / "+ Add item" — the text parse path, appended as items.
+  const addText = async (text: string) => {
+    setAddingText(true);
+    setInlineNote(null);
+    try {
+      const res = await nutritionApi.parseMeal(text);
+      setItems((cur) => mergeItems(cur ?? [], itemsFromParse(res, text)));
+      Haptics.selectionAsync().catch(() => {});
+    } catch (err: any) {
+      setInlineNote(err?.message ?? "Couldn't add that. Try rephrasing.");
+    } finally {
+      setAddingText(false);
+    }
+  };
+
   const pick = async (kind: 'camera' | 'library') => {
+    if (photoV2) { await pickV2(kind); return; }
     if (!await ensurePermission(kind)) return;
     const opts: ImagePicker.ImagePickerOptions = {
       mediaTypes: ['images'],
@@ -124,6 +279,7 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
 
   const log = async () => {
     if (!parsed) return;
+    if (photoV2 && items) { await logItems(); return; }
     setStage('saving');
     try {
       await nutritionApi.logMeal({
@@ -146,17 +302,46 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
     }
   };
 
+  // mealPhotoV2 log: totals are the sum of the (edited) items; the itemised
+  // breakdown rides as ingredients / ingredientNutrients (+ items).
+  const logItems = async () => {
+    if (!parsed || !items) return;
+    if (!items.length) { setError('Add at least one item before logging.'); return; }
+    const t = totalsOf(items);
+    setStage('saving');
+    try {
+      await nutritionApi.logMeal({
+        date: todayStr(),
+        name: parsed.name.trim() || mealNameFrom(items),
+        mealType: slot,
+        calories: t.calories,
+        proteinG: t.proteinG,
+        carbsG: t.carbsG,
+        fatG: t.fatG,
+        ...richLogFields(parsed.raw, 'photo'),
+        ...itemLogFields(items) as any,
+      });
+      Analytics.foodScannedLogged({ calories: t.calories });
+      await Promise.resolve(onLogged());
+      reset();
+      onClose();
+    } catch (err: any) {
+      setError(err?.message ?? 'Could not save. Try again.');
+      setStage('review');
+    }
+  };
+
   return (
     <BottomSheet
       visible={visible}
       onClose={handleClose}
-      title={stage === 'capture' ? 'Snap a meal' : stage === 'analyzing' ? 'Reading photo…' : 'Review macros'}
+      title={stage === 'capture' ? 'Snap a meal' : stage === 'analyzing' ? 'Reading photo…' : photoV2 && items ? 'Review items' : 'Review macros'}
       subtitle={stage === 'capture'
         ? 'Anakin uses Vision to estimate macros from a photo.'
         : stage === 'review'
-          ? 'Tweak any value before logging.'
+          ? (photoV2 && items ? undefined : 'Tweak any value before logging.')
           : undefined}
-      dismissOnBackdrop={stage !== 'analyzing' && stage !== 'saving'}
+      dismissOnBackdrop={stage !== 'analyzing' && stage !== 'saving' && !addingPhoto}
     >
       {stage === 'capture' && (
         <View>
@@ -180,6 +365,12 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
               <Text style={styles.tileLabel}>From library</Text>
             </TouchableOpacity>
           </View>
+          {photoV2 ? (
+            <View style={styles.framingHint} accessibilityRole="text">
+              <Ionicons name="scan-outline" size={16} color={colors.mutedForeground} />
+              <Text style={styles.framingHintText}>Shoot from above · include sides & drinks. Pick up to 3 photos of one meal.</Text>
+            </View>
+          ) : null}
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </View>
       )}
@@ -192,7 +383,65 @@ export function SnapSheet({ visible, onClose, onLogged }: Props) {
         </View>
       )}
 
-      {stage === 'review' && parsed && (
+      {stage === 'review' && parsed && photoV2 && items && (
+        <View>
+          <View style={styles.thumbRow}>
+            {imageUri ? <Image source={{ uri: imageUri }} style={styles.thumb} /> : null}
+            {extraUris.map((u) => <Image key={u} source={{ uri: u }} style={styles.thumb} />)}
+            {addingPhoto ? <View style={[styles.thumb, styles.thumbBusy]}><ActivityIndicator color={colors.foreground} /></View> : null}
+          </View>
+          <TextInput
+            style={styles.nameInput}
+            value={parsed.name}
+            onChangeText={(t) => setParsed({ ...parsed, name: t })}
+            placeholder="Meal name"
+            accessibilityLabel="Meal name"
+          />
+          {framingWarning ? (
+            <View style={styles.nudge}>
+              <Ionicons name="crop-outline" size={16} color={colors.foreground} />
+              <Text style={styles.nudgeText}>{framingWarning}</Text>
+              <TouchableOpacity onPress={chooseAddPhotoSource} disabled={addingPhoto} accessibilityRole="button">
+                <Text style={styles.nudgeAction}>Add photo</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          <View style={{ marginTop: 12 }}>
+            <MealItemsReview items={items} onChange={setItems} onAddText={addText} addingText={addingText} />
+          </View>
+          {inlineNote ? <Text style={styles.inlineNote}>{inlineNote}</Text> : null}
+          <MicroPreview raw={parsed.raw} />
+
+          <Text style={styles.fieldLabel}>SLOT</Text>
+          <View style={styles.slotRow}>
+            {SLOTS.map((s) => (
+              <TouchableOpacity
+                key={s.key}
+                style={[styles.slotChip, slot === s.key && styles.slotChipOn]}
+                onPress={() => setSlot(s.key)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: slot === s.key }}
+              >
+                <Text style={[styles.slotChipText, slot === s.key && styles.slotChipTextOn]}>{s.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.ghost} onPress={chooseAddPhotoSource} disabled={addingPhoto} accessibilityRole="button" accessibilityLabel="Add another photo of this meal">
+              <Text style={styles.ghostText}>{addingPhoto ? 'Reading…' : '+ Add photo'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.primary, (addingPhoto || !items.length) && { opacity: 0.5 }]} onPress={log} disabled={addingPhoto || !items.length} accessibilityRole="button" accessibilityLabel="Log meal">
+              <Text style={styles.primaryText}>Log meal · {totalsOf(items).calories} kcal</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity onPress={retake} disabled={addingPhoto} style={styles.retakeLink} accessibilityRole="button">
+            <Text style={styles.retakeLinkText}>Retake</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {stage === 'review' && parsed && !(photoV2 && items) && (
         <ReviewStage
           imageUri={imageUri}
           meal={parsed}
@@ -359,4 +608,19 @@ const styles = StyleSheet.create({
   ghostText: { color: colors.foreground, fontWeight: fontWeight.semibold, fontSize: 14 },
   actions: { flexDirection: 'row' },
   errorText: { color: colors.destructive, fontSize: 12, marginTop: 8 },
+  // mealPhotoV2
+  framingHint: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingHorizontal: 4 },
+  framingHintText: { flex: 1, fontSize: 12, color: colors.mutedForeground, lineHeight: 17 },
+  thumbRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  thumb: { width: 72, height: 72, borderRadius: 10, backgroundColor: colors.muted },
+  thumbBusy: { alignItems: 'center', justifyContent: 'center' },
+  nudge: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, padding: 10,
+    borderRadius: 10, backgroundColor: '#fef3c7',
+  },
+  nudgeText: { flex: 1, fontSize: 12.5, color: colors.foreground, lineHeight: 17 },
+  nudgeAction: { fontSize: 12.5, fontWeight: fontWeight.bold, color: colors.foreground, textDecorationLine: 'underline' },
+  inlineNote: { fontSize: 12, color: colors.mutedForeground, marginTop: 8 },
+  retakeLink: { alignSelf: 'center', paddingVertical: 10, marginTop: 2 },
+  retakeLinkText: { fontSize: 12.5, color: colors.mutedForeground, textDecorationLine: 'underline' },
 });
