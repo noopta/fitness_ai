@@ -133,13 +133,15 @@ export async function detectStrengthPRs(
   userId: string,
   newWorkoutId: string,
   newExercises: LoggedExercise[],
+  /** A backfilled session is a best against what came before it, not against later logs. */
+  onOrBefore?: string,
 ): Promise<DetectedPR[]> {
   if (bestE1RMByLift(newExercises).size === 0) return [];
 
   // Pull prior logs (excluding this one) — keep this bounded; 200 most recent
   // workouts is enough to establish a lifetime PR baseline for typical users.
   const prior = await prisma.workoutLog.findMany({
-    where: { userId, NOT: { id: newWorkoutId } },
+    where: { userId, NOT: { id: newWorkoutId }, ...(onOrBefore ? { date: { lte: onOrBefore } } : {}) },
     orderBy: { date: 'desc' },
     take: 200,
     select: { exercises: true },

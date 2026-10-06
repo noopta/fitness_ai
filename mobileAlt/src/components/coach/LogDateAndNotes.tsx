@@ -1,5 +1,5 @@
 // The two things that let a workout be logged after the fact: which day it
-// was (a row of chips back 30 days — plain views, no native date picker, so
+// was (a row of chips back BACKFILL_DAYS — plain views, no native date picker, so
 // it ships without a new build), and "Paste from notes", which reads workouts
 // kept in the phone's notes app into sessions to review in the log form.
 
@@ -9,7 +9,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/theme';
 import { workoutsApi, type ParsedNoteWorkout } from '../../lib/api';
 
-export const BACKFILL_DAYS = 30;
+// ~4 months: far enough for "I stopped logging in July". Further back goes through
+// Paste from notes or Anakin, which read dates up to a year old.
+export const BACKFILL_DAYS = 120;
 
 export function localDateStr(d = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -116,7 +118,7 @@ export function PasteFromNotes({ onSessions }: { onSessions: (workouts: ParsedNo
         onChangeText={setText}
         placeholder={'Mon 29 Sep\nBench 3x8 135\nIncline DB 3x10 50s\nPull-ups 3x8'}
         placeholderTextColor={colors.mutedForeground}
-        maxLength={8000}
+        maxLength={40000}
         accessibilityLabel="Workout notes"
         autoFocus
       />

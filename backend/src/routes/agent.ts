@@ -55,7 +55,9 @@ function requireAgentAccess(req: any, res: any, next: any) {
 }
 
 const turnSchema = z.object({
-  message: z.string().min(1).max(4000),
+  // Room for a pasted training log (log_past_workouts reads it from the
+  // message); matches the notes parser's MAX_NOTES_CHARS.
+  message: z.string().min(1).max(40000),
   // History is server-managed by default (Phase 2). Pass resetConversation
   // to start a fresh thread (e.g. a "new chat" button).
   resetConversation: z.boolean().optional(),

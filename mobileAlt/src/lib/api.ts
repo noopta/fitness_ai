@@ -996,7 +996,7 @@ export const workoutsApi = {
   // Workouts pasted from somewhere else (usually the notes app), read into
   // sessions for the log sheet to prefill. Nothing is saved by this call.
   parseNotes: (text: string): Promise<ParsedNotesResponse> =>
-    apiFetch('/workouts/parse-notes', { method: 'POST', body: JSON.stringify({ text }), timeoutMs: 60000 }),
+    apiFetch('/workouts/parse-notes', { method: 'POST', body: JSON.stringify({ text }), timeoutMs: LONG_TIMEOUT_MS }),
   // Exercise picker (contract 2): the user's own logged names first, then the
   // seed library. Works regardless of flags; callers fall back to a static
   // list when offline.

@@ -6,7 +6,10 @@ import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson, dateArg } from './kit.js';
-import { createWorkoutLog, updateWorkoutLog, deleteWorkoutLog, restoreWorkoutLog, type WorkoutLogInput } from '../../services/workoutLogService.js';
+import { createWorkoutLog, createWorkoutLogsBulk, updateWorkoutLog, deleteWorkoutLog, restoreWorkoutLog, type WorkoutLogInput } from '../../services/workoutLogService.js';
+import { parseWorkoutNotes } from '../../services/workoutNotesParser.js';
+import { buildPreview, takePreview, withoutLogged } from '../../services/workoutBackfill.js';
+import { turnMessage } from '../turnMessage.js';
 import { computeStrengthProfile } from '../../routes/strength.js';
 import { cacheGet } from '../../services/cacheService.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
@@ -63,6 +66,43 @@ defineOp({
     const row = await deleteWorkoutLog(userId, String(args.id));
     if (!row) throw new Error('That workout is already gone.');
     return { result: { row }, inverse: { op: 'workout.restore', args: { row } }, summary: `Deleted · ${row.title ?? 'Workout'} · ${dayLabel(row.date)}` };
+  },
+});
+// Backfill: many sessions in one change, so one Undo takes the whole batch back.
+defineOp({
+  name: 'workout.create_many',
+  run: async (userId, args) => {
+    // Already-logged sessions are skipped, so a card tap after a "yes" in chat
+    // (or a second tap) can't log the batch twice.
+    const { fresh, dupes } = await withoutLogged(userId, (args.inputs ?? []) as WorkoutLogInput[]);
+    if (!fresh.length) throw new Error(dupes.length ? 'Those workouts are already in your log.' : 'Nothing to log.');
+    const r = await createWorkoutLogsBulk(userId, fresh, 'agent');
+    if (!r.created.length) throw new Error(`None of those could be logged (${r.failed[0]?.error ?? 'unknown error'}).`);
+    const ids = r.created.map((c) => c.id);
+    const dates = r.created.map((c) => c.date).sort();
+    return {
+      result: { ...r, skipped: dupes.length, from: dates[0], to: dates[dates.length - 1] },
+      inverse: { op: 'workout.remove_many', args: { ids } },
+      summary: `Logged · ${plural(r.created.length, 'past workout')} · ${dayLabel(dates[0])} to ${dayLabel(dates[dates.length - 1])}`,
+    };
+  },
+});
+defineOp({
+  name: 'workout.remove_many',
+  undoMs: UNDO_DELETE_MS,
+  run: async (userId, args) => {
+    const rows: any[] = [];
+    for (const id of (args.ids ?? []) as string[]) { const row = await deleteWorkoutLog(userId, String(id)); if (row) rows.push(row); }
+    if (!rows.length) throw new Error('Those workouts are already gone.');
+    return { result: { removed: rows.length }, inverse: { op: 'workout.restore_many', args: { rows } }, summary: `Removed · ${plural(rows.length, 'workout')}` };
+  },
+});
+defineOp({
+  name: 'workout.restore_many',
+  run: async (userId, args) => {
+    const ids: string[] = [];
+    for (const row of (args.rows ?? []) as any[]) ids.push((await restoreWorkoutLog(userId, row)).id);
+    return { inverse: { op: 'workout.remove_many', args: { ids } }, summary: `Restored · ${plural(ids.length, 'workout')}` };
   },
 });
 defineOp({
@@ -206,6 +246,81 @@ export const WORKOUT_TOOLS = [
         if (p) cards.push(adaptationCard(p, ctx));
       }
       return cards;
+    },
+  }),
+  tool({
+    name: 'log_past_workouts', kind: 'log', core: true, fn: 'WRK-13',
+    description: 'Fill in workout history: several past sessions at once, any distance back (up to a year). Use when the user wants to log workouts they did on earlier days — pasted notes, a spreadsheet, a list, or a description in their own words, however messy. Two steps. 1) Preview: pass useMessage: true when the workouts are in the user\'s latest message (don\'t copy the text), or notes for text from earlier in the chat, or workouts [{ date, title?, exercises }] you already have. The result lists what will be logged, what has no date, and what is already logged; nothing is saved yet. Tell them the count and date range in a sentence, ask for dates for any undated sessions, and ask them to confirm. 2) Only after they say yes: call again with confirm: true and the previewId. For one session today use log_workout instead.',
+    input_schema: schema({
+      useMessage: { type: 'boolean', description: 'Read the workouts from the user\'s latest message.' },
+      notes: { type: 'string', description: 'Workout text from earlier in the conversation.' },
+      workouts: { type: 'array', items: { type: 'object', properties: { date: { type: 'string', description: 'YYYY-MM-DD' }, title: { type: 'string' }, exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } } }, required: ['date', 'exercises'] } },
+      confirm: { type: 'boolean', description: 'Log the preview — only after the user agreed.' },
+      previewId: { type: 'string' },
+    }),
+    receipt: (i) => ({ verb: i.confirm ? 'Logged' : 'Read', text: i.confirm ? 'Past workouts' : 'Workout history to fill in' }),
+    execute: async (input, userId) => {
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
+      const unit: Unit = u?.unitPreference === 'metric' ? 'metric' : 'imperial';
+      const { todayIn } = await import('../cards/format.js');
+      const { userTz } = await import('../cards/store.js');
+      const today = todayIn(await userTz(userId));
+
+      if (input.confirm) {
+        const p = takePreview(userId, str(input.previewId));
+        if (!p) throw new Error('That preview has expired or was already logged. Read the workouts again with a fresh preview.');
+        if (!p.ready.length) throw new Error('That preview had nothing to log.');
+        const change = await executeOp(userId, 'workout.create_many', { inputs: p.ready });
+        const r = change.result as any;
+        return { mode: 'logged', logged: change.summary, count: r.created.length, skippedAlreadyLogged: r.skipped, failed: r.failed, from: r.from, to: r.to, bestsAtTheTime: [...new Set(r.created.flatMap((c: any) => c.prs))], _created: r.created, _change: change };
+      }
+
+      const text = input.useMessage ? turnMessage(userId) : str(input.notes);
+      const parsed = text.trim() ? await parseWorkoutNotes(text, unit, today) : { workouts: [], unparsed: [] };
+      const candidates = [
+        ...parsed.workouts.map((w) => ({ date: w.date, title: w.title, exercises: toServiceExercises(w.exercises as unknown as ChatExercise[], unit) })),
+        ...((Array.isArray(input.workouts) ? input.workouts : []) as any[]).map((w) => ({
+          date: /^\d{4}-\d{2}-\d{2}$/.test(str(w?.date)) ? str(w.date) : null,
+          title: str(w?.title) || null,
+          exercises: toServiceExercises((Array.isArray(w?.exercises) ? w.exercises : []) as ChatExercise[], unit),
+        })),
+      ];
+      if (!candidates.some((c) => c.exercises.length)) throw new Error('I couldn’t find any workouts in that. Paste the sessions with the exercises, sets and reps.');
+      const p = await buildPreview(userId, candidates, today, parsed.unparsed);
+      const dates = p.ready.map((w) => w.date);
+      return {
+        mode: 'preview', previewId: p.previewId, toLog: p.ready.length, from: dates[0] ?? null, to: dates[dates.length - 1] ?? null,
+        sessions: p.ready.map((w) => ({ date: w.date, title: w.title ?? null, exercises: w.exercises.map((e) => e.name) })),
+        undated: p.undated, alreadyLogged: p.duplicates, futureDatesSkipped: p.future, unreadLines: p.unparsed.slice(0, 8),
+        _inputs: p.ready,
+      };
+    },
+    card: (_input, r, ctx) => {
+      if (r.mode === 'logged') {
+        return {
+          fn: 'WRK-13', pattern: 'logged', rule: 'log_undo',
+          meta: { label: `Logged · ${plural(r.count, 'past workout')}`, open: { page: 'history' } },
+          rows: (r._created as any[]).slice(0, 12).map((c) => ({ key: dayLabel(c.date), value: c.title ?? 'Workout', sub: plural(c.exercises, 'exercise') })),
+          note: [r._created.length > 12 ? `And ${r._created.length - 12} more.` : '', r.skippedAlreadyLogged ? `${plural(r.skippedAlreadyLogged, 'session')} already in your log, skipped.` : ''].filter(Boolean).join(' ') || undefined,
+          undoLine: 'Undone — those workouts are out of your log',
+        };
+      }
+      const extras = [
+        r.undated.length ? `${plural(r.undated.length, 'session')} without a date — tell me when.` : '',
+        r.alreadyLogged.length ? `${plural(r.alreadyLogged.length, 'session')} already logged, left out.` : '',
+        r.futureDatesSkipped.length ? `${plural(r.futureDatesSkipped.length, 'session')} dated in the future, left out.` : '',
+        r.unreadLines.length ? `${plural(r.unreadLines.length, 'line')} I couldn’t read as training.` : '',
+      ].filter(Boolean);
+      if (!r.toLog) return { fn: 'WRK-13', pattern: 'glance', rule: 'show', meta: { label: 'Nothing new to log' }, empty: extras.join(' ') || 'Nothing new to log.' };
+      const sessions = r.sessions as any[];
+      return {
+        fn: 'WRK-13', pattern: 'proposal', rule: 'propose',
+        meta: { label: `Log ${plural(r.toLog, 'past workout')} · ${dayLabel(r.from)} to ${dayLabel(r.to)}` },
+        rows: sessions.slice(0, 12).map((w) => ({ key: dayLabel(w.date), value: w.title ?? 'Workout', sub: w.exercises.slice(0, 4).join(', ') + (w.exercises.length > 4 ? ` +${w.exercises.length - 4}` : '') })),
+        note: [sessions.length > 12 ? `And ${sessions.length - 12} more.` : '', ...extras, 'Old sessions count toward your streak and history; nothing is announced.'].filter(Boolean).join(' '),
+        actions: [{ id: 'apply', label: `Log ${r.toLog}`, kind: 'primary' }, { id: 'keep', label: 'Not now', kind: 'secondary' }],
+        pending: { actions: { apply: { op: 'workout.create_many', args: { inputs: r._inputs }, status: 'applied', line: `Logged ${plural(r.toLog, 'past workout')}` }, keep: { kind: 'keep' } } },
+      };
     },
   }),
   tool({

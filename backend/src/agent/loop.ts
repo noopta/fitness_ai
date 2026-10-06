@@ -16,6 +16,7 @@ import { receiptForCall, summarizeResult, cardForResult, type AgentCard, type Re
 import type { Card } from './cards/types.js';
 import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
+import { setTurnMessage } from './turnMessage.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -34,6 +35,7 @@ const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutr
 You have tools for every part of the user's account: profile and settings, program and schedule, workouts, strength, nutrition, recipes, body weight, wellness, memory, friends, groups and billing. Use them:
 - ALWAYS read the relevant data before giving specific numerical advice. Don't guess their macros or weight — look them up.
 - When the user tells you to log something, log it and confirm exactly what you logged.
+- Workouts from earlier days — pasted notes, a list, weeks or months of history, however messy — go through log_past_workouts (preview first, then confirm), never a string of log_workout calls. The preview shows a card with a Log button: say in one sentence what you found (count, date range, anything undated or already logged) and let the card take the tap; call confirm only if they say yes in chat instead. Ask for dates for undated sessions.
 - When you learn a durable fact (a goal, an injury, a strong preference), use remember so future sessions know it. Don't remember transient details.
 - Chain tools when needed: e.g. read training load AND nutrition before advising on a recovery meal.
 
@@ -53,7 +55,7 @@ How changes work — the app enforces these, so follow them:
 Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.`;
 
 // The classic app renders three proposal cards and relies on two direct tools.
-const V1_ADDENDUM = `In this version of the app: macro targets change directly with adjust_macros once the user agrees (any "yes", "ok", "do it" — call it on that same turn), and broad program rewrites use apply_program_update after they agree. Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm.`;
+const V1_ADDENDUM = `In this version of the app: macro targets change directly with adjust_macros once the user agrees (any "yes", "ok", "do it" — call it on that same turn), and broad program rewrites use apply_program_update after they agree. Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm. log_past_workouts shows no card here: after the preview, tell them what you found and ask; when they say yes, call it again with confirm: true and the previewId.`;
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -200,6 +202,7 @@ export async function runAgentTurn(
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
   const system = systemBlocks(opts.systemOverride ?? (opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`), renderContext(ctx));
 
+  setTurnMessage(userId, userMessage);
   const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: userMessage }];
   const toolsUsed: string[] = [];
   let iterations = 0;
@@ -334,6 +337,7 @@ export async function streamAgentTurn(
   const tools = toolsFor(contract);
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
+  setTurnMessage(userId, userMessage);
   const messages: Anthropic.MessageParam[] = [...(opts.history ?? []), { role: 'user', content: userMessage }];
   const toolsUsed: string[] = [];
   let iterations = 0;

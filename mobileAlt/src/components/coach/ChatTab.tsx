@@ -462,7 +462,7 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
           placeholder="Ask Anakin anything..."
           placeholderTextColor={colors.mutedForeground}
           multiline
-          maxLength={1000}
+          maxLength={40000}
           returnKeyType="send"
           blurOnSubmit={false}
           onSubmitEditing={handleSend}
