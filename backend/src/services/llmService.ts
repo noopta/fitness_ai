@@ -1544,11 +1544,15 @@ OUTPUT FORMAT — Return valid JSON only:
   const { ragContext, sources } = await retrieveProgramSources(ragQuery, 8);
   const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
 
+  // A 6-day, 12-week program runs 7–11k output tokens (bake-off 6 Oct), so
+  // the old 8000 cap cut the biggest ones off mid-object. 100 s covers ~12k
+  // tokens on the pinned providers; past that, or on a cut-off / unparseable
+  // reply, chatComplete retries once on the OpenAI fallback.
   const response = await chatComplete({
     messages: [{ role: 'user', content: finalPrompt }],
-    max_completion_tokens: 8000,
+    max_completion_tokens: 16000,
     response_format: { type: 'json_object' },
-  });
+  }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
 
   const content = response.choices[0].message.content || '{}';
   const parsed = parseModelJson(content) as TrainingProgram;

@@ -700,10 +700,32 @@ function inferGoalFromProfile(trainingPreference?: string, primaryGoal?: string)
 // Shared generation: the same inputs POST /coach/program assembles from the
 // profile + latest diagnostic. Returns the full program (with nutritionPlan)
 // without persisting anything; callers decide draft vs. save.
-export async function generateProgramForUser(
-  userId: string,
-  opts: { goal?: string; bodyCompositionGoal?: 'fat_loss' | 'muscle_gain' | 'recomp' | 'maintenance'; daysPerWeek: number; durationWeeks: number; gender?: string | null; tier?: string; save?: boolean },
-): Promise<any> {
+type ProgramOpts = { goal?: string; bodyCompositionGoal?: 'fat_loss' | 'muscle_gain' | 'recomp' | 'maintenance'; daysPerWeek: number; durationWeeks: number; gender?: string | null; tier?: string; save?: boolean };
+
+// One generation per user and request at a time. A program takes ~1 min, so
+// a user who backgrounds the app and taps again (6 Oct: client gave up at 38 s,
+// retried at 16:07) used to start a second generation; both then raced to
+// write draftProgram and the slower one won, even over the program on screen.
+// A repeat request now joins the generation already running.
+const programsInFlight = new Map<string, Promise<any>>();
+export function programFlightKey(userId: string, opts: ProgramOpts): string {
+  const { tier: _tier, ...rest } = opts;
+  return `${userId}:${JSON.stringify(rest, Object.keys(rest).sort())}`;
+}
+
+export function generateProgramForUser(userId: string, opts: ProgramOpts): Promise<any> {
+  const key = programFlightKey(userId, opts);
+  const running = programsInFlight.get(key);
+  if (running) {
+    console.log(`[coach] program generation already running for ${userId} — joining it`);
+    return running;
+  }
+  const p = generateProgramForUserOnce(userId, opts).finally(() => programsInFlight.delete(key));
+  programsInFlight.set(key, p);
+  return p;
+}
+
+async function generateProgramForUserOnce(userId: string, opts: ProgramOpts): Promise<any> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { sessions: { orderBy: { createdAt: 'desc' }, take: 1, include: { plans: { orderBy: { createdAt: 'desc' }, take: 1 } } } },
