@@ -16,6 +16,7 @@
 // ~1600 px photos, "+ Add photo" (existingItems), "Missed anything?", framing
 // nudge and a friendly no-food retake.
 
+import { useProScreen } from '../../src/v2/shell/proGate';
 import { captureBus } from '../../src/v2/chat/captureBus';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert, Image, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
@@ -51,7 +52,7 @@ type Item = ReviewItem;
 type Slot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 const SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-export default function CaptureScreen() {
+function CaptureScreenInner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   // cardId: opened from a chat capture card; the logged meal answers that card.
@@ -474,3 +475,9 @@ const styles = StyleSheet.create({
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: v2.color.white, borderTopLeftRadius: v2.radius.sheet, borderTopRightRadius: v2.radius.sheet, paddingHorizontal: v2.space.gutter, paddingTop: 12 },
   grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: v2.color.hairline, marginBottom: 16 },
 });
+
+// Pro-only under the direct-entry paywall: free users get the paywall instead.
+export default function CaptureScreen() {
+  const gated = useProScreen();
+  return gated ? null : <CaptureScreenInner />;
+}

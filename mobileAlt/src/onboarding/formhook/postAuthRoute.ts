@@ -43,7 +43,9 @@ export async function postAuthDestination(
   // straight into the v2 program onboarding (program-first — the diagnostic
   // is offered inside it rather than gating it). Checked before every other
   // funnel flag so the v1 funnels never fire for a v2 user.
-  if (features?.uiV2 && !v2SuppressedSync()) return user.coachOnboardingDone ? '/(v2)' : '/(v2)/onboarding';
+  // With the direct-entry paywall on, new v2 users skip the onboarding too and
+  // land on Home; features are Pro-gated there (src/v2/shell/proGate.ts).
+  if (features?.uiV2 && !v2SuppressedSync()) return user.coachOnboardingDone || features.directEntryPaywall ? '/(v2)' : '/(v2)/onboarding';
   if (user.coachOnboardingDone) return '/(tabs)';
   // Classic paywall (server flag): new users go straight into the app. The coach
   // tab is Pro-only there, so no free intake, diagnostic or form hook first.

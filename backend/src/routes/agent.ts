@@ -13,6 +13,7 @@ import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
 import { runAgentTurn, streamAgentTurn, type AgentStreamEvent } from '../agent/loop.js';
 import { applyProposedWeek, getCurrentWeekSchedule } from './coach.js';
 import { readMemory } from '../agent/memory.js';
+import { knownFacts } from '../agent/profile/coachProfile.js';
 import { loadTurn, loadStoredMessages, appendTurn, clearConversation } from '../agent/conversation.js';
 import { cardRef, splitStored } from '../agent/cardNotes.js';
 import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
@@ -129,8 +130,14 @@ router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, 
 // eventual "what Anakin knows about you" UI surface).
 router.get('/coach/agent/memory', requireAuth, requireAgentAccess, async (req, res) => {
   try {
-    const notes = await readMemory(req.user!.id);
-    res.json({ notes });
+    // notes: what the agent saved from chat. profile: what the intake told us —
+    // so the page isn't empty for a user who answered onboarding but hasn't
+    // said anything the agent chose to remember yet.
+    const [notes, profile] = await Promise.all([
+      readMemory(req.user!.id),
+      knownFacts(req.user!.id).catch(() => []),
+    ]);
+    res.json({ notes, profile });
   } catch (err: any) {
     res.status(500).json({ error: err?.message ?? 'Failed to read memory' });
   }

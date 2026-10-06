@@ -2,7 +2,7 @@
 // Dreamcore spec (2 Oct), "lag-free brief → chat".
 //
 // Brief: the Dreamcore video (HomeVideo) under bottom-anchored white content —
-// receipts summary → read → session row (`Begin →`) → composer, 112 pt above
+// read → session row (`Begin →`) → composer, 112 pt above
 // the tab bar. The read starts below the video's orb.
 //
 // Chat: a white thread with the day's read as one 15 pt line on top, the
@@ -41,9 +41,9 @@ import { useCardActions } from '../chat/useCardActions';
 import { v2Api } from '../api';
 import { v2, T } from '../theme';
 import { Enter } from '../primitives/Enter';
-import { ReceiptList } from '../primitives/Receipt';
 import { headerClearance } from '../shell/Header';
 import { useShell } from '../shell/ShellContext';
+import { useRequirePro } from '../shell/proGate';
 import { useBrief, useInvalidate } from '../data';
 import { useThread } from '../chat/useThread';
 import { SignedTurn, TURN_GAP } from '../chat/SignedTurn';
@@ -134,10 +134,10 @@ export function HomePage() {
   const brief = useBrief();
   const invalidate = useInvalidate();
   const thread = useThread();
+  const requirePro = useRequirePro();
   const chat = shell.mode === 'chat';
   const [text, setText] = useState('');
   const [focus, setFocus] = useState(false);
-  const [briefOpen, setBriefOpen] = useState(false);
   const [askDone, setAskDone] = useState(false);
   const askAppended = useRef(false);
   const inputRef = useRef<TextInput>(null);
@@ -246,13 +246,13 @@ export function HomePage() {
     open: (c, r) => actions.open(c, r),
     typeInstead: () => { setAnswering(true); inputRef.current?.focus(); },
     editDraft,
-    say: (m) => { pin(); void thread.send(m); },
+    say: (m) => { if (requirePro() === false) return; pin(); void thread.send(m); },
     reveal, scrollToLatest: toEnd, setTypedFocus,
     editing,
     beginEdit: (x) => setEditing({ ...x, value: x.value ?? x.initial }),
     setEditValue: (v) => setEditing((e) => (e ? { ...e, value: v } : e)),
     endEdit: () => setEditing(null),
-  }), [actions, editDraft, reveal, toEnd, editing, thread.send, pin]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [actions, editDraft, reveal, toEnd, editing, thread.send, pin, requirePro]); // eslint-disable-line react-hooks/exhaustive-deps
   const saveEdit = () => {
     const e = editing; if (!e) return;
     setEditing(null); Keyboard.dismiss();
@@ -312,20 +312,11 @@ export function HomePage() {
 
   const loaded = !!brief.data;
   const openSession = useCallback(() => { haptics.select(); router.push('/(v2)/session' as any); }, [router]);
-  const toggleBrief = useCallback(() => { if (!chatRef.current) setBriefOpen((o) => !o); }, []);
-  const chatRef = useRef(chat);
-  chatRef.current = chat;
   const sentence = loaded ? plain(brief.data!.sentence) : (brief.isError ? 'Tell me what you\'re working toward.' : '');
   // A changed read cross-fades (old out 200 ms, new in 500 ms); the first one just settles with the rest.
   const prevRead = useRef<string | null>(null);
   const swapRead = prevRead.current !== null && prevRead.current !== sentence;
   useEffect(() => { prevRead.current = sentence; }, [sentence]);
-  const summary = useMemo(() => {
-    const n = brief.data?.receipts?.length ?? 0;
-    if (!n) return '';
-    const verbs = [...new Set(brief.data!.receipts.map((r) => r.verb.toLowerCase()))].join(', ');
-    return `Checked ${n} thing${n === 1 ? '' : 's'} · ${verbs}`;
-  }, [brief.data]);
   const suggestions = brief.data?.suggestions ?? ["I can't train Thursday. Move it?", 'How\'s my bench?', 'Log lunch'];
   const session = brief.data?.session;
   const ask = !askDone ? brief.data?.ask ?? null : null;
@@ -352,11 +343,13 @@ export function HomePage() {
   );
   const openChat = () => {
     wantKeyboard.value = 1;
-    enterChat(); setBriefOpen(false);
+    enterChat();
   };
   useEffect(() => { if (!chat) wantKeyboard.value = 0; }, [chat]); // eslint-disable-line react-hooks/exhaustive-deps
   const send = async (m?: string) => {
     const msg = (m ?? text).trim(); if (!msg) return;
+    // Chat is Pro under the direct-entry paywall; the draft stays in the composer.
+    if (requirePro() === false) { Keyboard.dismiss(); return; }
     enterChat(); setText('');
     // While a card waits, the composer answers or rewrites it instead (§7.2).
     if (!m && cmode.kind === 'draft') {
@@ -375,6 +368,7 @@ export function HomePage() {
     await thread.send(msg);
   };
   const answerAsk = (turn: Turn, o: string) => {
+    if (requirePro() === false) return;
     const hours = /Under/.test(o) ? 5 : /6–7/.test(o) ? 6.5 : 7.5;
     thread.dispatch({ type: 'resolve', agentId: turn.id, resolution: `Logged — Wellness · sleep ${o.toLowerCase()}` });
     setAskDone(true);
@@ -418,7 +412,7 @@ export function HomePage() {
 
       {/* Brief: bottom-anchored over the video, just above the composer. Fades and lifts away; never resized. */}
       <Animated.View style={[styles.briefLayer, { bottom: BRIEF_BOTTOM + COMPOSER_H }, briefLayer]} pointerEvents={chat ? 'none' : 'box-none'}>
-        <BriefBlock summary={summary} receipts={brief.data?.receipts} briefOpen={briefOpen} onToggle={toggleBrief}
+        <BriefBlock
           sentence={sentence} swapRead={swapRead} readLines={readLines} readSlot={READ_SLOT} session={session} onBegin={openSession} />
       </Animated.View>
 
@@ -493,7 +487,7 @@ export function HomePage() {
             onChangeText={setText}
             // Brief: the row below takes the tap (morph first, keyboard once it lands).
             editable={chat}
-            onFocus={() => { setFocus(true); enterChat(); setBriefOpen(false); }}
+            onFocus={() => { setFocus(true); enterChat(); }}
             onBlur={() => { setAnswering(false); onBlur(); }}
             onSubmitEditing={() => void send()}
             placeholder={cmode.kind === 'ask' && answering ? 'Type your answer' : cmode.placeholder}
@@ -520,21 +514,13 @@ export function HomePage() {
 type BriefSession = NonNullable<ReturnType<typeof useBrief>['data']>['session'];
 
 /** The brief's own content. Memoised: opening chat doesn't re-render it — it only fades. */
-const BriefBlock = React.memo(function BriefBlock({ summary, receipts, briefOpen, onToggle, sentence, swapRead, readLines, readSlot, session, onBegin }: {
-  summary: string; receipts?: any[]; briefOpen: boolean; onToggle: () => void; sentence: string; swapRead: boolean;
+const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLines, readSlot, session, onBegin }: {
+  sentence: string; swapRead: boolean;
   readLines: number; readSlot: number; session: BriefSession | null | undefined; onBegin: () => void;
 }) {
   return (
     <>
-      {/* Receipts summary → tap to expand (§B2.1). */}
-      {summary ? (
-        <Animated.View entering={settle(150)} style={{ marginBottom: 14 }}>
-          <Pressable onPress={onToggle} hitSlop={6}>
-            <Text style={[T.caption, { color: C.darkMuted }]} numberOfLines={1}>{summary}{briefOpen ? '' : ' →'}</Text>
-          </Pressable>
-          {briefOpen && receipts ? <View style={{ marginTop: 10 }}><ReceiptList items={receipts} tone="dark" /></View> : null}
-        </Animated.View>
-      ) : null}
+      {/* The receipts summary line ("Checked N things") was dropped 6 Oct: low-contrast and read as tool calls. */}
 
       {/* The read: 27 / 600 / −0.02em / 1.22. Its slot is reserved so a new read never moves the layout. */}
       <Animated.View entering={settle(240)} style={{ marginBottom: 22, minHeight: readSlot }}>

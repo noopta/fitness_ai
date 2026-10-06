@@ -44,6 +44,7 @@ export function YouPage() {
   const strength = useStrength();
   const streak = useStreak();
   const memory = useMemory();
+  const memoryCount = (memory.data?.notes?.length ?? 0) + (memory.data?.profile?.length ?? 0);
   const s: any = strength.data;
   const conf = Math.round(((s?.athleteModel?.confidence ?? 0) as number) * 100);
   const out = (s?.athleteModel?.ratios ?? []).filter((r: any) => r.status === 'high' || r.status === 'low').length;
@@ -63,7 +64,7 @@ export function YouPage() {
         <Enter index={2} exit={false}><Row name="Strength profile" sub={total ? `${out} of ${total} ratios out of band` : 'Log sessions to unlock'} onPress={() => go('strength')} /></Enter>
         <Enter index={3} exit={false}><Row name="Body" value={kg ? `${fromKg(kg)} ${unit}` : undefined} arrow={!kg} onPress={() => go('body')} /></Enter>
         <Enter index={4} exit={false}><Row name="Streak" value={streakDays != null ? `${streakDays} days` : undefined} arrow onPress={() => go('streak')} /></Enter>
-        <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memory.data?.notes?.length ? `${memory.data.notes.length} things remembered` : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
+        <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
         <Enter index={6} exit={false}><Row name="Billing" value={user?.tier === 'pro' || user?.tier === 'enterprise' ? 'Pro' : 'Free'} onPress={() => go('billing')} /></Enter>
         <Enter index={7} exit={false}><Row name="Preferences" onPress={() => go('prefs')} last /></Enter>
       </View>

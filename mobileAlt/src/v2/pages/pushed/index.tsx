@@ -408,16 +408,23 @@ function StreakPage() {
 function MemoryPage() {
   const q = useMemory();
   const notes = q.data?.notes ?? [];
+  const profile = q.data?.profile ?? [];
+  const total = notes.length + profile.length;
   return (
-    <PushedPage back="You" meta={`${notes.length} noted`} title="What Anakin knows" lead={'Things you\'ve told him that he keeps between sessions. Say "forget that" in chat to remove one.'} loading={q.isLoading}>
-      {notes.map((n, i) => <Row key={i} name={n} last={i === notes.length - 1} />)}
-      {!notes.length && !q.isLoading ? <Text style={T.bodyMuted}>Nothing noted yet. It fills in as you talk.</Text> : null}
+    <PushedPage back="You" meta={q.data ? `${total} noted` : null} title="What Anakin knows" lead={'What you told him in onboarding, and what he\'s kept from your chats. Say "forget that" in chat to remove a note.'}
+      loading={q.isLoading} error={q.error ? 'Couldn\'t load what Anakin knows.' : null} onRetry={() => void q.refetch()}>
+      {profile.length ? <Eyebrow>From onboarding</Eyebrow> : null}
+      {profile.map((f, i) => <Row key={`p${i}`} name={f.label} sub={f.value} last={i === profile.length - 1} />)}
+      {notes.length ? <Eyebrow style={{ marginTop: profile.length ? 24 : 0 }}>From your chats</Eyebrow> : null}
+      {notes.map((n, i) => <Row key={`n${i}`} name={n} last={i === notes.length - 1} />)}
+      {!total && q.data ? <Text style={T.bodyMuted}>Nothing noted yet. It fills in as you talk.</Text> : null}
     </PushedPage>
   );
 }
 
 function BillingPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const pro = user?.tier === 'pro' || user?.tier === 'enterprise';
   const [busy, setBusy] = React.useState(false);
   const portal = async () => {
@@ -427,7 +434,7 @@ function BillingPage() {
   };
   return (
     <PushedPage back="You" title={pro ? 'Pro' : 'Free'} lead={pro ? 'Anakin, unlimited.' : 'Diagnosis is free. Pro is the coach that runs the plan with you.'}
-      cta={pro ? { label: 'Manage subscription', onPress: () => void portal(), loading: busy } : { label: 'See Pro', onPress: () => Alert.alert('Upgrade', 'Open the classic Coach tab to upgrade for now.') }}>
+      cta={pro ? { label: 'Manage subscription', onPress: () => void portal(), loading: busy } : { label: 'See Pro', onPress: () => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any) }}>
       <Row name="Plan" value={pro ? 'Pro' : 'Free'} />
       <Row name="Payment" sub="Managed by the store" last />
     </PushedPage>

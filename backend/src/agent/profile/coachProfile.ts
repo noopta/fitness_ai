@@ -259,3 +259,29 @@ export async function mergeBlobKeys(userId: string, patch: Record<string, unknow
   cacheDelete(`userctx:${userId}`);
   return { previous };
 }
+
+/**
+ * What the intake told us, as the lines "What Anakin knows" shows next to the
+ * agent's own notes. Set, non-private fields in registry order plus open
+ * injuries. Private health answers (screening, conditions, medications,
+ * hormonal) stay off the page.
+ */
+export interface KnownFact { label: string; value: string }
+export function factsFromProfile(values: Record<string, unknown>, injuries: Injury[]): KnownFact[] {
+  const out: KnownFact[] = [];
+  for (const fd of PROFILE_FIELDS) {
+    if (fd.private) continue;
+    const v = values[fd.key];
+    if (v == null || v === '' || (Array.isArray(v) && !v.length)) continue;
+    out.push({ label: fd.label, value: displayValue(fd, v) });
+  }
+  for (const inj of injuries) {
+    if (inj.resolvedAt || !inj.area?.trim()) continue;
+    out.push({ label: 'Injury', value: [inj.area.trim(), inj.note?.trim()].filter(Boolean).join(' — ') });
+  }
+  return out;
+}
+export async function knownFacts(userId: string): Promise<KnownFact[]> {
+  const { values, injuries } = await readProfile(userId);
+  return factsFromProfile(values, injuries);
+}
