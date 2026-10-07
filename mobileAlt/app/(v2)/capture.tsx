@@ -31,6 +31,7 @@ import { v2, T } from '../../src/v2/theme';
 import { TextAction } from '../../src/v2/primitives/TextAction';
 import { Row } from '../../src/v2/primitives/Row';
 import { ReceiptList } from '../../src/v2/primitives/Receipt';
+import { Sheet } from '../../src/v2/primitives/Sheet';
 import { Enter } from '../../src/v2/primitives/Enter';
 import { nutritionApi } from '../../src/lib/api';
 import { todayStr } from '../../src/lib/localDate';
@@ -81,6 +82,10 @@ function CaptureScreenInner() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [gap, setGap] = useState<string | null>(null);
   const [product, setProduct] = useState<any>(null);
+  // Barcode not found (handoff N-01): the code that missed — opens the three ways forward.
+  const [missed, setMissed] = useState<string | null>(null);
+  // Scan the label (N-02): the barcode whose nutrition panel the shutter is reading.
+  const [labelFor, setLabelFor] = useState<string | null>(null);
   const [servings, setServings] = useState(1);
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState('');
@@ -110,29 +115,68 @@ function CaptureScreenInner() {
     },
   }) : undefined;
 
+  // Normalise any barcode answer (Open Food Facts, a label read, a web hit) to per-serving macros:
+  // they all return per100g plus an optional serving size in grams.
+  const toProduct = (p: any, code: string, receipts: { verb: any; text: string }[], extra: Record<string, any> = {}) => {
+    const grams = Number(p.servingQuantityG ?? p.servingSizeG ?? p.servingGrams ?? p.serving?.grams) || 100;
+    const f = grams / 100;
+    const base = p.per100g ?? p;
+    return {
+      name: p.name, brand: p.brand ?? null, code, receipts, ...extra,
+      servingSize: p.servingSize ?? `${grams} g`,
+      calories: Math.round((base.calories ?? 0) * f), proteinG: Math.round((base.proteinG ?? 0) * f), carbsG: Math.round((base.carbsG ?? 0) * f), fatG: Math.round((base.fatG ?? 0) * f),
+    };
+  };
   const lookup = async (code: string) => {
     setBusy(true); setLog([{ verb: 'Read', text: `Barcode ${code}` }]);
     try {
       const r: any = await nutritionApi.lookupBarcode(code);
       const p = r?.product ?? r;
       if (!p || (!p.name && !p.per100g && !p.calories)) throw new Error('Not found');
-      // Normalise to per-serving macros: the lookup returns per100g plus an
-      // optional serving size in grams.
-      const grams = Number(p.servingSizeG ?? p.servingGrams ?? p.serving?.grams) || 100;
-      const f = grams / 100;
-      const base = p.per100g ?? p;
-      setProduct({
-        name: p.name, brand: p.brand ?? null, source: p.source ?? 'Open Food Facts', code,
-        servingSize: p.servingSize ?? `${grams} g`,
-        calories: Math.round((base.calories ?? 0) * f), proteinG: Math.round((base.proteinG ?? 0) * f), carbsG: Math.round((base.carbsG ?? 0) * f), fatG: Math.round((base.fatG ?? 0) * f),
-      });
-      setLog((l) => [...l, { verb: 'Pulled', text: `${p.source ?? 'Open Food Facts'} — ${p.name ?? code}` }]);
+      const src = p.source === 'community' ? 'Read from a label' : 'Open Food Facts';
+      setProduct(toProduct(p, code, [{ verb: 'Pulled', text: `${src} — ${code}` }]));
+      setLog((l) => [...l, { verb: 'Pulled', text: `${src} — ${p.name ?? code}` }]);
       haptics.success();
-    } catch (e: any) {
-      setLog((l) => [...l, { verb: 'Noted', text: 'No match for that barcode. Try the label, or describe it.' }]);
-      setTimeout(() => { scanned.current = false; setLog([]); }, 1800);
+    } catch {
+      // No dead end: the sheet offers the label, the web, or typing it.
+      setLog([]);
+      setMissed(code);
     }
     setBusy(false);
+  };
+  const searchWeb = async (code: string) => {
+    setMissed(null); setBusy(true); setLog([{ verb: 'Searched', text: `The web — barcode ${code}` }]);
+    try {
+      const hit: any = await nutritionApi.webLookupBarcode(code);
+      if (!hit?.name) throw new Error('none');
+      const s = hit.sources?.[0];
+      let host: string | null = s?.title ?? null;
+      if (!host && s?.uri) { try { host = new URL(s.uri).hostname.replace(/^www\./, ''); } catch { host = null; } }
+      setProduct(toProduct(hit, code, [{ verb: 'Pulled', text: host ? `Pulled · ${host}` : 'Found on the web' }], { web: true }));
+      setLog([]);
+      haptics.success();
+    } catch {
+      setLog([]);
+      Alert.alert('Nothing on the web either', 'Scan the nutrition label, or type it in.', [
+        { text: 'Scan the label', onPress: () => startLabel(code) },
+        { text: 'Type it', onPress: () => typeIt() },
+        { text: 'Cancel', style: 'cancel', onPress: () => { scanned.current = false; } },
+      ]);
+    }
+    setBusy(false);
+  };
+  const startLabel = (code: string) => { setMissed(null); setLabelFor(code); setMode('photo'); };
+  const typeIt = () => { setMissed(null); router.replace({ pathname: '/(v2)/food-search', params: params.cardId ? { from: 'chat' } : {} } as any); };
+  const readLabel = async (code: string, b64: string) => {
+    setLog([{ verb: 'Read', text: 'Nutrition label' }]);
+    const r: any = await nutritionApi.scanNutritionLabel(code, b64, 'image/jpeg');
+    if (!r?.per100g && !r?.calories) throw new Error('I couldn\'t read that label — try again, flat and in focus.');
+    setProduct(toProduct(r, code, [
+      { verb: 'Read', text: `Label${r.servingSize ? ` · per ${r.servingSize}` : ''}` },
+      { verb: 'Saved', text: `Barcode ${code}` },
+    ]));
+    setLabelFor(null); setMode('barcode'); setLog([]);
+    haptics.success();
   };
 
   const snap = async () => {
@@ -141,6 +185,12 @@ function CaptureScreenInner() {
     try {
       const photo = await camRef.current.takePhoto({ flash: 'off', enableShutterSound: false });
       const uri = photo?.path?.startsWith('file://') ? photo.path : `file://${photo.path}`;
+      if (labelFor) {
+        const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1280 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true });
+        await readLabel(labelFor, small.base64 ?? (await FileSystem.readAsStringAsync(small.uri, { encoding: 'base64' as any })));
+        setBusy(false);
+        return;
+      }
       let b64: string;
       if (photoV2) {
         const prepared = await preparePhoto(uri);
@@ -169,7 +219,7 @@ function CaptureScreenInner() {
       setGap(r?.gap ?? r?.note ?? null);
       haptics.success();
     } catch (e: any) {
-      Alert.alert('Couldn\'t read the plate', e?.message ?? 'Try again with the whole plate in frame.');
+      Alert.alert(labelFor ? 'Couldn\'t read the label' : 'Couldn\'t read the plate', e?.message ?? (labelFor ? 'Try again, flat and in focus.' : 'Try again with the whole plate in frame.'));
       setPhotoUri(null); setLog([]);
     }
     setBusy(false);
@@ -201,6 +251,8 @@ function CaptureScreenInner() {
     const k = (v: any) => Math.round((Number(v) || 0) * servings);
     try {
       const m: any = await nutritionApi.logMeal({ date: todayStr(), name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: slot, calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), source: 'barcode', barcode: product.code } as any);
+      // A web answer the user just logged is confirmed for everyone who scans that code next.
+      if (product.web) void nutritionApi.confirmWebBarcode(product.code).catch(() => {});
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
@@ -363,7 +415,7 @@ function CaptureScreenInner() {
       <StatusBar style="light" />
       <View style={styles.top}>
         <Pressable onPress={() => (addPhotoMode ? setAddPhotoMode(false) : router.back())} hitSlop={10}><Text style={[T.body, { color: v2.color.darkMuted }]}>{addPhotoMode ? '← Back' : 'Close'}</Text></Pressable>
-        <Text style={[T.caption, { color: v2.color.darkMuted }]}>{mode === 'barcode' ? 'Barcode' : header}</Text>
+        <Text style={[T.caption, { color: v2.color.darkMuted }]}>{labelFor ? 'Nutrition label' : mode === 'barcode' ? 'Barcode' : header}</Text>
       </View>
       <View style={styles.frame}>
         {hasCam && device && perm.hasPermission && mode !== 'describe' ? (
@@ -400,10 +452,10 @@ function CaptureScreenInner() {
         ) : null}
       </View>
       {log.length && !product ? <View style={{ marginTop: 14 }}><ReceiptList items={log} tone="dark" liveIndex={busy ? log.length - 1 : -1} /></View> : null}
-      <Text style={[T.caption, { color: v2.color.darkMuted, textAlign: 'center', marginTop: 14 }]}>{mode === 'photo' ? (addPhotoMode ? 'Another angle — sides, drinks, anything cut off.' : photoV2 ? 'Shoot from above · include sides & drinks.' : 'Fit the whole plate. I\'ll find what\'s on it.') : mode === 'barcode' ? 'Line the barcode up inside the frame.' : 'A sentence is enough.'}</Text>
+      <Text style={[T.caption, { color: v2.color.darkMuted, textAlign: 'center', marginTop: 14 }]}>{labelFor ? 'Fit the nutrition panel, flat and in focus. I\'ll read it.' : mode === 'photo' ? (addPhotoMode ? 'Another angle — sides, drinks, anything cut off.' : photoV2 ? 'Shoot from above · include sides & drinks.' : 'Fit the whole plate. I\'ll find what\'s on it.') : mode === 'barcode' ? 'Line the barcode up inside the frame.' : 'A sentence is enough.'}</Text>
       {addPhotoMode ? <View style={{ height: 22 }} /> : <View style={styles.modes}>
         {(['photo', 'barcode', 'describe'] as Mode[]).map((m) => (
-          <Pressable key={m} onPress={() => { setMode(m); scanned.current = false; setLog([]); }} hitSlop={8}>
+          <Pressable key={m} onPress={() => { setMode(m); setLabelFor(null); scanned.current = false; setLog([]); }} hitSlop={8}>
             <Text style={[T.captionStrong, { color: mode === m ? v2.color.darkInk : v2.color.darkMuted, textTransform: 'capitalize' }]}>{m}</Text>
           </Pressable>
         ))}
@@ -417,7 +469,7 @@ function CaptureScreenInner() {
       {product ? (
         <Animated.View entering={FadeIn.duration(300)} style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
           <View style={styles.grabber} />
-          <ReceiptList items={[{ verb: 'Pulled', text: `${product.source ?? 'Open Food Facts'} — ${product.code}` }]} animate={false} />
+          <ReceiptList items={product.receipts ?? [{ verb: 'Pulled', text: `Open Food Facts — ${product.code}` }]} animate={false} />
           <Text style={[T.headlineSm, { marginTop: 14 }]}>{product.name ?? 'Product'}</Text>
           {product.brand || product.servingSize ? <Text style={[T.caption, { marginTop: 4 }]}>{[product.brand, product.servingSize].filter(Boolean).join(' · ')}</Text> : null}
           <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderBottomWidth: 1, borderColor: v2.color.hairline }}>
@@ -439,6 +491,17 @@ function CaptureScreenInner() {
           </View>
         </Animated.View>
       ) : null}
+
+      {/* Barcode not found (N-01): three ways forward; whatever gets logged saves the barcode for next time. */}
+      <Sheet visible={!!missed} onClose={() => { setMissed(null); scanned.current = false; }} title="I don't know that barcode yet.">
+        <ReceiptList items={[{ verb: 'Searched', text: 'Open Food Facts — no match' }]} animate={false} />
+        <View style={{ marginTop: 12 }}>
+          <Row name="Scan the label" sub="I'll read the nutrition panel" onPress={() => missed && startLabel(missed)} />
+          <Row name="Search the web" sub="Find it by name and brand" onPress={() => missed && void searchWeb(missed)} />
+          <Row name="Type it" sub="Name and calories" onPress={typeIt} last />
+        </View>
+        <Text style={[T.caption, { marginTop: 14 }]}>Once it's logged, this barcode is saved for next time.</Text>
+      </Sheet>
     </View>
   );
 }
