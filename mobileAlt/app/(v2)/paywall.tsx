@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Pressable } from '../../src/v2/primitives/Pressable';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { v2, T } from '../../src/v2/theme';
@@ -24,8 +24,12 @@ export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
   const { refreshUser } = useAuth();
   const [sheet, setSheet] = useState(false);
-  React.useEffect(() => { trackScreen('v2.paywall'); }, []);
-  const done = async () => { await refreshUser(); router.replace('/(v2)' as any); };
+  // gate=1: opened by a Pro-only feature (direct-entry paywall), not at the end of onboarding.
+  // Leaving goes back to where the user tapped; there's no Phase 1 to promise.
+  const gate = useLocalSearchParams<{ gate?: string }>().gate === '1';
+  React.useEffect(() => { trackScreen(gate ? 'v2.paywall.gate' : 'v2.paywall'); }, [gate]);
+  const leave = () => { if (gate && router.canGoBack()) router.back(); else router.replace('/(v2)' as any); };
+  const done = async () => { await refreshUser(); leave(); };
   return (
     <View style={[styles.root, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}>
       <StatusBar style="dark" />
@@ -34,7 +38,7 @@ export default function PaywallScreen() {
         <Pressable onPress={() => setSheet(true)} hitSlop={8}><Text style={T.caption}>Restore</Text></Pressable>
       </View>
       <View style={{ flex: 1, justifyContent: 'center' }}>
-        <Enter exit={false}><Text style={T.headlineSm}>Phase 1 starts tomorrow. First week free.</Text></Enter>
+        <Enter exit={false}><Text style={T.headlineSm}>{gate ? 'That\'s Pro. First week free.' : 'Phase 1 starts tomorrow. First week free.'}</Text></Enter>
         <View style={{ marginTop: 28 }}>
           <Enter index={1} exit={false}><Row name="It adapts every session" sub="Easy, hard or missed — the next set changes." /></Enter>
           <Enter index={2} exit={false}><Row name="Food, down to micronutrients" sub="Snap a plate. I find what you're short on." /></Enter>
@@ -44,7 +48,7 @@ export default function PaywallScreen() {
           <TextAction solid onPress={() => setSheet(true)} style={{ marginTop: 32 }}>Start free week</TextAction>
           <Text style={[T.caption, { marginTop: 12, textAlign: 'center' }]}>Trial terms and the price are shown on the next step. Cancel anytime.</Text>
         </Enter>
-        <Enter index={5} exit={false}><TextAction muted arrow={false} size={15} onPress={() => router.replace('/(v2)' as any)} style={{ marginTop: 24, alignSelf: 'center' }}>Not now</TextAction></Enter>
+        <Enter index={5} exit={false}><TextAction muted arrow={false} size={15} onPress={leave} style={{ marginTop: 24, alignSelf: 'center' }}>Not now</TextAction></Enter>
       </View>
       <UpgradeSheet visible={sheet} onClose={() => setSheet(false)} onSuccess={() => { setSheet(false); void done(); }} />
     </View>

@@ -19,6 +19,7 @@ import { ReceiptList } from '../primitives/Receipt';
 import { Ring } from '../charts';
 import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate } from '../data';
 import { useShell } from '../shell/ShellContext';
+import { useRequirePro } from '../shell/proGate';
 import { focusList } from './pushed/nutritionPlan';
 import { useQuery } from '@tanstack/react-query';
 import { nutritionApi } from '../../lib/api';
@@ -31,6 +32,7 @@ const TARGET_DEFAULT = { calories: 2400, proteinG: 150, carbsG: 260, fatG: 80 };
 
 export function FuelPage() {
   const router = useRouter();
+  const requirePro = useRequirePro();
   const meals = useMeals();
   const np = useNpDay();
   const week = useNpWeek();
@@ -69,6 +71,7 @@ export function FuelPage() {
 
   const logUsual = async () => {
     const u = usual.data; if (!u) return;
+    if (requirePro() === false) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `Last ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} — ${u.name ?? 'meal'}` }]);
     try {
       await nutritionApi.logMeal({ date: todayStr(), name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), source: 'usual' } as any);

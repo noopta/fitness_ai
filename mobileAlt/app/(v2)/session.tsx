@@ -31,10 +31,11 @@ import { haptics } from '../../src/v2/haptics';
 import { Mark } from '../../src/v2/primitives/Mark';
 import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } from '../../src/v2/format';
 import { trackScreen } from '../../src/lib/analytics';
+import { useProScreen } from '../../src/v2/shell/proGate';
 
 function parseReps(r: any): number | string { const n = typeof r === 'number' ? r : parseInt(String(r ?? ''), 10); return Number.isFinite(n) && n > 0 ? n : String(r ?? 8); }
 
-export default function SessionScreen() {
+function SessionScreenInner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const shell = useShellOptional();
@@ -276,3 +277,9 @@ const styles = StyleSheet.create({
   ovValue: { fontFamily: v2.font.regular, fontSize: 15, color: v2.color.muted, fontVariant: ['tabular-nums'] },
   ovBegin: { fontFamily: v2.font.semibold, fontSize: 17, color: v2.color.crimson },
 });
+
+// Pro-only under the direct-entry paywall: free users get the paywall instead.
+export default function SessionScreen() {
+  const gated = useProScreen();
+  return gated ? null : <SessionScreenInner />;
+}

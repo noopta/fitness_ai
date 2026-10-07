@@ -11,6 +11,7 @@ import { Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { v2 } from '../theme';
+import { useNeedsPro } from './proGate';
 
 export type HomeMode = 'brief' | 'chat';
 
@@ -65,12 +66,22 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
     // After the track starts moving, so the composer focus doesn't fight the swipe.
     requestAnimationFrame(() => prefillRef.current?.(m));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Every "Ask Anakin…" button lands here. Under the direct-entry paywall a free
+  // user gets the paywall instead — a beat later, so a caller that navigates
+  // right after asking (router.replace('/(v2)')) doesn't replace it away.
+  const needsPro = useNeedsPro();
+  const needsProRef = useRef(needsPro);
+  needsProRef.current = needsPro;
   const ask = useCallback((m: string) => {
+    if (needsProRef.current) {
+      setTimeout(() => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any), 350);
+      return;
+    }
     if (askRef.current) askRef.current(m);
     else pendingAsk.current = m;
     setMode('chat');
     goToRef.current(0);
-  }, []);
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
   const goHome = useCallback(() => {
     try { if (router.canDismiss()) router.dismissAll(); } catch { /* not in a stack */ }
     goToRef.current(0);

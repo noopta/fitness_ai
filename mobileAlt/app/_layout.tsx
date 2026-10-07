@@ -245,7 +245,7 @@ function RootNavigator() {
     if (user && !needsDobCheck && getFeatures().uiV2 && !v2SuppressedSync() && inTabs && !inV2) {
       // The classic Social tab (notifications, train-together's back) is the v2 Feed tab, not home.
       const toFeed = (segments[1] as string) === 'social';
-      router.replace(((user as any).coachOnboardingDone ? (toFeed ? { pathname: '/(v2)', params: { tab: 'feed' } } : '/(v2)') : '/(v2)/onboarding') as any);
+      router.replace(((user as any).coachOnboardingDone || getFeatures().directEntryPaywall ? (toFeed ? { pathname: '/(v2)', params: { tab: 'feed' } } : '/(v2)') : '/(v2)/onboarding') as any);
       return;
     }
     if (!user && !inAuthGroup && !inCinematic && !inAuthCallback && !inFormHook) {

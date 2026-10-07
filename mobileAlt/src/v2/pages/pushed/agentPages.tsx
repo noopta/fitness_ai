@@ -243,7 +243,7 @@ export function PlanPage() {
   return (
     <PushedPage back="You" title={u?.pro ? 'Pro' : 'Free'} lead={u?.pro ? 'Anakin, unlimited.' : 'Diagnosis is free. Pro is the coach that runs the plan with you.'}
       loading={q.isLoading} error={q.isError ? 'Couldn’t load your plan.' : null} onRetry={() => void q.refetch()}
-      cta={u && !u.pro ? { label: 'Go Pro', onPress: () => router.push('/(v2)/paywall' as any) } : null}
+      cta={u && !u.pro ? { label: 'Go Pro', onPress: () => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any) } : null}
       foot={u?.pro ? [{ label: 'Manage subscription', onPress: () => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'billing' } } as any) }] : undefined}>
       <Section>Today</Section>
       <Row name="AI food logs" sub="Photo, describe, scan" value={line(u?.food)} />

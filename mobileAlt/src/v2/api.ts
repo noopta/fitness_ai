@@ -142,7 +142,8 @@ export const v2Api = {
   runTask: (taskId: string, input?: string) =>
     apiFetch(`/coach/agent/task/${taskId}`, { method: 'POST', body: JSON.stringify({ input }), timeoutMs: LONG_TIMEOUT_MS }),
 
-  memory: (): Promise<{ notes: string[] }> => apiFetch('/coach/agent/memory'),
+  // notes: saved from chat; profile: from the intake (older backends omit it).
+  memory: (): Promise<{ notes: string[]; profile?: { label: string; value: string }[] }> => apiFetch('/coach/agent/memory'),
 
   lastExercise: (name: string) => apiFetch(`/workouts/exercise/${encodeURIComponent(name)}/last`),
 

@@ -30,10 +30,11 @@ import { useInvalidate } from '../../src/v2/data';
 import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { haptics } from '../../src/v2/haptics';
 import { trackScreen } from '../../src/lib/analytics';
+import { useProScreen } from '../../src/v2/shell/proGate';
 
 const SUGGESTIONS = ['Pull a 350 lb deadlift', 'Fix my lower back', 'Rehab a ruptured Achilles'];
 
-export default function OnboardingScreen() {
+function OnboardingScreenInner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { refreshUser, user } = useAuth();
@@ -234,3 +235,9 @@ const styles = StyleSheet.create({
   consentRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: v2.color.hairline },
   restart: { position: 'absolute', right: v2.space.gutter },
 });
+
+// Pro-only under the direct-entry paywall: free users get the paywall instead.
+export default function OnboardingScreen() {
+  const gated = useProScreen();
+  return gated ? null : <OnboardingScreenInner />;
+}

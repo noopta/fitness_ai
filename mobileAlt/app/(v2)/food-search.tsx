@@ -31,12 +31,13 @@ import { threadBus } from '../../src/v2/chat/captureBus';
 import { VoiceSheet } from '../../src/components/coach/nutrition/sheets/VoiceSheet';
 import { OrderScanFlow } from '../../src/components/coach/nutrition/gut/OrderScanFlow';
 import { trackScreen } from '../../src/lib/analytics';
+import { useProScreen } from '../../src/v2/shell/proGate';
 
 const C = v2.color;
 type Scope = 'all' | 'mine' | 'recipes';
 type Classic = null | 'voice' | 'order';
 
-export default function FoodSearchScreen() {
+function FoodSearchScreenInner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const invalidate = useInvalidate();
@@ -146,3 +147,9 @@ const styles = StyleSheet.create({
   links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 22, rowGap: 8 },
   link: { fontFamily: v2.font.semibold, fontSize: 15, lineHeight: 20 },
 });
+
+// Pro-only under the direct-entry paywall: free users get the paywall instead.
+export default function FoodSearchScreen() {
+  const gated = useProScreen();
+  return gated ? null : <FoodSearchScreenInner />;
+}
