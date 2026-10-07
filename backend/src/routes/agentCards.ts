@@ -32,7 +32,13 @@ function fail(res: any, err: any, what: string) {
   return res.status(400).json({ error: err?.message ?? `Couldn’t ${what}` });
 }
 
-const actionSchema = z.object({ actionId: z.string().min(1).max(40), typed: z.string().max(40).optional(), choice: z.number().int().min(0).max(10).optional() });
+// `selection` is a batch card's ticks and dates (past workouts); the store
+// validates it against the sessions the card already holds.
+const selectionSchema = z.object({
+  skip: z.array(z.number().int().min(0).max(500)).max(500).optional(),
+  dates: z.record(z.string().regex(/^\d{1,3}$/), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+}).optional();
+const actionSchema = z.object({ actionId: z.string().min(1).max(40), typed: z.string().max(40).optional(), choice: z.number().int().min(0).max(10).optional(), selection: selectionSchema });
 
 // Batch fetch (history hydrate): ?ids=a,b,c — only the caller's own cards.
 router.get('/coach/agent/cards', requireAuth, access, async (req, res) => {
@@ -75,7 +81,7 @@ router.post('/coach/agent/cards/:id/action', requireAuth, access, async (req, re
 // Design's name for the primary action on a proposal.
 router.post('/coach/agent/cards/:id/apply', requireAuth, access, async (req, res) => {
   try {
-    const b = z.object({ choice: z.number().int().min(0).max(10).optional() }).parse(req.body ?? {});
+    const b = z.object({ choice: z.number().int().min(0).max(10).optional(), selection: selectionSchema }).parse(req.body ?? {});
     res.json({ card: await applyCardAction(req.user!.id, req.params.id, 'apply', b) });
   } catch (e) { fail(res, e, 'apply that'); }
 });

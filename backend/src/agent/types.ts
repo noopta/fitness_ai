@@ -37,8 +37,9 @@ export interface AgentTool {
   /** Build the card(s) shown under the reply from this call's result. */
   card?: (input: Record<string, unknown>, result: any, ctx: ToolCtx) => import('./cards/types.js').CardDraft | import('./cards/types.js').CardDraft[] | null | Promise<import('./cards/types.js').CardDraft | import('./cards/types.js').CardDraft[] | null>;
   /** Receipt shown while the tool runs, and the refined one after. */
-  receipt?: (input: Record<string, unknown>) => { verb: string; text: string };
-  refine?: (result: any, input: Record<string, unknown>) => string | null;
+  receipt?: (input: Record<string, unknown>, userId?: string) => { verb: string; text: string };
+  /** Sharpen the receipt from the result: new text, or a new verb and text ("Reading" → "Read"). */
+  refine?: (result: any, input: Record<string, unknown>) => string | { verb: string; text: string } | null;
   name: string;
   description: string;
   // JSON Schema for the tool's input, passed straight to the Anthropic API.

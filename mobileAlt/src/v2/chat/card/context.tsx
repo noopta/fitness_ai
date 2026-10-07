@@ -9,6 +9,7 @@
 import React, { createContext, useContext } from 'react';
 import type { View } from 'react-native';
 import type { Card, CardAction, CardRoute, CardRow } from '@axiom/agent-ui-core';
+import type { CardActionExtra } from '../../api';
 
 export interface EditSession {
   cardId: string;
@@ -20,7 +21,7 @@ export interface EditSession {
 }
 
 export interface CardHandlers {
-  act: (card: Card, action: CardAction, extra?: { typed?: string; choice?: number }) => Promise<void>;
+  act: (card: Card, action: CardAction, extra?: CardActionExtra) => Promise<void>;
   undo: (card: Card) => Promise<void>;
   /** Resolves false when the server refused (the row reverts, the note says so). */
   edit: (card: Card, field: string, value: string) => Promise<boolean>;

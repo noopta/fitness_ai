@@ -15,7 +15,7 @@
 
 // Verbs = tool class (design §2). Reads render muted, writes crimson.
 export type ReceiptVerb =
-  | 'Read' | 'Pulled' | 'Searched' | 'Computed' | 'Checked' | 'Heard' | 'Delegated'
+  | 'Reading' | 'Read' | 'Pulled' | 'Searched' | 'Computed' | 'Checked' | 'Heard' | 'Delegated'
   | 'Logged' | 'Adjusted' | 'Proposed' | 'Noted' | 'Saved' | 'Drafted' | 'Sent' | 'Posted'
   | 'Deleted' | 'Corrected' | 'Started' | 'Opened' | 'Forgot' | 'Removed';
 

@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Updates from 'expo-updates';
 import type { Card, CardAction, CardRoute, ClientAction } from '@axiom/agent-ui-core';
-import { v2Api } from '../api';
+import { v2Api, type CardActionExtra } from '../api';
 import { useShellOptional } from '../shell/ShellContext';
 import { useInvalidate } from '../data';
 import { useAuth } from '../../context/AuthContext';
@@ -34,6 +34,11 @@ export function diffLine(diff: NonNullable<Card['diff']>): string {
   const parts = diff.slice(0, 2).map((d) => (d.removed ? `${d.key} dropped` : d.from ? `${d.key} ${d.from} → ${d.to}` : `${d.key} ${d.to}`));
   return diff.length > 2 ? `${parts.join('; ')} +${diff.length - 2}` : parts.join('; ');
 }
+
+/** How many sessions a batch card's state line says it logged ("Logged 8 workouts" → 8). */
+const batchCount = (c: Card) => Number(c.state?.line?.match(/\d+/)?.[0] ?? c.batch?.sessions.length ?? 0);
+/** " · 15 Jul – 5 Aug" from the meta line ("Past workouts · 15 Jul – 5 Aug"). */
+const batchRange = (c: Card) => { const m = c.meta?.label.match(/·\s*(.+)$/); return m ? ` · ${m[1]}` : ''; };
 
 export function useCardActions(thread: Thread) {
   const router = useRouter();
@@ -57,9 +62,13 @@ export function useCardActions(thread: Thread) {
   }, [router, shell]);
 
   const undo = useCallback(async (card: Card) => {
-    try { const r = await v2Api.cardUndo(card.id); setCard(r.card); haptics.light(); void invalidate.all(); }
+    try {
+      const r = await v2Api.cardUndo(card.id); setCard(r.card); haptics.light(); void invalidate.all();
+      // Past workouts: one Undo takes the whole batch back (spec F, "REMOVED 8 past workouts").
+      if (card.batch) receiptOnCard(card.id, 'Removed', `${batchCount(card)} past workouts`);
+    }
     catch (e) { noteError(find(card.id) ?? card, e); }
-  }, [invalidate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [invalidate, receiptOnCard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const runClient = useCallback(async (card: Card, action: ClientAction, args: Record<string, any> = {}) => {
     await dismissKeyboard();
@@ -127,7 +136,7 @@ export function useCardActions(thread: Thread) {
     }
   }, [send, open, router, thread, auth]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const act = useCallback(async (card: Card, action: CardAction, extra: { typed?: string; choice?: number } = {}) => {
+  const act = useCallback(async (card: Card, action: CardAction, extra: CardActionExtra = {}) => {
     if (action.kind === 'undo' || action.id === 'undo') return undo(card);
     if (action.client) return runClient(card, action.client.action, action.client.args as Record<string, any>);
     try {
@@ -135,6 +144,8 @@ export function useCardActions(thread: Thread) {
       setCard(r.card);
       // Proposal (P-04) applied: an `Adjusted —` receipt names what changed; the card itself freezes to "Applied · Undo".
       if (card.pattern === 'proposal' && r.card.state?.status === 'applied' && card.diff?.length) receiptOnCard(card.id, 'Adjusted', diffLine(card.diff));
+      // Past workouts logged (or redone): "LOGGED 8 past workouts · 15 Jul – 5 Aug".
+      if (card.batch && r.card.state?.status === 'applied') receiptOnCard(card.id, 'Logged', `${batchCount(r.card)} past workouts${batchRange(r.card)}`);
       if (r.card.state?.status !== 'live' && r.card.state?.status !== 'cancelled' && r.card.state?.status !== 'kept') { haptics.success(); void invalidate.all(); }
       void thread.refreshLive();
     } catch (e) { noteError(find(card.id) ?? card, e); }

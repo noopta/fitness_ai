@@ -1,11 +1,14 @@
 // Card persistence and the tap handlers. Every card the thread shows is a
 // row here; its pendingJson says what each action id does. The client only
 // ever names an action id — it can't supply an operation or its arguments.
+// (One bounded exception: a batch card's `selection`, which can only drop
+// sessions the card already holds or date its undated ones — validated here.)
 
 import { PrismaClient } from '@prisma/client';
 import type { Card, CardDraft, CardState, PendingActions, PendingOp } from './types.js';
 import { executeOp, revertChange, withWriteGuard, UndoError, UNDO_LOG_MS } from '../ops.js';
-import { clockTime } from './format.js';
+import { clockTime, todayIn } from './format.js';
+import { applyBatchSelection, type BatchSelection } from '../../services/workoutBackfill.js';
 
 const prisma = new PrismaClient();
 
@@ -88,11 +91,12 @@ export async function getCard(userId: string, cardId: string): Promise<Card> {
 const DONE_LINE: Record<string, string> = { applied: 'Applied', sent: 'Sent', posted: 'Posted', deleted: 'Deleted', kept: 'Kept', cancelled: 'Cancelled' };
 
 /** Run the action a user tapped. Returns the updated card. */
-export async function applyCardAction(userId: string, cardId: string, actionId: string, body: { typed?: string; choice?: number } = {}): Promise<Card> {
+export async function applyCardAction(userId: string, cardId: string, actionId: string, body: { typed?: string; choice?: number; selection?: BatchSelection } = {}): Promise<Card> {
   const { card, pending } = await load(userId, cardId);
   const tz = await userTz(userId);
 
   if (actionId === 'undo') return undoCard(userId, cardId);
+  if (actionId === 'redo') return redoCard(userId, cardId);
 
   if (card.state?.status && card.state.status !== 'live') throw new CardError('This card has already been acted on.', 409);
   const action = (card.actions ?? []).find((a) => a.id === actionId);
@@ -115,15 +119,62 @@ export async function applyCardAction(userId: string, cardId: string, actionId: 
     const v = pending.choice.values[body.choice];
     if (v !== undefined) args[pending.choice.argKey] = v;
   }
+  if (pending.batch?.action === actionId && Array.isArray(args.inputs)) {
+    args.inputs = applyBatchSelection(args.inputs as any[], body.selection, todayIn(tz));
+    if (!(args.inputs as any[]).length) throw new CardError('Tick at least one workout with a date.', 400);
+  }
   const status = op.status ?? 'applied';
   const undoMs = status === 'deleted' ? 30_000 : UNDO_LOG_MS;
   const change = await withWriteGuard('allow', `card:${card.fn}`, () => executeOp(userId, op.op, args, { cardId, undoMs }));
   const when = clockTime(new Date(), tz);
+  const r = (change.result ?? {}) as { stateLine?: string; cardPatch?: Partial<Card> };
+  if (r.cardPatch) mergePatch(card, r.cardPatch);
   card.state = {
     status,
-    line: op.line ?? `${DONE_LINE[status] ?? 'Done'} ${when}`,
+    line: r.stateLine ?? op.line ?? `${DONE_LINE[status] ?? 'Done'} ${when}`,
     at: new Date().toISOString(),
     changeId: change.changeId,
+    ...(change.reversible && change.undoUntil ? { undoUntil: change.undoUntil } : {}),
+  };
+  await persist(cardId, card, { ...pending, changeId: change.changeId, applied: { op: op.op, args, status, line: card.state.line } });
+  return card;
+}
+
+/** The newest live card of a kind whose pending actions match (e.g. the preview a "yes" refers to). */
+export async function findLiveCard(userId: string, fn: string, match: (pending: PendingActions) => boolean): Promise<Card | null> {
+  const rows = await prisma.agentCard.findMany({ where: { userId, fn, status: 'live' }, orderBy: { createdAt: 'desc' }, take: 20 });
+  for (const row of rows) {
+    const pending = row.pendingJson ? JSON.parse(row.pendingJson) : {};
+    if (match(pending)) return JSON.parse(row.payloadJson) as Card;
+  }
+  return null;
+}
+
+/** One level deep: a patch's `batch` adds to the card's batch rather than replacing it. */
+function mergePatch(card: Card, patch: Partial<Card>) {
+  for (const [k, v] of Object.entries(patch)) {
+    const cur = (card as any)[k];
+    (card as any)[k] = v && typeof v === 'object' && !Array.isArray(v) && cur && typeof cur === 'object' ? { ...cur, ...v } : v;
+  }
+}
+
+/**
+ * Run what Apply ran again, after an Undo, while the original undo window is
+ * open (spec: "Redo is available for the rest of the 24 hours"). Only cards
+ * whose Apply was recorded can redo.
+ */
+export async function redoCard(userId: string, cardId: string): Promise<Card> {
+  const { card, pending } = await load(userId, cardId);
+  if (card.state?.status !== 'undone' || !pending.applied) throw new CardError('Nothing to redo on this card.', 400);
+  if (!card.state.redoUntil || Date.parse(card.state.redoUntil) < Date.now()) throw new CardError('Too late to redo — ask me to log them again.', 409);
+  const { op, args, status = 'applied', line } = pending.applied;
+  const until = card.state.redoUntil;
+  const undoMs = Math.max(0, Date.parse(until) - Date.now());
+  const change = await withWriteGuard('allow', `card:${card.fn}`, () => executeOp(userId, op, args, { cardId, undoMs }));
+  const r = (change.result ?? {}) as { stateLine?: string; cardPatch?: Partial<Card> };
+  if (r.cardPatch) mergePatch(card, r.cardPatch);
+  card.state = {
+    status, line: r.stateLine ?? line ?? 'Done', at: new Date().toISOString(), changeId: change.changeId,
     ...(change.reversible && change.undoUntil ? { undoUntil: change.undoUntil } : {}),
   };
   await persist(cardId, card, { ...pending, changeId: change.changeId });
@@ -141,7 +192,8 @@ export async function undoCard(userId: string, cardId: string): Promise<Card> {
     if (e instanceof UndoError) throw new CardError(e.message, 409);
     throw e;
   }
-  card.state = { status: 'undone', line: pending.undoLine ?? 'Undone', at: new Date().toISOString() };
+  const redoUntil = pending.applied && card.state?.undoUntil && Date.parse(card.state.undoUntil) > Date.now() ? card.state.undoUntil : undefined;
+  card.state = { status: 'undone', line: pending.undoLine ?? 'Undone', at: new Date().toISOString(), ...(redoUntil ? { redoUntil } : {}) };
   await persist(cardId, card);
   return card;
 }

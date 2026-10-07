@@ -8,7 +8,8 @@ import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson, dateArg } from './kit.js';
 import { createWorkoutLog, createWorkoutLogsBulk, updateWorkoutLog, deleteWorkoutLog, restoreWorkoutLog, type WorkoutLogInput } from '../../services/workoutLogService.js';
 import { parseWorkoutNotes } from '../../services/workoutNotesParser.js';
-import { buildPreview, takePreview, withoutLogged } from '../../services/workoutBackfill.js';
+import { buildPreview, takePreview, peekPreview, withoutLogged, previewBatch, previewInputs, rangeLabel, bestsLine, shortDay, type BackfillPreview } from '../../services/workoutBackfill.js';
+import { applyCardAction, findLiveCard } from '../cards/store.js';
 import { turnMessage } from '../turnMessage.js';
 import { computeStrengthProfile } from '../../routes/strength.js';
 import { cacheGet } from '../../services/cacheService.js';
@@ -80,8 +81,15 @@ defineOp({
     if (!r.created.length) throw new Error(`None of those could be logged (${r.failed[0]?.error ?? 'unknown error'}).`);
     const ids = r.created.map((c) => c.id);
     const dates = r.created.map((c) => c.date).sort();
+    const bests = bestsLine(r.created, fresh, args.unit === 'metric' ? 'metric' : 'imperial');
     return {
-      result: { ...r, skipped: dupes.length, from: dates[0], to: dates[dates.length - 1] },
+      result: {
+        ...r, skipped: dupes.length, from: dates[0], to: dates[dates.length - 1], bests,
+        // For the card that ran this: "Logged 8 workouts" (the count after ticks) and the bests line.
+        stateLine: `Logged ${plural(r.created.length, 'workout')}`,
+        // Logged state (spec E): Open → history on the meta line, bests under the state line.
+        cardPatch: { meta: { open: { page: 'history' } }, ...(bests ? { batch: { bests } } : {}) },
+      },
       inverse: { op: 'workout.remove_many', args: { ids } },
       summary: `Logged · ${plural(r.created.length, 'past workout')} · ${dayLabel(dates[0])} to ${dayLabel(dates[dates.length - 1])}`,
     };
@@ -250,76 +258,119 @@ export const WORKOUT_TOOLS = [
   }),
   tool({
     name: 'log_past_workouts', kind: 'log', core: true, fn: 'WRK-13',
-    description: 'Fill in workout history: several past sessions at once, any distance back (up to a year). Use when the user wants to log workouts they did on earlier days — pasted notes, a spreadsheet, a list, or a description in their own words, however messy. Two steps. 1) Preview: pass useMessage: true when the workouts are in the user\'s latest message (don\'t copy the text), or notes for text from earlier in the chat, or workouts [{ date, title?, exercises }] you already have. The result lists what will be logged, what has no date, and what is already logged; nothing is saved yet. Tell them the count and date range in a sentence, ask for dates for any undated sessions, and ask them to confirm. 2) Only after they say yes: call again with confirm: true and the previewId. For one session today use log_workout instead.',
+    description: 'Fill in workout history: several past sessions at once, any distance back (up to a year). Use when the user wants to log workouts they did on earlier days — pasted notes, a spreadsheet, a list, or a description in their own words, however messy. Two steps. 1) Preview: pass useMessage: true when the workouts are in the user\'s latest message (don\'t copy the text), or notes for text from earlier in the chat, or workouts [{ date, title?, exercises }] you already have. Nothing is saved yet; the result lists what will be logged, what has no date, what was left out. To drop part of a preview ("skip the week of 27 Jul", "not the 3rd"), call again with its previewId plus skipWeeksOf / skipDates — a fresh preview replaces the old one. 2) Only after they say yes in chat: call again with confirm: true and the previewId (the card, if shown, flips to Logged). For one session today use log_workout instead. If mode is "none", tell them nothing was found using the `say` line.',
     input_schema: schema({
       useMessage: { type: 'boolean', description: 'Read the workouts from the user\'s latest message.' },
       notes: { type: 'string', description: 'Workout text from earlier in the conversation.' },
       workouts: { type: 'array', items: { type: 'object', properties: { date: { type: 'string', description: 'YYYY-MM-DD' }, title: { type: 'string' }, exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } } }, required: ['date', 'exercises'] } },
-      confirm: { type: 'boolean', description: 'Log the preview — only after the user agreed.' },
-      previewId: { type: 'string' },
+      previewId: { type: 'string', description: 'A preview from an earlier call: to confirm it, or to re-preview it without some weeks or days.' },
+      skipWeeksOf: { type: 'array', items: { type: 'string' }, description: 'With previewId: drop every session in the Monday–Sunday week containing each YYYY-MM-DD.' },
+      skipDates: { type: 'array', items: { type: 'string' }, description: 'With previewId: drop the sessions on these YYYY-MM-DD days.' },
+      confirm: { type: 'boolean', description: 'Log the preview — only after the user said yes in chat.' },
     }),
-    receipt: (i) => ({ verb: i.confirm ? 'Logged' : 'Read', text: i.confirm ? 'Past workouts' : 'Workout history to fill in' }),
+    receipt: (i, userId) => {
+      if (i.confirm) return { verb: 'Logged', text: 'Past workouts' };
+      if (i.useMessage && userId) return { verb: 'Reading', text: `Your notes · ${turnMessage(userId).length.toLocaleString('en-US')} characters` };
+      return { verb: 'Reading', text: 'Workout history' };
+    },
+    refine: (r) => {
+      if (!r || typeof r !== 'object') return null;
+      if (r.mode === 'none') return { verb: 'Read', text: 'Your notes · no workouts' };
+      if (r.mode === 'logged') return { verb: 'Logged', text: `${plural(r.count, 'past workout')} · ${shortDay(r.from)} – ${shortDay(r.to)}` };
+      return { verb: 'Read', text: `Workout history · ${plural(r.found, 'session')}` };
+    },
     execute: async (input, userId) => {
       const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
       const unit: Unit = u?.unitPreference === 'metric' ? 'metric' : 'imperial';
       const { todayIn } = await import('../cards/format.js');
       const { userTz } = await import('../cards/store.js');
       const today = todayIn(await userTz(userId));
+      const previewId = str(input.previewId);
 
       if (input.confirm) {
-        const p = takePreview(userId, str(input.previewId));
+        // The new app showed a card for this preview: log through it, so the card
+        // itself flips to Logged (one source of truth — spec Q7).
+        const live = previewId ? await findLiveCard(userId, 'WRK-13', (p) => (p.actions?.apply as any)?.args?.previewId === previewId) : null;
+        if (live) {
+          takePreview(userId, previewId);
+          const card = await applyCardAction(userId, live.id, 'apply');
+          const n = Number((card.state?.line ?? '').match(/\d+/)?.[0] ?? 0);
+          return { mode: 'logged', logged: card.state?.line, count: n, from: card.batch?.sessions.find((x) => x.date)?.date ?? today, to: [...(card.batch?.sessions ?? [])].reverse().find((x) => x.date)?.date ?? today, bests: card.batch?.bests ?? null, undoable: true, _cardUpdates: [card] };
+        }
+        const p = takePreview(userId, previewId);
         if (!p) throw new Error('That preview has expired or was already logged. Read the workouts again with a fresh preview.');
-        if (!p.ready.length) throw new Error('That preview had nothing to log.');
-        const change = await executeOp(userId, 'workout.create_many', { inputs: p.ready });
+        if (!p.ready.length) throw new Error('That preview had nothing with a date to log.');
+        const change = await executeOp(userId, 'workout.create_many', { inputs: p.ready, unit });
         const r = change.result as any;
-        return { mode: 'logged', logged: change.summary, count: r.created.length, skippedAlreadyLogged: r.skipped, failed: r.failed, from: r.from, to: r.to, bestsAtTheTime: [...new Set(r.created.flatMap((c: any) => c.prs))], _created: r.created, _change: change };
+        return { mode: 'logged', logged: change.summary, count: r.created.length, skippedAlreadyLogged: r.skipped, failed: r.failed, from: r.from, to: r.to, bests: r.bests ?? null, _created: r.created, _change: change };
       }
 
-      const text = input.useMessage ? turnMessage(userId) : str(input.notes);
-      const parsed = text.trim() ? await parseWorkoutNotes(text, unit, today) : { workouts: [], unparsed: [] };
-      const candidates = [
-        ...parsed.workouts.map((w) => ({ date: w.date, title: w.title, exercises: toServiceExercises(w.exercises as unknown as ChatExercise[], unit) })),
-        ...((Array.isArray(input.workouts) ? input.workouts : []) as any[]).map((w) => ({
-          date: /^\d{4}-\d{2}-\d{2}$/.test(str(w?.date)) ? str(w.date) : null,
-          title: str(w?.title) || null,
-          exercises: toServiceExercises((Array.isArray(w?.exercises) ? w.exercises : []) as ChatExercise[], unit),
-        })),
-      ];
-      if (!candidates.some((c) => c.exercises.length)) throw new Error('I couldn’t find any workouts in that. Paste the sessions with the exercises, sets and reps.');
-      const p = await buildPreview(userId, candidates, today, parsed.unparsed);
+      let p: BackfillPreview;
+      if (previewId && !input.useMessage && !str(input.notes) && !Array.isArray(input.workouts)) {
+        // Re-preview: the same sessions minus the weeks or days the user dropped.
+        const prev = peekPreview(userId, previewId);
+        if (!prev) throw new Error('That preview has expired. Read the workouts again.');
+        const weekOf = (d: string) => { const t = new Date(`${d}T12:00:00Z`); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return t.toISOString().slice(0, 10); };
+        const dropWeeks = new Set(((input.skipWeeksOf as string[] | undefined) ?? []).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).map(weekOf));
+        const dropDays = new Set(((input.skipDates as string[] | undefined) ?? []).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)));
+        const kept = prev.ready.filter((x) => !dropDays.has(x.date) && !dropWeeks.has(weekOf(x.date)));
+        p = await buildPreview(userId, [...kept.map((x) => ({ date: x.date, title: x.title ?? null, exercises: x.exercises })), ...prev.undated.map((x) => ({ date: null, title: x.title, exercises: x.exercises }))], today, prev.unparsed);
+        p.duplicates = [...prev.duplicates, ...p.duplicates];
+        p.future = [...prev.future, ...p.future];
+      } else {
+        const text = input.useMessage ? turnMessage(userId) : str(input.notes);
+        const parsed = text.trim() ? await parseWorkoutNotes(text, unit, today) : { workouts: [], unparsed: [] };
+        const candidates = [
+          ...parsed.workouts.map((w) => ({ date: w.date, title: w.title, exercises: toServiceExercises(w.exercises as unknown as ChatExercise[], unit) })),
+          ...((Array.isArray(input.workouts) ? input.workouts : []) as any[]).map((w) => ({
+            date: /^\d{4}-\d{2}-\d{2}$/.test(str(w?.date)) ? str(w.date) : null,
+            title: str(w?.title) || null,
+            exercises: toServiceExercises((Array.isArray(w?.exercises) ? w.exercises : []) as ChatExercise[], unit),
+          })),
+        ];
+        if (!candidates.some((c) => c.exercises.length)) {
+          // Spec state I: no card, one line on what to paste.
+          return { mode: 'none', found: 0, say: 'I couldn’t find any workouts in that. Paste sessions with the lifts and sets — like “bench 185 3×5” — any format works.' };
+        }
+        p = await buildPreview(userId, candidates, today, parsed.unparsed);
+      }
       const dates = p.ready.map((w) => w.date);
       return {
-        mode: 'preview', previewId: p.previewId, toLog: p.ready.length, from: dates[0] ?? null, to: dates[dates.length - 1] ?? null,
+        mode: 'preview', previewId: p.previewId, toLog: p.ready.length, found: p.ready.length + p.undated.length + p.duplicates.length,
+        from: dates[0] ?? null, to: dates[dates.length - 1] ?? null,
         sessions: p.ready.map((w) => ({ date: w.date, title: w.title ?? null, exercises: w.exercises.map((e) => e.name) })),
-        undated: p.undated, alreadyLogged: p.duplicates, futureDatesSkipped: p.future, unreadLines: p.unparsed.slice(0, 8),
-        _inputs: p.ready,
+        undated: p.undated.map((x) => ({ title: x.title, exercises: x.exercises.map((e) => e.name) })),
+        alreadyLogged: p.duplicates, futureDatesSkipped: p.future, unreadLines: p.unparsed.slice(0, 8),
+        _preview: p, _unit: unit,
       };
     },
-    card: (_input, r, ctx) => {
-      if (r.mode === 'logged') {
+    card: (_input, r) => {
+      if (r.mode === 'none' || r.mode === 'logged') return null; // none: text only; logged: the preview card itself flips
+      const p = r._preview as BackfillPreview;
+      if (!p.ready.length && !p.undated.length) {
+        // Spec state H: everything was already in the log (or dated ahead).
+        const ds = p.duplicates.map((d) => d.date).sort();
+        const why = p.duplicates.length
+          ? `All ${plural(p.duplicates.length, 'session')} ${p.duplicates.length === 1 ? 'is' : 'are'} already in your log${ds.length ? ` (${ds[0] === ds[ds.length - 1] ? shortDay(ds[0]) : `${shortDay(ds[0])} – ${shortDay(ds[ds.length - 1])}`})` : ''}. Nothing to add.`
+          : 'Nothing with a date to add.';
         return {
-          fn: 'WRK-13', pattern: 'logged', rule: 'log_undo',
-          meta: { label: `Logged · ${plural(r.count, 'past workout')}`, open: { page: 'history' } },
-          rows: (r._created as any[]).slice(0, 12).map((c) => ({ key: dayLabel(c.date), value: c.title ?? 'Workout', sub: plural(c.exercises, 'exercise') })),
-          note: [r._created.length > 12 ? `And ${r._created.length - 12} more.` : '', r.skippedAlreadyLogged ? `${plural(r.skippedAlreadyLogged, 'session')} already in your log, skipped.` : ''].filter(Boolean).join(' ') || undefined,
-          undoLine: 'Undone — those workouts are out of your log',
+          fn: 'WRK-13', pattern: 'glance', rule: 'show', meta: { label: 'Past workouts' }, empty: why, entity: 'workouts:backfill',
+          actions: [{ id: 'history', label: 'Open history', kind: 'primary', client: { action: 'open_page', args: { page: 'history' } } }],
         };
       }
-      const extras = [
-        r.undated.length ? `${plural(r.undated.length, 'session')} without a date — tell me when.` : '',
-        r.alreadyLogged.length ? `${plural(r.alreadyLogged.length, 'session')} already logged, left out.` : '',
-        r.futureDatesSkipped.length ? `${plural(r.futureDatesSkipped.length, 'session')} dated in the future, left out.` : '',
-        r.unreadLines.length ? `${plural(r.unreadLines.length, 'line')} I couldn’t read as training.` : '',
-      ].filter(Boolean);
-      if (!r.toLog) return { fn: 'WRK-13', pattern: 'glance', rule: 'show', meta: { label: 'Nothing new to log' }, empty: extras.join(' ') || 'Nothing new to log.' };
-      const sessions = r.sessions as any[];
+      const batch = previewBatch(p, r._unit);
+      const n = p.ready.length; // undated rows start unticked; the client recounts as ticks change
       return {
         fn: 'WRK-13', pattern: 'proposal', rule: 'propose',
-        meta: { label: `Log ${plural(r.toLog, 'past workout')} · ${dayLabel(r.from)} to ${dayLabel(r.to)}` },
-        rows: sessions.slice(0, 12).map((w) => ({ key: dayLabel(w.date), value: w.title ?? 'Workout', sub: w.exercises.slice(0, 4).join(', ') + (w.exercises.length > 4 ? ` +${w.exercises.length - 4}` : '') })),
-        note: [sessions.length > 12 ? `And ${sessions.length - 12} more.` : '', ...extras, 'Old sessions count toward your streak and history; nothing is announced.'].filter(Boolean).join(' '),
-        actions: [{ id: 'apply', label: `Log ${r.toLog}`, kind: 'primary' }, { id: 'keep', label: 'Not now', kind: 'secondary' }],
-        pending: { actions: { apply: { op: 'workout.create_many', args: { inputs: r._inputs }, status: 'applied', line: `Logged ${plural(r.toLog, 'past workout')}` }, keep: { kind: 'keep' } } },
+        meta: { label: rangeLabel(p.ready.map((x) => x.date)) },
+        batch,
+        actions: [{ id: 'apply', label: `Log ${plural(n, 'workout')}`, kind: 'primary' }, { id: 'keep', label: 'Not now', kind: 'secondary' }],
+        entity: 'workouts:backfill',
+        undoLine: 'Undone — those workouts are out of your log',
+        pending: {
+          actions: { apply: { op: 'workout.create_many', args: { inputs: previewInputs(p), unit: r._unit, previewId: p.previewId }, status: 'applied' }, keep: { kind: 'keep', line: 'Not logged' } },
+          batch: { action: 'apply' },
+        },
       };
     },
   }),

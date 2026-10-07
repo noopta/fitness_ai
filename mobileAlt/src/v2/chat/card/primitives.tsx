@@ -333,19 +333,26 @@ export function HandoffButton({ label, onPress }: { label: string; onPress: () =
 }
 
 // ── Actions ─────────────────────────────────────────────────────────────────
-export function Actions({ actions, onPress, busyId, typed }: { actions: CardAction[]; onPress: (a: CardAction) => void; busyId?: string | null; typed?: string }) {
+export function Actions({ actions, onPress, busyId, typed, labelFor, busyLabelFor, disabledFor }: {
+  actions: CardAction[]; onPress: (a: CardAction) => void; busyId?: string | null; typed?: string;
+  /** A label that depends on local state (a batch card's "Log 7 workouts"). */
+  labelFor?: (a: CardAction) => string;
+  busyLabelFor?: (a: CardAction) => string;
+  disabledFor?: (a: CardAction) => boolean;
+}) {
   const primary = primaryActionIndex(actions);
   return (
     <View style={st.actions}>
       {actions.map((a, i) => {
         const isPrimary = i === primary || a.kind === 'destructive';
-        const locked = !!a.requiresTyped && typed !== a.requiresTyped;
+        const locked = (!!a.requiresTyped && typed !== a.requiresTyped) || !!disabledFor?.(a);
         const busy = busyId === a.id;
-        const label = isPrimary && !/[→↗]$/.test(a.label) ? `${a.label} →` : a.label;
+        const text = labelFor ? labelFor(a) : a.label;
+        const label = isPrimary && !/[→↗]$/.test(text) ? `${text} →` : text;
         return (
           <Pressable key={a.id} onPress={() => { if (!locked && !busyId) onPress(a); }} disabled={locked} hitSlop={{ top: 12, bottom: 12 }} style={{ minHeight: 44, justifyContent: 'center' }}
             accessibilityRole="button" accessibilityState={{ disabled: locked, busy }} accessibilityLabel={a.label}>
-            <Text style={[isPrimary ? S.primary : S.secondary, locked && { color: K.faint }, busy && { opacity: 0.5 }]}>{busy ? `${a.label}…` : label}</Text>
+            <Text style={[isPrimary ? S.primary : S.secondary, locked && { color: K.faint }, busy && { opacity: 0.5 }]}>{busy ? (busyLabelFor ? busyLabelFor(a) : `${a.label}…`) : label}</Text>
           </Pressable>
         );
       })}
@@ -354,15 +361,25 @@ export function Actions({ actions, onPress, busyId, typed }: { actions: CardActi
 }
 
 // ── StateLine (outside the dimmed body) ─────────────────────────────────────
-export function StateLine({ card, line, onUndo, onOpen, onReplaced }: { card: Card; line: string; onUndo?: () => void; onOpen?: () => void; onReplaced?: () => void }) {
+export function StateLine({ card, line, onUndo, onOpen, onReplaced, onRedo, accent }: {
+  card: Card; line: string; onUndo?: () => void; onOpen?: () => void; onReplaced?: () => void;
+  /** After an Undo, while the original window lasts (past workouts, spec F). */
+  onRedo?: () => void;
+  /** Undo / Redo as a crimson word beside the line rather than "· Undo" (past workouts, spec E/F). */
+  accent?: boolean;
+}) {
   const canUndo = !!onUndo && undoOpen(card);
   const status = card.state?.status;
+  const link = (label: string, onPress: () => void) => accent
+    ? <Text style={[S.stateLine, { color: K.crimson }]} onPress={onPress} accessibilityRole="button">{'   '}{label}</Text>
+    : <Text style={S.stateLine}> · <Text style={{ textDecorationLine: 'underline' }} onPress={onPress} accessibilityRole="button">{label}</Text></Text>;
   return (
     <Animated.View entering={FadeIn.duration(K.fade)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
       <Text style={S.stateLine} onPress={status === 'replaced' ? onReplaced : undefined}>
         {line}{status === 'replaced' && !/↓$/.test(line) ? ' ↓' : ''}
       </Text>
-      {canUndo ? <Text style={S.stateLine}> · <Text style={{ textDecorationLine: 'underline' }} onPress={onUndo} accessibilityRole="button">Undo</Text></Text> : null}
+      {canUndo ? link('Undo', onUndo!) : null}
+      {onRedo ? link('Redo', onRedo) : null}
       {onOpen && (status === 'changed' || status === 'posted') ? <Text style={S.stateLine}> · <Text onPress={onOpen} accessibilityRole="link">Open →</Text></Text> : null}
     </Animated.View>
   );

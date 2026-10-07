@@ -17,6 +17,15 @@ describe('card reducer', () => {
     expect(allCards(s).map((c) => [c.id, c.note])).toEqual([['c1', 'v2'], ['c2', undefined]]);
   });
 
+  it('a card_update in a later turn flips an earlier turn\'s card ("yes" in chat logs the preview)', () => {
+    let s = sent();
+    s = threadReducer(s, { type: 'event', agentId: 'a1', event: { type: 'card2', card: card('c1', { pattern: 'proposal', batch: { kind: 'list', selectable: true, sessions: [] } }) } });
+    s = threadReducer(s, { type: 'send', id: 'u2', agentId: 'a2', text: 'yes', now: 2 });
+    s = threadReducer(s, { type: 'event', agentId: 'a2', event: { type: 'card_update', cardId: 'c1', patch: { state: { status: 'applied', line: 'Logged 7 workouts' } } } });
+    expect(s.turns[1].cards![0]).toMatchObject({ pattern: 'proposal', state: { status: 'applied', line: 'Logged 7 workouts' } });
+    expect(s.turns[3].cards ?? []).toEqual([]);
+  });
+
   it('card_set replaces a card wherever it lives and leaves other turns untouched', () => {
     let s = sent();
     s = threadReducer(s, { type: 'event', agentId: 'a1', event: { type: 'card2', card: card('c1') } });

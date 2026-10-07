@@ -35,7 +35,7 @@ const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutr
 You have tools for every part of the user's account: profile and settings, program and schedule, workouts, strength, nutrition, recipes, body weight, wellness, memory, friends, groups and billing. Use them:
 - ALWAYS read the relevant data before giving specific numerical advice. Don't guess their macros or weight — look them up.
 - When the user tells you to log something, log it and confirm exactly what you logged.
-- Workouts from earlier days — pasted notes, a list, weeks or months of history, however messy — go through log_past_workouts (preview first, then confirm), never a string of log_workout calls. The preview shows a card with a Log button: say in one sentence what you found (count, date range, anything undated or already logged) and let the card take the tap; call confirm only if they say yes in chat instead. Ask for dates for undated sessions.
+- Workouts from earlier days — pasted notes, a list, weeks or months of history, however messy — go through log_past_workouts (preview first, then confirm), never a string of log_workout calls. The preview shows a card the user checks and logs from: reply in one or two short sentences with the count and range and anything to act on, then let the card take the tap ("Seven workouts from 15 Jul to 5 Aug, plus a push day with no date. Check them, then log." / "41 workouts over 11 weeks — that's the whole block. One was already in your log."). Don't list the sessions; the card does. Call confirm only if they say yes in chat instead. To drop a week or day, re-preview with the previewId and skipWeeksOf / skipDates. After logging, one short line ("In. Your history now starts in July.") — no celebration.
 - When you learn a durable fact (a goal, an injury, a strong preference), use remember so future sessions know it. Don't remember transient details.
 - Chain tools when needed: e.g. read training load AND nutrition before advising on a recovery meal.
 
@@ -55,7 +55,7 @@ How changes work — the app enforces these, so follow them:
 Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.`;
 
 // The classic app renders three proposal cards and relies on two direct tools.
-const V1_ADDENDUM = `In this version of the app: macro targets change directly with adjust_macros once the user agrees (any "yes", "ok", "do it" — call it on that same turn), and broad program rewrites use apply_program_update after they agree. Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm. log_past_workouts shows no card here: after the preview, tell them what you found and ask; when they say yes, call it again with confirm: true and the previewId.`;
+const V1_ADDENDUM = `In this version of the app: macro targets change directly with adjust_macros once the user agrees (any "yes", "ok", "do it" — call it on that same turn), and broad program rewrites use apply_program_update after they agree. Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm. log_past_workouts shows no card here: after the preview, give the count, the range and what was left out, then one question — "Found 8 workouts from 15 Jul to 5 Aug. One was already logged. Log the other 7?" — with no list unless they ask. When they say yes, call it again with confirm: true and the previewId.`;
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -302,6 +302,9 @@ export type AgentStreamEvent =
   | { type: 'card'; card: AgentCard }
   // Contract 2: server-id cards, up to 3 per turn, in execution order.
   | { type: 'card2'; turnId: string; card: Card }
+  // A card already in the thread changed during this turn (a "yes" in chat
+  // logged the preview card's batch): replace it in place.
+  | { type: 'card_update'; cardId: string; patch: Partial<Card> }
   | { type: 'done'; reply: string; toolsUsed: string[]; iterations: number; card?: AgentCard | null; proposal?: AgentProposal; cards?: Card[]; turnId?: string }
   | { type: 'error'; error: string };
 
@@ -413,7 +416,7 @@ export async function streamAgentTurn(
       const toolInput = (block.input ?? {}) as Record<string, unknown>;
       const receiptId = `r${iterations}-${receiptSeq++}`;
       const tool = byName[block.name];
-      const callReceipt = tool?.receipt ? tool.receipt(toolInput) : receiptForCall(block.name, toolInput);
+      const callReceipt = tool?.receipt ? tool.receipt(toolInput, userId) : receiptForCall(block.name, toolInput);
       onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb as ReceiptVerb, text: callReceipt.text });
       if (!tool) {
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Unknown tool: ${block.name}`, is_error: true });
@@ -425,7 +428,10 @@ export async function streamAgentTurn(
         // Sharpen the receipt with what the tool found, and surface nested
         // (sub-agent) tool calls as indented receipts.
         const refined = tool.refine ? tool.refine(result, toolInput) : summarizeResult(block.name, result);
-        if (refined) onEvent({ type: 'receipt', id: receiptId, verb: callReceipt.verb as ReceiptVerb, text: refined, final: true });
+        if (refined) {
+          const r = typeof refined === 'string' ? { verb: callReceipt.verb, text: refined } : refined;
+          onEvent({ type: 'receipt', id: receiptId, verb: r.verb as ReceiptVerb, text: r.text, final: true });
+        }
         if (block.name === 'delegate_task' && result && typeof result === 'object' && Array.isArray((result as any).toolsUsed)) {
           for (const sub of (result as any).toolsUsed as string[]) {
             const st = byName[sub];
@@ -435,6 +441,9 @@ export async function streamAgentTurn(
         }
         if (contract === 1) card = cardForResult(block.name, toolInput, result, card);
         cards.push(...out.cards);
+        if (contract === 2 && result && typeof result === 'object' && Array.isArray((result as any)._cardUpdates)) {
+          for (const c of (result as any)._cardUpdates as Card[]) onEvent({ type: 'card_update', cardId: c.id, patch: c });
+        }
         proposal = extractProposal(result) ?? proposal;
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out.modelResult) });
       } catch (err: any) {

@@ -10,6 +10,9 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { apiFetch, getToken, API_BASE, LONG_TIMEOUT_MS } from '../lib/api';
 import { createSseParser, parseJsonFrame, type StreamEvent, type Receipt as CoreReceipt, type Card } from '@axiom/agent-ui-core';
 
+/** What a tap can carry besides its action id: a typed confirm, a segmented choice, a batch card's ticks and dates. */
+export interface CardActionExtra { typed?: string; choice?: number; selection?: { skip?: number[]; dates?: Record<string, string> } }
+
 /** This client renders server cards (card2 events, /coach/agent/cards/*). */
 const CARD_CONTRACT = { 'X-Card-Contract': '2' };
 
@@ -122,7 +125,7 @@ export const v2Api = {
     }
     return out;
   },
-  cardAction: (id: string, actionId: string, extra: { typed?: string; choice?: number } = {}): Promise<{ card: Card }> =>
+  cardAction: (id: string, actionId: string, extra: CardActionExtra = {}): Promise<{ card: Card }> =>
     post(`/coach/agent/cards/${id}/action`, { actionId, ...extra }),
   cardUndo: (id: string): Promise<{ card: Card }> => post(`/coach/agent/cards/${id}/undo`),
   cardEdit: (id: string, field: string, value: string | number): Promise<{ card: Card }> =>

@@ -40,6 +40,47 @@ export interface CardState {
   at?: string;
   undoUntil?: string;
   changeId?: string;
+  /** After Undo on a card that supports it: Redo stays offered until then. */
+  redoUntil?: string;
+}
+
+/**
+ * A batch of past sessions to log (WRK-13, "Past workouts" spec 7 Oct 2026).
+ * `list`: up to 12 sessions, each tickable and expandable. `weeks`: a count
+ * hero, sessions-per-week bars, then one row per week that opens to its days.
+ * Ticks and dates for undated sessions are local until the tap; they travel
+ * with the apply action as `selection`.
+ */
+export interface BatchSession {
+  /** Index into the card's pending inputs; what `selection` refers to. */
+  i: number;
+  /** YYYY-MM-DD, or null for a session the parse couldn't date. */
+  date: string | null;
+  /** "Wed 15 Jul", or null when undated. */
+  day: string | null;
+  title: string | null;
+  /** First lift names, e.g. "Bench press, Incline dumbbell press, …". */
+  names: string;
+  /** "4 lifts". */
+  count: string;
+  /** One line per exercise: name and "3 × 5 · 225 lb" / "3 sets · 12, 10, 8". */
+  detail: { name: string; value: string }[];
+}
+export interface BatchBlock {
+  kind: 'list' | 'weeks';
+  sessions: BatchSession[];
+  /** weeks mode: rows in date order; `ids` are session indices. */
+  weeks?: { label: string; sub: string; count: string; ids: number[] }[];
+  /** weeks mode: "41" · "workouts" · "11 weeks · 163 exercises · 492 sets". */
+  hero?: { value: string; unit: string; sub: string };
+  /** weeks mode: sessions per week, with the first and last day under the bars. */
+  bars?: { v: number[]; from: string; to: string };
+  /** Footer: "Left out: 1 already logged (Wed 15 Jul · Push) · 2 lines that weren't training." */
+  leftOut?: string;
+  /** Per-session ticks (list mode). Big batches log whole, or by asking Anakin to skip a week. */
+  selectable: boolean;
+  /** After logging: "2 were bests at the time — squat 230 × 5, deadlift 320 × 4." */
+  bests?: string;
 }
 
 export interface Route { page: string; params?: Record<string, string> }
@@ -72,6 +113,7 @@ export interface Card {
   skeleton?: number;
   handoff?: { label: string; action: ClientAction; args?: Record<string, unknown> };
   actions?: CardAction[];
+  batch?: BatchBlock;
   state?: CardState;
 }
 
@@ -101,4 +143,8 @@ export interface PendingActions {
   answer?: { op?: string; args?: Record<string, unknown>; valueKey?: string; asMessage?: string };
   /** The change this card already made (Logged / Setting cards). */
   changeId?: string;
+  /** Apply takes a `selection` (ticks, dates for undated rows) over this action's `inputs` arg. */
+  batch?: { action: string };
+  /** What Apply ran, so Redo can run it again after an Undo. */
+  applied?: { op: string; args: Record<string, unknown>; status?: CardStatus; line?: string };
 }

@@ -106,6 +106,7 @@ export function useThread() {
       await v2Api.streamTurn(m, (e: StreamEvent) => {
         if (e.type === 'receipt') { toolsSeen.push(e.text); if (isWriteVerb(e.verb)) wrote = true; }
         if (e.type === 'card2' && e.card.state?.changeId) wrote = true;
+        if (e.type === 'card_update' && e.patch.state?.changeId) wrote = true;
         if (e.type === 'done') { gotDone = true; toolsSeen = e.toolsUsed ?? toolsSeen; }
         dispatch({ type: 'event', agentId, event: e });
       }, { signal: ac.signal, resetConversation: reset });
