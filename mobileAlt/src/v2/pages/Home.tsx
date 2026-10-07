@@ -26,6 +26,7 @@
 // the keyboard by transform with a matching top inset, on Android its bottom
 // pad grows. Each morph's frame times are reported (`v2_morph_perf`).
 
+import { todayStr } from '../../lib/localDate';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
@@ -373,7 +374,8 @@ export function HomePage() {
     const hours = /Under/.test(o) ? 5 : /6–7/.test(o) ? 6.5 : 7.5;
     thread.dispatch({ type: 'resolve', agentId: turn.id, resolution: `Logged — Wellness · sleep ${o.toLowerCase()}` });
     setAskDone(true);
-    void coachApi.postCheckin({ sleepHours: hours, energy: hours < 6 ? 2 : hours < 7 ? 3 : 4, mood: hours < 6 ? 2 : 3, stress: hours < 6 ? 4 : 2 } as any).catch(() => {}).then(() => invalidate.afterSchedule());
+    // Sleep alone — the answer given. Energy, mood and stress are never guessed from it (handoff H-04).
+    void coachApi.postAnsweredCheckin({ date: todayStr(), sleepHours: hours }).catch(() => {}).then(() => invalidate.afterSchedule());
     void thread.send(`I slept ${o.toLowerCase()} last night. Does today change?`);
   };
   // Stable handlers so a turn re-renders only when the turn itself changes —

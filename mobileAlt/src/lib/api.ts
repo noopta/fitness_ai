@@ -499,6 +499,14 @@ export const coachApi = {
     }),
   }),
 
+  // v2 check-in: sends only what was answered — a skipped question stays
+  // blank on the server instead of becoming a 5 (postCheckin fills defaults).
+  postAnsweredCheckin: (data: { date: string; sleepHours?: number; mood?: number; energy?: number; stress?: number }) =>
+    apiFetch('/wellness/checkin', {
+      method: 'POST',
+      body: JSON.stringify(Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined && v !== null))),
+    }),
+
   // Payments
   getPaymentsStatus: () => apiFetch('/payments/status'),
   getPaymentsPortal: () => apiFetch('/payments/portal', { method: 'POST' }),

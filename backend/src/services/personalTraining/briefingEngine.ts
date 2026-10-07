@@ -195,7 +195,8 @@ const engagementDrop: Rule = (c, _d, now) => {
 // BRF-RECOVERY — the client reported high stress and low energy this week.
 const recovery: Rule = (c, d, now) => {
   const w = d.wellness[d.wellness.length - 1];
-  if (!w || daysSince(w.createdAt, now) >= 7 || w.stress < 4 || w.energy > 2) return null;
+  // Both answered, or no flag — a blank is never read as high stress or low energy.
+  if (!w || w.stress == null || w.energy == null || daysSince(w.createdAt, now) >= 7 || w.stress < 4 || w.energy > 2) return null;
   const name = firstName(c);
   return {
     clientId: c.id, ruleId: 'BRF-RECOVERY', eventType: 'recoveryTrend', severity: 'look', priority: 50,

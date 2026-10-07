@@ -12,10 +12,10 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009
 interface Checkin {
   id: string;
   date: string;
-  mood: number;
-  energy: number;
+  mood: number | null;
+  energy: number | null;
   sleepHours: number;
-  stress: number;
+  stress: number | null;
 }
 
 interface Props {
@@ -217,10 +217,10 @@ export function WellnessTab({ latestPlan }: Props) {
                 <div key={c.id} className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
                   <span className="text-xs text-muted-foreground">{c.date}</span>
                   <div className="flex gap-4 text-xs">
-                    <span>{EMOJI_SCALE[c.mood]}</span>
-                    <span className="text-[#22c55e]">E:{c.energy}/5</span>
+                    {c.mood != null && <span>{EMOJI_SCALE[c.mood]}</span>}
+                    {c.energy != null && <span className="text-[#22c55e]">E:{c.energy}/5</span>}
                     <span className="text-[#6366f1]">{c.sleepHours}h</span>
-                    <span className="text-[#ef4444]">S:{c.stress}/5</span>
+                    {c.stress != null && <span className="text-[#ef4444]">S:{c.stress}/5</span>}
                   </div>
                 </div>
               ))}

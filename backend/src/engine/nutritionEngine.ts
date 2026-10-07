@@ -44,10 +44,11 @@ export interface MealTiming {
 
 export interface WellnessPoint {
   date: string;
-  energy: number;             // 1-10
+  // Optional: a check-in saves only what was answered.
+  energy: number | null;      // 1-10
   sleepHours: number;
-  stress: number;             // 1-10
-  mood: number;               // 1-10
+  stress: number | null;      // 1-10
+  mood: number | null;        // 1-10
 }
 
 export interface NutritionEngineInput {
@@ -355,7 +356,7 @@ function calcWellnessCorrelation(
     nextDay.setDate(nextDay.getDate() + 1);
     const nextDateStr = nextDay.toISOString().slice(0, 10);
     const wellness = wellnessByDate.get(nextDateStr) ?? wellnessByDate.get(macro.date);
-    if (wellness) {
+    if (wellness && wellness.energy != null) {
       pairs.push({ proteinG: macro.proteinG, energy: wellness.energy, sleepHours: wellness.sleepHours });
     }
   }

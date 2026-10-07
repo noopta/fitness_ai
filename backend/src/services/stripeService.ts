@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+// Without a key (tests, local dev) the client still loads; any call fails with Stripe's auth error.
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_missing_key', {
   apiVersion: '2024-04-10' as any
 });
 

@@ -7,6 +7,7 @@
 // lets every answer list its per-client evidence, say what it excluded and
 // what it does not know, and be re-run every morning with the same meaning.
 
+import { describeCheckin } from '../checkinText.js';
 import { displayWeight, formatWeight, type UnitPreference } from '../weightUnits.js';
 import { shortDay } from './briefingEngine.js';
 import { prisma } from './db.js';
@@ -235,8 +236,8 @@ export function answerQuestion(parsed: Parsed, data: PracticeData, scope: Anakin
     case 'recovery': {
       const rows: AnakinRow[] = [];
       for (const c of clients) {
-        const w = [...d(c).wellness].reverse().find((x) => x.createdAt.getTime() > since && (x.stress >= 4 || x.energy <= 2 || x.sleepHours < 6));
-        if (w) rows.push(row(c, `Stress ${w.stress}/5, energy ${w.energy}/5, sleep ${w.sleepHours} h on ${shortDay(w.createdAt)}`));
+        const w = [...d(c).wellness].reverse().find((x) => x.createdAt.getTime() > since && ((x.stress ?? 0) >= 4 || (x.energy != null && x.energy <= 2) || x.sleepHours < 6));
+        if (w) rows.push(row(c, `${describeCheckin(w)} on ${shortDay(w.createdAt)}`));
       }
       const silent = clients.filter((c) => !d(c).wellness.some((x) => x.createdAt.getTime() > since));
       return finish({

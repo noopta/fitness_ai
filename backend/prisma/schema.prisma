@@ -459,13 +459,15 @@ model BodyWeightLog {
 }
 
 model WellnessCheckin {
+  // mood / energy / stress are optional: a check-in saves only what the user
+  // actually answered (v2 H-04) — never a value guessed from another answer.
   id         String   @id @default(uuid())
   userId     String
   date       String
-  mood       Int
-  energy     Int
+  mood       Int?
+  energy     Int?
   sleepHours Float
-  stress     Int
+  stress     Int?
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
 

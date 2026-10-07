@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { meanAnswered } from '../services/checkinText.js';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -1163,9 +1164,8 @@ async function buildNutritionProfile(userId: string): Promise<Record<string, any
     });
 
     // ── STEP 3: Run Rules Engine ─────────────────────────────────────────
-    const avgEnergy = wellnessLogs.length > 0
-      ? wellnessLogs.reduce((s, w) => s + w.energy, 0) / wellnessLogs.length
-      : null;
+    // Only check-ins that answered energy count toward it.
+    const avgEnergy = meanAnswered(wellnessLogs.map((w) => w.energy));
     const avgSleep = wellnessLogs.length > 0
       ? wellnessLogs.reduce((s, w) => s + w.sleepHours, 0) / wellnessLogs.length
       : null;

@@ -43,7 +43,7 @@ export interface ClientActivity {
   logDates: string[];
   lastSessionAt: Date | null;
   lastCheckInAt: Date | null;
-  latestCheckIn: { at: Date; stress: number; energy: number } | null;
+  latestCheckIn: { at: Date; stress: number | null; energy: number | null } | null;
 }
 
 /** Injuries live in both coachProfile and constraintsText; readInjuries reconciles the two. */

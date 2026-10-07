@@ -93,13 +93,13 @@ export function workoutEvent(row: WorkoutRow, clientId: string, pref: UnitPrefer
 
 // ── Check-ins (1–5 scales) ───────────────────────────────────────────────────
 
-export interface CheckInRow { id: string; createdAt: Date; mood: number; energy: number; sleepHours: number; stress: number }
+export interface CheckInRow { id: string; createdAt: Date; mood: number | null; energy: number | null; sleepHours: number; stress: number | null }
 
 export function checkInEvent(row: CheckInRow, clientId: string): TimelineEvent {
   const flag =
-    row.stress >= 4 ? { label: 'High stress', tone: 'amber' as const }
-    : row.energy <= 2 ? { label: 'Low energy', tone: 'amber' as const }
-    : row.mood <= 2 ? { label: 'Low mood', tone: 'amber' as const }
+    (row.stress ?? 0) >= 4 ? { label: 'High stress', tone: 'amber' as const }
+    : row.energy != null && row.energy <= 2 ? { label: 'Low energy', tone: 'amber' as const }
+    : row.mood != null && row.mood <= 2 ? { label: 'Low mood', tone: 'amber' as const }
     : undefined;
   return {
     id: `checkin:${row.id}`,
@@ -107,7 +107,13 @@ export function checkInEvent(row: CheckInRow, clientId: string): TimelineEvent {
     kind: 'checkin',
     at: row.createdAt.toISOString(),
     title: 'Wellness check-in',
-    body: `Mood ${row.mood}/5 · Energy ${row.energy}/5 · Stress ${row.stress}/5 · Sleep ${row.sleepHours} h`,
+    // Only what they answered — a skipped question isn't shown as a score.
+    body: [
+      row.mood != null ? `Mood ${row.mood}/5` : null,
+      row.energy != null ? `Energy ${row.energy}/5` : null,
+      row.stress != null ? `Stress ${row.stress}/5` : null,
+      `Sleep ${row.sleepHours} h`,
+    ].filter(Boolean).join(' · '),
     ...(flag ? { flag } : {}),
   };
 }

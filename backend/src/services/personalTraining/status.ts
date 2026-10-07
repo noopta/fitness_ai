@@ -93,7 +93,7 @@ export interface StatusInput {
   lastSessionAt: Date | null;
   engagement8w: number[];
   /** Most recent wellness check-in (1–5 scales), if any. */
-  latestCheckIn: { at: Date; stress: number; energy: number } | null;
+  latestCheckIn: { at: Date; stress: number | null; energy: number | null } | null;
   now: Date;
 }
 
@@ -123,7 +123,7 @@ export function deriveStatus(input: StatusInput): { status: ClientStatus; reason
   }
 
   // PT-STATUS-03 — the client told us: high stress and low energy this week.
-  if (latestCheckIn && daysSince(latestCheckIn.at) < 7 && latestCheckIn.stress >= 4 && latestCheckIn.energy <= 2) {
+  if (latestCheckIn && daysSince(latestCheckIn.at) < 7 && latestCheckIn.stress != null && latestCheckIn.energy != null && latestCheckIn.stress >= 4 && latestCheckIn.energy <= 2) {
     return { status: 'support', reason: 'Reported high stress and low energy in their last check-in' };
   }
 

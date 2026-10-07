@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { describeCheckin } from '../services/checkinText.js';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -383,7 +384,7 @@ async function buildFullUserContext(userId: string): Promise<string> {
   if (wellnessCheckins.length > 0) {
     lines.push('\n=== WELLNESS CHECK-INS (last 14 days) ===');
     for (const c of wellnessCheckins) {
-      lines.push(`  ${c.date}: mood ${c.mood}/5, energy ${c.energy}/5, sleep ${c.sleepHours}h, stress ${c.stress}/5`);
+      lines.push(`  ${c.date}: ${describeCheckin(c)}`);
     }
   }
 

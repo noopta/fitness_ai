@@ -444,7 +444,8 @@ const logWellness: AgentTool = {
     required: ['mood', 'energy', 'stress', 'sleepHours'],
   },
   execute: async (input, userId) => {
-    const clamp = (v: unknown) => Math.max(1, Math.min(5, Math.round(Number(v) || 0)));
+    // Only what was said: a missing answer is saved empty, never as a 1.
+    const clamp = (v: unknown) => (v == null || v === '' || !Number.isFinite(Number(v)) ? null : Math.max(1, Math.min(5, Math.round(Number(v)))));
     const date = (input.date as string) || todayStr();
     const entry = await prisma.wellnessCheckin.create({
       data: {

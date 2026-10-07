@@ -11,7 +11,8 @@ import type { Client } from './types.js';
 const DAY_MS = 86_400_000;
 
 export interface MessageLite { id: string; createdAt: Date; fromClient: boolean; body: string }
-export interface WellnessLite { id: string; createdAt: Date; mood: number; energy: number; sleepHours: number; stress: number }
+// mood / energy / stress are optional — a check-in saves only what the client answered.
+export interface WellnessLite { id: string; createdAt: Date; mood: number | null; energy: number | null; sleepHours: number; stress: number | null }
 export interface ProposalLite { id: string; createdAt: Date; title: string; reasoning: string; status: string }
 export interface WeightLite { id: string; createdAt: Date; weightKg: number | null; weightLbs: number | null }
 export interface PtCheckInLite {

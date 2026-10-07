@@ -94,10 +94,11 @@ export interface UserContext {
   } | null;
   lastWellness: {
     date: string;
-    mood: number;
-    energy: number;
+    // Optional — a check-in saves only what was answered.
+    mood: number | null;
+    energy: number | null;
     sleepHours: number;
-    stress: number;
+    stress: number | null;
   } | null;
   // Durable cross-session memory — goals, preferences, flagged constraints
   // ("knee hurts on squats"). This is what turns a chatbot into an agent

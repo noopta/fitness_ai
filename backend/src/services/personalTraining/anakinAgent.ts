@@ -9,6 +9,7 @@
 // shown under an answer is taken from the tool results, not from the model's
 // words (handoff §2.2).
 
+import { describeCheckin } from '../checkinText.js';
 import Anthropic from '@anthropic-ai/sdk';
 import { formatWeight, type UnitPreference } from '../weightUnits.js';
 import { shortDay } from './briefingEngine.js';
@@ -131,7 +132,7 @@ function clientFacts(c: Client, data: PracticeData, pref: UnitPreference) {
       ? c.contraindications.map((x) => `${x.label}${x.note ? ` (${x.note})` : ''} — ${x.active ? 'active' : 'cleared'}`)
       : 'nothing on file (unknown, not the same as none)',
     lifts: liftSnapshots(d, now).map((l) => `${l.label}: estimated 1RM ${fmt(l.latestKg)}, ${l.status === 'noData' ? 'too little data for a trend' : l.status}${l.changeKg !== null ? ` (${l.changeKg >= 0 ? '+' : '−'}${fmt(Math.abs(l.changeKg))} over 6 weeks)` : ''}`),
-    latestWellness: wellness ? `${shortDay(wellness.createdAt)}: mood ${wellness.mood}/5, energy ${wellness.energy}/5, stress ${wellness.stress}/5, sleep ${wellness.sleepHours} h` : 'none in the last 60 days',
+    latestWellness: wellness ? `${shortDay(wellness.createdAt)}: ${describeCheckin(wellness)}` : 'none in the last 60 days',
     latestCheckIn: checkIn?.summary ? `${shortDay(checkIn.submittedAt!)}: ${checkIn.summary}` : 'none',
     recentMessages: d.messages.slice(-3).map((m) => `${shortDay(m.createdAt)} ${m.fromClient ? 'client' : 'trainer'}: ${m.body.slice(0, 200)}`),
     suggestedProgramChangesWaiting: d.proposals.map((p) => p.title),

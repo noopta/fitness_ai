@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { describeCheckin } from './checkinText.js';
 import { parseModelJson } from './modelJson.js';
 import { GoogleGenAI, type MediaResolution } from '@google/genai';
 import { getLiftById } from '../data/lifts.js';
@@ -1618,11 +1619,10 @@ Output only the insight text, no JSON, no labels.`;
 // ─── Wellness Insight ──────────────────────────────────────────────────────────
 
 export async function generateWellnessInsight(params: {
-  recentCheckins: Array<{ mood: number; energy: number; sleepHours: number; stress: number; date: string }>;
+  recentCheckins: Array<{ mood: number | null; energy: number | null; sleepHours: number; stress: number | null; date: string }>;
 }): Promise<string> {
-  const summary = params.recentCheckins.slice(0, 7).map(c =>
-    `${c.date}: mood=${c.mood}/5, energy=${c.energy}/5, sleep=${c.sleepHours}h, stress=${c.stress}/5`
-  ).join('\n');
+  // Only the answers given — an unanswered field is left out, never read as a score.
+  const summary = params.recentCheckins.slice(0, 7).map(c => `${c.date}: ${describeCheckin(c)}`).join('\n');
 
   const prompt = `You are a sports recovery specialist. Analyze this athlete's recent wellness check-ins and provide ONE specific recovery recommendation (2–3 sentences).
 

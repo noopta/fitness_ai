@@ -63,6 +63,7 @@ export function YouPage() {
       <View style={{ marginTop: 34 }}>
         <Enter index={2} exit={false}><Row name="Strength profile" sub={total ? `${out} of ${total} ratios out of band` : 'Log sessions to unlock'} onPress={() => go('strength')} /></Enter>
         <Enter index={3} exit={false}><Row name="Body" value={kg ? `${fromKg(kg)} ${unit}` : undefined} arrow={!kg} onPress={() => go('body')} /></Enter>
+        <Enter index={4} exit={false}><Row name="Check in" sub="Sleep, energy, mood, stress — only what you tap" onPress={() => go('checkin')} /></Enter>
         <Enter index={4} exit={false}><Row name="Streak" value={streakDays != null ? `${streakDays} days` : undefined} arrow onPress={() => go('streak')} /></Enter>
         <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
         <Enter index={6} exit={false}><Row name="Billing" value={user?.tier === 'pro' || user?.tier === 'enterprise' ? 'Pro' : 'Free'} onPress={() => go('billing')} /></Enter>

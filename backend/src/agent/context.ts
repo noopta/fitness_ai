@@ -3,6 +3,7 @@
 // "go fetch specifics" layer. Token-budgeted on purpose: compact summaries,
 // not full history. The agent pulls detail via tools when it needs it.
 
+import { describeCheckin } from '../services/checkinText.js';
 import { PrismaClient } from '@prisma/client';
 import { readMemory } from './memory.js';
 import { bodyWeightKg, displayWeight, normalizePreference, unitLabel } from '../services/weightUnits.js';
@@ -202,7 +203,8 @@ export function renderContext(ctx: UserContext): string {
 
   if (ctx.lastWellness) {
     const w = ctx.lastWellness;
-    lines.push(`Last wellness check-in (${w.date}) — mood ${w.mood}/5, energy ${w.energy}/5, sleep ${w.sleepHours}h, stress ${w.stress}/5.`);
+    // Only what they answered — a blank isn't a low score.
+    lines.push(`Last wellness check-in (${w.date}) — ${describeCheckin(w)}.`);
   }
 
   if (ctx.memory.length) {

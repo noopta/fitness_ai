@@ -479,18 +479,20 @@ export const HEALTH_TOOLS = [
   // ── Wellness ──
   tool({
     name: 'log_wellness', kind: 'log', core: true, fn: 'WEL-01',
-    description: 'Log a check-in (one per day; a second replaces the first): sleepHours, mood 1–5, energy 1–5, stress 1–10 (1–3 fresh, 4–6 moderate, 7–10 fatigued). Estimate missing ones from what they said. If they haven’t given sleep, ask with ask_checkin instead.',
+    description: 'Log a check-in (one per day; a second replaces the first): sleepHours, mood 1–5, energy 1–5, stress 1–10 (1–3 fresh, 4–6 moderate, 7–10 fatigued). Save only what they told you — leave out anything they did not say; never estimate it from another answer. If they haven’t given sleep, ask with ask_checkin instead.',
     input_schema: schema({ sleepHours: { type: 'number' }, mood: { type: 'number' }, energy: { type: 'number' }, stress: { type: 'number' }, date: { type: 'string' } }, ['sleepHours']),
     receipt: () => ({ verb: 'Logged', text: 'Check-in' }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const clamp = (v: unknown, lo: number, hi: number, d: number) => Math.min(hi, Math.max(lo, Math.round(numOr(v, d)!)));
-      const inputRow = { date: /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today, sleepHours: Math.min(24, Math.max(0, numOr(input.sleepHours, 7)!)), mood: clamp(input.mood, 1, 5, 3), energy: clamp(input.energy, 1, 5, 3), stress: clamp(input.stress, 1, 10, 4) };
+      // Only what was said: an answer not given stays empty (null), never a middle-of-the-scale guess.
+      const opt = (v: unknown, lo: number, hi: number) => (numOr(v, null) == null ? null : clamp(v, lo, hi, lo));
+      const inputRow = { date: /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today, sleepHours: Math.min(24, Math.max(0, numOr(input.sleepHours, 7)!)), mood: opt(input.mood, 1, 5), energy: opt(input.energy, 1, 5), stress: opt(input.stress, 1, 10) };
       const change = await executeOp(userId, 'wellness.log', { input: inputRow });
       return { logged: change.summary, ...inputRow, _change: change };
     },
     card: (_i, r) => ({ fn: 'WEL-01', pattern: 'logged', rule: 'log_undo', meta: { label: 'Check-in', open: { page: 'you' } },
-      rows: [{ key: 'Sleep', value: `${num(r.sleepHours, 1)} h` }, { key: 'Energy', value: `${r.energy} of 5` }, { key: 'Mood', value: `${r.mood} of 5` }, { key: 'Stress', value: `${r.stress} of 10` }],
+      rows: [{ key: 'Sleep', value: `${num(r.sleepHours, 1)} h` }, ...(r.energy != null ? [{ key: 'Energy', value: `${r.energy} of 5` }] : []), ...(r.mood != null ? [{ key: 'Mood', value: `${r.mood} of 5` }] : []), ...(r.stress != null ? [{ key: 'Stress', value: `${r.stress} of 10` }] : [])],
       ...(r.sleepHours < 6 ? { actions: [{ id: 'lighter', label: 'Go easier today', kind: 'secondary', client: { action: 'send_message', args: { text: 'I slept badly. Make today lighter.' } } }] } : {}), undoLine: 'Undone — check-in removed' }),
   }),
   tool({

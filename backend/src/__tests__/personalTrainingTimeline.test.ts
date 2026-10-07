@@ -66,6 +66,13 @@ describe('event mappers', () => {
     expect(checkInEvent({ ...row, energy: 1 }, 'c1').flag).toEqual({ label: 'Low energy', tone: 'amber' });
   });
 
+  it('shows only the answered parts of a check-in and never flags a skipped one', () => {
+    const row = { id: 'k2', createdAt: at('2026-10-01T10:00:00Z'), mood: null, energy: null, sleepHours: 6, stress: null };
+    expect(checkInEvent(row, 'c1').body).toBe('Sleep 6 h');
+    expect(checkInEvent(row, 'c1').flag).toBeUndefined();
+    expect(checkInEvent({ ...row, energy: 2 }, 'c1').body).toBe('Energy 2/5 · Sleep 6 h');
+  });
+
   it('marks only the client’s latest message as unanswered', () => {
     const row = { id: 'm2', createdAt: at('2026-10-01T10:00:00Z'), senderId: 'c1', body: 'Knee is sore' };
     expect(messageEvent(row, 'c1', 'Maya', 'm2')).toMatchObject({ title: 'Maya', flag: { label: 'Unanswered', tone: 'zinc' } });

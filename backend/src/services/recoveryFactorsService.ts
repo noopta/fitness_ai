@@ -13,7 +13,8 @@ import { lbToKg, type UnitPreference } from './weightUnits.js';
 
 export interface BodyWeightPoint { date: string; weightLbs: number }
 export interface NutritionPoint { date: string; calories: number; proteinG: number }
-export interface WellnessPoint { date: string; sleepHours: number; stress: number; energy: number }
+// stress / energy are optional: only answered check-ins count toward them.
+export interface WellnessPoint { date: string; sleepHours: number; stress: number | null; energy: number | null }
 
 export type RecoveryFactorId =
   | 'calorie-deficit'
@@ -97,7 +98,7 @@ export function analyzeRecoveryFactors(input: RecoveryFactorsInput): RecoveryFac
     }
 
     // ── High stress (1-5 scale, higher = worse) ─────────────────────────
-    const avgStress = mean(input.wellness.map((w) => w.stress).filter((s) => s > 0));
+    const avgStress = mean(input.wellness.map((w) => w.stress).filter((s): s is number => s != null && s > 0));
     if (avgStress >= 3.5) {
       factors.push({
         id: 'high-stress',
@@ -107,7 +108,7 @@ export function analyzeRecoveryFactors(input: RecoveryFactorsInput): RecoveryFac
     }
 
     // ── Low energy (1-5 scale, lower = worse) ───────────────────────────
-    const avgEnergy = mean(input.wellness.map((w) => w.energy).filter((e) => e > 0));
+    const avgEnergy = mean(input.wellness.map((w) => w.energy).filter((e): e is number => e != null && e > 0));
     if (avgEnergy > 0 && avgEnergy <= 2.5) {
       factors.push({
         id: 'low-energy',

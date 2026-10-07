@@ -78,7 +78,7 @@ export function detectEvents(data: PracticeData, from: Date, pref: UnitPreferenc
       if (k.status === 'missed' && inWindow(k.dueAt)) push('missedCheckIn', `missed:${k.id}`, k.dueAt, `${c.name} missed a check-in`, '');
     }
     for (const w of d.wellness) {
-      if (inWindow(w.createdAt) && w.stress >= 4 && w.energy <= 2) {
+      if (inWindow(w.createdAt) && w.stress != null && w.energy != null && w.stress >= 4 && w.energy <= 2) {
         push('recoveryTrend', `recovery:${w.id}`, w.createdAt, `${c.name} reported high stress and low energy`, `Stress ${w.stress}/5, energy ${w.energy}/5, sleep ${w.sleepHours} h`);
       }
     }
