@@ -19,6 +19,7 @@ import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
 import { PromptSheet } from '../../primitives/Sheet';
 import { AccountPage, DeleteAccountPage } from './account';
+import { MealEditPage } from './mealEdit';
 import { manageSubscription } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
@@ -46,7 +47,7 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'workouts': return <WorkoutsPage />;
     case 'account': return <AccountPage />;
     case 'deleteaccount': return <DeleteAccountPage />;
-    case 'meal': return <MealPage id={arg} date={typeof params?.date === 'string' ? params.date : undefined} />;
+    case 'meal': return <MealEditPage id={arg} date={typeof params?.date === 'string' ? params.date : undefined} />;
     case 'strength': return <StrengthPage />;
     case 'ratios': return <RatiosPage />;
     case 'lift': return <LiftPage name={arg} />;
@@ -288,48 +289,6 @@ function NutrientPage({ nkey }: { nkey: string }) {
         {(d?.chain ?? []).map((c, i) => <Row key={i} name={c.title} sub={c.body} last={i === (d?.chain?.length ?? 0) - 1} />)}
       </View>
       {d?.watchFor ? <Text style={[T.caption, { marginTop: 18 }]}>{d.watchFor}</Text> : null}
-    </PushedPage>
-  );
-}
-
-// A meal from any day: chat's Logged card passes the meal's date, so a meal
-// logged to yesterday opens yesterday's list instead of "not in today's list".
-function MealPage({ id, date }: { id: string; date?: string }) {
-  const router = useRouter();
-  const meals = useMeals(date);
-  const invalidate = useInvalidate();
-  const shell = useShellOptional();
-  const rows: any[] = meals.data?.meals ?? meals.data?.entries ?? (Array.isArray(meals.data) ? meals.data : []);
-  const m = rows.find((x) => String(x.id) === id);
-  const [busy, setBusy] = React.useState(false);
-  // One-field sheet, on both platforms (Alert.prompt was iOS-only — Android taps did nothing).
-  const [fixing, setFixing] = React.useState<null | { field: 'calories' | 'proteinG' | 'carbsG' | 'fatG'; label: string }>(null);
-  const fix = (field: 'calories' | 'proteinG' | 'carbsG' | 'fatG', label: string) => setFixing({ field, label });
-  const saveFix = async (val: string) => {
-    const f = fixing; const n = Number(val);
-    if (!f || !Number.isFinite(n) || n < 0) return;
-    setBusy(true);
-    try { await nutritionApi.updateMeal(id, { [f.field]: n } as any); await invalidate.afterMeal(); setFixing(null); } catch (e: any) { Alert.alert('Couldn\'t save', e?.message ?? ''); }
-    setBusy(false);
-  };
-  const remove = () => Alert.alert('Delete this meal?', 'This cannot be undone.', [{ text: 'Keep', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { try { await nutritionApi.deleteMeal(id); await invalidate.afterMeal(); router.back(); } catch (e: any) { Alert.alert('Couldn\'t delete', e?.message ?? ''); } } }]);
-  const via = String(m?.source ?? '').toLowerCase();
-  const lead = /photo|snap/.test(via) ? 'Identified from your photo. Fix any number Anakin got wrong.' : /barcode|scan/.test(via) ? 'Scanned. Label values.' : /describe|voice|text/.test(via) ? 'From your description.' : 'Entered by hand.';
-  return (
-    <PushedPage back="Fuel" meta={m ? `${m.mealType ?? ''}${via ? ` · via ${via.split('_')[0]}` : ''}` : null} title={m?.name ?? m?.description ?? 'Meal'} lead={m ? lead : null} loading={meals.isLoading}
-      foot={m ? [{ label: 'Save as recipe', onPress: () => { shell?.ask(`Save "${m.name ?? m.description}" as a recipe`); router.replace('/(v2)' as any); } }, { label: 'Delete', onPress: remove }] : undefined}>
-      {m ? (
-        <View>
-          <Row name="Calories" sub="Fix" value={`${Math.round(m.calories ?? 0)}`} bigValue onPress={() => fix('calories', 'calories')} />
-          <Row name="Protein" sub="Fix" value={`${Math.round(m.proteinG ?? 0)} g`} onPress={() => fix('proteinG', 'protein')} />
-          <Row name="Carbs" sub="Fix" value={`${Math.round(m.carbsG ?? 0)} g`} onPress={() => fix('carbsG', 'carbs')} />
-          <Row name="Fat" sub="Fix" value={`${Math.round(m.fatG ?? 0)} g`} onPress={() => fix('fatG', 'fat')} last />
-          {busy ? <Text style={[T.caption, { marginTop: 10 }]}>Saving…</Text> : null}
-          <PromptSheet visible={!!fixing} title={`Fix ${fixing?.label ?? ''}`} sub={fixing ? `Anakin read ${Math.round(m?.[fixing.field] ?? 0)}. What should it be?` : undefined}
-            initial={fixing ? String(Math.round(m?.[fixing.field] ?? 0)) : ''} keyboardType="decimal-pad" unit={fixing?.field === 'calories' ? 'kcal' : 'g'}
-            onSubmit={saveFix} onClose={() => setFixing(null)} />
-        </View>
-      ) : <Text style={T.bodyMuted}>{meals.isLoading ? '' : 'Couldn\'t find that meal — it may have been deleted.'}</Text>}
     </PushedPage>
   );
 }
