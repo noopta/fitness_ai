@@ -4,7 +4,8 @@
 // profile row does exactly that.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Platform, StyleSheet } from 'react-native';
+import { View, Text, Platform, StyleSheet } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';

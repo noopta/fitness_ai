@@ -6,7 +6,8 @@
 // Ask line opens the composer.
 
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { PushedPage } from '../../shell/Page';

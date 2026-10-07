@@ -5,7 +5,8 @@
 // whole row (a past phase, a done week). Crimson never appears in a row.
 
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, type StyleProp, type ViewStyle, type TextStyle } from 'react-native';
+import { View, Text, StyleSheet, type StyleProp, type ViewStyle, type TextStyle } from 'react-native';
+import { Pressable } from './Pressable';
 import { v2, T } from '../theme';
 import { haptics } from '../haptics';
 

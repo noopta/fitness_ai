@@ -6,7 +6,8 @@
 // pick).
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Pressable } from './Pressable';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { v2, T } from '../theme';
 import { Enter } from './Enter';

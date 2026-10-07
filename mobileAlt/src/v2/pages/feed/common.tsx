@@ -3,7 +3,8 @@
 // for search pages, and the Ask line.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, Image, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { View, Text, TextInput, Image, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';

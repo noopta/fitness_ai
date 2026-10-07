@@ -10,7 +10,8 @@
 // No scroll area inside the card: the chat scrolls.
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, Platform, StyleSheet } from 'react-native';
+import { View, Text, Platform, StyleSheet } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import type { BatchBlock, BatchSession } from '@axiom/agent-ui-core';
 import { K, S } from './tokens';

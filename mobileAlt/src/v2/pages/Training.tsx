@@ -8,7 +8,8 @@
 // container. All four bands stay mounted; closed content is just clipped.
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, AccessibilityInfo, PixelRatio, type LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, AccessibilityInfo, PixelRatio, type LayoutChangeEvent } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {

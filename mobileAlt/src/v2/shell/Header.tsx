@@ -3,7 +3,8 @@
 // anywhere. The mark tints crimson and pulses while Anakin works.
 
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { v2, T } from '../theme';

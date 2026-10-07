@@ -27,7 +27,8 @@
 // pad grows. Each morph's frame times are reported (`v2_morph_perf`).
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedReaction, useFrameCallback, runOnJS, interpolate, interpolateColor, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';

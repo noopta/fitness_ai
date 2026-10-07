@@ -9,7 +9,8 @@
 // this screen owns sequencing via the reducer in @axiom/agent-ui-core.
 
 import React, { useEffect, useReducer, useRef, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Switch, Linking, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Switch, Linking, Alert } from 'react-native';
+import { Pressable } from '../../src/v2/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';

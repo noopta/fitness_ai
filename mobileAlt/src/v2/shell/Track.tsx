@@ -3,7 +3,10 @@
 // Swipe anywhere to move between pages; the pill follows the finger; the
 // header title cross-fades at the midpoint; rubber-band at the ends; tap the
 // bar to jump. 520ms cubic-bezier(.2,.9,.25,1). Vertical scroll inside a page
-// wins when the movement is vertical (activeOffsetX ±12 / failOffsetY ±8).
+// wins when the movement is vertical (activeOffsetX ±10 / failOffsetY ±16).
+// A thumb swipe arcs: at ±8 the pan gave up on ordinary diagonal swipes and the
+// touch fell through to the row under it (7 Oct). Rows also ignore taps that
+// travel past touch slop (primitives/Pressable).
 // Constraint honoured by construction: no page owns a horizontal gesture.
 //
 // The math lives in @axiom/agent-ui-core/track (tested); the worklets below
@@ -62,8 +65,8 @@ export function Track({ pages, headerRight }: Props) {
   useEffect(() => { shell.registerGoTo(goTo); }, [goTo, shell]);
 
   const pan = Gesture.Pan()
-    .activeOffsetX([-12, 12])
-    .failOffsetY([-8, 8])
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-16, 16])
     .onBegin(() => { startT.value = Date.now(); })
     .onUpdate((e) => {
       'worklet';

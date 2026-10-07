@@ -6,7 +6,8 @@
 // re-render, a scroll-recycle or a card_set never replays it.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Pressable, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import { View, Text, Image, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import Svg, { Path, Line, Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedProps, useAnimatedStyle, withTiming, withDelay, withRepeat, withSequence, useReducedMotion, Easing } from 'react-native-reanimated';
 import type { Card } from '@axiom/agent-ui-core';

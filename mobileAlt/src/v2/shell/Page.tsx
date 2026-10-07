@@ -8,7 +8,8 @@
 // template for every detail page in the app (Remaining Flows 4a–4d).
 
 import React from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl, type StyleProp, type ViewStyle } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

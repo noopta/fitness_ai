@@ -3,7 +3,8 @@
 // slides fractionally with the finger. The only blur in the app.
 
 import React from 'react';
-import { View, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
+import { Pressable } from './Pressable';
 import { BlurView } from 'expo-blur';
 import Svg, { Path } from 'react-native-svg';
 import Animated, { useAnimatedStyle, interpolateColor, type SharedValue } from 'react-native-reanimated';

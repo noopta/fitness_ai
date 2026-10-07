@@ -9,7 +9,8 @@
 // rows and write receipts; "Back to Anakin" streams a summary turn.
 
 import React, { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, AppState } from 'react-native';
+import { View, Text, StyleSheet, Alert, AppState } from 'react-native';
+import { Pressable } from '../../src/v2/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';

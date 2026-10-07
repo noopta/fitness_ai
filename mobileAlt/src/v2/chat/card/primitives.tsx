@@ -3,7 +3,8 @@
 // callback; the card decides what a tap means.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Platform } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import type { Card, CardAction, CardRow } from '@axiom/agent-ui-core';

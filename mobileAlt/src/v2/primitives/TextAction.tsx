@@ -5,7 +5,8 @@
 // onboarding (the paywall's "Start free week").
 
 import React from 'react';
-import { Text, Pressable, StyleSheet, View, ActivityIndicator, type StyleProp, type ViewStyle } from 'react-native';
+import { Text, StyleSheet, View, ActivityIndicator, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from './Pressable';
 import { v2, T } from '../theme';
 import { haptics } from '../haptics';
 

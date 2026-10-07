@@ -7,7 +7,8 @@
 // your foods and recipes, Enter macros manually, Voice and Order · receipt.
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { v2, T } from '../theme';
 import { TabPage, PageTitle, AnakinRead } from '../shell/Page';

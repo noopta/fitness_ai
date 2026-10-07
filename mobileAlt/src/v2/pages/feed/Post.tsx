@@ -7,7 +7,8 @@
 // Posts are separated by a #e4e4e7 hairline; 18 pt vertical padding.
 
 import React, { memo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Pressable } from '../../primitives/Pressable';
 import { v2, T } from '../../theme';
 import { haptics } from '../../haptics';
 import { socialApi } from '../../../lib/api';

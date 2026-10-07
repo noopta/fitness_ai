@@ -18,7 +18,8 @@
 
 import { captureBus } from '../../src/v2/chat/captureBus';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, Image, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Alert, Image, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { Pressable } from '../../src/v2/primitives/Pressable';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';

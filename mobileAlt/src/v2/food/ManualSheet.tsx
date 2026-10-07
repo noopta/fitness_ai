@@ -6,7 +6,8 @@
 // above the keyboard.
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, Alert, useWindowDimensions } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';

@@ -4,7 +4,8 @@
 // full page. The user can act on the card directly or ask Anakin to.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Alert } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { v2, T } from '../theme';

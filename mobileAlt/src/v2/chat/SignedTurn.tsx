@@ -16,7 +16,8 @@
 // streams only the streaming turn re-renders.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, AccessibilityInfo } from 'react-native';
+import { Pressable } from '../primitives/Pressable';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { receiptSummary, workingLabel, turnA11yLabel, type Turn } from '@axiom/agent-ui-core';
 import { v2, T } from '../theme';
