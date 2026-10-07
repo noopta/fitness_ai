@@ -162,8 +162,13 @@ export function proposeMoveLater<D extends { date: string; dayLabel?: string; se
     return { ...d, session: d.session ?? null, isTrainingDay: !!d.session, isSwapped: false, locked };
   });
 
-  const from = source.dayLabel ?? sourceDate;
-  const to = target.dayLabel ?? date;
+  // Day labels repeat across two weeks, so say which Sunday when it isn't this week's.
+  const label = (d: { date: string; dayLabel?: string }) => {
+    const l = d.dayLabel ? d.dayLabel.charAt(0) + d.dayLabel.slice(1).toLowerCase() : d.date;
+    return weekDays.findIndex((w) => w.date === d.date) >= 7 ? `next ${l}` : l;
+  };
+  const from = label(source);
+  const to = label(target);
   const rationale = displaced
     ? `Moved ${chosen.day} from ${from} to ${to}; ${displaced.day} takes ${from} instead.`
     : `Moved ${chosen.day} from ${from} to ${to}; ${from} is now a rest day.`;
