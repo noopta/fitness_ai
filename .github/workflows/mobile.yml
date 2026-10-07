@@ -44,8 +44,11 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_SKIP_AUTO_FINGERPRINT: '1'
+          # Through env, first line only: a commit message with quotes in it
+          # broke the shell command when interpolated inline (7 Oct).
+          MSG: ${{ github.event.head_commit.message }}
         run: |
-          npx eas-cli update --branch dev --message "${{ github.event.head_commit.message }}" --non-interactive
+          npx eas-cli update --branch dev --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
 
   # ── Main branch: OTA to production channel (instant, no build needed) ─────
   ota-production:
@@ -68,8 +71,11 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_SKIP_AUTO_FINGERPRINT: '1'
+          # Through env, first line only: a commit message with quotes in it
+          # broke the shell command when interpolated inline (7 Oct).
+          MSG: ${{ github.event.head_commit.message }}
         run: |
-          npx eas-cli update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
+          npx eas-cli update --branch production --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
 
   # ── Backport branches: OTA for an older store runtime ─────────────────────
   # The runtime comes from the branch's own app.json, so a 3.1.0 backport only
