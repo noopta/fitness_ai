@@ -10,6 +10,7 @@ import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
 import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
 import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
+import { cancelActiveSubscriptions, liveSubscriptionEnd } from '../services/stripeService.js';
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
 import posthog from '../services/posthogClient.js';
@@ -1167,6 +1168,37 @@ router.get('/auth/export', exportAuth, outboundNotifyLimiter, async (req, res) =
   }
 });
 
+// GET /api/auth/account/deletion-preview — what deleting the account removes,
+// and what happens to billing, for the confirm screen (v2 A-03). Read-only.
+router.get('/auth/account/deletion-preview', requireAuth, async (req, res) => {
+  const userId = req.user!.id;
+  const count = async (fn: () => Promise<number>) => { try { return await fn(); } catch { return 0; } };
+  try {
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, stripeCustomerId: true, stripeSubStatus: true, appleOriginalTransactionId: true, googlePurchaseToken: true } });
+    const [workouts, meals, weighIns, posts, messages, friends] = await Promise.all([
+      count(() => prisma.workoutLog.count({ where: { userId } })),
+      count(() => prisma.mealEntry.count({ where: { userId } })),
+      count(() => prisma.bodyWeightLog.count({ where: { userId } })),
+      count(() => (prisma as any).sharedItem.count({ where: { sharerId: userId } })),
+      count(() => (prisma as any).message.count({ where: { senderId: userId } })),
+      count(() => (prisma as any).friendship.count({ where: { status: 'accepted', OR: [{ requesterId: userId }, { addresseeId: userId }] } })),
+    ]);
+    const stripeLive = !!u?.stripeCustomerId && ['active', 'trialing', 'past_due'].includes(u?.stripeSubStatus ?? '');
+    const rail = stripeLive ? 'stripe' : u?.appleOriginalTransactionId ? 'apple' : u?.googlePurchaseToken ? 'google' : 'none';
+    let renewsOn: string | null = null;
+    if (stripeLive && process.env.STRIPE_SECRET_KEY) renewsOn = await liveSubscriptionEnd(u!.stripeCustomerId!).catch(() => null);
+    res.json({
+      counts: { workouts, meals, weighIns, posts, messages, friends },
+      billing: { pro: u?.tier === 'pro' || u?.tier === 'enterprise', rail, renewsOn,
+        // Stripe is cancelled for them on delete; the stores can't be cancelled from here.
+        cancelledOnDelete: rail === 'stripe' },
+    });
+  } catch (err: any) {
+    console.error('deletion-preview error:', err?.message ?? err);
+    res.status(500).json({ error: 'Couldn\'t load that. Try again.' });
+  }
+});
+
 router.delete('/auth/account', requireAuth, async (req, res) => {
   const userId = req.user!.id;
   try {
@@ -1182,6 +1214,23 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
     };
 
     const email = (await prisma.user.findUnique({ where: { id: userId }, select: { email: true } }))?.email ?? null;
+
+    // Stop billing first. A web (Stripe) subscriber who deletes their account
+    // would otherwise keep being charged with no account left to cancel from.
+    // If Stripe can't be reached, nothing is deleted — they can try again.
+    // App Store / Google Play subscriptions can't be cancelled by us; the app
+    // tells those users to cancel in their store before deleting.
+    const billing = await prisma.user.findUnique({ where: { id: userId }, select: { stripeCustomerId: true } });
+    if (billing?.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
+      try {
+        const n = await cancelActiveSubscriptions(billing.stripeCustomerId);
+        if (n) console.log(`[account-delete] cancelled ${n} Stripe subscription(s) for ${userId}`);
+      } catch (e: any) {
+        console.error(`[account-delete] Stripe cancel failed for ${userId}:`, e?.message ?? e);
+        return res.status(502).json({ error: 'We couldn\'t cancel your subscription, so nothing was deleted. Try again in a minute.' });
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       const t = tx as any;
 

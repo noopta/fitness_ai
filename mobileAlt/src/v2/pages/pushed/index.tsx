@@ -18,6 +18,7 @@ import { strengthRead } from '../You';
 import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
 import { PromptSheet } from '../../primitives/Sheet';
+import { AccountPage, DeleteAccountPage } from './account';
 import { manageSubscription } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
@@ -43,6 +44,8 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'micros': return <MicrosPage />;
     case 'mic': return <NutrientPage nkey={arg} />;
     case 'workouts': return <WorkoutsPage />;
+    case 'account': return <AccountPage />;
+    case 'deleteaccount': return <DeleteAccountPage />;
     case 'meal': return <MealPage id={arg} date={typeof params?.date === 'string' ? params.date : undefined} />;
     case 'strength': return <StrengthPage />;
     case 'ratios': return <RatiosPage />;

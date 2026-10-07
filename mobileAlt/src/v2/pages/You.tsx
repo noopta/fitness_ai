@@ -66,7 +66,8 @@ export function YouPage() {
         <Enter index={4} exit={false}><Row name="Streak" value={streakDays != null ? `${streakDays} days` : undefined} arrow onPress={() => go('streak')} /></Enter>
         <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
         <Enter index={6} exit={false}><Row name="Billing" value={user?.tier === 'pro' || user?.tier === 'enterprise' ? 'Pro' : 'Free'} onPress={() => go('billing')} /></Enter>
-        <Enter index={7} exit={false}><Row name="Preferences" onPress={() => go('prefs')} last /></Enter>
+        <Enter index={7} exit={false}><Row name="Preferences" onPress={() => go('prefs')} /></Enter>
+        <Enter index={8} exit={false}><Row name="Account" sub="Photo, name, region, delete account" onPress={() => go('account')} last /></Enter>
       </View>
       <Text style={[T.caption, { marginTop: 20 }]}>Form analyses and sharing live under Training and after a session.</Text>
     </TabPage>

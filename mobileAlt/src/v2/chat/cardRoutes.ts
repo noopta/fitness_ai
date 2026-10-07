@@ -23,8 +23,10 @@ const PUSHED: Record<string, string | null> = {
   messages: null, thread: 'id', feedsearch: null, saved: null, post: 'id',
   // Logged workouts, newest first (chat's history cards open this, not Past programs).
   workouts: null,
+  // Account (handoff A-01, A-03).
+  account: null, deleteaccount: null,
 };
-const ALIAS: Record<string, string> = { conversation: 'thread', search: 'feedsearch', traintogether: 'together', account: 'prefs', usage: 'plan', saved_foods: 'savedfoods', history: 'workouts', workout_history: 'workouts', gut: 'systems' };
+const ALIAS: Record<string, string> = { conversation: 'thread', search: 'feedsearch', traintogether: 'together',  usage: 'plan', saved_foods: 'savedfoods', history: 'workouts', workout_history: 'workouts', gut: 'systems' };
 
 export function destinationFor(route: CardRoute): Destination | null {
   const page = ALIAS[route.page] ?? route.page;

@@ -6,6 +6,7 @@ import {
 import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { v2SuppressedSync, setPreferClassic } from '../../src/v2/crashGuard';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/context/AuthContext';
@@ -565,6 +566,21 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Account</Text>
           <View style={styles.card}>
+            {/* Shown only to someone on the new UI who switched back to classic on this phone (v2 A-04). */}
+            {auth.getFeatures().uiV2 && v2SuppressedSync() ? (
+              <>
+                <TouchableOpacity
+                  onPress={() => { void setPreferClassic(false).then(() => router.replace('/(v2)' as any)); }}
+                  activeOpacity={0.7}
+                  style={styles.accountRow}
+                >
+                  <Ionicons name="sparkles-outline" size={20} color={colors.foreground} />
+                  <Text style={[styles.signOutText, { color: colors.foreground }]}>Try the new Axiom</Text>
+                  <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+                </TouchableOpacity>
+                <View style={styles.rowDivider} />
+              </>
+            ) : null}
             <TouchableOpacity
               onPress={handleSignOut}
               activeOpacity={0.7}
