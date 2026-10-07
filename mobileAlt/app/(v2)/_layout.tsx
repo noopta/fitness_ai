@@ -36,6 +36,7 @@ export default function V2Layout() {
       >
         <Stack.Screen name="index" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="session" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="log" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
         <Stack.Screen name="capture" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="paywall" options={{ animation: 'fade', gestureEnabled: false }} />

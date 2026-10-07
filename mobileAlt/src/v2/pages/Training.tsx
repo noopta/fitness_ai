@@ -131,6 +131,9 @@ export function TrainingPage() {
     if (screenReader.current) AccessibilityInfo.announceForAccessibility(`${TITLES[b]}. ${summaries[b].spoken}`);
   }, [band, summaries]);
 
+  // + Log (handoff T-01): the on-screen logger — any workout, any day.
+  const logWorkout = useCallback(() => { haptics.select(); router.push('/(v2)/log' as any); }, [router]);
+
   // Stable callbacks so the memoized band contents don't re-render on a band switch.
   const onLift = useCallback((name: string) => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: `lift:${name}` } } as any); }, [router]);
   const onPhase = useCallback((i: number) => { haptics.select(); setPhaseSel(i); }, []);
@@ -159,6 +162,7 @@ export function TrainingPage() {
   if (data && !data.program) {
     return (
       <View style={[styles.page, pad]}>
+        <TrainingActions onLog={logWorkout} />
         <AnakinRead text="No program on file. Tell me what you're working toward and I'll build the first week." />
         <TextAction primary onPress={() => router.push('/(v2)/onboarding' as any)} style={{ marginTop: 18 }}>Build a program</TextAction>
       </View>
@@ -167,6 +171,7 @@ export function TrainingPage() {
 
   return (
     <View style={[styles.page, pad]}>
+      <TrainingActions onLog={logWorkout} />
       <View style={styles.bands} onLayout={onLayout}>
         {BANDS.map((b, i) => (
           <BandView key={b} band={b} o={o[i]} fade={fade[i]} H={H} collapsed={collapsed} contentH={contentH} reduced={!!reduced}
@@ -180,6 +185,17 @@ export function TrainingPage() {
           </BandView>
         ))}
       </View>
+    </View>
+  );
+}
+
+/** Training's text actions (handoff Area 1): + Log now; Analyze joins it with T-14. */
+function TrainingActions({ onLog }: { onLog: () => void }) {
+  return (
+    <View style={styles.actions}>
+      <Pressable onPress={onLog} hitSlop={10} accessibilityRole="button" accessibilityLabel="Log a workout">
+        <Text style={[T.captionStrong, { color: v2.color.ink }]}>+ Log</Text>
+      </Pressable>
     </View>
   );
 }
@@ -490,6 +506,7 @@ export function WeekStrip({ days, onDay, proposalDates }: { days: any[]; onDay?:
 }
 
 const styles = StyleSheet.create({
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginBottom: 8 },
   page: { flex: 1, paddingHorizontal: v2.space.gutter },
   bands: { flex: 1 },
   band: { overflow: 'hidden', borderTopWidth: 1, borderTopColor: C.hairline },

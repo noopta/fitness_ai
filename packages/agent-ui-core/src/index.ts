@@ -6,3 +6,4 @@ export * from './onboarding';
 export * from './cards';
 export * from './signed';
 export * from './portion';
+export * from './logger';
