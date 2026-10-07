@@ -41,14 +41,15 @@ function FoodSearchScreenInner() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const invalidate = useInvalidate();
-  const params = useLocalSearchParams<{ from?: string }>();
+  const params = useLocalSearchParams<{ from?: string; open?: string }>();
   const fromChat = params.from === 'chat';
   const [text, setText] = useState('');
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState<Scope>('all');
   const [picked, setPicked] = useState<FoodResult | null>(null);
   const [manual, setManual] = useState(false);
-  const [classic, setClassic] = useState<Classic>(null);
+  // Chat's order-scan card lands here with open=order: the scan opens straight away.
+  const [classic, setClassic] = useState<Classic>(params.open === 'order' ? 'order' : null);
   useEffect(() => { trackScreen('v2.food_search'); }, []);
 
   const q = useQuery({

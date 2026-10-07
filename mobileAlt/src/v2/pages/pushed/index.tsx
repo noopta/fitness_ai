@@ -12,11 +12,13 @@ import { TextAction } from '../../primitives/TextAction';
 import { ReceiptList } from '../../primitives/Receipt';
 import { LineForecast, RatioBand, CoverageBar, WeekBars, Radar } from '../../charts';
 import { v2, T } from '../../theme';
-import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, qk } from '../../data';
+import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, useWorkouts, qk } from '../../data';
 import { programPhases, archiveHref, ArchiveRow } from '../Training';
 import { strengthRead } from '../You';
 import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
+import { PromptSheet } from '../../primitives/Sheet';
+import { manageSubscription } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
@@ -40,7 +42,8 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'sys': return <SystemPage id={arg} />;
     case 'micros': return <MicrosPage />;
     case 'mic': return <NutrientPage nkey={arg} />;
-    case 'meal': return <MealPage id={arg} />;
+    case 'workouts': return <WorkoutsPage />;
+    case 'meal': return <MealPage id={arg} date={typeof params?.date === 'string' ? params.date : undefined} />;
     case 'strength': return <StrengthPage />;
     case 'ratios': return <RatiosPage />;
     case 'lift': return <LiftPage name={arg} />;
@@ -112,6 +115,26 @@ function DayPage({ date }: { date: string }) {
       cta={s && day?.isToday && !day?.isLogged ? { label: 'Begin', onPress: () => router.push('/(v2)/session' as any) } : null}
       foot={s ? [{ label: 'Move this day', onPress: () => { shell?.ask(`Can we move ${s.name} from ${date}?`); router.replace('/(v2)' as any); } }] : undefined}>
       {ex.map((e, k) => <Row key={k} name={exName(e)} sub={e.notes || e.intensity || undefined} value={`${e.sets ?? '—'} × ${e.reps ?? '—'}`} last={k === ex.length - 1} />)}
+    </PushedPage>
+  );
+}
+
+// ─── Logged workouts ─────────────────────────────────────────────────────────
+// What was actually done, newest first — the page chat's workout-history cards open.
+function WorkoutsPage() {
+  const q = useWorkouts();
+  const list: any[] = Array.isArray(q.data) ? q.data : (q.data?.workouts ?? []);
+  const day = (d: string) => { const t = new Date(`${d}T12:00:00`); return Number.isNaN(t.getTime()) ? d : t.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); };
+  return (
+    <PushedPage back="Training" meta={list.length ? `${list.length} logged` : null} title="Workouts" lead="Everything you've logged, newest first. Ask Anakin to fix or remove one." loading={q.isLoading}
+      error={q.isError ? 'Couldn\'t load your workouts.' : null} onRetry={() => void q.refetch()}>
+      {list.slice(0, 100).map((w, i) => {
+        const ex: any[] = Array.isArray(w.exercises) ? w.exercises : [];
+        const sets = ex.reduce((a, e) => a + (Number(e.sets) || 0), 0);
+        return <Row key={w.id ?? i} name={w.title || ex.map((e) => e.name).slice(0, 2).join(', ') || 'Workout'} sub={[day(w.date), `${ex.length} exercise${ex.length === 1 ? '' : 's'}`, sets ? `${sets} sets` : ''].filter(Boolean).join(' · ')}
+          value={w.duration ? `${w.duration} min` : undefined} last={i === Math.min(list.length, 100) - 1} />;
+      })}
+      {!list.length && !q.isLoading ? <Text style={T.bodyMuted}>No workouts logged yet.</Text> : null}
     </PushedPage>
   );
 }
@@ -266,21 +289,25 @@ function NutrientPage({ nkey }: { nkey: string }) {
   );
 }
 
-function MealPage({ id }: { id: string }) {
+// A meal from any day: chat's Logged card passes the meal's date, so a meal
+// logged to yesterday opens yesterday's list instead of "not in today's list".
+function MealPage({ id, date }: { id: string; date?: string }) {
   const router = useRouter();
-  const meals = useMeals();
+  const meals = useMeals(date);
   const invalidate = useInvalidate();
   const shell = useShellOptional();
   const rows: any[] = meals.data?.meals ?? meals.data?.entries ?? (Array.isArray(meals.data) ? meals.data : []);
   const m = rows.find((x) => String(x.id) === id);
   const [busy, setBusy] = React.useState(false);
-  const fix = (field: 'calories' | 'proteinG' | 'carbsG' | 'fatG', label: string) => {
-    Alert.prompt?.(`Fix ${label}`, `Anakin read ${Math.round(m?.[field] ?? 0)}. What should it be?`, async (val) => {
-      const n = Number(val); if (!Number.isFinite(n)) return;
-      setBusy(true);
-      try { await nutritionApi.updateMeal(id, { [field]: n } as any); await invalidate.afterMeal(); } catch (e: any) { Alert.alert('Couldn\'t save', e?.message ?? ''); }
-      setBusy(false);
-    }, 'plain-text', String(Math.round(m?.[field] ?? 0)), 'numeric') ?? Alert.alert('Fix', 'Ask Anakin: "change the protein on my lunch to 40 g".');
+  // One-field sheet, on both platforms (Alert.prompt was iOS-only — Android taps did nothing).
+  const [fixing, setFixing] = React.useState<null | { field: 'calories' | 'proteinG' | 'carbsG' | 'fatG'; label: string }>(null);
+  const fix = (field: 'calories' | 'proteinG' | 'carbsG' | 'fatG', label: string) => setFixing({ field, label });
+  const saveFix = async (val: string) => {
+    const f = fixing; const n = Number(val);
+    if (!f || !Number.isFinite(n) || n < 0) return;
+    setBusy(true);
+    try { await nutritionApi.updateMeal(id, { [f.field]: n } as any); await invalidate.afterMeal(); setFixing(null); } catch (e: any) { Alert.alert('Couldn\'t save', e?.message ?? ''); }
+    setBusy(false);
   };
   const remove = () => Alert.alert('Delete this meal?', 'This cannot be undone.', [{ text: 'Keep', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { try { await nutritionApi.deleteMeal(id); await invalidate.afterMeal(); router.back(); } catch (e: any) { Alert.alert('Couldn\'t delete', e?.message ?? ''); } } }]);
   const via = String(m?.source ?? '').toLowerCase();
@@ -295,8 +322,11 @@ function MealPage({ id }: { id: string }) {
           <Row name="Carbs" sub="Fix" value={`${Math.round(m.carbsG ?? 0)} g`} onPress={() => fix('carbsG', 'carbs')} />
           <Row name="Fat" sub="Fix" value={`${Math.round(m.fatG ?? 0)} g`} onPress={() => fix('fatG', 'fat')} last />
           {busy ? <Text style={[T.caption, { marginTop: 10 }]}>Saving…</Text> : null}
+          <PromptSheet visible={!!fixing} title={`Fix ${fixing?.label ?? ''}`} sub={fixing ? `Anakin read ${Math.round(m?.[fixing.field] ?? 0)}. What should it be?` : undefined}
+            initial={fixing ? String(Math.round(m?.[fixing.field] ?? 0)) : ''} keyboardType="decimal-pad" unit={fixing?.field === 'calories' ? 'kcal' : 'g'}
+            onSubmit={saveFix} onClose={() => setFixing(null)} />
         </View>
-      ) : <Text style={T.bodyMuted}>That meal isn't in today's list.</Text>}
+      ) : <Text style={T.bodyMuted}>{meals.isLoading ? '' : 'Couldn\'t find that meal — it may have been deleted.'}</Text>}
     </PushedPage>
   );
 }
@@ -427,10 +457,10 @@ function BillingPage() {
   const router = useRouter();
   const pro = user?.tier === 'pro' || user?.tier === 'enterprise';
   const [busy, setBusy] = React.useState(false);
+  // Stripe subscribers get the portal; App Store / Google Play subscribers go straight to their store page.
   const portal = async () => {
     setBusy(true);
-    try { const r: any = await paymentsApi.getPaymentsPortal(); if (r?.url) await WebBrowser.openBrowserAsync(r.url); else Alert.alert('Manage in the store', 'Your subscription is managed through the App Store or Google Play.'); } catch { Alert.alert('Manage in the store', 'Your subscription is managed through the App Store or Google Play.'); }
-    setBusy(false);
+    try { await manageSubscription(); } finally { setBusy(false); }
   };
   return (
     <PushedPage back="You" title={pro ? 'Pro' : 'Free'} lead={pro ? 'Anakin, unlimited.' : 'Diagnosis is free. Pro is the coach that runs the plan with you.'}

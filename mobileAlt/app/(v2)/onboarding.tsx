@@ -11,6 +11,7 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Switch, Linking, Alert } from 'react-native';
 import { Pressable } from '../../src/v2/primitives/Pressable';
+import { PromptSheet } from '../../src/v2/primitives/Sheet';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -40,6 +41,7 @@ function OnboardingScreenInner() {
   const { refreshUser, user } = useAuth();
   const invalidate = useInvalidate();
   const [s, dispatch] = useReducer(onboardingReducer, undefined, initialOnboarding);
+  const [editingPrefill, setEditingPrefill] = useState<null | { key: string; label: string; value: string }>(null);
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState(-1);
   const [chipsOp, setChipsOp] = useState(1);
@@ -162,8 +164,10 @@ function OnboardingScreenInner() {
           <View style={{ marginTop: 36 }}>
             <Enter exit={false}><Text style={T.headlineSm}>I have {s.prefilled.length} of 20 already. Check these.</Text></Enter>
             <View style={{ marginTop: 24 }}>
-              {s.prefilled.map((x, i) => <Enter key={x.key} index={i + 1} exit={false}><Row name={x.label} sub={x.source} value={x.value} last={i === s.prefilled.length - 1} onPress={() => Alert.prompt?.(x.label, `Currently ${x.value}`, (v) => v && dispatch({ type: 'edit_prefilled', key: x.key, value: v }), 'plain-text', x.value)} /></Enter>)}
+              {s.prefilled.map((x, i) => <Enter key={x.key} index={i + 1} exit={false}><Row name={x.label} sub={x.source} value={x.value} last={i === s.prefilled.length - 1} onPress={() => setEditingPrefill({ key: x.key, label: x.label, value: x.value })} /></Enter>)}
             </View>
+            <PromptSheet visible={!!editingPrefill} title={editingPrefill?.label ?? ''} sub={editingPrefill ? `Currently ${editingPrefill.value}` : undefined} initial={editingPrefill?.value ?? ''}
+              onSubmit={(v) => { if (editingPrefill) dispatch({ type: 'edit_prefilled', key: editingPrefill.key, value: v }); setEditingPrefill(null); }} onClose={() => setEditingPrefill(null)} />
             <Text style={[T.caption, { marginTop: 14 }]}>Tap any row to change it. I'll ask about the other {Math.max(0, 20 - s.prefilled.length - s.questions.length)}.</Text>
             <TextAction primary onPress={() => { haptics.light(); dispatch({ type: 'prefilled_ok' }); }} style={{ marginTop: 24 }}>Looks right</TextAction>
           </View>

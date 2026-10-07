@@ -447,7 +447,18 @@ export function HomePage() {
                   dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />;
               })}
               </CardHandlersProvider>
-              {thread.state.error ? <Text style={T.caption}>{thread.state.error}</Text> : null}
+              {thread.state.error ? (
+                <View style={{ marginTop: TURN_GAP, gap: 10 }}>
+                  <Text style={T.caption}>{thread.state.error}</Text>
+                  {thread.failure ? (
+                    <View style={{ flexDirection: 'row', gap: 24 }}>
+                      {thread.failure.limit
+                        ? <Pressable onPress={() => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any)} hitSlop={8} accessibilityRole="button"><Text style={[T.captionStrong, { color: C.crimson }]}>Go Pro →</Text></Pressable>
+                        : <Pressable onPress={thread.retry} hitSlop={8} accessibilityRole="button"><Text style={[T.captionStrong, { color: C.crimson }]}>Try again</Text></Pressable>}
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
               <Animated.View style={threadPad} />
             </Animated.ScrollView>
             {/* The thread fades out under the header rather than being cut by it. */}

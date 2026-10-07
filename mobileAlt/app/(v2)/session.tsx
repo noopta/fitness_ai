@@ -7,6 +7,13 @@
 // countdown at 96pt, a draining crimson hairline, the last receipt (with a
 // one-tap revert), Up next, Add 30 s / I'm ready, auto-advance. Done: stats
 // rows and write receipts; "Back to Anakin" streams a summary turn.
+//
+// Nothing done is lost. The session saves itself the moment it reaches Done
+// (not only on "Back to Anakin"). A session in progress is kept on the phone
+// as a draft after every set, so Leave, "Something hurts" and "Swap this lift"
+// can all come back to it; opening the session the same day picks it up where
+// it stopped. Leaving with sets done offers to save what's there. Each set is
+// saved as its own entry, linked to the planned day so progression can read it.
 
 import React, { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Alert, AppState } from 'react-native';
@@ -15,7 +22,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, type PlanExercise, type WorkoutState } from '@axiom/agent-ui-core';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
+import { todayStr } from '../../src/lib/localDate';
 import { v2, T } from '../../src/v2/theme';
 import { Row, Eyebrow } from '../../src/v2/primitives/Row';
 import { Enter } from '../../src/v2/primitives/Enter';
@@ -32,6 +41,11 @@ import { Mark } from '../../src/v2/primitives/Mark';
 import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } from '../../src/v2/format';
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
+
+const DRAFT_KEY = 'v2.sessionDraft.v1';
+const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
+const writeDraft = (d: WorkoutDraft) => { void AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(d)).catch(() => {}); };
+const clearDraft = () => { void AsyncStorage.removeItem(DRAFT_KEY).catch(() => {}); };
 
 function parseReps(r: any): number | string { const n = typeof r === 'number' ? r : parseInt(String(r ?? ''), 10); return Number.isFinite(n) && n > 0 ? n : String(r ?? 8); }
 
@@ -50,12 +64,36 @@ function SessionScreenInner() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const advRef = useRef(false);
+  const title: string = session?.name ?? session?.day ?? 'Session';
+  // Checked once before the plan is built: a same-day draft with sets in it wins.
+  const [draftChecked, setDraftChecked] = useState(false);
+  const [resumed, setResumed] = useState(false);
 
   useEffect(() => { trackScreen('v2.session'); }, []);
 
+  useEffect(() => {
+    void loadDraft().then((raw) => {
+      const d = resumableDraft(raw, todayStr(), Date.now());
+      if (d) {
+        setPlan(d.plan);
+        // Restored paused (the time away isn't session time), then running again from now.
+        dispatch({ type: 'restore', state: d.state, now: d.savedAt });
+        dispatch({ type: 'resume', now: Date.now() });
+        setResumed(true);
+      }
+      setDraftChecked(true);
+    });
+  }, []);
+
+  // Keep the session on the phone after every change once a set is done — until it's saved.
+  useEffect(() => {
+    if (!plan || saved || !hasProgress(state)) return;
+    writeDraft({ v: 1, date: todayStr(), title, plan, state, savedAt: Date.now() });
+  }, [state, plan, saved, title]);
+
   // Build the plan: load from the last logged set of each exercise, rest from the rep range, cue from the program's notes.
   useEffect(() => {
-    if (plan || !session) return;
+    if (plan || !session || !draftChecked) return;
     const ex: any[] = session.exercises ?? [];
     (async () => {
       const out: PlanExercise[] = await Promise.all(ex.map(async (e) => {
@@ -69,7 +107,7 @@ function SessionScreenInner() {
       }));
       setPlan(out);
     })();
-  }, [session, plan, fromKg, rules]);
+  }, [session, plan, fromKg, rules, draftChecked]);
 
   // The clock.
   useEffect(() => {
@@ -98,30 +136,64 @@ function SessionScreenInner() {
   const back = () => {
     if (state.step === 'overview' || state.step === 'done') return router.back();
     dispatch({ type: 'pause', now: Date.now() });
-    Alert.alert('Pause the session?', 'Your sets are kept. Come back to resume.', [
+    if (!hasProgress(state)) {
+      Alert.alert('Leave the session?', 'Nothing is logged yet.', [
+        { text: 'Stay', style: 'cancel', onPress: () => dispatch({ type: 'resume', now: Date.now() }) },
+        { text: 'Leave', style: 'destructive', onPress: () => router.back() },
+      ]);
+      return;
+    }
+    Alert.alert('Pause the session?', 'Your sets stay on this phone for today — open the session again to pick up where you stopped.', [
       { text: 'Resume', style: 'cancel', onPress: () => dispatch({ type: 'resume', now: Date.now() }) },
-      { text: 'Leave', style: 'destructive', onPress: () => router.back() },
+      { text: 'Save what I did', onPress: () => void save({ thenAsk: true }) },
+      { text: 'Leave for now', onPress: () => router.back() },
     ]);
   };
   const rate = (rating: 'easy' | 'hard' | 'miss') => { haptics.select(); setTimeout(() => dispatch({ type: 'rate', rating, now: Date.now(), plan: P, rules }), 300); };
-  const handOff = (m: string) => { shell?.ask(m); router.back(); };
-  const finish = async () => {
-    if (saving) return;
+  // The draft is already on the phone; handing off to chat keeps it for when they come back.
+  const handOff = (m: string) => { dispatch({ type: 'pause', now: Date.now() }); shell?.ask(m); router.back(); };
+  const summaryMsg = () => {
+    const sum = summarize(state, P, Date.now());
+    return `I just finished ${title}: ${sum.sets} of ${sum.totalSets} sets, ${sum.minutes} min, top set ${sum.topSet}${state.nextWeek.length ? `, and ${state.nextWeek.map((n) => `${P[n.ex]?.name} felt easy on the last set`).join('; ')}` : ''}. What changes for next time?`;
+  };
+  // Saves what's been done (all of it at Done, or part of it from Leave). Linked to today's planned day.
+  const save = async (opts: { thenAsk: boolean }): Promise<boolean> => {
+    if (saving) return false;
+    if (saved) { if (opts.thenAsk) { shell?.ask(summaryMsg()); router.back(); } return true; }
     setSaving(true);
     const sum = summarize(state, P, Date.now());
-    const title = session?.name ?? session?.day ?? 'Session';
     try {
-      const body = toWorkoutLogBody(state, P, title, new Date().toISOString().slice(0, 10), Date.now());
-      await workoutsApi.logWorkout({ date: body.date, title: body.title, exercises: body.exercises.map((e) => ({ name: e.name, sets: e.sets, reps: e.reps, weightKg: e.weight ? toKg(e.weight) : null, rpe: e.rpe ?? null, notes: e.notes ?? null, bodyweight: !e.weight })), duration: body.duration } as any);
+      const body = toWorkoutLogBody(state, P, title, todayStr(), Date.now());
+      const kg = (w: number | null | undefined) => (w ? toKg(w) : null);
+      await workoutsApi.logWorkout({
+        date: body.date, title: body.title, duration: body.duration,
+        programDayRef: today.data?.programDayRef ?? null,
+        exercises: body.exercises.map((e) => ({
+          name: e.name, sets: e.sets, reps: e.reps, weightKg: kg(e.weight), rpe: e.rpe ?? null, notes: e.notes ?? null, bodyweight: !e.weight,
+          setEntries: e.setEntries.map((x) => ({ weightKg: kg(x.weight), reps: x.reps, rpe: x.rpe })),
+        })),
+      } as any);
+      clearDraft();
       await invalidate.afterWorkout();
       setSaved(`${title} · ${sum.sets} sets · ${sum.minutes} min`);
       haptics.success();
-    } catch (e: any) { Alert.alert('Couldn\'t save the session', e?.message ?? 'Try again.'); setSaving(false); return; }
+    } catch (e: any) {
+      Alert.alert('Couldn\'t save the session', `${e?.message ?? 'Try again.'} Your sets are still on this phone.`);
+      setSaving(false);
+      return false;
+    }
     setSaving(false);
-    const summaryMsg = `I just finished ${title}: ${sum.sets} of ${sum.totalSets} sets, ${sum.minutes} min, top set ${sum.topSet}${state.nextWeek.length ? `, and ${state.nextWeek.map((n) => `${P[n.ex]?.name} felt easy on the last set`).join('; ')}` : ''}. What changes for next time?`;
-    shell?.ask(summaryMsg);
-    router.back();
+    if (opts.thenAsk) { shell?.ask(summaryMsg()); router.back(); }
+    return true;
   };
+  // Reaching Done saves at once — "Back to Anakin" only asks the summary.
+  const autoSaved = useRef(false);
+  useEffect(() => {
+    if (state.step !== 'done' || !plan || autoSaved.current) return;
+    autoSaved.current = true;
+    void save({ thenAsk: false });
+  }, [state.step, plan]); // eslint-disable-line react-hooks/exhaustive-deps
+  const finish = () => void save({ thenAsk: true });
 
   const eyebrowTone = { color: v2.color.muted };
   const overview = state.step === 'overview';
@@ -144,7 +216,7 @@ function SessionScreenInner() {
       ) : null}
 
       <View style={styles.body}>
-        {!session && !today.isLoading ? (
+        {!session && !plan && !today.isLoading ? (
           <View>
             <Text style={T.headlineSm}>Nothing scheduled today.</Text>
             <Text style={[T.bodyMuted, { marginTop: 12 }]}>Rest, or ask Anakin to pull a session forward.</Text>
@@ -152,6 +224,7 @@ function SessionScreenInner() {
           </View>
         ) : null}
         {session && !plan ? <Text style={T.caption}>Setting the loads…</Text> : null}
+        {resumed && state.step !== 'done' ? <Text style={[T.caption, { marginBottom: 12 }]}>Picked up where you stopped — {state.log.length} set{state.log.length === 1 ? '' : 's'} kept.</Text> : null}
 
         {plan && state.step === 'overview' ? (
           // Review #4: content sits low-middle — flex 1 above, flex 1.2 below, Begin at the bottom.
@@ -232,7 +305,7 @@ function SessionScreenInner() {
 
         {plan && state.step === 'done' ? (
           <Animated.View key="done" entering={FadeIn.duration(520)}>
-            <DoneView state={state} plan={P} now={now} title={session?.name ?? session?.day ?? 'Session'} unit={unit} saved={saved} saving={saving} onFinish={() => void finish()} />
+            <DoneView state={state} plan={P} now={now} title={title} unit={unit} saved={saved} saving={saving} onFinish={finish} />
           </Animated.View>
         ) : null}
       </View>

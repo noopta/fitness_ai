@@ -17,6 +17,7 @@ import { useShellOptional } from '../shell/ShellContext';
 import { useInvalidate } from '../data';
 import { useAuth } from '../../context/AuthContext';
 import { haptics } from '../haptics';
+import { manageSubscription, managedViaLabel } from '../billing';
 import { destinationFor } from './cardRoutes';
 import { captureBus } from './captureBus';
 import type { Thread } from './useThread';
@@ -83,6 +84,8 @@ export function useCardActions(thread: Thread) {
       case 'open_picker': open(card, { page: 'profile' }); return;
       case 'open_camera': {
         if (args.mode === 'video') { router.push({ pathname: '/form-analysis', params: args.exercise ? { exercise: String(args.exercise) } : {} } as any); return; }
+        // The capture camera has no order mode; food search hosts the order / receipt scan.
+        if (args.mode === 'order') { router.push({ pathname: '/(v2)/food-search', params: { open: 'order', from: 'chat' } } as any); return; }
         router.push({ pathname: '/(v2)/capture', params: { mode: String(args.mode ?? 'photo'), ...(card.pattern === 'capture' ? { cardId: card.id } : {}) } } as any);
         return;
       }
@@ -105,8 +108,8 @@ export function useCardActions(thread: Thread) {
         return;
       }
       case 'manage_subscription': {
-        await Linking.openURL(Platform.OS === 'ios' ? 'https://apps.apple.com/account/subscriptions' : 'https://play.google.com/store/account/subscriptions');
-        stateLine(card, Platform.OS === 'ios' ? 'Opened App Store' : 'Opened Google Play');
+        // Stripe subscribers get the portal, store subscribers their store page.
+        stateLine(card, managedViaLabel(await manageSubscription()));
         return;
       }
       case 'restore_purchases': {

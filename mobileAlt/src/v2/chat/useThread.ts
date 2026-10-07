@@ -12,7 +12,7 @@
 // every turn (and when the app comes back) the thread refetches its live
 // cards — that's how "Replaced" and "Changed since" reach older cards.
 
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { threadReducer, emptyThread, canSend, turnFromResult, allCards, isLive, isWriteVerb, type Turn, type ThreadState, type StreamEvent, type ReceiptVerb, awayRange } from '@axiom/agent-ui-core';
 import { v2Api, receiptForTool } from '../api';
@@ -70,30 +70,43 @@ export function useThread() {
     } catch { return null; /* history is optional */ }
   }, []);
 
-  const recover = useCallback(async (agentId: string, sentText: string) => {
-    try {
-      const h = await v2Api.history();
-      const msgs = h?.messages ?? [];
-      const lastUser = [...msgs].reverse().findIndex((m) => m.role === 'user' && m.content === sentText);
-      const tail = lastUser >= 0 ? msgs.slice(msgs.length - lastUser) : msgs.slice(-1);
-      const reply = tail.find((m) => m.role !== 'user');
-      if (reply?.content) {
-        dispatch({ type: 'event', agentId, event: { type: 'done', reply: reply.content, toolsUsed: [], iterations: 0 } });
-        if (reply.cardIds?.length) {
-          const cards = await v2Api.cards(reply.cardIds).catch(() => []);
-          for (const card of cards) dispatch({ type: 'event', agentId, event: { type: 'card2', card } });
+  /**
+   * A stream that died mid-turn: the server keeps going and saves the reply.
+   * Poll history (12 × 4 s, like classic's recovery) for a reply that comes
+   * AFTER the exact message sent — never an older reply standing in for it.
+   */
+  const recover = useCallback(async (agentId: string, sentText: string, signal?: AbortSignal) => {
+    for (let attempt = 0; attempt < 12; attempt++) {
+      if (signal?.aborted) return false;
+      if (attempt) await new Promise((r) => setTimeout(r, 4000));
+      try {
+        const h = await v2Api.history();
+        const msgs = h?.messages ?? [];
+        const fromEnd = [...msgs].reverse().findIndex((m) => m.role === 'user' && m.content === sentText);
+        if (fromEnd < 0) continue;
+        const reply = msgs.slice(msgs.length - fromEnd).find((m) => m.role !== 'user');
+        if (reply?.content) {
+          dispatch({ type: 'event', agentId, event: { type: 'done', reply: reply.content, toolsUsed: [], iterations: 0 } });
+          if (reply.cardIds?.length) {
+            const cards = await v2Api.cards(reply.cardIds).catch(() => []);
+            for (const card of cards) dispatch({ type: 'event', agentId, event: { type: 'card2', card } });
+          }
+          return true;
         }
-        return true;
-      }
-    } catch { /* fall through */ }
+      } catch { /* try again */ }
+    }
     return false;
   }, []);
+
+  // The last send that failed: shown under the thread with Try again (and Go Pro for the daily limit).
+  const [failure, setFailure] = useState<{ text: string; limit: boolean } | null>(null);
 
   const send = useCallback(async (text: string) => {
     const m = text.trim();
     if (!m || !canSend(stateRef.current)) return false;
     const id = nextId('u'), agentId = nextId('a');
     dispatch({ type: 'send', id, agentId, text: m });
+    setFailure(null);
     haptics.light();
     const ac = new AbortController();
     abortRef.current = ac;
@@ -102,8 +115,10 @@ export function useThread() {
     let toolsSeen: string[] = [];
     let wrote = false;
     let gotDone = false;
+    let started = false;
     try {
       await v2Api.streamTurn(m, (e: StreamEvent) => {
+        started = true;
         if (e.type === 'receipt') { toolsSeen.push(e.text); if (isWriteVerb(e.verb)) wrote = true; }
         if (e.type === 'card2' && e.card.state?.changeId) wrote = true;
         if (e.type === 'card_update' && e.patch.state?.changeId) wrote = true;
@@ -112,8 +127,21 @@ export function useThread() {
       }, { signal: ac.signal, resetConversation: reset });
     } catch (err: any) {
       if (ac.signal.aborted) return true;
-      // Fallback 1: the non-streaming turn (older binaries / proxies without SSE).
-      try {
+      // The server refused the turn (daily limit, auth…): it never ran — say so, don't retry it.
+      if (typeof err?.status === 'number') {
+        const limit = err.status === 429;
+        dispatch({ type: 'fail', agentId, error: limit ? 'That\'s today\'s limit for Anakin. Pro has no daily limit.' : (err.message || 'Anakin couldn\'t take that. Try again.') });
+        setFailure({ text: m, limit });
+        return true;
+      }
+      // The stream started and then broke: the turn is running server-side. Wait for its reply —
+      // re-sending it would run the turn twice (two meals logged, two swaps).
+      if (started) {
+        const ok = await recover(agentId, m, ac.signal);
+        if (!ok) { dispatch({ type: 'fail', agentId, error: 'Anakin didn\'t answer in time. Try again.' }); setFailure({ text: m, limit: false }); }
+        else gotDone = true;
+      } else try {
+        // The stream never opened (older proxy, no SSE): the non-streaming turn instead.
         const r: any = await v2Api.sendTurn(m);
         const turn = turnFromResult(agentId, { reply: r.reply, toolsUsed: r.toolsUsed, proposal: r.proposal ?? null }, receiptForTool);
         dispatch({ type: 'event', agentId, event: { type: 'done', reply: turn.text, toolsUsed: r.toolsUsed ?? [], iterations: r.iterations ?? 1, proposal: r.proposal ?? null } });
@@ -122,9 +150,10 @@ export function useThread() {
         toolsSeen = r.toolsUsed ?? [];
         gotDone = true;
       } catch (err2: any) {
-        // Fallback 2: the reply may have been persisted server-side.
-        const ok = await recover(agentId, m);
-        if (!ok) dispatch({ type: 'fail', agentId, error: err2?.message ?? err?.message ?? 'Anakin didn\'t answer. Try again.' });
+        // The reply may still have been saved server-side.
+        const ok = await recover(agentId, m, ac.signal);
+        if (!ok) { dispatch({ type: 'fail', agentId, error: err2?.message ?? err?.message ?? 'Anakin didn\'t answer. Try again.' }); setFailure({ text: m, limit: err2?.status === 429 }); }
+        else gotDone = true;
       }
     }
     if (gotDone && (wrote || toolsSeen.some((t) => MUTATING.has(t)))) void invalidate.all();
@@ -149,5 +178,7 @@ export function useThread() {
     dispatch({ type: 'event', agentId: turn.id, event: { type: 'receipt', id: nextId('r'), verb, text, final: true } });
   }, []);
 
-  return { state, stateRef, dispatch, send, hydrate, cancel, refreshLive, newConversation, receiptOnCard };
+  const retry = useCallback(() => { if (failure) void send(failure.text); }, [failure, send]);
+
+  return { state, stateRef, dispatch, send, hydrate, cancel, refreshLive, newConversation, receiptOnCard, failure, retry };
 }

@@ -172,7 +172,8 @@ export const v2Api = {
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
       try { const j = await res.json(); if (j?.error) msg = j.error; } catch { /* keep */ }
-      throw new Error(msg);
+      // The server answered and refused (limit, auth, validation): the turn never ran.
+      throw Object.assign(new Error(msg), { status: res.status });
     }
     const body = res.body;
     if (!body) throw new Error('No response body');

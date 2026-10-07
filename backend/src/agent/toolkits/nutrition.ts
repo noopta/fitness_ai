@@ -67,7 +67,7 @@ async function loggedMealCard(fn: string, userId: string, mealId: string, ctx: T
   const { rows, edits } = mealRows(meal);
   return {
     fn, pattern: 'logged', rule: 'log_undo',
-    meta: { label: `Logged · ${cap(meal.mealType)}${meal.date === ctx.today ? '' : ` · ${dayLabel(meal.date)}`}`, open: { page: 'meal', params: { id: meal.id } } },
+    meta: { label: `Logged · ${cap(meal.mealType)}${meal.date === ctx.today ? '' : ` · ${dayLabel(meal.date)}`}`, open: { page: 'meal', params: { id: meal.id, date: meal.date } } },
     rows, note: leftLine(day), pending: { edits }, undoLine: 'Undone — nothing logged', ...extra,
   };
 }

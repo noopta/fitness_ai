@@ -91,7 +91,9 @@ export type WorkoutAction =
   | { type: 'revert_last' }
   | { type: 'pause'; now: number }
   | { type: 'resume'; now: number }
-  | { type: 'finish'; now: number };
+  | { type: 'finish'; now: number }
+  /** Put a saved draft back, paused — the clock resumes on the next 'resume'. */
+  | { type: 'restore'; state: WorkoutState; now: number };
 
 const fmtLoad = (load: number | null, reps: number | string, name: string) =>
   load ? `${name} · ${load} × ${reps}` : `${name} · ${reps} reps`;
@@ -159,6 +161,8 @@ export function workoutReducer(s: WorkoutState, a: WorkoutAction): WorkoutState 
       return s.pausedAt ? { ...s, pausedMs: s.pausedMs + (a.now - s.pausedAt), pausedAt: null, restEnd: s.restEnd ? s.restEnd + (a.now - s.pausedAt) : s.restEnd } : s;
     case 'finish':
       return { ...s, step: 'done', end: s.end ?? a.now };
+    case 'restore':
+      return { ...a.state, pausedAt: a.state.pausedAt ?? a.now };
     default:
       return s;
   }
@@ -206,6 +210,16 @@ export function summarize(s: WorkoutState, plan: PlanExercise[], now: number): S
 }
 
 /** Shape a finished session into the POST /workouts body the backend accepts. */
+/** RPE implied by a set's rating — the session asks "easy / hard / missed", not a number. */
+const ratingRpe = (r: Rating) => (r === 'easy' ? 7 : r === 'hard' ? 9 : 10);
+const repCount = (reps: number | string) => { const n = typeof reps === 'number' ? reps : parseInt(String(reps), 10); return Number.isFinite(n) && n > 0 ? n : 0; };
+
+/**
+ * The log body for what was actually done. Each set is kept as its own entry
+ * (its load, its reps — one short when a rep was missed — and the RPE its
+ * rating implies), so the e1RM and progression engines see every set, not one
+ * row per exercise at the top weight. The top-level weight is the top set.
+ */
 export function toWorkoutLogBody(s: WorkoutState, plan: PlanExercise[], title: string, date: string, now: number) {
   const exercises = plan.map((p, i) => {
     const sets = s.log.filter((l) => l.ex === i);
@@ -214,9 +228,37 @@ export function toWorkoutLogBody(s: WorkoutState, plan: PlanExercise[], title: s
       sets: sets.length,
       reps: String(p.reps),
       weight: sets.length ? Math.max(...sets.map((l) => l.load ?? 0)) : (s.loads[i] ?? 0),
-      rpe: sets.length ? Math.round(sets.reduce((a, l) => a + (l.rating === 'easy' ? 7 : l.rating === 'hard' ? 9 : 10), 0) / sets.length) : undefined,
+      rpe: sets.length ? Math.round(sets.reduce((a, l) => a + ratingRpe(l.rating), 0) / sets.length) : undefined,
       notes: sets.some((l) => l.rating === 'miss') ? 'Missed a rep' : undefined,
+      setEntries: sets.map((l) => ({
+        weight: l.load,
+        reps: l.rating === 'miss' ? Math.max(0, repCount(l.reps) - 1) : repCount(l.reps),
+        rpe: ratingRpe(l.rating),
+      })),
     };
   }).filter((e) => e.sets > 0);
   return { title, date, duration: summarize(s, plan, now).minutes, exercises };
+}
+
+// ── Drafts: a session in progress survives leaving the screen ────────────────
+
+export interface WorkoutDraft {
+  v: 1;
+  date: string;
+  title: string;
+  plan: PlanExercise[];
+  state: WorkoutState;
+  savedAt: number;
+}
+
+/** Sets done, not yet saved. Nothing to keep before the first set. */
+export const hasProgress = (s: WorkoutState) => s.log.length > 0;
+
+/** A draft worth offering back: same day, under 12 hours old, with sets in it, not finished-and-saved. */
+export function resumableDraft(d: unknown, today: string, now: number): WorkoutDraft | null {
+  const x = d as WorkoutDraft | null;
+  if (!x || x.v !== 1 || x.date !== today || !x.state || !Array.isArray(x.plan)) return null;
+  if (now - x.savedAt > 12 * 3600_000) return null;
+  if (!hasProgress(x.state)) return null;
+  return x;
 }

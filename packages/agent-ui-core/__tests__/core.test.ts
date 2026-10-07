@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createSseParser, parseJsonFrame } from '../src/sse';
 import { threadReducer, emptyThread, receiptSummary, canSend, BUSY_UNLOCK_MS, type StreamEvent } from '../src/receipts';
 import { rubberBand, snapTarget, fractionalPosition, nearestPage, titleOpacity, pillOffset, shouldStartDrag } from '../src/track';
-import { initialWorkout, workoutReducer, defaultRules, summarize, exerciseProgress, toWorkoutLogBody, mmss, type PlanExercise } from '../src/workout';
+import { initialWorkout, workoutReducer, defaultRules, summarize, exerciseProgress, toWorkoutLogBody, mmss, type PlanExercise , resumableDraft, type WorkoutDraft} from '../src/workout';
 import { initialOnboarding, onboardingReducer, askDots, goalHint, type Question } from '../src/onboarding';
 
 describe('sse parser', () => {
@@ -252,5 +252,47 @@ describe('thread reducer — card tags and turn identity', () => {
     s = threadReducer(s, { type: 'send', id: 'u2', agentId: 'a2', text: 'again' });
     expect(s.turns[0]).toBe(before[0]);
     expect(s.turns[1]).toBe(before[1]);
+  });
+});
+
+describe('workout drafts and per-set logs', () => {
+  const plan: PlanExercise[] = [
+    { name: 'Bench', sets: 2, reps: 5, load: 185, rest: 120, cue: null },
+    { name: 'Row', sets: 1, reps: 8, load: 155, rest: 90, cue: null },
+  ];
+  const rules = defaultRules('lbs');
+  const play = () => {
+    let s = initialWorkout(plan);
+    s = workoutReducer(s, { type: 'begin', now: 0 });
+    s = workoutReducer(s, { type: 'rate', rating: 'easy', now: 1000, plan, rules });
+    s = workoutReducer(s, { type: 'rest_skip' });
+    s = workoutReducer(s, { type: 'rate', rating: 'miss', now: 2000, plan, rules });
+    return s;
+  };
+
+  it('keeps every set as its own entry, one rep short on a miss', () => {
+    const body = toWorkoutLogBody(play(), plan, 'Push', '2026-10-07', 600_000);
+    expect(body.exercises).toHaveLength(1);
+    expect(body.exercises[0].setEntries).toEqual([
+      { weight: 185, reps: 5, rpe: 7 },
+      { weight: 185, reps: 4, rpe: 10 },
+    ]);
+    expect(body.exercises[0].weight).toBe(185);
+  });
+
+  it('restores a draft paused, with its sets', () => {
+    const s = play();
+    const back = workoutReducer(initialWorkout(plan), { type: 'restore', state: s, now: 5000 });
+    expect(back.log).toHaveLength(2);
+    expect(back.pausedAt).toBe(5000);
+  });
+
+  it('offers a draft back only the same day, within 12 h, with sets in it', () => {
+    const d: WorkoutDraft = { v: 1, date: '2026-10-07', title: 'Push', plan, state: play(), savedAt: 1_000_000 };
+    expect(resumableDraft(d, '2026-10-07', 1_000_000 + 3600_000)).toBe(d);
+    expect(resumableDraft(d, '2026-10-08', 1_000_000)).toBeNull();
+    expect(resumableDraft(d, '2026-10-07', 1_000_000 + 13 * 3600_000)).toBeNull();
+    expect(resumableDraft({ ...d, state: initialWorkout(plan) }, '2026-10-07', 1_000_000)).toBeNull();
+    expect(resumableDraft(null, '2026-10-07', 0)).toBeNull();
   });
 });
