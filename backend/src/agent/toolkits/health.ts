@@ -16,6 +16,7 @@ import { bodyWeight, dayLabel, kgTo, toKg, num, plural, shiftDate } from '../car
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
 import { planChanges, applyChanges, changeSummary, type PlanChange, type PlanState, type StoredPlan, type RequestedChange } from '../../services/nutritionPlanSummary.js';
+import { resolveTargets } from '../../services/nutritionTargets.js';
 
 const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn.js')).toolCtx(userId);
 
@@ -23,9 +24,9 @@ const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn
 defineOp({
   name: 'nutrition.set_macros',
   run: async (userId, args) => {
-    const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, dailyCalorieTarget: true } });
-    const prev = parseJson<any>(u?.savedProgram, null)?.nutritionPlan?.macros;
-    if (!prev) throw new Error('There’s no nutrition plan to change yet.');
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, dailyCalorieTarget: true, coachProfile: true } });
+    // The plan's macros, or the user's own targets when there's no plan (both change the same way).
+    const prev = parseJson<any>(u?.savedProgram, null)?.nutritionPlan?.macros ?? resolveTargets(u ?? {}) ?? {};
     const change = args.change as Record<string, number>;
     const r = await applyMacroChange(userId, change);
     cacheClearByPrefix(`nutrition_profile:${userId}`);
@@ -251,14 +252,16 @@ export const HEALTH_TOOLS = [
     input_schema: schema({ calories: { type: 'number' }, proteinG: { type: 'number' }, carbsG: { type: 'number' }, fatG: { type: 'number' }, why: { type: 'string' } }),
     receipt: () => ({ verb: 'Proposed', text: 'New targets' }),
     execute: async (input, userId) => {
-      const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true } });
       const np = parseJson<any>(u?.savedProgram, null)?.nutritionPlan;
-      if (!np?.macros) throw new Error('There’s no nutrition plan to change yet.');
+      // No plan (freestyle): the user's own targets change instead — never "build a program first".
+      const before: any = np?.macros ?? resolveTargets(u ?? {}) ?? {};
       const change = Object.fromEntries(['calories', 'proteinG', 'carbsG', 'fatG'].filter((k) => numOr(input[k]) != null).map((k) => [k, Math.round(numOr(input[k])!)]));
       if (!Object.keys(change).length) throw new Error('Say which targets to change.');
-      const tdee = np.expectedOutcomes?.tdee;
-      const kcal = (change.calories ?? np.macros.calories) as number;
-      return { change, before: np.macros, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why) };
+      if (!before.calories && change.calories == null) throw new Error('Set a calorie target first — say the number.');
+      const tdee = np?.expectedOutcomes?.tdee;
+      const kcal = (change.calories ?? before.calories) as number;
+      return { change, before, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why) };
     },
     card: (_i, r, ctx) => ({
       fn: 'NTP-02', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },

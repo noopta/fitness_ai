@@ -31,6 +31,8 @@ import { moderateText } from '../services/moderationService.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
+import { sessionAt } from '../services/programPhaseService.js';
+import { userSetTargets } from '../services/nutritionTargets.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -831,9 +833,16 @@ router.get('/coach/program', requireAuth, async (req, res) => {
 export async function saveProgramForUser(userId: string, program: any): Promise<{ isNewProgram: boolean }> {
   const existing = await prisma.user.findUnique({
     where: { id: userId },
-    select: { savedProgram: true, programStartDate: true },
+    select: { savedProgram: true, programStartDate: true, coachProfile: true },
   });
   const isNewProgram = !existing?.savedProgram || !existing?.programStartDate;
+  // Targets the user set themselves outlive the program: a regenerated plan
+  // used to reset them to its own calories every time (1900 → 2888).
+  const own = userSetTargets(existing?.coachProfile);
+  if (own && program?.nutritionPlan) {
+    const m = program.nutritionPlan.macros ?? program.nutritionPlan;
+    Object.assign(m, own);
+  }
   if (!isNewProgram) {
     try {
       const priorProgram = parseSavedProgram(existing!.savedProgram ?? null);
@@ -845,7 +854,7 @@ export async function saveProgramForUser(userId: string, program: any): Promise<
   }
   const nutritionMacros = program?.nutritionPlan?.macros ?? program?.nutritionPlan ?? null;
   const programCalories = nutritionMacros?.calories ?? null;
-  const nutritionUpdate = programCalories != null ? { dailyCalorieTarget: Math.round(programCalories) } : {};
+  const nutritionUpdate = own ? { dailyCalorieTarget: Math.round(own.calories) } : programCalories != null ? { dailyCalorieTarget: Math.round(programCalories) } : {};
   let programToSave = program;
   try {
     if (adaptationEnabledFor(userId)) {
@@ -1020,7 +1029,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     // Use daysSinceStart mod 7 to pick which day in the template week
     const dayInWeek = daysSinceStart % 7; // 0–6
     // Find if today is a training day; simple mapping: first N days of week = training
-    let todaySession = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+    let todaySession = sessionAt(trainingDays, dayInWeek);
     // A per-date override (from a workout swap / rebalance) wins for today.
     const todayOverride = await prisma.scheduleOverride.findUnique({
       where: { userId_date: { userId: req.user!.id, date: dateKey } },
@@ -1047,13 +1056,14 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     if (isRestDay) {
       // Find next training day index
       for (let i = dayInWeek + 1; i < 7; i++) {
-        if (i < totalDays) {
-          nextTrainingDay = trainingDays[i].day;
+        const next = sessionAt(trainingDays, i);
+        if (next) {
+          nextTrainingDay = next.day;
           break;
         }
       }
       if (!nextTrainingDay && totalDays > 0) {
-        nextTrainingDay = trainingDays[0].day; // Next week
+        nextTrainingDay = trainingDays.find((d: any) => Array.isArray(d?.exercises) && d.exercises.length)?.day ?? null; // Next week
       }
     }
 
@@ -1157,7 +1167,7 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
       const trainingDays = phaseState.trainingDays;
       const totalDays = trainingDays.length;
       const dayInWeek = phaseState.daysSinceStart % 7;
-      const session = dayInWeek < totalDays ? trainingDays[dayInWeek] : null;
+      const session = sessionAt(trainingDays, dayInWeek);
       isRestDay = !session;
       todaySession = session ? { day: session.day, focus: session.focus } : null;
 
@@ -1565,7 +1575,7 @@ export function buildScheduleData(
     const hasOverride = overrides?.has(dateEST) ?? false;
     const session = hasOverride
       ? overrides!.get(dateEST)  // may be null = explicit rest
-      : (dayInWeek < totalDays ? trainingDays[dayInWeek] : null);
+      : sessionAt(trainingDays, dayInWeek);
 
     weekDays.push({
       date: dateEST,

@@ -19,7 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { coachApi, nutritionApi, workoutsApi } from '../../../lib/api';
+import { coachApi, nutritionApi, workoutsApi, apiFetch } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useUnits, LB_PER_KG } from '../../../context/UnitsContext';
 import { Analytics } from '../../../lib/analytics';
@@ -128,6 +128,10 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
   // ── Data state ───────────────────────────────────────────────────────────
   const [todayMeals, setTodayMeals] = useState<any[]>([]);
   const [workoutBurnKcal, setWorkoutBurnKcal] = useState(0);
+  // Targets without a program plan (freestyle, or set in chat / Fuel): the
+  // server's resolved targets. Without this a freestyle user's own target
+  // (e.g. 1900 kcal) never showed here.
+  const [ownTargets, setOwnTargets] = useState<{ calories: number; proteinG: number | null; carbsG: number | null; fatG: number | null; fiberG: number | null } | null>(null);
   // Canonical kg (weightKg authoritative; legacy rows fall back to weightLbs).
   const [bwLogs, setBwLogs] = useState<Array<{ date: string; weightKg: number }>>([]);
 
@@ -175,7 +179,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
     }
   }, [coachData?.savedProgram]);
 
-  const macros = nutritionPlan?.macros ?? nutritionPlan;
+  const macros = nutritionPlan?.macros ?? nutritionPlan ?? ownTargets;
   const baseTargetCalories: number | null = macros?.calories ?? nutritionPlan?.calories ?? null;
   const targetProtein: number | null = macros?.proteinG ?? macros?.protein_g ?? macros?.protein ?? null;
   const targetCarbs:   number | null = macros?.carbsG   ?? macros?.carbs_g   ?? macros?.carbs   ?? null;
@@ -206,6 +210,7 @@ export function NutritionScreen({ coachData, onRefresh, userId }: Props) {
         coachApi.getBodyWeight().catch(() => null),
       ]);
       setTodayMeals((mealsRes as any)?.entries ?? []);
+      void (apiFetch(`/nutrition/day-targets?date=${date}`) as Promise<any>).then((r) => setOwnTargets(r?.targets ?? null)).catch(() => {});
       const burn = Array.isArray(burnRes)
         ? burnRes.reduce((s: number, l: any) => s + (Number(l?.caloriesBurnedKcal) || 0), 0)
         : 0;

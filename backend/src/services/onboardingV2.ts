@@ -37,7 +37,7 @@ export function goalKind(goal: string): GoalKind {
 /** The intake question bank. Keys map to the profile fields the v1 form wrote. */
 const CORE: Question[] = [
   { key: 'days', short: 'Days per week', label: 'How many days can you train?', why: 'Frequency sets the split.', adjust: 'the split', options: ['2', '3', '4', '5+'], field: 'daysPerWeek' },
-  { key: 'age', short: 'Training age', label: 'How long have you trained?', why: 'Training age decides how fast you can progress.', adjust: 'progression rate', options: ['Under a year', '1–3 years', '3+ years'], field: 'trainingAge' },
+  { key: 'age', short: 'Training age', label: 'How long have you trained?', why: 'Training age decides how fast you can progress.', adjust: 'progression rate', options: ['Under 6 months', '6–12 months', '1–3 years', '3+ years'], field: 'trainingAge' },
   { key: 'bw', short: 'Bodyweight', label: 'Bodyweight?', why: 'It sets protein and every strength ratio.', adjust: 'strength ratio and protein target', options: ['Under 60 kg / 130 lb', '60–80 kg / 130–175', '80–100 kg / 175–220', '100+ kg / 220+'], field: 'weightKg' },
   { key: 'equipment', short: 'Equipment', label: 'What do you train with?', why: 'Decides which lifts are even on the table.', adjust: 'exercise selection', options: ['Full gym', 'Home — barbell', 'Home — dumbbells', 'Bodyweight only'], field: 'equipment' },
 ];
@@ -76,7 +76,8 @@ const CONSENT: ConsentSource[] = [
 function trainingAgeLabel(v?: string | null): string | null {
   if (!v) return null;
   const t = v.toLowerCase();
-  if (/beginner|<1|under/.test(t)) return 'Under a year';
+  if (/6\s*[–-]\s*12|early_interm/.test(t)) return '6–12 months';
+  if (/beginner|<1|under/.test(t)) return 'Under 6 months';
   if (/interm|1-3|1–3/.test(t)) return '1–3 years';
   if (/adv|3\+|3 /.test(t)) return '3+ years';
   return v;

@@ -128,3 +128,15 @@ export function parseSavedProgram(savedProgram: string | null): SavedProgram | n
     return null;
   }
 }
+
+/**
+ * The program day at a weekday position, or null for rest. Programs map
+ * trainingDays[i] to the i-th day of the week, so a generated plan writes a
+ * rest day as a placeholder ("Thursday — Rest", exercises: []) to keep the
+ * days after it in place. An empty exercise list is rest, never a session.
+ */
+export function sessionAt<T extends { exercises?: unknown[] } | null | undefined>(trainingDays: T[], i: number): T | null {
+  const d = i >= 0 && i < trainingDays.length ? trainingDays[i] : null;
+  // Only an explicitly empty list is rest; a day without the field (older shapes) is still a session.
+  return d && !(Array.isArray(d.exercises) && d.exercises.length === 0) ? d : null;
+}

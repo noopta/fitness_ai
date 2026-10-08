@@ -4,7 +4,10 @@
 // are none yet. Never a made-up default: with nothing set, Fuel shows what
 // was eaten without a goal.
 
+import { PrismaClient } from '@prisma/client';
 import { runNutritionEngine } from '../engine/nutritionEngine.js';
+
+const prisma = new PrismaClient();
 
 export interface Targets { calories: number; proteinG: number | null; carbsG: number | null; fatG: number | null; fiberG: number | null; source: 'plan' | 'quick' | 'manual' }
 
@@ -84,4 +87,44 @@ export function summarizeRange(rows: MealRow[], start: string, end: string) {
     avg: logged.length ? { kcal: avg('kcal'), proteinG: avg('proteinG'), carbsG: avg('carbsG'), fatG: avg('fatG'), fiberG: avg('fiberG') } : null,
     byMeal: SLOTS.map((k) => ({ mealType: k, avgKcal: Math.round((slot.get(k) ?? 0) / n), pct: totalKcal ? Math.round(((slot.get(k) ?? 0) / totalKcal) * 100) : 0 })),
   };
+}
+
+// ─── The user's own targets (no program nutrition plan) ─────────────────────
+
+export interface TargetEdit { calories?: number; proteinG?: number; carbsG?: number; fatG?: number; fiberG?: number }
+
+/**
+ * Save targets for someone with no program nutrition plan (freestyle, or a
+ * program without one) in coachProfile.nutritionTargets, with calories
+ * mirrored to dailyCalorieTarget for the screens that read that. A calorie
+ * change never waits on a program again.
+ */
+export async function setOwnTargets(userId: string, edit: TargetEdit, extra: Record<string, unknown> = {}) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, savedProgram: true, dailyCalorieTarget: true } });
+  let blob: any = {};
+  try { blob = u?.coachProfile ? JSON.parse(u.coachProfile) : {}; } catch { blob = {}; }
+  // Start from what they see now, so changing one number keeps the others.
+  const seen = resolveTargets(u ?? {});
+  const clean = Object.fromEntries(Object.entries(edit).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0).map(([k, v]) => [k, Math.round(v as number)]));
+  // userSet: the user chose these, so a newly generated program keeps them (saveProgramForUser).
+  const next: any = { ...(seen ? { calories: seen.calories, proteinG: seen.proteinG, carbsG: seen.carbsG, fatG: seen.fatG, fiberG: seen.fiberG } : {}), ...(blob.nutritionTargets ?? {}), ...clean, ...extra, userSet: true, setAt: new Date().toISOString() };
+  if (!(Number(next.calories) > 0)) { const e: any = new Error('Set your calories first.'); e.status = 400; throw e; }
+  if (clean.calories != null && clean.fiberG == null && extra.fiberG == null) next.fiberG = fiberFor(next.calories);
+  blob.nutritionTargets = next;
+  await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify(blob), dailyCalorieTarget: Math.round(next.calories) } });
+  return { calories: next.calories, proteinG: next.proteinG ?? null, carbsG: next.carbsG ?? null, fatG: next.fatG ?? null, fiberG: next.fiberG ?? null };
+}
+
+/** Targets the user chose themselves (chat, Fuel, the four questions), or null. A new program keeps these. */
+export function userSetTargets(coachProfile: unknown): { calories: number; proteinG?: number; carbsG?: number; fatG?: number } | null {
+  const t = parse(coachProfile)?.nutritionTargets;
+  return t?.userSet && num(t.calories) ? { calories: num(t.calories)!, ...(num(t.proteinG) ? { proteinG: num(t.proteinG)! } : {}), ...(num(t.carbsG) ? { carbsG: num(t.carbsG)! } : {}), ...(num(t.fatG) ? { fatG: num(t.fatG)! } : {}) } : null;
+}
+
+/** Record targets the user just chose on a program plan, so a later program keeps them. */
+export async function rememberUserTargets(userId: string, macros: Record<string, number>) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true } });
+  const blob: any = parse(u?.coachProfile) ?? {};
+  blob.nutritionTargets = { ...(blob.nutritionTargets ?? {}), ...macros, userSet: true, setAt: new Date().toISOString() };
+  await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify(blob) } });
 }

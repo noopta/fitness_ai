@@ -7,6 +7,7 @@ import { weeklySummaryEmail, SUPPORT_EMAIL } from './emailTemplates.js';
 import { PrismaClient } from '@prisma/client';
 import { bodyWeightKg, displayWeight, lbToKg, normalizePreference, unitLabel, type UnitPreference } from './weightUnits.js';
 import { parseJsonObjectColumn } from './jsonColumn.js';
+import { sessionAt } from './programPhaseService.js';
 
 const prisma = new PrismaClient();
 
@@ -238,7 +239,7 @@ export async function runNightlyNotifications(): Promise<void> {
             const phaseDays = (phase.durationWeeks || 1) * 7;
             if (dayOffset < totalDays + phaseDays) {
               const dayInWeek = dayOffset % 7;
-              const session = dayInWeek < trainingDays.length ? trainingDays[dayInWeek] : null;
+              const session = sessionAt(trainingDays, dayInWeek);
               if (session) {
                 return {
                   title: `Today: ${session.focus}`,

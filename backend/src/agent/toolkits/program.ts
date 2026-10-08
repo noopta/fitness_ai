@@ -635,6 +635,7 @@ export const PROGRAM_TOOLS = [
       bodyCompositionGoal: { type: 'string', enum: ['fat_loss', 'muscle_gain', 'recomp', 'maintenance'] },
       trainingAge: { type: 'string', description: 'beginner | intermediate | advanced | elite' },
       split: { type: 'string', description: 'ppl | upper_lower | full_body | bro_split | free text' },
+      fromLogs: { type: 'boolean', description: 'true = build it from the workouts they have actually logged (their exercises, days and loads) instead of generating one — "turn my workouts into a program", "use what I did this week".' },
     }),
     receipt: () => ({ verb: 'Proposed', text: 'New program' }),
     execute: async (input, userId) => {
@@ -662,7 +663,21 @@ export const PROGRAM_TOOLS = [
         level ? `program it for a${/^[aeiou]/.test(level) ? 'n' : ''} ${level} lifter` : '',
       ].filter(Boolean).join(' — ');
       try {
-        const generated = await generateProgramForUser(userId, { goal: split || level ? brief : baseGoal, daysPerWeek, durationWeeks, bodyCompositionGoal: input.bodyCompositionGoal as any, save: false });
+        let generated: any;
+        if (input.fromLogs === true) {
+          // Their own week, as a program: each weekday as they logged it, the rest as rest. No model call.
+          const { programFromRecentLogs } = await import('../../services/programFromLogs.js');
+          const [{ todayIn }, { userTz }] = await Promise.all([import('../cards/format.js'), import('../cards/store.js')]);
+          const today = todayIn(await userTz(userId));
+          const since = new Date(`${today}T12:00:00Z`); since.setUTCDate(since.getUTCDate() - 6);
+          const logs = await prisma.workoutLog.findMany({ where: { userId, date: { gte: since.toISOString().slice(0, 10), lte: today } }, select: { date: true, title: true, exercises: true } });
+          const parsed = logs.map((l) => ({ date: l.date, title: l.title, exercises: parseJson<any[]>(l.exercises as any, []) }));
+          const unitPref = (await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } }))?.unitPreference;
+          generated = programFromRecentLogs(parsed, today, { weeks: numOr(input.durationWeeks) ?? 4, goal: baseGoal ?? null, unit: unitPref === 'metric' ? 'kg' : 'lb' });
+          if (!generated) return { error: 'Nothing logged in the last seven days to build a program from — log a session, or I can generate one.' };
+        } else {
+          generated = await generateProgramForUser(userId, { goal: split || level ? brief : baseGoal, daysPerWeek, durationWeeks, bodyCompositionGoal: input.bodyCompositionGoal as any, save: false });
+        }
         const program = { ...generated, goal: goalChange ? (generated?.goal || askedGoal) : (keepGoal ?? (split || level ? baseGoal ?? generated?.goal : generated?.goal)) };
         const phases = (program?.phases ?? []).map((ph: any) => `${ph.phaseName} (${ph.durationWeeks} wk)`);
         const firstDays = ((program?.phases ?? [])[0]?.trainingDays ?? []).map((d: any) => String(d.day ?? '')).filter(Boolean);
@@ -684,6 +699,7 @@ export const PROGRAM_TOOLS = [
       }
     },
     card: (_i, r) => {
+      if (r.error) return null;
       if (r.proOnly) return { fn: 'PRG-04', pattern: 'proposal', rule: 'propose', pro: true, meta: { label: 'New program · Pro' }, rows: [{ key: 'Goal', value: String(r.goal ?? '—').slice(0, 60) }, { key: 'Length', value: `${r.durationWeeks} weeks` }, { key: 'Days', value: `${r.daysPerWeek} a week` }], actions: [{ id: 'pro', label: 'Unlock with Pro', kind: 'primary', client: { action: 'purchase' } }] };
       const p = r.program;
       return {

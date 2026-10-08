@@ -56,6 +56,8 @@ function PhaseBlocks({ phases, sel, onSel, current }: { phases: PhaseView[]; sel
 function DayBlock({ d, i, first, onOpen }: { d: any; i: number; first?: boolean; onOpen?: () => void }) {
   const [open, setOpen] = useState(false);
   const ex: any[] = d?.exercises ?? [];
+  // A rest day holds its weekday's place in the program; nothing to expand.
+  if (!ex.length) return <View style={[styles.day, first && { borderTopWidth: 0 }]}><Text style={[T.row, { color: C.muted }]}>{dayLabel(d, i)}</Text></View>;
   const m = dayMinutes(d);
   return (
     <View style={[styles.day, first && { borderTopWidth: 0 }]}>
@@ -120,16 +122,18 @@ export function FullProgramPage() {
           const to = from ? addDays(from, 6) : null;
           const done = from && to ? logged.filter((d) => d >= from && d <= to).length : 0;
           const past = w < now; const cur = w === now;
-          const value = past || cur ? `${done} of ${ph.days.length}` : 'Planned';
+          const sessions = ph.days.filter((d: any) => (d?.exercises ?? []).length > 0).length;
+          const value = past || cur ? `${done} of ${sessions}` : 'Planned';
           return (
             <View key={w}>
               <Row name={`Week ${w}${cur ? ' · now' : ''}`} sub={ph.name} value={`${value} ${openWeek === w ? '↑' : '→'}`} emphasis={cur} muted={past}
                 last={k === weeks.length - 1 && openWeek !== w} onPress={() => { haptics.select(); setOpenWeek((o) => (o === w ? null : w)); }} />
               {openWeek === w ? (
                 <View style={styles.weekDays}>
-                  {ph.days.map((d: any, i: number) => (
-                    <Row key={i} name={dayLabel(d, i)} sub={cap(dayLine(d))} value={dayMinutes(d) ? `${dayMinutes(d)} min →` : '→'} last={i === ph.days.length - 1}
+                  {ph.days.map((d: any, i: number) => ((d?.exercises ?? []).length
+                    ? <Row key={i} name={dayLabel(d, i)} sub={cap(dayLine(d))} value={dayMinutes(d) ? `${dayMinutes(d)} min →` : '→'} last={i === ph.days.length - 1}
                       onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `progday:${shown}:${i}`, week: String(w) } } as any)} />
+                    : <Row key={i} name={dayLabel(d, i)} muted last={i === ph.days.length - 1} />
                   ))}
                 </View>
               ) : null}

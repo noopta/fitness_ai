@@ -670,9 +670,16 @@ describe('applyMacroChange', () => {
     expect(saved.dailyCalorieTarget).toBe(2100);
   });
 
-  it('throws when there is no saved program', async () => {
+  it('with no program, saves the user\'s own targets instead of refusing', async () => {
+    // Tarek (Oct 2026): "set 1900 calories" failed for weeks because he had no program.
     mocks.user.findUnique.mockResolvedValueOnce({ savedProgram: null });
-    await expect(applyMacroChange(USER, { calories: 2000 })).rejects.toThrow(/No saved program/);
+    mocks.user.findUnique.mockResolvedValueOnce({ coachProfile: null, savedProgram: null, dailyCalorieTarget: 2888 });
+    mocks.user.update.mockResolvedValueOnce({});
+    const r: any = await applyMacroChange(USER, { calories: 1900 });
+    expect(r.macros.calories).toBe(1900);
+    const data = mocks.user.update.mock.calls.at(-1)[0].data;
+    expect(data.dailyCalorieTarget).toBe(1900);
+    expect(JSON.parse(data.coachProfile).nutritionTargets).toMatchObject({ calories: 1900, userSet: true });
   });
 
   it('rejects nonsense macro values', async () => {

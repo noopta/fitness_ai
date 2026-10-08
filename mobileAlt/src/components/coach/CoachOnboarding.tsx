@@ -277,8 +277,8 @@ const MEDICAL_CONDITIONS = [
 ];
 
 const TRAINING_AGES = [
-  { value: 'beginner', label: 'Under 1 year', sub: 'Still building the foundation' },
-  { value: 'early_intermediate', label: '1–3 years', sub: 'Comfortable with main movements' },
+  { value: 'beginner', label: 'Under 6 months', sub: 'Still building the foundation' },
+  { value: 'early_intermediate', label: '6 months – 3 years', sub: 'Comfortable with main movements' },
   { value: 'intermediate', label: '3–5 years', sub: 'Solid base, optimizing details' },
   { value: 'advanced', label: '5+ years', sub: 'Experienced, chasing every marginal gain' },
 ];

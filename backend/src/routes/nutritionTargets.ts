@@ -8,40 +8,21 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheMarkStale } from '../services/cacheService.js';
 import { nutritionProfileCacheKey } from '../services/nutritionShared.js';
-import { resolveTargets, quickTargets, summarizeRange } from '../services/nutritionTargets.js';
+import { resolveTargets, quickTargets, summarizeRange, setOwnTargets, type TargetEdit } from '../services/nutritionTargets.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-type TargetEdit = { calories?: number; proteinG?: number; carbsG?: number; fatG?: number; fiberG?: number };
-
 /**
- * One write path for the user's daily targets (v2 feedback 8 Oct). With a
- * program nutrition plan, the plan's macros change — the same thing chat's
- * "change my targets" applies, so the two never disagree. Without one, the
- * targets live in coachProfile.nutritionTargets.
+ * One write path for the user's daily targets. With a program nutrition plan
+ * the plan's macros change (applyMacroChange — exactly what chat applies);
+ * without one, applyMacroChange saves the user's own targets.
  */
 async function writeTargets(userId: string, edit: TargetEdit, extra: Record<string, unknown> = {}) {
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true } });
-  let program: any = null;
-  try { program = u?.savedProgram ? JSON.parse(u.savedProgram) : null; } catch { program = null; }
-  const macros = { ...(edit.calories != null ? { calories: edit.calories } : {}), ...(edit.proteinG != null ? { proteinG: edit.proteinG } : {}), ...(edit.carbsG != null ? { carbsG: edit.carbsG } : {}), ...(edit.fatG != null ? { fatG: edit.fatG } : {}) };
-  let blob: any = {};
-  try { blob = u?.coachProfile ? JSON.parse(u.coachProfile) : {}; } catch { blob = {}; }
-  if (program?.nutritionPlan?.macros) {
-    const { applyMacroChange } = await import('../agent/applyTools.js');
-    if (Object.keys(macros).length) await applyMacroChange(userId, macros);
-    if (edit.fiberG != null || Object.keys(extra).length) {
-      blob.nutritionTargets = { ...(blob.nutritionTargets ?? {}), ...(edit.fiberG != null ? { fiberG: edit.fiberG } : {}), ...extra, setAt: new Date().toISOString() };
-      await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify(blob) } });
-    }
-  } else {
-    const next = { ...(blob.nutritionTargets ?? {}), ...macros, ...(edit.fiberG != null ? { fiberG: edit.fiberG } : {}), ...extra, setAt: new Date().toISOString() };
-    if (!(Number(next.calories) > 0)) { const e: any = new Error('Set your calories first.'); e.status = 400; throw e; }
-    blob.nutritionTargets = next;
-    // A user-set target replaces any typed calorie number.
-    await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify(blob), dailyCalorieTarget: null } });
-  }
+  const { applyMacroChange } = await import('../agent/applyTools.js');
+  const { fiberG, ...macros } = edit;
+  if (Object.keys(macros).length) await applyMacroChange(userId, macros);
+  if (fiberG != null || Object.keys(extra).length) await setOwnTargets(userId, fiberG != null ? { fiberG } : {}, extra).catch(() => {});
   cacheMarkStale(nutritionProfileCacheKey(userId));
   const fresh = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true } });
   return resolveTargets(fresh ?? {});

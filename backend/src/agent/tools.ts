@@ -10,7 +10,7 @@
 import { PrismaClient } from '@prisma/client';
 import { parseMealMacros } from '../services/llmService.js';
 import { appendMemory } from './memory.js';
-import { applyMacroChange, applyProgramUpdate, applyExerciseSwap, buildPlanPatchProposal } from './applyTools.js';
+import { applyMacroChange, applyProgramUpdate, applyExerciseSwap, buildPlanPatchProposal, issueRebuild, REBUILD_MARKER } from './applyTools.js';
 import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '../routes/coach.js';
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 import { latestNutritionPlan } from '../services/nutritionPlanService.js';
@@ -614,13 +614,20 @@ const proposeProgramUpdateTool: AgentTool = {
     },
     required: ['updatedProgram', 'summary'],
   },
-  execute: async (input) => {
+  execute: async (input, userId) => {
     // No DB write. Marker lets the loop pull it off the tool result and stamp
     // it onto the turn's result.
+    // No program on file (they went freestyle): the change IS their program,
+    // so issue it server-side as a new program — the confirm tap activates
+    // that record. Before, Apply failed with "No saved program to update".
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+    const updatedProgram = !u?.savedProgram && input.updatedProgram && typeof input.updatedProgram === 'object'
+      ? { ...(input.updatedProgram as any), [REBUILD_MARKER]: { id: issueRebuild(userId, input.updatedProgram, true) } }
+      : input.updatedProgram;
     return {
       _proposal: true,
       kind: 'program_update',
-      updatedProgram: input.updatedProgram,
+      updatedProgram,
       summary: String(input.summary ?? 'Proposed program change'),
       changedDays: Array.isArray(input.changedDays) ? (input.changedDays as string[]) : [],
     };

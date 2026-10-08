@@ -54,3 +54,6 @@ backend/gcp-wif-credentials.json
 # publish releases to the Play listing. Each maintainer downloads their own
 # from Play Console -> Users and permissions.
 mobileAlt/play-service-account.json
+
+# Agent rebuild proposals kept across restarts (agent/applyTools.ts)
+.runtime/

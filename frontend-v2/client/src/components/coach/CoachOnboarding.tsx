@@ -202,8 +202,8 @@ const STEPS: Step[] = [
     type: 'choice',
     question: 'How long have you been training consistently?',
     choices: [
-      { value: 'beginner', label: 'Under 1 year', desc: 'Still building the foundation' },
-      { value: 'intermediate', label: '1–3 years', desc: 'Comfortable with main movements' },
+      { value: 'beginner', label: 'Under 6 months', desc: 'Still building the foundation' },
+      { value: 'intermediate', label: '6 months – 3 years', desc: 'Comfortable with main movements' },
       { value: 'advanced', label: '3–5 years', desc: 'Solid base, optimizing details' },
       { value: 'elite', label: '5+ years', desc: 'Experienced, chasing every marginal gain' },
     ],

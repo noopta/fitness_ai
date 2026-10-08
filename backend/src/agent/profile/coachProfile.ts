@@ -49,7 +49,7 @@ export const PROFILE_FIELDS: ProfileField[] = [
 
   f({ key: 'trainingAge', label: 'Training experience', group: 'Training', type: 'select', blobKey: 'trainingAge', column: 'trainingAge',
     options: { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced', elite: 'Elite' },
-    aliases: [{ key: 'experience', map: { early_intermediate: 'intermediate' } }, { key: 'trainingAge', map: { early_intermediate: 'intermediate', 'Under a year': 'beginner', '1–3 years': 'intermediate', '3+ years': 'advanced' } }],
+    aliases: [{ key: 'experience', map: { early_intermediate: 'intermediate' } }, { key: 'trainingAge', map: { early_intermediate: 'intermediate', 'Under a year': 'beginner', 'Under 6 months': 'beginner', '6–12 months': 'intermediate', '1–3 years': 'intermediate', '3+ years': 'advanced' } }],
     affects: 'program' }),
   f({ key: 'daysPerWeek', label: 'Days per week', group: 'Training', type: 'number', blobKey: 'daysPerWeek', min: 2, max: 7, aliases: [{ key: 'frequency' }, { key: 'trainingDays' }], affects: 'program' }),
   f({ key: 'sessionMinutes', label: 'Session length (min)', group: 'Training', type: 'number', blobKey: 'sessionDuration', min: 20, max: 180, affects: 'program' }),

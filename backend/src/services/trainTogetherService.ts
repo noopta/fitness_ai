@@ -15,6 +15,7 @@ import { PrismaClient } from '@prisma/client';
 import { computePhaseState, parseSavedProgram, type SavedProgram } from './programPhaseService.js';
 import { sendPushToUser } from './notificationService.js';
 import { parseJsonObjectColumn } from './jsonColumn.js';
+import { sessionAt } from './programPhaseService.js';
 
 const prisma = new PrismaClient();
 
@@ -156,7 +157,7 @@ export function resolveCalendar(
       if (!state.isComplete && state.currentPhase) {
         const trainingDays = state.trainingDays ?? [];
         const dayInWeek = state.daysSinceStart % 7;
-        session = dayInWeek < trainingDays.length ? trainingDays[dayInWeek] : null;
+        session = sessionAt(trainingDays, dayInWeek);
       }
     }
 

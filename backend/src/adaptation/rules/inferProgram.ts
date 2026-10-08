@@ -128,7 +128,10 @@ export interface InferredProgram {
  * Build the program a lifter has been running from their trailing-window
  * exposures. Null when there isn't enough loaded history to say anything.
  */
-export function inferProgramFromContext(ctx: AdaptationContext): InferredProgram | null {
+export function inferProgramFromContext(ctx: AdaptationContext, opts: { minSessions?: number; minWeeks?: number } = {}): InferredProgram | null {
+  // Unprompted suggestions need 6 sessions over 3 weeks; when the user asks for it ("turn my workouts into a program"), less will do.
+  const minSessions = opts.minSessions ?? MIN_SESSIONS;
+  const minWeeks = opts.minWeeks ?? MIN_WEEKS;
   const cutoff = isoDateDaysAgo(ctx, WINDOW_WEEKS * 7);
   const byWorkout = new Map<string, SessionView>();
   for (const list of ctx.exposuresByKey.values()) {
@@ -141,7 +144,7 @@ export function inferProgramFromContext(ctx: AdaptationContext): InferredProgram
   }
   const sessions = [...byWorkout.values()].filter(s => s.exercises.some(e => e.e1rmKg > 0));
   const weeks = new Set(sessions.map(s => isoWeekKey(s.date))).size;
-  if (sessions.length < MIN_SESSIONS || weeks < MIN_WEEKS) return null;
+  if (sessions.length < minSessions || weeks < minWeeks) return null;
 
   for (const s of sessions) s.label = labelSession(s.exercises.map(e => e.displayName));
   const sessionsPerWeek = Math.max(2, Math.min(6, Math.round(sessions.length / weeks)));

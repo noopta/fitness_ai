@@ -10,6 +10,8 @@
 // propose the change and wait for the user's confirmation before applying.
 
 import { randomUUID } from 'node:crypto';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join as pathJoin, dirname } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
@@ -48,11 +50,17 @@ export interface MacroChange {
  */
 export async function applyMacroChange(userId: string, change: MacroChange) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
-  if (!user?.savedProgram) throw new Error('No saved program to adjust. Generate a program first.');
-
-  const program = requireProgram(user.savedProgram, 'adjusted');
+  const program = user?.savedProgram ? requireProgram(user.savedProgram, 'adjusted') : null;
   const macros = program?.nutritionPlan?.macros;
-  if (!macros) throw new Error('Saved program has no nutrition plan to adjust.');
+  // No program nutrition plan (freestyle, or none yet): the targets are the
+  // user's own. "Set 1900 calories" used to fail here and the coach kept
+  // deferring it behind a program apply that never landed.
+  if (!macros) {
+    const { setOwnTargets } = await import('../services/nutritionTargets.js');
+    const own = await setOwnTargets(userId, change);
+    invalidateProgramCaches(userId);
+    return { macros: own, expectedOutcomes: null };
+  }
 
   // Apply only provided fields; guard against nonsense values.
   for (const key of ['calories', 'proteinG', 'carbsG', 'fatG'] as const) {
@@ -80,6 +88,8 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
       ...(typeof macros.calories === 'number' ? { dailyCalorieTarget: Math.round(macros.calories) } : {}),
     },
   });
+  // The user chose these: a newly generated program keeps them instead of its own numbers.
+  try { const { rememberUserTargets } = await import('../services/nutritionTargets.js'); await rememberUserTargets(userId, Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === 'number')) as Record<string, number>); } catch { /* the plan change stands */ }
   invalidateProgramCaches(userId);
   return { macros, expectedOutcomes: program?.nutritionPlan?.expectedOutcomes ?? null };
 }
@@ -104,12 +114,31 @@ const REBUILD_MAX = 500;
 interface RebuildRecord { userId: string; program: any; goalChange: boolean; expiresAt: number }
 const rebuilds = new Map<string, RebuildRecord>();
 
+// Kept on disk as well as in memory: every backend deploy restarts the
+// process, and an in-memory-only record turned a card the user hadn't tapped
+// yet into "this proposal has expired".
+const REBUILD_FILE = process.env.REBUILD_STORE_PATH || pathJoin(process.cwd(), '.runtime', 'agent-rebuilds.json');
+function persistRebuilds() {
+  try {
+    mkdirSync(dirname(REBUILD_FILE), { recursive: true });
+    writeFileSync(REBUILD_FILE, JSON.stringify([...rebuilds.entries()]));
+  } catch { /* memory still has it */ }
+}
+(function loadRebuilds() {
+  if (process.env.VITEST) return;
+  try {
+    const now = Date.now();
+    for (const [id, r] of JSON.parse(readFileSync(REBUILD_FILE, 'utf8')) as [string, RebuildRecord][]) if (r?.expiresAt > now) rebuilds.set(id, r);
+  } catch { /* none yet */ }
+})();
+
 /** Record a proposed rebuild server-side; returns the opaque id the card carries. */
 export function issueRebuild(userId: string, program: any, goalChange: boolean, now = Date.now()): string {
   for (const [id, r] of rebuilds) if (r.expiresAt <= now) rebuilds.delete(id);
   while (rebuilds.size >= REBUILD_MAX) rebuilds.delete(rebuilds.keys().next().value as string);
   const id = randomUUID();
   rebuilds.set(id, { userId, program: JSON.parse(JSON.stringify(program)), goalChange, expiresAt: now + REBUILD_TTL_MS });
+  if (!process.env.VITEST) persistRebuilds();
   return id;
 }
 
@@ -137,10 +166,14 @@ function validateProgram(updated: any, currentGoal: string | null, allowGoalChan
     if (!Array.isArray(phase.trainingDays) || phase.trainingDays.length === 0) {
       throw new Error('Each phase must keep its trainingDays.');
     }
+    // A day with no exercises is a rest day holding its weekday's place
+    // ("Thursday — Rest"); refusing it made every Apply on such a program fail.
     for (const day of phase.trainingDays) {
-      if (!Array.isArray(day.exercises) || day.exercises.length === 0) {
-        throw new Error(`Training day "${day.day ?? '?'}" must keep at least one exercise.`);
-      }
+      if (!day || typeof day !== 'object') throw new Error('Each training day must be an object.');
+      if (!Array.isArray(day.exercises)) day.exercises = [];
+    }
+    if (!phase.trainingDays.some((d: any) => d.exercises.length > 0)) {
+      throw new Error('Each phase needs at least one training day with exercises.');
     }
   }
   // Goal is the priority: an edit never silently changes what the user is
