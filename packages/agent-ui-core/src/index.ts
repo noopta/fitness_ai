@@ -8,3 +8,4 @@ export * from './signed';
 export * from './portion';
 export * from './logger';
 export * from './training';
+export * from './fuel';

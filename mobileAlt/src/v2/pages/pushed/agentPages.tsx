@@ -200,39 +200,6 @@ export function ConsentRows() {
 
 // ─── Recipes / Saved foods ───────────────────────────────────────────────────
 
-export function RecipesPage() {
-  const ask = useAskAnakin();
-  const q = useQuery({ queryKey: ['v2', 'recipes'], queryFn: () => nutritionApi.getRecipes('', 50) });
-  const list = q.data?.recipes ?? [];
-  return (
-    <PushedPage back="Fuel" meta={q.data ? `${list.length} saved` : null} title="Recipes" lead="Tap one to log a serving. Ask Anakin to build a new one from what you cook."
-      loading={q.isLoading} error={q.isError ? 'Couldn’t load your recipes.' : null} onRetry={() => void q.refetch()}
-      foot={[{ label: 'New recipe', onPress: () => ask('Help me save a new recipe.') }]}>
-      {list.map((r, i) => (
-        <Row key={r.id} name={r.name} sub={`${Math.round(r.proteinG)} g protein · ${r.servings} serving${r.servings === 1 ? '' : 's'}`} value={`${Math.round(r.calories)} kcal`}
-          onPress={() => ask(`Log a serving of my ${r.name}.`)} last={i === list.length - 1} />
-      ))}
-      {q.data && !list.length ? <Text style={T.bodyMuted}>No recipes yet. Tell Anakin what goes into one and he’ll save it.</Text> : null}
-    </PushedPage>
-  );
-}
-
-export function SavedFoodsPage() {
-  const ask = useAskAnakin();
-  const q = useQuery({ queryKey: ['v2', 'savedFoods'], queryFn: () => nutritionApi.searchFoods('', 50) });
-  const foods = (q.data?.foods ?? []) as any[];
-  return (
-    <PushedPage back="Fuel" meta={q.data ? `${foods.length} foods` : null} title="Saved foods" lead="What you log most. Tap one to log it again."
-      loading={q.isLoading} error={q.isError ? 'Couldn’t load your foods.' : null} onRetry={() => void q.refetch()}>
-      {foods.map((f, i) => (
-        <Row key={f.id} name={f.name} sub={`${Math.round(f.proteinG ?? 0)} g protein${f.useCount ? ` · logged ${f.useCount}×` : ''}`} value={`${Math.round(f.calories ?? 0)} kcal`}
-          onPress={() => ask(`Log my ${f.name}.`)} last={i === foods.length - 1} />
-      ))}
-      {q.data && !foods.length ? <Text style={T.bodyMuted}>Foods you log show up here.</Text> : null}
-    </PushedPage>
-  );
-}
-
 // ─── Plan & usage ────────────────────────────────────────────────────────────
 
 export function PlanPage() {

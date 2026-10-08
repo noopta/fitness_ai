@@ -139,7 +139,7 @@ export function MealEditPage({ id, date }: { id: string; date?: string }) {
 
           <View style={styles.actions}>
             <TextAction primary onPress={() => void save()} loading={busy} disabled={!dirty}>Save</TextAction>
-            <TextAction muted arrow={false} onPress={() => { shell?.ask(`Save "${m.name ?? m.description}" as a recipe`); router.replace('/(v2)' as any); }}>Save as recipe</TextAction>
+            <TextAction muted arrow={false} onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'recipe', fromMeal: String(m.id), ...(date ? { date } : {}) } } as any)}>Save as recipe</TextAction>
           </View>
 
           <PromptSheet visible={editing === 'name'} title="Name" initial={name} onSubmit={(v) => { setName(v); setEditing(null); }} onClose={() => setEditing(null)} />

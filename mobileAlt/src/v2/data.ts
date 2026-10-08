@@ -6,6 +6,7 @@ import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-quer
 import { apiFetch, coachApi, nutritionApi, nutritionProfileApi, workoutsApi, socialApi, groupsApi, liftCoachApi, formAnalysisApi, authApi } from '../lib/api';
 import { v2Api, type Brief, type TrainingOverview } from './api';
 import { getCached, setCached } from '../lib/cache';
+import { todayStr } from '../lib/localDate';
 import { useAuth } from '../context/AuthContext';
 
 const STALE = 60_000;
@@ -41,6 +42,11 @@ export const qk = {
   freestyle: ['v2', 'training', 'freestyle'] as const,
   adaptation: ['v2', 'training', 'adaptation'] as const,
   video: (name: string) => ['v2', 'video', name.toLowerCase()] as const,
+  // Under 'meals' so a logged meal refreshes them.
+  dayTargets: (date: string) => ['v2', 'meals', 'targets', date] as const,
+  summary: (range: string, date: string) => ['v2', 'meals', 'summary', range, date] as const,
+  recipes: ['v2', 'recipes'] as const,
+  savedFoods: ['v2', 'savedFoods'] as const,
 };
 
 // Review #5: home never waits. The last brief (persisted, per user) renders on
@@ -151,12 +157,18 @@ export const useExerciseVideo = (name: string, enabled = true) => useQuery({
   staleTime: Infinity, enabled: enabled && !!name, retry: 0,
 });
 
+// Wave 3 (handoff N-05 – N-10).
+export const useDayTargets = (date = todayStr()) => useQuery({ queryKey: qk.dayTargets(date), queryFn: () => v2Api.dayTargets(date), staleTime: STALE });
+export const useNutritionSummary = (range: 'today' | '7d' | '30d', date = todayStr()) => useQuery({ queryKey: qk.summary(range, date), queryFn: () => v2Api.nutritionSummary(range, date), staleTime: STALE });
+export const useRecipes = () => useQuery({ queryKey: qk.recipes, queryFn: () => nutritionApi.getRecipes('', 100), staleTime: STALE });
+export const useSavedFoods = () => useQuery({ queryKey: qk.savedFoods, queryFn: () => nutritionApi.searchFoods('', 100), staleTime: STALE });
+
 /** Bust the caches a write touches. */
 export function useInvalidate() {
   const qc = useQueryClient();
   return {
     afterWorkout: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.workouts }), qc.invalidateQueries({ queryKey: qk.strength }), qc.invalidateQueries({ queryKey: qk.brief })]),
-    afterMeal: () => Promise.all([qc.invalidateQueries({ queryKey: ['v2', 'meals'] }), qc.invalidateQueries({ queryKey: ['v2', 'np'] }), qc.invalidateQueries({ queryKey: qk.brief })]),
+    afterMeal: () => Promise.all([qc.invalidateQueries({ queryKey: ['v2', 'meals'] }), qc.invalidateQueries({ queryKey: ['v2', 'np'] }), qc.invalidateQueries({ queryKey: qk.brief }), qc.invalidateQueries({ queryKey: qk.recipes }), qc.invalidateQueries({ queryKey: qk.savedFoods })]),
     afterProgram: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.program }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.brief })]),
     afterSchedule: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.brief }), qc.invalidateQueries({ queryKey: qk.checkins })]),
     all: () => qc.invalidateQueries({ queryKey: ['v2'] }),

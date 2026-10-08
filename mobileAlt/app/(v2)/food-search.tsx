@@ -84,6 +84,12 @@ function FoodSearchScreenInner() {
     <View style={styles.page}>
       <SearchHeader placeholder="Search foods" value={text} onChange={setText} onQuery={setQuery} size={22} />
       <LinkTabs items={[{ key: 'all', label: 'All' }, { key: 'mine', label: 'Mine' }, { key: 'recipes', label: 'Recipes' }]} value={scope} onChange={setScope} style={styles.scopes} />
+      {/* N-06: your foods and recipes, managed — the Library (Log, Edit, Delete, New recipe). */}
+      {scope !== 'all' ? (
+        <Pressable onPress={() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'library', tab: scope === 'mine' ? 'foods' : 'recipes' } } as any); }} hitSlop={8} accessibilityRole="button" style={{ alignSelf: 'flex-start', marginBottom: 8 }}>
+          <Text style={[T.captionStrong, { color: C.crimson }]}>Open your library →</Text>
+        </Pressable>
+      ) : null}
 
       <View style={{ flex: 1 }}>
         <FlashList

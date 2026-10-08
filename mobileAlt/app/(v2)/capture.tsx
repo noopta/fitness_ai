@@ -26,6 +26,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, FadeIn } from 'react-native-reanimated';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { v2, T } from '../../src/v2/theme';
 import { TextAction } from '../../src/v2/primitives/TextAction';
@@ -179,12 +181,60 @@ function CaptureScreenInner() {
     haptics.success();
   };
 
+  // mealPhotoV2 "+ Add photo" (declared here: the strip below hides while it's on).
+  const [addPhotoMode, setAddPhotoMode] = useState(false);
+  // N-03: today's photos as a strip, first — only when the library is already shared with the app.
+  const [todayPhotos, setTodayPhotos] = useState<TodayPhoto[]>([]);
+  useEffect(() => {
+    if (mode !== 'photo' || labelFor || addPhotoMode) return;
+    let live = true;
+    void (async () => {
+      try {
+        const perm = await MediaLibrary.getPermissionsAsync();
+        if (!perm.granted) return;
+        const start = new Date(); start.setHours(0, 0, 0, 0);
+        const page = await MediaLibrary.getAssetsAsync({ first: 12, mediaType: 'photo', sortBy: [[MediaLibrary.SortBy.creationTime, false]], createdAfter: start.getTime() });
+        if (live) setTodayPhotos(page.assets.map((a) => ({ id: a.id, uri: a.uri, at: a.creationTime })));
+      } catch { /* no library access in this binary — the Library button still works */ }
+    })();
+    return () => { live = false; };
+  }, [mode, labelFor, addPhotoMode]);
+
   const snap = async () => {
     if (!camRef.current || busy) return;
     setBusy(true); haptics.light();
+    let uri: string;
     try {
       const photo = await camRef.current.takePhoto({ flash: 'off', enableShutterSound: false });
-      const uri = photo?.path?.startsWith('file://') ? photo.path : `file://${photo.path}`;
+      uri = photo?.path?.startsWith('file://') ? photo.path : `file://${photo.path}`;
+    } catch (e: any) { Alert.alert('Couldn\'t take the photo', e?.message ?? 'Try again.'); setBusy(false); return; }
+    await analyze(uri);
+  };
+
+  // N-03: a photo from the library (most meals are logged after you eat) goes through the same read.
+  const fromLibrary = async () => {
+    if (busy) return;
+    haptics.select();
+    try {
+      const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsMultipleSelection: false });
+      if (r.canceled || !r.assets?.[0]?.uri) return;
+      setBusy(true);
+      await analyze(r.assets[0].uri);
+    } catch (e: any) { Alert.alert('Couldn\'t open your photos', e?.message ?? ''); setBusy(false); }
+  };
+  const fromAsset = async (a: TodayPhoto) => {
+    if (busy) return;
+    haptics.select(); setBusy(true);
+    try {
+      const info = await MediaLibrary.getAssetInfoAsync(a.id);
+      const uri = info.localUri ?? a.uri;
+      await analyze(uri);
+    } catch (e: any) { Alert.alert('Couldn\'t read that photo', e?.message ?? ''); setBusy(false); }
+  };
+
+  /** Read a plate (or a label) from a local photo. Expects busy already set; clears it. */
+  const analyze = async (uri: string) => {
+    try {
       if (labelFor) {
         const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1280 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true });
         await readLabel(labelFor, small.base64 ?? (await FileSystem.readAsStringAsync(small.uri, { encoding: 'base64' as any })));
@@ -293,7 +343,6 @@ function CaptureScreenInner() {
   // mealPhotoV2 — "+ Add photo": shoot another angle of the same meal from
   // the result screen. Goes back to the camera with the list kept; the next
   // shot is sent with existingItems and only new items are appended.
-  const [addPhotoMode, setAddPhotoMode] = useState(false);
   const snapMore = async () => {
     if (!camRef.current || busy || !items) return;
     setBusy(true); haptics.light();
@@ -460,9 +509,26 @@ function CaptureScreenInner() {
           </Pressable>
         ))}
       </View>}
+      {mode === 'photo' && !labelFor && !addPhotoMode && todayPhotos.length ? (
+        <View style={{ marginTop: 14 }}>
+          <Text style={[T.eyebrow, { color: v2.color.darkMuted, marginBottom: 8 }]}>Today’s photos</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {todayPhotos.map((ph) => (
+              <Pressable key={ph.id} onPress={() => void fromAsset(ph)} disabled={busy} accessibilityRole="button" accessibilityLabel={`Photo from ${new Date(ph.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`}>
+                <Image source={{ uri: ph.uri }} style={styles.stripThumb} />
+                <Text style={[T.caption, { color: v2.color.darkMuted, fontSize: 11, marginTop: 2 }]}>{new Date(ph.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
       {mode === 'photo' ? (
-        <View style={{ alignItems: 'center', marginTop: 18 }}>
+        <View style={styles.shutterRow}>
+          <View style={styles.shutterSide}>
+            {!addPhotoMode ? <Pressable onPress={() => void fromLibrary()} disabled={busy} hitSlop={10} accessibilityRole="button" accessibilityLabel="Choose a photo from your library"><Text style={[T.captionStrong, { color: v2.color.darkInk }]}>Library</Text></Pressable> : null}
+          </View>
           <Pressable onPress={() => void (addPhotoMode ? snapMore() : snap())} disabled={busy || !hasCam} style={[styles.shutter, { opacity: busy || !hasCam ? 0.4 : 1 }]} accessibilityLabel="Take photo"><View style={styles.shutterInner} /></Pressable>
+          <View style={styles.shutterSide} />
         </View>
       ) : <View style={{ height: 90 }} />}
 
@@ -531,6 +597,9 @@ const styles = StyleSheet.create({
   editCard: { backgroundColor: v2.color.white, borderTopLeftRadius: v2.radius.sheet, borderTopRightRadius: v2.radius.sheet, paddingHorizontal: v2.space.gutter, paddingTop: 22 },
   editInput: { ...T.hero, fontSize: 44, lineHeight: 50, letterSpacing: -1, color: v2.color.ink, minWidth: 120, borderBottomWidth: 1, borderBottomColor: v2.color.hairline },
   plateGuide: { position: 'absolute', left: '18%', right: '18%', top: '18%', aspectRatio: 1, borderRadius: 9999, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,.35)' },
+  shutterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  shutterSide: { flex: 1, alignItems: 'center' },
+  stripThumb: { width: 56, height: 56, borderRadius: 8, backgroundColor: '#27272a' },
   lensWrap: { position: 'absolute', bottom: 14, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
   lensToggle: { flexDirection: 'row', gap: 6, backgroundColor: 'rgba(0,0,0,.45)', borderRadius: 999, padding: 4 },
   lensBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
@@ -541,6 +610,8 @@ const styles = StyleSheet.create({
 });
 
 // Pro-only under the direct-entry paywall: free users get the paywall instead.
+type TodayPhoto = { id: string; uri: string; at: number };
+
 export default function CaptureScreen() {
   const gated = useProScreen();
   return gated ? null : <CaptureScreenInner />;

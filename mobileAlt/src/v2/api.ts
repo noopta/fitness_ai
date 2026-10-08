@@ -117,6 +117,15 @@ export const v2Api = {
     post('/coach/agent/cards/run', { tool, input }),
   /** The program a new-program proposal would start (T-07). */
   cardProgram: (id: string): Promise<{ card: Card; program: any }> => apiFetch(`/coach/agent/cards/${id}/program`),
+  /** Fuel's targets, or none yet (N-07, N-08) — and today's workout burn. */
+  dayTargets: (date: string): Promise<{ targets: { calories: number; proteinG: number | null; carbsG: number | null; fatG: number | null; fiberG: number | null; source: string } | null; burn: { kcal: number; label: string | null; addToTarget: boolean } }> =>
+    apiFetch(`/nutrition/day-targets?date=${date}`),
+  /** Set targets from four answers (N-08). */
+  quickTargets: (a: { sex: 'male' | 'female' | 'unknown'; ageYears: number; heightCm: number; weightKg: number; goal: 'lose' | 'maintain' | 'gain' | 'strength'; trainingDaysPerWeek: number }): Promise<{ targets: any }> =>
+    post('/nutrition/day-targets/quick', a as any),
+  /** Today / 7 / 30 days (N-09): daily totals, averages over logged days, meal shares. */
+  nutritionSummary: (range: 'today' | '7d' | '30d', date: string): Promise<{ range: string; days: { date: string; logged: boolean; kcal: number; proteinG: number; carbsG: number; fatG: number; fiberG: number }[]; loggedDays: number; avg: { kcal: number; proteinG: number; carbsG: number; fatG: number; fiberG: number } | null; byMeal: { mealType: string; avgKcal: number; pct: number }[] }> =>
+    apiFetch(`/nutrition/summary?range=${range}&date=${date}`),
   /** What Swap offers on an exercise page (T-10). */
   exerciseAlternatives: (name: string): Promise<{ alternatives: { name: string; primaryMuscle: string; isCompound: boolean }[] }> =>
     apiFetch(`/workouts/exercise-alternatives?name=${encodeURIComponent(name)}`),

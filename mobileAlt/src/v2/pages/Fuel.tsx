@@ -17,7 +17,9 @@ import { Enter } from '../primitives/Enter';
 import { TextAction } from '../primitives/TextAction';
 import { ReceiptList } from '../primitives/Receipt';
 import { Ring } from '../charts';
-import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate } from '../data';
+import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods } from '../data';
+import { targetLines, dayTotals, momentFor } from '@axiom/agent-ui-core';
+import { ShareCardSheet, CardBody } from '../share/ShareCardSheet';
 import { useShell } from '../shell/ShellContext';
 import { useRequirePro } from '../shell/proGate';
 import { focusList } from './pushed/nutritionPlan';
@@ -28,7 +30,6 @@ import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
 import { haptics } from '../haptics';
 import type { ReceiptVerb } from '@axiom/agent-ui-core';
 
-const TARGET_DEFAULT = { calories: 2400, proteinG: 150, carbsG: 260, fatG: 80 };
 
 export function FuelPage() {
   const router = useRouter();
@@ -57,17 +58,31 @@ export function FuelPage() {
   };
 
   const rows: any[] = meals.data?.meals ?? meals.data?.entries ?? (Array.isArray(meals.data) ? meals.data : []);
-  const targets = meals.data?.targets ?? meals.data?.plan ?? TARGET_DEFAULT;
-  const tot = (k: string) => rows.reduce((s, m) => s + (Number(m[k]) || 0), 0);
-  const kcal = tot('calories'), p = tot('proteinG'), c = tot('carbsG'), f = tot('fatG');
+  // Real targets or none (N-08) — never an invented 2,400. A workout's burn is its own line (N-07).
+  const dt = useDayTargets();
+  const recipes = useRecipes();
+  const saved = useSavedFoods();
+  const tg = dt.data?.targets ?? null;
+  const noTarget = !!dt.data && !tg;
+  const lines = targetLines(tg, dt.data?.burn ?? null);
+  const totals = dayTotals(rows);
+  const kcal = totals.kcal, p = totals.proteinG, c = totals.carbsG, f = totals.fatG, fi = totals.fiberG;
+  const moment = momentFor(totals, tg, todayStr());
+  const [sharing, setSharing] = useState(false);
   const systems: any[] = (np.data?.systems?.length ? np.data.systems : week.data?.systems) ?? [];
   const npWin: any = np.data?.systems?.length ? np.data : week.data;
   const worst = [...systems].sort((a, b) => a.score - b.score)[0];
-  const read = np.data?.headline || (rows.length === 0
-    ? 'Nothing logged yet today. Snap your first plate and I\'ll do the math.'
-    : p >= (targets.proteinG ?? 134)
-      ? `Protein's covered — ${Math.round(p)} g against ${targets.proteinG}. ${worst ? `${worst.name} is the system to watch.` : ''}`
-      : `${Math.round((targets.proteinG ?? 134) - p)} g of protein still to go. ${worst ? `${worst.name} is below band.` : ''}`);
+  const read = noTarget
+    ? 'Eat as usual. I’ll set a target once I know you.'
+    : np.data?.headline || (rows.length === 0
+      ? 'Nothing logged yet today. Snap your first plate and I\'ll do the math.'
+      : tg?.proteinG && p >= tg.proteinG
+        ? `Protein's covered — ${Math.round(p)} g against ${tg.proteinG}. ${worst ? `${worst.name} is the system to watch.` : ''}`
+        : tg?.proteinG
+          ? `${Math.round(tg.proteinG - p)} g of protein still to go. ${worst ? `${worst.name} is below band.` : ''}`
+          : `${Math.round(kcal)} kcal so far today. ${worst ? `${worst.name} is the system to watch.` : ''}`);
+  const openNutrition = () => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'nutrition' } } as any); };
+  const macroRows: [string, number, number | null | undefined, string][] = [['Protein', p, tg?.proteinG, v2.color.macro.protein], ['Carbs', c, tg?.carbsG, v2.color.macro.carbs], ['Fat', f, tg?.fatG, v2.color.macro.fat], ['Fiber', fi, tg?.fiberG, v2.color.macro.fiber]];
 
   const logUsual = async () => {
     const u = usual.data; if (!u) return;
@@ -102,23 +117,69 @@ export function FuelPage() {
 
   return (
     <KeyboardAvoider style={{ flex: 1 }}>
-      <TabPage refreshing={meals.isFetching || np.isFetching} onRefresh={() => { void meals.refetch(); void np.refetch(); void week.refetch(); }}>
+      <TabPage refreshing={meals.isFetching || np.isFetching} onRefresh={() => { void meals.refetch(); void np.refetch(); void week.refetch(); void dt.refetch(); }}>
+        {/* N-10: a goal hit shows once a day as a line at the top; tap to share it. */}
+        {moment ? (
+          <Pressable onPress={() => { haptics.select(); setSharing(true); }} accessibilityRole="button" accessibilityLabel={`${moment.line}. Share`} style={styles.moment}>
+            <Text style={[T.captionStrong, { color: v2.color.ink, flex: 1 }]} numberOfLines={1}>Fuel · {moment.line}</Text>
+            <Text style={[T.captionStrong, { color: v2.color.crimson }]}>Share →</Text>
+          </Pressable>
+        ) : null}
+        {noTarget ? (
+          <Enter index={1} exit={false}>
+            {/* N-08: no target yet — what was eaten, without a goal, and two ways to get one. */}
+            <Text style={[T.eyebrow, { marginTop: 4 }]}>No target yet</Text>
+            <Pressable onPress={openNutrition} accessibilityRole="button" accessibilityLabel={`${Math.round(kcal)} kcal today. Open your nutrition`}>
+              <View style={styles.heroRow}>
+                <Text style={[T.hero, { fontSize: 44, lineHeight: 48 }]}>{Math.round(kcal).toLocaleString()}</Text>
+                <Text style={[T.body, { color: v2.color.muted, marginLeft: 8 }]}>kcal today</Text>
+              </View>
+            </Pressable>
+            <View style={styles.flatMacros}>
+              {macroRows.map(([k, now, , hue]) => (
+                <View key={k} style={{ flex: 1 }}>
+                  <Text style={[T.rowStrong, T.num, { color: now > 0 ? hue : v2.color.placeholder }]}>{Math.round(now)}</Text>
+                  <Text style={T.caption}>{k.toLowerCase()}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={[T.caption, { marginTop: 14 }]}>Log 3 days, or answer 4 questions now. Until then I show what you ate, not a made-up goal.</Text>
+            <View style={styles.noTargetActions}>
+              <TextAction primary size={15} onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'targets' } } as any)}>Set my target</TextAction>
+              <TextAction muted arrow={false} size={15} onPress={() => router.push('/(v2)/food-search' as any)}>Log food</TextAction>
+            </View>
+          </Enter>
+        ) : (
         <Enter index={1} exit={false}>
+          <Pressable onPress={openNutrition} accessibilityRole="button" accessibilityLabel="Open your nutrition — today, 7 days, 30 days">
           <View style={[styles.ringRow, { marginTop: 4 }]}>
-            <Ring kcal={kcal} target={targets.calories ?? 2400} macros={[{ key: 'protein', grams: p }, { key: 'carbs', grams: c }, { key: 'fat', grams: f }]}>
+            <Ring kcal={kcal} target={lines?.today ?? Math.max(kcal, 1)} macros={[{ key: 'protein', grams: p }, { key: 'carbs', grams: c }, { key: 'fat', grams: f }]}>
               <Text style={[T.hero, { fontSize: 30, lineHeight: 34, letterSpacing: -1 }]}>{Math.round(kcal).toLocaleString()}</Text>
-              <Text style={T.caption}>of {Number(targets.calories ?? 2400).toLocaleString()}</Text>
+              <Text style={T.caption}>{lines ? `of ${lines.today.toLocaleString()}` : 'kcal'}</Text>
             </Ring>
             <View style={styles.macroCol}>
-              {[['Protein', p, targets.proteinG, v2.color.macro.protein], ['Carbs', c, targets.carbsG, v2.color.macro.carbs], ['Fat', f, targets.fatG, v2.color.macro.fat]].map(([k, now, tgt, hue]) => (
-                <View key={String(k)} style={styles.macroLine}>
+              {macroRows.map(([k, now, tgt, hue]) => (
+                <View key={k} style={styles.macroLine}>
                   <Text style={T.caption}>{k}</Text>
-                  <Text style={[T.rowStrong, T.num, { color: Number(now) > 0 ? String(hue) : v2.color.placeholder, textAlign: 'right' }]}>{Math.round(Number(now))}<Text style={[T.caption, { color: v2.color.placeholder }]}> of {tgt ?? '—'} g</Text></Text>
+                  <Text style={[T.rowStrong, T.num, { color: now > 0 ? hue : v2.color.placeholder, textAlign: 'right' }]}>{Math.round(now)}<Text style={[T.caption, { color: v2.color.placeholder }]}> of {tgt ?? '—'} g</Text></Text>
                 </View>
               ))}
             </View>
           </View>
+          </Pressable>
+          {/* N-07: the workout's burn as its own line, so the bigger number explains itself. */}
+          {lines && lines.burn ? (
+            <View style={{ marginTop: 18 }}>
+              <Eyebrow>Today's target</Eyebrow>
+              <View style={{ marginTop: 4 }}>
+                <Row name="Base" value={lines.base.toLocaleString()} />
+                <Row name={lines.burnLabel ?? 'Workout'} value={`+ ${lines.burn.toLocaleString()}`} />
+                <Row name="Today" value={`${lines.today.toLocaleString()} kcal`} last valueStyle={{ fontFamily: v2.font.semibold, color: v2.color.ink }} />
+              </View>
+            </View>
+          ) : null}
         </Enter>
+        )}
         <View style={{ marginTop: 22 }}><AnakinRead text={read} working={dock === 'busy'} /></View>
 
         <View style={{ marginTop: 30 }}>
@@ -143,12 +204,17 @@ export function FuelPage() {
                   onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `meal:${m.id}` } } as any)} />
               </Enter>
             ))}
+            {/* N-06: recipes and saved foods, off chat. */}
+            <Row name="Library" sub={`Recipes · ${recipes.data?.recipes?.length ?? 0} · Saved foods · ${saved.data?.foods?.length ?? 0}`} arrow last
+              onPress={() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'library' } } as any); }} />
           </View>
         </View>
 
         {dock === 'busy' && log.length ? (
           <View style={{ marginTop: 26 }}><ReceiptList items={log} liveIndex={log.length - 1} /></View>
         ) : null}
+        <ShareCardSheet visible={sharing && !!moment} onClose={() => setSharing(false)} title="Share today"
+          card={(theme) => moment ? <CardBody theme={theme} eyebrow={moment.eyebrow} value={moment.value} line={`${moment.of} · ${Math.round(kcal).toLocaleString()} kcal`} date={new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} /> : null} />
       </TabPage>
 
       {/* Dock — four equal columns above the tab bar. Snap / Scan / Describe open the capture surface; Search is the food search page. */}
@@ -212,6 +278,10 @@ function guessMealType(): 'breakfast' | 'lunch' | 'dinner' | 'snack' {
 
 const styles = StyleSheet.create({
   ringRow: { flexDirection: 'row', alignItems: 'center', gap: 24, marginTop: 22 },
+  moment: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, marginBottom: 6, borderBottomWidth: 1, borderBottomColor: v2.color.hairline },
+  heroRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 10 },
+  flatMacros: { flexDirection: 'row', gap: 12, marginTop: 18 },
+  noTargetActions: { flexDirection: 'row', alignItems: 'center', gap: 24, marginTop: 18 },
   macroCol: { flex: 1, gap: 10 },
   macroLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   dock: { position: 'absolute', left: 0, right: 0, bottom: v2.space.tabBarClearance - 8, paddingHorizontal: v2.space.gutter },

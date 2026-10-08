@@ -672,6 +672,7 @@ export const nutritionApi = {
   // surfaces can show one unified library of foods + saved recipes.
   searchFoods: (q: string, limit = 20): Promise<{ foods: SavedFoodItem[]; recipes?: RecipeSummary[] }> =>
     apiFetch(`/nutrition/foods?q=${encodeURIComponent(q)}&limit=${limit}`),
+  deleteSavedFood: (id: string) => apiFetch(`/nutrition/foods/${id}`, { method: 'DELETE' }),
 
   // ── Recipes — MyFitnessPal-style saved dishes ──────────────────────────
   // A recipe = name + servings + ingredient list; backend stores per-serving

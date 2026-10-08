@@ -29,7 +29,8 @@ import { manageSubscription } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
-import { ProfilePage, NotificationsPage, RecipesPage, SavedFoodsPage, PlanPage, ConsentRows } from './agentPages';
+import { ProfilePage, NotificationsPage, PlanPage, ConsentRows } from './agentPages';
+import { SetTargetsPage, NutritionProfilePage, LibraryPage, RecipeBuilderPage } from './nutrition';
 import { NutritionPlanPage, PlanSourcesPage } from './nutritionPlan';
 import { MessagesPage, ThreadPage } from '../feed/Messages';
 import { FeedSearchPage } from '../feed/Search';
@@ -78,8 +79,14 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'person': return <PersonPage id={arg} params={params} />;
     case 'profile': return <ProfilePage />;
     case 'notifications': return <NotificationsPage />;
-    case 'recipes': return <RecipesPage />;
-    case 'savedfoods': return <SavedFoodsPage />;
+    // N-06: one Library page — Recipes and Saved foods are a toggle.
+    case 'recipes': return <LibraryPage initial="recipes" />;
+    case 'savedfoods': return <LibraryPage initial="foods" />;
+    case 'library': return <LibraryPage initial={params.tab} />;
+    // Wave 3 (handoff N-05, N-08, N-09).
+    case 'recipe': return <RecipeBuilderPage id={arg || undefined} params={params} />;
+    case 'targets': return <SetTargetsPage />;
+    case 'nutrition': return <NutritionProfilePage />;
     case 'plan': return <PlanPage />;
     case 'fuelplan': return <NutritionPlanPage />;
     case 'plansources': return <PlanSourcesPage />;
