@@ -23,7 +23,7 @@ import { TextAction } from '../../primitives/TextAction';
 import { Sheet, PromptSheet } from '../../primitives/Sheet';
 import { WeekBars } from '../../charts';
 import { LinkTabs } from '../feed/common';
-import { useNutritionSummary, useRecipes, useSavedFoods, useMeals, useProgram, useInvalidate, qk } from '../../data';
+import { useNutritionSummary, useRecipes, useSavedFoods, useMeals, useProgram, useInvalidate, useDayTargets, qk } from '../../data';
 import { useAuth } from '../../../context/AuthContext';
 import { useUnits } from '../../../context/UnitsContext';
 import { nutritionApi, nutritionProfileApi } from '../../../lib/api';
@@ -99,6 +99,41 @@ export function SetTargetsPage() {
       )}
       {error ? <Text style={[T.caption, { color: C.crimson, marginTop: 12 }]}>{error}</Text> : null}
       {step > 0 ? <TextAction muted arrow={false} size={15} style={{ marginTop: 24 }} onPress={() => setStep((s) => s - 1)}>← Back</TextAction> : null}
+    </PushedPage>
+  );
+}
+
+// ─── Targets: see and change them ────────────────────────────────────────────
+
+const SOURCE: Record<string, string> = { plan: 'From your program’s nutrition plan', quick: 'From your four answers', manual: 'Set by you' };
+type TargetKey = 'calories' | 'proteinG' | 'carbsG' | 'fatG' | 'fiberG';
+const TARGET_ROWS: { key: TargetKey; label: string; unit: string }[] = [
+  { key: 'calories', label: 'Calories', unit: 'kcal' }, { key: 'proteinG', label: 'Protein', unit: 'g' },
+  { key: 'carbsG', label: 'Carbs', unit: 'g' }, { key: 'fatG', label: 'Fat', unit: 'g' }, { key: 'fiberG', label: 'Fiber', unit: 'g' },
+];
+
+/** Fuel → Targets. With none yet, the four questions; otherwise each number, tap to change. */
+export function TargetsPage() {
+  const router = useRouter();
+  const dt = useDayTargets();
+  const invalidate = useInvalidate();
+  const [editing, setEditing] = useState<TargetKey | null>(null);
+  const t = dt.data?.targets ?? null;
+  if (dt.data && !t) return <SetTargetsPage />;
+  const save = async (k: TargetKey, v: string) => {
+    const n = Math.round(Number(v));
+    if (!Number.isFinite(n) || n <= 0) return;
+    try { await v2Api.editTargets({ [k]: n }); await invalidate.afterMeal(); haptics.success(); setEditing(null); }
+    catch (e: any) { Alert.alert('Couldn’t change it', e?.message ?? 'Try again.'); }
+  };
+  const row = TARGET_ROWS.find((r) => r.key === editing);
+  return (
+    <PushedPage back="Fuel" title="Your targets" lead={t ? `${SOURCE[t.source] ?? 'Your targets'}. Tap a number to change it.` : null} loading={dt.isLoading}
+      foot={[{ label: 'Recalculate from four questions', onPress: () => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'targetsquiz' } } as any) }]}>
+      {t ? TARGET_ROWS.map((r, i) => <Row key={r.key} name={r.label} value={t[r.key] != null ? `${Number(t[r.key]).toLocaleString()} ${r.unit}` : 'Not set'} arrow last={i === TARGET_ROWS.length - 1} onPress={() => setEditing(r.key)} />) : null}
+      {t?.source === 'plan' ? <Text style={[T.caption, { marginTop: 14 }]}>Changes here change your program’s nutrition plan — the same as asking Anakin.</Text> : null}
+      <PromptSheet visible={!!editing} title={row?.label ?? ''} initial={editing && t?.[editing] != null ? String(t[editing]) : ''} keyboardType="number-pad" unit={row?.unit}
+        onSubmit={(v) => void save(editing!, v)} onClose={() => setEditing(null)} />
     </PushedPage>
   );
 }

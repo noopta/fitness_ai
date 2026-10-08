@@ -7,7 +7,7 @@
 // Anakin's read, one visual, hairline rows, optional Proposed + CTA. One
 // template for every detail page in the app (Remaining Flows 4a–4d).
 
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, RefreshControl, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,10 +21,34 @@ import { Receipt } from '../primitives/Receipt';
 import { HEADER_HEIGHT, headerClearance } from './Header';
 import { haptics } from '../haptics';
 
+/**
+ * Pull-to-refresh that only spins after a real pull (feedback 8 Oct). Passing a
+ * query's isFetching straight to RefreshControl turned the spinner on during
+ * background refetches (tab focus), and iOS left it frozen at the top until
+ * the next pull. Spins at least 500 ms, at most 10 s.
+ */
+export function usePullRefresh(refreshing: boolean | undefined, onRefresh: (() => void) | undefined) {
+  const [pulled, setPulled] = useState(false);
+  const since = useRef(0);
+  const seen = useRef(false);
+  useEffect(() => { if (pulled && refreshing) seen.current = true; }, [pulled, refreshing]);
+  useEffect(() => {
+    if (!pulled) return;
+    const left = Math.max(0, 500 - (Date.now() - since.current));
+    const done = !refreshing && (seen.current || Date.now() - since.current > 1500);
+    const t = setTimeout(() => { if (done) setPulled(false); }, done ? left : 1600);
+    const cap = setTimeout(() => setPulled(false), 10_000);
+    return () => { clearTimeout(t); clearTimeout(cap); };
+  }, [pulled, refreshing]);
+  const onPull = useCallback(() => { since.current = Date.now(); seen.current = false; setPulled(true); onRefresh?.(); }, [onRefresh]);
+  return { pulled, onPull };
+}
+
 export function TabPage({ children, style, refreshing, onRefresh, dark, contentStyle, scrollEnabled = true }: {
   children: React.ReactNode; style?: StyleProp<ViewStyle>; refreshing?: boolean; onRefresh?: () => void; dark?: boolean; contentStyle?: StyleProp<ViewStyle>; scrollEnabled?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const pull = usePullRefresh(refreshing, onRefresh);
   return (
     // The header is fixed at the safe-area top with a white ground; content lives below it and can never scroll under it.
     <View style={[styles.flex, { paddingTop: headerClearance(insets.top) }, style]}>
@@ -35,7 +59,7 @@ export function TabPage({ children, style, refreshing, onRefresh, dark, contentS
         scrollEnabled={scrollEnabled}
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="never"
-        refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={dark ? v2.color.darkMuted : v2.color.muted} /> : undefined}
+        refreshControl={onRefresh ? <RefreshControl refreshing={pull.pulled} onRefresh={pull.onPull} tintColor={dark ? v2.color.darkMuted : v2.color.muted} /> : undefined}
       >
         {children}
       </ScrollView>
@@ -51,7 +75,7 @@ export function PageTitle({ title, caption, meta, dark, right }: { title?: strin
         <View style={{ flex: 1 }}>
           {meta ? <Text style={[T.caption, { marginBottom: 8 }, dark && { color: v2.color.darkMuted }]} numberOfLines={1}>{meta}</Text> : null}
           {title ? <Text style={[T.headlineSm, dark && { color: v2.color.darkInk }]}>{title}</Text> : null}
-          {caption ? <Text style={[T.caption, { marginTop: 8 }, dark && { color: v2.color.darkMuted }]} numberOfLines={1}>{caption}</Text> : null}
+          {caption ? <Text style={[T.caption, { marginTop: 8 }, dark && { color: v2.color.darkMuted }]} numberOfLines={2}>{caption}</Text> : null}
         </View>
         {right}
       </View>
@@ -97,6 +121,7 @@ interface PushedProps {
 export function PushedPage({ back, meta, right, eyebrow, title, hero, lead, children, visual, proposed, cta, foot, onBack, loading, error, onRetry, refreshing, onRefresh }: PushedProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const pull = usePullRefresh(refreshing, onRefresh);
   const goBack = () => { haptics.select(); if (onBack) onBack(); else if (router.canGoBack()) router.back(); else router.replace('/(v2)' as any); };
   return (
     <View style={[styles.flex, { backgroundColor: v2.color.white }]}>
@@ -106,7 +131,7 @@ export function PushedPage({ back, meta, right, eyebrow, title, hero, lead, chil
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 56 + insets.bottom, paddingHorizontal: v2.space.gutter }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={v2.color.muted} /> : undefined}
+        refreshControl={onRefresh ? <RefreshControl refreshing={pull.pulled} onRefresh={pull.onPull} tintColor={v2.color.muted} /> : undefined}
       >
         <View style={styles.topRow}>
           <Pressable onPress={goBack} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Back to ${back}`}>

@@ -52,7 +52,7 @@ export function YouPage() {
   const total = (s?.athleteModel?.ratios ?? []).filter((r: any) => r.status !== 'no-data').length;
   const kg = (user as any)?.weightKg ?? s?.bodyWeightKg ?? null;
   const height = (user as any)?.heightCm ?? null;
-  const bodyLine = [kg ? `${fromKg(kg)} ${unit}` : null, height ? `${height} cm` : null, (user as any)?.trainingAge ? `${(user as any).trainingAge} training` : null].filter(Boolean).join(' · ');
+  const bodyLine = [kg ? `${fromKg(kg)} ${unit}` : null, height ? `${Math.round(height)} cm` : null, (user as any)?.trainingAge ? `${String((user as any).trainingAge).replace(/_/g, ' ')} lifter` : null].filter(Boolean).join(' · ');
   const streakDays: number | null = streak.data?.currentStreak ?? null;
   const read = strengthRead(s);
   const go = (key: string) => router.push({ pathname: '/(v2)/p/[key]', params: { key } } as any);

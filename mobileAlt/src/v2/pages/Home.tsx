@@ -155,6 +155,14 @@ export function HomePage() {
   const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
   const [awayOpen, setAwayOpen] = useState(false);
   useEffect(() => { void thread.hydrate().then(setAway); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Suggestions reach chat (feedback 8 Oct): pending ones chat hasn't shown yet arrive as Anakin's turn. At most every 10 min.
+  const surfacedAt = useRef(0);
+  const surface = useCallback(() => {
+    if (Date.now() - surfacedAt.current < 10 * 60_000) return;
+    surfacedAt.current = Date.now();
+    void v2Api.surfaceAdaptations().then((r) => { if (r?.posted) void thread.hydrate().then(setAway); }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { surface(); }, [surface]);
   useEffect(() => threadBus.on(() => { void thread.hydrate(); }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Scroll: the thread stays pinned to its end unless the user drags it up
@@ -331,6 +339,7 @@ export function HomePage() {
   const homePlayer = useHomePlayer();
   const enterChat = () => {
     if (chat) return;
+    surface();
     tapAt.current = Date.now();
     // Free the decoder for the morph — the video is fading out anyway (spec §2.5).
     try { homePlayer?.pause(); } catch { /* released */ }

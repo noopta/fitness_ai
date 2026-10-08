@@ -184,6 +184,8 @@ export function FuelPage() {
 
         <View style={{ marginTop: 30 }}>
           {plan.isLoading ? null : <PlanRow plan={plan.data ?? null} onPress={openPlan} />}
+          {/* Change calories and macros here, not only in chat (feedback 8 Oct). */}
+          {tg ? <Row name="Targets" sub={`${tg.calories.toLocaleString()} kcal${tg.proteinG ? ` · ${tg.proteinG} g protein` : ''}`} arrow onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'targets' } } as any)} /> : null}
         </View>
 
         {systems.length ? (

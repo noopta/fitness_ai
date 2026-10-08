@@ -95,6 +95,14 @@ router.post('/coach/agent/cards/run', requireAuth, access, async (req, res) => {
   }
 });
 
+// Opening chat raises pending progression suggestions that chat hasn't shown yet.
+router.post('/coach/agent/adaptation/surface', requireAuth, access, async (req, res) => {
+  try {
+    const { surfacePendingAdaptations } = await import('../agent/adaptationSurface.js');
+    res.json({ posted: await surfacePendingAdaptations(req.user!.id) });
+  } catch (e) { fail(res, e, 'raise suggestions'); }
+});
+
 // Apply / Keep / Send / Delete / any action on the card.
 router.post('/coach/agent/cards/:id/action', requireAuth, access, async (req, res) => {
   try {

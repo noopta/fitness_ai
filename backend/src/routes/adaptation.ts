@@ -79,6 +79,8 @@ router.post('/adaptation/:id/decide', requireAuth, async (req, res) => {
     const result = await decide(req.user!.id, req.params.id, parsed.data.action, {
       edits: parsed.data.edits, snoozeDays: parsed.data.snoozeDays,
     });
+    // The same suggestion's card in chat stops offering Apply.
+    void import('../agent/adaptationSurface.js').then((m) => m.settleAdaptationCards(req.user!.id, req.params.id, parsed.data.action)).catch(() => {});
     res.json({ success: true, ...result });
   } catch (err: any) {
     const msg = err?.message ?? 'Could not apply';

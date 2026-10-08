@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { v2, T } from '../theme';
 import { headerClearance } from '../shell/Header';
+import { usePullRefresh } from '../shell/Page';
 import { TextAction } from '../primitives/TextAction';
 import { useFeedPages, useGroups, useSocialCounts } from '../data';
 import { useUnits } from '../../context/UnitsContext';
@@ -42,9 +43,11 @@ export function FeedPage() {
   const feed = useFeedPages();
   const groups = useGroups();
   const nGroups = groupsOf(groups.data).length;
+  const refetchFeed = useCallback(() => { void feed.refetch(); void research.refetch(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // S-02: research comes back — cached separately so the posts never wait on it — one after every 4 posts.
   const research = useQuery({ queryKey: ['v2', 'feed', 'research'], queryFn: () => socialApi.getFeedArticles() as Promise<{ items: any[] }>, staleTime: 30 * 60_000, retry: 0 });
+  const pull = usePullRefresh(feed.isRefetching, refetchFeed);
   const [menu, setMenu] = useState<PostModel | null>(null);
   const [gone, setGone] = useState<string[]>([]);
   const [savedArticles, setSavedArticles] = useState<string[]>([]);
@@ -102,7 +105,7 @@ export function FeedPage() {
           contentContainerStyle={{ ...pad, paddingBottom: bottom }}
           onEndReachedThreshold={0.6}
           onEndReached={() => { if (feed.hasNextPage && !feed.isFetchingNextPage) void feed.fetchNextPage(); }}
-          refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => void feed.refetch()} tintColor={v2.color.muted} />}
+          refreshControl={<RefreshControl refreshing={pull.pulled} onRefresh={pull.onPull} tintColor={v2.color.muted} />}
           ListEmptyComponent={feed.isLoading ? <Text style={[T.caption, { marginTop: 18 }]}>Reading…</Text>
             : feed.isError ? <View style={{ marginTop: 18 }}><Text style={T.bodyMuted}>Couldn’t load the feed.</Text><TextAction onPress={() => void feed.refetch()} style={{ marginTop: 8 }}>Try again</TextAction></View>
             : <Empty onFind={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'feedsearch' } } as any)} />}

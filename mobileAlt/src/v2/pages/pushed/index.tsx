@@ -30,7 +30,7 @@ import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
 import { ProfilePage, NotificationsPage, PlanPage, ConsentRows } from './agentPages';
-import { SetTargetsPage, NutritionProfilePage, LibraryPage, RecipeBuilderPage } from './nutrition';
+import { SetTargetsPage, TargetsPage, NutritionProfilePage, LibraryPage, RecipeBuilderPage } from './nutrition';
 import { NutritionPlanPage, PlanSourcesPage } from './nutritionPlan';
 import { MessagesPage, ThreadPage } from '../feed/Messages';
 import { FeedSearchPage } from '../feed/Search';
@@ -93,7 +93,8 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'library': return <LibraryPage initial={params.tab} />;
     // Wave 3 (handoff N-05, N-08, N-09).
     case 'recipe': return <RecipeBuilderPage id={arg || undefined} params={params} />;
-    case 'targets': return <SetTargetsPage />;
+    case 'targets': return <TargetsPage />;
+    case 'targetsquiz': return <SetTargetsPage />;
     case 'nutrition': return <NutritionProfilePage />;
     case 'plan': return <PlanPage />;
     case 'fuelplan': return <NutritionPlanPage />;

@@ -53,3 +53,12 @@ describe('summarizeRange', () => {
     expect(summarizeRange([], '2026-10-08', '2026-10-08').avg).toBeNull();
   });
 });
+
+import { surfaceText } from '../agent/adaptationSurface.js';
+describe('surfaceText', () => {
+  it('opens with the suggestion, or counts them', () => {
+    expect(surfaceText([{ kind: 'volume_balance', title: 'More quads work would pay off', proposal: {} as any }])).toBe('More quads work would pay off.');
+    expect(surfaceText([{ kind: 'next_session', title: 't', proposal: { exercise: 'Bench' } as any }])).toBe('I have a suggestion for your next Bench.');
+    expect(surfaceText([{ kind: 'deload', title: 'a', proposal: {} as any }, { kind: 'deload', title: 'b', proposal: {} as any }])).toBe('I have 2 suggestions from your training.');
+  });
+});

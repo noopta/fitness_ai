@@ -157,6 +157,33 @@ export async function findLiveCard(userId: string, fn: string, match: (pending: 
   return null;
 }
 
+/**
+ * Close live cards whose thing was decided somewhere else — Training's Apply
+ * on a suggestion chat also shows. The card freezes with `line`; its buttons go.
+ * Returns how many were settled.
+ */
+export async function settleLiveCards(userId: string, fns: string[], match: (pending: PendingActions) => boolean, state: { status: CardState['status']; line: string }): Promise<number> {
+  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: fns }, status: 'live' }, orderBy: { createdAt: 'desc' }, take: 40 });
+  let n = 0;
+  for (const row of rows) {
+    try {
+      const pending = row.pendingJson ? JSON.parse(row.pendingJson) : {};
+      if (!match(pending)) continue;
+      const c = JSON.parse(row.payloadJson) as Card;
+      c.state = { ...(c.state ?? { status: 'live' }), status: state.status, line: state.line, at: new Date().toISOString() };
+      await persist(row.id, c);
+      n++;
+    } catch { /* a malformed row never blocks the decision */ }
+  }
+  return n;
+}
+
+/** Is there a live card of these kinds whose pending actions match? */
+export async function hasLiveCard(userId: string, fns: string[], match: (pending: PendingActions) => boolean): Promise<boolean> {
+  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: fns }, status: 'live' }, orderBy: { createdAt: 'desc' }, take: 40, select: { pendingJson: true } });
+  return rows.some((r) => { try { return match(r.pendingJson ? JSON.parse(r.pendingJson) : {}); } catch { return false; } });
+}
+
 /** One level deep: a patch's `batch` adds to the card's batch rather than replacing it. */
 function mergePatch(card: Card, patch: Partial<Card>) {
   for (const [k, v] of Object.entries(patch)) {

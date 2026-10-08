@@ -123,6 +123,11 @@ export const v2Api = {
   /** Set targets from four answers (N-08). */
   quickTargets: (a: { sex: 'male' | 'female' | 'unknown'; ageYears: number; heightCm: number; weightKg: number; goal: 'lose' | 'maintain' | 'gain' | 'strength'; trainingDaysPerWeek: number }): Promise<{ targets: any }> =>
     post('/nutrition/day-targets/quick', a as any),
+  /** Change any daily target; with a program plan its macros change (same as chat). */
+  editTargets: (edit: { calories?: number; proteinG?: number; carbsG?: number; fatG?: number; fiberG?: number }): Promise<{ targets: any }> =>
+    apiFetch('/nutrition/day-targets', { method: 'PUT', body: JSON.stringify(edit) }),
+  /** Opening chat raises pending suggestions it hasn't shown yet. */
+  surfaceAdaptations: (): Promise<{ posted: number }> => post('/coach/agent/adaptation/surface'),
   /** Today / 7 / 30 days (N-09): daily totals, averages over logged days, meal shares. */
   nutritionSummary: (range: 'today' | '7d' | '30d', date: string): Promise<{ range: string; days: { date: string; logged: boolean; kcal: number; proteinG: number; carbsG: number; fatG: number; fiberG: number }[]; loggedDays: number; avg: { kcal: number; proteinG: number; carbsG: number; fatG: number; fiberG: number } | null; byMeal: { mealType: string; avgKcal: number; pct: number }[] }> =>
     apiFetch(`/nutrition/summary?range=${range}&date=${date}`),

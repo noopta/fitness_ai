@@ -19,7 +19,7 @@ import { Row, Eyebrow } from '../../primitives/Row';
 import { Pressable } from '../../primitives/Pressable';
 import { TextAction } from '../../primitives/TextAction';
 import { Sheet } from '../../primitives/Sheet';
-import { LineForecast, Radar } from '../../charts';
+import { LineForecast, Radar, RatioBand } from '../../charts';
 import { useStrength, useInvalidate } from '../../data';
 import { useShellOptional } from '../../shell/ShellContext';
 import { useUnits } from '../../../context/UnitsContext';
@@ -44,6 +44,9 @@ export function StrengthProfilePage() {
   const lifts: any[] = [...(d?.lifts ?? [])].filter((l) => (l.current1RMkg ?? 0) > 0).sort((a, b) => b.current1RMkg - a.current1RMkg);
   const shown = all ? lifts : lifts.slice(0, 3);
   const patterns: any[] = d?.athleteModel?.patternCoverage ?? [];
+  const ratios: any[] = d?.athleteModel?.ratios ?? [];
+  const short = (n: string) => n.replace('Overhead Press', 'OHP').replace('Romanian DL', 'RDL');
+  const ratioAxes = ratios.filter((r) => r.value != null).map((r) => { const k = (r.value - (r.band[0] + r.band[1]) / 2) / (r.band[1] - r.band[0]); return { t: short(r.name), v: r.value.toFixed(2), r: Math.max(0.12, Math.min(1, 0.75 + k * 0.35)), hot: r.status !== 'in-band' }; });
   const thin = patterns.filter((p) => p.status === 'neglected').length;
   return (
     <PushedPage back="You" meta={d ? 'Updated today' : null} eyebrow="Strength profile" title={ladder?.ratio != null ? `${ladder.ratio}× bodyweight` : 'Strength profile'}
@@ -57,7 +60,18 @@ export function StrengthProfilePage() {
         {!all && lifts.length > 3 ? <Row name={`+ ${lifts.length - 3} more`} muted arrow last onPress={() => { haptics.select(); setAll(true); }} /> : null}
       </View>
       <Eyebrow style={{ marginTop: 28 }}>Balance</Eyebrow>
-      <View style={{ marginTop: 6 }}>
+      {/* The ratios as a radar (restored — the tier ladder had replaced it), then each ratio's band. */}
+      {ratioAxes.length >= 3 ? <View style={{ alignItems: 'center', marginTop: 10 }}><Radar axes={ratioAxes} band={[0.575, 0.925]} size={300} /></View> : null}
+      {ratios.filter((r) => r.value != null).slice(0, 5).map((r) => (
+        <Pressable key={r.id} onPress={() => push(router, 'ratios')} style={{ marginTop: 14 }} accessibilityRole="button" accessibilityLabel={`${r.name} ${r.value.toFixed(2)}, ${r.status}`}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={[T.caption, { color: C.ink }]}>{r.name}</Text>
+            <Text style={[T.captionStrong, T.num, { color: r.status === 'in-band' ? C.ink : C.crimson }]}>{r.value.toFixed(2)}</Text>
+          </View>
+          <RatioBand lo={r.band[0]} hi={r.band[1]} value={r.value} width={330} />
+        </Pressable>
+      ))}
+      <View style={{ marginTop: 14 }}>
         <Row name="Movement patterns" sub={patterns.length ? (thin ? `${thin} missing in the last 4 weeks` : 'All covered') : 'Log more to see coverage'} arrow onPress={() => push(router, 'patterns')} />
         <Row name="Ratios" sub="Lifts against each other" arrow last onPress={() => push(router, 'ratios')} />
       </View>

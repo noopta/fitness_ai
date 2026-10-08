@@ -90,10 +90,11 @@ export function RatioBand({ lo, hi, value, width = 346 }: { lo: number; hi: numb
   const target = value == null ? 50 : f(value);
   const dot = useAnimatedStyle(() => ({ left: `${50 + (target - 50) * p.value}%` }));
   return (
-    <View style={{ width, height: 12, justifyContent: 'center', marginTop: 10 }}>
-      <View style={{ position: 'absolute', left: 0, right: 0, height: 2, backgroundColor: v2.color.surface }} />
-      <View style={{ position: 'absolute', left: `${f(lo)}%`, width: `${f(hi) - f(lo)}%`, height: 8, backgroundColor: v2.color.hairline }} />
-      {value != null ? <Animated.View style={[{ position: 'absolute', width: 10, height: 10, borderRadius: 5, marginLeft: -5, backgroundColor: out ? v2.color.ink : v2.color.placeholder }, dot]} /> : null}
+    <View style={{ width, height: 14, justifyContent: 'center', marginTop: 10 }}>
+      {/* Visible on white (feedback 8 Oct): hairline track, a #d4d4d8 band, and a 12 pt dot — crimson out of band, ink inside. */}
+      <View style={{ position: 'absolute', left: 0, right: 0, height: 2, borderRadius: 1, backgroundColor: v2.color.hairline }} />
+      <View style={{ position: 'absolute', left: `${f(lo)}%`, width: `${f(hi) - f(lo)}%`, height: 10, borderRadius: 3, backgroundColor: '#d4d4d8' }} />
+      {value != null ? <Animated.View style={[{ position: 'absolute', width: 12, height: 12, borderRadius: 6, marginLeft: -6, borderWidth: 2, borderColor: v2.color.white, backgroundColor: out ? v2.color.crimson : v2.color.ink }, dot]} /> : null}
     </View>
   );
 }

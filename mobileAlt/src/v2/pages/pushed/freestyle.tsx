@@ -11,7 +11,7 @@
 //   Archive → Suggestions, where it can still be applied.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,9 +21,10 @@ import { PushedPage, AnakinRead } from '../../shell/Page';
 import { Row, Eyebrow } from '../../primitives/Row';
 import { TextAction } from '../../primitives/TextAction';
 import { Sheet } from '../../primitives/Sheet';
-import { useFreestyle, useAdaptationPending, useInvalidate, qk } from '../../data';
+import { Pressable } from '../../primitives/Pressable';
+import { useFreestyle, useAdaptationPending, useInvalidate, useCompletedPrograms, qk } from '../../data';
 import { useUnits } from '../../../context/UnitsContext';
-import { adaptationApi } from '../../../lib/api';
+import { adaptationApi, coachApi } from '../../../lib/api';
 import { v2Api } from '../../api';
 import { setSessionSeed } from '../../sessionSeed';
 import { todayStr } from '../../../lib/localDate';
@@ -56,6 +57,14 @@ export function FreestyleHome({ onLog }: { onLog: () => void }) {
   const week = mondayOf(todayStr());
   const sessions: any[] = (home.data?.recentSessions ?? []).filter((s: any) => String(s.date).slice(0, 10) >= week).reverse();
   const s = pick.data && !pick.data.unavailable ? pick.data : null;
+  // A program set aside for freestyle can come back where it left off.
+  const completed = useCompletedPrograms();
+  const invalidate = useInvalidate();
+  const setAside = ((completed.data?.programs ?? (Array.isArray(completed.data) ? completed.data : [])) as any[]).find((c) => c.reason === 'freestyle') ?? null;
+  const restore = () => Alert.alert('Go back to your program?', 'It picks up where you left it.', [
+    { text: 'Stay freestyle', style: 'cancel' },
+    { text: 'Bring it back', onPress: async () => { try { await coachApi.restoreProgram(); await Promise.all([invalidate.afterProgram(), completed.refetch()]); haptics.success(); } catch (e: any) { Alert.alert('Couldn’t bring it back', e?.message ?? ''); } } },
+  ]);
   const read = s?.why?.[0] ?? (sessions.length ? 'You train your way. I keep the log.' : 'Log what you do and I’ll start picking sessions from it.');
   return (
     <View>
@@ -77,6 +86,7 @@ export function FreestyleHome({ onLog }: { onLog: () => void }) {
       <View style={styles.actions}>
         <TextAction primary onPress={() => (s ? router.push({ pathname: '/(v2)/p/[key]', params: { key: 'freestyle' } } as any) : onLog())}>Start a session</TextAction>
         <TextAction muted arrow={false} size={15} onPress={() => router.push('/(v2)/onboarding' as any)}>Build a program</TextAction>
+        {setAside ? <TextAction muted arrow={false} size={15} onPress={restore}>Go back to {setAside.goal ? `“${String(setAside.goal).slice(0, 24)}”` : 'my program'}</TextAction> : null}
       </View>
     </View>
   );
@@ -165,14 +175,14 @@ function SuggestionBlock({ p, onDone, onLater }: { p: any; onDone: () => void; o
       </View>
       {rows.map((r, i) => (
         <View key={i} style={styles.sugRow}>
-          <Text style={[T.body, { flex: 1 }]} numberOfLines={1}>{r.key}</Text>
+          <Text style={[T.body, { flex: 1 }]} numberOfLines={1}>{String(r.key).charAt(0).toUpperCase() + String(r.key).slice(1)}</Text>
           <View style={{ alignItems: 'flex-end' }}>
             {r.from ? <Text style={[T.caption, T.num, { textDecorationLine: 'line-through' }]}>{r.from}</Text> : null}
             <Text style={[T.rowStrong, T.num, { fontSize: 15 }]}>{r.to}</Text>
           </View>
         </View>
       ))}
-      {p.reasoning ? <Text style={[T.caption, { marginTop: 8 }]} numberOfLines={3}>{p.reasoning}</Text> : null}
+      {p.reasoning ? <Text style={[T.caption, { marginTop: 8 }]}>{p.reasoning}</Text> : null}
       {error ? <Text style={[T.caption, { color: C.crimson, marginTop: 6 }]}>{error}</Text> : null}
       <View style={[styles.actions, { marginTop: 12 }]}>
         <TextAction primary size={15} onPress={() => void apply()} loading={busy}>Apply</TextAction>
@@ -187,6 +197,7 @@ export function SuggestionBand() {
   const q = useAdaptationPending();
   const qc = useQueryClient();
   const [dismissed, setDismissed] = useState<string[] | null>(null);
+  const [open, setOpen] = useState(false);
   useEffect(() => { void readDismissed().then(setDismissed); }, []);
   const p = useMemo(() => (dismissed ? (q.data?.proposals ?? []).find((x: any) => !dismissed.includes(x.id)) : null), [q.data, dismissed]);
   if (!p) return null;
@@ -196,7 +207,19 @@ export function SuggestionBand() {
     setDismissed(next);
     void AsyncStorage.setItem(DISMISSED, JSON.stringify(next)).catch(() => {});
   };
-  return <SuggestionBlock p={p} onLater={later} onDone={() => void qc.invalidateQueries({ queryKey: qk.adaptation })} />;
+  // One line above the bands (it used to be the whole proposal and pushed This week out of reach); the detail is a sheet.
+  return (
+    <>
+      <Pressable onPress={() => { haptics.select(); setOpen(true); }} style={styles.sugLine} accessibilityRole="button" accessibilityLabel={`Proposed: ${p.title}. Open`}>
+        <Text style={[T.eyebrow, { color: C.crimson }]}>Proposed</Text>
+        <Text style={[T.caption, { color: C.ink, flex: 1 }]} numberOfLines={1}>{p.title}</Text>
+        <Text style={[T.captionStrong, { color: C.crimson }]}>Review →</Text>
+      </Pressable>
+      <Sheet visible={open} onClose={() => setOpen(false)}>
+        <SuggestionBlock p={p} onLater={() => { setOpen(false); later(); }} onDone={() => { setOpen(false); void qc.invalidateQueries({ queryKey: qk.adaptation }); }} />
+      </Sheet>
+    </>
+  );
 }
 
 /** Archive → Suggestions: everything pending, including what Not now set aside. */
@@ -217,5 +240,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 24, rowGap: 10, marginTop: 26 },
   suggestion: { borderTopWidth: 1, borderTopColor: C.hairline, paddingTop: 12, paddingBottom: 14 },
   sugHead: { flexDirection: 'row', alignItems: 'baseline', gap: 10, marginBottom: 6 },
+  sugLine: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 40, borderTopWidth: 1, borderTopColor: C.hairline },
   sugRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
 });

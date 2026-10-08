@@ -8,7 +8,7 @@
 //   are made by asking. Opened from onboarding it reviews the saved program.
 
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Share } from 'react-native';
+import { View, Text, StyleSheet, Share, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { v2, T } from '../../theme';
@@ -18,6 +18,7 @@ import { Pressable } from '../../primitives/Pressable';
 import { useProgram, useWorkouts, useInvalidate } from '../../data';
 import { useShellOptional } from '../../shell/ShellContext';
 import { v2Api, type TrainingOverview } from '../../api';
+import { coachApi } from '../../../lib/api';
 import { AnakinRead } from '../../shell/Page';
 import { exName, niceLabel, estimateMinutes } from '../../format';
 import { todayStr } from '../../../lib/localDate';
@@ -84,6 +85,7 @@ function DayBlock({ d, i, first, onOpen }: { d: any; i: number; first?: boolean;
 
 export function FullProgramPage() {
   const router = useRouter();
+  const invalidate = useInvalidate();
   const q = useProgram();
   const workouts = useWorkouts();
   const p = q.data?.program ?? null;
@@ -101,7 +103,14 @@ export function FullProgramPage() {
   const weeks = ph ? Array.from({ length: ph.weeks }, (_, k) => ph.from + k) : [];
   return (
     <PushedPage back="Training" meta={total ? `Week ${now} of ${total}` : null} title={p?.goal ? String(p.goal) : 'Program'} loading={q.isLoading}
-      foot={[{ label: 'Past programs', onPress: () => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'past' } } as any) }]}>
+      foot={[
+        { label: 'Past programs', onPress: () => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'past' } } as any) },
+        // Train your own way: the program is set aside (not deleted) and can come back from the freestyle home.
+        { label: 'Switch to freestyle', onPress: () => Alert.alert('Train freestyle?', 'Your program is set aside, not deleted — bring it back any time. I’ll suggest sessions from what you log.', [
+          { text: 'Keep the program', style: 'cancel' },
+          { text: 'Go freestyle', onPress: async () => { try { await coachApi.goFreestyle(); await invalidate.afterProgram(); haptics.success(); router.back(); } catch (e: any) { Alert.alert('Couldn’t switch', e?.message ?? 'Try again.'); } } },
+        ]) },
+      ]}>
       {phases.length ? <PhaseBlocks phases={phases} sel={shown} onSel={(i) => { setSel(i); setOpenWeek(null); }} current={curPhase} /> : null}
       {ph?.why ? <Text style={[T.bodyMuted, { marginTop: 14 }]} numberOfLines={3}>{ph.why}</Text> : null}
       <Eyebrow style={{ marginTop: 24 }}>Weeks</Eyebrow>

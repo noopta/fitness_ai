@@ -13,6 +13,62 @@ import { resolveTargets, quickTargets, summarizeRange } from '../services/nutrit
 const router = Router();
 const prisma = new PrismaClient();
 
+type TargetEdit = { calories?: number; proteinG?: number; carbsG?: number; fatG?: number; fiberG?: number };
+
+/**
+ * One write path for the user's daily targets (v2 feedback 8 Oct). With a
+ * program nutrition plan, the plan's macros change — the same thing chat's
+ * "change my targets" applies, so the two never disagree. Without one, the
+ * targets live in coachProfile.nutritionTargets.
+ */
+async function writeTargets(userId: string, edit: TargetEdit, extra: Record<string, unknown> = {}) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true } });
+  let program: any = null;
+  try { program = u?.savedProgram ? JSON.parse(u.savedProgram) : null; } catch { program = null; }
+  const macros = { ...(edit.calories != null ? { calories: edit.calories } : {}), ...(edit.proteinG != null ? { proteinG: edit.proteinG } : {}), ...(edit.carbsG != null ? { carbsG: edit.carbsG } : {}), ...(edit.fatG != null ? { fatG: edit.fatG } : {}) };
+  let blob: any = {};
+  try { blob = u?.coachProfile ? JSON.parse(u.coachProfile) : {}; } catch { blob = {}; }
+  if (program?.nutritionPlan?.macros) {
+    const { applyMacroChange } = await import('../agent/applyTools.js');
+    if (Object.keys(macros).length) await applyMacroChange(userId, macros);
+    if (edit.fiberG != null || Object.keys(extra).length) {
+      blob.nutritionTargets = { ...(blob.nutritionTargets ?? {}), ...(edit.fiberG != null ? { fiberG: edit.fiberG } : {}), ...extra, setAt: new Date().toISOString() };
+      await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify(blob) } });
+    }
+  } else {
+    const next = { ...(blob.nutritionTargets ?? {}), ...macros, ...(edit.fiberG != null ? { fiberG: edit.fiberG } : {}), ...extra, setAt: new Date().toISOString() };
+    if (!(Number(next.calories) > 0)) { const e: any = new Error('Set your calories first.'); e.status = 400; throw e; }
+    blob.nutritionTargets = next;
+    // A user-set target replaces any typed calorie number.
+    await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify(blob), dailyCalorieTarget: null } });
+  }
+  cacheMarkStale(nutritionProfileCacheKey(userId));
+  const fresh = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true } });
+  return resolveTargets(fresh ?? {});
+}
+
+const editSchema = z.object({
+  calories: z.number().min(800).max(8000).optional(),
+  proteinG: z.number().min(0).max(600).optional(),
+  carbsG: z.number().min(0).max(1200).optional(),
+  fatG: z.number().min(0).max(400).optional(),
+  fiberG: z.number().min(0).max(150).optional(),
+});
+
+// PUT /api/nutrition/day-targets — change any of the daily targets (v2 Fuel → Targets).
+router.put('/nutrition/day-targets', requireAuth, async (req, res) => {
+  try {
+    const edit = editSchema.parse(req.body);
+    if (!Object.keys(edit).length) return res.status(400).json({ error: 'Nothing to change' });
+    res.json({ targets: await writeTargets(req.user!.id, edit) });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: err.errors?.[0]?.message ?? 'Check the numbers' });
+    if (err?.status) return res.status(err.status).json({ error: err.message });
+    console.error('Edit targets error:', err);
+    res.status(500).json({ error: 'Failed to change targets' });
+  }
+});
+
 router.get('/nutrition/day-targets', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
@@ -48,19 +104,14 @@ router.post('/nutrition/day-targets/quick', requireAuth, async (req, res) => {
     const userId = req.user!.id;
     const a = quickSchema.parse(req.body);
     const t = quickTargets(a);
-    const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, heightCm: true, weightKg: true } });
-    let blob: any = {};
-    try { blob = u?.coachProfile ? JSON.parse(u.coachProfile) : {}; } catch { blob = {}; }
-    blob.nutritionTargets = { ...t, answers: a, setAt: new Date().toISOString() };
-    await prisma.user.update({
-      where: { id: userId },
-      // A fresh set replaces any typed calorie number, and fills height / weight if they were missing.
-      data: { coachProfile: JSON.stringify(blob), dailyCalorieTarget: null, ...(u?.heightCm ? {} : { heightCm: a.heightCm }), ...(u?.weightKg ? {} : { weightKg: a.weightKg }) },
-    });
-    cacheMarkStale(nutritionProfileCacheKey(userId));
-    res.json({ targets: { ...t, source: 'quick' } });
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { heightCm: true, weightKg: true } });
+    // Fill height / weight if they were missing.
+    if (!u?.heightCm || !u?.weightKg) await prisma.user.update({ where: { id: userId }, data: { ...(u?.heightCm ? {} : { heightCm: a.heightCm }), ...(u?.weightKg ? {} : { weightKg: a.weightKg }) } });
+    // With a program plan, the plan's macros take the new numbers (as chat would).
+    res.json({ targets: await writeTargets(userId, t, { answers: a }) });
   } catch (err: any) {
     if (err?.name === 'ZodError') return res.status(400).json({ error: err.errors?.[0]?.message ?? 'Check your answers' });
+    if (err?.status) return res.status(err.status).json({ error: err.message });
     console.error('Quick targets error:', err);
     res.status(500).json({ error: 'Failed to set targets' });
   }

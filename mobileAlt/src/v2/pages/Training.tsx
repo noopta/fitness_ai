@@ -381,12 +381,13 @@ const WeekContent = memo(function WeekContent({ days, sel, onDay, onAction, heig
   // Fit rule — never scroll: three exercise lines if they fit, then two, then tighter rows.
   const lines = 7 * ROW_H + DETAIL_3 <= height ? 3 : 2;
   const rowH = lines === 3 || 7 * ROW_H + DETAIL_2 <= height ? ROW_H : ROW_H_TIGHT;
+  // Scrolls when the rows don't fit (a suggestion above the bands, a small screen, an open day) — never clips Sunday.
   return (
-    <View>
+    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} nestedScrollEnabled bounces={false}>
       {days.map((d, i) => (
         <DayRow key={d.date} day={d} expanded={sel === i} rowH={rowH} lines={lines} reduced={reduced} index={i} onDay={onDay} onAction={onAction} />
       ))}
-    </View>
+    </ScrollView>
   );
 });
 
