@@ -313,7 +313,8 @@ export function HomePage() {
   const inputText = useAnimatedStyle(() => ({ color: interpolateColor(p.value, [0, 1], [C.darkInk, C.ink]) }));
 
   const loaded = !!brief.data;
-  const openSession = useCallback(() => { haptics.select(); router.push('/(v2)/session' as any); }, [router]);
+  // The session row pushes Today (H-01) — its exercises, recovery and the Swap / Life happened / Check in actions; Begin is there.
+  const openSession = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'today' } } as any); }, [router]);
   const sentence = loaded ? plain(brief.data!.sentence) : (brief.isError ? 'Tell me what you\'re working toward.' : '');
   // A changed read cross-fades (old out 200 ms, new in 500 ms); the first one just settles with the rest.
   const prevRead = useRef<string | null>(null);

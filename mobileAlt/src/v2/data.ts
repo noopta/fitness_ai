@@ -37,6 +37,10 @@ export const qk = {
   bodyWeight: ['v2', 'bodyWeight'] as const,
   streak: ['v2', 'streak'] as const,
   trainingOverview: ['v2', 'training', 'overview'] as const,
+  checkins: ['v2', 'checkins'] as const,
+  freestyle: ['v2', 'training', 'freestyle'] as const,
+  adaptation: ['v2', 'training', 'adaptation'] as const,
+  video: (name: string) => ['v2', 'video', name.toLowerCase()] as const,
 };
 
 // Review #5: home never waits. The last brief (persisted, per user) renders on
@@ -136,6 +140,17 @@ export const useStreak = () => useQuery({
   },
 });
 
+// Wave 2 (handoff H-01, T-04–T-06, T-10).
+export const useCheckins = () => useQuery({ queryKey: qk.checkins, queryFn: () => apiFetch('/wellness/checkins') as Promise<{ checkins: any[] }>, staleTime: STALE });
+export const useFreestyle = () => useQuery({ queryKey: qk.freestyle, queryFn: () => v2Api.freestyle(), staleTime: STALE });
+export const useAdaptationPending = () => useQuery({ queryKey: qk.adaptation, queryFn: () => apiFetch('/adaptation/pending') as Promise<{ enabled: boolean; proposals: any[] }>, staleTime: STALE });
+/** An exercise's tutorial ({ videoId, title, thumbnail }); null when there isn't one. Cached for the session. */
+export const useExerciseVideo = (name: string, enabled = true) => useQuery({
+  queryKey: qk.video(name),
+  queryFn: () => (coachApi.getExerciseVideo(name) as Promise<{ videoId: string; title: string; thumbnail?: string }>).catch(() => null),
+  staleTime: Infinity, enabled: enabled && !!name, retry: 0,
+});
+
 /** Bust the caches a write touches. */
 export function useInvalidate() {
   const qc = useQueryClient();
@@ -143,7 +158,7 @@ export function useInvalidate() {
     afterWorkout: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.workouts }), qc.invalidateQueries({ queryKey: qk.strength }), qc.invalidateQueries({ queryKey: qk.brief })]),
     afterMeal: () => Promise.all([qc.invalidateQueries({ queryKey: ['v2', 'meals'] }), qc.invalidateQueries({ queryKey: ['v2', 'np'] }), qc.invalidateQueries({ queryKey: qk.brief })]),
     afterProgram: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.program }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.brief })]),
-    afterSchedule: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.brief })]),
+    afterSchedule: () => Promise.all([qc.invalidateQueries({ queryKey: qk.trainingOverview }), qc.invalidateQueries({ queryKey: qk.schedule }), qc.invalidateQueries({ queryKey: qk.today }), qc.invalidateQueries({ queryKey: qk.brief }), qc.invalidateQueries({ queryKey: qk.checkins })]),
     all: () => qc.invalidateQueries({ queryKey: ['v2'] }),
   };
 }

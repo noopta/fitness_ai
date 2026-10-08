@@ -22,6 +22,7 @@ import { estimateWorkoutCalories } from '../services/workoutCalories.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
 import { lastForExercises } from '../adaptation/proposalService.js';
 import { listExerciseNames } from '../adaptation/exerciseNames.js';
+import { alternativesFor } from '../services/exerciseAlternatives.js';
 import { workoutLogSchema, createWorkoutLog, updateWorkoutLog, deleteWorkoutLog, WorkoutDateError, todayForTz } from '../services/workoutLogService.js';
 import { parseWorkoutNotes, MAX_NOTES_CHARS } from '../services/workoutNotesParser.js';
 
@@ -49,7 +50,9 @@ router.get('/workouts/exercise/:name/last', requireAuth, async (req, res) => {
   try {
     const name = String(req.params.name ?? '').trim();
     if (!name) return res.status(400).json({ error: 'name required' });
-    const [result] = await lastForExercises(req.user!.id, [name]);
+    // ?limit= more exposures for a lift page's best sets (v2 T-12); default 3.
+    const n = parseInt(String(req.query.limit ?? ''), 10);
+    const [result] = await lastForExercises(req.user!.id, [name], Number.isFinite(n) ? Math.max(1, Math.min(20, n)) : 3);
     res.json(result ?? { name, key: null, exposures: [], target: null, lastScore: null, suggestion: null });
   } catch (err) {
     console.error('Get exercise history error:', err);
@@ -88,6 +91,13 @@ router.get('/workouts/exercise-names', requireAuth, async (req, res) => {
     console.error('Exercise names error:', err);
     res.status(500).json({ error: 'Failed to load exercise names' });
   }
+});
+
+// GET /api/workouts/exercise-alternatives?name=<exercise> — what Swap offers
+// on an exercise page (v2 T-10). Before /workouts/:date for the same reason.
+router.get('/workouts/exercise-alternatives', requireAuth, (req, res) => {
+  const name = typeof req.query.name === 'string' ? req.query.name.slice(0, 80) : '';
+  res.json({ alternatives: name ? alternativesFor(name, 6) : [] });
 });
 
 // GET /api/workouts/:date — get workout logs for a specific date (YYYY-MM-DD)

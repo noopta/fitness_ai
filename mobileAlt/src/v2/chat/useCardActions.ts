@@ -56,6 +56,8 @@ export function useCardActions(thread: Thread) {
   const stateLine = (card: Card, line: string) => setCard({ ...card, state: { ...(card.state ?? { status: 'live' }), status: 'applied', line, at: new Date().toISOString() } });
 
   const open = useCallback((_card: Card | null, route: CardRoute) => {
+    // A new program's Open → reviews that card's program before it's saved (T-07).
+    if (route.page === 'programreview' && _card && !route.params?.id) route = { page: 'programreview', params: { id: _card.id } };
     const d = destinationFor(route);
     if (!d) { router.push({ pathname: '/(v2)/p/[key]', params: { key: route.page } } as any); return; }
     if (d.kind === 'tab') { shell?.goTo(d.index); return; }

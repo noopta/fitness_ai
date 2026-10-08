@@ -222,6 +222,8 @@ function OnboardingScreenInner() {
                   <Enter index={s.phases.length + 1} exit={false}><Row name="Nutrition" sub={s.nutrition ?? undefined} last /></Enter>
                 </View>
                 <Enter index={s.phases.length + 2} exit={false}><TextAction primary onPress={begin} style={{ marginTop: 28 }}>Begin Phase 1</TextAction></Enter>
+                {/* T-07: every day and every set before starting. */}
+                <Enter index={s.phases.length + 3} exit={false}><TextAction muted arrow={false} size={15} onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'programreview' } } as any)} style={{ marginTop: 14 }}>See every day</TextAction></Enter>
               </>
             ) : null}
           </View>

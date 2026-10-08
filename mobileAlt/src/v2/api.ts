@@ -58,6 +58,10 @@ export interface TrainingOverview {
     count: number;
     items: { kind: 'program' | 'diagnostic'; title: string; sub: string; value: string; id: string; source?: 'form' | 'lift'; flow?: 'conversation' | 'wizard'; done?: boolean }[];
   };
+  /** Set the day the last session is logged (T-09); the tab shows the result until a new program replaces it. */
+  finished?: { weeks: number; goal: string | null; sessionsLogged: number | null; sessionsPlanned: number | null; bodyWeightChangeLb: number | null } | null;
+  /** Freestyle (no program): the strength lifts so the tab isn't empty. */
+  strength?: { lifts: { name: string; current1RMkg: number; sessionCount: number | null; weekSeries: { week: string; rm: number }[] }[] };
 }
 
 /** GET /nutrition/plan — the plan page summary (bug fixes 5 Oct, 2b). 404 → no plan yet. */
@@ -105,6 +109,17 @@ export const v2Api = {
   },
 
   trainingOverview: (): Promise<TrainingOverview> => apiFetch('/training/overview'),
+  /** GET /training/freestyle — the no-program home (T-04): sessions as trained, lift trends. */
+  freestyle: (): Promise<any> => apiFetch('/training/freestyle'),
+
+  /** A native screen asks for one of Anakin's proposals (Swap, Life happened, freestyle pick). Nothing changes until Apply. */
+  runTool: (tool: string, input: Record<string, unknown> = {}): Promise<{ result: any; cards: Card[] }> =>
+    post('/coach/agent/cards/run', { tool, input }),
+  /** The program a new-program proposal would start (T-07). */
+  cardProgram: (id: string): Promise<{ card: Card; program: any }> => apiFetch(`/coach/agent/cards/${id}/program`),
+  /** What Swap offers on an exercise page (T-10). */
+  exerciseAlternatives: (name: string): Promise<{ alternatives: { name: string; primaryMuscle: string; isCompound: boolean }[] }> =>
+    apiFetch(`/workouts/exercise-alternatives?name=${encodeURIComponent(name)}`),
 
   brief: (): Promise<Brief> => apiFetch('/coach/brief', { timeoutMs: LONG_TIMEOUT_MS }),
 

@@ -209,3 +209,30 @@ export function computeBalance(muscleScores: Record<string, number>): BalanceRes
     return { id: def.id, name: def.name, ratio, band: def.band, status, severity };
   });
 }
+
+// ─── Total tier ladder (v2 handoff T-11) ────────────────────────────────────
+// The strength profile's tier explainer: squat + bench + deadlift as one
+// multiple of bodyweight, placed on a ladder built from the same per-lift
+// standards above. Null ratio until all three are tested.
+
+const BIG3 = ['Squat', 'Bench Press', 'Deadlift'];
+const LADDER: Exclude<RelStrengthTier, 'untested'>[] = ['novice', 'intermediate', 'advanced', 'elite'];
+
+export interface TierLadder {
+  ratio: number | null;
+  tier: RelStrengthTier;
+  rungs: { tier: Exclude<RelStrengthTier, 'untested'>; multiple: number }[];
+  missing: string[];
+}
+
+export function totalTierLadder(rel: RelStrengthResult[]): TierLadder {
+  const defs = REL_STRENGTH.filter((d) => BIG3.includes(d.lift));
+  const rungs = LADDER.map((tier, i) => ({ tier, multiple: Math.round(defs.reduce((s, d) => s + d.tiers[i], 0) * 100) / 100 }));
+  const byLift = new Map(rel.map((r) => [r.lift, r.ratioToBw]));
+  const missing = BIG3.filter((l) => byLift.get(l) == null);
+  if (missing.length) return { ratio: null, tier: 'untested', rungs, missing };
+  const ratio = Math.round(BIG3.reduce((s, l) => s + (byLift.get(l) as number), 0) * 100) / 100;
+  let tier: RelStrengthTier = 'novice';
+  for (const r of rungs) if (ratio >= r.multiple) tier = r.tier;
+  return { ratio, tier, rungs, missing };
+}

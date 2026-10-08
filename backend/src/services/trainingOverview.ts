@@ -355,3 +355,16 @@ export function buildTrainingOverview(input: OverviewInput): TrainingOverview {
     archive: buildArchive(input),
   };
 }
+
+// ─── Program finished (v2 handoff T-09) ─────────────────────────────────────
+// The Training tab is taken over the day the last session is logged: past the
+// final week, or in it with nothing left to do this week. It stays until the
+// user picks what's next (a new program replaces the saved one).
+
+export function programFinished(p: { isComplete: boolean; weekNumber: number; totalWeeks: number; days: { status: DayStatus }[] }): boolean {
+  if (p.totalWeeks <= 0) return false;
+  if (p.isComplete) return true;
+  if (p.weekNumber < p.totalWeeks) return false;
+  const sessions = p.days.filter((d) => d.status !== 'rest');
+  return sessions.length > 0 && sessions.every((d) => d.status === 'done');
+}

@@ -8,7 +8,8 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { normalizePreference } from '../services/weightUnits.js';
 import { computePhaseState } from '../services/programPhaseService.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
-import { buildTrainingOverview } from '../services/trainingOverview.js';
+import { buildTrainingOverview, programFinished } from '../services/trainingOverview.js';
+import { computeProgramStats } from '../services/completedProgramService.js';
 import { buildScheduleData, fetchOverridesMap, getESTDateString, addDaysStr } from './coach.js';
 import { getStrengthProfileCached, toWeekKey } from './strength.js';
 import { z } from 'zod';
@@ -93,7 +94,15 @@ router.get('/training/overview', requireAuth, async (req, res) => {
         .map((l) => ({ name: l.canonicalName, current1RMkg: l.current1RMkg, sessionCount: l.sessionCount ?? null, weekSeries: l.weekSeries ?? [] }));
       return res.json({ ...overview, strength: { lifts } });
     }
-    res.json(overview);
+    // Program finished (T-09): the tab shows the result until the user picks what's next.
+    let finished: any = null;
+    if (program && overview.program && programFinished({ isComplete: phase.isComplete, weekNumber: phase.weekNumber, totalWeeks: phase.totalWeeks, days: overview.week.days })) {
+      const start = user.programStartDate ?? new Date();
+      const stats = await computeProgramStats(userId, start, new Date(), program).catch(() => null);
+      const planned = (Number(program.daysPerWeek) || overview.week.planned || 0) * phase.totalWeeks;
+      finished = { weeks: phase.totalWeeks, goal: program.goal ?? null, sessionsLogged: stats?.workoutsLogged ?? null, sessionsPlanned: planned || null, bodyWeightChangeLb: stats?.bodyWeightChangeLb ?? null };
+    }
+    res.json({ ...overview, finished });
   } catch (err) {
     console.error('Training overview error:', err);
     res.status(500).json({ error: 'Failed to load training' });

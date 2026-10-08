@@ -41,6 +41,7 @@ import { Mark } from '../../src/v2/primitives/Mark';
 import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } from '../../src/v2/format';
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
+import { takeSessionSeed } from '../../src/v2/sessionSeed';
 
 const DRAFT_KEY = 'v2.sessionDraft.v1';
 const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
@@ -57,7 +58,9 @@ function SessionScreenInner() {
   const invalidate = useInvalidate();
   const { unit, fromKg, toKg } = useUnits();
   const rules = useMemo(() => defaultRules(unit === 'kg' ? 'kg' : 'lbs'), [unit]);
-  const session = today.data?.session ?? today.data?.todaySession ?? today.data?.today ?? null;
+  // A guided freestyle session (T-05) arrives as a seed; otherwise it's today's program day.
+  const [seed] = useState(() => takeSessionSeed());
+  const session = seed ?? today.data?.session ?? today.data?.todaySession ?? today.data?.today ?? null;
   const [plan, setPlan] = useState<PlanExercise[] | null>(null);
   const [state, dispatch] = useReducer(workoutReducer, undefined, () => initialWorkout([]));
   const [now, setNow] = useState(Date.now());
@@ -167,7 +170,8 @@ function SessionScreenInner() {
       const kg = (w: number | null | undefined) => (w ? toKg(w) : null);
       await workoutsApi.logWorkout({
         date: body.date, title: body.title, duration: body.duration,
-        programDayRef: today.data?.programDayRef ?? null,
+        // A freestyle seed is ad hoc — never scored against a program day.
+        programDayRef: seed ? null : today.data?.programDayRef ?? null,
         exercises: body.exercises.map((e) => ({
           name: e.name, sets: e.sets, reps: e.reps, weightKg: kg(e.weight), rpe: e.rpe ?? null, notes: e.notes ?? null, bodyweight: !e.weight,
           setEntries: e.setEntries.map((x) => ({ weightKg: kg(x.weight), reps: x.reps, rpe: x.rpe })),

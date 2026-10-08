@@ -687,7 +687,7 @@ export const PROGRAM_TOOLS = [
       if (r.proOnly) return { fn: 'PRG-04', pattern: 'proposal', rule: 'propose', pro: true, meta: { label: 'New program · Pro' }, rows: [{ key: 'Goal', value: String(r.goal ?? '—').slice(0, 60) }, { key: 'Length', value: `${r.durationWeeks} weeks` }, { key: 'Days', value: `${r.daysPerWeek} a week` }], actions: [{ id: 'pro', label: 'Unlock with Pro', kind: 'primary', client: { action: 'purchase' } }] };
       const p = r.program;
       return {
-        fn: 'PRG-04', pattern: 'proposal', rule: 'propose', meta: { label: `Proposed · ${p.durationWeeks ?? r.durationWeeks}-week program`, open: { page: 'training' } },
+        fn: 'PRG-04', pattern: 'proposal', rule: 'propose', meta: { label: `Proposed · ${p.durationWeeks ?? r.durationWeeks}-week program`, open: { page: 'programreview' } },
         rows: (p.phases ?? []).map((ph: any) => ({ key: ph.phaseName, value: ph.weeksLabel ?? `${ph.durationWeeks} wk`, sub: String(ph.rationale ?? '').slice(0, 90) })),
         why: `${p.daysPerWeek ?? r.daysPerWeek} days a week toward ${String(p.goal ?? 'your goal').slice(0, 60)}.${(p.sources ?? []).length ? ` Built on ${plural(p.sources.length, 'source')}.` : ''}`,
         actions: [{ id: 'apply', label: 'Make this my program', kind: 'primary' }, { id: 'keep', label: 'Keep current', kind: 'secondary' }],

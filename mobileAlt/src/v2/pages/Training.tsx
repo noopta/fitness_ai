@@ -8,7 +8,7 @@
 // container. All four bands stay mounted; closed content is just clipped.
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, AccessibilityInfo, PixelRatio, type LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, AccessibilityInfo, PixelRatio, type LayoutChangeEvent } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +17,6 @@ import Animated, {
   useReducedMotion, Easing, type SharedValue,
 } from 'react-native-reanimated';
 import { v2, T } from '../theme';
-import { AnakinRead } from '../shell/Page';
 import { headerClearance } from '../shell/Header';
 import { TextAction } from '../primitives/TextAction';
 import { useTrainingOverview } from '../data';
@@ -25,6 +24,8 @@ import { useShell } from '../shell/ShellContext';
 import { haptics } from '../haptics';
 import type { TrainingOverview } from '../api';
 import { niceLabel, sessionName } from '../format';
+import { FreestyleHome, SuggestionBand } from './pushed/freestyle';
+import { ProgramFinishedView } from './pushed/program';
 
 type Band = 'goal' | 'program' | 'week' | 'archive';
 const BANDS: Band[] = ['goal', 'program', 'week', 'archive'];
@@ -145,6 +146,8 @@ export function TrainingPage() {
     else if (d.status === 'done') router.push({ pathname: '/(v2)/p/[key]', params: { key: `day:${d.date}` } } as any);
     else if (d.status === 'planned') shell.ask(`Can we move ${d.name} on ${d.dow}?`);
   }, [router, shell]);
+  // T-08: the whole program, every week, outside chat.
+  const onOpenProgram = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'program' } } as any); }, [router]);
   const onArchive = useCallback((item: ArchiveItem) => { haptics.select(); router.push(archiveHref(item)); }, [router]);
   const onArchiveAll = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'archive' } } as any); }, [router]);
 
@@ -159,12 +162,15 @@ export function TrainingPage() {
       </View>
     );
   }
-  if (data && !data.program) {
+  // No program (T-04): the freestyle home — the week as trained, Anakin's pick, the way into a program.
+  // Program finished (T-09): the result takes over until the user picks what's next.
+  if (data && (!data.program || data.finished)) {
     return (
-      <View style={[styles.page, pad]}>
-        <TrainingActions onLog={logWorkout} />
-        <AnakinRead text="No program on file. Tell me what you're working toward and I'll build the first week." />
-        <TextAction primary onPress={() => router.push('/(v2)/onboarding' as any)} style={{ marginTop: 18 }}>Build a program</TextAction>
+      <View style={[styles.flex, { paddingTop: pad.paddingTop }]}>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: v2.space.gutter, paddingBottom: pad.paddingBottom + 24 }} showsVerticalScrollIndicator={false}>
+          <TrainingActions onLog={logWorkout} />
+          {data.finished && data.program ? <ProgramFinishedView data={data} /> : <FreestyleHome onLog={logWorkout} />}
+        </ScrollView>
       </View>
     );
   }
@@ -172,13 +178,15 @@ export function TrainingPage() {
   return (
     <View style={[styles.page, pad]}>
       <TrainingActions onLog={logWorkout} />
+      {/* T-06: a progression suggestion sits above the bands after a session that earns one. */}
+      <SuggestionBand />
       <View style={styles.bands} onLayout={onLayout}>
         {BANDS.map((b, i) => (
           <BandView key={b} band={b} o={o[i]} fade={fade[i]} H={H} collapsed={collapsed} contentH={contentH} reduced={!!reduced}
             open={band === b} summary={summaries[b]} onPress={open}>
             {data?.program ? (
               b === 'goal' ? <GoalContent goal={data.goal} week={data.program.week} totalWeeks={data.program.totalWeeks} onLift={onLift} />
-              : b === 'program' ? <ProgramContent program={data.program} sel={phaseSel} onSel={onPhase} onLong={onPhaseLong} />
+              : b === 'program' ? <ProgramContent program={data.program} sel={phaseSel} onSel={onPhase} onLong={onPhaseLong} onOpen={onOpenProgram} />
               : b === 'week' ? <WeekContent days={data.week.days} sel={daySel} onDay={onDay} onAction={onDayAction} height={contentH} reduced={!!reduced} />
               : <ArchiveContent archive={data.archive} onItem={onArchive} onAll={onArchiveAll} />
             ) : null}
@@ -302,8 +310,8 @@ const GoalContent = memo(function GoalContent({ goal, week, totalWeeks, onLift }
 
 // ─── PROGRAM ─────────────────────────────────────────────────────────────────
 
-const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLong }: {
-  program: NonNullable<TrainingOverview['program']>; sel: number; onSel: (i: number) => void; onLong: (name: string) => void;
+const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLong, onOpen }: {
+  program: NonNullable<TrainingOverview['program']>; sel: number; onSel: (i: number) => void; onLong: (name: string) => void; onOpen: () => void;
 }) {
   const ph = program.phases[sel] ?? program.phases[0];
   return (
@@ -325,6 +333,9 @@ const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLon
           </View>
         </View>
       ) : null}
+      <Pressable onPress={onOpen} hitSlop={8} accessibilityRole="button" style={{ alignSelf: 'flex-start', marginTop: 14 }}>
+        <Text style={styles.action}>All {program.totalWeeks} weeks →</Text>
+      </Pressable>
     </View>
   );
 });
@@ -507,6 +518,7 @@ export function WeekStrip({ days, onDay, proposalDates }: { days: any[]; onDay?:
 
 const styles = StyleSheet.create({
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginBottom: 8 },
+  flex: { flex: 1 },
   page: { flex: 1, paddingHorizontal: v2.space.gutter },
   bands: { flex: 1 },
   band: { overflow: 'hidden', borderTopWidth: 1, borderTopColor: C.hairline },

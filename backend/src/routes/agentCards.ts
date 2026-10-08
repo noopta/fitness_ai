@@ -6,11 +6,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { applyCardAction, undoCard, editCardField, toggleCardField, answerCard, editDraftBody, getCard, saveCard, CardError } from '../agent/cards/store.js';
+import { getCardProgram, applyCardAction, undoCard, editCardField, toggleCardField, answerCard, editDraftBody, getCard, saveCard, CardError } from '../agent/cards/store.js';
 import { revertChange, listChanges, UndoError, executeOp, withWriteGuard } from '../agent/ops.js';
 import { appendInitiated } from '../agent/conversation.js';
 import { cardRef } from '../agent/cardNotes.js';
 import '../agent/toolkits/index.js';
+import { runNativeTool, NativeToolError } from '../agent/nativeTools.js';
 
 const router = Router();
 const AGENT_ENABLED = process.env.AGENT_ENABLED === 'true';
@@ -54,6 +55,15 @@ router.get('/coach/agent/cards/:id', requireAuth, access, async (req, res) => {
   try { res.json({ card: await getCard(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'load the card'); }
 });
 
+// The program a new-program proposal would start (v2 T-07: review before saving).
+router.get('/coach/agent/cards/:id/program', requireAuth, access, async (req, res) => {
+  try {
+    const r = await getCardProgram(req.user!.id, req.params.id);
+    if (!r.program) return res.status(404).json({ error: 'That card has no program.' });
+    res.json(r);
+  } catch (e) { fail(res, e, 'load the program'); }
+});
+
 // A meal logged outside chat — Fuel's food search opened from a chat "Log
 // food" (bug fixes 5 Oct, 4b) — lands in the thread as a Logged card that owns
 // its Undo, exactly like a capture's.
@@ -69,6 +79,20 @@ router.post('/coach/agent/cards/logged', requireAuth, access, async (req, res) =
     await appendInitiated(userId, '', [cardRef(card)]);
     res.json({ card });
   } catch (e) { fail(res, e, 'add that to chat'); }
+});
+
+// A native v2 screen asks for a proposal (Swap, Life happened, freestyle pick,
+// exercise swap). Only the tools in agent/nativeTools.ts; nothing changes
+// until the returned card's Apply is tapped.
+const runSchema = z.object({ tool: z.string().min(1).max(60), input: z.record(z.unknown()).default({}) });
+router.post('/coach/agent/cards/run', requireAuth, access, async (req, res) => {
+  try {
+    const { tool, input } = runSchema.parse(req.body);
+    res.json(await runNativeTool(req.user!.id, tool, input));
+  } catch (e: any) {
+    if (e instanceof NativeToolError) return res.status(e.status).json({ error: e.message });
+    fail(res, e, 'build that');
+  }
 });
 
 // Apply / Keep / Send / Delete / any action on the card.

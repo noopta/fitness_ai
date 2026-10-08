@@ -44,6 +44,8 @@ export interface PatternCoverage {
   label: string;
   trailingSets: number;     // hard sets in the trailing window
   status: 'covered' | 'light' | 'neglected';
+  /** What filled it in the window, most sets first (v2 T-13 drill-down). */
+  exercises?: { name: string; sets: number }[];
 }
 
 export interface AthleteModel {
@@ -101,12 +103,16 @@ function buildPatternCoverage(workouts: LedgerWorkout[]): PatternCoverage[] {
   }
   const trailingWeeks = order.slice(-COVERAGE_WINDOW_WEEKS);
   const setCount: Partial<Record<MovementPattern, number>> = {};
+  const byExercise: Partial<Record<MovementPattern, Map<string, number>>> = {};
   for (const wk of trailingWeeks) {
     for (const w of weeks.get(wk)!) {
       for (const ex of w.exercises) {
         const pat = movementPatternFor(ex.name);
         if (!pat) continue;
-        setCount[pat] = (setCount[pat] ?? 0) + Math.max(0, Math.round(ex.sets));
+        const n = Math.max(0, Math.round(ex.sets));
+        setCount[pat] = (setCount[pat] ?? 0) + n;
+        const m = (byExercise[pat] ??= new Map());
+        m.set(ex.name, (m.get(ex.name) ?? 0) + n);
       }
     }
   }
@@ -119,7 +125,8 @@ function buildPatternCoverage(workouts: LedgerWorkout[]): PatternCoverage[] {
     const sets = setCount[pattern] ?? 0;
     const status: PatternCoverage['status'] =
       sets >= 6 ? 'covered' : sets >= 1 ? 'light' : 'neglected';
-    return { pattern, label: PATTERN_LABEL[pattern], trailingSets: sets, status };
+    const exercises = [...(byExercise[pattern] ?? new Map()).entries()].map(([name, n]) => ({ name, sets: n })).sort((a, b) => b.sets - a.sets).slice(0, 8);
+    return { pattern, label: PATTERN_LABEL[pattern], trailingSets: sets, status, exercises };
   });
 }
 

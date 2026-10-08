@@ -27,6 +27,8 @@ const PUSHED: Record<string, string | null> = {
   account: null, deleteaccount: null,
   // Wellness check-in (H-04).
   checkin: null,
+  // Wave 2: Today, an exercise, the whole program, a new program's review, freestyle, suggestions.
+  today: null, exercise: 'name', program: null, programreview: 'id', freestyle: null, suggestions: null, patterns: null,
 };
 const ALIAS: Record<string, string> = { conversation: 'thread', search: 'feedsearch', traintogether: 'together',  usage: 'plan', saved_foods: 'savedfoods', history: 'workouts', workout_history: 'workouts', gut: 'systems' };
 

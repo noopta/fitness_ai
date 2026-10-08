@@ -8,6 +8,7 @@ import { cacheGet, cacheSet, cacheDelete } from '../services/cacheService.js';
 import { buildMuscleProfileAddition } from '../services/muscleScoringService.js';
 import { e1rmWithRpe } from '../engine/e1rm.js';
 import { buildAthleteModel } from '../services/athleteModelService.js';
+import { totalTierLadder } from '../services/strengthMetricsService.js';
 import { workingSets } from '../adaptation/history.js';
 import { liftResolver, toLedgerExercises, type RawExercise } from '../services/liftCanonical.js';
 import { trainingSummaryCacheKey } from '../services/trainingSummary.js';
@@ -303,6 +304,8 @@ export async function computeStrengthProfile(userId: string) {
     muscleTargets: muscleAddition.muscleTargets,
     muscleGroupsKnown: muscleAddition.muscleGroupsKnown,
     athleteModel,
+    // v2 T-11: squat + bench + deadlift total as a bodyweight multiple, on a ladder.
+    tierLadder: totalTierLadder(athleteModel?.relativeStrength ?? []),
     lifts,
     aiInsights,
     computedAt: new Date().toISOString(),

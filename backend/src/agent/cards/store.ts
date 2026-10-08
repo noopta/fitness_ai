@@ -88,6 +88,13 @@ export async function getCard(userId: string, cardId: string): Promise<Card> {
   return (await load(userId, cardId)).card;
 }
 
+/** A new-program proposal's full program, for the review page (v2 T-07). Null when the card isn't one. */
+export async function getCardProgram(userId: string, cardId: string): Promise<{ card: Card; program: any | null }> {
+  const { card, pending } = await load(userId, cardId);
+  const apply: any = (pending as any)?.actions?.apply;
+  return { card, program: apply?.op === 'program.activate' ? apply.args?.program ?? null : null };
+}
+
 const DONE_LINE: Record<string, string> = { applied: 'Applied', sent: 'Sent', posted: 'Posted', deleted: 'Deleted', kept: 'Kept', cancelled: 'Cancelled' };
 
 /** Run the action a user tapped. Returns the updated card. */

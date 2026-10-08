@@ -10,17 +10,21 @@ import { PushedPage } from '../../shell/Page';
 import { Row, Eyebrow } from '../../primitives/Row';
 import { TextAction } from '../../primitives/TextAction';
 import { ReceiptList } from '../../primitives/Receipt';
-import { LineForecast, RatioBand, CoverageBar, WeekBars, Radar } from '../../charts';
+import { RatioBand, CoverageBar, WeekBars, Radar } from '../../charts';
 import { v2, T } from '../../theme';
-import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, useWorkouts, qk } from '../../data';
+import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, useWorkouts, useAdaptationPending, qk } from '../../data';
 import { programPhases, archiveHref, ArchiveRow } from '../Training';
-import { strengthRead } from '../You';
 import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
 import { PromptSheet } from '../../primitives/Sheet';
 import { AccountPage, DeleteAccountPage } from './account';
 import { MealEditPage } from './mealEdit';
 import { CheckinPage } from './checkin';
+import { TodayPage } from './today';
+import { ExercisePage } from './exercise';
+import { FullProgramPage, ProgramDayPage, ProgramReviewPage } from './program';
+import { GuidedFreestylePage, SuggestionsPage } from './freestyle';
+import { StrengthProfilePage, LiftTrendPage, PatternsPage } from './strength';
 import { manageSubscription } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
@@ -49,10 +53,20 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'account': return <AccountPage />;
     case 'deleteaccount': return <DeleteAccountPage />;
     case 'checkin': return <CheckinPage />;
+    // Wave 2 (handoff H-01, T-04–T-10).
+    case 'today': return <TodayPage />;
+    case 'exercise': return <ExercisePage name={arg} params={params} />;
+    case 'program': return <FullProgramPage />;
+    case 'progday': return <ProgramDayPage arg={arg} params={params} />;
+    case 'programreview': return <ProgramReviewPage cardId={arg || undefined} />;
+    case 'freestyle': return <GuidedFreestylePage />;
+    case 'suggestions': return <SuggestionsPage />;
     case 'meal': return <MealEditPage id={arg} date={typeof params?.date === 'string' ? params.date : undefined} />;
-    case 'strength': return <StrengthPage />;
+    // T-11 – T-13: tier explainer + every lift, a lift's trend + log a set, movement patterns.
+    case 'strength': return <StrengthProfilePage />;
     case 'ratios': return <RatiosPage />;
-    case 'lift': return <LiftPage name={arg} />;
+    case 'lift': return <LiftTrendPage name={arg} />;
+    case 'patterns': return <PatternsPage />;
     case 'body': return <BodyPage />;
     case 'streak': return <StreakPage />;
     case 'memory': return <MemoryPage />;
@@ -207,10 +221,12 @@ function ArchivePage() {
   const items = q.data?.archive.items ?? [];
   const programs = items.filter((i) => i.kind === 'program');
   const diags = items.filter((i) => i.kind === 'diagnostic');
+  const pending: any[] = useAdaptationPending().data?.proposals ?? [];
   const open = (i: (typeof items)[number]) => router.push(archiveHref(i));
   return (
     <PushedPage back="Training" meta={`${items.length} total`} title="Archive" lead="Finished programs and every diagnostic Anakin has run. Anakin reads these before writing the next block." loading={q.isLoading && !items.length}>
-      {programs.length ? <Eyebrow>Programs</Eyebrow> : null}
+      {pending.length ? <Row name="Suggestions" sub="Changes Anakin proposed, waiting on you" value={String(pending.length)} arrow onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'suggestions' } } as any)} /> : null}
+      {programs.length ? <Eyebrow style={{ marginTop: pending.length ? 24 : 0 }}>Programs</Eyebrow> : null}
       <View style={{ marginTop: 10 }}>{programs.map((i) => <ArchiveRow key={i.id} item={i} onPress={open} />)}</View>
       {diags.length ? <Eyebrow style={{ marginTop: programs.length ? 28 : 0 }}>Diagnostics</Eyebrow> : null}
       <View style={{ marginTop: 10 }}>{diags.map((i) => <ArchiveRow key={i.id} item={i} onPress={open} />)}</View>
@@ -297,35 +313,6 @@ function NutrientPage({ nkey }: { nkey: string }) {
 
 // ─── You ─────────────────────────────────────────────────────────────────────
 
-/** Short axis names for the radar — the side labels have ~65 pt before the screen edge. Rows below keep the full names. */
-const radarName = (name: string) => name.replace('Overhead Press', 'OHP').replace('Romanian DL', 'RDL');
-
-function StrengthPage() {
-  const router = useRouter();
-  const s = useStrength();
-  const { fromKg, unit } = useUnits();
-  const d: any = s.data;
-  const lifts: any[] = d?.lifts ?? [];
-  const rel: any[] = d?.athleteModel?.relativeStrength ?? [];
-  const ratios: any[] = d?.athleteModel?.ratios ?? [];
-  const out = ratios.filter((r) => r.status === 'high' || r.status === 'low').length;
-  const conf = Math.round((d?.athleteModel?.confidence ?? 0) * 100);
-  const read = strengthRead(d);
-  const axes = ratios.filter((r) => r.value != null).map((r) => { const k = (r.value - (r.band[0] + r.band[1]) / 2) / (r.band[1] - r.band[0]); return { t: radarName(r.name), v: r.value.toFixed(2), r: Math.max(0.12, Math.min(1, 0.75 + k * 0.35)), hot: r.status !== 'in-band' }; });
-  return (
-    <PushedPage back="You" meta={conf ? `${conf}% confidence` : null} title="Strength profile" lead={read} loading={s.isLoading}
-      visual={axes.length >= 3 ? <Radar axes={axes} band={[0.575, 0.925]} size={330} /> : null}>
-      {lifts.slice(0, 6).map((l, i) => {
-        const r = rel.find((x) => x.lift === l.canonicalName || l.canonicalName.includes(x.lift));
-        return <Row key={l.canonicalName} name={l.canonicalName} sub={r ? `${r.ratioToBw} × BW · ${r.tier}` : `${l.sessionCount} sessions`} value={`${Math.round(fromKg(l.current1RMkg))}`} bigValue last={false}
-          onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `lift:${l.canonicalName}` } } as any)} />;
-      })}
-      <Row name="Ratios" sub={ratios.length ? `${out} of ${ratios.filter((r) => r.status !== 'no-data').length} out of band` : 'Log more lifts to unlock'} onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'ratios' } } as any)} last />
-      <Text style={[T.caption, { marginTop: 14 }]}>e1RM in {unit}.</Text>
-    </PushedPage>
-  );
-}
-
 function RatiosPage() {
   const router = useRouter();
   const shell = useShellOptional();
@@ -341,28 +328,6 @@ function RatiosPage() {
       {ratios.map((r, i) => <Row key={r.id} name={r.name} sub={r.status === 'no-data' ? r.note : `${r.band[0].toFixed(2)}–${r.band[1].toFixed(2)}${r.status !== 'in-band' ? ` · ${r.status}` : ''}`} value={r.value != null ? r.value.toFixed(2) : '—'} emphasis={r.status === 'high' || r.status === 'low'} last={i === ratios.length - 1}
         below={r.value != null ? <RatioBand lo={r.band[0]} hi={r.band[1]} value={r.value} width={300} /> : undefined} />)}
       <Text style={[T.caption, { marginTop: 14 }]}>Grey band — the range for your goal and bodyweight.</Text>
-    </PushedPage>
-  );
-}
-
-function LiftPage({ name }: { name: string }) {
-  const s = useStrength();
-  const { fromKg, unit } = useUnits();
-  const lifts: any[] = s.data?.lifts ?? [];
-  const l = lifts.find((x) => x.canonicalName === name) ?? lifts.find((x) => String(x.canonicalName).toLowerCase().includes(name.toLowerCase()));
-  const series: number[] = (l?.weekSeries ?? []).map((p: any) => fromKg(p.rm));
-  const fc = l?.forecast ? { value: fromKg(l.forecast.value), label: String(l.forecast.week).replace(/^\d{4}-W/, 'wk ') } : null;
-  const delta = series.length > 1 ? series[series.length - 1] - series[0] : 0;
-  const stalled = (s.data?.athleteModel?.insights ?? []).find((i: any) => i.kind === 'stagnation' && String(i.title).startsWith(l?.canonicalName ?? '—'));
-  const lead = stalled ? stalled.detail : l?.forecast?.slopePerWeek > 0 ? `Steady ${fromKg(l.forecast.slopePerWeek).toFixed(1)} ${unit} a week. At this rate ${Math.round(fc!.value)} lands around ${fc!.label}.` : l ? 'Holding. Change the stimulus before adding weight.' : null;
-  return (
-    <PushedPage back="Strength profile" meta={l ? `${l.weekSeries?.length ?? 0} weeks` : null} eyebrow={l ? `${l.canonicalName} · estimated 1RM` : null} title={l?.canonicalName ?? name} hero={l ? { value: String(Math.round(fromKg(l.current1RMkg))), unit, delta: series.length > 1 ? `${delta >= 0 ? '+' : ''}${Math.round(delta)}` : undefined } : null} lead={lead} loading={s.isLoading}
-      visual={series.length > 1 ? <LineForecast series={series} forecast={fc} width={330} unitLabel={unit} /> : null}
-      proposed={stalled?.ctaHint ? { text: stalled.ctaHint } : null}>
-      <Eyebrow>Sessions</Eyebrow>
-      <View style={{ marginTop: 10 }}>
-        {(l?.weekSeries ?? []).slice().reverse().map((p: any, i: number, arr: any[]) => <Row key={p.week} name={String(p.week).replace(/^(\d{4})-W(\d{2})$/, 'Week $2 · $1')} value={`${Math.round(fromKg(p.rm))} ${unit}`} last={i === arr.length - 1} />)}
-      </View>
     </PushedPage>
   );
 }
