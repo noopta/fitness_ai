@@ -766,7 +766,7 @@ async function generateProgramForUserOnce(userId: string, opts: ProgramOpts): Pr
       primaryLimiter: latestPlan?.diagnosis?.[0]?.limiterName || null,
       selectedLift: user.sessions[0]?.selectedLift || null,
       accessories, coachProfile: user.coachProfile, diagnosticSignals, gender: resolvedGender,
-      recentWorkouts,
+      recentWorkouts, constraintsText: (user as any).constraintsText ?? null,
     }),
     generateNutritionPlan({
       goal, bodyCompositionGoal, weightKg: user.weightKg || null, heightCm: user.heightCm || null,

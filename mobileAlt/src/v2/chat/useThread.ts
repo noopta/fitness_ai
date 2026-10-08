@@ -71,14 +71,32 @@ export function useThread() {
   }, []);
 
   /**
-   * A stream that died mid-turn: the server keeps going and saves the reply.
-   * Poll history (12 × 4 s, like classic's recovery) for a reply that comes
-   * AFTER the exact message sent — never an older reply standing in for it.
+   * The turn runs server-side whatever the phone does (left the screen, the
+   * connection dropped, a 30-second program write). Wait on it: its steps
+   * show as receipts while the server says it's running (up to 8 minutes),
+   * then take the reply from history.
    */
   const recover = useCallback(async (agentId: string, sentText: string, signal?: AbortSignal) => {
-    for (let attempt = 0; attempt < 12; attempt++) {
+    const deadline = Date.now() + 8 * 60_000;
+    while (Date.now() < deadline) {
       if (signal?.aborted) return false;
-      if (attempt) await new Promise((r) => setTimeout(r, 4000));
+      let st: Awaited<ReturnType<typeof v2Api.turnStatus>> | null = null;
+      try { st = await v2Api.turnStatus(); } catch { st = null; }
+      for (const step of st?.steps ?? []) dispatch({ type: 'event', agentId, event: { type: 'receipt', id: step.id, verb: step.verb as ReceiptVerb, text: step.text, final: !/ing$/.test(step.verb) } });
+      if (st?.running) { await new Promise((r) => setTimeout(r, 3000)); continue; }
+      // Finished (or the server has no record of it): the reply is in history.
+      if (await fromHistory(agentId, sentText, signal)) return true;
+      if (!st?.message) return false;
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    return false;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** The reply to the exact message sent, from history — never an older reply standing in for it. */
+  const fromHistory = useCallback(async (agentId: string, sentText: string, signal?: AbortSignal) => {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (signal?.aborted) return false;
+      if (attempt) await new Promise((r) => setTimeout(r, 2000));
       try {
         const h = await v2Api.history();
         const msgs = h?.messages ?? [];
@@ -97,6 +115,30 @@ export function useThread() {
     }
     return false;
   }, []);
+
+  /**
+   * Coming back to chat while Anakin is still on the last message (another
+   * screen, the app was in the background, or it was sent from elsewhere):
+   * show that turn working and land its reply when it's done.
+   */
+  const resuming = useRef(false);
+  const resume = useCallback(async () => {
+    if (resuming.current || stateRef.current.busy) return;
+    resuming.current = true;
+    try {
+      const st = await v2Api.turnStatus().catch(() => null);
+      if (!st?.running || !st.message) return;
+      const id = nextId('u'), agentId = nextId('a');
+      dispatch({ type: 'send', id, agentId, text: st.message });
+      const ok = await recover(agentId, st.message);
+      if (!ok) dispatch({ type: 'fail', agentId, error: 'Anakin didn\'t answer in time. Try again.' });
+      else { void invalidate.all(); void refreshLive(); }
+    } finally { resuming.current = false; }
+  }, [recover, invalidate, refreshLive]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (s) => { if (s === 'active') void resume(); });
+    return () => sub.remove();
+  }, [resume]);
 
   // The last send that failed: shown under the thread with Try again (and Go Pro for the daily limit).
   const [failure, setFailure] = useState<{ text: string; limit: boolean } | null>(null);
@@ -128,6 +170,12 @@ export function useThread() {
     } catch (err: any) {
       if (ac.signal.aborted) return true;
       // The server refused the turn (daily limit, auth…): it never ran — say so, don't retry it.
+      // Still working on an earlier message (sent from elsewhere, or before the app was closed): wait on that one.
+      if (err?.status === 409) {
+        dispatch({ type: 'fail', agentId, error: 'Anakin is still on your last message — the answer will land here.' });
+        void resume();
+        return true;
+      }
       if (typeof err?.status === 'number') {
         const limit = err.status === 429;
         dispatch({ type: 'fail', agentId, error: limit ? 'That\'s today\'s limit for Anakin. Pro has no daily limit.' : (err.message || 'Anakin couldn\'t take that. Try again.') });
@@ -160,7 +208,7 @@ export function useThread() {
     else if (gotDone) void invalidate.afterSchedule();
     if (gotDone) void refreshLive();
     return true;
-  }, [recover, invalidate, refreshLive]);
+  }, [recover, invalidate, refreshLive, resume]);
 
   const cancel = useCallback(() => { abortRef.current?.abort(); }, []);
 
@@ -180,5 +228,5 @@ export function useThread() {
 
   const retry = useCallback(() => { if (failure) void send(failure.text); }, [failure, send]);
 
-  return { state, stateRef, dispatch, send, hydrate, cancel, refreshLive, newConversation, receiptOnCard, failure, retry };
+  return { state, stateRef, dispatch, send, hydrate, cancel, refreshLive, newConversation, receiptOnCard, failure, retry, resume };
 }

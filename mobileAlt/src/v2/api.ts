@@ -142,6 +142,9 @@ export const v2Api = {
     apiFetch('/coach/agent', { method: 'POST', headers: CARD_CONTRACT, body: JSON.stringify({ message }), timeoutMs: LONG_TIMEOUT_MS }),
 
   history: (): Promise<{ messages: HistoryMessage[] }> => apiFetch('/coach/agent/history'),
+  /** Is Anakin still working on the last message? Steps so far, so a returning screen can show them. */
+  turnStatus: (): Promise<{ running: boolean; message: string | null; startedAt: string | null; steps: { id: string; verb: string; text: string }[]; finishedAt: string | null }> =>
+    apiFetch('/coach/agent/turn-status', { silent404: true } as any),
 
   // ── Cards (spec §2, §6): taps name the card + action; the server runs it. ──
   cards: async (ids: string[]): Promise<Card[]> => {

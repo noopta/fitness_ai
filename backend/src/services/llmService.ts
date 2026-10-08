@@ -13,6 +13,8 @@ import { buildExposures, makeKeyFn, type KeyFn, type RawWorkout } from '../adapt
 import { chatComplete } from './chatClient.js';
 import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
+import { cleanInjuryText, hardConstraintBlock, lowerBodyBlocked, lowerBodyExercises, stripLowerBody } from './injuryGuard.js';
+import { agentProgress } from '../agent/turnRun.js';
 import {
   buildMealPhotoV2Prompt,
   coerceMealPhotoV2Response,
@@ -1404,7 +1406,14 @@ export async function generateTrainingProgram(params: {
   // Raw WorkoutLog rows (any window; the last 8 weeks are used). Loaded by
   // the caller so this stays DB-free.
   recentWorkouts?: RawWorkout[] | null;
+  /** User.constraintsText — injuries live here AND in coachProfile.injuries (both are read). */
+  constraintsText?: string | null;
 }): Promise<TrainingProgram> {
+  // Injuries are a hard rule at the top of the prompt, not one profile line among many.
+  const injuryProfile = (() => { try { const p = params.coachProfile ? JSON.parse(params.coachProfile) : null; const inj = p?.injuries; return Array.isArray(inj) ? inj.filter((i: any) => !i?.resolvedAt).map((i: any) => [i?.area, i?.note].filter(Boolean).join(' — ')).join('; ') : typeof inj === 'string' ? inj : ''; } catch { return ''; } })();
+  const injuryText = cleanInjuryText(params.constraintsText, injuryProfile);
+  const hard = hardConstraintBlock(injuryText, params.daysPerWeek);
+  params = { ...params, daysPerWeek: hard.daysPerWeek };
   // Parse coachProfile for richer context
   let profileContext = '';
   let profileObj: any = null;
@@ -1542,8 +1551,12 @@ OUTPUT FORMAT — Return valid JSON only:
   // (periodization · exercise selection · volume/intensity · nutrition) so the
   // surfaced bibliography genuinely reflects every block on the reveal screen.
   const ragQuery = `periodization phases and progressive overload; exercise selection and technique; training volume intensity RPE and rep ranges; protein and nutrition for ${params.goal || 'strength'} ${params.primaryLimiter || ''} ${params.selectedLift || ''}`;
+  agentProgress('prog-sources', 'Reading', 'Research on your goal');
   const { ragContext, sources } = await retrieveProgramSources(ragQuery, 8);
-  const finalPrompt = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+  agentProgress('prog-sources', 'Read', `${sources.length || 'No'} source${sources.length === 1 ? '' : 's'} on your goal`);
+  const withRag = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
+  const finalPrompt = hard.block ? `${hard.block}\n\n${withRag}\n\n${hard.block}` : withRag;
+  agentProgress('prog-write', 'Reading', `Writing your ${params.durationWeeks}-week program — this takes about 30 seconds`);
 
   // A 6-day, 12-week program runs 7–11k output tokens (bake-off 6 Oct), so
   // the old 8000 cap cut the biggest ones off mid-object. 100 s covers ~12k
@@ -1556,7 +1569,23 @@ OUTPUT FORMAT — Return valid JSON only:
   }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
 
   const content = response.choices[0].message.content || '{}';
-  const parsed = parseModelJson(content) as TrainingProgram;
+  let parsed = parseModelJson(content) as TrainingProgram;
+  // A draft that loads an un-cleared lower limb: one retry naming what broke the rule, then strip what's left.
+  if (lowerBodyBlocked(injuryText)) {
+    const bad = lowerBodyExercises(parsed);
+    if (bad.length) {
+      agentProgress('prog-write', 'Reading', 'Checking it against your injury — rewriting a few days');
+      try {
+        const again = await chatComplete({
+          messages: [{ role: 'user', content: `${finalPrompt}\n\nYOUR LAST DRAFT BROKE THE HARD CONSTRAINTS with: ${bad.join(', ')}. Rewrite the whole program with no lower-body loading at all.` }],
+          max_completion_tokens: 16000, response_format: { type: 'json_object' },
+        }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
+        parsed = parseModelJson(again.choices[0].message.content || '{}') as TrainingProgram;
+      } catch { /* keep the first draft; stripped below */ }
+      if (lowerBodyExercises(parsed).length) parsed = stripLowerBody(parsed);
+    }
+  }
+  agentProgress('prog-write', 'Drafted', `${params.durationWeeks}-week program`);
 
   // Attach the real sources that informed this plan (may be empty if the
   // knowledge base is unseeded — the reveal screen omits the block in that case).

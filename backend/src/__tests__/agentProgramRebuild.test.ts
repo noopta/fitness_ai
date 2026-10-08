@@ -120,10 +120,21 @@ describe('goal-reworded edits keep the goal', () => {
 describe('rebuild (propose_new_program) on the classic app', () => {
   const generated = () => ({ goal: 'Hypertrophy-focused PPL', daysPerWeek: 6, durationWeeks: 12, phases: [{ phaseName: 'Accumulate', durationWeeks: 6, trainingDays: [{ day: 'Push', exercises: [{ exercise: 'Bench Press', sets: 4, reps: '8' }] }] }] });
 
+  it('asks before it writes: without confirmed it returns what to ask, generates nothing and shows no card', async () => {
+    mocks.user.findUnique.mockResolvedValueOnce({ coachGoal: 'gain strength', tier: 'pro', coachProfile: '{}', trainingAge: 'intermediate', savedProgram: null, constraintsText: 'Achilles tendon rupture, not yet cleared', equipment: 'full gym' });
+    const t = tool('propose_new_program');
+    const r: any = await t.execute({ goal: 'get stronger' }, 'u1');
+    expect(r.needsAnswers).toBe(true);
+    expect(r.known.injury).toContain('Achilles');
+    expect(r.ask.join(' ')).toMatch(/3–4 upper-body days/);
+    expect(coach.generateProgramForUser).not.toHaveBeenCalled();
+    expect(await t.card!({}, r, { userId: 'u1', unit: 'imperial', tz: 'UTC', today: '2026-10-08' })).toBeNull();
+  });
+
   it('passes split + level to generation, keeps the current goal, and returns a rebuild proposal', async () => {
     mocks.user.findUnique.mockResolvedValueOnce({ coachGoal: 'gain strength', tier: 'pro', coachProfile: '{}', trainingAge: 'beginner', savedProgram: JSON.stringify(program()) });
     coach.generateProgramForUser.mockResolvedValueOnce(generated());
-    const r: any = await tool('propose_new_program').execute({ split: 'push pull legs', trainingAge: "I'm intermediate" }, 'u1');
+    const r: any = await tool('propose_new_program').execute({ split: 'push pull legs', trainingAge: "I'm intermediate", confirmed: true }, 'u1');
     const opts = coach.generateProgramForUser.mock.calls[0][1];
     expect(opts.daysPerWeek).toBe(6);
     expect(opts.goal).toMatch(/^strength — structure the week as a Push\/Pull\/Legs split/);
@@ -144,7 +155,7 @@ describe('rebuild (propose_new_program) on the classic app', () => {
   it('an explicit new goal is a goal change', async () => {
     mocks.user.findUnique.mockResolvedValueOnce({ coachGoal: 'strength', tier: 'pro', coachProfile: '{}', trainingAge: 'intermediate', savedProgram: JSON.stringify(program()) });
     coach.generateProgramForUser.mockResolvedValueOnce(generated());
-    const r: any = await tool('propose_new_program').execute({ goal: 'fat loss', daysPerWeek: 4 }, 'u1');
+    const r: any = await tool('propose_new_program').execute({ goal: 'fat loss', daysPerWeek: 4, confirmed: true }, 'u1');
     expect(r.goalChange).toBe(true);
     expect(r.goal).toBe('Hypertrophy-focused PPL');
     expect(r.profileNote).toBeUndefined();
@@ -153,7 +164,7 @@ describe('rebuild (propose_new_program) on the classic app', () => {
   it('free users with a program get the Pro card instead', async () => {
     mocks.user.findUnique.mockResolvedValueOnce({ coachGoal: 'strength', tier: 'free', coachProfile: '{}', trainingAge: null, savedProgram: JSON.stringify(program()) });
     coach.generateProgramForUser.mockRejectedValueOnce(Object.assign(new Error('Pro feature'), { status: 403 }));
-    const r: any = await tool('propose_new_program').execute({}, 'u1');
+    const r: any = await tool('propose_new_program').execute({ confirmed: true }, 'u1');
     expect(r.proOnly).toBe(true);
     expect(r._proposal).toBeUndefined();
   });

@@ -154,7 +154,8 @@ export function HomePage() {
   // "While you were away · N" (spec §9): Anakin-initiated turns since the user last spoke, folded once at open.
   const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
   const [awayOpen, setAwayOpen] = useState(false);
-  useEffect(() => { void thread.hydrate().then(setAway); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Load the thread, then pick up a turn Anakin is still working on (the app was closed or the screen left mid-answer).
+  useEffect(() => { void thread.hydrate().then(setAway).then(() => thread.resume()); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Suggestions reach chat (feedback 8 Oct): pending ones chat hasn't shown yet arrive as Anakin's turn. At most every 10 min.
   const surfacedAt = useRef(0);
   const surface = useCallback(() => {

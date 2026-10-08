@@ -648,7 +648,7 @@ export const PROGRAM_TOOLS = [
   }),
   tool({
     name: 'propose_new_program', kind: 'propose', fn: 'PRG-04',
-    description: 'Build a new program: a new goal, a new schedule, a different split ("give me a PPL split", "upper/lower"), a level change ("I\'m intermediate now", "make it more advanced"), or when the current one is finished. Ask for anything important that\'s missing first (days per week, weeks). Pass goal ONLY when the user wants a different goal — otherwise their current goal is kept. trainingAge = the level they state (call update_coaching_profile with trainingAge first so it sticks); split = ppl | upper_lower | full_body | bro_split | or their words. The card shows the phases; the user taps to make it their program. Their current program is archived; Undo restores it. Pro feature when they already have a program.',
+    description: 'Build a new program: a new goal, a new schedule, a different split ("give me a PPL split", "upper/lower"), a level change ("I\'m intermediate now", "make it more advanced"), or when the current one is finished. BEFORE generating, have a short intake like a coach would: call it with confirmed=false (or leave it out) and it returns what is known and what to ask; ask those in ONE message (goal and what success looks like by when, days a week and minutes a session that fit the goal and any injury, anything to work around, preferences), using what you already know rather than re-asking it. Only call with confirmed=true once they have answered, and put their answers in notes. Days a week must suit the goal and recovery — with an injury that rules out the lower body, 3–4 upper-body days, never 6. It writes ONE program per turn and takes about 30 seconds. Pass goal ONLY when the user wants a different goal — otherwise their current goal is kept. trainingAge = the level they state (call update_coaching_profile with trainingAge first so it sticks); split = ppl | upper_lower | full_body | bro_split | or their words. The card shows the phases; the user taps to make it their program. Their current program is archived; Undo restores it. Pro feature when they already have a program.',
     input_schema: schema({
       goal: { type: 'string', description: 'Only for a goal change.' },
       daysPerWeek: { type: 'number' }, durationWeeks: { type: 'number' },
@@ -656,12 +656,39 @@ export const PROGRAM_TOOLS = [
       trainingAge: { type: 'string', description: 'beginner | intermediate | advanced | elite' },
       split: { type: 'string', description: 'ppl | upper_lower | full_body | bro_split | free text' },
       fromLogs: { type: 'boolean', description: 'true = build it from the workouts they have actually logged (their exercises, days and loads) instead of generating one — "turn my workouts into a program", "use what I did this week".' },
+      confirmed: { type: 'boolean', description: 'true only after the intake questions are answered in this conversation.' },
+      notes: { type: 'string', description: 'Their answers: timeline, what success looks like, session length, constraints, preferences — passed to the program writer.' },
     }),
-    receipt: () => ({ verb: 'Proposed', text: 'New program' }),
+    receipt: () => ({ verb: 'Reading', text: 'Building a new program' }),
+    refine: (r: any) => (r?.needsAnswers ? { verb: 'Checked', text: 'What I know about you' } : r?.error ? { verb: 'Checked', text: 'New program' } : { verb: 'Proposed', text: 'New program' }),
     execute: async (input, userId) => {
-      const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachGoal: true, tier: true, coachProfile: true, trainingAge: true, savedProgram: true } });
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachGoal: true, tier: true, coachProfile: true, trainingAge: true, savedProgram: true, constraintsText: true, equipment: true } });
       const blob = parseJson<any>(u?.coachProfile, {});
       const current = parseJson<any>(u?.savedProgram, null);
+      // Intake first (founder feedback): a program is built from answers, not guessed.
+      if (input.fromLogs !== true && input.confirmed !== true) {
+        const { cleanInjuryText, lowerBodyBlocked } = await import('../../services/injuryGuard.js');
+        const injury = cleanInjuryText(u?.constraintsText, typeof blob.injuries === 'string' ? blob.injuries : null);
+        return {
+          needsAnswers: true,
+          known: { goal: current?.goal ?? u?.coachGoal ?? blob.primaryGoal ?? null, level: u?.trainingAge ?? null, daysPerWeek: blob.daysPerWeek ?? current?.daysPerWeek ?? null, equipment: u?.equipment ?? null, injury: injury || null },
+          ask: [
+            'The goal, and what success looks like by when (e.g. "bench 225 by March", "lose 6 kg in 12 weeks")',
+            injury && lowerBodyBlocked(injury) ? 'How many days a week and how long a session (with the lower body off-limits, 3–4 upper-body days is the useful range)' : 'How many days a week and how long a session',
+            injury ? `Anything else to work around besides: ${injury.slice(0, 120)}` : 'Anything to work around — injuries, equipment, schedule',
+            'Any preferences — a split, lifts they love or want to avoid',
+          ],
+          instruction: 'Ask these in one short message, using what is known instead of re-asking it. Call again with confirmed=true and their answers in notes.',
+        };
+      }
+      // One program write per turn: re-generating in a loop is what timed the founder's turn out.
+      const { currentRun, agentProgress } = await import('../turnRun.js');
+      const run = currentRun();
+      if (input.fromLogs !== true) {
+        if (run && run.programGenerations >= 1) return { error: 'A program was already written this turn. Show it and let them react — change it with propose_program_edit, don’t write another.' };
+        if (run) run.programGenerations++;
+        agentProgress('prog-ctx', 'Read', 'Your profile, injuries and recent training');
+      }
       const split = splitLabel(input.split);
       const level = levelOf(input.trainingAge);
       const daysPerWeek = Math.min(6, Math.max(2, Math.round(numOr(input.daysPerWeek) ?? (split ? SPLIT_DAYS[split.id] : null) ?? numOr(blob.daysPerWeek) ?? numOr(current?.daysPerWeek) ?? 4)));
@@ -696,7 +723,10 @@ export const PROGRAM_TOOLS = [
           generated = programFromRecentLogs(parsed, today, { weeks: numOr(input.durationWeeks) ?? 4, goal: baseGoal ?? null, unit: unitPref === 'metric' ? 'kg' : 'lb' });
           if (!generated) return { error: 'Nothing logged in the last seven days to build a program from — log a session, or I can generate one.' };
         } else {
-          generated = await generateProgramForUser(userId, { goal: split || level ? brief : baseGoal, daysPerWeek, durationWeeks, bodyCompositionGoal: input.bodyCompositionGoal as any, save: false });
+          // Their intake answers ride on the goal line the generator puts in the prompt.
+          const notes = str(input.notes);
+          const goalLine = [split || level ? brief : baseGoal, notes ? `client's answers: ${notes}` : ''].filter(Boolean).join(' — ');
+          generated = await generateProgramForUser(userId, { goal: goalLine || baseGoal, daysPerWeek, durationWeeks, bodyCompositionGoal: input.bodyCompositionGoal as any, save: false });
         }
         const program = { ...generated, goal: goalChange ? (generated?.goal || askedGoal) : (keepGoal ?? (split || level ? baseGoal ?? generated?.goal : generated?.goal)) };
         const phases = (program?.phases ?? []).map((ph: any) => `${ph.phaseName} (${ph.durationWeeks} wk)`);
@@ -719,7 +749,7 @@ export const PROGRAM_TOOLS = [
       }
     },
     card: (_i, r) => {
-      if (r.error) return null;
+      if (r.error || r.needsAnswers) return null;
       if (r.proOnly) return { fn: 'PRG-04', pattern: 'proposal', rule: 'propose', pro: true, meta: { label: 'New program · Pro' }, rows: [{ key: 'Goal', value: String(r.goal ?? '—').slice(0, 60) }, { key: 'Length', value: `${r.durationWeeks} weeks` }, { key: 'Days', value: `${r.daysPerWeek} a week` }], actions: [{ id: 'pro', label: 'Unlock with Pro', kind: 'primary', client: { action: 'purchase' } }] };
       const p = r.program;
       return {

@@ -7,6 +7,7 @@
 // USE_ENGINE_FOR_RATIO_ANALYSIS.
 
 import { Router } from 'express';
+import { startRun, finishRun, inRun, noteStep, turnStatus } from '../agent/turnRun.js';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
@@ -72,6 +73,10 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     const { message, resetConversation } = turnSchema.parse(req.body);
     const userId = req.user!.id;
 
+    // One turn at a time: a second send would run the same work twice.
+    const run = startRun(userId, message);
+    if (!run) return res.status(409).json({ error: 'Anakin is still working on your last message.', code: 'turn_running' });
+    try {
     if (resetConversation) await clearConversation(userId);
     // `turn.message` leads with the note about the cards under the last reply.
     const turn = await loadTurn(userId, message);
@@ -79,7 +84,7 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     // Same card contract as the stream: v2 clients get server cards here too
     // (this route is their fallback when SSE can't open).
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
-    const result = await runAgentTurn(userId, turn.message, { history: turn.history, cardContract });
+    const result = await inRun(run, () => runAgentTurn(userId, turn.message, { history: turn.history, cardContract }));
 
     // Log what the agent did this turn — invaluable for diagnosing
     // "agent said done but nothing changed" bug reports. The toolsUsed
@@ -91,6 +96,7 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     await appendTurn(userId, message, result.reply, (result.cards ?? []).map(cardRef));
 
     res.json(result);
+    } finally { finishRun(run); }
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request', details: err.errors });
@@ -156,6 +162,9 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
     return res.status(400).json({ error: 'Invalid request', details: err?.errors });
   }
   const userId = req.user!.id;
+  // One turn at a time; the app waits on the running one instead (GET /coach/agent/turn-status).
+  const run = startRun(userId, parsed.message, (step) => send({ type: 'receipt', id: step.id, verb: step.verb as any, text: step.text, final: !/ing$/.test(step.verb) } as any));
+  if (!run) return res.status(409).json({ error: 'Anakin is still working on your last message.', code: 'turn_running' });
 
   // SSE headers. Flush immediately so the client connection opens.
   res.setHeader('Content-Type', 'text/event-stream');
@@ -164,9 +173,13 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
   res.setHeader('X-Accel-Buffering', 'no'); // disable nginx proxy buffering
   res.flushHeaders?.();
 
-  const send = (e: AgentStreamEvent) => {
-    res.write(`data: ${JSON.stringify(e)}\n\n`);
-  };
+  function send(e: AgentStreamEvent) {
+    // The turn's steps are kept for an app that comes back to it later.
+    if ((e as any).type === 'receipt') noteStep(run!, { id: (e as any).id, verb: (e as any).verb, text: (e as any).text });
+    if (!res.writableEnded) res.write(`data: ${JSON.stringify(e)}\n\n`);
+  }
+  // A comment every 12 s keeps a quiet stream (a 30–45 s program write) from looking dead to proxies and phones.
+  const beat = setInterval(() => { if (!res.writableEnded) res.write(': working\n\n'); }, 12_000);
 
   try {
     if (parsed.resetConversation) await clearConversation(userId);
@@ -174,15 +187,25 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
     // Contract 2 = agent-first cards (server ids, several per reply). Old
     // builds don't send the header and keep the single legacy card.
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
-    const result = await streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract });
+    const t0 = Date.now();
+    const result = await inRun(run, () => streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract }));
     await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef));
+    console.log(`[agent] stream user=${userId.slice(0, 8)} ms=${Date.now() - t0} tools=${JSON.stringify((result as any).toolsUsed ?? [])}`);
   } catch (err: any) {
     console.error('[agent] stream failed:', err?.message ?? err);
     send({ type: 'error', error: err?.message ?? 'Agent error' });
   } finally {
-    res.write('event: end\ndata: {}\n\n');
-    res.end();
+    clearInterval(beat);
+    finishRun(run);
+    if (!res.writableEnded) { res.write('event: end\ndata: {}\n\n'); res.end(); }
   }
+});
+
+// GET /api/coach/agent/turn-status — is Anakin still working on the last
+// message? The app shows the steps so far and fetches the reply when done,
+// so leaving the screen (or a dropped connection) never loses an answer.
+router.get('/coach/agent/turn-status', requireAuth, requireAgentAccess, (req, res) => {
+  res.json(turnStatus(req.user!.id));
 });
 
 const taskSchema = z.object({ input: z.string().max(4000).optional() });
