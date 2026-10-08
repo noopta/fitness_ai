@@ -76,6 +76,26 @@ defineOp({
     };
   },
 });
+// Freestyle from chat (Oct 2026): set the program aside — archived, never
+// deleted — and log as you go. Undo brings the same program back.
+defineOp({
+  name: 'program.freestyle',
+  run: async (userId) => {
+    const { goFreestyle } = await import('../../adaptation/programMode.js');
+    await goFreestyle(userId);
+    invalidateProgram(userId);
+    return { inverse: { op: 'program.unfreestyle', args: {} }, summary: 'Switched to freestyle — program set aside' };
+  },
+});
+defineOp({
+  name: 'program.unfreestyle',
+  run: async (userId) => {
+    const { restoreProgram } = await import('../../adaptation/programMode.js');
+    await restoreProgram(userId);
+    invalidateProgram(userId);
+    return { inverse: null, summary: 'Program back' };
+  },
+});
 defineOp({
   name: 'program.restore_snapshot',
   run: async (userId, args) => {
@@ -754,6 +774,27 @@ export const PROGRAM_TOOLS = [
       why: 'Starts again from week 1. Your current program is saved in past programs.',
       actions: [{ id: 'apply', label: 'Restore', kind: 'primary' }, { id: 'keep', label: 'Keep current', kind: 'secondary' }],
       pending: { actions: { apply: { op: 'program.activate', args: { program: r.program, summary: 'Restored a past program' }, line: 'Restored' }, keep: { kind: 'keep' } } },
+    }),
+  }),
+  tool({
+    name: 'propose_freestyle', kind: 'propose', fn: 'PRG-17',
+    description: 'They want to train without a program ("I want to freestyle", "drop the program", "I\'ll do my own thing"): propose setting the program aside. It is archived, not deleted — Undo, or propose_restore_program later, brings it back. They then log as they go and get session suggestions and progression from their logs.',
+    input_schema: schema({ why: { type: 'string' } }),
+    receipt: () => ({ verb: 'Proposed', text: 'Freestyle' }),
+    execute: async (_input, userId) => {
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+      const { freestyleAvailableFor } = await import('../../services/featureFlags.js');
+      if (!freestyleAvailableFor(userId, u?.email)) return { error: 'Freestyle isn’t switched on for this account yet.' };
+      const current = await loadProgram(userId);
+      if (!current) return { error: 'They’re already training freestyle — there’s no program to set aside.' };
+      return { goal: current.goal ?? null, weeks: current.durationWeeks ?? null };
+    },
+    card: (_i, r) => (r.error ? null : {
+      fn: 'PRG-17', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · train freestyle', open: { page: 'training' } },
+      diff: [{ key: 'Program', from: String(r.goal ?? 'Current program').slice(0, 40), to: 'Set aside' }, { key: 'Training', to: 'Log as you go' }],
+      why: 'Your program is saved, not deleted — bring it back any time. I’ll suggest sessions from what you log.',
+      actions: [{ id: 'apply', label: 'Go freestyle', kind: 'primary' }, { id: 'keep', label: 'Keep the program', kind: 'secondary' }],
+      pending: { actions: { apply: { op: 'program.freestyle', args: {}, line: 'Freestyle' }, keep: { kind: 'keep' } } },
     }),
   }),
   tool({

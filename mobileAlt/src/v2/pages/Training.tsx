@@ -8,7 +8,7 @@
 // container. All four bands stay mounted; closed content is just clipped.
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, AccessibilityInfo, PixelRatio, type LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, AccessibilityInfo, PixelRatio, Alert, type LayoutChangeEvent } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +19,8 @@ import Animated, {
 import { v2, T } from '../theme';
 import { headerClearance } from '../shell/Header';
 import { TextAction } from '../primitives/TextAction';
-import { useTrainingOverview } from '../data';
+import { useTrainingOverview, useInvalidate } from '../data';
+import { coachApi } from '../../lib/api';
 import { useShell } from '../shell/ShellContext';
 import { haptics } from '../haptics';
 import type { TrainingOverview } from '../api';
@@ -148,6 +149,15 @@ export function TrainingPage() {
   }, [router, shell]);
   // T-08: the whole program, every week, outside chat.
   const onOpenProgram = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'program' } } as any); }, [router]);
+  // Freestyle where the program lives: set it aside (archived, not deleted); the freestyle home brings it back.
+  const invalidate = useInvalidate();
+  const onFreestyle = useCallback(() => {
+    haptics.select();
+    Alert.alert('Train freestyle?', 'Your program is set aside, not deleted — bring it back any time. I’ll suggest sessions from what you log.', [
+      { text: 'Keep the program', style: 'cancel' },
+      { text: 'Go freestyle', onPress: async () => { try { await coachApi.goFreestyle(); haptics.success(); await invalidate.afterProgram(); } catch (e: any) { Alert.alert('Couldn’t switch', e?.message ?? 'Try again.'); } } },
+    ]);
+  }, [invalidate]);
   const onArchive = useCallback((item: ArchiveItem) => { haptics.select(); router.push(archiveHref(item)); }, [router]);
   const onArchiveAll = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'archive' } } as any); }, [router]);
 
@@ -186,7 +196,7 @@ export function TrainingPage() {
             open={band === b} summary={summaries[b]} onPress={open}>
             {data?.program ? (
               b === 'goal' ? <GoalContent goal={data.goal} week={data.program.week} totalWeeks={data.program.totalWeeks} onLift={onLift} />
-              : b === 'program' ? <ProgramContent program={data.program} sel={phaseSel} onSel={onPhase} onLong={onPhaseLong} onOpen={onOpenProgram} />
+              : b === 'program' ? <ProgramContent program={data.program} sel={phaseSel} onSel={onPhase} onLong={onPhaseLong} onOpen={onOpenProgram} onFreestyle={onFreestyle} />
               : b === 'week' ? <WeekContent days={data.week.days} sel={daySel} onDay={onDay} onAction={onDayAction} height={contentH} reduced={!!reduced} />
               : <ArchiveContent archive={data.archive} onItem={onArchive} onAll={onArchiveAll} />
             ) : null}
@@ -314,8 +324,8 @@ const GoalContent = memo(function GoalContent({ goal, week, totalWeeks, onLift }
 
 // ─── PROGRAM ─────────────────────────────────────────────────────────────────
 
-const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLong, onOpen }: {
-  program: NonNullable<TrainingOverview['program']>; sel: number; onSel: (i: number) => void; onLong: (name: string) => void; onOpen: () => void;
+const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLong, onOpen, onFreestyle }: {
+  program: NonNullable<TrainingOverview['program']>; sel: number; onSel: (i: number) => void; onLong: (name: string) => void; onOpen: () => void; onFreestyle: () => void;
 }) {
   const ph = program.phases[sel] ?? program.phases[0];
   return (
@@ -337,9 +347,14 @@ const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLon
           </View>
         </View>
       ) : null}
-      <Pressable onPress={onOpen} hitSlop={8} accessibilityRole="button" style={{ alignSelf: 'flex-start', marginTop: 14 }}>
-        <Text style={styles.action}>All {program.totalWeeks} weeks →</Text>
-      </Pressable>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 24, marginTop: 14 }}>
+        <Pressable onPress={onOpen} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.action}>All {program.totalWeeks} weeks →</Text>
+        </Pressable>
+        <Pressable onPress={onFreestyle} hitSlop={8} accessibilityRole="button" accessibilityLabel="Train freestyle instead — set the program aside">
+          <Text style={[styles.action, { color: C.muted }]}>Train freestyle instead</Text>
+        </Pressable>
+      </View>
     </View>
   );
 });
