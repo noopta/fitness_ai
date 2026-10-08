@@ -85,7 +85,8 @@ export function useCardActions(thread: Thread) {
       case 'reset_password': router.push({ pathname: '/(auth)/reset-password', params: args.email ? { email: String(args.email) } : {} } as any); return;
       case 'open_picker': open(card, { page: 'profile' }); return;
       case 'open_camera': {
-        if (args.mode === 'video') { router.push({ pathname: '/form-analysis', params: args.exercise ? { exercise: String(args.exercise) } : {} } as any); return; }
+        // T-16: film the set in v2's form check.
+        if (args.mode === 'video') { router.push({ pathname: '/(v2)/formcheck', params: args.exercise ? { lift: String(args.exercise) } : {} } as any); return; }
         // The capture camera has no order mode; food search hosts the order / receipt scan.
         if (args.mode === 'order') { router.push({ pathname: '/(v2)/food-search', params: { open: 'order', from: 'chat' } } as any); return; }
         router.push({ pathname: '/(v2)/capture', params: { mode: String(args.mode ?? 'photo'), ...(card.pattern === 'capture' ? { cardId: card.id } : {}) } } as any);

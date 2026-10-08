@@ -110,7 +110,7 @@ export function LiftTrendPage({ name }: { name: string }) {
     <PushedPage back="Strength" meta={RANGES[range].label} eyebrow={`${l?.canonicalName ?? name} · estimated 1RM`} title={l?.canonicalName ?? name}
       hero={l ? { value: String(Math.round(fromKg(l.current1RMkg))), unit, delta: series.length > 1 ? `${delta >= 0 ? '+' : ''}${delta}` : undefined } : null}
       loading={s.isLoading} cta={{ label: 'Log a set', onPress: () => { haptics.select(); setLogging(true); } }}
-      foot={[{ label: 'Run a diagnostic', onPress: () => router.push('/diagnostic/conversation' as any) }]}
+      foot={[{ label: 'Analyze', onPress: () => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'analyze', lift: l?.canonicalName ?? name, back: l?.canonicalName ?? name } } as any) }]}
       visual={series.length > 1 ? <LineForecast series={series} forecast={RANGES[range].weeks === 0 || RANGES[range].weeks >= 12 ? fc : null} width={330} unitLabel={unit} /> : <Text style={T.bodyMuted}>Log this lift in two different weeks to see a trend.</Text>}>
       <View style={styles.toggle}>
         {RANGES.map((r, i) => (

@@ -133,3 +133,26 @@ export function patternsHeadline(list: { label: string; status: string }[]): str
   const names = missing.length > 2 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing.join(' and ');
   return `${names.charAt(0).toUpperCase()}${names.slice(1)} ${missing.length === 1 ? 'is' : 'are'} missing.`;
 }
+
+// ─── T-15 Diagnostic ─────────────────────────────────────────────────────────
+
+/** An Ask: the question up to its "?", the rest as its reason. Text without a question is all title. */
+export function askParts(text: string): { title: string; reason: string | null } {
+  const t = String(text ?? '').trim();
+  const q = t.indexOf('?');
+  if (q < 0) return { title: t, reason: null };
+  // The question is the last sentence that ends in "?" (a lead-in sentence can come first).
+  const dot = t.lastIndexOf('. ', q);
+  const nl = t.lastIndexOf('\n', q);
+  const start = Math.max(dot >= 0 ? dot + 2 : 0, nl >= 0 ? nl + 1 : 0);
+  const lead = t.slice(0, start).trim();
+  const rest = t.slice(q + 1).trim();
+  return { title: t.slice(start, q + 1).trim(), reason: [lead, rest].filter(Boolean).join(' ') || null };
+}
+
+/** "3 / 10" → 0.3; "Done" → 1; anything else → 0. */
+export function progressFraction(label: string): number {
+  if (/done/i.test(label)) return 1;
+  const m = /(\d+)\s*\/\s*(\d+)/.exec(label);
+  return m ? Math.min(1, Number(m[1]) / Math.max(1, Number(m[2]))) : 0;
+}

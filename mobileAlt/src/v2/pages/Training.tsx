@@ -54,7 +54,7 @@ export function archiveHref(item: ArchiveItem): any {
   if (item.source === 'form') return `/form-analysis?id=${item.id}`;
   const conv = item.flow === 'conversation';
   if (item.done) return conv ? `/diagnostic/report?sessionId=${item.id}` : `/diagnostic/plan?sessionId=${item.id}`;
-  return conv ? `/diagnostic/conversation?sessionId=${item.id}` : `/diagnostic/chat?sessionId=${item.id}`;
+  return conv ? `/(v2)/diagnose?sessionId=${item.id}` : `/diagnostic/chat?sessionId=${item.id}`;
 }
 
 export function TrainingPage() {
@@ -197,12 +197,16 @@ export function TrainingPage() {
   );
 }
 
-/** Training's text actions (handoff Area 1): + Log now; Analyze joins it with T-14. */
+/** Training's text actions (handoff Area 1): + Log (T-01) and Analyze (T-14). */
 function TrainingActions({ onLog }: { onLog: () => void }) {
+  const router = useRouter();
   return (
     <View style={styles.actions}>
       <Pressable onPress={onLog} hitSlop={10} accessibilityRole="button" accessibilityLabel="Log a workout">
         <Text style={[T.captionStrong, { color: v2.color.ink }]}>+ Log</Text>
+      </Pressable>
+      <Pressable onPress={() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'analyze' } } as any); }} hitSlop={10} accessibilityRole="button" accessibilityLabel="Analyze — form check or lift diagnostic">
+        <Text style={[T.captionStrong, { color: v2.color.ink }]}>Analyze</Text>
       </Pressable>
     </View>
   );

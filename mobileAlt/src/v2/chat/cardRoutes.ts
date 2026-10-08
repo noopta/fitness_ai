@@ -33,6 +33,8 @@ const PUSHED: Record<string, string | null> = {
   library: null, recipe: 'id', targets: null, nutrition: null,
   // Wave 4: compose, friends, a group.
   compose: null, friends: null, group: 'id',
+  // Wave 5: Analyze.
+  analyze: null,
 };
 const ALIAS: Record<string, string> = { conversation: 'thread', search: 'feedsearch', traintogether: 'together',  usage: 'plan', saved_foods: 'savedfoods', history: 'workouts', workout_history: 'workouts', gut: 'systems' };
 
@@ -52,7 +54,8 @@ export function destinationFor(route: CardRoute): Destination | null {
   switch (page) {
     case 'report': return { kind: 'push', pathname: '/diagnostic/report', params: { sessionId: p.id ?? p.sessionId ?? '' } };
     // The lift diagnostic is a hand-off to its own conversational screen.
-    case 'diagnostic': return { kind: 'push', pathname: '/diagnostic/conversation', params: p.id ? { sessionId: p.id } : {} };
+    // T-15: the diagnostic runs in v2 now.
+    case 'diagnostic': return { kind: 'push', pathname: '/(v2)/diagnose', params: p.id ? { sessionId: p.id } : {} };
     case 'form': return { kind: 'push', pathname: '/form-analysis', params: p.id ? { id: p.id } : {} };
     default: return null;
   }

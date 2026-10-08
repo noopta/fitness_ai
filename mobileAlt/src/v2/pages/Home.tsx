@@ -55,6 +55,7 @@ import { coachApi } from '../../lib/api';
 import { posthog } from '../../lib/analytics';
 import { haptics } from '../haptics';
 import { sessionTitle, sessionCaption } from '../format';
+import { usePausedDiagnostic } from './pushed/analyze';
 
 const C = v2.color;
 const plain = (t: string) => t.replace(/[*_`#>]+/g, '').replace(/\s+/g, ' ').trim();
@@ -324,6 +325,9 @@ export function HomePage() {
   const session = brief.data?.session;
   const ask = !askDone ? brief.data?.ask ?? null : null;
 
+  // T-15: a diagnostic left part-way shows Continue → on Home.
+  const paused = usePausedDiagnostic();
+  const openPaused = useCallback(() => { if (!paused.data) return; haptics.select(); router.push({ pathname: '/(v2)/diagnose', params: { sessionId: paused.data.id } } as any); }, [paused.data, router]);
   const homePlayer = useHomePlayer();
   const enterChat = () => {
     if (chat) return;
@@ -417,7 +421,8 @@ export function HomePage() {
       {/* Brief: bottom-anchored over the video, just above the composer. Fades and lifts away; never resized. */}
       <Animated.View style={[styles.briefLayer, { bottom: BRIEF_BOTTOM + COMPOSER_H }, briefLayer]} pointerEvents={chat ? 'none' : 'box-none'}>
         <BriefBlock
-          sentence={sentence} swapRead={swapRead} readLines={readLines} readSlot={READ_SLOT} session={session} onBegin={openSession} />
+          sentence={sentence} swapRead={swapRead} readLines={readLines} readSlot={READ_SLOT} session={session} onBegin={openSession}
+          paused={paused.data ? String(paused.data.lift ?? '').split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null} onContinue={openPaused} />
       </Animated.View>
 
       {/* Chat: laid out once at its final size under the header, above the composer's chat place. */}
@@ -529,9 +534,11 @@ export function HomePage() {
 type BriefSession = NonNullable<ReturnType<typeof useBrief>['data']>['session'];
 
 /** The brief's own content. Memoised: opening chat doesn't re-render it — it only fades. */
-const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLines, readSlot, session, onBegin }: {
+const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLines, readSlot, session, onBegin, paused, onContinue }: {
   sentence: string; swapRead: boolean;
   readLines: number; readSlot: number; session: BriefSession | null | undefined; onBegin: () => void;
+  /** A paused diagnostic's lift name, or null. */
+  paused?: string | null; onContinue?: () => void;
 }) {
   return (
     <>
@@ -546,6 +553,16 @@ const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLine
         )}
       </Animated.View>
 
+      {paused ? (
+        <Animated.View entering={settle(300)}>
+          <Pressable onPress={onContinue} accessibilityRole="button" accessibilityLabel={`${paused} diagnostic, paused. Continue`}>
+            <View style={[styles.sessionRow, { paddingVertical: 12, borderColor: C.darkHairline, borderBottomWidth: 0 }]}>
+              <Text style={[T.caption, { color: C.darkMuted, flex: 1 }]} numberOfLines={1}>{paused} diagnostic · paused</Text>
+              <Text style={[styles.begin, { color: C.darkInk, fontSize: 14 }]}>Continue →</Text>
+            </View>
+          </Pressable>
+        </Animated.View>
+      ) : null}
       {/* Session row: name · minutes, caption, `Begin →`. Opens the workout. */}
       {session ? (
         <Animated.View entering={settle(330)}>

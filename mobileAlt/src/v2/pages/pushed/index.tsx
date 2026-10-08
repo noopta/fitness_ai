@@ -38,6 +38,7 @@ import { SavedPage, PostPage } from '../feed/Saved';
 import { GroupsList } from '../feed/lists';
 import { FriendsPage, GroupPage, LeaderboardPage, TrainTogetherPage } from '../feed/People';
 import { ComposePage } from '../feed/Compose';
+import { AnalyzePage } from './analyze';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -80,6 +81,7 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'together': return <TrainTogetherPage />;
     // Wave 4 (handoff S-01, S-05, S-07).
     case 'compose': return <ComposePage params={params} />;
+    case 'analyze': return <AnalyzePage params={params} />;
     case 'friends': return <FriendsPage params={params} />;
     case 'group': return <GroupPage id={arg} />;
     case 'person': return <PersonPage id={arg} params={params} />;
@@ -208,7 +210,7 @@ function DiagPage() {
   const sessions: any[] = q.data?.sessions ?? [];
   return (
     <PushedPage back="Training" meta="Last 90 days" title="Diagnostics" lead="Every form analysis and lift diagnostic Anakin has run. Tap one to see what it saw." loading={q.isLoading}
-      foot={[{ label: 'New form analysis', onPress: () => router.push('/form-analysis' as any) }, { label: 'New lift diagnostic', onPress: () => router.push('/diagnostic/conversation' as any) }]}>
+      foot={[{ label: 'New form check', onPress: () => router.push('/(v2)/formcheck' as any) }, { label: 'New lift diagnostic', onPress: () => router.push('/(v2)/diagnose' as any) }]}>
       {analyses.length ? <Eyebrow>Form analyses</Eyebrow> : null}
       <View style={{ marginTop: 10 }}>
         {analyses.map((a, i) => <Row key={a.id} name={`${a.lift ?? a.exercise ?? 'Lift'} · ${fmtDay(a.createdAt)}`} sub={a.summary ?? a.primaryIssue ?? (a.status === 'complete' ? 'Complete' : a.status)} value={a.status === 'complete' ? undefined : '…'} arrow last={i === analyses.length - 1} onPress={() => router.push(`/form-analysis?id=${a.id}` as any)} />)}
@@ -218,7 +220,7 @@ function DiagPage() {
         {sessions.map((s, i) => {
           const done = s.status === 'completed' || !!s.primaryLimiter;
           const conv = s.flow === 'conversation';
-          const to = done ? (conv ? `/diagnostic/report?sessionId=${s.id}` : `/diagnostic/plan?sessionId=${s.id}`) : (conv ? `/diagnostic/conversation?sessionId=${s.id}` : `/diagnostic/chat?sessionId=${s.id}`);
+          const to = done ? (conv ? `/diagnostic/report?sessionId=${s.id}` : `/diagnostic/plan?sessionId=${s.id}`) : (conv ? `/(v2)/diagnose?sessionId=${s.id}` : `/diagnostic/chat?sessionId=${s.id}`);
           return <Row key={s.id} name={`${liftName(s.selectedLift)} · ${fmtDay(s.createdAt)}`} sub={s.primaryLimiter ? String(s.primaryLimiter).replace(/_/g, ' ') : done ? 'Complete' : 'In progress'} value={s.confidence ? `${Math.round(s.confidence * 100)}%` : undefined} arrow last={i === sessions.length - 1} onPress={() => router.push(to as any)} />;
         })}
       </View>

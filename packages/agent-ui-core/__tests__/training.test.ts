@@ -96,3 +96,24 @@ describe('patternsHeadline', () => {
 describe('addDays', () => {
   it('crosses month ends', () => { expect(addDays('2026-10-31', 1)).toBe('2026-11-01'); });
 });
+
+import { askParts, progressFraction } from '../src/training';
+describe('askParts', () => {
+  it('splits the question from its reason', () => {
+    expect(askParts('Where does the bar slow down? This tells me which muscle gives out first.')).toEqual({ title: 'Where does the bar slow down?', reason: 'This tells me which muscle gives out first.' });
+  });
+  it('keeps a lead-in sentence as part of the reason', () => {
+    expect(askParts('Good. When a set gets heavy, what does the bar do?')).toEqual({ title: 'When a set gets heavy, what does the bar do?', reason: 'Good.' });
+  });
+  it('is all title without a question, or with nothing after it', () => {
+    expect(askParts('Pick a lift.')).toEqual({ title: 'Pick a lift.', reason: null });
+    expect(askParts('Which lift?')).toEqual({ title: 'Which lift?', reason: null });
+  });
+});
+describe('progressFraction', () => {
+  it('reads the progress label', () => {
+    expect(progressFraction('3 / 10')).toBe(0.3);
+    expect(progressFraction('Done')).toBe(1);
+    expect(progressFraction('')).toBe(0);
+  });
+});
