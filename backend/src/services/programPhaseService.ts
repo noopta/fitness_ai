@@ -130,13 +130,26 @@ export function parseSavedProgram(savedProgram: string | null): SavedProgram | n
 }
 
 /**
- * The program day at a weekday position, or null for rest. Programs map
- * trainingDays[i] to the i-th day of the week, so a generated plan writes a
- * rest day as a placeholder ("Thursday — Rest", exercises: []) to keep the
- * days after it in place. An empty exercise list is rest, never a session.
+ * Which template day sits at a position in the week (0 = the program's start
+ * weekday), or -1 for rest.
+ *
+ * With `weekSlots` (programs written since Oct 2026) the phase says which
+ * positions train — e.g. [0, 2, 4] for three days with rest between — so a
+ * 4-day program isn't four days straight. Without it (older programs), the
+ * i-th position is the i-th day, and a day with an explicitly empty exercise
+ * list is a rest placeholder holding its weekday ("Thursday — Rest").
  */
-export function sessionAt<T extends { exercises?: unknown[] } | null | undefined>(trainingDays: T[], i: number): T | null {
-  const d = i >= 0 && i < trainingDays.length ? trainingDays[i] : null;
-  // Only an explicitly empty list is rest; a day without the field (older shapes) is still a session.
-  return d && !(Array.isArray(d.exercises) && d.exercises.length === 0) ? d : null;
+export function dayIndexAt(trainingDays: { exercises?: unknown[] }[] | null | undefined, i: number, weekSlots?: unknown): number {
+  const days = trainingDays ?? [];
+  const slots = Array.isArray(weekSlots) && weekSlots.length === days.length && weekSlots.every((x) => Number.isInteger(x) && (x as number) >= 0 && (x as number) < 7) ? (weekSlots as number[]) : null;
+  const idx = slots ? slots.indexOf(i) : i >= 0 && i < days.length ? i : -1;
+  if (idx < 0) return -1;
+  const d = days[idx];
+  return d && !(Array.isArray(d.exercises) && d.exercises.length === 0) ? idx : -1;
+}
+
+/** The program day at a weekday position, or null for rest (see dayIndexAt). */
+export function sessionAt<T extends { exercises?: unknown[] } | null | undefined>(trainingDays: T[], i: number, weekSlots?: unknown): T | null {
+  const idx = dayIndexAt(trainingDays as any, i, weekSlots);
+  return idx >= 0 ? trainingDays[idx] : null;
 }

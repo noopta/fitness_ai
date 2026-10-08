@@ -15,6 +15,7 @@ import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
 import { cleanInjuryText, hardConstraintBlock, lowerBodyBlocked, lowerBodyExercises, stripLowerBody } from './injuryGuard.js';
 import { agentProgress } from '../agent/turnRun.js';
+import { applyWeekRecovery, spreadSlots } from './weekRecovery.js';
 import {
   buildMealPhotoV2Prompt,
   coerceMealPhotoV2Response,
@@ -1514,6 +1515,7 @@ REQUIREMENTS (be concise — brevity is critical for all text fields):
 5. deloadProtocol: 1 sentence. progressionNotes: 2 items max, concise.
 6. All intensity uses RPE. autoregulationRules: 2 items. trackingMetrics: 2 items.
 7. estimatedMinutes: each training day's realistic total in minutes (warm-up, working sets with rest, cool-down). Days differ — heavy low-rep days run longer.
+8. RECOVERY: the app spaces the ${params.daysPerWeek} training days through the week (${spreadSlots(params.daysPerWeek).length >= 6 ? 'nearly every day' : 'with rest days between'}). Design the days so no two consecutive sessions load the same primary muscles and no body region (upper or lower) is trained three days running — e.g. 4 days: upper/lower; 5–6 days: push/pull/legs; if only the upper body can be trained, alternate push and pull and keep it to 3–4 days. Never 7 days without rest.
 
 OUTPUT FORMAT — Return valid JSON only:
 {
@@ -1556,35 +1558,35 @@ OUTPUT FORMAT — Return valid JSON only:
   agentProgress('prog-sources', 'Read', `${sources.length || 'No'} source${sources.length === 1 ? '' : 's'} on your goal`);
   const withRag = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
   const finalPrompt = hard.block ? `${hard.block}\n\n${withRag}\n\n${hard.block}` : withRag;
-  agentProgress('prog-write', 'Reading', `Writing your ${params.durationWeeks}-week program — this takes about 30 seconds`);
+  agentProgress('prog-write', 'Reading', `Writing your ${params.durationWeeks}-week program — about 20 seconds`);
 
-  // A 6-day, 12-week program runs 7–11k output tokens (bake-off 6 Oct), so
-  // the old 8000 cap cut the biggest ones off mid-object. 100 s covers ~12k
-  // tokens on the pinned providers; past that, or on a cut-off / unparseable
-  // reply, chatComplete retries once on the OpenAI fallback.
-  const response = await chatComplete({
-    messages: [{ role: 'user', content: finalPrompt }],
-    max_completion_tokens: 16000,
-    response_format: { type: 'json_object' },
-  }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
-
-  const content = response.choices[0].message.content || '{}';
-  let parsed = parseModelJson(content) as TrainingProgram;
-  // A draft that loads an un-cleared lower limb: one retry naming what broke the rule, then strip what's left.
+  let parsed = await writeProgramDraft(finalPrompt, params.daysPerWeek);
+  // A draft that loads an un-cleared lower limb: one rewrite naming what broke the rule, then strip what's left.
   if (lowerBodyBlocked(injuryText)) {
     const bad = lowerBodyExercises(parsed);
     if (bad.length) {
+      console.warn(`[llm] program rewrite (injury): ${bad.join(', ')}`);
       agentProgress('prog-write', 'Reading', 'Checking it against your injury — rewriting a few days');
-      try {
-        const again = await chatComplete({
-          messages: [{ role: 'user', content: `${finalPrompt}\n\nYOUR LAST DRAFT BROKE THE HARD CONSTRAINTS with: ${bad.join(', ')}. Rewrite the whole program with no lower-body loading at all.` }],
-          max_completion_tokens: 16000, response_format: { type: 'json_object' },
-        }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
-        parsed = parseModelJson(again.choices[0].message.content || '{}') as TrainingProgram;
-      } catch { /* keep the first draft; stripped below */ }
+      try { parsed = await writeProgramDraft(`${finalPrompt}\n\nYOUR LAST DRAFT BROKE THE HARD CONSTRAINTS with: ${bad.join(', ')}. Rewrite the whole program with no lower-body loading at all.`, params.daysPerWeek); }
+      catch { /* keep the first draft; stripped below */ }
       if (lowerBodyExercises(parsed).length) parsed = stripLowerBody(parsed);
     }
   }
+  // Recovery: spread each phase's days through the week and order them; what ordering
+  // can't fix (six upper days, the same muscles back to back) gets one rewrite naming it.
+  let rec = applyWeekRecovery(JSON.parse(JSON.stringify(parsed)));
+  if (rec.problems.length) {
+    console.warn(`[llm] program rewrite (recovery): ${rec.problems.join('; ')}`);
+    agentProgress('prog-write', 'Reading', 'Spacing your week so you recover — adjusting the split');
+    try {
+      let again = await writeProgramDraft(`${finalPrompt}\n\nRECOVERY PROBLEMS IN YOUR LAST DRAFT: ${rec.problems.join('; ')}. Change the split or the days so none of these happen.`, params.daysPerWeek);
+      if (lowerBodyBlocked(injuryText) && lowerBodyExercises(again).length) again = stripLowerBody(again);
+      const rec2 = applyWeekRecovery(JSON.parse(JSON.stringify(again)));
+      if (rec2.problems.length <= rec.problems.length) rec = rec2;
+      if (rec2.problems.length) console.warn(`[llm] program recovery problems remain: ${rec2.problems.join('; ')}`);
+    } catch { /* keep the spread first draft */ }
+  }
+  parsed = rec.program;
   agentProgress('prog-write', 'Drafted', `${params.durationWeeks}-week program`);
 
   // Attach the real sources that informed this plan (may be empty if the
@@ -1612,6 +1614,64 @@ OUTPUT FORMAT — Return valid JSON only:
   }
 
   return parsed;
+}
+
+// ─── Writing the program ───────────────────────────────────────────────────────
+//
+// One call used to write the whole program (3–6.5k tokens, 25–47 s at ~130
+// tok/s). Now: a short outline (phases, their days and anchor lifts), then
+// every phase written at the same time with the outline fixed, so the wait is
+// the outline plus the longest phase. The anchors keep the main lifts the same
+// across phases. Any failure falls back to the single call.
+// PROGRAM_PARALLEL=0 switches the split off.
+
+const OUTLINE_STEP = (days: number) => `STEP 1 OF 2 — OUTLINE ONLY. Plan the program's shape; a second pass writes each phase in full. Return JSON only:
+{"goal": "...", "daysPerWeek": ${days}, "durationWeeks": N, "autoregulationRules": ["…", "…"], "trackingMetrics": ["…", "…"],
+ "phases": [{"phaseNumber": 1, "phaseName": "…", "durationWeeks": 4, "weeksLabel": "Weeks 1–4", "rationale": "2 sentences", "days": [{"day": "Upper — Horizontal Push/Pull", "focus": "…", "anchors": ["Bench Press", "Barbell Row"]}]}]}
+Every phase has exactly ${days} days. Keep day names and anchor lifts the same across phases unless a phase's purpose changes them. No exercise lists, sets or reps here.`;
+
+const PHASE_STEP = (outline: any, k: number) => {
+  const ph = outline.phases[k];
+  const prev = outline.phases[k - 1]?.phaseName, next = outline.phases[k + 1]?.phaseName;
+  return `STEP 2 OF 2 — WRITE ONE PHASE. The outline is fixed:
+${JSON.stringify(outline)}
+Write ONLY phase ${k + 1} ("${ph.phaseName}", ${ph.weeksLabel ?? ''}) in full. Return JSON only:
+{"phaseNumber": ${k + 1}, "phaseName": "${ph.phaseName}", "rationale": "…", "durationWeeks": ${ph.durationWeeks}, "weeksLabel": "${ph.weeksLabel ?? ''}", "trainingDays": [ /* exactly the outline's days for this phase, in order, same names — each with focus, warmup (3), exercises [{"exercise","sets","reps","intensity","notes"}], cooldown (2), estimatedMinutes */ ], "progressionNotes": ["…", "…"], "deloadProtocol": "…"}
+Each day includes its anchor lifts.${prev ? ` Loads and volume continue from ${prev}.` : ''}${next ? ` Set up ${next}.` : ''}`;
+};
+
+async function writeProgramDraft(prompt: string, daysPerWeek: number): Promise<TrainingProgram> {
+  if (process.env.PROGRAM_PARALLEL !== '0') {
+    try {
+      const o = await chatComplete({ messages: [{ role: 'user', content: `${prompt}\n\n${OUTLINE_STEP(daysPerWeek)}` }], max_completion_tokens: 3000, response_format: { type: 'json_object' } }, { timeoutMs: 45_000, requireJson: true, label: 'program-outline' });
+      const outline = parseModelJson(o.choices[0].message.content || '{}') as any;
+      if (!Array.isArray(outline?.phases) || !outline.phases.length || outline.phases.length > 6) throw new Error('outline has no phases');
+      // Every phase trains the same days a week: a phase with a different count takes the standard day list.
+      const standard = outline.phases.find((p: any) => Array.isArray(p?.days) && p.days.length === daysPerWeek)?.days ?? outline.phases[0]?.days;
+      if (!Array.isArray(standard) || !standard.length) throw new Error('outline has no days');
+      for (const p of outline.phases) if (!Array.isArray(p.days) || p.days.length !== standard.length) p.days = standard;
+      agentProgress('prog-write', 'Reading', `Writing ${outline.phases.length} phases at once`);
+      const phases = await Promise.all(outline.phases.map(async (_: any, k: number) => {
+        const r = await chatComplete({ messages: [{ role: 'user', content: `${prompt}\n\n${PHASE_STEP(outline, k)}` }], max_completion_tokens: 9000, response_format: { type: 'json_object' } }, { timeoutMs: 75_000, requireJson: true, label: 'program-phase' });
+        const ph = parseModelJson(r.choices[0].message.content || '{}') as any;
+        const days = Array.isArray(ph?.trainingDays) ? ph.trainingDays : [];
+        if (!days.length || days.some((d: any) => !Array.isArray(d?.exercises) || !d.exercises.length)) throw new Error(`phase ${k + 1} came back empty`);
+        const plan = outline.phases[k];
+        return { ...ph, phaseNumber: k + 1, phaseName: ph.phaseName || plan.phaseName, durationWeeks: Number(ph.durationWeeks) || Number(plan.durationWeeks) || 1, weeksLabel: ph.weeksLabel || plan.weeksLabel, rationale: ph.rationale || plan.rationale };
+      }));
+      return { goal: outline.goal, daysPerWeek: outline.daysPerWeek ?? daysPerWeek, durationWeeks: outline.durationWeeks ?? phases.reduce((n, p) => n + p.durationWeeks, 0), phases, autoregulationRules: outline.autoregulationRules ?? [], trackingMetrics: outline.trackingMetrics ?? [] } as any;
+    } catch (err: any) {
+      console.warn(`[llm] program: parallel write failed (${err?.message ?? err}) — single call`);
+    }
+  }
+  // A 6-day, 12-week program runs 7–11k output tokens in one call; 100 s covers
+  // ~12k on the pinned providers; past that chatComplete retries on OpenAI.
+  const response = await chatComplete({
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 16000,
+    response_format: { type: 'json_object' },
+  }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
+  return parseModelJson(response.choices[0].message.content || '{}') as TrainingProgram;
 }
 
 // ─── Coach Insights ────────────────────────────────────────────────────────────

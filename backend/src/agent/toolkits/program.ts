@@ -14,6 +14,7 @@ import { dayLabel, shiftDate, weight, plural } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
 import { sessionMinutes } from '../../services/sessionMinutes.js';
+import { respreadSlots } from '../../services/weekRecovery.js';
 
 function invalidateProgram(userId: string) {
   cacheDelete(`program:${userId}`);
@@ -242,6 +243,8 @@ const dayExerciseCount = (d: any) => (d?.exercises ?? []).length;
 function syncDaysPerWeek(p: any, phases: number[]) {
   const n = p.phases[phases[0]]?.trainingDays?.length;
   if (n) p.daysPerWeek = n;
+  // A spread week (weekSlots) stays spread when a day is added or removed.
+  for (const pi of phases) respreadSlots(p.phases[pi]);
 }
 
 /** add_day / remove_day / set_days_per_week on the selected phases (mutates p). */

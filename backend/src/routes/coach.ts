@@ -31,7 +31,7 @@ import { moderateText } from '../services/moderationService.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
 import { parseExercisesColumn } from '../services/workoutExercises.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
-import { sessionAt } from '../services/programPhaseService.js';
+import { sessionAt, dayIndexAt } from '../services/programPhaseService.js';
 import { userSetTargets } from '../services/nutritionTargets.js';
 
 const router = Router();
@@ -1029,7 +1029,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     // Use daysSinceStart mod 7 to pick which day in the template week
     const dayInWeek = daysSinceStart % 7; // 0–6
     // Find if today is a training day; simple mapping: first N days of week = training
-    let todaySession = sessionAt(trainingDays, dayInWeek);
+    let todaySession = sessionAt(trainingDays, dayInWeek, currentPhase.weekSlots);
     // A per-date override (from a workout swap / rebalance) wins for today.
     const todayOverride = await prisma.scheduleOverride.findUnique({
       where: { userId_date: { userId: req.user!.id, date: dateKey } },
@@ -1045,7 +1045,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     if (todaySession) {
       const idx = todayOverride
         ? trainingDays.findIndex((d: any) => d?.day && d.day === (todaySession as any)?.day)
-        : dayInWeek;
+        : dayIndexAt(trainingDays, dayInWeek, currentPhase.weekSlots);
       if (idx >= 0 && idx < totalDays) {
         programDayRef = { phaseIndex: phaseState.phaseIndex, dayIndex: idx, weekNumber, day: trainingDays[idx]?.day ?? null };
       }
@@ -1056,7 +1056,7 @@ router.get('/coach/today', requireAuth, async (req, res) => {
     if (isRestDay) {
       // Find next training day index
       for (let i = dayInWeek + 1; i < 7; i++) {
-        const next = sessionAt(trainingDays, i);
+        const next = sessionAt(trainingDays, i, currentPhase.weekSlots);
         if (next) {
           nextTrainingDay = next.day;
           break;
@@ -1167,7 +1167,7 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
       const trainingDays = phaseState.trainingDays;
       const totalDays = trainingDays.length;
       const dayInWeek = phaseState.daysSinceStart % 7;
-      const session = sessionAt(trainingDays, dayInWeek);
+      const session = sessionAt(trainingDays, dayInWeek, (phaseState.currentPhase as any)?.weekSlots);
       isRestDay = !session;
       todaySession = session ? { day: session.day, focus: session.focus } : null;
 
@@ -1183,7 +1183,7 @@ router.post('/coach/adjust', requireAuth, async (req, res) => {
         date.setUTCDate(monday.getUTCDate() + i);
         const daysForDate = Math.floor((date.getTime() - estMidnight(new Date(startDate)).getTime()) / (1000 * 60 * 60 * 24));
         const diw = ((daysForDate % 7) + 7) % 7;
-        const s = diw < totalDays ? trainingDays[diw] : null;
+        const s = sessionAt(trainingDays, diw, (phaseState.currentPhase as any)?.weekSlots);
         weekSchedule.push({ dayLabel: DAY_LABELS[i], isTrainingDay: !!s, sessionName: s?.day });
       }
     }
@@ -1575,7 +1575,7 @@ export function buildScheduleData(
     const hasOverride = overrides?.has(dateEST) ?? false;
     const session = hasOverride
       ? overrides!.get(dateEST)  // may be null = explicit rest
-      : sessionAt(trainingDays, dayInWeek);
+      : sessionAt(trainingDays, dayInWeek, (currentPhase as any)?.weekSlots);
 
     weekDays.push({
       date: dateEST,

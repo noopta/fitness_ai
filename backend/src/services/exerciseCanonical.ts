@@ -233,3 +233,14 @@ export function canonicalizeSync(rawName: string): Omit<NormalizedExercise, 'raw
   return SEED[lower] ?? SEED[stripped] ?? fuzzyMatch(stripped) ?? null;
 }
 
+
+/**
+ * Exact lookup only — the seed dictionary by full or qualifier-stripped name,
+ * never the fuzzy match. For safety checks, where "Cable Row (seated, V-grip)"
+ * fuzzy-matching a seated leg exercise would be a false alarm.
+ */
+export function canonicalizeStrict(rawName: string): Omit<NormalizedExercise, 'rawName'> | null {
+  const t = (rawName ?? '').trim().toLowerCase();
+  if (!t) return null;
+  return SEED[t] ?? SEED[stripQualifiers(t)] ?? SEED[stripQualifiers(t.replace(/\([^)]*\)/g, ' '))] ?? null;
+}

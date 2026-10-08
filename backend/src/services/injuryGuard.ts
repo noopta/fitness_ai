@@ -4,7 +4,7 @@
 // line among dozens of profile notes; it now leads the prompt as a rule, and a
 // draft that breaks it is checked here and corrected before anyone sees it.
 
-import { canonicalizeSync } from './exerciseCanonical.js';
+import { canonicalizeStrict } from './exerciseCanonical.js';
 
 const LOWER_AREA = /\b(achilles|ankle|calf|calves|foot|feet|plantar|heel|shin|tibia|fibula|knee|acl|mcl|meniscus|patella|hamstring|quad(riceps)?|hip|groin|leg)\b/i;
 const NOT_CLEARED = /\b(rupture[ds]?|torn|tear|fracture[ds]?|broken|surgery|post[- ]?op|not (yet )?cleared|cast|boot|crutch|non[- ]?weight[- ]?bearing|can'?t (bear|put) weight|recovering)\b/i;
@@ -20,7 +20,7 @@ export function lowerBodyBlocked(injuryText: string): boolean {
   return LOWER_AREA.test(injuryText) && NOT_CLEARED.test(injuryText);
 }
 
-const LOWER_NAME = /\b(squat|lunge|deadlift|rdl|romanian|leg press|leg curl|leg extension|hamstring curl|calf|step[- ]?up|hip thrust|glute bridge|split squat|hack squat|good morning|jump|box jump|sprint|running|run\b|skipping|nordic|sled|kettlebell swing|kb swing|clean|snatch|thruster|burpee|wall sit|hip abduction|hip adduction|adductor|abductor)\b/i;
+const LOWER_NAME = /\b(pull[- ]?through|squat|lunge|deadlift|rdl|romanian|leg press|leg curl|leg extension|hamstring curl|calf|step[- ]?up|hip thrust|glute bridge|split squat|hack squat|good morning|jump|box jump|sprint|running|run\b|skipping|nordic|sled|kettlebell swing|kb swing|clean|snatch|thruster|burpee|wall sit|hip abduction|hip adduction|adductor|abductor)\b/i;
 
 /** Exercises in a program that load the lower body. */
 export function lowerBodyExercises(program: any): string[] {
@@ -28,7 +28,7 @@ export function lowerBodyExercises(program: any): string[] {
   for (const ph of program?.phases ?? []) for (const d of ph?.trainingDays ?? ph?.days ?? []) for (const e of d?.exercises ?? []) {
     const name = String(e?.name ?? e?.exercise ?? '').trim();
     if (!name || /\bcurl\b/i.test(name) && !/leg|hamstring/i.test(name)) continue;
-    const c = canonicalizeSync(name);
+    const c = canonicalizeStrict(name);
     if ((c && (c.category === 'legs' || c.category === 'hinge')) || LOWER_NAME.test(name)) out.add(name);
   }
   return [...out];

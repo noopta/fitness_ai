@@ -28,3 +28,10 @@ describe('injury guard', () => {
     expect(hardConstraintBlock('', 6)).toEqual({ block: '', daysPerWeek: 6 });
   });
 });
+
+describe('injury guard — no false alarms', () => {
+  it('does not flag seated upper-body work', () => {
+    const p = { phases: [{ trainingDays: [{ day: 'Upper', exercises: [{ name: 'Cable Row (seated, V-grip)' }, { name: 'Seated Overhead Press' }, { name: 'Chest-Supported Row' }, { name: 'Cable Pull-Through' }] }] }] };
+    expect(lowerBodyExercises(p)).toEqual(['Cable Pull-Through']);
+  });
+});

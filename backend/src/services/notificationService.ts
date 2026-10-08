@@ -239,7 +239,7 @@ export async function runNightlyNotifications(): Promise<void> {
             const phaseDays = (phase.durationWeeks || 1) * 7;
             if (dayOffset < totalDays + phaseDays) {
               const dayInWeek = dayOffset % 7;
-              const session = sessionAt(trainingDays, dayInWeek);
+              const session = sessionAt(trainingDays, dayInWeek, (phase as any).weekSlots);
               if (session) {
                 return {
                   title: `Today: ${session.focus}`,

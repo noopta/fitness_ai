@@ -157,7 +157,7 @@ export function resolveCalendar(
       if (!state.isComplete && state.currentPhase) {
         const trainingDays = state.trainingDays ?? [];
         const dayInWeek = state.daysSinceStart % 7;
-        session = sessionAt(trainingDays, dayInWeek);
+        session = sessionAt(trainingDays, dayInWeek, (state.currentPhase as any)?.weekSlots);
       }
     }
 
