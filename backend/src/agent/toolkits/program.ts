@@ -777,7 +777,7 @@ export const PROGRAM_TOOLS = [
     }),
   }),
   tool({
-    name: 'propose_freestyle', kind: 'propose', fn: 'PRG-17',
+    name: 'propose_freestyle', kind: 'propose', core: true, fn: 'PRG-17',
     description: 'They want to train without a program ("I want to freestyle", "drop the program", "I\'ll do my own thing"): propose setting the program aside. It is archived, not deleted — Undo, or propose_restore_program later, brings it back. They then log as they go and get session suggestions and progression from their logs.',
     input_schema: schema({ why: { type: 'string' } }),
     receipt: () => ({ verb: 'Proposed', text: 'Freestyle' }),

@@ -56,9 +56,11 @@ export function loggerReducer(s: LoggerState, a: LoggerAction): LoggerState {
     case 'add_set':
       return patchEx(a.ex, (e) => {
         const last = e.sets[e.sets.length - 1];
-        // A new set starts from the one above it — the usual case is "same again".
-        const seed = last ? { weight: last.weight ?? last.prev?.weight ?? null, reps: last.reps ?? last.prev?.reps ?? null } : { weight: null, reps: null };
-        return { ...e, sets: [...e.sets, { ...seed, done: false, prev: null }] };
+        // A new set suggests the one above it ("same again") as its grey hint — not as typed
+        // values, which made new rows look entered while the rows above looked empty.
+        const w = last ? last.weight ?? last.prev?.weight ?? null : null;
+        const r = last ? last.reps ?? last.prev?.reps ?? null : null;
+        return { ...e, sets: [...e.sets, { weight: null, reps: null, done: false, prev: r != null ? { weight: w, reps: r } : null }] };
       });
     case 'remove_set': return patchEx(a.ex, (e) => ({ ...e, sets: e.sets.filter((_, i) => i !== a.set) }));
     case 'set_value':

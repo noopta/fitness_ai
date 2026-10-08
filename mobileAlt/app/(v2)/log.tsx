@@ -30,6 +30,8 @@ import { useUnits } from '../../src/context/UnitsContext';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
 import { trackScreen } from '../../src/lib/analytics';
+import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
 const DRAFT_KEY = 'v2.loggerDraft.v1';
 const C = v2.color;
@@ -110,14 +112,15 @@ export default function LogScreen() {
   if (searching) return <ExerciseSearch unit={unit} fromKg={fromKg} onPick={(n) => void addExercise(n)} onBack={() => setSearching(false)} />;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+    <KeyboardAvoider style={[styles.root, { paddingTop: insets.top + 8 }]}>
       <StatusBar style="dark" />
       <View style={styles.top}>
         <Pressable onPress={cancel} hitSlop={10} accessibilityRole="button"><Text style={[T.body, { color: C.ink }]}>Cancel</Text></Pressable>
         <Text style={[T.caption, { color: C.muted }]}>{savedAt ? 'Draft saved' : ''}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 + insets.bottom }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+      {/* Stays above the keyboard; dragging the list puts the keyboard away. */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>
         <Pressable onPress={() => setTitleOpen(true)} accessibilityRole="button" accessibilityLabel={`Name, ${s.title}. Edit`}>
           <Text style={styles.title} numberOfLines={1}>{s.title || 'Workout'}</Text>
         </Pressable>
@@ -134,32 +137,40 @@ export default function LogScreen() {
                 { text: 'Cancel', style: 'cancel' },
               ])} hitSlop={10} accessibilityLabel={`${e.name} options`}><Text style={[T.body, { color: C.muted }]}>···</Text></Pressable>
             </View>
+            {ex === 0 ? <Text style={[T.caption, { marginBottom: 6 }]}>Type the weight and reps, then tick ✓. A blank box uses the grey number — last time's.</Text> : null}
             <View style={styles.setHead}>
               <Text style={[styles.colSet, styles.headTxt]}>Set</Text>
-              <Text style={[styles.colPrev, styles.headTxt]}>Previous</Text>
+              <Text style={[styles.colPrev, styles.headTxt]}>Last time</Text>
               <Text style={[styles.colNum, styles.headTxt]}>{unit}</Text>
               <Text style={[styles.colNum, styles.headTxt]}>Reps</Text>
-              <View style={styles.colTick} />
+              <Text style={[styles.colTick, styles.headTxt, { textAlign: 'right' }]}>Done</Text>
             </View>
             {e.sets.map((x, i) => (
               <Pressable key={i} onLongPress={() => Alert.alert(`Remove set ${i + 1}?`, undefined, [{ text: 'Keep', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => dispatch({ type: 'remove_set', ex, set: i }) }])} style={styles.setRow}>
                 <Text style={[styles.colSet, T.body, T.num]}>{i + 1}</Text>
                 <Text style={[styles.colPrev, T.caption, T.num]}>{x.prev ? `${x.prev.weight != null ? `${x.prev.weight} × ` : ''}${x.prev.reps}` : '—'}</Text>
                 <TextInput value={x.weight != null ? String(x.weight) : ''} placeholder={x.prev?.weight != null ? String(x.prev.weight) : '—'} placeholderTextColor={C.placeholder}
-                  onChangeText={(t) => dispatch({ type: 'set_value', ex, set: i, field: 'weight', value: num(t) })} keyboardType="decimal-pad" selectTextOnFocus
-                  style={[styles.colNum, styles.input, x.done && styles.inputDone]} accessibilityLabel={`Set ${i + 1} weight`} />
+                  onChangeText={(t) => dispatch({ type: 'set_value', ex, set: i, field: 'weight', value: num(t) })} keyboardType="decimal-pad" selectTextOnFocus inputAccessoryViewID={KEYBOARD_DONE_ID}
+                  style={[styles.box, x.done && styles.boxDone]} accessibilityLabel={`Set ${i + 1} weight in ${unit}`} />
                 <TextInput value={x.reps != null ? String(x.reps) : ''} placeholder={x.prev ? String(x.prev.reps) : '—'} placeholderTextColor={C.placeholder}
-                  onChangeText={(t) => dispatch({ type: 'set_value', ex, set: i, field: 'reps', value: num(t) })} keyboardType="number-pad" selectTextOnFocus
-                  style={[styles.colNum, styles.input, x.done && styles.inputDone]} accessibilityLabel={`Set ${i + 1} reps`} />
+                  onChangeText={(t) => dispatch({ type: 'set_value', ex, set: i, field: 'reps', value: num(t) })} keyboardType="number-pad" selectTextOnFocus inputAccessoryViewID={KEYBOARD_DONE_ID}
+                  style={[styles.box, x.done && styles.boxDone]} accessibilityLabel={`Set ${i + 1} reps`} />
                 <Pressable onPress={() => { haptics.select(); dispatch({ type: 'toggle_done', ex, set: i }); }} hitSlop={10} style={styles.colTick}
                   accessibilityRole="checkbox" accessibilityState={{ checked: x.done }} accessibilityLabel={`Set ${i + 1} done`}>
                   <View style={[styles.tick, x.done && styles.tickOn]}>{x.done ? <Text style={styles.tickMark}>✓</Text> : null}</View>
                 </Pressable>
               </Pressable>
             ))}
-            <Pressable onPress={() => dispatch({ type: 'add_set', ex })} hitSlop={6} style={{ marginTop: 10 }} accessibilityRole="button">
-              <Text style={[T.caption, { color: C.muted }]}>+ Add set</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', gap: 24, marginTop: 12 }}>
+              <Pressable onPress={() => { haptics.select(); dispatch({ type: 'add_set', ex }); }} hitSlop={8} accessibilityRole="button">
+                <Text style={[T.captionStrong, { color: C.ink }]}>+ Add set</Text>
+              </Pressable>
+              {e.sets.length > 1 ? (
+                <Pressable onPress={() => { haptics.select(); dispatch({ type: 'remove_set', ex, set: e.sets.length - 1 }); }} hitSlop={8} accessibilityRole="button">
+                  <Text style={[T.captionStrong, { color: C.muted }]}>− Remove set</Text>
+                </Pressable>
+              ) : null}
+            </View>
           </View>
         ))}
 
@@ -168,7 +179,7 @@ export default function LogScreen() {
         </Pressable>
       </ScrollView>
 
-      <View style={[styles.foot, { paddingBottom: insets.bottom + 16 }]}>
+      <View style={[styles.foot, { paddingBottom: insets.bottom + 12 }]}>
         <TextAction primary onPress={() => void finish()} loading={busy}>Finish</TextAction>
         {s.exercises.length ? <TextAction muted arrow={false} onPress={discard}>Discard</TextAction> : null}
       </View>
@@ -176,7 +187,9 @@ export default function LogScreen() {
       <PromptSheet visible={titleOpen} title="Name" initial={s.title} placeholder="Push, Legs, Upper…" onSubmit={(v) => { dispatch({ type: 'title', title: v }); setTitleOpen(false); }} onClose={() => setTitleOpen(false)} />
       <PromptSheet visible={noteOpen} title="Note" initial={s.note} placeholder="How it went" saveLabel="Done" onSubmit={(v) => { dispatch({ type: 'note', note: v }); setNoteOpen(false); }} onClose={() => setNoteOpen(false)} />
       <WhenSheet visible={whenOpen} date={s.date} today={today} onPick={(d) => { dispatch({ type: 'date', date: d }); setWhenOpen(false); }} onClose={() => setWhenOpen(false)} />
-    </View>
+      {/* Number pads have no return key on iOS: a Done bar above them. */}
+      <KeyboardDoneBar />
+    </KeyboardAvoider>
   );
 }
 
@@ -233,7 +246,7 @@ function ExerciseSearch({ unit, fromKg, onPick, onBack }: { unit: string; fromKg
   }, [last.data, fromKg]);
   const exact = names.some((n) => n.name.toLowerCase() === q.trim().toLowerCase());
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+    <KeyboardAvoider style={[styles.root, { paddingTop: insets.top + 8 }]}>
       <StatusBar style="dark" />
       <View style={styles.top}>
         <Pressable onPress={onBack} hitSlop={10} accessibilityRole="button"><Text style={[T.body, { color: C.ink }]}>← Workout</Text></Pressable>
@@ -250,7 +263,8 @@ function ExerciseSearch({ unit, fromKg, onPick, onBack }: { unit: string; fromKg
           </Pressable>
         ))}
       </View>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
+      {/* The list ends above the keyboard, and scrolling it puts the keyboard away. */}
+      <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ paddingBottom: 24 }}>
         {res.isLoading ? <ActivityIndicator style={{ marginTop: 20 }} color={C.muted} /> : null}
         {names.map((n, i) => {
           const c = exerciseCategory(n.name);
@@ -264,7 +278,7 @@ function ExerciseSearch({ unit, fromKg, onPick, onBack }: { unit: string; fromKg
         ) : null}
         {!res.isLoading && !names.length && !q.trim() ? <Text style={[T.bodyMuted, { marginTop: 16 }]}>Type to search your exercises and the library.</Text> : null}
       </ScrollView>
-    </View>
+    </KeyboardAvoider>
   );
 }
 
@@ -275,17 +289,18 @@ const styles = StyleSheet.create({
   exHead: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 6 },
   setHead: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
   headTxt: { fontFamily: v2.font.medium, fontSize: 11, color: C.muted },
-  setRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.hairline },
+  setRow: { flexDirection: 'row', alignItems: 'center', minHeight: 50, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.hairline },
   colSet: { width: 32 },
   colPrev: { flex: 1 },
   colNum: { width: 64, textAlign: 'center' },
   colTick: { width: 40, alignItems: 'flex-end' },
-  input: { fontFamily: v2.font.semibold, fontSize: 16, color: C.ink, paddingVertical: 6, fontVariant: ['tabular-nums'] },
-  inputDone: { color: C.ink },
+  // A box reads as "type here"; an empty one shows last time's number in grey.
+  box: { width: 60, height: 38, marginHorizontal: 2, borderRadius: 8, backgroundColor: C.surface, textAlign: 'center', fontFamily: v2.font.semibold, fontSize: 16, color: C.ink, padding: 0, fontVariant: ['tabular-nums'] },
+  boxDone: { backgroundColor: C.white, borderWidth: 1, borderColor: C.hairline },
   tick: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: C.placeholder, alignItems: 'center', justifyContent: 'center' },
   tickOn: { backgroundColor: C.ink, borderColor: C.ink },
   tickMark: { color: C.white, fontSize: 13, fontFamily: v2.font.bold, lineHeight: 15 },
-  foot: { position: 'absolute', left: v2.space.gutter, right: v2.space.gutter, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 28, paddingTop: 14, backgroundColor: C.white, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.hairline },
+  foot: { flexDirection: 'row', alignItems: 'center', gap: 28, paddingTop: 14, backgroundColor: C.white, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.hairline },
   searchField: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 18, borderBottomWidth: 1.5, borderBottomColor: C.ink, paddingBottom: 6 },
   searchInput: { flex: 1, fontFamily: v2.font.semibold, fontSize: 22, color: C.ink, padding: 0 },
   cats: { flexDirection: 'row', gap: 16, marginTop: 14, marginBottom: 6 },

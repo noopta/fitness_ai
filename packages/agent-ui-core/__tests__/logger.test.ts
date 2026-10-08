@@ -32,7 +32,9 @@ describe('logger', () => {
 
   it('a new set starts from the one above; an exercise with nothing ticked is left out', () => {
     let s = run(emptyLogger('2026-10-07'), { type: 'add_exercise', name: 'Row', prev: [{ weight: 155, reps: 8 }] }, { type: 'add_set', ex: 0 });
-    expect(s.exercises[0].sets[1]).toMatchObject({ weight: 155, reps: 8, done: false });
+    // A new set suggests the one above as its hint; ticking it takes those numbers.
+    expect(s.exercises[0].sets[1]).toMatchObject({ weight: null, reps: null, done: false, prev: { weight: 155, reps: 8 } });
+    expect(run(s, { type: 'toggle_done', ex: 0, set: 1 }).exercises[0].sets[1]).toMatchObject({ weight: 155, reps: 8, done: true });
     expect(loggerHasWork(s)).toBe(false);
     expect(loggerToLogBody(s, kg).exercises).toHaveLength(0);
     s = run(s, { type: 'remove_set', ex: 0, set: 1 }, { type: 'remove_exercise', ex: 0 });
