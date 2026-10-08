@@ -42,6 +42,7 @@ import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } 
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
 import { takeSessionSeed } from '../../src/v2/sessionSeed';
+import { ShareWorkoutSheet, type WorkoutShare } from '../../src/v2/share/ShareWorkoutSheet';
 
 const DRAFT_KEY = 'v2.sessionDraft.v1';
 const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
@@ -309,7 +310,7 @@ function SessionScreenInner() {
 
         {plan && state.step === 'done' ? (
           <Animated.View key="done" entering={FadeIn.duration(520)}>
-            <DoneView state={state} plan={P} now={now} title={title} unit={unit} saved={saved} saving={saving} onFinish={finish} />
+            <DoneView state={state} plan={P} now={now} title={title} unit={unit} saved={saved} saving={saving} onFinish={finish} toKg={toKg} />
           </Animated.View>
         ) : null}
       </View>
@@ -317,8 +318,18 @@ function SessionScreenInner() {
   );
 }
 
-function DoneView({ state, plan, now, title, unit, saved, saving, onFinish }: { state: WorkoutState; plan: PlanExercise[]; now: number; title: string; unit: string; saved: string | null; saving: boolean; onFinish: () => void }) {
+function DoneView({ state, plan, now, title, unit, saved, saving, onFinish, toKg }: { state: WorkoutState; plan: PlanExercise[]; now: number; title: string; unit: string; saved: string | null; saving: boolean; onFinish: () => void; toKg: (w: number) => number }) {
   const s = summarize(state, plan, now);
+  // S-04: share it — optional, one tap to skip. Post to Friends attaches this workout.
+  const [sharing, setSharing] = useState(false);
+  const share: WorkoutShare = useMemo(() => {
+    const body = toWorkoutLogBody(state, plan, title, todayStr(), now);
+    return {
+      title: sessionTitle(title), durationMin: s.minutes || null,
+      exercises: body.exercises.map((e) => ({ name: e.name, sets: e.sets, reps: String(e.reps), weightKg: e.weight ? toKg(e.weight) : null })),
+      top: s.topSet && s.topSet !== '—' ? s.topSet : null, sets: s.sets, volume: s.volume ? `${s.volume.toLocaleString()} ${unit}` : null,
+    };
+  }, [state, plan, title]); // eslint-disable-line react-hooks/exhaustive-deps
   const line = s.hardShare > 0.5 ? 'A heavy day. I\'ll hold next week\'s loads and read the next session against it.' : 'Clean session. The loads that moved well go up next week — the rest hold.';
   const receipts = [
     { verb: 'Logged' as const, text: saved ?? `${title} · ${s.sets} sets · ${s.minutes} min` },
@@ -332,7 +343,13 @@ function DoneView({ state, plan, now, title, unit, saved, saving, onFinish }: { 
         {[['Duration', `${s.minutes} min`], ['Sets', `${s.sets} of ${s.totalSets}`], ['Top set', s.topSet], ['Volume', `${s.volume.toLocaleString()} ${unit}`]].map(([k, v], i) => <Enter key={k} index={i + 2} exit={false}><Row name={k} value={v} last={i === 3} /></Enter>)}
       </View>
       <View style={{ marginTop: 24 }}><ReceiptList items={receipts} /></View>
-      <Enter index={7} exit={false}><TextAction primary onPress={onFinish} loading={saving} style={{ marginTop: 28 }}>Back to Anakin</TextAction></Enter>
+      <Enter index={7} exit={false}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28, marginTop: 28 }}>
+          <TextAction primary onPress={onFinish} loading={saving}>Back to Anakin</TextAction>
+          {saved ? <TextAction muted arrow={false} size={15} onPress={() => setSharing(true)}>Share it</TextAction> : null}
+        </View>
+      </Enter>
+      <ShareWorkoutSheet visible={sharing} onClose={() => setSharing(false)} workout={share} />
     </View>
   );
 }

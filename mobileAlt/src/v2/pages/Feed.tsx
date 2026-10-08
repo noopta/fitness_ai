@@ -7,7 +7,12 @@
 // gestures. No menu rows, and nothing here routes to the classic tabs.
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, Alert } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { interleave } from '@axiom/agent-ui-core';
+import { Pressable } from '../primitives/Pressable';
+import { socialApi } from '../../lib/api';
+import { PostMenu } from './feed/PostMenu';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
@@ -17,8 +22,9 @@ import { TextAction } from '../primitives/TextAction';
 import { useFeedPages, useGroups, useSocialCounts } from '../data';
 import { useUnits } from '../../context/UnitsContext';
 import { FeedHeaderActions, LinkTabs } from './feed/common';
-import { Post, type PostModel } from './feed/Post';
-import { GroupsList, LeaderboardList, TogetherList, groupsOf } from './feed/lists';
+import { Post, ResearchItem, type PostModel } from './feed/Post';
+import { GroupsList, groupsOf } from './feed/lists';
+import { LeaderboardBoard, TrainTogetherView } from './feed/People';
 
 type List = 'friends' | 'groups' | 'leaderboard' | 'together';
 
@@ -37,24 +43,36 @@ export function FeedPage() {
   const groups = useGroups();
   const nGroups = groupsOf(groups.data).length;
 
-  const posts = useMemo<PostModel[]>(() => {
+  // S-02: research comes back — cached separately so the posts never wait on it — one after every 4 posts.
+  const research = useQuery({ queryKey: ['v2', 'feed', 'research'], queryFn: () => socialApi.getFeedArticles() as Promise<{ items: any[] }>, staleTime: 30 * 60_000, retry: 0 });
+  const [menu, setMenu] = useState<PostModel | null>(null);
+  const [gone, setGone] = useState<string[]>([]);
+  const [savedArticles, setSavedArticles] = useState<string[]>([]);
+  const rows = useMemo<FeedRow[]>(() => {
     const seen = new Set<string>();
-    const out: PostModel[] = [];
+    const posts: PostModel[] = [];
     for (const page of feed.data?.pages ?? []) {
       for (const it of page?.items ?? []) {
-        if (it?.kind !== 'post' || !it.data?.id || seen.has(it.data.id)) continue;
+        if (it?.kind !== 'post' || !it.data?.id || seen.has(it.data.id) || gone.includes(it.data.id)) continue;
         seen.add(it.data.id);
-        out.push(it.data);
+        posts.push(it.data);
       }
     }
-    return out;
-  }, [feed.data]);
+    return interleave(posts, research.data?.items ?? [], 4);
+  }, [feed.data, research.data, gone]);
+  const saveArticle = useCallback(async (a: any) => {
+    const on = !savedArticles.includes(a.id);
+    setSavedArticles((x) => (on ? [...x, a.id] : x.filter((i) => i !== a.id)));
+    try { await (on ? socialApi.saveArticle(a.id) : socialApi.unsaveArticle(a.id)); } catch { setSavedArticles((x) => (on ? x.filter((i) => i !== a.id) : [...x, a.id])); }
+  }, [savedArticles]);
+  const sendArticle = useCallback((a: any) => { router.push({ pathname: '/(v2)/p/[key]', params: { key: 'friends', forwardArticle: a.id, title: a.title } } as any); }, [router]);
 
   const openPost = useCallback((p: PostModel) => router.push({ pathname: '/(v2)/p/[key]', params: { key: `post:${p.id}` } } as any), [router]);
   const openAuthor = useCallback((p: PostModel) => router.push({ pathname: '/(v2)/p/[key]', params: { key: `person:${p.sharer?.id ?? ''}`, name: p.sharer?.name ?? p.sharer?.username ?? '' } } as any), [router]);
-  const renderItem = useCallback(({ item }: { item: PostModel }) => (
-    <Post post={item} unit={unit === 'kg' ? 'kg' : 'lbs'} onOpen={openPost} onComment={openPost} onAuthor={openAuthor} />
-  ), [unit, openPost, openAuthor]);
+  const renderItem = useCallback(({ item }: { item: FeedRow }) => (item.kind === 'research'
+    ? <ResearchItem item={item.data} saved={savedArticles.includes(item.data.id)} onSave={saveArticle} onSend={sendArticle} />
+    : <Post post={item.data} unit={unit === 'kg' ? 'kg' : 'lbs'} onOpen={openPost} onComment={openPost} onAuthor={openAuthor} onMenu={setMenu} />
+  ), [unit, openPost, openAuthor, savedArticles, saveArticle, sendArticle]);
 
   const pad = { paddingHorizontal: v2.space.gutter };
   const bottom = v2.space.tabBarClearance + insets.bottom;
@@ -67,11 +85,18 @@ export function FeedPage() {
 
   return (
     <View style={[styles.page, { paddingTop: headerClearance(insets.top) }]}>
-      <LinkTabs items={tabs} value={list} onChange={setList} style={[pad, { paddingTop: 8, paddingBottom: 4 }]} />
+      <View style={[pad, styles.tabsRow]}>
+        <LinkTabs items={tabs} value={list} onChange={setList} style={{ flex: 1 }} />
+        {/* S-01: create a post. */}
+        <Pressable onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'compose' } } as any)} hitSlop={10} accessibilityRole="button" accessibilityLabel="New post">
+          <Text style={[T.captionStrong, { color: v2.color.ink }]}>+ Post</Text>
+        </Pressable>
+      </View>
       {list === 'friends' ? (
         <FlashList
-          data={posts}
-          keyExtractor={(p) => p.id}
+          data={rows}
+          keyExtractor={(r) => `${r.kind}:${r.data.id}`}
+          getItemType={(r) => r.kind}
           renderItem={renderItem}
           ItemSeparatorComponent={Separator}
           contentContainerStyle={{ ...pad, paddingBottom: bottom }}
@@ -87,12 +112,15 @@ export function FeedPage() {
         />
       ) : (
         <ScrollView contentContainerStyle={{ ...pad, paddingTop: 14, paddingBottom: bottom }} showsVerticalScrollIndicator={false}>
-          {list === 'groups' ? <GroupsList /> : list === 'leaderboard' ? <LeaderboardList /> : <TogetherList />}
+          {list === 'groups' ? <GroupsList /> : list === 'leaderboard' ? <LeaderboardBoard /> : <TrainTogetherView />}
         </ScrollView>
       )}
+      <PostMenu post={menu} onClose={() => setMenu(null)} onDeleted={(id) => setGone((g) => [...g, id])} />
     </View>
   );
 }
+
+type FeedRow = { kind: 'post'; data: PostModel } | { kind: 'research'; data: any };
 
 function Separator() {
   return <View style={styles.hairline} />;
@@ -109,5 +137,6 @@ function Empty({ onFind }: { onFind: () => void }) {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: v2.color.white },
+  tabsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 4 },
   hairline: { height: 1, backgroundColor: v2.color.hairline },
 });

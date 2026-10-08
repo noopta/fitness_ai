@@ -8,6 +8,7 @@ import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSou
 import { putImageBase64, objectUrl } from '../services/blobStore.js';
 import { moderateText, moderatePost } from '../services/moderationService.js';
 import { socialWriteLimiter } from '../middleware/rateLimiter.js';
+import { rankBoard, type BoardLift } from '../services/leaderboardBoard.js';
 import { savedPostRow, savedArticleRow, mergeSaved, postMatches, postTitle, isWorkoutPost } from '../services/feedSaved.js';
 
 /** Length caps for user-to-user text. All of these were previously unbounded. */
@@ -1702,6 +1703,38 @@ router.get('/social/leaderboard', wrap(async (req, res) => {
 
 // GET /api/social/leaderboard/lifts
 // Returns which lifts the user and their friends have data for
+// GET /api/social/leaderboard/board?lift=bench|squat|deadlift|total|sessions&scope=friends|group:<id>&perBw=1
+// v2 S-09: from logged workouts; friends, or one of your groups. No public board.
+const BOARD_LIFTS = new Set(['bench', 'squat', 'deadlift', 'total', 'sessions']);
+router.get('/social/leaderboard/board', wrap(async (req, res) => {
+  const userId = req.user!.id;
+  const lift = (BOARD_LIFTS.has(String(req.query.lift)) ? String(req.query.lift) : 'bench') as BoardLift;
+  const perBw = req.query.perBw === '1' && lift !== 'sessions';
+  const scope = String(req.query.scope ?? 'friends');
+  let ids: string[];
+  if (scope.startsWith('group:')) {
+    const groupId = scope.slice(6);
+    const me = await prisma.groupMember.findUnique({ where: { groupId_userId: { groupId, userId } } });
+    if (!me) return res.status(404).json({ error: 'Not found' });
+    ids = (await prisma.groupMember.findMany({ where: { groupId }, select: { userId: true } })).map((m) => m.userId);
+  } else {
+    const friendships = await prisma.friendship.findMany({
+      where: { OR: [{ requesterId: userId }, { addresseeId: userId }], status: 'accepted' },
+      select: { requesterId: true, addresseeId: true },
+    });
+    ids = [userId, ...friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId))];
+  }
+  ids = [...new Set(ids)].slice(0, 200);
+  const today = new Date().toISOString().slice(0, 10);
+  const since = new Date(); since.setUTCDate(since.getUTCDate() - 400);
+  const [users, logs] = await Promise.all([
+    prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, username: true, weightKg: true } }),
+    prisma.workoutLog.findMany({ where: { userId: { in: ids }, date: { gte: since.toISOString().slice(0, 10) } }, select: { userId: true, date: true, exercises: true } }),
+  ]);
+  const parsed = logs.map((l) => { let ex: any[] = []; try { ex = JSON.parse(l.exercises as any); } catch { ex = []; } return { userId: l.userId, date: l.date, exercises: Array.isArray(ex) ? ex : [] }; });
+  res.json({ lift, scope, perBw, entries: rankBoard(users, parsed, userId, lift, perBw, today) });
+}));
+
 router.get('/social/leaderboard/lifts', wrap(async (req, res) => {
   const userId = req.user!.id;
   const friendships = await prisma.friendship.findMany({

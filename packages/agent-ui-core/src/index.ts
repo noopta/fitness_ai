@@ -9,3 +9,4 @@ export * from './portion';
 export * from './logger';
 export * from './training';
 export * from './fuel';
+export * from './social';

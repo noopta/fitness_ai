@@ -19,6 +19,7 @@ import { View, Text, TextInput, Image, Switch, StyleSheet, Alert } from 'react-n
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
+import { AvatarCrop, type Picked } from '../../primitives/AvatarCrop';
 import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
@@ -58,18 +59,23 @@ export function AccountPage() {
   const [burn, setBurn] = useState<boolean>(!!u.subtractWorkoutBurnFromCalories);
   const region = FOOD_REGIONS.find((r) => r.value === (u.foodRegion ?? 'global')) ?? FOOD_REGIONS[0];
 
+  const [cropping, setCropping] = useState<Picked | null>(null);
+  const usePhoto = async (dataUri: string) => {
+    setPhotoBusy(true);
+    try { await authApi.setAvatar(dataUri); await refreshUser(); haptics.success(); setCropping(null); }
+    catch (e: any) { Alert.alert('Couldn\'t update the photo', e?.message ?? 'Try again.'); }
+    setPhotoBusy(false);
+  };
   const changePhoto = async () => {
     const pick = async (camera: boolean) => {
-      const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7, base64: true };
+      // A-02: no system crop — our own "Move and scale" circle follows.
+      const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 1 };
       const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) { Alert.alert('Permission needed', camera ? 'Allow camera access in Settings to take a photo.' : 'Allow photo access in Settings to choose one.'); return; }
       const r = camera ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
       const a = r.canceled ? null : r.assets?.[0];
-      if (!a?.base64) return;
-      setPhotoBusy(true);
-      try { await authApi.setAvatar(`data:${a.mimeType ?? 'image/jpeg'};base64,${a.base64}`); await refreshUser(); haptics.success(); }
-      catch (e: any) { Alert.alert('Couldn\'t update the photo', e?.message ?? 'Try again.'); }
-      setPhotoBusy(false);
+      if (!a?.uri) return;
+      setCropping({ uri: a.uri, width: a.width || 1000, height: a.height || 1000 });
     };
     Alert.alert('Change photo', undefined, [
       { text: 'Choose from library', onPress: () => void pick(false) },
@@ -162,6 +168,7 @@ export function AccountPage() {
           <TextAction muted arrow={false} onPress={() => setClassicOpen(false)}>Stay</TextAction>
         </View>
       </Sheet>
+      <AvatarCrop picked={cropping} onCancel={() => setCropping(null)} onUse={usePhoto} />
     </PushedPage>
   );
 }

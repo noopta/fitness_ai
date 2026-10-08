@@ -1,7 +1,7 @@
 // You (index 4): name, body line, confidence; Anakin's strength read; then
 // Strength profile → Body → Streak → What Anakin knows → Billing → Preferences.
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
@@ -10,7 +10,8 @@ import { T } from '../theme';
 import { TabPage, PageTitle, AnakinRead } from '../shell/Page';
 import { Row } from '../primitives/Row';
 import { Enter } from '../primitives/Enter';
-import { useStrength, useStreak, useMemory } from '../data';
+import { useStrength, useStreak, useMemory, useWorkouts } from '../data';
+import { ShareWorkoutSheet, type WorkoutShare } from '../share/ShareWorkoutSheet';
 
 /** "A", "A and B", "A, B and C". */
 function listOf(xs: string[]): string {
@@ -55,6 +56,11 @@ export function YouPage() {
   const streakDays: number | null = streak.data?.currentStreak ?? null;
   const read = strengthRead(s);
   const go = (key: string) => router.push({ pathname: '/(v2)/p/[key]', params: { key } } as any);
+  // S-04 from You: the last workout as a card.
+  const workouts = useWorkouts();
+  const [sharing, setSharing] = useState(false);
+  const last = (Array.isArray(workouts.data) ? workouts.data : workouts.data?.workouts ?? [])[0] ?? null;
+  const share = useMemo<WorkoutShare | null>(() => (last ? workoutShareFrom(last, fromKg, unit) : null), [last, fromKg, unit]);
 
   return (
     <TabPage refreshing={strength.isFetching} onRefresh={() => { void strength.refetch(); void streak.refetch(); void memory.refetch(); }}>
@@ -68,9 +74,28 @@ export function YouPage() {
         <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
         <Enter index={6} exit={false}><Row name="Billing" value={user?.tier === 'pro' || user?.tier === 'enterprise' ? 'Pro' : 'Free'} onPress={() => go('billing')} /></Enter>
         <Enter index={7} exit={false}><Row name="Preferences" onPress={() => go('prefs')} /></Enter>
+        <Enter index={8} exit={false}><Row name="Share" sub={last ? `Your last workout · ${last.title || 'Workout'}` : 'Log a workout to share it'} onPress={last ? () => setSharing(true) : undefined} /></Enter>
         <Enter index={8} exit={false}><Row name="Account" sub="Photo, name, region, delete account" onPress={() => go('account')} last /></Enter>
       </View>
-      <Text style={[T.caption, { marginTop: 20 }]}>Form analyses and sharing live under Training and after a session.</Text>
+      <ShareWorkoutSheet visible={sharing} onClose={() => setSharing(false)} workout={share} />
+      <Text style={[T.caption, { marginTop: 20 }]}>Form analyses live under Training.</Text>
     </TabPage>
   );
+}
+
+/** A logged workout as a share card (top set by weight, sets, volume in the user's unit). */
+function workoutShareFrom(w: any, fromKg: (kg: number) => number, unit: string): WorkoutShare {
+  const ex: any[] = (() => { const e = typeof w.exercises === 'string' ? (() => { try { return JSON.parse(w.exercises); } catch { return []; } })() : w.exercises; return Array.isArray(e) ? e : []; })();
+  let top: { kg: number; reps: string } | null = null; let sets = 0; let volKg = 0;
+  for (const e of ex) {
+    const s = Math.max(1, Number(e.sets) || 1); const reps = Number(String(e.reps ?? '').match(/\d+/)?.[0]) || 0; const kg = Number(e.weightKg) || 0;
+    sets += s; volKg += s * reps * kg;
+    if (kg && (!top || kg > top.kg)) top = { kg, reps: String(e.reps ?? '') };
+  }
+  return {
+    title: w.title || 'Workout', durationMin: w.duration ?? null,
+    exercises: ex.map((e) => ({ name: e.name, sets: Number(e.sets) || 1, reps: String(e.reps ?? ''), weightKg: e.weightKg ?? null })),
+    top: top ? `${Math.round(fromKg(top.kg))} × ${top.reps}` : null, sets, volume: volKg ? `${Math.round(fromKg(volKg)).toLocaleString()} ${unit}` : null,
+    date: new Date(`${String(w.date).slice(0, 10)}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }),
+  };
 }

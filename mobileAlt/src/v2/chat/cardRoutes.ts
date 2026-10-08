@@ -31,6 +31,8 @@ const PUSHED: Record<string, string | null> = {
   today: null, exercise: 'name', program: null, programreview: 'id', freestyle: null, suggestions: null, patterns: null,
   // Wave 3: Library, a recipe, set my target, the nutrition profile.
   library: null, recipe: 'id', targets: null, nutrition: null,
+  // Wave 4: compose, friends, a group.
+  compose: null, friends: null, group: 'id',
 };
 const ALIAS: Record<string, string> = { conversation: 'thread', search: 'feedsearch', traintogether: 'together',  usage: 'plan', saved_foods: 'savedfoods', history: 'workouts', workout_history: 'workouts', gut: 'systems' };
 

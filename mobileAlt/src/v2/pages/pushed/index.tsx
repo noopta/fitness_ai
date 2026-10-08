@@ -35,7 +35,9 @@ import { NutritionPlanPage, PlanSourcesPage } from './nutritionPlan';
 import { MessagesPage, ThreadPage } from '../feed/Messages';
 import { FeedSearchPage } from '../feed/Search';
 import { SavedPage, PostPage } from '../feed/Saved';
-import { GroupsList, LeaderboardList, TogetherList } from '../feed/lists';
+import { GroupsList } from '../feed/lists';
+import { FriendsPage, GroupPage, LeaderboardPage, TrainTogetherPage } from '../feed/People';
+import { ComposePage } from '../feed/Compose';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -75,7 +77,11 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'prefs': return <PrefsPage />;
     case 'groups': return <GroupsPage />;
     case 'leaderboard': return <LeaderboardPage />;
-    case 'together': return <TogetherPage />;
+    case 'together': return <TrainTogetherPage />;
+    // Wave 4 (handoff S-01, S-05, S-07).
+    case 'compose': return <ComposePage params={params} />;
+    case 'friends': return <FriendsPage params={params} />;
+    case 'group': return <GroupPage id={arg} />;
     case 'person': return <PersonPage id={arg} params={params} />;
     case 'profile': return <ProfilePage />;
     case 'notifications': return <NotificationsPage />;
@@ -434,14 +440,6 @@ function PrefsPage() {
 
 function GroupsPage() {
   return <PushedPage back="Feed" title="Groups"><GroupsList /></PushedPage>;
-}
-
-function LeaderboardPage() {
-  return <PushedPage back="Feed" title="Leaderboard" lead="By estimated 1RM on the lift, among people you train with."><LeaderboardList /></PushedPage>;
-}
-
-function TogetherPage() {
-  return <PushedPage back="Feed" meta="Near you" title="Train together"><TogetherList /></PushedPage>;
 }
 
 function PersonPage({ id, params }: { id: string; params: Record<string, string> }) {

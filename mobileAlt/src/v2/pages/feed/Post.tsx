@@ -7,7 +7,8 @@
 // Posts are separated by a #e4e4e7 hairline; 18 pt vertical padding.
 
 import React, { memo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image, Linking } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import { Pressable } from '../../primitives/Pressable';
 import { v2, T } from '../../theme';
 import { haptics } from '../../haptics';
@@ -68,8 +69,10 @@ export function postHero(p: PostModel, unit: 'lbs' | 'kg'): Hero {
   return { kind: 'stats', cols };
 }
 
-export const Post = memo(function Post({ post, unit, onOpen, onComment, onAuthor }: {
+export const Post = memo(function Post({ post, unit, onOpen, onComment, onAuthor, onMenu }: {
   post: PostModel; unit: 'lbs' | 'kg'; onOpen?: (p: PostModel) => void; onComment: (p: PostModel) => void; onAuthor: (p: PostModel) => void;
+  /** ··· — the post menu (S-03). */
+  onMenu?: (p: PostModel) => void;
 }) {
   const [liked, setLiked] = useState(post.likedByMe);
   const [likes, setLikes] = useState(post.reactionCount);
@@ -117,6 +120,8 @@ export const Post = memo(function Post({ post, unit, onOpen, onComment, onAuthor
             ))}
           </View>
         ) : null}
+        {/* S-02: a photo post shows the photo full-width. */}
+        {post.payload?.hasImage || post.payload?.imageBase64 ? <PostImage post={post} /> : null}
         {caption ? <Text style={[T.body, { marginTop: 12 }]}>{caption}</Text> : null}
       </Pressable>
 
@@ -130,6 +135,47 @@ export const Post = memo(function Post({ post, unit, onOpen, onComment, onAuthor
         <Pressable onPress={() => void save()} hitSlop={8} accessibilityRole="button" accessibilityState={{ selected: saved }}>
           <Text style={[styles.action, saved && { color: C.ink }]}>{saved ? 'Saved' : 'Save'}</Text>
         </Pressable>
+        {onMenu ? (
+          <Pressable onPress={() => { haptics.select(); onMenu(post); }} hitSlop={10} accessibilityRole="button" accessibilityLabel="More" style={{ marginLeft: 'auto' }}>
+            <Text style={styles.action}>···</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+});
+
+/** The post's photo, fetched on demand (the feed ships posts without image bytes). */
+function PostImage({ post }: { post: PostModel }) {
+  const inline = post.payload?.imageBase64 as string | undefined;
+  const q = useQuery({
+    queryKey: ['v2', 'postImage', post.id],
+    queryFn: () => socialApi.getPostImage(post.id) as Promise<{ imageBase64?: string; imageUrl?: string }>,
+    enabled: !inline, staleTime: Infinity, retry: 0,
+  });
+  const b64 = inline ?? q.data?.imageBase64;
+  const uri = b64 ? (b64.startsWith('data:') ? b64 : `data:image/jpeg;base64,${b64}`) : q.data?.imageUrl;
+  return (
+    <View style={styles.photo}>
+      {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityLabel="Photo" /> : <Text style={T.caption}>{q.isError ? 'Photo unavailable' : ''}</Text>}
+    </View>
+  );
+}
+
+/** A research item in the feed (S-02), labelled by its source, with its summary. */
+export const ResearchItem = memo(function ResearchItem({ item, saved, onSave, onSend }: { item: any; saved?: boolean; onSave?: (item: any) => void; onSend?: (item: any) => void }) {
+  const tags: string[] = (() => { try { return Array.isArray(item.tags) ? item.tags : JSON.parse(item.tags ?? '[]'); } catch { return []; } })();
+  const words = String(item.summary ?? '').split(/\s+/).length;
+  return (
+    <View style={styles.post}>
+      <Text style={styles.source}>{item.type === 'article' ? 'Article' : 'Research'} · {item.source ?? 'Source'}</Text>
+      <Text style={[T.eyebrow, { marginTop: 12 }]}>{[tags[0]?.replace(/_/g, ' '), `${Math.max(1, Math.round(words / 200) + 2)} min read`].filter(Boolean).join(' · ').toUpperCase()}</Text>
+      <Text style={styles.headline}>{item.title}</Text>
+      {item.summary ? <Text style={[T.bodyMuted, { marginTop: 8 }]} numberOfLines={3}>{item.summary}</Text> : null}
+      <View style={styles.actions}>
+        <Pressable onPress={() => { if (item.url) void Linking.openURL(String(item.url)); }} hitSlop={8} accessibilityRole="link"><Text style={styles.action}>Read</Text></Pressable>
+        {onSave ? <Pressable onPress={() => onSave(item)} hitSlop={8}><Text style={[styles.action, saved && { color: C.ink }]}>{saved ? 'Saved' : 'Save'}</Text></Pressable> : null}
+        {onSend ? <Pressable onPress={() => onSend(item)} hitSlop={8}><Text style={styles.action}>Send</Text></Pressable> : null}
       </View>
     </View>
   );
@@ -148,4 +194,7 @@ const styles = StyleSheet.create({
   statLabel: { fontFamily: v2.font.regular, fontSize: 12, lineHeight: 16, color: C.muted, marginTop: 2 },
   actions: { flexDirection: 'row', gap: 20, marginTop: 14 },
   action: { fontFamily: v2.font.semibold, fontSize: 13, lineHeight: 18, color: C.muted },
+  photo: { width: '100%', aspectRatio: 4 / 3, borderRadius: 12, backgroundColor: C.surface, marginTop: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  source: { fontFamily: v2.font.semibold, fontSize: 13, lineHeight: 18, color: C.ink },
+  headline: { fontFamily: v2.font.semibold, fontSize: 19, lineHeight: 25, letterSpacing: -0.2, color: C.ink, marginTop: 6 },
 });

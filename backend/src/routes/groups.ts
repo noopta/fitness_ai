@@ -140,6 +140,31 @@ router.get('/groups/:id', requireAuth, requireGroupsAccess, async (req, res) => 
 
 const postMessageSchema = z.object({ text: z.string().min(1).max(2000) });
 
+// GET /api/groups/:id/progress — the group page's hero (v2 S-07): who has
+// trained this week (Mon–Sun), as counts. The same disclosure as Anakin's
+// daily group check-in ("2 of 3 trained"); no weights or bodyweight.
+router.get('/groups/:id/progress', requireAuth, requireGroupsAccess, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const groupId = req.params.id;
+    const membership = await prisma.groupMember.findUnique({ where: { groupId_userId: { groupId, userId } } });
+    if (!membership) return res.status(404).json({ error: 'Not found' });
+    const members = await prisma.groupMember.findMany({ where: { groupId }, include: { user: { select: { id: true, name: true, username: true } } } });
+    const now = new Date();
+    const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - ((now.getUTCDay() + 6) % 7)));
+    const from = monday.toISOString().slice(0, 10);
+    const logs = await prisma.workoutLog.findMany({ where: { userId: { in: members.map((m) => m.userId) }, date: { gte: from } }, select: { userId: true, date: true } });
+    const days = new Map<string, Set<string>>();
+    for (const l of logs) { const s = days.get(l.userId) ?? new Set(); s.add(l.date); days.set(l.userId, s); }
+    const rows = members.map((m) => ({ userId: m.userId, name: m.user?.name ?? null, username: m.user?.username ?? null, isYou: m.userId === userId, goal: m.goal ?? null, sessionsThisWeek: days.get(m.userId)?.size ?? 0 }))
+      .sort((a, b) => b.sessionsThisWeek - a.sessionsThisWeek);
+    res.json({ weekStart: from, trained: rows.filter((r) => r.sessionsThisWeek > 0).length, members: rows });
+  } catch (err) {
+    console.error('Group progress error:', err);
+    res.status(500).json({ error: 'Failed to load group progress' });
+  }
+});
+
 // POST /api/groups/:id/messages — post a message as the caller.
 router.post('/groups/:id/messages', requireAuth, requireGroupsAccess, async (req, res) => {
   try {

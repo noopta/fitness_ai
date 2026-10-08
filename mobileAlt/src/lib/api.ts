@@ -340,6 +340,8 @@ export const groupsApi = {
   patch: (id: string, data: { groupGoal?: string | null; anakinDailyEnabled?: boolean; selfGoal?: string | null; name?: string }) =>
     apiFetch(`/groups/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   leave: (id: string) => apiFetch(`/groups/${id}/leave`, { method: 'POST' }),
+  /** v2 S-07: who has trained this week, as counts. */
+  progress: (id: string) => apiFetch(`/groups/${id}/progress`),
   // Manual trigger for testing Anakin's morning check-in. ?dryRun=1 returns
   // the draft without posting.
   anakinCheckin: (id: string, dryRun = false) =>
@@ -1175,6 +1177,9 @@ export const socialApi = {
   // Leaderboard
   getLeaderboard: (lift: string) => apiFetch(`/social/leaderboard?lift=${encodeURIComponent(lift)}`),
   getLeaderboardLifts: () => apiFetch('/social/leaderboard/lifts'),
+  /** v2 S-09: bench | squat | deadlift | total | sessions, among friends or one group; optionally per kg of bodyweight. */
+  getBoard: (lift: string, scope: string, perBw: boolean) =>
+    apiFetch(`/social/leaderboard/board?lift=${encodeURIComponent(lift)}&scope=${encodeURIComponent(scope)}${perBw ? '&perBw=1' : ''}`),
 
   // Friends
   getFriends: () => apiFetch('/social/friends'),
