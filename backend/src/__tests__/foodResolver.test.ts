@@ -148,13 +148,30 @@ describe('verified records survive the parser rewording a product', () => {
     _resetFoodRecordsForTests();
     const latte = (product: string) => item({ brand: 'Starbucks', product, size: 'Grande', estimate: { calories: 250, proteinG: 20, carbsG: 20, fatG: 8 } });
     const web = vi.fn().mockResolvedValue({ kind: 'found', facts: { ...FACTS('starbucks.com'), brand: 'Starbucks', calories: 230 } });
-    const base = { history: vi.fn().mockResolvedValue(null), database: vi.fn(), log: vi.fn() };
+    const webFresh = vi.fn().mockResolvedValue({ kind: 'found', facts: { ...FACTS('starbucks.com'), brand: 'Starbucks', calories: 232 } });
+    const base = { history: vi.fn().mockResolvedValue(null), database: vi.fn(), log: vi.fn(), webFresh, chainMenu: () => null, correction: () => null };
     expect((await resolveItem(latte('Caramel Protein Latte'), 0, { tz: 'America/Toronto', surface: 'chat', deps: { ...base, web } })).step).toBe('web');
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 10));
+    expect(webFresh).toHaveBeenCalledTimes(1); // unofficial: saved only after a second lookup agreed (230 vs 232)
     const again = await resolveItem(latte('Caramel Protein Latte (custom order)'), 0, { tz: 'America/Toronto', surface: 'chat', deps: { ...base, web } });
     expect(again.step).toBe('records');
     const other = await resolveItem(latte('Sugar-Free Caramel Protein Latte'), 0, { tz: 'America/Toronto', surface: 'chat', deps: { ...base, web } });
     expect(other.step).toBe('web');
     expect(web).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('unofficial answers need a second opinion', () => {
+  it('does not save when the second lookup disagrees', async () => {
+    process.env.FOOD_RECORDS_PATH = '/tmp/axiom-test-food-records2.json';
+    _resetFoodRecordsForTests();
+    const it1 = item({ brand: 'Starbucks', product: 'Caramel Latte', size: 'Grande' });
+    const remember = vi.fn().mockResolvedValue(undefined);
+    const deps = { history: vi.fn().mockResolvedValue(null), records: vi.fn().mockResolvedValue(null), database: vi.fn(), log: vi.fn(), chainMenu: () => null, correction: () => null, remember,
+      web: vi.fn().mockResolvedValue({ kind: 'found', facts: { ...FACTS('nutrola.app'), calories: 230 } }),
+      webFresh: vi.fn().mockResolvedValue({ kind: 'found', facts: { ...FACTS('other.app'), calories: 190 } }) };
+    expect((await resolveItem(it1, 0, { surface: 'chat', deps })).step).toBe('web');
+    await new Promise((r) => setTimeout(r, 10));
+    expect(remember).not.toHaveBeenCalled();
   });
 });

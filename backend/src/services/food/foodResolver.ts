@@ -21,10 +21,12 @@ import { dirname, join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { brandedCacheKey, coreProduct, lookupBranded, menuSize, mentionsBrand, type BrandedFacts, type BrandedItem, type BrandedLookup } from './brandedLookup.js';
 import { norm, productRecall, searchDatabases, type DbOutcome } from './nameSearch.js';
+import { findChain, isOfficial, lookupChainMenu, type AppliedModifier, type ChainMatch } from './chainMenus.js';
+import { findOverride } from './foodOverrides.js';
 
 const prisma = new PrismaClient();
 
-export type ResolveStep = 'history' | 'records' | 'database' | 'web' | 'estimate';
+export type ResolveStep = 'chain' | 'correction' | 'history' | 'records' | 'database' | 'web' | 'estimate';
 
 export interface ResolveEvent { item: number; brand: string; phase: ResolveStep; state: 'checking' | 'found' | 'missed' | 'skipped'; text: string }
 
@@ -35,6 +37,11 @@ export interface ResolvedItem {
   web: 'used' | 'not_needed' | 'gated';
   gateReason?: string;
   ms: number;
+  /** Chain orders: the modifiers applied (official or estimated) and ones we couldn't place. */
+  modifiers?: AppliedModifier[];
+  unmatched?: string[];
+  /** Web answers: did it come from the chain's own site? */
+  official?: boolean;
 }
 
 // ── The gate ────────────────────────────────────────────────────────────────
@@ -56,6 +63,7 @@ export const KNOWN_CHAINS = new Set([
 ]);
 
 export function isKnownChain(brand: string): boolean {
+  if (findChain(brand)) return true;
   const b = norm(brand).replace(/\b(restaurant|restaurants|coffee|canada|usa|inc|co)\b/g, '').replace(/\s+/g, ' ').trim();
   return KNOWN_CHAINS.has(b) || KNOWN_CHAINS.has(b.replace(/ /g, ''));
 }
@@ -199,6 +207,12 @@ async function fromHistory(userId: string, item: BrandedItem): Promise<BrandedFa
 // ── The ladder ──────────────────────────────────────────────────────────────
 
 export interface ResolverDeps {
+  /** The chain's official menu (items, sizes, modifiers) — exact and instant. */
+  chainMenu: (item: BrandedItem, country: string) => ChainMatch | null;
+  /** The user's own correction of this item. */
+  correction: (userId: string, item: BrandedItem) => BrandedFacts | null;
+  /** A second, independent web lookup — to confirm an unofficial answer before it's kept. */
+  webFresh: (item: BrandedItem, tz?: string | null) => Promise<BrandedLookup>;
   history: (userId: string, item: BrandedItem) => Promise<BrandedFacts | null>;
   records: (item: BrandedItem, tz?: string | null) => Promise<BrandedFacts | null>;
   database: (item: BrandedItem, tz?: string | null) => Promise<DbOutcome>;
@@ -208,6 +222,12 @@ export interface ResolverDeps {
 }
 
 const defaultDeps: ResolverDeps = {
+  chainMenu: (item, country) => lookupChainMenu(item, country),
+  correction: (userId, item) => {
+    const o = findOverride(userId, item);
+    return o ? { name: o.what, brand: item.brand, servingSize: null, calories: o.calories, proteinG: o.proteinG, carbsG: o.carbsG, fatG: o.fatG, sources: [{ title: 'your correction', uri: '' }] } : null;
+  },
+  webFresh: (item, tz) => lookupBranded(item, { tz, fresh: true }),
   history: fromHistory,
   records: fromRecords,
   database: (item, tz) => searchDatabases(item, { preferCanada: countryKey(tz) === 'CA' }),
@@ -240,6 +260,17 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
     return r;
   };
 
+  // 0. The user's own correction, then the chain's official menu.
+  if (ctx.userId) {
+    const c = d.correction(ctx.userId, item);
+    if (c) { emit('correction', 'found', `${what} — your correction`); return done({ result: found(c), step: 'correction', web: 'not_needed', ms: Date.now() - t0 }); }
+  }
+  const menu = (() => { try { return d.chainMenu(item, countryKey(ctx.tz) || 'US'); } catch { return null; } })();
+  if (menu && plausible({ ...item, estimate: { ...item.estimate, calories: item.estimate.calories } }, menu.facts)) {
+    const mods = menu.applied.length ? ` + ${menu.applied.map((a) => `${a.quantity < 0 ? 'no ' : a.quantity > 1 ? `${a.quantity}× ` : ''}${a.name}${a.official ? '' : ' (est.)'}`).join(', ')}` : '';
+    emit('chain', 'found', `${what} — from ${menu.facts.sources[0]?.title} menu${mods}`);
+    return done({ result: found(menu.facts), step: 'chain', web: 'not_needed', ms: Date.now() - t0, modifiers: menu.applied, unmatched: menu.unmatched });
+  }
   if (ctx.userId) {
     emit('history', 'checking', `${what} — your past scans`);
     const h = await d.history(ctx.userId, item).catch(() => null);
@@ -271,11 +302,28 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
   const w: BrandedLookup = w0.kind === 'found' && !plausible(item, w0.facts) ? { kind: 'not_found', reason: 'implausible' } : w0;
   if (w.kind === 'found') {
     emit('web', 'found', `${what} — from ${w.facts.sources[0]?.title ?? 'the web'}`);
-    void d.remember(item, ctx.tz, w.facts, 'web');
-    return done({ result: w, step: 'web', web: 'used', gateReason: gate.reason, ms: Date.now() - t0 });
+    // Keep it for everyone only when it's the chain's own site, or when a
+    // second independent lookup agrees (within 5%) — so one odd answer never
+    // becomes everyone's answer. The check runs after this reply.
+    const chain = findChain(item.brand);
+    const official = !!chain && w.facts.sources.some((src) => isOfficial(chain, countryKey(ctx.tz) || 'US', src.uri || src.title));
+    if (official) void d.remember(item, ctx.tz, w.facts, 'web');
+    else void confirmLater(item, ctx.tz, w.facts, d);
+    return done({ result: w, step: 'web', web: 'used', gateReason: gate.reason, ms: Date.now() - t0, official });
   }
   emit('estimate', 'missed', `${what} — not published, estimated`);
   return done({ result: w, step: 'estimate', web: 'used', gateReason: gate.reason, ms: Date.now() - t0 });
+}
+
+/** Second lookup for an unofficial answer; remembered only if the two agree within 5%. */
+async function confirmLater(item: BrandedItem, tz: string | null | undefined, first: BrandedFacts, d: ResolverDeps): Promise<void> {
+  try {
+    const second = await d.webFresh(item, tz);
+    if (second.kind !== 'found') return;
+    const close = (a: number, b: number) => Math.abs(a - b) <= Math.max(5, 0.05 * Math.max(a, b));
+    if (close(first.calories, second.facts.calories) && close(first.proteinG, second.facts.proteinG)) await d.remember(item, tz, first, 'web');
+    d.log({ at: new Date().toISOString(), confirm: `${item.brand} ${item.product}`, agreed: close(first.calories, second.facts.calories), first: first.calories, second: second.facts.calories });
+  } catch { /* unconfirmed stays unsaved */ }
 }
 
 export async function resolveAll(items: BrandedItem[], ctx: ResolveCtx): Promise<ResolvedItem[]> {

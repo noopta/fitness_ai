@@ -2312,7 +2312,8 @@ GUT-HEALTH FIELDS (required):
 
 BRANDED ITEMS (required, may be empty):
 - "branded": one entry per item that comes from a NAMED restaurant chain, café chain or packaged-food brand (Starbucks, Tim Hortons, McDonald's, Quest, Fairlife…). Not home cooking, not generic foods ("chicken breast", "banana").
-- Each: { "brand": "Starbucks", "product": "Iced Sugar-Free Caramel Protein Latte", "size": "Grande" or null, "servings": 1, "calories": 200, "proteinG": 20, "carbsG": 20, "fatG": 5 } — the macros are YOUR estimate for that item exactly as you counted it in the totals above (all servings of it).
+- Each: { "brand": "Starbucks", "product": "Iced Sugar-Free Caramel Protein Latte", "size": "Grande" or null, "servings": 1, "modifiers": ["add 1 pump hazelnut", "oat milk"], "calories": 200, "proteinG": 20, "carbsG": 20, "fatG": 5 } — the macros are YOUR estimate for that item exactly as you counted it in the totals above (all servings of it, customizations included).
+- "product" is the menu item as the chain names it (keep words like iced, sugar-free, protein, flavour); customizations the user added go in "modifiers" exactly as they said them ("extra shot", "no whip", "2 pumps vanilla", "add bacon"), [] if none.
 - [] when nothing is branded.
 
 UNCLEAR SOURCES (required, may be empty):

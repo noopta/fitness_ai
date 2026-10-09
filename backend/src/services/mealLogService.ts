@@ -12,6 +12,7 @@ import { nutritionProfileCacheKey, normalizeFoodName, updateNutritionStreakInBac
 import { descriptiveLabel, KNOWN_MEAL_SOURCES, KNOWN_PARSE_CONFIDENCE } from '../validation/descriptiveLabel.js';
 import { normalizeMicronutrients } from './nutritionEnrichmentService.js';
 import { appendFile, mkdir } from 'node:fs/promises';
+import { recordOverride, singleLookedUpItem } from './food/foodOverrides.js';
 import { dirname as pathDirname, join as pathJoin } from 'node:path';
 
 const prisma = new PrismaClient();
@@ -260,6 +261,9 @@ function logMealEdit(before: { id: string; userId: string; source: string; notes
   if (!changed.length) return;
   const row = { at: new Date().toISOString(), mealId: before.id, userId: before.userId, source: before.source, lookedUp: /: from /.test(before.notes ?? ''), ageMin: Math.round((Date.now() - new Date(before.createdAt).getTime()) / 60000), changed, kcalBefore: before.calories, kcalAfter: after.calories };
   mkdir(pathDirname(EDIT_LOG), { recursive: true }).then(() => appendFile(EDIT_LOG, `${JSON.stringify(row)}\n`)).catch(() => {});
+  // A corrected single looked-up item: the user's numbers win next time they log it.
+  const what = changed.includes('calories') ? singleLookedUpItem(before.notes) : null;
+  if (what) recordOverride(before.userId, what, after);
 }
 
 /** Delete a meal; returns the deleted row (kept for undo) or null. */

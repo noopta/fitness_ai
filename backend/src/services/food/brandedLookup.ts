@@ -47,6 +47,8 @@ export interface BrandedItem {
   product: string;
   size: string | null;
   servings: number;
+  /** Customizations as the user said them ("add a hazelnut shot", "oat milk", "no whip"). */
+  modifiers?: string[];
   /** The parser's estimate for this item (already inside the meal totals). */
   estimate: { calories: number; proteinG: number; carbsG: number; fatG: number };
 }
@@ -263,10 +265,10 @@ export function _resetBrandedCache(): void { found.clear(); missed.clear(); }
 
 export async function lookupBranded(
   item: Pick<BrandedItem, 'brand' | 'product' | 'size'>,
-  opts: { tz?: string | null; generate?: Generate; timeoutMs?: number; fetchImpl?: typeof fetch } = {},
+  opts: { tz?: string | null; generate?: Generate; timeoutMs?: number; fetchImpl?: typeof fetch; fresh?: boolean } = {},
 ): Promise<BrandedLookup> {
   const key = brandedCacheKey(item, opts.tz);
-  const hit = found.get(key) ?? missed.get(key);
+  const hit = opts.fresh ? undefined : found.get(key) ?? missed.get(key);
   if (hit) return hit;
   const generate = opts.generate ?? defaultGenerate();
   const budget = opts.timeoutMs ?? DEFAULT_BUDGET_MS;
@@ -452,7 +454,8 @@ export function coerceBrandedItems(raw: unknown): BrandedItem[] {
     const size = typeof it?.size === 'string' && it.size.trim() && it.size.trim().toLowerCase() !== 'null' ? it.size.trim().slice(0, 40) : null;
     const n = (v: unknown) => { const x = typeof v === 'number' ? v : parseFloat(String(v ?? '')); return Number.isFinite(x) && x >= 0 ? x : 0; };
     const servings = n(it?.servings) || 1;
-    out.push({ brand, product, size, servings: Math.min(servings, 20), estimate: { calories: n(it?.calories), proteinG: n(it?.proteinG), carbsG: n(it?.carbsG), fatG: n(it?.fatG) } });
+    const modifiers = Array.isArray(it?.modifiers) ? it.modifiers.map((m: unknown) => String(m).trim().slice(0, 80)).filter(Boolean).slice(0, 8) : [];
+    out.push({ brand, product, size, servings: Math.min(servings, 20), ...(modifiers.length ? { modifiers } : {}), estimate: { calories: n(it?.calories), proteinG: n(it?.proteinG), carbsG: n(it?.carbsG), fatG: n(it?.fatG) } });
     if (out.length >= MAX_ITEMS) break;
   }
   return out;
