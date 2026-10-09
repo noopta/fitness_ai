@@ -1,0 +1,7501 @@
+[
+ {
+  "id": "subway",
+  "name": "Subway",
+  "aliases": [
+   "subway",
+   "subway sandwich",
+   "subways",
+   "subwy"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "subway.com"
+   ],
+   "CA": [
+    "subway.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.subway.com/en-us/menunutrition/nutrition",
+   "CA": "https://www.subway.com/en-ca/menunutrition/nutrition"
+  }
+ },
+ {
+  "id": "starbucks",
+  "name": "Starbucks",
+  "aliases": [
+   "sbux",
+   "starbies",
+   "starbs",
+   "starbuck",
+   "starbucks",
+   "starbucks coffee"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "starbucks.com"
+   ],
+   "CA": [
+    "starbucks.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.starbucks.com/menu",
+   "CA": "https://www.starbucks.ca/menu"
+  }
+ },
+ {
+  "id": "mcdonalds",
+  "name": "McDonald's",
+  "aliases": [
+   "maccas",
+   "macdonalds",
+   "mc donalds",
+   "mcd",
+   "mcd's",
+   "mcdo",
+   "mcdonald's",
+   "mcdonalds",
+   "mcdonals",
+   "mcds",
+   "mickey d's",
+   "mickey ds"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "mcdonalds.com"
+   ],
+   "CA": [
+    "mcdonalds.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "dunkin",
+  "name": "Dunkin'",
+  "aliases": [
+   "dd",
+   "dunkin",
+   "dunkin donuts",
+   "dunkin doughnuts",
+   "dunkin'",
+   "dunkins",
+   "dunks"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "dunkindonuts.com"
+   ],
+   "CA": [
+    "dunkindonuts.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "taco-bell",
+  "name": "Taco Bell",
+  "aliases": [
+   "t bell",
+   "taco bell",
+   "taco hell",
+   "tacobell",
+   "tbell"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "tacobell.com"
+   ],
+   "CA": [
+    "tacobell.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.tacobell.com/nutrition/info",
+   "CA": "https://restaurant.nutritionix.com/taco-bell-canada/landing?lang=en"
+  }
+ },
+ {
+  "id": "dominos",
+  "name": "Domino's",
+  "aliases": [
+   "domino's",
+   "domino's pizza",
+   "dominoes",
+   "dominos",
+   "dominos pizza"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "dominos.com"
+   ],
+   "CA": [
+    "dominos.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.dominos.com/en/pages/content/nutritional/nutrition",
+   "CA": "https://www.dominos.ca/en/pages/content/nutritional/nutrition"
+  }
+ },
+ {
+  "id": "burger-king",
+  "name": "Burger King",
+  "aliases": [
+   "b k",
+   "bk",
+   "burger king",
+   "burger king whopper",
+   "burgerking"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "bk.com"
+   ],
+   "CA": [
+    "burgerking.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "pizza-hut",
+  "name": "Pizza Hut",
+  "aliases": [
+   "pizza hut",
+   "pizza hutt",
+   "pizzahut",
+   "the hut"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "pizzahut.com"
+   ],
+   "CA": [
+    "pizzahut.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": "https://www.pizzahut.ca/nutrition/"
+  }
+ },
+ {
+  "id": "wendys",
+  "name": "Wendy's",
+  "aliases": [
+   "wendies",
+   "wendy",
+   "wendy's",
+   "wendy's burgers",
+   "wendys"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "wendys.com"
+   ],
+   "CA": [
+    "wendys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wendys.com/nutrition",
+   "CA": null
+  }
+ },
+ {
+  "id": "little-caesars",
+  "name": "Little Caesars",
+  "aliases": [
+   "hot n ready",
+   "lc pizza",
+   "little caesar",
+   "little caesars",
+   "little caesers",
+   "little ceasars",
+   "little cesars",
+   "littlecaesars"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "littlecaesars.com"
+   ],
+   "CA": [
+    "littlecaesars.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://littlecaesars.com/en-us/menu/nutrition/",
+   "CA": "https://littlecaesars.ca/en-ca/menu/nutrition/"
+  }
+ },
+ {
+  "id": "sonic",
+  "name": "Sonic Drive-In",
+  "aliases": [
+   "sonic",
+   "sonic drive in",
+   "sonic drive-in",
+   "sonic drivein",
+   "sonicdrivein",
+   "sonics"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "sonicdrivein.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "dairy-queen",
+  "name": "Dairy Queen",
+  "aliases": [
+   "dairy queen",
+   "dairy queen blizzard",
+   "dairyqueen",
+   "dq",
+   "dq grill & chill"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "dairyqueen.com"
+   ],
+   "CA": [
+    "dairyqueen.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "chick-fil-a",
+  "name": "Chick-fil-A",
+  "aliases": [
+   "cfa",
+   "chic fil a",
+   "chick fil a",
+   "chick-fil-a",
+   "chickfila",
+   "chik fil a",
+   "chikfila"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "chick-fil-a.com"
+   ],
+   "CA": [
+    "chick-fil-a.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.chick-fil-a.com/nutrition-allergens",
+   "CA": "https://www.chick-fil-a.ca/nutrition-allergens"
+  }
+ },
+ {
+  "id": "papa-johns",
+  "name": "Papa John's",
+  "aliases": [
+   "papa john",
+   "papa john's",
+   "papa johns",
+   "papajohns",
+   "pj pizza"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "papajohns.com"
+   ],
+   "CA": [
+    "papajohns.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "kfc",
+  "name": "KFC",
+  "aliases": [
+   "k f c",
+   "kentucky fried chicken",
+   "kfc",
+   "kfc chicken",
+   "pfk",
+   "poulet frit kentucky"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "kfc.com"
+   ],
+   "CA": [
+    "kfc.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "arbys",
+  "name": "Arby's",
+  "aliases": [
+   "arbies",
+   "arby",
+   "arby's",
+   "arbys"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "arbys.com"
+   ],
+   "CA": [
+    "arbys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.arbys.com/nutrition/",
+   "CA": null
+  }
+ },
+ {
+  "id": "jimmy-johns",
+  "name": "Jimmy John's",
+  "aliases": [
+   "jimmy john",
+   "jimmy john's",
+   "jimmy johns",
+   "jimmyjohns",
+   "jj"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "jimmyjohns.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "jersey-mikes",
+  "name": "Jersey Mike's Subs",
+  "aliases": [
+   "jersey mike",
+   "jersey mike's",
+   "jersey mike's subs",
+   "jersey mikes",
+   "jersey mikes subs",
+   "jerseymikessubs",
+   "jmikes"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "jerseymikes.com"
+   ],
+   "CA": [
+    "jerseymikes.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.jerseymikes.com/menu/nutrition",
+   "CA": "https://www.jerseymikes.ca/nutrition"
+  }
+ },
+ {
+  "id": "popeyes",
+  "name": "Popeyes Louisiana Kitchen",
+  "aliases": [
+   "popeye",
+   "popeye's",
+   "popeyes",
+   "popeyes chicken",
+   "popeyes louisiana kitchen",
+   "popeyeslouisianakitchen"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "popeyes.com"
+   ],
+   "CA": [
+    "popeyeschicken.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": "https://www.popeyeschicken.ca/nutrition-information/"
+  }
+ },
+ {
+  "id": "panda-express",
+  "name": "Panda Express",
+  "aliases": [
+   "panda",
+   "panda exp",
+   "panda express",
+   "panda express orange chicken",
+   "pandaexpress"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "pandaexpress.com"
+   ],
+   "CA": [
+    "pandaexpress.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "tropical-smoothie-cafe",
+  "name": "Tropical Smoothie Cafe",
+  "aliases": [
+   "tropical smoothie",
+   "tropical smoothie cafe",
+   "tropical smoothie café",
+   "tropicalsmoothiecafe",
+   "tsc"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "tropicalsmoothiecafe.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.tropicalsmoothiecafe.com/nutrition"
+  }
+ },
+ {
+  "id": "chipotle",
+  "name": "Chipotle Mexican Grill",
+  "aliases": [
+   "chipolte",
+   "chipoltle",
+   "chipotle",
+   "chipotle bowl",
+   "chipotle mexican grill",
+   "chipotlemexicangrill",
+   "chiptole"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "chipotle.com"
+   ],
+   "CA": [
+    "chipotle.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.chipotle.com/nutrition-calculator",
+   "CA": "https://www.chipotle.ca/nutrition-calculator"
+  }
+ },
+ {
+  "id": "jack-in-the-box",
+  "name": "Jack in the Box",
+  "aliases": [
+   "jack box",
+   "jack in the box",
+   "jack n the box",
+   "jackinthebox",
+   "jitb"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "jackinthebox.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "wingstop",
+  "name": "Wingstop",
+  "aliases": [
+   "wing stop",
+   "wingstop",
+   "wingstops"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "wingstop.com"
+   ],
+   "CA": [
+    "wingstop.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wingstop.com/nutrition",
+   "CA": null
+  }
+ },
+ {
+  "id": "baskin-robbins",
+  "name": "Baskin-Robbins",
+  "aliases": [
+   "31 flavors",
+   "baskin",
+   "baskin robbins",
+   "baskin-robbins",
+   "baskinrobbins",
+   "br"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "baskinrobbins.com"
+   ],
+   "CA": [
+    "baskinrobbins.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.baskinrobbins.com/content/dam/br/pdf/BRNutrition.pdf",
+   "CA": null
+  }
+ },
+ {
+  "id": "dutch-bros",
+  "name": "Dutch Bros Coffee",
+  "aliases": [
+   "dutch bros",
+   "dutch bros coffee",
+   "dutch brothers",
+   "dutchbros",
+   "dutchbroscoffee"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "dutchbros.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.dutchbros.com/website/menu/nutritional-guide.pdf"
+  }
+ },
+ {
+  "id": "five-guys",
+  "name": "Five Guys",
+  "aliases": [
+   "5 guys",
+   "five guys",
+   "five guys burgers and fries",
+   "fiveguys"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "fiveguys.com"
+   ],
+   "CA": [
+    "fiveguys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.fiveguys.com/nutritional-allergy-information/",
+   "CA": null
+  }
+ },
+ {
+  "id": "firehouse-subs",
+  "name": "Firehouse Subs",
+  "aliases": [
+   "firehouse",
+   "firehouse sub",
+   "firehouse subs",
+   "firehousesubs"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "firehousesubs.com"
+   ],
+   "CA": [
+    "firehousesubs.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.firehousesubs.com/nutritional-information-1",
+   "CA": "https://www.firehousesubs.ca/nutrition-information"
+  }
+ },
+ {
+  "id": "hardees",
+  "name": "Hardee's",
+  "aliases": [
+   "hardee",
+   "hardee's",
+   "hardees",
+   "hardies"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "hardees.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.hardees.com/nutritional-info"
+  }
+ },
+ {
+  "id": "carls-jr",
+  "name": "Carl's Jr.",
+  "aliases": [
+   "carl's jr.",
+   "carl's junior",
+   "carls jr",
+   "carls junior",
+   "carlsjr"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "carlsjr.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.carlsjr.com/nutritional_info"
+  }
+ },
+ {
+  "id": "whataburger",
+  "name": "Whataburger",
+  "aliases": [
+   "wb",
+   "whata burger",
+   "whatabuger",
+   "whataburger"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "whataburger.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "culvers",
+  "name": "Culver's",
+  "aliases": [
+   "butterburger",
+   "culver",
+   "culver's",
+   "culvers"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "culvers.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.culvers.com/nutrition-and-allergen-guide"
+  }
+ },
+ {
+  "id": "zaxbys",
+  "name": "Zaxby's",
+  "aliases": [
+   "zaxbies",
+   "zaxby",
+   "zaxby's",
+   "zaxbys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "zaxbys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "panera",
+  "name": "Panera Bread",
+  "aliases": [
+   "panera",
+   "panera bread",
+   "panerabread"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "panerabread.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "applebees",
+  "name": "Applebee's",
+  "aliases": [
+   "applebee",
+   "applebee's",
+   "applebees",
+   "applebeez"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "applebees.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "buffalo-wild-wings",
+  "name": "Buffalo Wild Wings",
+  "aliases": [
+   "b dubs",
+   "bdubs",
+   "buffalo wild wing",
+   "buffalo wild wings",
+   "buffalowildwings",
+   "bw3",
+   "bww"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "buffalowildwings.com"
+   ],
+   "CA": [
+    "buffalowildwings.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.buffalowildwings.com/nutrition/",
+   "CA": null
+  }
+ },
+ {
+  "id": "ihop",
+  "name": "IHOP",
+  "aliases": [
+   "i hop",
+   "ihop",
+   "ihop pancakes",
+   "international house of pancakes"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "ihop.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.ihop.com/en/nutrition",
+   "CA": null
+  }
+ },
+ {
+  "id": "dennys",
+  "name": "Denny's",
+  "aliases": [
+   "denny",
+   "denny's",
+   "dennys",
+   "grand slam"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "dennys.com"
+   ],
+   "CA": [
+    "dennys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://dennys.com/nutrition",
+   "CA": null
+  }
+ },
+ {
+  "id": "chilis",
+  "name": "Chili's Grill & Bar",
+  "aliases": [
+   "chili's",
+   "chili's grill & bar",
+   "chilis",
+   "chilis grill & bar",
+   "chilisgrillbar",
+   "chilli's",
+   "chillis"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "chilis.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.chilis.com/nutrition"
+  }
+ },
+ {
+  "id": "olive-garden",
+  "name": "Olive Garden",
+  "aliases": [
+   "og",
+   "olive garden",
+   "olive garden breadsticks",
+   "olivegarden"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "olivegarden.com",
+    "olivegarden.ca"
+   ],
+   "CA": [
+    "olivegarden.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "waffle-house",
+  "name": "Waffle House",
+  "aliases": [
+   "waffle house",
+   "waffle hse",
+   "wafflehouse",
+   "waho"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "wafflehouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wafflehouse.com/nutrition/"
+  }
+ },
+ {
+  "id": "papa-murphys",
+  "name": "Papa Murphy's",
+  "aliases": [
+   "papa murphy",
+   "papa murphy's",
+   "papa murphy's take n bake",
+   "papa murphys",
+   "papamurphys"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "papamurphys.com"
+   ],
+   "CA": [
+    "papamurphys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.papamurphys.com/nutrition/",
+   "CA": null
+  }
+ },
+ {
+  "id": "marcos-pizza",
+  "name": "Marco's Pizza",
+  "aliases": [
+   "marco's",
+   "marco's pizza",
+   "marcos",
+   "marcos pizza",
+   "marcospizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "marcos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.marcos.com/nutrition"
+  }
+ },
+ {
+  "id": "krispy-kreme",
+  "name": "Krispy Kreme",
+  "aliases": [
+   "kk donuts",
+   "krispy cream",
+   "krispy kreme",
+   "krispykreme"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "krispykreme.com"
+   ],
+   "CA": [
+    "krispykreme.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.krispykreme.com/about/nutritional-info",
+   "CA": null
+  }
+ },
+ {
+  "id": "raising-canes",
+  "name": "Raising Cane's",
+  "aliases": [
+   "cane's",
+   "canes",
+   "raisin canes",
+   "raising cane's",
+   "raising canes",
+   "raisingcanes"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "raisingcanes.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "bojangles",
+  "name": "Bojangles",
+  "aliases": [
+   "bo jangles",
+   "bojangle's",
+   "bojangles",
+   "bojangles chicken"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "bojangles.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.bojangles.com/menu/nutrition/"
+  }
+ },
+ {
+  "id": "churchs-texas-chicken",
+  "name": "Church's Texas Chicken",
+  "aliases": [
+   "church's chicken",
+   "church's texas chicken",
+   "churches chicken",
+   "churchs",
+   "churchs texas chicken",
+   "churchstexaschicken",
+   "texas chicken"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "churchs.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.churchs.com/nutrition-allergen-facts",
+   "CA": null
+  }
+ },
+ {
+  "id": "el-pollo-loco",
+  "name": "El Pollo Loco",
+  "aliases": [
+   "el pollo loco",
+   "elpolloloco",
+   "epl",
+   "pollo loco"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "elpolloloco.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.elpolloloco.com/nutrition/"
+  }
+ },
+ {
+  "id": "del-taco",
+  "name": "Del Taco",
+  "aliases": [
+   "del taco",
+   "del tacos",
+   "deltaco"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "deltaco.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.deltaco.com/nutrition.html"
+  }
+ },
+ {
+  "id": "qdoba",
+  "name": "Qdoba Mexican Eats",
+  "aliases": [
+   "q doba",
+   "qdoba",
+   "qdoba mexican eats",
+   "qdobamexicaneats",
+   "quedoba"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "qdoba.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/0tc4847zqy12/bQFJBCmsAk4ww4qzdfAOm/10ad09aaf097d3e9fb10fc4c62af52c3/Nutrition_9.1.26.pdf"
+  }
+ },
+ {
+  "id": "moes",
+  "name": "Moe's Southwest Grill",
+  "aliases": [
+   "moe's",
+   "moe's southwest grill",
+   "moes",
+   "moes southwest",
+   "moes southwest grill",
+   "moessouthwestgrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "moes.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/zqt8tllj2cy0/229Bgcvw5c0RwcUkhyghXG/d3722a14b4b1dd925316a8936200f5bd/MOES_1906368_Nutrition_Chart_2026_R4.pdf"
+  }
+ },
+ {
+  "id": "taco-johns",
+  "name": "Taco John's",
+  "aliases": [
+   "taco john",
+   "taco john's",
+   "taco johns",
+   "tacojohns"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "tacojohns.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://tacojohns.com/nutrition-calculator/"
+  }
+ },
+ {
+  "id": "checkers-rallys",
+  "name": "Checkers & Rally's",
+  "aliases": [
+   "checkers",
+   "checkers & rally's",
+   "checkers & rallys",
+   "checkers and rallys",
+   "checkersrallys",
+   "rally's",
+   "rallys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "checkersandrallys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "white-castle",
+  "name": "White Castle",
+  "aliases": [
+   "w castle",
+   "white castle",
+   "white castle sliders",
+   "whitecastle"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "whitecastle.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.whitecastle.com/pdfs/nutrition/white-castle-nutrition-info.pdf"
+  }
+ },
+ {
+  "id": "steak-n-shake",
+  "name": "Steak 'n Shake",
+  "aliases": [
+   "steak 'n shake",
+   "steak and shake",
+   "steak n shake",
+   "steaknshake"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "steaknshake.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "krystal",
+  "name": "Krystal",
+  "aliases": [
+   "krystal",
+   "krystal burgers",
+   "krystals"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "krystal.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.krystal.com/nutrition/"
+  }
+ },
+ {
+  "id": "smashburger",
+  "name": "Smashburger",
+  "aliases": [
+   "smash burger",
+   "smashburger"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "smashburger.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "shake-shack",
+  "name": "Shake Shack",
+  "aliases": [
+   "shack burger",
+   "shake shac",
+   "shake shack",
+   "shakeshack"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "shakeshack.com",
+    "shakeshack.widen.net"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://shakeshack.widen.net/view/pdf/f0ckdbaukl"
+  }
+ },
+ {
+  "id": "in-n-out",
+  "name": "In-N-Out Burger",
+  "aliases": [
+   "double double",
+   "in & out",
+   "in and out",
+   "in n out",
+   "in-n-out",
+   "in-n-out burger",
+   "innout",
+   "innout burger",
+   "innoutburger"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "in-n-out.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "freddys",
+  "name": "Freddy's Frozen Custard & Steakburgers",
+  "aliases": [
+   "freddy's",
+   "freddy's frozen custard & steakburgers",
+   "freddys",
+   "freddys frozen custard & steakburgers",
+   "freddysfrozencustardsteakburgers"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "freddys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.freddys.com/nutrition-and-allergens"
+  }
+ },
+ {
+  "id": "habit-burger",
+  "name": "The Habit Burger Grill",
+  "aliases": [
+   "habit",
+   "habit burger",
+   "the habit",
+   "the habit burger grill",
+   "thehabitburgergrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "habitburger.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.habitburger.com/nutritional-information/"
+  }
+ },
+ {
+  "id": "hooters",
+  "name": "Hooters",
+  "aliases": [
+   "hooters",
+   "hooters wings"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "hooters.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.hooters.com/nutritional-information"
+  }
+ },
+ {
+  "id": "texas-roadhouse",
+  "name": "Texas Roadhouse",
+  "aliases": [
+   "roadhouse",
+   "texas road house",
+   "texas roadhouse",
+   "texasroadhouse",
+   "txrh"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "texasroadhouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.nutritionix.com/texas-roadhouse/portal"
+  }
+ },
+ {
+  "id": "outback",
+  "name": "Outback Steakhouse",
+  "aliases": [
+   "bloomin onion",
+   "outback",
+   "outback steak house",
+   "outback steakhouse",
+   "outbacksteakhouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "outback.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.outback.com/nutrition/smart-dining"
+  }
+ },
+ {
+  "id": "longhorn",
+  "name": "LongHorn Steakhouse",
+  "aliases": [
+   "long horn",
+   "longhorn",
+   "longhorn steakhouse",
+   "longhornsteakhouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "longhornsteakhouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "red-lobster",
+  "name": "Red Lobster",
+  "aliases": [
+   "red lobster",
+   "red lobster biscuits",
+   "redlobster"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "redlobster.com"
+   ],
+   "CA": [
+    "redlobster.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://img-ecomm-rl-prod-fye5gqbxdtbghqer.a03.azurefd.net/brandsite/documents/US_Nutrition_8-17-26.pdf",
+   "CA": "https://img-ecomm-rl-prod-fye5gqbxdtbghqer.a03.azurefd.net/brandsite/documents/CN_Nutrition_8-17-26.pdf"
+  }
+ },
+ {
+  "id": "red-robin",
+  "name": "Red Robin",
+  "aliases": [
+   "red robin",
+   "red robin burgers",
+   "redrobin"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "redrobin.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.redrobin.com/allergens-and-nutrition",
+   "CA": null
+  }
+ },
+ {
+  "id": "cracker-barrel",
+  "name": "Cracker Barrel",
+  "aliases": [
+   "cracker barrel",
+   "cracker barrel old country store",
+   "crackerbarrel"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "crackerbarrel.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "ruby-tuesday",
+  "name": "Ruby Tuesday",
+  "aliases": [
+   "ruby tuesday",
+   "ruby tuesdays",
+   "rubytuesday"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "rubytuesday.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://ruby-tuesday.widget.eagle.bigzpoon.com/home"
+  }
+ },
+ {
+  "id": "tgi-fridays",
+  "name": "TGI Fridays",
+  "aliases": [
+   "fridays",
+   "t.g.i. friday's",
+   "tgi friday's",
+   "tgi fridays",
+   "tgif",
+   "tgifridays"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "tgifridays.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://tgifridays.com/nutritional-appetizers-wings/"
+  }
+ },
+ {
+  "id": "bob-evans",
+  "name": "Bob Evans",
+  "aliases": [
+   "bob evan's",
+   "bob evans",
+   "bobevans"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "bobevans.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.bobevans.com/nutrition"
+  }
+ },
+ {
+  "id": "golden-corral",
+  "name": "Golden Corral",
+  "aliases": [
+   "golden coral",
+   "golden corral",
+   "goldencorral"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "goldencorral.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.goldencorral.com/nutrition/"
+  }
+ },
+ {
+  "id": "cheesecake-factory",
+  "name": "The Cheesecake Factory",
+  "aliases": [
+   "cheese cake factory",
+   "cheesecake factory",
+   "tcf",
+   "the cheesecake factory",
+   "thecheesecakefactory"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "thecheesecakefactory.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "pf-changs",
+  "name": "P.F. Chang's",
+  "aliases": [
+   "p.f. chang's",
+   "p.f. changs",
+   "pf chang",
+   "pf changs",
+   "pfchangs"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "pfchangs.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pfchangs.com/nutrition"
+  }
+ },
+ {
+  "id": "carrabbas",
+  "name": "Carrabba's Italian Grill",
+  "aliases": [
+   "carrabba's",
+   "carrabba's italian grill",
+   "carrabbas",
+   "carrabbas italian grill",
+   "carrabbasitaliangrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "carrabbas.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.carrabbas.com/nutrition"
+  }
+ },
+ {
+  "id": "bjs-restaurant",
+  "name": "BJ's Restaurant & Brewhouse",
+  "aliases": [
+   "bj's brewhouse",
+   "bj's restaurant & brewhouse",
+   "bjs",
+   "bjs restaurant",
+   "bjs restaurant & brewhouse",
+   "bjsrestaurantbrewhouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "bjsrestaurants.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.bjsrestaurants.com/marketing-pages/allergen-and-nutritional-guides"
+  }
+ },
+ {
+  "id": "perkins",
+  "name": "Perkins American Food Co.",
+  "aliases": [
+   "perkins",
+   "perkins american food co",
+   "perkins american food co.",
+   "perkins restaurant",
+   "perkinsamericanfoodco"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "perkinsrestaurants.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "first-watch",
+  "name": "First Watch",
+  "aliases": [
+   "first watch",
+   "first watch brunch",
+   "firstwatch"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "firstwatch.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://firstwatch.com/nutrition-and-allergens"
+  }
+ },
+ {
+  "id": "huddle-house",
+  "name": "Huddle House",
+  "aliases": [
+   "huddle house",
+   "huddlehouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "huddlehouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://a.storyblok.com/f/140760/x/3d26059f12/160108-hh-nutritional-guide-august-2025-final.pdf"
+  }
+ },
+ {
+  "id": "jasons-deli",
+  "name": "Jason's Deli",
+  "aliases": [
+   "jason's",
+   "jason's deli",
+   "jasons",
+   "jasons deli",
+   "jasonsdeli"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "jasonsdeli.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.jasonsdeli.com/nutrition/"
+  }
+ },
+ {
+  "id": "mcalisters",
+  "name": "McAlister's Deli",
+  "aliases": [
+   "mcalister's",
+   "mcalister's deli",
+   "mcalisters",
+   "mcalisters deli",
+   "mcalistersdeli",
+   "mcallisters"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "mcalistersdeli.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.mcalistersdeli.com/nutrition"
+  }
+ },
+ {
+  "id": "potbelly",
+  "name": "Potbelly Sandwich Shop",
+  "aliases": [
+   "pot belly",
+   "potbelly",
+   "potbelly sandwich shop",
+   "potbellysandwichshop"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "potbelly.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.potbelly.com/nutrition-calculator"
+  }
+ },
+ {
+  "id": "schlotzskys",
+  "name": "Schlotzsky's",
+  "aliases": [
+   "schlotskys",
+   "schlotzsky",
+   "schlotzsky's",
+   "schlotzskys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "schlotzskys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/zqt8tllj2cy0/3wkZtcobeRUvoOcOWjhR44/a2b753f659f5e4f470076c541e2df7f4/SCH_1899730_Nutritional_and_allergen_chart_2.26_v3.Digital_Upload.pdf"
+  }
+ },
+ {
+  "id": "which-wich",
+  "name": "Which Wich",
+  "aliases": [
+   "which wich",
+   "which wich superior sandwiches",
+   "whichwich"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "whichwich.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://whichwich.com/pdf/WW-Nutritional-Info.pdf"
+  }
+ },
+ {
+  "id": "charleys",
+  "name": "Charleys Cheesesteaks",
+  "aliases": [
+   "charley's",
+   "charleys",
+   "charleys cheesesteaks",
+   "charleys philly steaks",
+   "charleyscheesesteaks"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "charleys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.charleys.com/nutrition-info/"
+  }
+ },
+ {
+  "id": "wienerschnitzel",
+  "name": "Wienerschnitzel",
+  "aliases": [
+   "der wienerschnitzel",
+   "weinerschnitzel",
+   "wiener schnitzel",
+   "wienerschnitzel"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "wienerschnitzel.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wienerschnitzel.com/nutrition-and-allergy-info/"
+  }
+ },
+ {
+  "id": "auntie-annes",
+  "name": "Auntie Anne's",
+  "aliases": [
+   "aunt annes",
+   "auntie anne",
+   "auntie anne's",
+   "auntie anne's pretzels",
+   "auntie annes",
+   "auntieannes"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "auntieannes.com"
+   ],
+   "CA": [
+    "auntieannes.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/zqt8tllj2cy0/10Ezjc1ozMDByK7cBBikSn/4ca91079eaac12bb63fcec420cd0ca46/AA_2103518_NutritionAllergenGuide_W2andW3_2026_HIGHRES-1.pdf",
+   "CA": null
+  }
+ },
+ {
+  "id": "cinnabon",
+  "name": "Cinnabon",
+  "aliases": [
+   "cinabon",
+   "cinnabon",
+   "cinnabon roll",
+   "cinnabons"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "cinnabon.com"
+   ],
+   "CA": [
+    "cinnabon.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/zqt8tllj2cy0/4CpaeuI6NC7VIT1noT7k78/3ea53d856d3d85ac02833bad8cde8fae/Nutritional_Guide_DOMESTIC_W2_2026_rev_7.2.pdf",
+   "CA": null
+  }
+ },
+ {
+  "id": "wetzels-pretzels",
+  "name": "Wetzel's Pretzels",
+  "aliases": [
+   "wetzel's",
+   "wetzel's pretzels",
+   "wetzels",
+   "wetzels pretzels",
+   "wetzelspretzels"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "wetzels.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wetzels.com/nutrition"
+  }
+ },
+ {
+  "id": "jamba",
+  "name": "Jamba",
+  "aliases": [
+   "jamba",
+   "jamba juice",
+   "jambajuice"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "jamba.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/zqt8tllj2cy0/1LNbgRC8F1wlEdYD2Ns2lR/cdcdd6857f78c53c8550363a2a30c3c2/Jamba_Nutrition_Spreadsheet_-_Oct_2026.pdf"
+  }
+ },
+ {
+  "id": "smoothie-king",
+  "name": "Smoothie King",
+  "aliases": [
+   "sk",
+   "smoothie king",
+   "smoothie kng",
+   "smoothieking"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "smoothieking.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.smoothieking.com/nutrition/"
+  }
+ },
+ {
+  "id": "robeks",
+  "name": "Robeks",
+  "aliases": [
+   "robek's",
+   "robeks",
+   "robeks juice"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "robeks.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://robeks.com/nutrition/"
+  }
+ },
+ {
+  "id": "cold-stone",
+  "name": "Cold Stone Creamery",
+  "aliases": [
+   "cold stone",
+   "cold stone creamery",
+   "coldstone",
+   "coldstone creamery",
+   "coldstonecreamery"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "coldstonecreamery.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.coldstonecreamery.com/nutrition/",
+   "CA": null
+  }
+ },
+ {
+  "id": "menchies",
+  "name": "Menchie's Frozen Yogurt",
+  "aliases": [
+   "menchie's",
+   "menchie's frozen yogurt",
+   "menchies",
+   "menchies frozen yogurt",
+   "menchiesfrozenyogurt"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "menchies.com"
+   ],
+   "CA": [
+    "menchies.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.menchies.com/nutrition/",
+   "CA": "https://www.menchies.com/nutrition/"
+  }
+ },
+ {
+  "id": "yogurtland",
+  "name": "Yogurtland",
+  "aliases": [
+   "yogurt land",
+   "yogurtland"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "yogurtland.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.yogurtland.com/files/nutritionalfacts.pdf?v=031326"
+  }
+ },
+ {
+  "id": "ritas",
+  "name": "Rita's Italian Ice & Frozen Custard",
+  "aliases": [
+   "rita's italian ice & frozen custard",
+   "rita's water ice",
+   "ritas",
+   "ritas ice",
+   "ritas italian ice & frozen custard",
+   "ritasitalianicefrozencustard"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "ritasice.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.ritasice.com/nutrition/"
+  }
+ },
+ {
+  "id": "insomnia-cookies",
+  "name": "Insomnia Cookies",
+  "aliases": [
+   "insomnia",
+   "insomnia cookie",
+   "insomnia cookies",
+   "insomniacookies"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "insomniacookies.com"
+   ],
+   "CA": [
+    "insomniacookies.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "crumbl",
+  "name": "Crumbl",
+  "aliases": [
+   "crumbl",
+   "crumbl cookies",
+   "crumble",
+   "crumble cookies"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "crumblcookies.com"
+   ],
+   "CA": [
+    "crumblcookies.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "nothing-bundt-cakes",
+  "name": "Nothing Bundt Cakes",
+  "aliases": [
+   "nbc bundt",
+   "nothing bundt",
+   "nothing bundt cakes",
+   "nothing bunt cakes",
+   "nothingbundtcakes"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "nothingbundtcakes.com"
+   ],
+   "CA": [
+    "nothingbundtcakes.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.nothingbundtcakes.com/nutrition/",
+   "CA": "https://www.nothingbundtcakes.com/nutrition/"
+  }
+ },
+ {
+  "id": "duck-donuts",
+  "name": "Duck Donuts",
+  "aliases": [
+   "duck donut",
+   "duck donuts",
+   "duckdonuts"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "duckdonuts.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "tim-hortons",
+  "name": "Tim Hortons",
+  "aliases": [
+   "tim horton",
+   "tim horton's",
+   "tim hortons",
+   "tim's",
+   "timbits",
+   "timhortons",
+   "timmies",
+   "timmy's",
+   "timmys",
+   "tims"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "timhortons.com"
+   ],
+   "CA": [
+    "timhortons.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "caribou-coffee",
+  "name": "Caribou Coffee",
+  "aliases": [
+   "caribou",
+   "caribou coffee",
+   "caribou coffee co",
+   "cariboucoffee"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "cariboucoffee.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "peets",
+  "name": "Peet's Coffee",
+  "aliases": [
+   "peet's",
+   "peet's coffee",
+   "peets",
+   "peets coffee",
+   "peets coffee & tea",
+   "peetscoffee"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "peets.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "scooters-coffee",
+  "name": "Scooter's Coffee",
+  "aliases": [
+   "scooter's",
+   "scooter's coffee",
+   "scooters",
+   "scooters coffee",
+   "scooterscoffee"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "scooterscoffee.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "coffee-bean",
+  "name": "The Coffee Bean & Tea Leaf",
+  "aliases": [
+   "cbtl",
+   "coffee bean",
+   "coffee bean and tea leaf",
+   "the coffee bean & tea leaf",
+   "thecoffeebeantealeaf"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "coffeebean.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://cdn.shopify.com/s/files/1/0462/8021/2633/files/CBTL_Nutrition.pdf?v=1744407185"
+  }
+ },
+ {
+  "id": "biggby",
+  "name": "Biggby Coffee",
+  "aliases": [
+   "bigby coffee",
+   "biggby",
+   "biggby coffee",
+   "biggby's",
+   "biggbycoffee"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "biggby.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://biggby.com/wp-content/uploads/2026/08/BIGGBY_Website_Nurtition_8.20.26.1.pdf"
+  }
+ },
+ {
+  "id": "7-brew",
+  "name": "7 Brew Coffee",
+  "aliases": [
+   "7 brew",
+   "7 brew coffee",
+   "7brew",
+   "7brewcoffee",
+   "seven brew"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "7brew.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "ziggis",
+  "name": "Ziggi's Coffee",
+  "aliases": [
+   "ziggi's",
+   "ziggi's coffee",
+   "ziggis",
+   "ziggis coffee",
+   "ziggiscoffee"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "ziggiscoffee.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "einstein-bros",
+  "name": "Einstein Bros. Bagels",
+  "aliases": [
+   "einstein bagels",
+   "einstein bros",
+   "einstein bros bagels",
+   "einstein bros. bagels",
+   "einstein brothers",
+   "einsteinbrosbagels",
+   "einsteins"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "einsteinbros.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.einsteinbros.com/wp-content/uploads/2026/08/EBB-Nutrition-Guide-Master-2026-2.pdf"
+  }
+ },
+ {
+  "id": "brueggers",
+  "name": "Bruegger's Bagels",
+  "aliases": [
+   "bruegger's bagels",
+   "brueggers",
+   "brueggers bagels",
+   "brueggersbagels",
+   "bruggers"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "brueggers.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.brueggers.com/wp-content/uploads/2026/06/Breuggers-Bagels-Nutritional-Guide-2026.pdf"
+  }
+ },
+ {
+  "id": "noodles-and-company",
+  "name": "Noodles & Company",
+  "aliases": [
+   "noodles",
+   "noodles & co",
+   "noodles & company",
+   "noodles and co",
+   "noodles co",
+   "noodlescompany"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "noodles.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://noodles.mymenuhd.com/MyMenu/Restaurant?sView=default"
+  }
+ },
+ {
+  "id": "pei-wei",
+  "name": "Pei Wei",
+  "aliases": [
+   "pei wei",
+   "pei wei asian kitchen",
+   "peiwei"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "peiwei.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.peiwei.com/nutritional-information/"
+  }
+ },
+ {
+  "id": "sweetgreen",
+  "name": "Sweetgreen",
+  "aliases": [
+   "sg salad",
+   "sweet green",
+   "sweetgreen"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "sweetgreen.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.sweetgreen.com/nutrition"
+  }
+ },
+ {
+  "id": "cava",
+  "name": "CAVA",
+  "aliases": [
+   "cava",
+   "cava bowl",
+   "cava grill",
+   "cava mezze"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "cava.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "salad-and-go",
+  "name": "Salad and Go",
+  "aliases": [
+   "salad & go",
+   "salad and go",
+   "saladandgo"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "saladandgo.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "freshii",
+  "name": "Freshii",
+  "aliases": [
+   "freshi",
+   "freshii",
+   "freshii bowl"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "freshii.com"
+   ],
+   "CA": [
+    "freshii.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": "https://freshii.com/wp-content/uploads/2026/09/Freshii-Nutritionals-and-Allergens-Guide-EN-092026.pdf"
+  }
+ },
+ {
+  "id": "mod-pizza",
+  "name": "MOD Pizza",
+  "aliases": [
+   "mod",
+   "mod pizza",
+   "modpizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "modpizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://modpizza.com/nutrition/"
+  }
+ },
+ {
+  "id": "blaze-pizza",
+  "name": "Blaze Pizza",
+  "aliases": [
+   "blaze",
+   "blaze pizza",
+   "blazepizza"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "blazepizza.com"
+   ],
+   "CA": [
+    "blazepizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.blazepizza.com/nutritional",
+   "CA": "https://www.blazepizza.com/nutritional"
+  }
+ },
+ {
+  "id": "pieology",
+  "name": "Pieology",
+  "aliases": [
+   "pie ology",
+   "pieology"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "pieology.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://pieology.com/nutrition-and-allergens/"
+  }
+ },
+ {
+  "id": "round-table",
+  "name": "Round Table Pizza",
+  "aliases": [
+   "round table",
+   "round table pizza",
+   "roundtable pizza",
+   "roundtablepizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "roundtablepizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.roundtablepizza.com/nutritional-allergens/"
+  }
+ },
+ {
+  "id": "hungry-howies",
+  "name": "Hungry Howie's",
+  "aliases": [
+   "hungry howie",
+   "hungry howie's",
+   "hungry howies",
+   "hungryhowies"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "hungryhowies.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "jets-pizza",
+  "name": "Jet's Pizza",
+  "aliases": [
+   "jet's",
+   "jet's pizza",
+   "jets",
+   "jets pizza",
+   "jetspizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "jetspizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.jetspizza.com/nutrition/"
+  }
+ },
+ {
+  "id": "cicis",
+  "name": "Cicis Pizza",
+  "aliases": [
+   "cici pizza buffet",
+   "cici's",
+   "cicis",
+   "cicis pizza",
+   "cicispizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "cicis.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.cicis.com/nutrition"
+  }
+ },
+ {
+  "id": "sbarro",
+  "name": "Sbarro",
+  "aliases": [
+   "sbaro",
+   "sbarro",
+   "sbarros"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "sbarro.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://sbarro.com/nutritional-information/",
+   "CA": null
+  }
+ },
+ {
+  "id": "godfathers",
+  "name": "Godfather's Pizza",
+  "aliases": [
+   "godfather's",
+   "godfather's pizza",
+   "godfathers",
+   "godfathers pizza",
+   "godfatherspizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "godfathers.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://godfathers.com/nutritional-information/"
+  }
+ },
+ {
+  "id": "donatos",
+  "name": "Donatos Pizza",
+  "aliases": [
+   "donato's",
+   "donatos",
+   "donatos pizza",
+   "donatospizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "donatos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://donatos.com/nutrition"
+  }
+ },
+ {
+  "id": "mountain-mikes",
+  "name": "Mountain Mike's Pizza",
+  "aliases": [
+   "mountain mike's",
+   "mountain mike's pizza",
+   "mountain mikes",
+   "mountain mikes pizza",
+   "mountainmikespizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "mountainmikespizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.mountainmikespizza.com/nutrition/"
+  }
+ },
+ {
+  "id": "wawa",
+  "name": "Wawa",
+  "aliases": [
+   "wawa",
+   "wawa hoagie",
+   "wawas"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "wawa.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wawa.com/nutrition"
+  }
+ },
+ {
+  "id": "sheetz",
+  "name": "Sheetz",
+  "aliases": [
+   "sheets",
+   "sheetz",
+   "sheetz mto"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "sheetz.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.sheetz.com/nutrition"
+  }
+ },
+ {
+  "id": "long-john-silvers",
+  "name": "Long John Silver's",
+  "aliases": [
+   "ljs",
+   "long john silver's",
+   "long john silvers",
+   "long johns",
+   "longjohnsilvers"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "ljsilvers.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://a.storyblok.com/f/261627/x/730996bd77/ljs-nutrition-allergen-2026.pdf"
+  }
+ },
+ {
+  "id": "captain-ds",
+  "name": "Captain D's",
+  "aliases": [
+   "captain d's",
+   "captain d's seafood",
+   "captain ds",
+   "captainds"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "captainds.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.captainds.com/nutritional-allergy/"
+  }
+ },
+ {
+  "id": "portillos",
+  "name": "Portillo's",
+  "aliases": [
+   "portillo",
+   "portillo's",
+   "portillos"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "portillos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.portillos.com/nutrition/"
+  }
+ },
+ {
+  "id": "cook-out",
+  "name": "Cook Out",
+  "aliases": [
+   "cook out",
+   "cook-out",
+   "cookout"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "cookout.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "golden-chick",
+  "name": "Golden Chick",
+  "aliases": [
+   "golden chick",
+   "goldenchick"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "goldenchick.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://goldenchick.com/nutrition/"
+  }
+ },
+ {
+  "id": "slim-chickens",
+  "name": "Slim Chickens",
+  "aliases": [
+   "slim chicken",
+   "slim chickens",
+   "slim chickens tenders",
+   "slimchickens",
+   "slims"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "slimchickens.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.slimchickens.com/nutritional-and-allergen-info/"
+  }
+ },
+ {
+  "id": "daves-hot-chicken",
+  "name": "Dave's Hot Chicken",
+  "aliases": [
+   "dave's",
+   "dave's hot chicken",
+   "daves",
+   "daves hot chicken",
+   "daveshotchicken"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "daveshotchicken.com",
+    "store.daveshotchicken.com"
+   ],
+   "CA": [
+    "daveshotchicken.com",
+    "store.daveshotchicken.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://store.daveshotchicken.com/nutrition-information/",
+   "CA": "https://store.daveshotchicken.com/nutrition-information/"
+  }
+ },
+ {
+  "id": "pollo-tropical",
+  "name": "Pollo Tropical",
+  "aliases": [
+   "pollo trop",
+   "pollo tropical",
+   "pollotropical"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "pollotropical.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pollotropical.com/nutrition"
+  }
+ },
+ {
+  "id": "pollo-campero",
+  "name": "Pollo Campero",
+  "aliases": [
+   "campero",
+   "pollo campero",
+   "pollocampero"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "campero.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "boston-market",
+  "name": "Boston Market",
+  "aliases": [
+   "boston market",
+   "bostonmarket"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "bostonmarket.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "chuck-e-cheese",
+  "name": "Chuck E. Cheese",
+  "aliases": [
+   "chuck e cheese",
+   "chuck e. cheese",
+   "chuckecheese",
+   "chuckie cheese",
+   "chucky cheese"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "chuckecheese.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.chuckecheese.com/wp-content/uploads/2025/01/12.5.24-CEC-24-0297-Chuck-E_Nutritionals.pdf",
+   "CA": null
+  }
+ },
+ {
+  "id": "fazolis",
+  "name": "Fazoli's",
+  "aliases": [
+   "fazoli",
+   "fazoli's",
+   "fazolis"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "fazolis.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://fazolis.com/nutrition/"
+  }
+ },
+ {
+  "id": "tazikis",
+  "name": "Taziki's Mediterranean Café",
+  "aliases": [
+   "taziki's",
+   "taziki's mediterranean cafe",
+   "taziki's mediterranean café",
+   "tazikis",
+   "tazikis mediterranean cafe",
+   "tazikismediterraneancafe"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "tazikis.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.tazikis.com/nutrition"
+  }
+ },
+ {
+  "id": "pita-pit",
+  "name": "Pita Pit",
+  "aliases": [
+   "pita pit",
+   "pita pitt",
+   "pitapit"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "pitapitusa.com"
+   ],
+   "CA": [
+    "pitapit.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pitapitusa.com/nutrition",
+   "CA": "https://pitapit.ca/nutrition/"
+  }
+ },
+ {
+  "id": "halal-guys",
+  "name": "The Halal Guys",
+  "aliases": [
+   "halal guy",
+   "halal guys",
+   "the halal guys",
+   "thehalalguys"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "thehalalguys.com"
+   ],
+   "CA": [
+    "thehalalguys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://thehalalguys.com/nutritional-guide/",
+   "CA": null
+  }
+ },
+ {
+  "id": "nandos",
+  "name": "Nando's PERi-PERi",
+  "aliases": [
+   "nando's",
+   "nando's peri-peri",
+   "nandos",
+   "nandos peri peri",
+   "nandos periperi",
+   "nandosperiperi"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "nandosperiperi.com"
+   ],
+   "CA": [
+    "nandos.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "mission-bbq",
+  "name": "Mission BBQ",
+  "aliases": [
+   "mission barbecue",
+   "mission bbq",
+   "missionbbq"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "mission-bbq.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "dickeys",
+  "name": "Dickey's Barbecue Pit",
+  "aliases": [
+   "dickey's barbecue pit",
+   "dickey's bbq",
+   "dickeys",
+   "dickeys barbecue pit",
+   "dickeysbarbecuepit"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "dickeys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.dickeys.com/company/nutritional"
+  }
+ },
+ {
+  "id": "chuys",
+  "name": "Chuy's",
+  "aliases": [
+   "chuy",
+   "chuy's",
+   "chuys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "chuys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "on-the-border",
+  "name": "On The Border",
+  "aliases": [
+   "on the border",
+   "on the border mexican grill",
+   "ontheborder",
+   "otb"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "ontheborder.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "cafe-rio",
+  "name": "Cafe Rio",
+  "aliases": [
+   "cafe rio",
+   "cafe rio mexican grill",
+   "caferio"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "caferio.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.caferio.com/nutrition"
+  }
+ },
+ {
+  "id": "costa-vida",
+  "name": "Costa Vida",
+  "aliases": [
+   "costa vida",
+   "costavida"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "costavida.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.costavida.com/nutrition-allergen-information/"
+  }
+ },
+ {
+  "id": "baja-fresh",
+  "name": "Baja Fresh",
+  "aliases": [
+   "baja fresh",
+   "bajafresh"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "bajafresh.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.bajafresh.com/nutrition/"
+  }
+ },
+ {
+  "id": "rubios",
+  "name": "Rubio's Coastal Grill",
+  "aliases": [
+   "rubio's",
+   "rubio's coastal grill",
+   "rubios",
+   "rubios coastal grill",
+   "rubioscoastalgrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "rubios.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://rubios.com/nutrition/"
+  }
+ },
+ {
+  "id": "tijuana-flats",
+  "name": "Tijuana Flats",
+  "aliases": [
+   "tijuana flat",
+   "tijuana flats",
+   "tijuanaflats"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "tijuanaflats.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "pancheros",
+  "name": "Pancheros Mexican Grill",
+  "aliases": [
+   "pancheros burrito",
+   "pancheros mexican grill",
+   "pancherosmexicangrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "pancheros.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "torchys",
+  "name": "Torchy's Tacos",
+  "aliases": [
+   "torchy's",
+   "torchy's tacos",
+   "torchys",
+   "torchys tacos",
+   "torchystacos"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "torchystacos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "fuzzys",
+  "name": "Fuzzy's Taco Shop",
+  "aliases": [
+   "fuzzy's taco shop",
+   "fuzzy's tacos",
+   "fuzzys",
+   "fuzzys taco shop",
+   "fuzzystacoshop"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "fuzzystacoshop.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.fuzzystacoshop.com/nutrition"
+  }
+ },
+ {
+  "id": "corner-bakery",
+  "name": "Corner Bakery Cafe",
+  "aliases": [
+   "corner bakery",
+   "corner bakery cafe",
+   "cornerbakerycafe"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "cornerbakerycafe.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://cornerbakerycafe.com/wp-content/uploads/2025/06/CB_Nutrition_Allergen_Info.pdf"
+  }
+ },
+ {
+  "id": "quiznos",
+  "name": "Quiznos",
+  "aliases": [
+   "quizno's",
+   "quiznoes",
+   "quiznos",
+   "quiznos subs"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "quiznos.com"
+   ],
+   "CA": [
+    "quiznos.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.quiznos.com/wp-content/uploads/2024/07/Quiznos-US-Base-Nutritionals-7.26.24.pdf",
+   "CA": "https://www.quiznos.ca/en/wp-content/uploads/sites/3/2024/07/Quiznos-Canada-Base-Nutritionals-7.24.24.pdf"
+  }
+ },
+ {
+  "id": "blimpie",
+  "name": "Blimpie",
+  "aliases": [
+   "blimpie",
+   "blimpie subs",
+   "blimpies"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "blimpie.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "penn-station",
+  "name": "Penn Station East Coast Subs",
+  "aliases": [
+   "penn st subs",
+   "penn station",
+   "penn station east coast subs",
+   "pennstationeastcoastsubs"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "penn-station.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://penn-station.com/menu_nutrition.php"
+  }
+ },
+ {
+  "id": "capriottis",
+  "name": "Capriotti's Sandwich Shop",
+  "aliases": [
+   "capriotti's",
+   "capriotti's sandwich shop",
+   "capriottis",
+   "capriottis sandwich shop",
+   "capriottissandwichshop",
+   "the bobbie"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "capriottis.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "cheddars",
+  "name": "Cheddar's Scratch Kitchen",
+  "aliases": [
+   "cheddar's",
+   "cheddar's scratch kitchen",
+   "cheddars",
+   "cheddars scratch kitchen",
+   "cheddarsscratchkitchen"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "cheddars.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "twin-peaks",
+  "name": "Twin Peaks",
+  "aliases": [
+   "twin peaks",
+   "twinpeaks"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "twinpeaksrestaurant.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "dave-and-busters",
+  "name": "Dave & Buster's",
+  "aliases": [
+   "d&b",
+   "dave & buster's",
+   "dave & busters",
+   "dave and busters",
+   "dave n busters",
+   "davebusters"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "daveandbusters.com"
+   ],
+   "CA": [
+    "daveandbusters.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "logans-roadhouse",
+  "name": "Logan's Roadhouse",
+  "aliases": [
+   "logan's",
+   "logan's roadhouse",
+   "logans",
+   "logans roadhouse",
+   "logansroadhouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "logansroadhouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://logansroadhouse.com/nutrition-allergen-information/"
+  }
+ },
+ {
+  "id": "ruths-chris",
+  "name": "Ruth's Chris Steak House",
+  "aliases": [
+   "ruth's chris",
+   "ruth's chris steak house",
+   "ruths chris",
+   "ruths chris steak house",
+   "ruthschrissteakhouse"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "ruthschris.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "bonefish-grill",
+  "name": "Bonefish Grill",
+  "aliases": [
+   "bang bang shrimp",
+   "bonefish",
+   "bonefish grill",
+   "bonefishgrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "bonefishgrill.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.bonefishgrill.com/nutrition-information"
+  }
+ },
+ {
+  "id": "maggianos",
+  "name": "Maggiano's Little Italy",
+  "aliases": [
+   "maggiano's",
+   "maggiano's little italy",
+   "maggianos",
+   "maggianos little italy",
+   "maggianoslittleitaly"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "maggianos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://cdn.builder.io/api/v1/assets/d80894dbb7e449539fe3384e280a2583/maggianos-nutrition-guide"
+  }
+ },
+ {
+  "id": "ocharleys",
+  "name": "O'Charley's",
+  "aliases": [
+   "o charleys",
+   "o'charley's",
+   "ocharleys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "ocharleys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "friendlys",
+  "name": "Friendly's",
+  "aliases": [
+   "friendly's",
+   "friendly's ice cream",
+   "friendlys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "friendlysrestaurants.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://friendlysrestaurants.com/nutrition-information/"
+  }
+ },
+ {
+  "id": "village-inn",
+  "name": "Village Inn",
+  "aliases": [
+   "village inn",
+   "village inn pies",
+   "villageinn"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "villageinn.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.villageinn.com/NutritionInfo"
+  }
+ },
+ {
+  "id": "black-bear-diner",
+  "name": "Black Bear Diner",
+  "aliases": [
+   "black bear",
+   "black bear diner",
+   "blackbeardiner"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "blackbeardiner.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://blackbeardiner.com/nutrition/"
+  }
+ },
+ {
+  "id": "shoneys",
+  "name": "Shoney's",
+  "aliases": [
+   "shoney's",
+   "shoneys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "shoneys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "jollibee",
+  "name": "Jollibee",
+  "aliases": [
+   "jolibee",
+   "jollibe",
+   "jollibee",
+   "jollibee chickenjoy"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "jollibeefoods.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.jollibeefoods.com/nutrition",
+   "CA": null
+  }
+ },
+ {
+  "id": "yoshinoya",
+  "name": "Yoshinoya",
+  "aliases": [
+   "yoshinoya",
+   "yoshinoya beef bowl"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "yoshinoyaamerica.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.yoshinoyaamerica.com/nutrition"
+  }
+ },
+ {
+  "id": "teriyaki-madness",
+  "name": "Teriyaki Madness",
+  "aliases": [
+   "teriyaki madness",
+   "teriyaki madness bowl",
+   "teriyakimadness",
+   "tmad"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "teriyakimadness.com"
+   ],
+   "CA": [
+    "teriyakimadness.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://teriyakimadness.com/nutritionals/",
+   "CA": "https://teriyakimadness.com/nutritionals/"
+  }
+ },
+ {
+  "id": "pinkberry",
+  "name": "Pinkberry",
+  "aliases": [
+   "pink berry",
+   "pinkberry"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "pinkberry.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pinkberry.com/nutritional-and-allergens/index.php"
+  }
+ },
+ {
+  "id": "marble-slab",
+  "name": "Marble Slab Creamery",
+  "aliases": [
+   "marble slab",
+   "marble slab creamery",
+   "marbleslab",
+   "marbleslabcreamery"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "marbleslab.com"
+   ],
+   "CA": [
+    "marbleslab.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.marbleslab.com/nutritionals/",
+   "CA": null
+  }
+ },
+ {
+  "id": "brusters",
+  "name": "Bruster's Real Ice Cream",
+  "aliases": [
+   "bruster's",
+   "bruster's real ice cream",
+   "brusters",
+   "brusters real ice cream",
+   "brustersrealicecream"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "brusters.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://brusters.com/flavor-nutrition/"
+  }
+ },
+ {
+  "id": "handels",
+  "name": "Handel's Homemade Ice Cream",
+  "aliases": [
+   "handel's",
+   "handel's homemade ice cream",
+   "handels",
+   "handels homemade ice cream",
+   "handelshomemadeicecream"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "handelsicecream.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://handelsicecream.com/nutritional-info/"
+  }
+ },
+ {
+  "id": "andys-custard",
+  "name": "Andy's Frozen Custard",
+  "aliases": [
+   "andy's custard",
+   "andy's frozen custard",
+   "andys",
+   "andys frozen custard",
+   "andysfrozencustard"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "eatandys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.eatandys.com/nutritional-information"
+  }
+ },
+ {
+  "id": "shipley",
+  "name": "Shipley Do-Nuts",
+  "aliases": [
+   "shipley do-nuts",
+   "shipley donuts",
+   "shipleydonuts",
+   "shipleys"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "shipleydonuts.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://shipleydonuts.com/2022-Nutritional-Website.pdf"
+  }
+ },
+ {
+  "id": "nekter",
+  "name": "Nekter Juice Bar",
+  "aliases": [
+   "nekter",
+   "nekter juice",
+   "nekter juice bar",
+   "nekterjuicebar"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "nekterjuicebar.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "clean-juice",
+  "name": "Clean Juice",
+  "aliases": [
+   "clean juice",
+   "cleanjuice"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "cleanjuice.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.cleanjuice.com/nutrition-facts/"
+  }
+ },
+ {
+  "id": "playa-bowls",
+  "name": "Playa Bowls",
+  "aliases": [
+   "acai playa",
+   "playa bowl",
+   "playa bowls",
+   "playabowls"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "playabowls.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.playabowls.com/nutrition"
+  }
+ },
+ {
+  "id": "paris-baguette",
+  "name": "Paris Baguette",
+  "aliases": [
+   "paris baguette",
+   "paris baguette bakery",
+   "parisbaguette"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "parisbaguette.com"
+   ],
+   "CA": [
+    "parisbaguette.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://parisbaguette.com/wp-content/uploads/2026/09/2026-Fall-Nutrition-Chart-US.pdf",
+   "CA": null
+  }
+ },
+ {
+  "id": "kung-fu-tea",
+  "name": "Kung Fu Tea",
+  "aliases": [
+   "kft",
+   "kung fu tea",
+   "kungfu tea",
+   "kungfutea"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "kungfutea.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.kungfutea.com/nutrition/"
+  }
+ },
+ {
+  "id": "gong-cha",
+  "name": "Gong cha",
+  "aliases": [
+   "gong cha",
+   "gong cha bubble tea",
+   "gongcha"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "gong-cha-usa.com",
+    "gong-cha.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "chatime",
+  "name": "Chatime",
+  "aliases": [
+   "cha time",
+   "chatime",
+   "chatime bubble tea"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [],
+   "CA": [
+    "chatime.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "dairy-queen-orange-julius",
+  "name": "Orange Julius",
+  "aliases": [
+   "oj smoothie",
+   "orange julius",
+   "orangejulius"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [
+    "orangejulius.com"
+   ],
+   "CA": [
+    "orangejulius.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "pret",
+  "name": "Pret A Manger",
+  "aliases": [
+   "pret",
+   "pret a manger",
+   "pretamanger"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "pret.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "taco-cabana",
+  "name": "Taco Cabana",
+  "aliases": [
+   "taco cabana",
+   "taco cabanna",
+   "tacocabana"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "tacocabana.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.tacocabana.com/wp-content/uploads/2025/01/TacoCabana_NutritionalGuide_Jan_2025_R2_LR_M.pdf"
+  }
+ },
+ {
+  "id": "tous-les-jours",
+  "name": "Tous les Jours",
+  "aliases": [
+   "tlj",
+   "tous les jours",
+   "tous les jours bakery",
+   "touslesjours"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "tljus.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "a-and-w-canada",
+  "name": "A&W Canada",
+  "aliases": [
+   "a & w",
+   "a and w",
+   "a&w",
+   "a&w burger",
+   "a&w canada",
+   "aw",
+   "awcanada",
+   "teen burger"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "aw.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://web.aw.ca/en/nutrition"
+  }
+ },
+ {
+  "id": "a-and-w-us",
+  "name": "A&W Restaurants (US)",
+  "aliases": [
+   "a & w",
+   "a and w",
+   "a&w",
+   "a&w restaurants (us)",
+   "a&w restaurants us",
+   "aw root beer",
+   "awrestaurantsus"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "awrestaurants.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://awrestaurants.com/nutrition/"
+  }
+ },
+ {
+  "id": "harveys",
+  "name": "Harvey's",
+  "aliases": [
+   "harvey",
+   "harvey's",
+   "harvey's burger",
+   "harveys"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "harveys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "mary-browns",
+  "name": "Mary Brown's Chicken",
+  "aliases": [
+   "big mary",
+   "mary b's",
+   "mary brown",
+   "mary brown's chicken",
+   "mary browns",
+   "mary browns chicken",
+   "marybrowns",
+   "marybrownschicken"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "CA": [
+    "marybrowns.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "pizza-pizza",
+  "name": "Pizza Pizza",
+  "aliases": [
+   "pizza pizza",
+   "pizza pizza 967",
+   "pizzapizza",
+   "pp pizza"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "pizzapizza.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.pizzapizza.ca/about-us/nutrition/"
+  }
+ },
+ {
+  "id": "pizza-nova",
+  "name": "Pizza Nova",
+  "aliases": [
+   "pizza nova",
+   "pizzanova"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "pizzanova.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.pizzanova.com/nutrition"
+  }
+ },
+ {
+  "id": "pizza-73",
+  "name": "Pizza 73",
+  "aliases": [
+   "pizza 73",
+   "pizza73"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "pizza73.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "panago",
+  "name": "Panago Pizza",
+  "aliases": [
+   "panago",
+   "panago pizza",
+   "panagopizza"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "panago.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.panago.com/nutrition"
+  }
+ },
+ {
+  "id": "241-pizza",
+  "name": "241 Pizza",
+  "aliases": [
+   "241",
+   "241 pizza",
+   "241pizza",
+   "two for one pizza"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "241pizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "toppers-pizza",
+  "name": "Topper's Pizza",
+  "aliases": [
+   "topper's",
+   "topper's pizza",
+   "toppers",
+   "toppers pizza",
+   "topperspizza"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "toppers.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "pizza-delight",
+  "name": "Pizza Delight",
+  "aliases": [
+   "pizza delight",
+   "pizza delite",
+   "pizzadelight"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "pizzadelight.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://pizza-delight-cdn.s3.ca-central-1.amazonaws.com/NUTRITIONALS/2025/PD26_Nutritionals_08-26_EN.pdf"
+  }
+ },
+ {
+  "id": "greco-pizza",
+  "name": "Greco Pizza",
+  "aliases": [
+   "greco",
+   "greco pizza",
+   "grecopizza",
+   "grecos"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "greco.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://greco.ca/nutrition-guide/"
+  }
+ },
+ {
+  "id": "freshslice",
+  "name": "Freshslice Pizza",
+  "aliases": [
+   "fresh slice",
+   "freshslice",
+   "freshslice pizza",
+   "freshslicepizza"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "freshslice.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://freshslice.com/nutritional-info/"
+  }
+ },
+ {
+  "id": "gino-pizza",
+  "name": "Gino's Pizza",
+  "aliases": [
+   "gino's",
+   "gino's pizza",
+   "ginos",
+   "ginos pizza",
+   "ginospizza"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "ginospizza.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "boston-pizza",
+  "name": "Boston Pizza",
+  "aliases": [
+   "boston pizza",
+   "boston pizzas",
+   "bostonpizza",
+   "bostons",
+   "bp"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "bostons.com"
+   ],
+   "CA": [
+    "bostonpizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://bostons.imgix.net/Menu/Nutritional_Info/2026_Allergy_and_Nutrition_Guide_-_June_2026_Final_(1).pdf",
+   "CA": "https://bostonpizza.com/en/nutritional-information.html"
+  }
+ },
+ {
+  "id": "swiss-chalet",
+  "name": "Swiss Chalet",
+  "aliases": [
+   "chalet",
+   "chalet sauce",
+   "swiss chalet",
+   "swiss chalet chicken",
+   "swisschalet"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "swisschalet.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "st-hubert",
+  "name": "St-Hubert",
+  "aliases": [
+   "saint hubert",
+   "st hubert",
+   "st hubert bbq",
+   "st-hubert",
+   "sthubert"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "st-hubert.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "booster-juice",
+  "name": "Booster Juice",
+  "aliases": [
+   "booster",
+   "booster juice",
+   "booster juice smoothie",
+   "boosterjuice"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "US": [],
+   "CA": [
+    "boosterjuice.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "jugo-juice",
+  "name": "Jugo Juice",
+  "aliases": [
+   "jugo",
+   "jugo juice",
+   "jugojuice"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "smoothie",
+  "officialDomains": {
+   "CA": [
+    "jugojuice.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://jugojuice.com/wp-content/uploads/2023/06/jj22_nat_003_nutrition-guide_en_apr21-v4.pdf"
+  }
+ },
+ {
+  "id": "second-cup",
+  "name": "Second Cup",
+  "aliases": [
+   "2nd cup",
+   "second cup",
+   "second cup coffee",
+   "secondcup"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "secondcup.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "coffee-culture",
+  "name": "Coffee Culture",
+  "aliases": [
+   "coffee culture",
+   "coffee culture cafe",
+   "coffeeculture"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "coffeeculturecafe.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://coffeeculturecafe.com/wp-content/uploads/2024/07/CC_Nutritionals_0724.pdf"
+  }
+ },
+ {
+  "id": "country-style",
+  "name": "Country Style",
+  "aliases": [
+   "country style",
+   "country style donuts",
+   "countrystyle"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "CA": [
+    "countrystyle.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://countrystyle.com/wp-content/uploads/2024/02/CS-NUTRITIONALS_2022.pdf"
+  }
+ },
+ {
+  "id": "coffee-time",
+  "name": "Coffee Time",
+  "aliases": [
+   "coffee time",
+   "coffee time donuts",
+   "coffeetime"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "coffeetime.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "robins-donuts",
+  "name": "Robin's Donuts",
+  "aliases": [
+   "robin's",
+   "robin's donuts",
+   "robins",
+   "robins donuts",
+   "robinsdonuts"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "CA": [
+    "robinsdonuts.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "blenz",
+  "name": "Blenz Coffee",
+  "aliases": [
+   "blenz",
+   "blenz coffee",
+   "blenzcoffee"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "blenz.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "waves-coffee",
+  "name": "Waves Coffee House",
+  "aliases": [
+   "waves",
+   "waves coffee",
+   "waves coffee house",
+   "wavescoffeehouse"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "wavescoffee.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "good-earth",
+  "name": "Good Earth Coffeehouse",
+  "aliases": [
+   "good earth",
+   "good earth coffee",
+   "good earth coffeehouse",
+   "goodearthcoffeehouse"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "goodearthcoffeehouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "balzacs",
+  "name": "Balzac's Coffee",
+  "aliases": [
+   "balzac's",
+   "balzac's coffee",
+   "balzacs",
+   "balzacs coffee",
+   "balzacscoffee"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "balzacs.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "mr-sub",
+  "name": "Mr. Sub",
+  "aliases": [
+   "mister sub",
+   "mr sub",
+   "mr. sub",
+   "mrsub"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "CA": [
+    "mrsub.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://mrsub.ca/nutritional/"
+  }
+ },
+ {
+  "id": "mucho-burrito",
+  "name": "Mucho Burrito",
+  "aliases": [
+   "mucho",
+   "mucho burrito",
+   "mucho burritos",
+   "muchoburrito"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [],
+   "CA": [
+    "muchoburrito.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": "https://muchoburrito.com/nutrition/"
+  }
+ },
+ {
+  "id": "quesada",
+  "name": "Quesada Burritos & Tacos",
+  "aliases": [
+   "quesada burritos",
+   "quesada burritos & tacos",
+   "quesadaburritostacos",
+   "quesadas"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "CA": [
+    "quesada.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://quesada.ca/nutrition-packed-powerhouses/"
+  }
+ },
+ {
+  "id": "barburrito",
+  "name": "Barburrito",
+  "aliases": [
+   "bar burrito",
+   "barburito",
+   "barburrito"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "CA": [
+    "barburrito.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.barburrito.ca/nutrition-information/"
+  }
+ },
+ {
+  "id": "osmows",
+  "name": "Osmow's Shawarma",
+  "aliases": [
+   "osmow",
+   "osmow's",
+   "osmow's shawarma",
+   "osmows",
+   "osmows shawarma",
+   "osmowsshawarma"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "osmows.com"
+   ],
+   "CA": [
+    "osmows.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://osmows.com/nutrition-calculator",
+   "CA": "https://osmows.com/nutrition-calculator"
+  }
+ },
+ {
+  "id": "thai-express",
+  "name": "Thai Express",
+  "aliases": [
+   "thai express",
+   "thai xpress",
+   "thaiexpress"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "thaiexpress.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://thaiexpress.ca/nutritional-facts/"
+  }
+ },
+ {
+  "id": "burger-priest",
+  "name": "The Burger's Priest",
+  "aliases": [
+   "burger priest",
+   "burgers priest",
+   "the burger priest",
+   "the burger's priest",
+   "the burgers priest",
+   "theburgerspriest"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "theburgerspriest.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "chucks-roadhouse",
+  "name": "Chuck's Roadhouse Bar & Grill",
+  "aliases": [
+   "chuck's",
+   "chuck's roadhouse bar & grill",
+   "chucks",
+   "chucks roadhouse",
+   "chucks roadhouse bar & grill",
+   "chucksroadhousebargrill"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "chucksroadhouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://chucksroadhouse.com/wp-content/uploads/2026/10/CRH_Nutritionals_10062026.pdf"
+  }
+ },
+ {
+  "id": "montanas",
+  "name": "Montana's BBQ & Bar",
+  "aliases": [
+   "montana's",
+   "montana's bbq & bar",
+   "montanas",
+   "montanas bbq",
+   "montanas bbq & bar",
+   "montanasbbqbar"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "montanas.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "kelseys",
+  "name": "Kelseys Original Roadhouse",
+  "aliases": [
+   "kelsey's",
+   "kelseys",
+   "kelseys original roadhouse",
+   "kelseysoriginalroadhouse",
+   "kelsys"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "kelseys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "the-keg",
+  "name": "The Keg Steakhouse + Bar",
+  "aliases": [
+   "keg",
+   "keg steakhouse",
+   "the keg",
+   "the keg steakhouse + bar",
+   "the keg steakhouse bar",
+   "thekegsteakhousebar"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "thekeg.com"
+   ],
+   "CA": [
+    "thekeg.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.thekeg.com/en/nutrition-and-allergen-information",
+   "CA": "https://www.thekeg.com/en/nutrition-and-allergen-information"
+  }
+ },
+ {
+  "id": "east-side-marios",
+  "name": "East Side Mario's",
+  "aliases": [
+   "east side mario's",
+   "east side marios",
+   "eastside marios",
+   "eastsidemarios",
+   "esm"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "eastsidemarios.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "cactus-club",
+  "name": "Cactus Club Cafe",
+  "aliases": [
+   "cactus",
+   "cactus club",
+   "cactus club cafe",
+   "cactusclubcafe"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "cactusclubcafe.com"
+   ],
+   "CA": [
+    "cactusclubcafe.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "earls",
+  "name": "Earls Kitchen + Bar",
+  "aliases": [
+   "earl's",
+   "earls",
+   "earls kitchen + bar",
+   "earls kitchen bar",
+   "earls restaurant",
+   "earlskitchenbar"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "earls.ca"
+   ],
+   "CA": [
+    "earls.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "joey",
+  "name": "JOEY Restaurants",
+  "aliases": [
+   "joey",
+   "joey restaurant",
+   "joey restaurants",
+   "joeyrestaurants",
+   "joeys"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "joeyrestaurants.com"
+   ],
+   "CA": [
+    "joeyrestaurants.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "milestones",
+  "name": "Milestones Grill + Bar",
+  "aliases": [
+   "milestone",
+   "milestones",
+   "milestones grill + bar",
+   "milestones grill bar",
+   "milestonesgrillbar"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "milestonesrestaurants.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "white-spot",
+  "name": "White Spot",
+  "aliases": [
+   "white spot",
+   "white spot legendary burger",
+   "whitespot"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "whitespot.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "triple-os",
+  "name": "Triple O's",
+  "aliases": [
+   "triple o",
+   "triple o's",
+   "triple o's burger",
+   "triple os",
+   "tripleos"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "tripleos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "big-smoke-burger",
+  "name": "Big Smoke Burger",
+  "aliases": [
+   "big smoke",
+   "big smoke burger",
+   "bigsmoke",
+   "bigsmokeburger"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "bigsmokeburger.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://bigsmokeburger.com/wp-content/uploads/2025/06/BSBNutritionalsBC2025FINAL.pdf"
+  }
+ },
+ {
+  "id": "fatburger",
+  "name": "Fatburger",
+  "aliases": [
+   "fat burger",
+   "fatburger",
+   "fatburgers"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "fatburger.com"
+   ],
+   "CA": [
+    "fatburgercanada.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://fatburger.com/wp-content/uploads/sites/6/2022/12/Nutrition.pdf",
+   "CA": null
+  }
+ },
+ {
+  "id": "new-york-fries",
+  "name": "New York Fries",
+  "aliases": [
+   "new york fries",
+   "new york fry",
+   "newyorkfries",
+   "ny fries",
+   "nyf"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "newyorkfries.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "smokes-poutinerie",
+  "name": "Smoke's Poutinerie",
+  "aliases": [
+   "smoke's poutine",
+   "smoke's poutinerie",
+   "smokes",
+   "smokes poutinerie",
+   "smokespoutinerie"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "smokespoutinerie.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "sushi-shop",
+  "name": "Sushi Shop",
+  "aliases": [
+   "sushi shop",
+   "sushi shop canada",
+   "sushishop"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "sushishop.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "ben-and-florentine",
+  "name": "Ben & Florentine",
+  "aliases": [
+   "ben & flo",
+   "ben & florentine",
+   "ben and florentine",
+   "benflorentine"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "benetflorentine.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://benetflorentine.com/wp-content/uploads/2026/04/Valeurs_nutritives_Allergenes_BILINGUE_2026.pdf"
+  }
+ },
+ {
+  "id": "cora",
+  "name": "Cora Breakfast and Lunch",
+  "aliases": [
+   "chez cora",
+   "cora",
+   "cora breakfast and lunch",
+   "cora's",
+   "corabreakfastandlunch"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "chezcora.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.chezcora.com/wp-content/uploads/2026/10/ValeurNutritive_FRA_OCT26.pdf"
+  }
+ },
+ {
+  "id": "eggsmart",
+  "name": "Eggsmart",
+  "aliases": [
+   "egg smart",
+   "eggsmart"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "eggsmart.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "smittys",
+  "name": "Smitty's",
+  "aliases": [
+   "smitty's",
+   "smittys"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "smittys.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "rickys",
+  "name": "Ricky's All Day Grill",
+  "aliases": [
+   "ricky's",
+   "ricky's all day grill",
+   "rickys",
+   "rickys all day grill",
+   "rickysalldaygrill"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "rickysrestaurants.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "original-joes",
+  "name": "Original Joe's",
+  "aliases": [
+   "oj's",
+   "original joe",
+   "original joe's",
+   "original joes",
+   "originaljoes"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "originaljoes.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "state-and-main",
+  "name": "State & Main Kitchen + Bar",
+  "aliases": [
+   "state & main kitchen + bar",
+   "state & main kitchen bar",
+   "state and main",
+   "statemainkitchenbar"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "stateandmain.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "moxies",
+  "name": "Moxies",
+  "aliases": [
+   "moxie's",
+   "moxies",
+   "moxies grill"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "moxies.com"
+   ],
+   "CA": [
+    "moxies.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "browns-socialhouse",
+  "name": "Browns Socialhouse",
+  "aliases": [
+   "brown's socialhouse",
+   "browns",
+   "browns socialhouse",
+   "brownssocialhouse"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "brownssocialhouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://static1.squarespace.com/static/638a8838854a8c585e1b4594/t/6a05e4e4e1095f572995cfba/1778771172267/BSH+Nutritional+Allergen+Guide+-+May+2026.pdf"
+  }
+ },
+ {
+  "id": "old-spaghetti-factory",
+  "name": "The Old Spaghetti Factory",
+  "aliases": [
+   "old spaghetti factory",
+   "osf",
+   "the old spaghetti factory",
+   "theoldspaghettifactory"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "osf.com"
+   ],
+   "CA": [
+    "oldspaghettifactory.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.osf.com/about/nutrition/",
+   "CA": null
+  }
+ },
+ {
+  "id": "jack-astors",
+  "name": "Jack Astor's Bar & Grill",
+  "aliases": [
+   "jack astor's",
+   "jack astor's bar & grill",
+   "jack astors",
+   "jack astors bar & grill",
+   "jackastorsbargrill"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "jackastors.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "shoeless-joes",
+  "name": "Shoeless Joe's Sports Grill",
+  "aliases": [
+   "shoeless joe's sports grill",
+   "shoeless joes",
+   "shoeless joes sports grill",
+   "shoelessjoessportsgrill"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "shoelessjoes.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://shoelessjoes.ca/wp-content/uploads/2026/08/2026-SJ-Nutritionals-1-1.pdf"
+  }
+ },
+ {
+  "id": "wild-wing",
+  "name": "Wild Wing",
+  "aliases": [
+   "wild wing",
+   "wildwing"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "wildwingrestaurants.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "st-louis-bar-grill",
+  "name": "St. Louis Bar & Grill",
+  "aliases": [
+   "st louis bar & grill",
+   "st louis bar and grill",
+   "st louis wings",
+   "st. louis",
+   "st. louis bar & grill",
+   "stlouisbargrill"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "stlouiswings.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "valentine",
+  "name": "Valentine",
+  "aliases": [
+   "valentine",
+   "valentine restaurant"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "valentine.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://valentine.ca/wp-content/uploads/2023/11/Information-nutritionnelles_FR.pdf"
+  }
+ },
+ {
+  "id": "copper-branch",
+  "name": "Copper Branch",
+  "aliases": [
+   "copper branch",
+   "copperbranch"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "copperbranch.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "edo-japan",
+  "name": "Edo Japan",
+  "aliases": [
+   "edo",
+   "edo japan",
+   "edo japan teriyaki",
+   "edojapan"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "edojapan.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "opa",
+  "name": "OPA! Souvlaki",
+  "aliases": [
+   "opa",
+   "opa of greece",
+   "opa souvlaki",
+   "opa! souvlaki",
+   "opasouvlaki"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "opaofgreece.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://opaofgreece.com/nutrition-guidelines"
+  }
+ },
+ {
+  "id": "teriyaki-experience",
+  "name": "Teriyaki Experience",
+  "aliases": [
+   "teriyaki exp",
+   "teriyaki experience",
+   "teriyakiexperience"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "teriyakiexperience.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "manchu-wok",
+  "name": "Manchu Wok",
+  "aliases": [
+   "manchu wok",
+   "manchuwok"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "manchuwok.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://manchuwok.com/wp-content/uploads/2026/04/WOK-BRNDN-NUTRITIONALS-1291371539-ENG-2-1.pdf"
+  }
+ },
+ {
+  "id": "paramount-fine-foods",
+  "name": "Paramount Fine Foods",
+  "aliases": [
+   "paramount",
+   "paramount fine food",
+   "paramount fine foods",
+   "paramountfinefoods"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "paramountfinefoods.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "yogen-fruz",
+  "name": "Yogen Früz",
+  "aliases": [
+   "yogen fruz",
+   "yogen früz",
+   "yogenfruz"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "CA": [
+    "yogenfruz.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "cobs-bread",
+  "name": "COBS Bread",
+  "aliases": [
+   "cobs",
+   "cobs bakery",
+   "cobs bread",
+   "cobsbread"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "cobsbread.com"
+   ],
+   "CA": [
+    "cobsbread.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "hero-burgers",
+  "name": "Hero Certified Burgers",
+  "aliases": [
+   "hero burger",
+   "hero burgers",
+   "hero certified burgers",
+   "herocertifiedburgers"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "CA": [
+    "heroburgers.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "kernels",
+  "name": "Kernels Popcorn",
+  "aliases": [
+   "kernels",
+   "kernels popcorn",
+   "kernelspopcorn"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "kernelspopcorn.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "pickle-barrel",
+  "name": "Pickle Barrel",
+  "aliases": [
+   "pickle barrel",
+   "pickle barrel restaurant",
+   "picklebarrel"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "picklebarrel.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.picklebarrel.ca/en/nutrition.html"
+  }
+ },
+ {
+  "id": "sunset-grill",
+  "name": "Sunset Grill",
+  "aliases": [
+   "sunset grill",
+   "sunsetgrill"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "sunsetgrill.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "humptys",
+  "name": "Humpty's Restaurants",
+  "aliases": [
+   "humpty's",
+   "humpty's restaurants",
+   "humptys",
+   "humptys restaurants",
+   "humptysrestaurants"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "humptys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "mr-mikes",
+  "name": "Mr Mikes Steakhouse Casual",
+  "aliases": [
+   "mr mikes",
+   "mr mikes steakhouse casual",
+   "mr. mikes",
+   "mrmikessteakhousecasual"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "mrmikes.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "baton-rouge",
+  "name": "Bâton Rouge Steakhouse & Bar",
+  "aliases": [
+   "baton rouge",
+   "baton rouge steakhouse & bar",
+   "batonrougesteakhousebar",
+   "bâton rouge steakhouse & bar"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "batonrouge.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "scores",
+  "name": "Scores Rôtisserie",
+  "aliases": [
+   "scores",
+   "scores rotisserie",
+   "scores rôtisserie",
+   "scoresrotisserie"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "scores.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://www.scores.ca/wp-content/uploads/2025/08/Nutritional-Values-SCORES-2025.pdf"
+  }
+ },
+ {
+  "id": "normandin",
+  "name": "Normandin",
+  "aliases": [
+   "normandin",
+   "restaurant normandin"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "restaurantnormandin.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://restaurantnormandin.com/valeurs-nutritionnelles/"
+  }
+ },
+ {
+  "id": "mandarin",
+  "name": "Mandarin Restaurant",
+  "aliases": [
+   "mandarin buffet",
+   "mandarin restaurant",
+   "mandarinrestaurant"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "mandarinrestaurant.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "beavertails",
+  "name": "BeaverTails",
+  "aliases": [
+   "beaver tails",
+   "beavertail",
+   "beavertails",
+   "queues de castor"
+  ],
+  "countries": [
+   "CA",
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "beavertails.com"
+   ],
+   "CA": [
+    "beavertails.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "pur-and-simple",
+  "name": "Pür & Simple",
+  "aliases": [
+   "pur & simple",
+   "pur and simple",
+   "pursimple",
+   "pür & simple"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "pursimple.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://pursimple.com/wp-content/uploads/2026/08/EN_NUTRITION-GUIDE_FALL-LTO-2026-1.pdf"
+  }
+ },
+ {
+  "id": "fionn-maccools",
+  "name": "Fionn MacCool's",
+  "aliases": [
+   "fionn maccool's",
+   "fionn maccools",
+   "fionnmaccools"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "CA": [
+    "fionnmaccools.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://fionnmaccools.com/wp-content/uploads/2026/06/Fionns-Pubs-Nutritionals-June-2026.pdf"
+  }
+ },
+ {
+  "id": "extreme-pita",
+  "name": "Extreme Pita",
+  "aliases": [
+   "extreme pita",
+   "extremepita"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "CA": [
+    "extremepita.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "villa-madina",
+  "name": "Villa Madina",
+  "aliases": [
+   "villa madina",
+   "villamadina"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "CA": [
+    "villamadina.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "human-bean",
+  "name": "The Human Bean",
+  "aliases": [
+   "human bean",
+   "the human bean",
+   "thehumanbean"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "thehumanbean.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "pjs-coffee",
+  "name": "PJ's Coffee of New Orleans",
+  "aliases": [
+   "pj's",
+   "pj's coffee of new orleans",
+   "pjs coffee",
+   "pjs coffee of new orleans",
+   "pjscoffeeofneworleans"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "pjscoffee.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pjscoffee.com/nutrition/"
+  }
+ },
+ {
+  "id": "aroma-joes",
+  "name": "Aroma Joe's",
+  "aliases": [
+   "aroma joe's",
+   "aroma joes",
+   "aromajoes"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "aromajoes.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "black-rock-coffee",
+  "name": "Black Rock Coffee Bar",
+  "aliases": [
+   "black rock",
+   "black rock coffee",
+   "black rock coffee bar",
+   "blackrockcoffeebar",
+   "brcb"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "US": [
+    "br.coffee"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.br.coffee/nutrition"
+  }
+ },
+ {
+  "id": "bahama-bucks",
+  "name": "Bahama Buck's",
+  "aliases": [
+   "bahama buck's",
+   "bahama bucks",
+   "bahamabucks",
+   "bahamas bucks"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "bahamabucks.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://bahamabucks.com/wp-content/uploads/2025/04/2025-Nutritional-Guide-Allergens.pdf.pdf"
+  }
+ },
+ {
+  "id": "jacks",
+  "name": "Jack's Family Restaurants",
+  "aliases": [
+   "jack's",
+   "jack's family restaurants",
+   "jacks",
+   "jacks family restaurants",
+   "jacksfamilyrestaurants"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "eatatjacks.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "lees-famous-recipe",
+  "name": "Lee's Famous Recipe Chicken",
+  "aliases": [
+   "lee's chicken",
+   "lee's famous recipe chicken",
+   "lees",
+   "lees famous recipe",
+   "lees famous recipe chicken",
+   "leesfamousrecipechicken"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "leesfamousrecipe.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://leesfamousrecipe.com/nutrition-and-allergen/"
+  }
+ },
+ {
+  "id": "golden-krust",
+  "name": "Golden Krust Caribbean Restaurant",
+  "aliases": [
+   "golden crust",
+   "golden krust",
+   "golden krust caribbean restaurant",
+   "goldenkrustcaribbeanrestaurant",
+   "jamaican patty"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "goldenkrust.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "bubbakoos",
+  "name": "Bubbakoo's Burritos",
+  "aliases": [
+   "bubbakoo's",
+   "bubbakoo's burritos",
+   "bubbakoos",
+   "bubbakoos burritos",
+   "bubbakoosburritos"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "bubbakoos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://restaurant.nutritionix.com/bubbakoos-burritos/landing"
+  }
+ },
+ {
+  "id": "taco-bueno",
+  "name": "Taco Bueno",
+  "aliases": [
+   "taco bueno",
+   "tacobueno"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "tacobueno.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "cousins-subs",
+  "name": "Cousins Subs",
+  "aliases": [
+   "cousins",
+   "cousins sub",
+   "cousins subs",
+   "cousinssubs"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "cousinssubs.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.cousinssubs.com/api/media/file/Nutritional-Information-2026-05-21.pdf"
+  }
+ },
+ {
+  "id": "millers-ale-house",
+  "name": "Miller's Ale House",
+  "aliases": [
+   "ale house",
+   "miller's ale house",
+   "millers",
+   "millers ale house",
+   "millersalehouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "millersalehouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://millersalehouse.com/wp-content/uploads/2026/06/062526-Nutritional-Guide-Updates.pdf"
+  }
+ },
+ {
+  "id": "yard-house",
+  "name": "Yard House",
+  "aliases": [
+   "yard house",
+   "yardhouse"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "yardhouse.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "huey-magoos",
+  "name": "Huey Magoo's",
+  "aliases": [
+   "huey magoo's",
+   "huey magoos",
+   "hueymagoos"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "hueymagoos.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://hueymagoos.com/nutritional-allergen-information/"
+  }
+ },
+ {
+  "id": "dippin-dots",
+  "name": "Dippin' Dots",
+  "aliases": [
+   "dippin dots",
+   "dippin' dots",
+   "dippindots",
+   "dipping dots"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "dippindots.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "chicken-salad-chick",
+  "name": "Chicken Salad Chick",
+  "aliases": [
+   "chicken salad chick",
+   "chicken salad chik",
+   "chickensaladchick",
+   "csc"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "chickensaladchick.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.chickensaladchick.com/nutrition/"
+  }
+ },
+ {
+  "id": "newks",
+  "name": "Newk's Eatery",
+  "aliases": [
+   "newk's",
+   "newk's eatery",
+   "newks",
+   "newks eatery",
+   "newkseatery"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "sandwich",
+  "officialDomains": {
+   "US": [
+    "newks.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "famous-daves",
+  "name": "Famous Dave's",
+  "aliases": [
+   "famous dave's",
+   "famous dave's bbq",
+   "famous daves",
+   "famousdaves"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "famousdaves.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.famousdaves.com/NutritionInfo"
+  }
+ },
+ {
+  "id": "pizza-inn",
+  "name": "Pizza Inn",
+  "aliases": [
+   "pizza inn",
+   "pizzainn"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "pizzainn.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pizzainn.com/nutrition/"
+  }
+ },
+ {
+  "id": "caseys",
+  "name": "Casey's",
+  "aliases": [
+   "casey's",
+   "casey's general store",
+   "caseys",
+   "caseys pizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "caseys.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "krispy-krunchy",
+  "name": "Krispy Krunchy Chicken",
+  "aliases": [
+   "kkc",
+   "krispy crunchy chicken",
+   "krispy krunchy",
+   "krispy krunchy chicken",
+   "krispykrunchychicken"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "US": [
+    "krispykrunchy.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.krispykrunchy.com/nutritional-information/"
+  }
+ },
+ {
+  "id": "hunt-brothers",
+  "name": "Hunt Brothers Pizza",
+  "aliases": [
+   "hunt bros pizza",
+   "hunt brothers",
+   "hunt brothers pizza",
+   "huntbrotherspizza"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "US": [
+    "huntbrotherspizza.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "taco-time",
+  "name": "TacoTime",
+  "aliases": [
+   "taco time",
+   "tacotime"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "mexican",
+  "officialDomains": {
+   "US": [
+    "tacotime.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": null,
+   "CA": null
+  }
+ },
+ {
+  "id": "carvel",
+  "name": "Carvel",
+  "aliases": [
+   "carvel",
+   "carvel ice cream"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "carvel.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://assets.ctfassets.net/zqt8tllj2cy0/2cU5RhQPX5uzPQ34aU9wQI/38c7527c910f4066fc1d29ad3d50e67d/Nutritional_Book_for_Shoppes_-_Full_-_Next_Gen_-_W3A_-_W3B.pdf"
+  }
+ },
+ {
+  "id": "tcby",
+  "name": "TCBY",
+  "aliases": [
+   "t.c.b.y.",
+   "tcby",
+   "tcby yogurt"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "tcby.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.tcby.com/menu-nutrition/"
+  }
+ },
+ {
+  "id": "great-american-cookies",
+  "name": "Great American Cookies",
+  "aliases": [
+   "gac cookie cake",
+   "great american cookie",
+   "great american cookies",
+   "greatamericancookies"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "dessert",
+  "officialDomains": {
+   "US": [
+    "greatamericancookies.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.greatamericancookies.com/wp-content/uploads/sites/2/2026/06/GAC-Allergen_Ingred_Nutri_6.15.26.pdf"
+  }
+ },
+ {
+  "id": "pretzelmaker",
+  "name": "Pretzelmaker",
+  "aliases": [
+   "pretzel maker",
+   "pretzelmaker"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "bakery-donut",
+  "officialDomains": {
+   "US": [
+    "pretzelmaker.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.pretzelmaker.com/wp-content/uploads/sites/3/2023/09/022PMC_NutritionalInfoChart_0823-3.pdf"
+  }
+ },
+ {
+  "id": "nathans",
+  "name": "Nathan's Famous",
+  "aliases": [
+   "nathan's famous",
+   "nathan's hot dogs",
+   "nathans",
+   "nathans famous",
+   "nathansfamous"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "other",
+  "officialDomains": {
+   "US": [
+    "nathansfamous.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "bonchon",
+  "name": "Bonchon",
+  "aliases": [
+   "bon chon",
+   "bonchon",
+   "bonchon chicken"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "bonchon.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.bonchon.com/downloads/nutritional-information"
+  }
+ },
+ {
+  "id": "waba-grill",
+  "name": "WaBa Grill",
+  "aliases": [
+   "waba",
+   "waba grill",
+   "waba grill bowl",
+   "wabagrill"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "wabagrill.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://www.wabagrill.com/nutritional-guide"
+  }
+ },
+ {
+  "id": "flame-broiler",
+  "name": "The Flame Broiler",
+  "aliases": [
+   "flame broiler",
+   "the flame broiler",
+   "theflamebroiler"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "flamebroilerusa.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "benihana",
+  "name": "Benihana",
+  "aliases": [
+   "benihana",
+   "benihana hibachi"
+  ],
+  "countries": [
+   "US",
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "US": [
+    "benihana.com"
+   ],
+   "CA": []
+  },
+  "nutritionUrl": {
+   "US": "https://www.benihana.com/benihana-nutritional-information/",
+   "CA": null
+  }
+ },
+ {
+  "id": "another-broken-egg",
+  "name": "Another Broken Egg Cafe",
+  "aliases": [
+   "abe cafe",
+   "another broken egg",
+   "another broken egg cafe",
+   "anotherbrokeneggcafe"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "casual-dining",
+  "officialDomains": {
+   "US": [
+    "anotherbrokenegg.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": "https://abecms.azurewebsites.net/media/puhj0chk/web-based-nutritional-info-summer-2026-41526.pdf"
+  }
+ },
+ {
+  "id": "mooyah",
+  "name": "MOOYAH Burgers, Fries & Shakes",
+  "aliases": [
+   "moo yah",
+   "mooyah",
+   "mooyah burgers fries & shakes",
+   "mooyah burgers, fries & shakes",
+   "mooyahburgersfriesshakes"
+  ],
+  "countries": [
+   "US"
+  ],
+  "category": "qsr-burger",
+  "officialDomains": {
+   "US": [
+    "mooyah.com"
+   ]
+  },
+  "nutritionUrl": {
+   "US": null
+  }
+ },
+ {
+  "id": "williams-fresh-cafe",
+  "name": "Williams Fresh Cafe",
+  "aliases": [
+   "williams cafe",
+   "williams coffee pub",
+   "williams fresh cafe",
+   "williamsfreshcafe"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "coffee",
+  "officialDomains": {
+   "CA": [
+    "williamsfreshcafe.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": "https://williamsfreshcafe.com/nutrition-information/"
+  }
+ },
+ {
+  "id": "benny-and-co",
+  "name": "Benny&Co.",
+  "aliases": [
+   "benny & co",
+   "benny and co",
+   "benny co",
+   "benny&co",
+   "benny&co.",
+   "bennyco"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "qsr-chicken",
+  "officialDomains": {
+   "CA": [
+    "benny-co.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "pizza-salvatore",
+  "name": "Pizza Salvatoré",
+  "aliases": [
+   "pizza salvatore",
+   "pizza salvatoré",
+   "pizzasalvatore",
+   "salvatore"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "pizzasalvatore.com"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "wok-box",
+  "name": "Wok Box",
+  "aliases": [
+   "wok box",
+   "wokbox"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "asian",
+  "officialDomains": {
+   "CA": [
+    "wokbox.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ },
+ {
+  "id": "famoso",
+  "name": "Famoso Neapolitan Pizzeria",
+  "aliases": [
+   "famoso neapolitan pizzeria",
+   "famoso pizza",
+   "famosoneapolitanpizzeria"
+  ],
+  "countries": [
+   "CA"
+  ],
+  "category": "pizza",
+  "officialDomains": {
+   "CA": [
+    "famoso.ca"
+   ]
+  },
+  "nutritionUrl": {
+   "CA": null
+  }
+ }
+]

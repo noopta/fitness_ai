@@ -99,15 +99,13 @@ export function _setChainDataForTests(r: ChainEntry[] | null, m: ChainMenu[] | n
 }
 
 /** The registry entry a typed brand refers to ("Tims", "Starbucks Coffee", "McDonald's"). */
-export function findChain(brand: string): ChainEntry | null {
+export function findChain(brand: string, country?: string): ChainEntry | null {
   const b = norm(brand).replace(/\b(restaurant|restaurants|canada|usa|inc|co)\b/g, '').replace(/\s+/g, ' ').trim();
   if (!b) return null;
   const squash = (s: string) => norm(s).replace(/ /g, '');
-  for (const c of loadRegistry()) {
-    const names = [c.name, c.id.replace(/-/g, ' '), ...(c.aliases ?? [])];
-    if (names.some((n) => norm(n) === b || squash(n) === b.replace(/ /g, ''))) return c;
-  }
-  return null;
+  const hits = loadRegistry().filter((c) => [c.name, c.id.replace(/-/g, ' '), ...(c.aliases ?? [])].some((n) => norm(n) === b || squash(n) === b.replace(/ /g, '')));
+  // Same name, different companies (A&W Canada vs A&W US): the one in the user's country.
+  return (country ? hits.find((c) => c.countries?.includes(country)) : null) ?? hits[0] ?? null;
 }
 
 /** Official domains for a chain in a country (falls back to every country's). */
@@ -275,7 +273,7 @@ export function lookupChainMenu(
   order: { brand: string; product: string; size: string | null; modifiers?: string[] },
   country: string,
 ): ChainMatch | null {
-  const chain = findChain(order.brand);
+  const chain = findChain(order.brand, country);
   if (!chain) return null;
   const found = menuFor(chain, country);
   if (!found) return null;

@@ -13,6 +13,8 @@ import { recordOverride, findOverride, singleLookedUpItem, _resetOverridesForTes
 
 const REGISTRY = [
   { id: 'starbucks', name: 'Starbucks', aliases: ['sbux', 'starbucks coffee'], countries: ['US', 'CA'], officialDomains: { US: ['starbucks.com'], CA: ['starbucks.ca'] } },
+  { id: 'a-and-w-canada', name: 'A&W Canada', aliases: ['a&w', 'a and w'], countries: ['CA'], officialDomains: { CA: ['aw.ca'] } },
+  { id: 'a-and-w-us', name: 'A&W', aliases: ['a&w', 'a and w'], countries: ['US'], officialDomains: { US: ['awrestaurants.com'] } },
   { id: 'tim-hortons', name: 'Tim Hortons', aliases: ['tims', 'timmies'], countries: ['CA', 'US'], officialDomains: { CA: ['timhortons.ca'] } },
 ];
 const MENU: ChainMenu = {
@@ -39,6 +41,8 @@ describe('finding the chain', () => {
     expect(findChain('Starbucks Coffee')?.id).toBe('starbucks');
     expect(findChain('timmies')?.id).toBe('tim-hortons');
     expect(findChain('Corner Café')).toBeNull();
+    expect(findChain('A&W', 'CA')?.id).toBe('a-and-w-canada');
+    expect(findChain('A&W', 'US')?.id).toBe('a-and-w-us');
   });
   it('recognises the chain’s own sites', () => {
     const sb = findChain('starbucks')!;

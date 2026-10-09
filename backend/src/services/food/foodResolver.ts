@@ -305,7 +305,7 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
     // Keep it for everyone only when it's the chain's own site, or when a
     // second independent lookup agrees (within 5%) — so one odd answer never
     // becomes everyone's answer. The check runs after this reply.
-    const chain = findChain(item.brand);
+    const chain = findChain(item.brand, countryKey(ctx.tz) || 'US');
     const official = !!chain && w.facts.sources.some((src) => isOfficial(chain, countryKey(ctx.tz) || 'US', src.uri || src.title));
     if (official) void d.remember(item, ctx.tz, w.facts, 'web');
     else void confirmLater(item, ctx.tz, w.facts, d);
