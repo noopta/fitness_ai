@@ -79,7 +79,7 @@ export interface ItemLookupResult {
 
 export const TEXT_LOOKUP_ENABLED = () => process.env.WEB_FOOD_TEXT_LOOKUP !== '0';
 // Measured 9 Oct 2026: grounded lookups take 11–33 s (median ~23 s).
-const DEFAULT_BUDGET_MS = Number(process.env.WEB_FOOD_TEXT_LOOKUP_BUDGET_MS) || 30_000;
+const DEFAULT_BUDGET_MS = Number(process.env.WEB_FOOD_TEXT_LOOKUP_BUDGET_MS) || 40_000;
 const MAX_ITEMS = 3;
 
 export const BRANDED_ANSWER_SCHEMA = {
@@ -91,6 +91,7 @@ export const BRANDED_ANSWER_SCHEMA = {
     basis: { type: 'STRING', nullable: true, description: "'per_serving' (as sold) or 'per_100g'" },
     servingSize: { type: 'STRING', nullable: true, description: 'Serving/size text as the source prints it, e.g. "Grande (16 fl oz)"' },
     servingGrams: { type: 'NUMBER', nullable: true },
+    sizeMatches: { type: 'BOOLEAN', nullable: true, description: 'true if these values are for the size that was asked for' },
     calories: { type: 'NUMBER', nullable: true },
     proteinG: { type: 'NUMBER', nullable: true },
     carbsG: { type: 'NUMBER', nullable: true },
@@ -108,12 +109,20 @@ export function buildBrandedPrompt(item: Pick<BrandedItem, 'brand' | 'product' |
 Rules:
 - Prefer the brand's own nutrition page or menu; a major nutrition database listing for this exact item is acceptable.
 - Only report it if the source is clearly this exact product from ${item.brand}. A different product, flavour or variant of the same brand is NOT a match — set found=false.
-${item.size ? `- The values must be for the ${item.size} size. If the source only lists a different size, set found=false.\n` : ''}- Report the values exactly as the source states them. Do not estimate or fill gaps from general knowledge.
+${item.size ? `- The values must be for the ${item.size} size; set sizeMatches=true when they are. If the source only lists a different size, set found=false.\n` : ''}- Report the values exactly as the source states them. Do not estimate or fill gaps from general knowledge.
 - basis: "per_serving" for values per item/serving as sold (servingSize as printed), or "per_100g" with servingGrams.
 - If you are not certain, set found=false.`;
 }
 
 const WEAK_SOURCE = /\b(facebook|instagram|tiktok|reddit|youtube|pinterest|twitter|x\.com|threads|quora|scribd)\b/i;
+
+const MENU_SIZES = ['extra large', 'x large', 'kids', 'short', 'tall', 'grande', 'venti', 'trenta', 'small', 'medium', 'large', 'regular', 'junior', 'footlong', '6 inch', 'single', 'double', 'triple'];
+/** The menu size named in `size`, normalized ("Grande (16 fl oz)" → "grande"), else null. */
+export function menuSize(size: string | null | undefined): string | null {
+  if (!size) return null;
+  const n = ` ${norm(size).replace(/\bxl\b/, 'x large').replace(/\bfoot long\b/, 'footlong').replace(/\b6 in\b/, '6 inch')} `;
+  return MENU_SIZES.find((w) => n.includes(` ${w} `)) ?? null;
+}
 
 function num(v: unknown): number | null {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
@@ -146,9 +155,12 @@ export function validateBrandedAnswer(raw: any, sources: WebSource[], item: Pick
   if (!mentionsBrand(brandText, item.brand)) return { kind: 'not_found', reason: 'brand_mismatch' };
 
   const servingSize = typeof raw.servingSize === 'string' && raw.servingSize.trim() ? raw.servingSize.trim().slice(0, 80) : null;
-  if (item.size) {
+  // Only menu sizes are checked ("grande", "medium", "footlong") — the parser
+  // also puts "sandwich" or "14 fl oz" in size, which a label won't echo.
+  const sizeWord = menuSize(item.size);
+  if (sizeWord && raw.sizeMatches !== true) {
     const sized = norm(`${servingSize ?? ''} ${name}`);
-    if (!sized.includes(norm(item.size))) return { kind: 'not_found', reason: 'size_mismatch' };
+    if (!sized.includes(sizeWord)) return { kind: 'not_found', reason: 'size_mismatch' };
   }
 
   let kcal = num(raw.calories);

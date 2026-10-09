@@ -38,6 +38,8 @@ async function main() {
     const final = items.length ? finishLookups(parsed, items, resolved) : parsed;
     const ms = Date.now() - t0;
     const steps = resolved.map((r) => r.step).join('+') || 'none';
+    const why = resolved.map((r) => (r.result.kind === 'found' ? `via ${r.result.facts.sources[0]?.title ?? '?'}` : `${r.result.reason}${r.gateReason ? ` [${r.gateReason}]` : ''}`)).join('; ');
+    const asked = items.map((it) => `${it.brand}|${it.product}|${it.size ?? '-'}`).join('; ');
     if (c.truth) {
       est.push(pctErr(parsed.calories, c.truth.calories)); res.push(pctErr(final.calories, c.truth.calories));
       estP.push(Math.abs(parsed.proteinG - c.truth.proteinG)); resP.push(Math.abs(final.proteinG - c.truth.proteinG));
@@ -46,7 +48,7 @@ async function main() {
       String(c.id).padStart(2), c.description.slice(0, 46).padEnd(46),
       `est ${String(Math.round(parsed.calories)).padStart(4)}`, `got ${String(Math.round(final.calories)).padStart(4)}`,
       `truth ${c.truth ? String(c.truth.calories).padStart(4) : '   ?'}`, steps.padEnd(9), `${(ms / 1000).toFixed(1)}s`,
-      parsed.clarify?.length ? `asks: ${parsed.clarify[0]}` : '',
+      why, `(${asked})`, parsed.clarify?.length ? `asks: ${parsed.clarify[0]}` : '',
     ].join('  '));
   }
   const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);

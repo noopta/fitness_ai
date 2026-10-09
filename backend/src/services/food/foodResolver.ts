@@ -63,7 +63,8 @@ export function isKnownChain(brand: string): boolean {
 /** Words that name a category, not a product ("protein bar", "iced coffee"). */
 const GENERIC = new Set([
   'protein', 'bar', 'bars', 'drink', 'drinks', 'shake', 'shakes', 'smoothie', 'coffee', 'tea', 'latte', 'iced', 'hot', 'cold',
-  'chips', 'chip', 'crisps', 'cookie', 'cookies', 'cracker', 'crackers', 'snack', 'snacks', 'candy', 'chocolate', 'milk',
+  'chips', 'crisps', 'cookie', 'cookies', 'cracker', 'crackers', 'snack', 'snacks', 'candy',
+  'any', 'some', 'flavor', 'flavour', 'flavors', 'flavours', 'unknown', 'unspecified', 'kind', 'type', 'variety', 'assorted',
   'yogurt', 'yoghurt', 'cereal', 'granola', 'powder', 'scoop', 'sandwich', 'burger', 'wrap', 'bowl', 'salad', 'pizza', 'fries',
   'meal', 'combo', 'item', 'food', 'one', 'small', 'medium', 'large', 'regular', 'piece', 'pieces', 'pack', 'bag', 'bottle', 'can',
 ]);
@@ -74,7 +75,21 @@ export function isSpecific(item: Pick<BrandedItem, 'brand' | 'product' | 'size'>
   const words = norm(item.product).split(' ').filter((w) => w && !brandWords.has(w));
   if (!words.length) return false;
   if (isKnownChain(item.brand)) return true;
-  return words.some((w) => !GENERIC.has(w)) || !!item.size;
+  // A size alone ("330 ml") doesn't say which flavour — the parser often adds one.
+  return words.some((w) => !GENERIC.has(w));
+}
+
+/**
+ * A match far from the estimate is more likely a wrong product (a bulk pack,
+ * a different item) than a bad estimate: eval 9 Oct 2026 matched a Starbucks
+ * grande latte to a 3,888 kcal retail product. Pure.
+ */
+export function plausible(item: BrandedItem, facts: BrandedFacts): boolean {
+  const est = item.estimate.calories;
+  const got = facts.calories * (item.servings || 1);
+  if (est < 50 || got < 50) return true;
+  const ratio = got / est;
+  return ratio >= 0.4 && ratio <= 2.5;
 }
 
 export function webGate(item: BrandedItem, ctx: { explicit?: boolean; brandSeen: boolean }): { allowed: boolean; reason: string } {
@@ -93,7 +108,9 @@ export function webGate(item: BrandedItem, ctx: { explicit?: boolean; brandSeen:
 export function clarifyQuestion(item: BrandedItem): string | null {
   if (isSpecific(item)) return null;
   if (item.estimate.calories * (item.servings || 1) < 100) return null;
-  const what = norm(item.product) && norm(item.product) !== norm(item.brand) ? ` ${item.product.toLowerCase()}` : '';
+  const brandWords = new Set(norm(item.brand).split(' '));
+  const rest = norm(item.product).split(' ').filter((w) => w && !brandWords.has(w) && !['any', 'some', 'flavor', 'flavour', 'unknown', 'unspecified'].includes(w)).join(' ');
+  const what = rest ? ` ${rest}` : '';
   return isKnownChain(item.brand)
     ? `Which ${item.brand} item was it?`
     : `Which ${item.brand}${what} was it — the flavour or exact name?`;
@@ -213,13 +230,18 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
   if (ctx.userId) {
     emit('history', 'checking', `${what} — your past scans`);
     const h = await d.history(ctx.userId, item).catch(() => null);
-    if (h) { emit('history', 'found', `${what} — from ${h.sources[0]?.title}`); return done({ result: found(h), step: 'history', web: 'not_needed', ms: Date.now() - t0 }); }
+    if (h && plausible(item, h)) { emit('history', 'found', `${what} — from ${h.sources[0]?.title}`); return done({ result: found(h), step: 'history', web: 'not_needed', ms: Date.now() - t0 }); }
   }
   const rec = await d.records(item, ctx.tz).catch(() => null);
-  if (rec) { emit('records', 'found', `${what} — already verified`); return done({ result: found(rec), step: 'records', web: 'not_needed', ms: Date.now() - t0 }); }
+  if (rec && plausible(item, rec)) { emit('records', 'found', `${what} — already verified`); return done({ result: found(rec), step: 'records', web: 'not_needed', ms: Date.now() - t0 }); }
 
-  emit('database', 'checking', `${what} — food databases`);
-  const db = await d.database(item, ctx.tz).catch((): DbOutcome => ({ kind: 'unavailable', reason: 'error', brandSeen: false }));
+  // Food databases hold chains' grocery products (bottled Frappuccino), not
+  // their menu items — so a chain's menu item skips straight to the web gate.
+  const chain = isKnownChain(item.brand);
+  if (!chain) emit('database', 'checking', `${what} — food databases`);
+  const db: DbOutcome = chain
+    ? { kind: 'not_found', reason: 'chain_menu_item', brandSeen: true }
+    : await d.database(item, ctx.tz).then((r) => (r.kind === 'found' && !plausible(item, r.facts) ? { kind: 'not_found' as const, reason: 'implausible', brandSeen: true } : r)).catch((): DbOutcome => ({ kind: 'unavailable', reason: 'error', brandSeen: false }));
   if (db.kind === 'found') {
     emit('database', 'found', `${what} — from ${db.facts.sources[0]?.title}`);
     void d.remember(item, ctx.tz, db.facts, 'database');
@@ -232,7 +254,8 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
     return done({ result: { kind: 'not_found', reason: `gated:${gate.reason}` }, step: 'estimate', web: 'gated', gateReason: gate.reason, ms: Date.now() - t0 });
   }
   emit('web', 'checking', `${what} — searching the web`);
-  const w = await d.web(item, ctx.tz).catch((): BrandedLookup => ({ kind: 'unavailable', reason: 'error' }));
+  const w0 = await d.web(item, ctx.tz).catch((): BrandedLookup => ({ kind: 'unavailable', reason: 'error' }));
+  const w: BrandedLookup = w0.kind === 'found' && !plausible(item, w0.facts) ? { kind: 'not_found', reason: 'implausible' } : w0;
   if (w.kind === 'found') {
     emit('web', 'found', `${what} — from ${w.facts.sources[0]?.title ?? 'the web'}`);
     void d.remember(item, ctx.tz, w.facts, 'web');

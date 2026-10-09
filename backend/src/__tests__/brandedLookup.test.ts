@@ -10,7 +10,7 @@ vi.mock('@google/genai', () => ({
 
 import {
   validateBrandedAnswer, applyBrandedLookups, coerceBrandedItems, lookupBranded, _resetBrandedCache,
-  buildBrandedPrompt, mentionsBrand, sourceLabel, type BrandedItem,
+  buildBrandedPrompt, mentionsBrand, sourceLabel, menuSize, type BrandedItem,
 } from '../services/food/brandedLookup.js';
 
 const SRC = [{ title: 'starbucks.ca', uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' }];
@@ -48,6 +48,14 @@ describe('validateBrandedAnswer', () => {
   it('refuses a different size', () => {
     const out = validateBrandedAnswer({ ...LATTE, servingSize: 'Tall (12 fl oz)' }, SRC, item());
     expect(out).toEqual({ kind: 'not_found', reason: 'size_mismatch' });
+  });
+
+  it('only checks menu sizes, and trusts the model confirming the size', () => {
+    expect(menuSize('Grande (16 fl oz)')).toBe('grande');
+    expect(menuSize('sandwich')).toBeNull();
+    expect(menuSize('14 fl oz')).toBeNull();
+    expect(validateBrandedAnswer({ ...LATTE, servingSize: '1 sandwich' }, SRC, item({ size: 'sandwich' })).kind).toBe('found');
+    expect(validateBrandedAnswer({ ...LATTE, servingSize: '16 fl oz', sizeMatches: true }, SRC, item()).kind).toBe('found');
   });
 
   it('does not need a size when none was asked for', () => {

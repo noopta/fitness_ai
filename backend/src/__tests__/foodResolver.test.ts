@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) { this.mealEntry = { findMany: vi.fn().mockResolvedValue([]) }; this.productBarcode = { findMany: vi.fn().mockResolvedValue([]) }; }) }));
 vi.mock('@google/genai', () => ({ GoogleGenAI: vi.fn() }));
 
-import { resolveItem, webGate, isSpecific, isKnownChain, clarifyQuestion, asksForLookup, countryKey, type ResolverDeps, type ResolveEvent } from '../services/food/foodResolver.js';
+import { resolveItem, webGate, isSpecific, isKnownChain, clarifyQuestion, asksForLookup, countryKey, plausible, type ResolverDeps, type ResolveEvent } from '../services/food/foodResolver.js';
 import type { BrandedItem } from '../services/food/brandedLookup.js';
 
 const item = (o: Partial<BrandedItem> = {}): BrandedItem => ({ brand: 'Barebells', product: 'Cookies & Cream protein bar', size: null, servings: 1, estimate: { calories: 200, proteinG: 20, carbsG: 18, fatG: 8 }, ...o });
@@ -60,6 +60,34 @@ describe('the gate', () => {
     expect(countryKey('America/Edmonton')).toBe('CA');
     expect(countryKey('America/Chicago')).toBe('US');
     expect(countryKey('Europe/Paris')).toBe('Europe');
+  });
+});
+
+describe('eval fixes (9 Oct 2026)', () => {
+  it('treats flavours as specific and "any flavor" or a size alone as vague', () => {
+    expect(isSpecific(item({ product: 'Chocolate Protein Drink' }))).toBe(true);
+    expect(isSpecific(item({ brand: 'Clif Bar', product: 'Chocolate Chip' }))).toBe(true);
+    expect(isSpecific(item({ product: 'Protein Drink (any flavor)' }))).toBe(false);
+    expect(isSpecific(item({ product: 'protein drink', size: '330 ml' }))).toBe(false);
+  });
+  it('asks without repeating the brand', () => {
+    expect(clarifyQuestion(item({ brand: 'Barebells', product: 'Barebells protein drink' }))).toBe('Which Barebells protein drink was it — the flavour or exact name?');
+  });
+  it('rejects matches far from the estimate', () => {
+    const facts = (calories: number) => ({ name: 'x', brand: 'Starbucks', servingSize: null, calories, proteinG: 0, carbsG: 0, fatG: 0, sources: [] });
+    expect(plausible(item({ estimate: { calories: 220, proteinG: 12, carbsG: 19, fatG: 7 } }), facts(3888))).toBe(false);
+    expect(plausible(item({ estimate: { calories: 400, proteinG: 12, carbsG: 19, fatG: 7 } }), facts(174))).toBe(true);
+  });
+  it('sends a chain menu item past the databases to the web', async () => {
+    const d = deps();
+    const r = await resolveItem(item({ brand: 'Starbucks', product: 'Caffè Latte', size: 'Grande' }), 0, { surface: 'chat', deps: d });
+    expect(d.database).not.toHaveBeenCalled();
+    expect(r.step).toBe('web');
+  });
+  it('drops an implausible database match and keeps going', async () => {
+    const d = deps({ database: vi.fn().mockResolvedValue({ kind: 'found', db: 'off', facts: { ...FACTS('Open Food Facts'), calories: 3888 } }) });
+    const r = await resolveItem(item(), 0, { surface: 'chat', deps: d });
+    expect(r.step).toBe('web');
   });
 });
 
