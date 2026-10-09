@@ -86,8 +86,8 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
-   "CA": null
+   "US": "https://www.mcdonalds.com/us/en-us/about-our-food/nutrition-calculator.html",
+   "CA": "https://www.mcdonalds.com/ca/en-ca/about-our-food/nutrition-calculator.html"
   }
  },
  {
@@ -116,7 +116,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.dunkindonuts.com/nutrition/",
    "CA": null
   }
  },
@@ -200,8 +200,8 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
-   "CA": null
+   "US": "https://www.bk.com/nutrition-explorer",
+   "CA": "https://www.burgerking.ca/nutrition-explorer"
   }
  },
  {
@@ -227,7 +227,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.pizzahut.com/c/content/nutrition",
    "CA": "https://www.pizzahut.ca/nutrition/"
   }
  },
@@ -338,8 +338,8 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
-   "CA": null
+   "US": "https://www.dairyqueen.com/en-us/nutrition/food-treats/",
+   "CA": "https://www.dairyqueen.com/en-ca/nutrition/food-treats/"
   }
  },
  {
@@ -396,8 +396,8 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
-   "CA": null
+   "US": "https://www.papajohns.com/company/nutritional-details/index.html",
+   "CA": "https://www2.papajohns.ca/nutrition"
   }
  },
  {
@@ -425,7 +425,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.kfc.com/full-nutrition-guide",
    "CA": null
   }
  },
@@ -476,7 +476,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.jimmyjohns.com/menu/nutrition_calculator.asp"
   }
  },
  {
@@ -562,7 +562,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.pandaexpress.com/nutritioninformation",
    "CA": null
   }
  },
@@ -639,7 +639,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "http://assets.jackinthebox.com/pdf_attachment_settings/106/value/Nutritional_Facts.pdf"
   }
  },
  {
@@ -838,7 +838,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://wbimageserver.whataburger.com/Nutrition.pdf"
   }
  },
  {
@@ -882,7 +882,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.zaxbys.com/uploads/ZAX_NAI_Guide_Digital_2_01ab6bbb57.pdf"
   }
  },
  {
@@ -903,7 +903,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.panerabread.com/content/dam/panerabread/documents/c8-26-nutrition-guide.pdf"
   }
  },
  {
@@ -927,7 +927,7 @@
    "CA": []
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.applebees.com/en/nutrition",
    "CA": null
   }
  },
@@ -1062,7 +1062,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://media.olivegarden.com/en_us/pdf/olive_garden_nutrition.pdf",
    "CA": null
   }
  },
@@ -1187,7 +1187,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.raisingcanes.com/allergens/"
   }
  },
  {
@@ -1374,7 +1374,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://web.checkersandrallys.com/wp-content/uploads/2025/11/Checkers-and-Rallys-Nutritional-Facts.pdf"
   }
  },
  {
@@ -1418,7 +1418,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://app.everybite.com/widget/steak-n-shake"
   }
  },
  {
@@ -1459,7 +1459,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://smashburger.widget.eagle.bigzpoon.com/home"
   }
  },
  {
@@ -1509,7 +1509,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.in-n-out.com/menu/nutrition-info"
   }
  },
  {
@@ -1643,7 +1643,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://media.longhornsteakhouse.com/en_us/pdf/longhorn_steakhouse_nutrition.pdf"
   }
  },
  {
@@ -1714,7 +1714,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.crackerbarrel.com/-/media/Project/cb-brandsite/brandsite/pdfs/Nutrition-Guide.pdf"
   }
  },
  {
@@ -1826,7 +1826,7 @@
    "CA": []
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.thecheesecakefactory.com/nutrition",
    "CA": null
   }
  },
@@ -2520,7 +2520,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.cariboucoffee.com/wp-content/uploads/2018/12/CBOU_Nutrionals_v1.pdf"
   }
  },
  {
@@ -2544,7 +2544,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.peets.com/pages/nutrition-allergen-facts"
   }
  },
  {
@@ -2567,7 +2567,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.scooterscoffee.com/media/nutrition/scooters_nutrition_and_allergy_information.pdf"
   }
  },
  {
@@ -2953,7 +2953,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://hungryhowies.com/nutrition"
   }
  },
  {
@@ -3573,7 +3573,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://media.chuys.com/images/site/pages/faqs/chy-faqs-nutritional-chart-071325.pdf"
   }
  },
  {
@@ -3595,7 +3595,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://www.ontheborder.com/app/uploads/2024/08/OTB-NUTRITIONAL-ALLERGEN_INFO_0224v2new.pdf"
   }
  },
  {
@@ -3744,7 +3744,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://torchystacos.com/wp-content/uploads/torchys_nutrition_information.pdf"
   }
  },
  {
@@ -3882,7 +3882,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://cdn.capriottis.com/Capriottis/2025-Nutritional-Information_PDF-combined.pdf"
   }
  },
  {
@@ -3905,7 +3905,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null
+   "US": "https://m.cheddars.com/nutritional-info"
   }
  },
  {
@@ -3953,7 +3953,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": null,
+   "US": "https://www.daveandbusters.com/content/dam/dnb/menu-update/menu-pdf/DB_Nutritional_Menu_Spring_3_2_2026.pdf.coredownload.inline.pdf",
    "CA": null
   }
  },

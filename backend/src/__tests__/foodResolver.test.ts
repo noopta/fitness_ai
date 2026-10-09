@@ -6,8 +6,12 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) { this.mealEntry = { findMany: vi.fn().mockResolvedValue([]) }; this.productBarcode = { findMany: vi.fn().mockResolvedValue([]) }; }) }));
 vi.mock('@google/genai', () => ({ GoogleGenAI: vi.fn() }));
 
+import { _setChainDataForTests } from '../services/food/chainMenus.js';
 import { _resetFoodRecordsForTests, resolveItem, webGate, isSpecific, isKnownChain, clarifyQuestion, asksForLookup, countryKey, plausible, type ResolverDeps, type ResolveEvent } from '../services/food/foodResolver.js';
 import type { BrandedItem } from '../services/food/brandedLookup.js';
+
+// These tests are about the ladder, not the real chain data on disk.
+_setChainDataForTests([], []);
 
 const item = (o: Partial<BrandedItem> = {}): BrandedItem => ({ brand: 'Barebells', product: 'Cookies & Cream protein bar', size: null, servings: 1, estimate: { calories: 200, proteinG: 20, carbsG: 18, fatG: 8 }, ...o });
 const FACTS = (title: string) => ({ name: 'x', brand: 'Barebells', servingSize: '55 g', calories: 199, proteinG: 20, carbsG: 17, fatG: 7.5, sources: [{ title, uri: '' }] });
