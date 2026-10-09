@@ -196,7 +196,13 @@ const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn
 
 /** For the model: which branded items were looked up and where, so it can say "from starbucks.ca". */
 function lookupSummary(lookups: ItemLookupResult[]): string[] {
-  return lookups.map((l) => `${[l.brand, l.product, l.size].filter(Boolean).join(' ')}: ${l.status === 'found' ? `published values from ${l.sourceDomain ?? 'the brand'}` : 'not published online — estimated'}`);
+  return lookups.map((l) => `${[l.brand, l.product, l.size].filter(Boolean).join(' ')}: ${l.status === 'found' ? `published values from ${l.sourceDomain ?? 'the brand'}` : lookupMiss(l.reason)}`);
+}
+/** What to tell the user about an item that stayed an estimate — never "not published" unless we know. */
+function lookupMiss(reason?: string): string {
+  if (!reason || /^(timeout|model_error|ungrounded|unverified_source|error|databases_down)$/.test(reason)) return 'the lookup could not confirm it this time — estimated (do NOT say the brand does not publish it)';
+  if (reason.startsWith('gated:')) return 'not looked up online — estimated';
+  return 'no matching published values found — estimated';
 }
 /**
  * Where a looked-up meal's numbers came from, as card rows — tappable when

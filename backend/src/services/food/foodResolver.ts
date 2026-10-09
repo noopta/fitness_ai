@@ -19,7 +19,7 @@
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
-import { brandedCacheKey, lookupBranded, mentionsBrand, type BrandedFacts, type BrandedItem, type BrandedLookup } from './brandedLookup.js';
+import { brandedCacheKey, coreProduct, lookupBranded, menuSize, mentionsBrand, type BrandedFacts, type BrandedItem, type BrandedLookup } from './brandedLookup.js';
 import { norm, productRecall, searchDatabases, type DbOutcome } from './nameSearch.js';
 
 const prisma = new PrismaClient();
@@ -69,20 +69,7 @@ const GENERIC = new Set([
   'meal', 'combo', 'item', 'food', 'one', 'small', 'medium', 'large', 'regular', 'piece', 'pieces', 'pack', 'bag', 'bottle', 'can',
 ]);
 
-/**
- * The product name without asides: "Protein Drink (any flavor, e.g., Caramel
- * Cashew, Chocolate)" → "Protein Drink". The parser lists example flavours in
- * brackets; they aren't the one the user had. (Logged a vague drink as
- * specific on 9 Oct 2026.)
- */
-export function coreProduct(product: string): string {
-  return product
-    .replace(/\([^)]*\)|\[[^\]]*\]/g, ' ')
-    .replace(/\b(e\.?\s?g\.?|such as|like|for example)\b.*$/i, ' ')
-    .replace(/,\s*(any|some|unknown|unspecified)\b.*$/i, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+export { coreProduct };
 
 /** Does the product name pin down one product? Chains: any menu name does. Packaged: needs a flavour/variant word or a size. */
 export function isSpecific(item: Pick<BrandedItem, 'brand' | 'product' | 'size'>): boolean {
@@ -135,7 +122,7 @@ export function clarifyQuestion(item: BrandedItem): string | null {
 
 const STORE_FILE = process.env.FOOD_RECORDS_PATH || join(process.cwd(), '.runtime', 'food-records.json');
 const LOG_FILE = process.env.FOOD_LOOKUP_LOG_PATH || join(process.cwd(), '.runtime', 'food-lookups.jsonl');
-type StoredRecord = { facts: BrandedFacts; step: ResolveStep; at: string };
+type StoredRecord = { facts: BrandedFacts; step: ResolveStep; at: string; item?: { brand: string; product: string; size: string | null }; country?: string };
 let store: Map<string, StoredRecord> | null = null;
 let saveTimer: NodeJS.Timeout | null = null;
 
@@ -164,8 +151,19 @@ export function countryKey(tz?: string | null): string {
 
 async function fromRecords(item: BrandedItem, tz?: string | null): Promise<BrandedFacts | null> {
   const s = await loadStore();
-  const hit = s.get(brandedCacheKey(item, countryKey(tz)));
+  const country = countryKey(tz);
+  const hit = s.get(brandedCacheKey(item, country));
   if (hit) return hit.facts;
+  // The parser words the same drink differently each time ("Caramel Protein
+  // Latte (custom order)" vs "Caramel Protein Latte"). Same brand, same menu
+  // size and the same words both ways is the same product.
+  const want = coreProduct(item.product) || item.product;
+  for (const rec of s.values()) {
+    if (!rec.item || (rec.country ?? '') !== country) continue;
+    if (norm(rec.item.brand) !== norm(item.brand) || menuSize(rec.item.size) !== menuSize(item.size)) continue;
+    const have = coreProduct(rec.item.product) || rec.item.product;
+    if (productRecall({ brand: item.brand, product: want }, have) >= 0.8 && productRecall({ brand: item.brand, product: have }, want) >= 0.8) return rec.facts;
+  }
   // Scanned labels: ProductBarcode rows (per 100 g + serving weight).
   try {
     const rows = await prisma.productBarcode.findMany({ where: { servingQuantityG: { not: null } }, take: 400, orderBy: { scanCount: 'desc' } });
@@ -180,7 +178,7 @@ async function fromRecords(item: BrandedItem, tz?: string | null): Promise<Brand
 
 async function remember(item: BrandedItem, tz: string | null | undefined, facts: BrandedFacts, step: ResolveStep) {
   const s = await loadStore();
-  s.set(brandedCacheKey(item, countryKey(tz)), { facts, step, at: new Date().toISOString() });
+  s.set(brandedCacheKey(item, countryKey(tz)), { facts, step, at: new Date().toISOString(), item: { brand: item.brand, product: item.product, size: item.size }, country: countryKey(tz) });
   scheduleSave();
 }
 

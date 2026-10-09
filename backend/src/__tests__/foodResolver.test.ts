@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) { this.mealEntry = { findMany: vi.fn().mockResolvedValue([]) }; this.productBarcode = { findMany: vi.fn().mockResolvedValue([]) }; }) }));
 vi.mock('@google/genai', () => ({ GoogleGenAI: vi.fn() }));
 
-import { resolveItem, webGate, isSpecific, isKnownChain, clarifyQuestion, asksForLookup, countryKey, plausible, type ResolverDeps, type ResolveEvent } from '../services/food/foodResolver.js';
+import { _resetFoodRecordsForTests, resolveItem, webGate, isSpecific, isKnownChain, clarifyQuestion, asksForLookup, countryKey, plausible, type ResolverDeps, type ResolveEvent } from '../services/food/foodResolver.js';
 import type { BrandedItem } from '../services/food/brandedLookup.js';
 
 const item = (o: Partial<BrandedItem> = {}): BrandedItem => ({ brand: 'Barebells', product: 'Cookies & Cream protein bar', size: null, servings: 1, estimate: { calories: 200, proteinG: 20, carbsG: 18, fatG: 8 }, ...o });
@@ -139,5 +139,22 @@ describe('resolveItem', () => {
     const d = deps({ web: vi.fn().mockResolvedValue({ kind: 'not_found', reason: 'size_mismatch' }) });
     const r = await resolveItem(item({ brand: 'Starbucks', product: 'Caffè Latte', size: 'Venti' }), 0, { surface: 'chat', deps: d });
     expect(r).toMatchObject({ step: 'estimate', web: 'used' });
+  });
+});
+
+describe('verified records survive the parser rewording a product', () => {
+  it('reuses a match for the same drink, but not for a different one', async () => {
+    process.env.FOOD_RECORDS_PATH = '/tmp/axiom-test-food-records.json';
+    _resetFoodRecordsForTests();
+    const latte = (product: string) => item({ brand: 'Starbucks', product, size: 'Grande', estimate: { calories: 250, proteinG: 20, carbsG: 20, fatG: 8 } });
+    const web = vi.fn().mockResolvedValue({ kind: 'found', facts: { ...FACTS('starbucks.com'), brand: 'Starbucks', calories: 230 } });
+    const base = { history: vi.fn().mockResolvedValue(null), database: vi.fn(), log: vi.fn() };
+    expect((await resolveItem(latte('Caramel Protein Latte'), 0, { tz: 'America/Toronto', surface: 'chat', deps: { ...base, web } })).step).toBe('web');
+    await new Promise((r) => setTimeout(r, 0));
+    const again = await resolveItem(latte('Caramel Protein Latte (custom order)'), 0, { tz: 'America/Toronto', surface: 'chat', deps: { ...base, web } });
+    expect(again.step).toBe('records');
+    const other = await resolveItem(latte('Sugar-Free Caramel Protein Latte'), 0, { tz: 'America/Toronto', surface: 'chat', deps: { ...base, web } });
+    expect(other.step).toBe('web');
+    expect(web).toHaveBeenCalledTimes(2);
   });
 });

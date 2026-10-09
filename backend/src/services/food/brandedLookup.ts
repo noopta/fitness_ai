@@ -23,6 +23,11 @@ import { LruCache } from './mealPhotoCache.js';
 // SDK's Type enum at load time, and this one is loaded by llmService.ts, which
 // many test suites import with a minimal @google/genai mock.
 const WEB_FOOD_MODEL = process.env.WEB_FOOD_SEARCH_MODEL || 'gemini-3-flash-preview';
+// Measured 9 Oct 2026 on items that failed in chat: default thinking took
+// 19–60 s and often searched without returning citations; LOW took 7–11 s and
+// found both Starbucks drinks with starbucks.com citations. The checks below
+// (brand, size, macros, plausibility) guard against a hastier wrong match.
+const WEB_FOOD_THINKING = process.env.WEB_FOOD_THINKING_LEVEL || 'LOW';
 
 export interface WebSource { title: string | null; uri: string }
 
@@ -75,6 +80,8 @@ export interface ItemLookupResult {
   status: 'found' | 'estimated';
   /** Which check answered: your scans, verified records, a food database, the web — or an estimate. */
   step?: 'history' | 'records' | 'database' | 'web' | 'estimate';
+  /** Why an item stayed an estimate (timeout, ungrounded, gated:…, size_mismatch…). */
+  reason?: string;
   /** Domain of the first source, e.g. "starbucks.ca", when found. */
   sourceDomain: string | null;
   sourceUrl: string | null;
@@ -96,6 +103,7 @@ export const BRANDED_ANSWER_SCHEMA = {
     servingSize: { type: 'STRING', nullable: true, description: 'Serving/size text as the source prints it, e.g. "Grande (16 fl oz)"' },
     servingGrams: { type: 'NUMBER', nullable: true },
     sizeMatches: { type: 'BOOLEAN', nullable: true, description: 'true if these values are for the size that was asked for' },
+    sourceUrl: { type: 'STRING', nullable: true, description: 'URL of the page the values were read from' },
     fiberG: { type: 'NUMBER', nullable: true }, sugarG: { type: 'NUMBER', nullable: true }, saturatedFatG: { type: 'NUMBER', nullable: true },
     sodiumMg: { type: 'NUMBER', nullable: true }, cholesterolMg: { type: 'NUMBER', nullable: true }, potassiumMg: { type: 'NUMBER', nullable: true },
     calciumMg: { type: 'NUMBER', nullable: true }, ironMg: { type: 'NUMBER', nullable: true },
@@ -108,8 +116,23 @@ export const BRANDED_ANSWER_SCHEMA = {
   propertyOrdering: ['found', 'name', 'brand', 'basis', 'servingSize', 'servingGrams', 'calories', 'proteinG', 'carbsG', 'fatG'],
 };
 
+/**
+ * The product name without asides: "Protein Drink (any flavor, e.g., Caramel
+ * Cashew, Chocolate)" → "Protein Drink", "Caramel Protein Latte (custom
+ * order)" → "Caramel Protein Latte". Used for the gate, the search and the
+ * cache key, so the parser's wording drift doesn't change the answer.
+ */
+export function coreProduct(product: string): string {
+  return product
+    .replace(/\([^)]*\)|\[[^\]]*\]/g, ' ')
+    .replace(/\b(e\.?\s?g\.?|such as|like|for example)\b.*$/i, ' ')
+    .replace(/,\s*(any|some|unknown|unspecified)\b.*$/i, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function buildBrandedPrompt(item: Pick<BrandedItem, 'brand' | 'product' | 'size'>, tz?: string | null): string {
-  const what = [item.brand, item.product, item.size ? `(size: ${item.size})` : ''].filter(Boolean).join(' ');
+  const what = [item.brand, coreProduct(item.product) || item.product, item.size ? `(size: ${item.size})` : ''].filter(Boolean).join(' ');
   const where = tz ? `\nThe user's time zone is ${tz}; use that country's menu or label if it differs between countries.` : '';
   return `Use Google Search to find the official nutrition facts for this item: ${what}.${where}
 
@@ -118,6 +141,7 @@ Rules:
 - Only report it if the source is clearly this exact product from ${item.brand}. A different product, flavour or variant of the same brand is NOT a match — set found=false.
 ${item.size ? `- The values must be for the ${item.size} size; set sizeMatches=true when they are. If the source only lists a different size, set found=false.\n` : ''}- Report the values exactly as the source states them. Do not estimate or fill gaps from general knowledge. Fibre, sugar, saturated fat, sodium, cholesterol, potassium, calcium and iron: only when the source lists them (mg for minerals), else null.
 - basis: "per_serving" for values per item/serving as sold (servingSize as printed), or "per_100g" with servingGrams.
+- sourceUrl: the exact URL of the page you read the values from.
 - If you are not certain, set found=false.`;
 }
 
@@ -232,7 +256,7 @@ const missed = new LruCache<BrandedLookup>(1000, MISS_TTL);
 export function brandedCacheKey(item: Pick<BrandedItem, 'brand' | 'product' | 'size'>, tz?: string | null): string {
   // Country-level menus differ, so the zone's region ("America", "Europe"…) isn't enough;
   // the full zone is cheap and safe.
-  return [norm(item.brand), norm(item.product), norm(item.size ?? ''), tz ?? ''].join('|');
+  return [norm(item.brand), norm(coreProduct(item.product) || item.product), norm(item.size ?? ''), tz ?? ''].join('|');
 }
 
 export function _resetBrandedCache(): void { found.clear(); missed.clear(); }
@@ -245,25 +269,69 @@ export async function lookupBranded(
   const hit = found.get(key) ?? missed.get(key);
   if (hit) return hit;
   const generate = opts.generate ?? defaultGenerate();
+  const budget = opts.timeoutMs ?? DEFAULT_BUDGET_MS;
+  const started = Date.now();
+  let result: BrandedLookup = { kind: 'unavailable', reason: 'timeout' };
+  // One retry when the model answered without citing what it read — it
+  // usually did search; a second pass usually comes back grounded.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const left = budget - (Date.now() - started);
+    if (left < 5000) break;
+    result = await attemptLookup(item, opts, generate, left);
+    const retryable = result.kind !== 'found' && ['ungrounded', 'unverified_source'].includes(result.reason);
+    if (!retryable) break;
+  }
+  if (result.kind === 'found') result = { kind: 'found', facts: { ...result.facts, sources: await resolveSources(result.facts.sources, opts.fetchImpl) } };
+  // Outages and time-outs aren't remembered: the next try may well succeed.
+  if (result.kind !== 'unavailable') (result.kind === 'found' ? found : missed).set(key, result);
+  return result;
+}
+
+async function attemptLookup(
+  item: Pick<BrandedItem, 'brand' | 'product' | 'size'>,
+  opts: { tz?: string | null; fetchImpl?: typeof fetch },
+  generate: Generate,
+  timeoutMs: number,
+): Promise<BrandedLookup> {
   let response: any;
   try {
     response = await Promise.race([
       generate({
         model: WEB_FOOD_MODEL,
         contents: buildBrandedPrompt(item, opts.tz),
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json', responseSchema: BRANDED_ANSWER_SCHEMA },
+        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json', responseSchema: BRANDED_ANSWER_SCHEMA, thinkingConfig: { thinkingLevel: WEB_FOOD_THINKING } },
       }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), opts.timeoutMs ?? DEFAULT_BUDGET_MS)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
     ]);
   } catch (err: any) {
     return { kind: 'unavailable', reason: err?.message === 'timeout' ? 'timeout' : 'model_error' };
   }
   let raw: any = null;
   try { raw = JSON.parse(String(response?.text ?? '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()); } catch { raw = null; }
-  let result = validateBrandedAnswer(raw, sourcesFrom(response), item);
-  if (result.kind === 'found') result = { kind: 'found', facts: { ...result.facts, sources: await resolveSources(result.facts.sources, opts.fetchImpl) } };
-  (result.kind === 'found' ? found : missed).set(key, result);
-  return result;
+  let sources = sourcesFrom(response);
+  // Gemini 3 sometimes searches (webSearchQueries present) but returns no
+  // citation list. Then the page it names counts — once we've checked it exists.
+  if (!sources.length && raw?.found === true) {
+    const searched = (response?.candidates?.[0]?.groundingMetadata?.webSearchQueries ?? []).length > 0;
+    const url = typeof raw?.sourceUrl === 'string' && /^https?:\/\//.test(raw.sourceUrl) ? raw.sourceUrl : null;
+    if (!searched || !url) return { kind: 'not_found', reason: 'ungrounded' };
+    if (!(await pageExists(url, opts.fetchImpl))) return { kind: 'not_found', reason: 'unverified_source' };
+    sources = [{ title: domainOf(url), uri: url }];
+  }
+  return validateBrandedAnswer(raw, sources, item);
+}
+
+/**
+ * Does this page exist? A 404/410 or no answer means no. Bot-blocking codes
+ * (403, 429…) still mean the page is there — big chains block servers.
+ */
+export async function pageExists(url: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), 4000);
+  try {
+    const r = await fetchImpl(url, { method: 'GET', redirect: 'follow', signal: ac.signal, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Axiom/1.0)' } });
+    return r.status !== 404 && r.status !== 410 && r.status < 500;
+  } catch { return false; } finally { clearTimeout(t); }
 }
 
 /**
@@ -327,7 +395,7 @@ export function applyBrandedLookups(
       out.fatG += r.facts.fatG * k - item.estimate.fatG;
       lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'found', ...(steps[i] ? { step: steps[i] } : {}), sourceDomain: sourceLabel(r.facts.sources[0]), sourceUrl: domainOf(r.facts.sources[0]?.uri) ? r.facts.sources[0].uri : null, calories: Math.round(r.facts.calories * k) });
     } else {
-      lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'estimated', step: 'estimate', sourceDomain: null, sourceUrl: null, calories: Math.round(item.estimate.calories) });
+      lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'estimated', step: 'estimate', ...(r && r.kind !== 'found' ? { reason: r.reason } : {}), sourceDomain: null, sourceUrl: null, calories: Math.round(item.estimate.calories) });
     }
   });
   const r1 = (x: number) => Math.max(0, Math.round(x * 10) / 10);

@@ -10,7 +10,7 @@ vi.mock('@google/genai', () => ({
 
 import {
   validateBrandedAnswer, applyBrandedLookups, coerceBrandedItems, lookupBranded, _resetBrandedCache,
-  buildBrandedPrompt, mentionsBrand, sourceLabel, menuSize, applyLabelMicros, resolveSources, type BrandedItem,
+  buildBrandedPrompt, mentionsBrand, sourceLabel, menuSize, applyLabelMicros, resolveSources, brandedCacheKey, type BrandedItem,
 } from '../services/food/brandedLookup.js';
 
 const SRC = [{ title: 'starbucks.ca', uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' }];
@@ -184,5 +184,48 @@ describe('resolveSources', () => {
       { title: 'y.ca', uri: 'https://y.ca/page' },
     ], fetchImpl as any);
     expect(out.map((s) => s.uri)).toEqual(['https://www.mcdonalds.com/ca/en-ca/product/mcdouble.html', '', 'https://y.ca/page']);
+  });
+});
+
+describe('lookup reliability (9 Oct 2026 chat failures)', () => {
+  beforeEach(() => _resetBrandedCache());
+  const searchedNoCitations = (answer: unknown) => ({ text: JSON.stringify(answer), candidates: [{ groundingMetadata: { webSearchQueries: ['starbucks caramel protein latte grande nutrition'] } }] });
+
+  it('uses low thinking', async () => {
+    const generate = vi.fn().mockResolvedValue(response(LATTE));
+    await lookupBranded(item(), { generate });
+    expect(generate.mock.calls[0][0].config.thinkingConfig).toEqual({ thinkingLevel: 'LOW' });
+  });
+
+  it('accepts a searched answer without citations when its page exists', async () => {
+    const generate = vi.fn().mockResolvedValue(searchedNoCitations({ ...LATTE, sourceUrl: 'https://www.starbucks.com/menu/product/2123/iced/nutrition' }));
+    const fetchImpl = vi.fn().mockResolvedValue({ status: 403, headers: { get: () => null } });
+    const r = await lookupBranded(item(), { generate, fetchImpl: fetchImpl as any });
+    expect(r.kind).toBe('found');
+    if (r.kind === 'found') expect(r.facts.sources[0]).toEqual({ title: 'starbucks.com', uri: 'https://www.starbucks.com/menu/product/2123/iced/nutrition' });
+  });
+
+  it('rejects a named page that does not exist, retrying once', async () => {
+    const generate = vi.fn().mockResolvedValue(searchedNoCitations({ ...LATTE, sourceUrl: 'https://www.starbucks.com/made-up' }));
+    const fetchImpl = vi.fn().mockResolvedValue({ status: 404, headers: { get: () => null } });
+    expect(await lookupBranded(item(), { generate, fetchImpl: fetchImpl as any })).toEqual({ kind: 'not_found', reason: 'unverified_source' });
+    expect(generate).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries an uncited answer and takes the grounded second try', async () => {
+    const generate = vi.fn().mockResolvedValueOnce({ text: JSON.stringify(LATTE), candidates: [{}] }).mockResolvedValueOnce(response(LATTE));
+    expect((await lookupBranded(item(), { generate })).kind).toBe('found');
+    expect(generate).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not remember a time-out', async () => {
+    const generate = vi.fn().mockImplementationOnce(() => new Promise(() => {})).mockResolvedValue(response(LATTE));
+    expect((await lookupBranded(item(), { generate, timeoutMs: 5100 })).kind).toBe('unavailable');
+    expect((await lookupBranded(item(), { generate })).kind).toBe('found');
+  }, 10000);
+
+  it('searches and caches on the product without asides', () => {
+    expect(buildBrandedPrompt(item({ product: 'Caramel Protein Latte (custom order)' }))).toContain('Starbucks Caramel Protein Latte (size: Grande)');
+    expect(brandedCacheKey(item({ product: 'Caramel Protein Latte (custom order)' }))).toBe(brandedCacheKey(item({ product: 'Caramel Protein Latte' })));
   });
 });
