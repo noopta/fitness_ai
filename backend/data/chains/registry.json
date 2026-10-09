@@ -256,7 +256,7 @@
   },
   "nutritionUrl": {
    "US": "https://www.wendys.com/nutrition",
-   "CA": null
+   "CA": "https://order.wendys.com/categories?site=menu"
   }
  },
  {
@@ -453,7 +453,7 @@
   },
   "nutritionUrl": {
    "US": "https://www.arbys.com/nutrition/",
-   "CA": null
+   "CA": "https://www.arbys.ca/Uploads/Arbys_Canada_Nutrition_and_Allergen_FINAL_Jan_2024.pdf"
   }
  },
  {
@@ -694,7 +694,7 @@
   },
   "nutritionUrl": {
    "US": "https://www.baskinrobbins.com/content/dam/br/pdf/BRNutrition.pdf",
-   "CA": null
+   "CA": "https://www.baskinrobbins.ca/assets_baskin_robin/pdf/NutritionGuide_BRCanada.pdf"
   }
  },
  {
@@ -744,7 +744,7 @@
   },
   "nutritionUrl": {
    "US": "https://www.fiveguys.com/nutritional-allergy-information/",
-   "CA": null
+   "CA": "https://www.fiveguys.ca/media/canada_en-ca/-/media/public-site/files/allergen-ingredients-and-nutrition-info/five-guys-canada-ingredient--allergen-guide-english.pdf"
   }
  },
  {
@@ -3508,7 +3508,7 @@
   },
   "nutritionUrl": {
    "US": null,
-   "CA": null
+   "CA": "https://assets.ctfassets.net/xlzobf9ybr6d/kYavOsQXH0B1uwA5v1yB4/db96790e480517cc0bc8b2b0aaaf9907/153634_Nan_Nutritionals_Allergen_Guide_v2_Jun2025_11x8.5_web.pdf"
   }
  },
  {
@@ -4689,7 +4689,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://www.harveys.ca/en/nutrition.html"
   }
  },
  {
@@ -4715,7 +4715,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://marybrowns.com/wp-content/uploads/Mary-Browns-Allergen-and-Nutritionals-July-2026.pdf"
   }
  },
  {
@@ -4777,7 +4777,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://cdn.pizzapizza.ca/o33/pizza73/PPLNEWWEB/Marketing/wpfp73/wp-content/uploads/2018/04/P73-Nutritional18-JA-2021.pdf"
   }
  },
  {
@@ -4982,7 +4982,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://www.swisschalet.com/en/nutritional.html"
   }
  },
  {
@@ -5005,7 +5005,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://www.st-hubert.com/fr/informations-nutritionnelles.html"
   }
  },
  {
@@ -5030,7 +5030,7 @@
   },
   "nutritionUrl": {
    "US": null,
-   "CA": null
+   "CA": "https://cdn.shopify.com/s/files/1/0673/9371/6482/files/2026-09-NutritionGuide-ENG.pdf"
   }
  },
  {
@@ -5459,7 +5459,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://www.montanas.ca/en/nutrition.html"
   }
  },
  {
@@ -5482,7 +5482,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://www.kelseys.ca/en/nutrition.html"
   }
  },
  {
@@ -5534,7 +5534,7 @@
    ]
   },
   "nutritionUrl": {
-   "CA": null
+   "CA": "https://www.eastsidemarios.com/en/nutrition.html"
   }
  },
  {
