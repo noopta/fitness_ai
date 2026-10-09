@@ -147,7 +147,7 @@ export function pickDbMatch(item: Pick<BrandedItem, 'brand' | 'product' | 'size'
     facts: {
       name: best.name.slice(0, 160), brand: best.brand.split(',')[0].trim().slice(0, 80), servingSize: best.servingSize,
       calories: Math.round(best.perServing.calories), proteinG: r1(best.perServing.proteinG), carbsG: r1(best.perServing.carbsG), fatG: r1(best.perServing.fatG),
-      sources: [{ title: best.db === 'off' ? 'Open Food Facts' : 'USDA FoodData Central', uri: best.db === 'off' ? 'https://world.openfoodfacts.org' : 'https://fdc.nal.usda.gov' }],
+      sources: [{ title: best.db === 'off' ? 'Open Food Facts' : 'USDA FoodData Central', uri: '' }],
     },
   };
 }
