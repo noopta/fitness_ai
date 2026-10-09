@@ -69,6 +69,11 @@ describe('eval fixes (9 Oct 2026)', () => {
     expect(isSpecific(item({ brand: 'Clif Bar', product: 'Chocolate Chip' }))).toBe(true);
     expect(isSpecific(item({ product: 'Protein Drink (any flavor)' }))).toBe(false);
     expect(isSpecific(item({ product: 'protein drink', size: '330 ml' }))).toBe(false);
+    // The real parser output that got logged as specific on 9 Oct 2026.
+    expect(isSpecific(item({ product: 'Protein Drink (any flavor, e.g., Caramel Cashew, Chocolate)', size: '330ml' }))).toBe(false);
+    expect(clarifyQuestion(item({ product: 'Protein Drink (any flavor, e.g., Caramel Cashew, Chocolate)' }))).toBe('Which Barebells protein drink was it — the flavour or exact name?');
+    expect(isSpecific(item({ brand: 'Chick-fil-A', product: 'Chicken Sandwich (original)' }))).toBe(true);
+    expect(isSpecific(item({ product: 'Protein Bar, e.g. Salty Peanut' }))).toBe(false);
   });
   it('asks without repeating the brand', () => {
     expect(clarifyQuestion(item({ brand: 'Barebells', product: 'Barebells protein drink' }))).toBe('Which Barebells protein drink was it — the flavour or exact name?');

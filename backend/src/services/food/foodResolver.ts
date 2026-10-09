@@ -69,10 +69,25 @@ const GENERIC = new Set([
   'meal', 'combo', 'item', 'food', 'one', 'small', 'medium', 'large', 'regular', 'piece', 'pieces', 'pack', 'bag', 'bottle', 'can',
 ]);
 
+/**
+ * The product name without asides: "Protein Drink (any flavor, e.g., Caramel
+ * Cashew, Chocolate)" → "Protein Drink". The parser lists example flavours in
+ * brackets; they aren't the one the user had. (Logged a vague drink as
+ * specific on 9 Oct 2026.)
+ */
+export function coreProduct(product: string): string {
+  return product
+    .replace(/\([^)]*\)|\[[^\]]*\]/g, ' ')
+    .replace(/\b(e\.?\s?g\.?|such as|like|for example)\b.*$/i, ' ')
+    .replace(/,\s*(any|some|unknown|unspecified)\b.*$/i, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** Does the product name pin down one product? Chains: any menu name does. Packaged: needs a flavour/variant word or a size. */
 export function isSpecific(item: Pick<BrandedItem, 'brand' | 'product' | 'size'>): boolean {
   const brandWords = new Set(norm(item.brand).split(' '));
-  const words = norm(item.product).split(' ').filter((w) => w && !brandWords.has(w));
+  const words = norm(coreProduct(item.product)).split(' ').filter((w) => w && !brandWords.has(w));
   if (!words.length) return false;
   if (isKnownChain(item.brand)) return true;
   // A size alone ("330 ml") doesn't say which flavour — the parser often adds one.
@@ -109,7 +124,7 @@ export function clarifyQuestion(item: BrandedItem): string | null {
   if (isSpecific(item)) return null;
   if (item.estimate.calories * (item.servings || 1) < 100) return null;
   const brandWords = new Set(norm(item.brand).split(' '));
-  const rest = norm(item.product).split(' ').filter((w) => w && !brandWords.has(w) && !['any', 'some', 'flavor', 'flavour', 'unknown', 'unspecified'].includes(w)).join(' ');
+  const rest = norm(coreProduct(item.product)).split(' ').filter((w) => w && !brandWords.has(w) && !['any', 'some', 'flavor', 'flavour', 'unknown', 'unspecified'].includes(w)).join(' ');
   const what = rest ? ` ${rest}` : '';
   return isKnownChain(item.brand)
     ? `Which ${item.brand} item was it?`
