@@ -15,7 +15,7 @@ import {
   consumeMealLoggingQuota,
   updateNutritionStreakInBackground,
 } from '../services/nutritionShared.js';
-import { parseMealMacros, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
+import { parseMealMacros, finishLookups, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
 import { mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
 import { coerceExistingItems, MAX_MEAL_PHOTOS } from '../services/food/mealPhotoSchema.js';
 import { consumeAddPhotoGrant } from '../services/food/mealPhotoCache.js';
@@ -47,6 +47,9 @@ import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/m
 import { rankFoodResults } from '../services/food/foodSearch.js';
 import { searchUsdaCandidates } from '../services/food/usdaLookup.js';
 import { queryDateOrToday, requestTz } from '../services/userTimezone.js';
+import { asksForLookup, resolveAll } from '../services/food/foodResolver.js';
+import { getLookupJob, startLookupJob } from '../services/food/lookupJobs.js';
+import { TEXT_LOOKUP_ENABLED } from '../services/food/brandedLookup.js';
 
 
 const router = Router();
@@ -685,10 +688,21 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     if (!user) return res.status(404).json({ error: 'User not found' });
     const ok = await consumeMealLoggingQuota(prisma, req.user!.id, user.tier, res);
     if (!ok) return;
-    const parsed = await parseMealMacros(description.trim(), normalizeFoodRegion(user.foodRegion), { tz: await requestTz(req) });
+    // defer: the app shows the estimate at once and polls the lookup job
+    // (GET /nutrition/food-lookup/:id), holding Log until it's done. Older
+    // apps don't send it and get the resolved meal in one (slower) response.
+    const defer = req.body?.defer === true;
+    const tz = await requestTz(req);
+    const explicit = asksForLookup(description);
+    const parsed = await parseMealMacros(description.trim(), normalizeFoodRegion(user.foodRegion), { tz, userId: req.user!.id, surface: 'describe', explicit, lookup: !defer });
     const { detail, meta } = await enrichMealDetailHybrid(parsed, { region: normalizeFoodRegion(user.foodRegion) });
+    const { brandedItems: _items, ...shown } = detail;
+    if (defer && detail.brandedItems?.length && TEXT_LOOKUP_ENABLED()) {
+      const job = startLookupJob(req.user!.id, detail, (items, c) => resolveAll(items, { userId: req.user!.id, tz, surface: 'describe', explicit, onEvent: c.onEvent }), finishLookups);
+      return res.json({ ...shown, source: 'text', enrichment: meta, lookup: { id: job.id, done: false, steps: job.steps } });
+    }
     res.json({
-      ...detail,
+      ...shown,
       source: 'text',
       enrichment: meta,
     });
@@ -700,6 +714,14 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     console.error('Parse meal error:', err);
     res.status(500).json({ error: 'Failed to analyze meal' });
   }
+});
+
+// GET /api/nutrition/food-lookup/:id — progress of a describe lookup job.
+router.get('/nutrition/food-lookup/:id', requireAuth, (req, res) => {
+  const job = getLookupJob(String(req.params.id), req.user!.id);
+  if (!job) return res.status(404).json({ error: 'That lookup has expired — log the estimate or describe it again.' });
+  const result = job.result ? (({ brandedItems: _b, ...rest }) => rest)(job.result) : null;
+  res.json({ id: job.id, done: job.done, steps: job.steps, result });
 });
 
 // GET /api/nutrition/history?days=30 - Aggregated daily totals + individual meals

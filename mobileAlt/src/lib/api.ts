@@ -765,8 +765,11 @@ export const nutritionApi = {
     apiFetch(`/nutrition/history${days ? `?days=${days}` : ''}`),
 
   // AI meal parser — describe a meal, get macros back
-  parseMeal: (description: string) =>
-    apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description }), timeoutMs: LONG_TIMEOUT_MS }),
+  // defer: answer with the estimate at once plus a lookup job to poll (branded items).
+  parseMeal: (description: string, opts: { defer?: boolean } = {}) =>
+    apiFetch('/nutrition/parse-meal', { method: 'POST', body: JSON.stringify({ description, ...(opts.defer ? { defer: true } : {}) }), timeoutMs: LONG_TIMEOUT_MS }),
+  foodLookup: (id: string): Promise<{ id: string; done: boolean; steps: { id: string; verb: 'Reading' | 'Searched' | 'Checked'; text: string }[]; result: any | null }> =>
+    apiFetch(`/nutrition/food-lookup/${encodeURIComponent(id)}`),
 
   // Gemini vision — analyze a photo of a meal, get macros back
   analyzePhoto: (imageBase64: string, mimeType: string) =>

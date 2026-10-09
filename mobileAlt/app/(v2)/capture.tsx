@@ -40,6 +40,7 @@ import { todayStr } from '../../src/lib/localDate';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
 import { lookupReceipt, type ReceiptVerb } from '@axiom/agent-ui-core';
+import { describeWithLookup, liveStep } from '../../src/v2/food/lookup';
 import { useAuth } from '../../src/context/AuthContext';
 import { richLogFields } from '../../src/components/coach/nutrition/sheets/sheetHelpers';
 import { preparePhoto } from '../../src/components/coach/nutrition/mealPhotoPrep';
@@ -90,6 +91,9 @@ function CaptureScreenInner() {
   const [labelFor, setLabelFor] = useState<string | null>(null);
   const [servings, setServings] = useState(1);
   const [busy, setBusy] = useState(false);
+  // A branded item is still being looked up: Log and edits wait for it.
+  const [lookupPending, setLookupPending] = useState(false);
+  const lookupRef = useRef<{ cancelled: boolean } | null>(null);
   const [text, setText] = useState('');
   const scanned = useRef(false);
   const hasCam = !!vision?.Camera;
@@ -276,7 +280,7 @@ function CaptureScreenInner() {
   };
 
   const logPhoto = async () => {
-    if (!items?.length || busy) return;
+    if (!items?.length || busy || lookupPending) return;
     setBusy(true);
     const tot = items.reduce((a, i) => ({ calories: a.calories + i.calories, proteinG: a.proteinG + i.proteinG, carbsG: a.carbsG + i.carbsG, fatG: a.fatG + i.fatG }), { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
     try {
@@ -309,15 +313,30 @@ function CaptureScreenInner() {
   };
   const describe = async () => {
     const t = text.trim(); if (!t || busy) return;
-    setBusy(true); setLog([{ verb: 'Read', text: `“${t}”` }]);
+    const read = { verb: 'Read' as const, text: `“${t}”` };
+    setBusy(true); setLog([read]);
     try {
-      const slow = setTimeout(() => setLog((l) => [...l, { verb: 'Reading', text: 'Checking published nutrition' }]), 4000);
-      const parsed: any = await nutritionApi.parseMeal(t).finally(() => clearTimeout(slow));
+      // The estimate shows at once; branded items keep checking (your scans, food
+      // databases, the web) with each step on screen, and Log waits for them.
+      let estKcal = 0;
+      const sig = { cancelled: false };
+      lookupRef.current = sig;
+      const parsed: any = await describeWithLookup(t, ({ estimate, steps, pending }) => {
+        if (sig.cancelled) return;
+        const its0 = itemsFromParse(estimate, t);
+        estKcal = its0.reduce((n, i) => n + i.calories, 0);
+        if (pending) { setRaw(estimate?.meal ?? estimate); setItems(its0); setBusy(false); }
+        setLookupPending(pending);
+        setLog([read, { verb: 'Computed', text: `Estimate ${Math.round(estKcal)} kcal${pending ? ' — checking before you log' : ''}` }, ...steps]);
+      }, sig);
+      if (sig.cancelled) { setBusy(false); return; }
       const its: Item[] = itemsFromParse(parsed, t);
       setRaw(parsed?.meal ?? parsed);
       const rc = lookupReceipt(parsed, its.map((i) => i.name).join(', ') || null);
-      setItems(its); setLog((l) => [...l.filter((x) => x.verb !== 'Reading'), { verb: rc.verb, text: rc.text }]);
-    } catch (e: any) { Alert.alert('Couldn\'t parse that', e?.message ?? ''); setLog([]); }
+      setItems(its);
+      setLog((l) => (parsed?.lookups?.length ? l : [read, { verb: rc.verb, text: rc.text }]));
+    } catch (e: any) { Alert.alert('Couldn\'t parse that', e?.message ?? ''); setLog([]); setItems(null); }
+    setLookupPending(false);
     setBusy(false);
   };
   // Inline edit sheet — works on Android (Alert.prompt is iOS-only). Grams
@@ -325,7 +344,7 @@ function CaptureScreenInner() {
   // the kcal is edited directly.
   const fixItem = (i: number) => {
     const it = items?.[i];
-    if (!it) return;
+    if (!it || lookupPending) return;
     setEditIdx(i);
     setEditDraft(editMode(it) === 'grams' ? (it.grams != null ? String(Math.round(it.grams)) : '') : String(it.calories));
   };
@@ -392,7 +411,7 @@ function CaptureScreenInner() {
       <View style={[styles.light, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}>
         <StatusBar style="dark" />
         <View style={styles.top}>
-          <Pressable onPress={() => { setItems(null); setPhotoUri(null); setLog([]); setRaw(null); setExtraPhotos([]); setFraming(null); setNote(null); }} hitSlop={10}><Text style={[T.body, { color: v2.color.muted }]}>← Retake</Text></Pressable>
+          <Pressable onPress={() => { if (lookupRef.current) lookupRef.current.cancelled = true; setLookupPending(false); setItems(null); setPhotoUri(null); setLog([]); setRaw(null); setExtraPhotos([]); setFraming(null); setNote(null); }} hitSlop={10}><Text style={[T.body, { color: v2.color.muted }]}>← Retake</Text></Pressable>
           <Pressable onPress={cycleSlot} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Meal: ${slot}. Tap to change.`}><Text style={T.caption}>{header} ▾</Text></Pressable>
         </View>
         <ScrollView contentContainerStyle={{ paddingTop: 20 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -402,7 +421,7 @@ function CaptureScreenInner() {
               {extraPhotos.map((u) => <Image key={u} source={{ uri: u }} style={styles.miniThumb} />)}
             </View>
           ) : null}
-          <View style={{ marginTop: 18 }}><ReceiptList items={log} animate={false} /></View>
+          <View style={{ marginTop: 18 }}><ReceiptList items={log} animate={false} liveIndex={lookupPending ? liveStep(log) : -1} /></View>
           {photoV2 && photoUri ? <Text style={[T.caption, { marginTop: 14 }]}>Photo estimates are a starting point — tap any item to adjust.</Text> : null}
           {photoV2 && framing ? (
             <View style={styles.nudge}>
@@ -413,12 +432,12 @@ function CaptureScreenInner() {
           <View style={{ marginTop: 22 }}>
             {items.map((it, i) => {
               const sub = itemSubtitle(it);
-              return <Row key={it.id} name={it.name} sub={`${sub ? `${sub} · ` : ''}tap to fix`} value={`${it.calories}`} last={i === items.length - 1} onPress={() => fixItem(i)} />;
+              return <Row key={it.id} name={it.name} sub={lookupPending ? `${sub ? `${sub} · ` : ''}estimate — checking` : `${sub ? `${sub} · ` : ''}tap to fix`} value={`${it.calories}`} last={i === items.length - 1} onPress={() => fixItem(i)} />;
             })}
           </View>
           {photoV2 ? (
             <View style={styles.missedRow}>
-              <TextInput value={extra} onChangeText={setExtra} placeholder='Missed anything? "cooked in butter", "latte"' placeholderTextColor={v2.color.placeholder} style={styles.missedInput} returnKeyType="done" onSubmitEditing={() => void addMissed()} editable={!adding} />
+              <TextInput value={extra} onChangeText={setExtra} placeholder='Missed anything? "cooked in butter", "latte"' placeholderTextColor={v2.color.placeholder} style={styles.missedInput} returnKeyType="done" onSubmitEditing={() => void addMissed()} editable={!adding && !lookupPending} />
               <TextAction arrow={false} loading={adding} onPress={() => void addMissed()}>+ Add item</TextAction>
             </View>
           ) : null}
@@ -430,7 +449,7 @@ function CaptureScreenInner() {
           </View>
           {gap ? <Text style={[T.bodyMuted, { marginTop: 14 }]}>{gap}</Text> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28, marginTop: 28 }}>
-            <TextAction primary onPress={() => void logPhoto()} loading={busy} disabled={!items.length}>Log it</TextAction>
+            <TextAction primary onPress={() => void logPhoto()} loading={busy || lookupPending} disabled={!items.length || lookupPending}>{lookupPending ? 'Checking…' : 'Log it'}</TextAction>
             {photoV2 && photoUri && hasCam ? <TextAction muted arrow={false} onPress={() => setAddPhotoMode(true)}>+ Add photo</TextAction> : null}
           </View>
         </ScrollView>

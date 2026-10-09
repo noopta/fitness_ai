@@ -16,6 +16,7 @@ import { Row, Eyebrow } from '../primitives/Row';
 import { Enter } from '../primitives/Enter';
 import { TextAction } from '../primitives/TextAction';
 import { ReceiptList } from '../primitives/Receipt';
+import { describeWithLookup, liveStep } from '../food/lookup';
 import { Ring } from '../charts';
 import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods } from '../data';
 import { targetLines, dayTotals, momentFor, lookupReceipt } from '@axiom/agent-ui-core';
@@ -99,12 +100,19 @@ export function FuelPage() {
     const t = text.trim(); if (!t) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `“${t}”` }]);
     try {
-      // Branded items are looked up on the web server-side (10–30 s); say so while it runs.
-      const slow = setTimeout(() => setLog((l) => [...l, { verb: 'Reading', text: 'Checking published nutrition' }]), 4000);
-      const parsed: any = await nutritionApi.parseMeal(t).finally(() => clearTimeout(slow));
+      const read = { verb: 'Read' as const, text: `“${t}”` };
+      const slow = setTimeout(() => setLog([read, { verb: 'Reading', text: 'Estimating' }]), 1500);
+      // Branded items get looked up (your scans, food databases, the web when it's worth it).
+      // Each check shows as it runs, and nothing is logged until they're done.
+      const parsed: any = await describeWithLookup(t, ({ estimate, steps, pending }) => {
+        clearTimeout(slow);
+        const e = estimate?.meal ?? estimate;
+        setLog([read, { verb: 'Computed', text: `Estimate ${Math.round(e?.calories ?? 0)} kcal${pending ? ' — checking before logging' : ''}` }, ...steps]);
+      }).finally(() => clearTimeout(slow));
       const item = parsed?.meal ?? parsed?.items?.[0] ?? parsed;
       const rc = lookupReceipt(parsed, item?.name ?? null);
-      setLog((l) => [...l.filter((x) => x.verb !== 'Reading'), { verb: rc.verb, text: rc.text }]);
+      // With a lookup, its steps already say where each number came from.
+      setLog((l) => (parsed?.lookups?.length ? l.filter((x) => x.verb !== 'Reading') : [read, { verb: rc.verb, text: rc.text }]));
       const body = { date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe', ...(rc.found && parsed?.notes ? { notes: String(parsed.notes).slice(0, 480) } : {}) };
       await nutritionApi.logMeal(body as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${body.name} — ${body.calories} kcal · ${body.proteinG} P · ${body.carbsG} C · ${body.fatG} F` }]);
@@ -216,7 +224,7 @@ export function FuelPage() {
         </View>
 
         {dock === 'busy' && log.length ? (
-          <View style={{ marginTop: 26 }}><ReceiptList items={log} liveIndex={log.length - 1} /></View>
+          <View style={{ marginTop: 26 }}><ReceiptList items={log} liveIndex={liveStep(log) >= 0 ? liveStep(log) : log.length - 1} /></View>
         ) : null}
         <ShareCardSheet visible={sharing && !!moment} onClose={() => setSharing(false)} title="Share today"
           card={(theme) => moment ? <CardBody theme={theme} eyebrow={moment.eyebrow} value={moment.value} line={`${moment.of} · ${Math.round(kcal).toLocaleString()} kcal`} date={new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} /> : null} />

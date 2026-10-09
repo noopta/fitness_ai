@@ -15,7 +15,8 @@ import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
 import { cleanInjuryText, hardConstraintBlock, lowerBodyBlocked, lowerBodyExercises, stripLowerBody } from './injuryGuard.js';
 import { agentProgress } from '../agent/turnRun.js';
-import { applyBrandedLookups, coerceBrandedItems, lookupAll, TEXT_LOOKUP_ENABLED, type BrandedItem, type ItemLookupResult } from './food/brandedLookup.js';
+import { applyBrandedLookups, coerceBrandedItems, TEXT_LOOKUP_ENABLED, type BrandedItem, type ItemLookupResult } from './food/brandedLookup.js';
+import { clarifyQuestion, resolveAll, type ResolveCtx, type ResolvedItem } from './food/foodResolver.js';
 import { applyWeekRecovery, spreadSlots } from './weekRecovery.js';
 import {
   buildMealPhotoV2Prompt,
@@ -2082,8 +2083,12 @@ export interface ParsedMealDetail extends ParsedMealMacros {
   // Per-ingredient open nutrient vectors, when the model breaks the meal down.
   // Powers the Meal Breakdown subscreen ("what each ingredient carries").
   ingredientDetails?: Array<{ name: string; nutrients: Record<string, number> }>;
-  /** Branded items checked on the web: what was found, and what stayed an estimate. */
+  /** Branded items checked: what was found (and where), and what stayed an estimate. */
   lookups?: ItemLookupResult[];
+  /** Branded items to resolve (present until resolved; the describe job uses them). */
+  brandedItems?: BrandedItem[];
+  /** Questions chat should ask before logging (a vague brand, an unnamed restaurant). */
+  clarify?: string[];
 }
 
 // Pull every finite numeric value out of a raw nutrients object into an open
@@ -2194,10 +2199,15 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
 export interface ParseMealOptions {
   /** The user's IANA zone — picks the right country's menu for a lookup. */
   tz?: string | null;
-  /** Look branded/restaurant items up on the web (default: on unless WEB_FOOD_TEXT_LOOKUP=0). */
+  /** Resolve branded items before returning (default), or return the estimate + items to resolve. */
   lookup?: boolean;
-  /** Time budget for the lookups, ms. */
-  lookupBudgetMs?: number;
+  /** For the user's own scans and the decision log. */
+  userId?: string | null;
+  surface?: ResolveCtx['surface'];
+  /** The user asked us to look it up ("look it up", a link). */
+  explicit?: boolean;
+  /** Tests: replace the resolver. */
+  resolveFn?: typeof resolveAll;
 }
 
 export async function parseMealMacros(
@@ -2281,6 +2291,9 @@ BRANDED ITEMS (required, may be empty):
 - "branded": one entry per item that comes from a NAMED restaurant chain, café chain or packaged-food brand (Starbucks, Tim Hortons, McDonald's, Quest, Fairlife…). Not home cooking, not generic foods ("chicken breast", "banana").
 - Each: { "brand": "Starbucks", "product": "Iced Sugar-Free Caramel Protein Latte", "size": "Grande" or null, "servings": 1, "calories": 200, "proteinG": 20, "carbsG": 20, "fatG": 5 } — the macros are YOUR estimate for that item exactly as you counted it in the totals above (all servings of it).
 - [] when nothing is branded.
+
+UNCLEAR SOURCES (required, may be empty):
+- "clarify": for a substantial item (≥250 kcal) that clearly came from a restaurant or takeout but the place isn't named ("a medium pizza", "a burrito from the place by work"), one short question that would identify it: { "item": "medium pizza", "question": "Which pizza place was it?" }. [] otherwise. Never for home cooking.
 ${regionPromptBlock(region, 'text')}`;
 
   const response = await chatComplete({
@@ -2291,37 +2304,50 @@ ${regionPromptBlock(region, 'text')}`;
 
   const raw = response.choices[0].message.content || '{}';
   const json = parseModelJson(raw);
-  const detail = coerceParsedMealDetail(json);
+  const base = coerceParsedMealDetail(json);
+  const brandedItems = brandedToResolve(base, coerceBrandedItems((json as any)?.branded));
+  const clarify = [
+    ...brandedItems.map((it) => clarifyQuestion(it)).filter((q): q is string => !!q),
+    ...(Array.isArray((json as any)?.clarify) ? (json as any).clarify : [])
+      .map((c: any) => (typeof c?.question === 'string' ? c.question.trim().slice(0, 140) : ''))
+      .filter(Boolean),
+  ].slice(0, 2);
+  const detail: ParsedMealDetail = { ...base, ...(brandedItems.length ? { brandedItems } : {}), ...(clarify.length ? { clarify } : {}) };
   if (opts.lookup === false || !TEXT_LOOKUP_ENABLED()) return detail;
-  return withBrandedLookups(detail, coerceBrandedItems((json as any)?.branded), opts);
+  return withBrandedLookups(detail, opts);
 }
 
 /**
- * Replace the parser's estimates for branded items with their published
- * values, when a grounded web lookup finds them. Exported for tests.
+ * Items worth resolving. Per-item estimates the model never filled in can't
+ * be swapped out safely; a lone branded item IS the meal, so its estimate is
+ * the totals.
  */
-export async function withBrandedLookups(
-  detail: ParsedMealDetail,
-  items: BrandedItem[],
-  opts: ParseMealOptions & { lookupFn?: typeof lookupAll } = {},
-): Promise<ParsedMealDetail> {
+function brandedToResolve(detail: ParsedMealDetail, items: BrandedItem[]): BrandedItem[] {
+  if (items.length === 1 && items[0].estimate.calories === 0) {
+    return [{ ...items[0], estimate: { calories: detail.calories, proteinG: detail.proteinG, carbsG: detail.carbsG, fatG: detail.fatG } }];
+  }
+  return items.filter((it) => it.estimate.calories > 0);
+}
+
+/**
+ * Resolve the parsed branded items (your scans → verified records → food
+ * databases → web, gated) and fold the answers into the meal. Steps show live
+ * in chat. Exported for tests and for the describe lookup job.
+ */
+export async function withBrandedLookups(detail: ParsedMealDetail, opts: ParseMealOptions = {}): Promise<ParsedMealDetail> {
+  const items = detail.brandedItems ?? [];
   if (!items.length) return detail;
-  // Per-item estimates the model never filled in can't be swapped out safely;
-  // a lone branded item IS the meal, so its estimate is the totals.
-  const fixed = items.length === 1 && items[0].estimate.calories === 0
-    ? [{ ...items[0], estimate: { calories: detail.calories, proteinG: detail.proteinG, carbsG: detail.carbsG, fatG: detail.fatG } }]
-    : items.filter((it) => it.estimate.calories > 0);
-  if (!fixed.length) return detail;
-  const label = fixed.map((it) => it.brand).filter((b, i, a) => a.indexOf(b) === i).join(', ');
-  agentProgress('food-lookup', 'Reading', `Looking up ${label} nutrition`);
-  const started = Date.now();
-  const results = await (opts.lookupFn ?? lookupAll)(fixed, { tz: opts.tz, budgetMs: opts.lookupBudgetMs });
-  const { totals, lookups } = applyBrandedLookups(detail, fixed, results);
+  const resolved = await (opts.resolveFn ?? resolveAll)(items, {
+    userId: opts.userId, tz: opts.tz, surface: opts.surface ?? 'api', explicit: opts.explicit,
+    onEvent: (e) => agentProgress(`food-${e.item}`, e.state === 'checking' ? 'Reading' : e.state === 'found' ? 'Searched' : 'Checked', e.text),
+  });
+  return finishLookups(detail, items, resolved);
+}
+
+/** Fold resolved items into the totals, notes and lookups list. Pure. */
+export function finishLookups(detail: ParsedMealDetail, items: BrandedItem[], resolved: ResolvedItem[]): ParsedMealDetail {
+  const { totals, lookups } = applyBrandedLookups(detail, items, resolved.map((r) => r.result), resolved.map((r) => r.step));
   const hits = lookups.filter((l) => l.status === 'found');
-  console.log(`[food-lookup] items=${fixed.length} found=${hits.length} ms=${Date.now() - started} ${results.map((r) => r.kind === 'found' ? 'found' : `${r.kind}:${r.reason}`).join(',')}`);
-  agentProgress('food-lookup', hits.length ? 'Searched' : 'Checked', hits.length
-    ? `${label} — from ${hits.map((h) => h.sourceDomain ?? 'the brand').filter((d, i, a) => a.indexOf(d) === i).join(', ')}`
-    : `${label} — not published, estimated`);
   if (!hits.length) return { ...detail, lookups };
   const sourceLine = hits.map((h) => `${[h.brand, h.product, h.size].filter(Boolean).join(' ')}: from ${h.sourceDomain ?? 'the brand'}${h.sourceUrl ? ` (${h.sourceUrl})` : ''}`).join('; ');
   return {

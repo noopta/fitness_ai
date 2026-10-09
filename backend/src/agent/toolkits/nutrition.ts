@@ -7,7 +7,8 @@ import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry, restoreMealEntry } from '../../services/mealLogService.js';
-import { parseMealMacros } from '../../services/llmService.js';
+import { parseMealMacros, withBrandedLookups } from '../../services/llmService.js';
+import { asksForLookup } from '../../services/food/foodResolver.js';
 import { dayLabel, num, plural, clockTime } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
@@ -207,10 +208,10 @@ function foundNote(lookups: ItemLookupResult[] | undefined): string | null {
 export const NUTRITION_TOOLS = [
   tool({
     name: 'log_meal', kind: 'log', core: true, fn: 'NUT-01',
-    description: 'Log food the user ate. Give a plain description ("2 eggs and toast") and the macros and micronutrients are estimated — branded and restaurant items ("Starbucks grande protein latte") are looked up on the web, so keep the brand, product and size in the description and never pass your own numbers for them. Pass explicit calories/protein/carbs/fat only when the user gave them. mealType breakfast|lunch|dinner|snack (guessed from the time if omitted). Log it on the same turn; say what you logged and what’s left.',
-    input_schema: schema({ description: { type: 'string' }, name: { type: 'string' }, mealType: { type: 'string', enum: SLOTS }, calories: { type: 'number' }, proteinG: { type: 'number' }, carbsG: { type: 'number' }, fatG: { type: 'number' }, date: { type: 'string' } }),
-    receipt: (i) => ({ verb: 'Logged', text: str(i.name) || str(i.description).slice(0, 40) || 'Meal' }),
-    refine: (r) => r?.logged ?? null,
+    description: 'Log food the user ate. Give a plain description ("2 eggs and toast") and the macros and micronutrients are estimated. Branded and restaurant items ("Starbucks grande protein latte", "Barebells cookies & cream bar") are checked against the user\'s scans, food databases and — when worth it — the web, so keep the brand, product, flavour and size in the description and never pass your own numbers for them. If the result has needsDetail, NOTHING was logged: ask that one question in a short sentence, then call again with the fuller description — or with clarified=true if they don\'t know or say to just log it. lookItUp=true when the user asked you to look it up. Pass explicit calories/protein/carbs/fat only when the user gave them. mealType breakfast|lunch|dinner|snack (guessed from the time if omitted). Say what you logged, where the numbers came from when looked up, and what’s left.',
+    input_schema: schema({ description: { type: 'string' }, name: { type: 'string' }, mealType: { type: 'string', enum: SLOTS }, calories: { type: 'number' }, proteinG: { type: 'number' }, carbsG: { type: 'number' }, fatG: { type: 'number' }, date: { type: 'string' }, clarified: { type: 'boolean', description: 'The user already answered (or declined) the clarifying question — log the best estimate.' }, lookItUp: { type: 'boolean', description: 'The user asked you to look it up.' } }),
+    receipt: (i) => ({ verb: 'Reading', text: str(i.name) || str(i.description).slice(0, 40) || 'Meal' }),
+    refine: (r) => (r?.needsDetail ? { verb: 'Checked', text: 'One detail needed before logging' } : r?.logged ? { verb: 'Logged', text: String(r.logged).replace(/^Logged · /, '') } : null),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today;
@@ -218,7 +219,13 @@ export const NUTRITION_TOOLS = [
       const explicit = ['calories', 'proteinG', 'carbsG', 'fatG'].some((k) => typeof input[k] === 'number');
       let meal: any;
       if (!explicit && str(input.description)) {
-        const d = await parseMealMacros(str(input.description), 'global', { tz: ctx.tz });
+        const desc = str(input.description);
+        const d0 = await parseMealMacros(desc, 'global', { tz: ctx.tz, userId, surface: 'chat', lookup: false });
+        // A vague brand or an unnamed restaurant: ask first, log after.
+        if (d0.clarify?.length && input.clarified !== true) {
+          return { needsDetail: d0.clarify[0], logged: null, note: 'Nothing logged yet.' };
+        }
+        const d = await withBrandedLookups(d0, { tz: ctx.tz, userId, surface: 'chat', explicit: input.lookItUp === true || asksForLookup(desc) });
         const web = d.lookups?.some((l) => l.status === 'found');
         meal = { date, name: str(input.name) || d.name, mealType: slotOf(input.mealType, ctx.tz), calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, ingredients: d.ingredients, tags: d.tags, plants: d.plants, fermentedFoods: d.fermentedFoods, ultraProcessed: d.ultraProcessed, nutrients: d.nutrients, nutrientMap: d.nutrientMap, ingredientNutrients: d.ingredientDetails, source: 'agent-parsed', parseConfidence: (d as any).confidence ?? null, ...(web ? { notes: d.notes } : {}) };
         lookups = d.lookups ?? null;
@@ -230,6 +237,7 @@ export const NUTRITION_TOOLS = [
       return { logged: change.summary, mealId: (change.result as any).id, ...(lookups?.length ? { lookedUp: lookupSummary(lookups), _lookups: lookups } : {}), _change: change };
     },
     card: async (_i, r, ctx) => {
+      if (!r?.mealId) return null;
       const c = await loggedMealCard('NUT-01', ctx.userId, r.mealId, ctx);
       const src = foundNote(r._lookups);
       return src && c.note ? { ...c, note: `${src} ${c.note}` } : src ? { ...c, note: src } : c;
@@ -417,8 +425,8 @@ export const NUTRITION_TOOLS = [
     receipt: (i) => ({ verb: 'Searched', text: str(i.food) }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
-      const d = await parseMealMacros(str(input.food), 'global', { tz: ctx.tz });
-      return { ...(d.lookups?.length ? { lookedUp: lookupSummary(d.lookups) } : {}), name: d.name, calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, fiberG: (d.nutrients as any)?.fiberG ?? null, date: ctx.today, slot: slotOf(null, ctx.tz), _parsed: d };
+      const d = await parseMealMacros(str(input.food), 'global', { tz: ctx.tz, userId, surface: 'lookup', explicit: asksForLookup(str(input.food)) });
+      return { ...(d.clarify?.length ? { couldAsk: d.clarify[0] } : {}), ...(d.lookups?.length ? { lookedUp: lookupSummary(d.lookups) } : {}), name: d.name, calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, fiberG: (d.nutrients as any)?.fiberG ?? null, date: ctx.today, slot: slotOf(null, ctx.tz), _parsed: d };
     },
     card: (_i, r) => ({
       fn: 'NUT-14', pattern: 'glance', rule: 'show', meta: { label: r.name },

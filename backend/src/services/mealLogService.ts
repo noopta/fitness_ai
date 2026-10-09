@@ -11,6 +11,8 @@ import { logActivity } from './activityService.js';
 import { nutritionProfileCacheKey, normalizeFoodName, updateNutritionStreakInBackground } from './nutritionShared.js';
 import { descriptiveLabel, KNOWN_MEAL_SOURCES, KNOWN_PARSE_CONFIDENCE } from '../validation/descriptiveLabel.js';
 import { normalizeMicronutrients } from './nutritionEnrichmentService.js';
+import { appendFile, mkdir } from 'node:fs/promises';
+import { dirname as pathDirname, join as pathJoin } from 'node:path';
 
 const prisma = new PrismaClient();
 
@@ -243,7 +245,21 @@ export async function updateMealEntry(userId: string, id: string, patch: MealUpd
     },
   });
   cacheMarkStale(nutritionProfileCacheKey(userId));
+  logMealEdit(existing, entry);
   return { before: existing, entry };
+}
+
+const EDIT_LOG = process.env.MEAL_EDIT_LOG_PATH || pathJoin(process.cwd(), '.runtime', 'meal-edits.jsonl');
+/**
+ * Record calorie/macro corrections so we can compare how often looked-up
+ * meals get corrected versus estimated ones (scripts/foodLookupReport.ts).
+ * Name/date/slot changes aren't corrections of the numbers and are skipped.
+ */
+function logMealEdit(before: { id: string; userId: string; source: string; notes: string | null; calories: number; proteinG: number; carbsG: number; fatG: number; createdAt: Date }, after: { calories: number; proteinG: number; carbsG: number; fatG: number }) {
+  const changed = (['calories', 'proteinG', 'carbsG', 'fatG'] as const).filter((k) => Math.abs((before[k] ?? 0) - (after[k] ?? 0)) >= 1);
+  if (!changed.length) return;
+  const row = { at: new Date().toISOString(), mealId: before.id, userId: before.userId, source: before.source, lookedUp: /: from /.test(before.notes ?? ''), ageMin: Math.round((Date.now() - new Date(before.createdAt).getTime()) / 60000), changed, kcalBefore: before.calories, kcalAfter: after.calories };
+  mkdir(pathDirname(EDIT_LOG), { recursive: true }).then(() => appendFile(EDIT_LOG, `${JSON.stringify(row)}\n`)).catch(() => {});
 }
 
 /** Delete a meal; returns the deleted row (kept for undo) or null. */

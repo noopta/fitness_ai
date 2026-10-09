@@ -69,6 +69,8 @@ export interface ItemLookupResult {
   product: string;
   size: string | null;
   status: 'found' | 'estimated';
+  /** Which check answered: your scans, verified records, a food database, the web — or an estimate. */
+  step?: 'history' | 'records' | 'database' | 'web' | 'estimate';
   /** Domain of the first source, e.g. "starbucks.ca", when found. */
   sourceDomain: string | null;
   sourceUrl: string | null;
@@ -265,6 +267,7 @@ export function applyBrandedLookups(
   totals: MacroTotals,
   items: BrandedItem[],
   results: BrandedLookup[],
+  steps: Array<ItemLookupResult['step']> = [],
 ): { totals: MacroTotals; lookups: ItemLookupResult[] } {
   const out = { ...totals };
   const lookups: ItemLookupResult[] = [];
@@ -276,9 +279,9 @@ export function applyBrandedLookups(
       out.proteinG += r.facts.proteinG * k - item.estimate.proteinG;
       out.carbsG += r.facts.carbsG * k - item.estimate.carbsG;
       out.fatG += r.facts.fatG * k - item.estimate.fatG;
-      lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'found', sourceDomain: sourceLabel(r.facts.sources[0]), sourceUrl: domainOf(r.facts.sources[0]?.uri) ? r.facts.sources[0].uri : null, calories: Math.round(r.facts.calories * k) });
+      lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'found', ...(steps[i] ? { step: steps[i] } : {}), sourceDomain: sourceLabel(r.facts.sources[0]), sourceUrl: domainOf(r.facts.sources[0]?.uri) ? r.facts.sources[0].uri : null, calories: Math.round(r.facts.calories * k) });
     } else {
-      lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'estimated', sourceDomain: null, sourceUrl: null, calories: Math.round(item.estimate.calories) });
+      lookups.push({ brand: item.brand, product: item.product, size: item.size, status: 'estimated', step: 'estimate', sourceDomain: null, sourceUrl: null, calories: Math.round(item.estimate.calories) });
     }
   });
   const r1 = (x: number) => Math.max(0, Math.round(x * 10) / 10);
