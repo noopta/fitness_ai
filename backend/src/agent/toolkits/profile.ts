@@ -266,7 +266,7 @@ export const PROFILE_TOOLS = [
       const list = readInjuries(parseBlob(u?.coachProfile), u?.constraintsText ?? null);
       const add = (Array.isArray(input.add) ? input.add : []) as Injury[];
       const resolve = (Array.isArray(input.resolve) ? input.resolve : []).map((x) => String(x).toLowerCase());
-      const now = new Date().toISOString().slice(0, 10);
+      const now = todayIn(await userTz(userId));
       const next = list.map((i) => resolve.some((r) => i.area.toLowerCase().includes(r) || r.includes(i.area.toLowerCase())) ? { ...i, resolvedAt: now } : i);
       for (const a of add) next.push({ area: str(a.area).slice(0, 120), ...(a.note ? { note: str(a.note).slice(0, 300) } : {}), ...(a.since ? { since: str(a.since) } : {}), ...(a.severity ? { severity: a.severity } : {}) });
       const summary = [add.length ? `Added ${add.map((a) => a.area).join(', ')}` : '', resolve.length ? `Healed ${resolve.join(', ')}` : ''].filter(Boolean).join('; ') || 'Injuries updated';

@@ -11,6 +11,7 @@ import { parseMealMacros } from '../../services/llmService.js';
 import { dayLabel, num, plural, clockTime } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
+import type { ItemLookupResult } from '../../services/food/brandedLookup.js';
 
 type Slot = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal';
 const SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner', 'snack', 'meal'];
@@ -191,29 +192,48 @@ async function findMeal(userId: string, input: Record<string, unknown>, ctx: Too
 
 const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn.js')).toolCtx(userId);
 
+/** For the model: which branded items were looked up and where, so it can say "from starbucks.ca". */
+function lookupSummary(lookups: ItemLookupResult[]): string[] {
+  return lookups.map((l) => `${[l.brand, l.product, l.size].filter(Boolean).join(' ')}: ${l.status === 'found' ? `published values from ${l.sourceDomain ?? 'the brand'}` : 'not published online — estimated'}`);
+}
+/** Card note when published values were used ("From starbucks.ca."), else null. */
+function foundNote(lookups: ItemLookupResult[] | undefined): string | null {
+  const hits = (lookups ?? []).filter((l) => l.status === 'found');
+  if (!hits.length) return null;
+  const where = hits.map((h) => h.sourceDomain ?? h.brand).filter((d, i, a) => a.indexOf(d) === i).join(', ');
+  return hits.length === (lookups ?? []).length ? `From ${where}.` : `From ${where}; the rest is an estimate.`;
+}
+
 export const NUTRITION_TOOLS = [
   tool({
     name: 'log_meal', kind: 'log', core: true, fn: 'NUT-01',
-    description: 'Log food the user ate. Give a plain description ("2 eggs and toast") and the macros and micronutrients are estimated, or pass explicit calories/protein/carbs/fat when they gave them. mealType breakfast|lunch|dinner|snack (guessed from the time if omitted). Log it on the same turn; say what you logged and what’s left.',
+    description: 'Log food the user ate. Give a plain description ("2 eggs and toast") and the macros and micronutrients are estimated — branded and restaurant items ("Starbucks grande protein latte") are looked up on the web, so keep the brand, product and size in the description and never pass your own numbers for them. Pass explicit calories/protein/carbs/fat only when the user gave them. mealType breakfast|lunch|dinner|snack (guessed from the time if omitted). Log it on the same turn; say what you logged and what’s left.',
     input_schema: schema({ description: { type: 'string' }, name: { type: 'string' }, mealType: { type: 'string', enum: SLOTS }, calories: { type: 'number' }, proteinG: { type: 'number' }, carbsG: { type: 'number' }, fatG: { type: 'number' }, date: { type: 'string' } }),
     receipt: (i) => ({ verb: 'Logged', text: str(i.name) || str(i.description).slice(0, 40) || 'Meal' }),
     refine: (r) => r?.logged ?? null,
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today;
+      let lookups: ItemLookupResult[] | null = null;
       const explicit = ['calories', 'proteinG', 'carbsG', 'fatG'].some((k) => typeof input[k] === 'number');
       let meal: any;
       if (!explicit && str(input.description)) {
-        const d = await parseMealMacros(str(input.description));
-        meal = { date, name: str(input.name) || d.name, mealType: slotOf(input.mealType, ctx.tz), calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, ingredients: d.ingredients, tags: d.tags, plants: d.plants, fermentedFoods: d.fermentedFoods, ultraProcessed: d.ultraProcessed, nutrients: d.nutrients, nutrientMap: d.nutrientMap, ingredientNutrients: d.ingredientDetails, source: 'agent-parsed', parseConfidence: (d as any).confidence ?? null };
+        const d = await parseMealMacros(str(input.description), 'global', { tz: ctx.tz });
+        const web = d.lookups?.some((l) => l.status === 'found');
+        meal = { date, name: str(input.name) || d.name, mealType: slotOf(input.mealType, ctx.tz), calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, ingredients: d.ingredients, tags: d.tags, plants: d.plants, fermentedFoods: d.fermentedFoods, ultraProcessed: d.ultraProcessed, nutrients: d.nutrients, nutrientMap: d.nutrientMap, ingredientNutrients: d.ingredientDetails, source: 'agent-parsed', parseConfidence: (d as any).confidence ?? null, ...(web ? { notes: d.notes } : {}) };
+        lookups = d.lookups ?? null;
       } else {
         if (!explicit && !str(input.name)) throw new Error('Tell me what you ate.');
         meal = { date, name: str(input.name) || str(input.description) || 'Meal', mealType: slotOf(input.mealType, ctx.tz), calories: numOr(input.calories, 0), proteinG: numOr(input.proteinG, 0), carbsG: numOr(input.carbsG, 0), fatG: numOr(input.fatG, 0), source: 'agent-manual' };
       }
       const change = await executeOp(userId, 'meal.create', { input: meal });
-      return { logged: change.summary, mealId: (change.result as any).id, _change: change };
+      return { logged: change.summary, mealId: (change.result as any).id, ...(lookups?.length ? { lookedUp: lookupSummary(lookups), _lookups: lookups } : {}), _change: change };
     },
-    card: async (_i, r, ctx) => loggedMealCard('NUT-01', ctx.userId, r.mealId, ctx),
+    card: async (_i, r, ctx) => {
+      const c = await loggedMealCard('NUT-01', ctx.userId, r.mealId, ctx);
+      const src = foundNote(r._lookups);
+      return src && c.note ? { ...c, note: `${src} ${c.note}` } : src ? { ...c, note: src } : c;
+    },
   }),
   tool({
     name: 'log_saved_food', kind: 'log', fn: 'NUT-06',
@@ -397,16 +417,16 @@ export const NUTRITION_TOOLS = [
     receipt: (i) => ({ verb: 'Searched', text: str(i.food) }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
-      const d = await parseMealMacros(str(input.food));
-      return { name: d.name, calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, fiberG: (d.nutrients as any)?.fiberG ?? null, date: ctx.today, slot: slotOf(null, ctx.tz), _parsed: d };
+      const d = await parseMealMacros(str(input.food), 'global', { tz: ctx.tz });
+      return { ...(d.lookups?.length ? { lookedUp: lookupSummary(d.lookups) } : {}), name: d.name, calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, fiberG: (d.nutrients as any)?.fiberG ?? null, date: ctx.today, slot: slotOf(null, ctx.tz), _parsed: d };
     },
     card: (_i, r) => ({
       fn: 'NUT-14', pattern: 'glance', rule: 'show', meta: { label: r.name },
       hero: { value: num(r.calories), unit: 'kcal' },
       rows: [{ key: 'Protein', value: `${num(r.proteinG)} g` }, { key: 'Carbs', value: `${num(r.carbsG)} g` }, { key: 'Fat', value: `${num(r.fatG)} g` }, ...(r.fiberG != null ? [{ key: 'Fiber', value: `${num(r.fiberG, 1)} g` }] : [])],
-      note: 'Estimate, ±15%.',
+      note: foundNote(r._parsed.lookups) ?? 'Estimate, ±15%.',
       actions: [{ id: 'log', label: 'Log it', kind: 'primary' }],
-      pending: { actions: { log: { op: 'meal.create', args: { input: { date: r.date, name: r.name, mealType: r.slot, calories: r.calories, proteinG: r.proteinG, carbsG: r.carbsG, fatG: r.fatG, ingredients: r._parsed.ingredients, tags: r._parsed.tags, plants: r._parsed.plants, fermentedFoods: r._parsed.fermentedFoods, ultraProcessed: r._parsed.ultraProcessed, nutrients: r._parsed.nutrients, source: 'agent-parsed' } }, line: `Logged · ${r.name}` } } },
+      pending: { actions: { log: { op: 'meal.create', args: { input: { date: r.date, name: r.name, mealType: r.slot, calories: r.calories, proteinG: r.proteinG, carbsG: r.carbsG, fatG: r.fatG, ingredients: r._parsed.ingredients, tags: r._parsed.tags, plants: r._parsed.plants, fermentedFoods: r._parsed.fermentedFoods, ultraProcessed: r._parsed.ultraProcessed, nutrients: r._parsed.nutrients, source: 'agent-parsed', ...(foundNote(r._parsed.lookups) ? { notes: r._parsed.notes } : {}) } }, line: `Logged · ${r.name}` } } },
     }),
   }),
   tool({

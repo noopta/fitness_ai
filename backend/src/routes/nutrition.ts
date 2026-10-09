@@ -46,6 +46,7 @@ import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/mealLogService.js';
 import { rankFoodResults } from '../services/food/foodSearch.js';
 import { searchUsdaCandidates } from '../services/food/usdaLookup.js';
+import { queryDateOrToday, requestTz } from '../services/userTimezone.js';
 
 
 const router = Router();
@@ -170,7 +171,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
 router.get('/nutrition/meals', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const date = (req.query.date as string) || new Date().toISOString().split('T')[0];
+    const date = await queryDateOrToday(req, req.query.date);
     const entries = await prisma.mealEntry.findMany({
       where: { userId, date },
       orderBy: { createdAt: 'asc' },
@@ -684,7 +685,7 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     if (!user) return res.status(404).json({ error: 'User not found' });
     const ok = await consumeMealLoggingQuota(prisma, req.user!.id, user.tier, res);
     if (!ok) return;
-    const parsed = await parseMealMacros(description.trim(), normalizeFoodRegion(user.foodRegion));
+    const parsed = await parseMealMacros(description.trim(), normalizeFoodRegion(user.foodRegion), { tz: await requestTz(req) });
     const { detail, meta } = await enrichMealDetailHybrid(parsed, { region: normalizeFoodRegion(user.foodRegion) });
     res.json({
       ...detail,

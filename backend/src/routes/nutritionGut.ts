@@ -28,6 +28,7 @@ import { cacheDelete } from '../services/cacheService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { summarizePlan, type StoredPlan } from '../services/nutritionPlanSummary.js';
+import { requestToday } from '../services/userTimezone.js';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -121,7 +122,7 @@ router.get('/nutrition/plan', requireAuth, async (req, res) => {
     const userId = req.user!.id;
     const plan = await latestNutritionPlan(userId);
     if (!plan) return res.status(404).json({ error: 'No nutrition plan yet' });
-    const end = new Date().toISOString().split('T')[0];
+    const end = await requestToday(req);
     const start = dateNDaysAgo(6, end);
     const [meals, firstEver] = await Promise.all([
       prisma.mealEntry.findMany({
@@ -174,7 +175,7 @@ function sumNutrients(rows: Array<{ nutrientsJson: string | null }>): Record<str
 router.get('/nutrition/micros/daily', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const date = (req.query.date as string) || new Date().toISOString().split('T')[0];
+    const date = (req.query.date as string) || await requestToday(req);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Invalid date' });
 
     const [entries, targets] = await Promise.all([
@@ -228,7 +229,7 @@ function observedDays(firstDate: string | null, start: string, end: string): num
 router.get('/nutrition/gut/week', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const end = (req.query.end as string) || new Date().toISOString().split('T')[0];
+    const end = (req.query.end as string) || await requestToday(req);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(end)) return res.status(400).json({ error: 'Invalid date' });
     const start = dateNDaysAgo(6, end);
 
@@ -370,7 +371,7 @@ router.post('/nutrition/order-log', requireAuth, async (req, res) => {
   try {
     const body = orderLogSchema.parse(req.body);
     const userId = req.user!.id;
-    const date = body.date || new Date().toISOString().split('T')[0];
+    const date = body.date || await requestToday(req);
 
     const scaleNutrients = (n: Record<string, unknown> | undefined, f: number) => {
       if (!n) return null;

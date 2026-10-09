@@ -41,15 +41,11 @@ import {
   loadWindow, parseRange, periodLabelFor, periodSuffixFor,
   type ProfileRange, type NutritionWindow,
 } from '../services/nutritionWindow.js';
+import { queryDateOrToday } from '../services/userTimezone.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-function todayStr(): string { return new Date().toISOString().slice(0, 10); }
-
-function parseDate(raw: unknown): string {
-  return typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : todayStr();
-}
 const isBodySystem = (s: string): s is BodySystemId => BODY_SYSTEMS.some(b => b.id === s);
 
 // Run the engine over a loaded window. Single place so the day profile and
@@ -142,7 +138,7 @@ function fallbackDriver(sys: BodySystemScore, period: string): string {
 router.get('/nutrition-profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const date = parseDate(req.query.date);
+    const date = await queryDateOrToday(req, req.query.date);
     const range = parseRange(req.query.range);
     const isToday = range === 'today';
 
@@ -248,7 +244,7 @@ router.get('/nutrition-profile/effect/:systemId', requireAuth, async (req, res) 
     const systemId = req.params.systemId;
     if (!isBodySystem(systemId)) return res.status(404).json({ error: 'Unknown system' });
     const userId = req.user!.id;
-    const date = parseDate(req.query.date);
+    const date = await queryDateOrToday(req, req.query.date);
     const range = parseRange(req.query.range);
 
     const win = await loadWindow(userId, date, range);
@@ -305,7 +301,7 @@ router.get('/nutrition-profile/nutrient/:key', requireAuth, async (req, res) => 
     const def = getNutrient(req.params.key);
     if (!def) return res.status(404).json({ error: 'Unknown nutrient' });
     const userId = req.user!.id;
-    const date = parseDate(req.query.date);
+    const date = await queryDateOrToday(req, req.query.date);
     const range = parseRange(req.query.range);
 
     const win = await loadWindow(userId, date, range);
@@ -442,7 +438,7 @@ router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const range: ProfileRange = req.query.range === '30d' ? '30d' : '7d';
-    const end = parseDate(req.query.date);
+    const end = await queryDateOrToday(req, req.query.date);
 
     // Same loader the ranged profile uses, so the two surfaces can never
     // disagree about window bounds or about what counts as a logged day.
@@ -498,7 +494,7 @@ router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
 router.get('/nutrition-profile/recommendations', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const date = parseDate(req.query.date);
+    const date = await queryDateOrToday(req, req.query.date);
     const range = parseRange(req.query.range);
     // Same window + same coverage vector the day profile's topMove uses, so the
     // card the user tapped is the first row of the list it opens.

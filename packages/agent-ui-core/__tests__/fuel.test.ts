@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { targetLines, dayTotals, momentFor, perServing, ingredientFrom, rangeBars } from '../src/fuel';
+import { targetLines, dayTotals, momentFor, perServing, ingredientFrom, rangeBars, lookupReceipt } from '../src/fuel';
 
 const T = { calories: 2600, proteinG: 180, carbsG: 300, fatG: 80, fiberG: 36, source: 'plan' };
 
@@ -58,5 +58,18 @@ describe('rangeBars', () => {
   });
   it('labels each day for a week', () => {
     expect(rangeBars([{ date: '2026-10-08', kcal: 1900, logged: true }], '7d')).toEqual([{ label: 'T', value: 1900 }]);
+  });
+});
+
+describe('lookupReceipt', () => {
+  it('names the source when published values were used', () => {
+    expect(lookupReceipt({ lookups: [{ brand: 'Starbucks', status: 'found', sourceDomain: 'starbucks.ca' }] }, 'Latte'))
+      .toEqual({ verb: 'Searched', found: true, text: 'Starbucks — from starbucks.ca' });
+  });
+  it('says a checked brand stayed an estimate', () => {
+    expect(lookupReceipt({ lookups: [{ brand: 'Osmow’s', status: 'estimated', sourceDomain: null }] }, 'Box').text).toBe('Osmow’s — not published, estimated');
+  });
+  it('never claims a search for plain food', () => {
+    expect(lookupReceipt({ name: 'Eggs' }, 'Eggs and toast')).toEqual({ verb: 'Computed', found: false, text: 'Eggs and toast — estimated' });
   });
 });

@@ -39,7 +39,7 @@ import { nutritionApi } from '../../src/lib/api';
 import { todayStr } from '../../src/lib/localDate';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
-import type { ReceiptVerb } from '@axiom/agent-ui-core';
+import { lookupReceipt, type ReceiptVerb } from '@axiom/agent-ui-core';
 import { useAuth } from '../../src/context/AuthContext';
 import { richLogFields } from '../../src/components/coach/nutrition/sheets/sheetHelpers';
 import { preparePhoto } from '../../src/components/coach/nutrition/mealPhotoPrep';
@@ -311,10 +311,12 @@ function CaptureScreenInner() {
     const t = text.trim(); if (!t || busy) return;
     setBusy(true); setLog([{ verb: 'Read', text: `“${t}”` }]);
     try {
-      const parsed: any = await nutritionApi.parseMeal(t);
+      const slow = setTimeout(() => setLog((l) => [...l, { verb: 'Reading', text: 'Checking published nutrition' }]), 4000);
+      const parsed: any = await nutritionApi.parseMeal(t).finally(() => clearTimeout(slow));
       const its: Item[] = itemsFromParse(parsed, t);
       setRaw(parsed?.meal ?? parsed);
-      setItems(its); setLog((l) => [...l, { verb: 'Searched', text: `${its.map((i) => i.name).join(', ')} — matched` }]);
+      const rc = lookupReceipt(parsed, its.map((i) => i.name).join(', ') || null);
+      setItems(its); setLog((l) => [...l.filter((x) => x.verb !== 'Reading'), { verb: rc.verb, text: rc.text }]);
     } catch (e: any) { Alert.alert('Couldn\'t parse that', e?.message ?? ''); setLog([]); }
     setBusy(false);
   };

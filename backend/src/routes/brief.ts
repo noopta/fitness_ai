@@ -16,6 +16,7 @@ import { getCurrentWeekSchedule } from './coach.js';
 import { cacheGet, cacheSet } from '../services/cacheService.js';
 import type { Receipt } from '../agent/receipts.js';
 import { sessionMinutes } from '../services/sessionMinutes.js';
+import { requestToday } from '../services/userTimezone.js';
 
 const router = Router();
 
@@ -154,7 +155,7 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
       assembleContext(userId),
       getCurrentWeekSchedule(userId).catch(() => null),
     ]);
-    const date = ctx.todayNutrition?.date ?? new Date().toISOString().slice(0, 10);
+    const date = ctx.todayNutrition?.date ?? await requestToday(req);
     const session = pickSession(schedule);
 
     // Receipts describe the reads that just happened, in order.

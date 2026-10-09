@@ -18,7 +18,7 @@ import { TextAction } from '../primitives/TextAction';
 import { ReceiptList } from '../primitives/Receipt';
 import { Ring } from '../charts';
 import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods } from '../data';
-import { targetLines, dayTotals, momentFor } from '@axiom/agent-ui-core';
+import { targetLines, dayTotals, momentFor, lookupReceipt } from '@axiom/agent-ui-core';
 import { ShareCardSheet, CardBody } from '../share/ShareCardSheet';
 import { useShell } from '../shell/ShellContext';
 import { useRequirePro } from '../shell/proGate';
@@ -43,7 +43,7 @@ export function FuelPage() {
   // "The usual": what was logged at this meal a week ago today, for one-tap logging.
   const usual = useQuery({ queryKey: ['v2', 'usual', new Date().getDay()], staleTime: 10 * 60_000, queryFn: async () => {
     const d = new Date(); d.setDate(d.getDate() - 7);
-    const r: any = await nutritionApi.getMeals(d.toISOString().slice(0, 10)).catch(() => null);
+    const r: any = await nutritionApi.getMeals(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`).catch(() => null);
     const list: any[] = r?.meals ?? r?.entries ?? (Array.isArray(r) ? r : []);
     return list.find((m) => String(m.mealType ?? '').toLowerCase() === guessMealType()) ?? list[0] ?? null;
   } });
@@ -99,10 +99,13 @@ export function FuelPage() {
     const t = text.trim(); if (!t) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `“${t}”` }]);
     try {
-      const parsed: any = await nutritionApi.parseMeal(t);
+      // Branded items are looked up on the web server-side (10–30 s); say so while it runs.
+      const slow = setTimeout(() => setLog((l) => [...l, { verb: 'Reading', text: 'Checking published nutrition' }]), 4000);
+      const parsed: any = await nutritionApi.parseMeal(t).finally(() => clearTimeout(slow));
       const item = parsed?.meal ?? parsed?.items?.[0] ?? parsed;
-      setLog((l) => [...l, { verb: 'Searched', text: item?.name ? `${item.name} — matched` : 'Matched' }]);
-      const body = { date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe' };
+      const rc = lookupReceipt(parsed, item?.name ?? null);
+      setLog((l) => [...l.filter((x) => x.verb !== 'Reading'), { verb: rc.verb, text: rc.text }]);
+      const body = { date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe', ...(rc.found && parsed?.notes ? { notes: String(parsed.notes).slice(0, 480) } : {}) };
       await nutritionApi.logMeal(body as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${body.name} — ${body.calories} kcal · ${body.proteinG} P · ${body.carbsG} C · ${body.fatG} F` }]);
       haptics.success();

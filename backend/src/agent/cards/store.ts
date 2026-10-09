@@ -9,6 +9,7 @@ import type { Card, CardDraft, CardState, PendingActions, PendingOp } from './ty
 import { executeOp, revertChange, withWriteGuard, UndoError, UNDO_LOG_MS } from '../ops.js';
 import { clockTime, todayIn } from './format.js';
 import { applyBatchSelection, type BatchSelection } from '../../services/workoutBackfill.js';
+import { onTimezoneChange } from '../../services/userTimezone.js';
 
 const prisma = new PrismaClient();
 
@@ -357,6 +358,8 @@ export async function userTz(userId: string): Promise<string> {
   return tz;
 }
 export function forgetTz(userId: string) { tzCache.delete(userId); }
+// The phone reported a new zone (travel): today's date moves with it.
+onTimezoneChange(forgetTz);
 
 export async function recentCards(userId: string, limit = 30): Promise<Card[]> {
   const rows = await prisma.agentCard.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: limit });

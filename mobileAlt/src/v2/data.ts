@@ -86,12 +86,14 @@ export const useSchedule = () => useQuery({ queryKey: qk.schedule, queryFn: () =
 export const useToday = () => useQuery({ queryKey: qk.today, queryFn: () => coachApi.getToday() as Promise<any>, staleTime: STALE });
 export const useCompletedPrograms = () => useQuery({ queryKey: qk.completed, queryFn: () => coachApi.getCompletedPrograms() as Promise<any>, staleTime: 5 * 60_000 });
 export const useStrength = () => useQuery({ queryKey: qk.strength, queryFn: () => apiFetch('/strength/profile') as Promise<any>, staleTime: 5 * 60_000 });
-export const useMeals = (date?: string) => useQuery({ queryKey: qk.meals(date), queryFn: () => nutritionApi.getMeals(date) as Promise<any>, staleTime: 30_000 });
-export const useNpDay = () => useQuery({ queryKey: qk.npDay, queryFn: () => nutritionProfileApi.getDay(), staleTime: STALE });
-export const useNpWeek = () => useQuery({ queryKey: ['v2', 'np', 'week'], queryFn: () => nutritionProfileApi.getDay(undefined, '7d'), staleTime: 5 * 60_000 });
-export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, undefined, '7d' as any), staleTime: STALE, enabled: !!id });
+// Always the phone's LOCAL day: without a date the server used to answer for its UTC day,
+// which hid the whole day's log every evening in the Americas (8 Oct 2026, Calgary).
+export const useMeals = (date: string = todayStr()) => useQuery({ queryKey: qk.meals(date), queryFn: () => nutritionApi.getMeals(date) as Promise<any>, staleTime: 30_000 });
+export const useNpDay = () => { const date = todayStr(); return useQuery({ queryKey: [...qk.npDay, date], queryFn: () => nutritionProfileApi.getDay(date), staleTime: STALE }); };
+export const useNpWeek = () => { const date = todayStr(); return useQuery({ queryKey: ['v2', 'np', 'week', date], queryFn: () => nutritionProfileApi.getDay(date, '7d'), staleTime: 5 * 60_000 }); };
+export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, todayStr(), '7d' as any), staleTime: STALE, enabled: !!id });
 export const useNutritionPlan = () => useQuery({ queryKey: qk.nutritionPlan, queryFn: () => v2Api.nutritionPlan(), staleTime: STALE });
-export const useNpNutrient = (key: string) => useQuery({ queryKey: qk.npNutrient(key), queryFn: () => nutritionProfileApi.getNutrient(key, undefined, '7d' as any), staleTime: STALE, enabled: !!key });
+export const useNpNutrient = (key: string) => useQuery({ queryKey: qk.npNutrient(key), queryFn: () => nutritionProfileApi.getNutrient(key, todayStr(), '7d' as any), staleTime: STALE, enabled: !!key });
 // Feed tab (bug fixes 5 Oct, 3a): friends' posts, 20 a page, paged by the server's cursor.
 export const useFeedPages = () => useInfiniteQuery({
   queryKey: qk.feedPages,
@@ -130,14 +132,15 @@ export const useStreak = () => useQuery({
   queryFn: async () => {
     const rows: { date: string; count: number }[] = await apiFetch('/activity/heatmap').catch(() => []);
     const active = new Set(rows.filter((r) => r.count > 0).map((r) => r.date.slice(0, 10)));
-    const day = (d: Date) => d.toISOString().slice(0, 10);
+    // Local calendar days, like the dates the heatmap counts (not UTC).
+    const day = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const cur = new Date();
     if (!active.has(day(cur))) cur.setDate(cur.getDate() - 1);
     let streak = 0;
     while (active.has(day(cur))) { streak++; cur.setDate(cur.getDate() - 1); }
     let longest = 0, run = 0, prev: string | null = null;
     for (const d of [...active].sort()) {
-      if (prev) { const p = new Date(prev); p.setDate(p.getDate() + 1); run = day(p) === d ? run + 1 : 1; } else run = 1;
+      if (prev) { const p = new Date(`${prev}T12:00:00`); p.setDate(p.getDate() + 1); run = day(p) === d ? run + 1 : 1; } else run = 1;
       longest = Math.max(longest, run); prev = d;
     }
     const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));

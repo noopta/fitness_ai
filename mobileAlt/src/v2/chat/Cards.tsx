@@ -16,6 +16,7 @@ import { Enter } from '../primitives/Enter';
 import { LineForecast } from '../charts';
 import { WeekStrip } from '../pages/Training';
 import { coachApi, workoutsApi } from '../../lib/api';
+import { todayStr } from '../../lib/localDate';
 import { v2Api } from '../api';
 import { useUnits } from '../../context/UnitsContext';
 import { qk, useInvalidate } from '../data';
@@ -117,7 +118,7 @@ export function BenchCard({ turn, patch, resolve }: CardProps) {
     if (!Number.isFinite(weight) || !Number.isFinite(reps) || reps <= 0) return;
     setBusy(true);
     try {
-      await workoutsApi.logWorkout({ date: new Date().toISOString().slice(0, 10), title: lift, exercises: [{ name: lift, sets: 1, reps: String(reps), weightKg: weight > 0 ? toKg(weight) : null, bodyweight: weight <= 0 }] } as any);
+      await workoutsApi.logWorkout({ date: todayStr(), title: lift, exercises: [{ name: lift, sets: 1, reps: String(reps), weightKg: weight > 0 ? toKg(weight) : null, bodyweight: weight <= 0 }] } as any);
       await invalidate.afterWorkout();
       patch({ logged: `${lift} ${weight} ${u} × ${reps}` });
       resolve(`Logged — ${lift} · ${weight} ${u} × ${reps}`);

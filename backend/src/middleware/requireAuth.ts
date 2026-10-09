@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { noteTimezone, TZ_HEADER } from '../services/userTimezone.js';
 
 const prisma = new PrismaClient();
 
@@ -49,6 +50,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as AuthUser;
     req.user = payload;
     touchLastActive(payload.id);
+    noteTimezone(payload.id, req.headers[TZ_HEADER]);
     next();
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token' });

@@ -16,6 +16,11 @@ const TOKEN_KEY = 'liftoff_auth_token';
  */
 const DEFAULT_TIMEOUT_MS = 30_000;
 
+/** IANA zone of the device ("America/Edmonton"), or null if the runtime won't say. Read per call so travel is picked up. */
+export function deviceTimeZone(): string | null {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch { return null; }
+}
+
 /**
  * For endpoints that legitimately run long — LLM generation, vision, audio
  * transcription. These genuinely take tens of seconds, so the default deadline
@@ -63,6 +68,10 @@ export async function apiFetch(
     'Content-Type': 'application/json',
     ...(fetchOptions.headers as Record<string, string>),
   };
+  // The phone's zone: the server saves it and uses it for "today" whenever a
+  // request doesn't carry a date (and for the coach's notion of today).
+  const tz = deviceTimeZone();
+  if (tz && !headers['X-Timezone']) headers['X-Timezone'] = tz;
   if (requiresAuth) {
     const token = await getToken();
     if (token) {

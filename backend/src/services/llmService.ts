@@ -15,6 +15,7 @@ import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
 import { cleanInjuryText, hardConstraintBlock, lowerBodyBlocked, lowerBodyExercises, stripLowerBody } from './injuryGuard.js';
 import { agentProgress } from '../agent/turnRun.js';
+import { applyBrandedLookups, coerceBrandedItems, lookupAll, TEXT_LOOKUP_ENABLED, type BrandedItem, type ItemLookupResult } from './food/brandedLookup.js';
 import { applyWeekRecovery, spreadSlots } from './weekRecovery.js';
 import {
   buildMealPhotoV2Prompt,
@@ -2081,6 +2082,8 @@ export interface ParsedMealDetail extends ParsedMealMacros {
   // Per-ingredient open nutrient vectors, when the model breaks the meal down.
   // Powers the Meal Breakdown subscreen ("what each ingredient carries").
   ingredientDetails?: Array<{ name: string; nutrients: Record<string, number> }>;
+  /** Branded items checked on the web: what was found, and what stayed an estimate. */
+  lookups?: ItemLookupResult[];
 }
 
 // Pull every finite numeric value out of a raw nutrients object into an open
@@ -2188,9 +2191,19 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
   };
 }
 
+export interface ParseMealOptions {
+  /** The user's IANA zone — picks the right country's menu for a lookup. */
+  tz?: string | null;
+  /** Look branded/restaurant items up on the web (default: on unless WEB_FOOD_TEXT_LOOKUP=0). */
+  lookup?: boolean;
+  /** Time budget for the lookups, ms. */
+  lookupBudgetMs?: number;
+}
+
 export async function parseMealMacros(
   description: string,
   region: FoodRegion = 'global',
+  opts: ParseMealOptions = {},
 ): Promise<ParsedMealDetail> {
   const prompt = `You are a nutrition expert with deep knowledge of restaurant menus, packaged foods, and home cooking. A user described a meal — extract the macros as accurately as possible.
 
@@ -2263,16 +2276,61 @@ GUT-HEALTH FIELDS (required):
 - "plants": distinct plant species in the meal (vegetables, fruits, whole grains, legumes, nuts, seeds, herbs, spices) as singular lowercase names, e.g. ["tomato","spinach","oat"]. Refined flour/sugar/oils do NOT count.
 - "fermentedFoods": live-culture fermented items present, e.g. ["kefir","kimchi","greek yogurt"], else [].
 - "ultraProcessed": true only if the meal is predominantly ultra-processed (packaged snacks, fast food, candy, soda).
+
+BRANDED ITEMS (required, may be empty):
+- "branded": one entry per item that comes from a NAMED restaurant chain, café chain or packaged-food brand (Starbucks, Tim Hortons, McDonald's, Quest, Fairlife…). Not home cooking, not generic foods ("chicken breast", "banana").
+- Each: { "brand": "Starbucks", "product": "Iced Sugar-Free Caramel Protein Latte", "size": "Grande" or null, "servings": 1, "calories": 200, "proteinG": 20, "carbsG": 20, "fatG": 5 } — the macros are YOUR estimate for that item exactly as you counted it in the totals above (all servings of it).
+- [] when nothing is branded.
 ${regionPromptBlock(region, 'text')}`;
 
   const response = await chatComplete({
     messages: [{ role: 'user', content: prompt }],
-    max_completion_tokens: 2000,
+    max_completion_tokens: 2400,
     response_format: { type: 'json_object' },
   });
 
   const raw = response.choices[0].message.content || '{}';
-  return coerceParsedMealDetail(parseModelJson(raw));
+  const json = parseModelJson(raw);
+  const detail = coerceParsedMealDetail(json);
+  if (opts.lookup === false || !TEXT_LOOKUP_ENABLED()) return detail;
+  return withBrandedLookups(detail, coerceBrandedItems((json as any)?.branded), opts);
+}
+
+/**
+ * Replace the parser's estimates for branded items with their published
+ * values, when a grounded web lookup finds them. Exported for tests.
+ */
+export async function withBrandedLookups(
+  detail: ParsedMealDetail,
+  items: BrandedItem[],
+  opts: ParseMealOptions & { lookupFn?: typeof lookupAll } = {},
+): Promise<ParsedMealDetail> {
+  if (!items.length) return detail;
+  // Per-item estimates the model never filled in can't be swapped out safely;
+  // a lone branded item IS the meal, so its estimate is the totals.
+  const fixed = items.length === 1 && items[0].estimate.calories === 0
+    ? [{ ...items[0], estimate: { calories: detail.calories, proteinG: detail.proteinG, carbsG: detail.carbsG, fatG: detail.fatG } }]
+    : items.filter((it) => it.estimate.calories > 0);
+  if (!fixed.length) return detail;
+  const label = fixed.map((it) => it.brand).filter((b, i, a) => a.indexOf(b) === i).join(', ');
+  agentProgress('food-lookup', 'Reading', `Looking up ${label} nutrition`);
+  const started = Date.now();
+  const results = await (opts.lookupFn ?? lookupAll)(fixed, { tz: opts.tz, budgetMs: opts.lookupBudgetMs });
+  const { totals, lookups } = applyBrandedLookups(detail, fixed, results);
+  const hits = lookups.filter((l) => l.status === 'found');
+  console.log(`[food-lookup] items=${fixed.length} found=${hits.length} ms=${Date.now() - started} ${results.map((r) => r.kind === 'found' ? 'found' : `${r.kind}:${r.reason}`).join(',')}`);
+  agentProgress('food-lookup', hits.length ? 'Searched' : 'Checked', hits.length
+    ? `${label} — from ${hits.map((h) => h.sourceDomain ?? 'the brand').filter((d, i, a) => a.indexOf(d) === i).join(', ')}`
+    : `${label} — not published, estimated`);
+  if (!hits.length) return { ...detail, lookups };
+  const sourceLine = hits.map((h) => `${[h.brand, h.product, h.size].filter(Boolean).join(' ')}: from ${h.sourceDomain ?? 'the brand'}${h.sourceUrl ? ` (${h.sourceUrl})` : ''}`).join('; ');
+  return {
+    ...detail,
+    ...totals,
+    confidence: hits.length === lookups.length ? 'high' : detail.confidence,
+    notes: [sourceLine, detail.notes].filter(Boolean).join(' · ').slice(0, 480),
+    lookups,
+  };
 }
 
 // ─── Nutrition Profile narration ────────────────────────────────────────────

@@ -9,6 +9,7 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { cacheMarkStale } from '../services/cacheService.js';
 import { nutritionProfileCacheKey } from '../services/nutritionShared.js';
 import { resolveTargets, quickTargets, summarizeRange, setOwnTargets, type TargetEdit } from '../services/nutritionTargets.js';
+import { queryDateOrToday } from '../services/userTimezone.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -53,7 +54,7 @@ router.put('/nutrition/day-targets', requireAuth, async (req, res) => {
 router.get('/nutrition/day-targets', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const date = typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date) ? req.query.date : new Date().toISOString().slice(0, 10);
+    const date = await queryDateOrToday(req, req.query.date);
     const [u, logs] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true, subtractWorkoutBurnFromCalories: true } }),
       prisma.workoutLog.findMany({ where: { userId, date }, select: { title: true, caloriesBurnedKcal: true } }),
@@ -102,7 +103,7 @@ router.post('/nutrition/day-targets/quick', requireAuth, async (req, res) => {
 // Today / 7 / 30 days (N-09): daily totals, averages over logged days, meal shares.
 router.get('/nutrition/summary', requireAuth, async (req, res) => {
   try {
-    const end = typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date) ? req.query.date : new Date().toISOString().slice(0, 10);
+    const end = await queryDateOrToday(req, req.query.date);
     const span = req.query.range === '30d' ? 30 : req.query.range === '7d' ? 7 : 1;
     const s = new Date(`${end}T12:00:00Z`); s.setUTCDate(s.getUTCDate() - (span - 1));
     const start = s.toISOString().slice(0, 10);

@@ -9,7 +9,8 @@ import { tool, schema, str, numOr, prisma, parseJson, dateArg } from './kit.js';
 import { createWorkoutLog, createWorkoutLogsBulk, updateWorkoutLog, deleteWorkoutLog, restoreWorkoutLog, type WorkoutLogInput } from '../../services/workoutLogService.js';
 import { parseWorkoutNotes } from '../../services/workoutNotesParser.js';
 import { buildPreview, takePreview, peekPreview, withoutLogged, previewBatch, previewInputs, rangeLabel, bestsLine, shortDay, type BackfillPreview } from '../../services/workoutBackfill.js';
-import { applyCardAction, findLiveCard } from '../cards/store.js';
+import { applyCardAction, findLiveCard, userTz } from '../cards/store.js';
+import { todayIn } from '../cards/format.js';
 import { turnMessage } from '../turnMessage.js';
 import { computeStrengthProfile } from '../../routes/strength.js';
 import { cacheGet } from '../../services/cacheService.js';
@@ -398,7 +399,8 @@ export const WORKOUT_TOOLS = [
     execute: async (input, userId) => {
       const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, timezone: true } });
       const unit: Unit = u?.unitPreference === 'metric' ? 'metric' : 'imperial';
-      const log = await findLog(userId, input, { userId, unit, tz: u?.timezone ?? 'America/New_York', today: new Date().toISOString().slice(0, 10) });
+      const tz = u?.timezone || 'America/New_York';
+      const log = await findLog(userId, input, { userId, unit, tz, today: todayIn(tz) });
       if (!log) throw new Error('I couldn’t find that workout.');
       const exs = parseJson<any[]>(log.exercises, []);
       const name = str(input.exercise).toLowerCase();
@@ -425,7 +427,8 @@ export const WORKOUT_TOOLS = [
     input_schema: schema({ logId: { type: 'string' }, date: { type: 'string' } }),
     receipt: () => ({ verb: 'Read', text: 'Workout to delete' }),
     execute: async (input, userId) => {
-      const log = await findLog(userId, input, { userId, unit: 'imperial', tz: 'America/New_York', today: new Date().toISOString().slice(0, 10) });
+      const tz = await userTz(userId);
+      const log = await findLog(userId, input, { userId, unit: 'imperial', tz, today: todayIn(tz) });
       if (!log) throw new Error('I couldn’t find that workout.');
       const exs = parseJson<any[]>(log.exercises, []);
       const sets = exs.reduce((n, e) => n + (Array.isArray(e.setEntries) && e.setEntries.length ? e.setEntries.length : Number(e.sets) || 0), 0);

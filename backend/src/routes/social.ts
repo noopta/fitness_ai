@@ -10,6 +10,7 @@ import { moderateText, moderatePost } from '../services/moderationService.js';
 import { socialWriteLimiter } from '../middleware/rateLimiter.js';
 import { rankBoard, type BoardLift } from '../services/leaderboardBoard.js';
 import { savedPostRow, savedArticleRow, mergeSaved, postMatches, postTitle, isWorkoutPost } from '../services/feedSaved.js';
+import { requestToday } from '../services/userTimezone.js';
 
 /** Length caps for user-to-user text. All of these were previously unbounded. */
 const MAX_MESSAGE_LEN = 4000;
@@ -1725,7 +1726,7 @@ router.get('/social/leaderboard/board', wrap(async (req, res) => {
     ids = [userId, ...friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId))];
   }
   ids = [...new Set(ids)].slice(0, 200);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = await requestToday(req);
   const since = new Date(); since.setUTCDate(since.getUTCDate() - 400);
   const [users, logs] = await Promise.all([
     prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, username: true, weightKg: true } }),

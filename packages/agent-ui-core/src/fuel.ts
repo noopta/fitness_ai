@@ -78,3 +78,22 @@ export function rangeBars(days: { date: string; kcal: number; logged: boolean }[
   }
   return days.map((d) => ({ label: L[new Date(`${d.date}T12:00:00`).getDay()], value: d.logged ? d.kcal : 0 }));
 }
+
+/** One branded item the server checked on the web while parsing typed food. */
+export interface FoodLookup { brand: string; status: 'found' | 'estimated'; sourceDomain: string | null }
+
+/**
+ * The receipt line for typed food, saying honestly where the numbers came
+ * from: published values ("Starbucks — from starbucks.ca"), a brand that
+ * isn't published ("— not published, estimated"), or a plain estimate.
+ */
+export function lookupReceipt(parsed: any, name: string | null): { verb: 'Searched' | 'Checked' | 'Computed'; text: string; found: boolean } {
+  const lookups: FoodLookup[] = Array.isArray(parsed?.lookups) ? parsed.lookups : [];
+  const uniq = (xs: string[]) => xs.filter((x, i) => xs.indexOf(x) === i);
+  const found = lookups.filter((l) => l.status === 'found');
+  if (found.length) {
+    return { verb: 'Searched', found: true, text: `${uniq(found.map((l) => l.brand)).join(', ')} — from ${uniq(found.map((l) => l.sourceDomain ?? l.brand)).join(', ')}` };
+  }
+  if (lookups.length) return { verb: 'Checked', found: false, text: `${uniq(lookups.map((l) => l.brand)).join(', ')} — not published, estimated` };
+  return { verb: 'Computed', found: false, text: name ? `${name} — estimated` : 'Estimated' };
+}

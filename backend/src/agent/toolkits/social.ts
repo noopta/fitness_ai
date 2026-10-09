@@ -8,7 +8,8 @@ import { registerToolkit } from '../registry.js';
 import { defineOp } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
-import { dayLabel, plural, weight } from '../cards/format.js';
+import { dayLabel, plural, todayIn, weight } from '../cards/format.js';
+import { userTz } from '../cards/store.js';
 import type { CardDraft } from '../cards/types.js';
 
 const who = (u: any) => u?.name || (u?.username ? `@${u.username}` : 'Someone');
@@ -284,7 +285,7 @@ export const SOCIAL_TOOLS = [
       if (what === 'today') {
         const t: any = await callApi(userId, 'GET', '/coach/today');
         const s = t?.todaySession; if (!s) throw new Error('Nothing is planned today.');
-        return { friend: { id: friend.id, name: who(friend) }, op: 'social.forward_workout', args: { kind: 'planned', workout: { date: new Date().toISOString().slice(0, 10), title: s.day ?? s.name, focus: s.focus, exercises: (s.exercises ?? []).map((e: any) => ({ name: e.exercise ?? e.name, sets: e.sets, reps: e.reps, intensity: e.intensity })) } }, title: `${s.day ?? 'Today’s session'}`, note: str(input.note) };
+        return { friend: { id: friend.id, name: who(friend) }, op: 'social.forward_workout', args: { kind: 'planned', workout: { date: todayIn(await userTz(userId)), title: s.day ?? s.name, focus: s.focus, exercises: (s.exercises ?? []).map((e: any) => ({ name: e.exercise ?? e.name, sets: e.sets, reps: e.reps, intensity: e.intensity })) } }, title: `${s.day ?? 'Today’s session'}`, note: str(input.note) };
       }
       if (what === 'logged') {
         const log = str(input.id) ? await prisma.workoutLog.findFirst({ where: { id: str(input.id), userId } }) : await prisma.workoutLog.findFirst({ where: { userId }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }] });
