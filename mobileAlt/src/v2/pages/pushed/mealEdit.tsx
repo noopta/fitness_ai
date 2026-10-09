@@ -20,6 +20,8 @@ import { useMeals, useInvalidate } from '../../data';
 import { useShellOptional } from '../../shell/ShellContext';
 import { nutritionApi } from '../../../lib/api';
 import { haptics } from '../../haptics';
+import { mealSources } from '@axiom/agent-ui-core';
+import { SourceLinks } from '../../food/SourceLinks';
 
 const SLOTS = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 type Slot = typeof SLOTS[number];
@@ -136,6 +138,7 @@ export function MealEditPage({ id, date }: { id: string; date?: string }) {
             ))}
           </View>
           <Text style={[T.caption, { marginTop: 8 }]}>Tap a number to fix it.</Text>
+          <SourceLinks sources={mealSources(m)} style={{ marginTop: 14 }} />
 
           <View style={styles.actions}>
             <TextAction primary onPress={() => void save()} loading={busy} disabled={!dirty}>Save</TextAction>

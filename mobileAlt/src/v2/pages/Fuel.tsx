@@ -19,7 +19,8 @@ import { ReceiptList } from '../primitives/Receipt';
 import { describeWithLookup, liveStep } from '../food/lookup';
 import { Ring } from '../charts';
 import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods } from '../data';
-import { targetLines, dayTotals, momentFor, lookupReceipt } from '@axiom/agent-ui-core';
+import { targetLines, dayTotals, momentFor, lookupReceipt, mealSources, type MealSource } from '@axiom/agent-ui-core';
+import { SourceLinks } from '../food/SourceLinks';
 import { ShareCardSheet, CardBody } from '../share/ShareCardSheet';
 import { useShell } from '../shell/ShellContext';
 import { useRequirePro } from '../shell/proGate';
@@ -51,6 +52,7 @@ export function FuelPage() {
   const [dock, setDock] = useState<'idle' | 'typing' | 'busy'>('idle');
   const [text, setText] = useState('');
   const [log, setLog] = useState<{ verb: ReceiptVerb; text: string }[]>([]);
+  const [sources, setSources] = useState<MealSource[]>([]);
   // Plan row: open the plan, or — with none yet — start the gut check-in (NTP-04) in chat.
   const openPlan = () => {
     haptics.select();
@@ -119,7 +121,9 @@ export function FuelPage() {
       haptics.success();
       await invalidate.afterMeal();
       setText('');
-      setTimeout(() => { setDock('idle'); setLog([]); }, 1400);
+      const src = mealSources(parsed);
+      setSources(src);
+      setTimeout(() => { setDock('idle'); setLog([]); setSources([]); }, src.length ? 4500 : 1400);
     } catch (e: any) {
       setLog((l) => [...l, { verb: 'Noted', text: e?.message ?? 'Couldn\'t log that — try again.' }]);
       setTimeout(() => setDock('typing'), 1200);
@@ -224,7 +228,10 @@ export function FuelPage() {
         </View>
 
         {dock === 'busy' && log.length ? (
-          <View style={{ marginTop: 26 }}><ReceiptList items={log} liveIndex={liveStep(log) >= 0 ? liveStep(log) : log.length - 1} /></View>
+          <View style={{ marginTop: 26 }}>
+            <ReceiptList items={log} liveIndex={liveStep(log) >= 0 ? liveStep(log) : log.length - 1} />
+            <SourceLinks sources={sources} style={{ marginTop: 10 }} />
+          </View>
         ) : null}
         <ShareCardSheet visible={sharing && !!moment} onClose={() => setSharing(false)} title="Share today"
           card={(theme) => moment ? <CardBody theme={theme} eyebrow={moment.eyebrow} value={moment.value} line={`${moment.of} · ${Math.round(kcal).toLocaleString()} kcal`} date={new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} /> : null} />

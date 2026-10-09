@@ -15,7 +15,7 @@ import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
 import { cleanInjuryText, hardConstraintBlock, lowerBodyBlocked, lowerBodyExercises, stripLowerBody } from './injuryGuard.js';
 import { agentProgress } from '../agent/turnRun.js';
-import { applyBrandedLookups, coerceBrandedItems, TEXT_LOOKUP_ENABLED, type BrandedItem, type ItemLookupResult } from './food/brandedLookup.js';
+import { applyBrandedLookups, applyLabelMicros, coerceBrandedItems, TEXT_LOOKUP_ENABLED, type BrandedItem, type ItemLookupResult } from './food/brandedLookup.js';
 import { clarifyQuestion, resolveAll, type ResolveCtx, type ResolvedItem } from './food/foodResolver.js';
 import { applyWeekRecovery, spreadSlots } from './weekRecovery.js';
 import {
@@ -2346,13 +2346,18 @@ export async function withBrandedLookups(detail: ParsedMealDetail, opts: ParseMe
 
 /** Fold resolved items into the totals, notes and lookups list. Pure. */
 export function finishLookups(detail: ParsedMealDetail, items: BrandedItem[], resolved: ResolvedItem[]): ParsedMealDetail {
-  const { totals, lookups } = applyBrandedLookups(detail, items, resolved.map((r) => r.result), resolved.map((r) => r.step));
+  const results = resolved.map((r) => r.result);
+  const { totals, lookups } = applyBrandedLookups(detail, items, results, resolved.map((r) => r.step));
   const hits = lookups.filter((l) => l.status === 'found');
   if (!hits.length) return { ...detail, lookups };
+  // Micronutrients follow the same swap: the label's numbers where it states them.
+  const micro = applyLabelMicros({ calories: detail.calories, nutrients: detail.nutrients as any, nutrientMap: detail.nutrientMap }, items, results);
   const sourceLine = hits.map((h) => `${[h.brand, h.product, h.size].filter(Boolean).join(' ')}: from ${h.sourceDomain ?? 'the brand'}${h.sourceUrl ? ` (${h.sourceUrl})` : ''}`).join('; ');
   return {
     ...detail,
     ...totals,
+    nutrients: micro.nutrients as Micronutrients,
+    nutrientMap: micro.nutrientMap,
     confidence: hits.length === lookups.length ? 'high' : detail.confidence,
     notes: [sourceLine, detail.notes].filter(Boolean).join(' · ').slice(0, 480),
     lookups,

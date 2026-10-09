@@ -222,6 +222,8 @@ function hasUsableMicros(n: Micronutrients | undefined | null): boolean {
   return keys.filter((k) => Number(n[k]) > 0).length >= 3;
 }
 
+const LOW_DENSITY_KCAL_PER_100G = 80;
+
 export async function enrichMealDetailHybrid(
   detail: ParsedMealDetail,
   // Additive and defaulted, so every existing caller keeps its exact behaviour.
@@ -235,6 +237,13 @@ export async function enrichMealDetailHybrid(
   opts: {
     region?: FoodRegion;
     usdaMicros?: { micros: Partial<Record<keyof Micronutrients, number>>; matched: number; total: number };
+    /**
+     * Blend USDA micros for each listed ingredient, with grams guessed from a
+     * calorie share. Default on for existing callers. Typed meals turn it off:
+     * on 9 Oct 2026 it moved a McDouble from 950 → 2,461 mg sodium and 1 → 25 g
+     * fibre against a label of 840 mg / 2 g — the model alone was closer.
+     */
+    blendIngredients?: boolean;
   } = {},
 ): Promise<{ detail: ParsedMealDetail; meta: HybridEnrichmentMeta }> {
   const region = opts.region ?? 'global';
@@ -275,7 +284,7 @@ export async function enrichMealDetailHybrid(
     };
   }
   const ingredients = (detail.ingredients || []).map(i => i.trim()).filter(Boolean).slice(0, 10);
-  if (!USDA_API_KEY || ingredients.length === 0) {
+  if (!USDA_API_KEY || ingredients.length === 0 || opts.blendIngredients === false) {
     return {
       detail: { ...detail, nutrients: llmMicros, nutrientMap: mergeMicrosIntoMap(detail.nutrientMap, llmMicros) },
       meta: {
@@ -295,6 +304,12 @@ export async function enrichMealDetailHybrid(
     const ingredient = ingredients[i];
     const found = await fetchUsdaFoodNutrients(ingredient);
     if (!found || found.caloriesPer100g <= 0) continue;
+    // Grams are guessed from a calorie share, which only works for foods
+    // with real calorie density. For salt, pickles, mustard, "flavors" (a few
+    // kcal per 100 g) the same share becomes hundreds of grams, and their
+    // sodium swamped the meal (9 Oct 2026: 7,764 mg sodium for one McDouble,
+    // 12,365 mg for a protein bar). Those ingredients keep the model's numbers.
+    if (found.caloriesPer100g < LOW_DENSITY_KCAL_PER_100G) continue;
 
     matched += 1;
     const totalCalories = detail.calories > 0 ? detail.calories : 450;

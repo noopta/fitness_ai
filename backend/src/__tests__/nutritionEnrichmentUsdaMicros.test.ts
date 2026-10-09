@@ -45,3 +45,14 @@ describe('enrichMealDetailHybrid with usdaMicros', () => {
     expect(meta.totalIngredients).toBe(3);
   });
 });
+
+describe('enrichMealDetailHybrid for typed meals (blendIngredients: false)', () => {
+  it('fills in missing micros but never searches USDA per ingredient', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const { detail: out, meta } = await enrichMealDetailHybrid(detail(), { blendIngredients: false });
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(out.nutrients.sodiumMg).toBe(300);
+    expect(meta.matchedIngredients).toBe(0);
+    fetchSpy.mockRestore();
+  });
+});

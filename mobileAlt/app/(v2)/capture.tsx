@@ -39,7 +39,8 @@ import { nutritionApi } from '../../src/lib/api';
 import { todayStr } from '../../src/lib/localDate';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
-import { lookupReceipt, type ReceiptVerb } from '@axiom/agent-ui-core';
+import { lookupReceipt, mealSources, type ReceiptVerb } from '@axiom/agent-ui-core';
+import { SourceLinks } from '../../src/v2/food/SourceLinks';
 import { describeWithLookup, liveStep } from '../../src/v2/food/lookup';
 import { useAuth } from '../../src/context/AuthContext';
 import { richLogFields } from '../../src/components/coach/nutrition/sheets/sheetHelpers';
@@ -442,6 +443,7 @@ function CaptureScreenInner() {
             </View>
           ) : null}
           {note ? <Text style={[T.caption, { marginTop: 8 }]}>{note}</Text> : null}
+          {!lookupPending ? <SourceLinks sources={mealSources(raw)} style={{ marginTop: 12 }} /> : null}
           <View style={styles.totals}>
             {[[tot.calories, 'kcal', v2.color.ink], [tot.proteinG, 'protein', v2.color.macro.protein], [tot.carbsG, 'carbs', v2.color.macro.carbs], [tot.fatG, 'fat', v2.color.macro.fat]].map(([n, l, c]) => (
               <View key={String(l)}><Text style={[T.hero, { fontSize: 28, lineHeight: 32, letterSpacing: -0.8, color: String(c) }]}>{String(n)}</Text><Text style={T.caption}>{String(l)}</Text></View>

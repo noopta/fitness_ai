@@ -97,3 +97,24 @@ export function lookupReceipt(parsed: any, name: string | null): { verb: 'Search
   if (lookups.length) return { verb: 'Checked', found: false, text: `${uniq(lookups.map((l) => l.brand)).join(', ')} — not published, estimated` };
   return { verb: 'Computed', found: false, text: name ? `${name} — estimated` : 'Estimated' };
 }
+
+export interface MealSource { what: string; site: string; url: string | null }
+
+/**
+ * Sources from a looked-up item list (`lookups` on a parse result) or, for a
+ * saved meal, from its notes ("Starbucks Caffè Latte Grande: from
+ * starbucks.ca (https://…); …"). Only found items; links only when real.
+ */
+export function mealSources(from: { lookups?: any[] | null; notes?: string | null } | null | undefined): MealSource[] {
+  const out: MealSource[] = [];
+  const looks = Array.isArray(from?.lookups) ? from!.lookups! : [];
+  for (const l of looks) {
+    if (l?.status !== 'found') continue;
+    out.push({ what: [l.brand, l.product].filter(Boolean).join(' '), site: l.sourceDomain ?? l.brand ?? 'Source', url: typeof l.sourceUrl === 'string' && /^https?:\/\//.test(l.sourceUrl) ? l.sourceUrl : null });
+  }
+  if (out.length || !from?.notes) return out;
+  const re = /([^;·]+?): from ([^;·(]+?)(?: \((https?:\/\/[^)\s]+)\))?\s*(?=;|·|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(from.notes))) out.push({ what: m[1].trim(), site: m[2].trim(), url: m[3] ?? null });
+  return out;
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { targetLines, dayTotals, momentFor, perServing, ingredientFrom, rangeBars, lookupReceipt } from '../src/fuel';
+import { targetLines, dayTotals, momentFor, perServing, ingredientFrom, rangeBars, lookupReceipt, mealSources } from '../src/fuel';
 
 const T = { calories: 2600, proteinG: 180, carbsG: 300, fatG: 80, fiberG: 36, source: 'plan' };
 
@@ -71,5 +71,25 @@ describe('lookupReceipt', () => {
   });
   it('never claims a search for plain food', () => {
     expect(lookupReceipt({ name: 'Eggs' }, 'Eggs and toast')).toEqual({ verb: 'Computed', found: false, text: 'Eggs and toast — estimated' });
+  });
+});
+
+describe('mealSources', () => {
+  it('lists found lookups with real links only', () => {
+    expect(mealSources({ lookups: [
+      { brand: 'McDonald\u2019s', product: 'McDouble', status: 'found', sourceDomain: 'mcdonalds.com', sourceUrl: 'https://www.mcdonalds.com/ca/en-ca/product/mcdouble.html' },
+      { brand: 'Barebells', product: 'Cookies & Cream', status: 'found', sourceDomain: 'your scan on 6 Oct', sourceUrl: null },
+      { brand: 'Osmow\u2019s', product: 'Box', status: 'estimated' },
+    ] })).toEqual([
+      { what: 'McDonald\u2019s McDouble', site: 'mcdonalds.com', url: 'https://www.mcdonalds.com/ca/en-ca/product/mcdouble.html' },
+      { what: 'Barebells Cookies & Cream', site: 'your scan on 6 Oct', url: null },
+    ]);
+  });
+  it('reads them back from a saved meal’s notes', () => {
+    expect(mealSources({ notes: 'Starbucks Caff\u00e8 Latte Grande: from starbucks.ca (https://www.starbucks.ca/menu/product/407/hot/nutrition); Quest Chips: from USDA FoodData Central · Based on standard portions' })).toEqual([
+      { what: 'Starbucks Caff\u00e8 Latte Grande', site: 'starbucks.ca', url: 'https://www.starbucks.ca/menu/product/407/hot/nutrition' },
+      { what: 'Quest Chips', site: 'USDA FoodData Central', url: null },
+    ]);
+    expect(mealSources({ notes: 'Standard portions: 2 eggs' })).toEqual([]);
   });
 });

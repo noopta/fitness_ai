@@ -6,7 +6,8 @@
 // returns Quest bars for a Barebells query) and names the product, and its
 // values are for one serving as sold (a bar, a bag, a bottle).
 
-import { mentionsBrand, type BrandedFacts, type BrandedItem } from './brandedLookup.js';
+import { mentionsBrand, type BrandedFacts, type BrandedItem, type LabelMicros } from './brandedLookup.js';
+import { extractNutrient, NUTRIENT_IDS, MICRO_KEYS } from './usdaLookup.js';
 
 const OFF_SEARCH = 'https://search.openfoodfacts.org/search';
 const USDA_SEARCH = 'https://api.nal.usda.gov/fdc/v1/foods/search';
@@ -20,7 +21,46 @@ export interface DbCandidate {
   servingSize: string | null;
   /** Per serving as sold; null when the source has no serving. */
   perServing: { calories: number; proteinG: number; carbsG: number; fatG: number } | null;
+  /** Label micronutrients per serving — only what the source states. */
+  micros: LabelMicros;
+  /** The product's page (OFF product / FDC food details). */
+  url: string | null;
   canada: boolean;
+}
+
+// OFF stores minerals and vitamins in grams; our keys are mg / mcg / IU.
+const OFF_MICROS: Array<[keyof LabelMicros, string, number]> = [
+  ['fiberG', 'fiber', 1], ['sugarG', 'sugars', 1], ['saturatedFatG', 'saturated-fat', 1],
+  ['sodiumMg', 'sodium', 1000], ['cholesterolMg', 'cholesterol', 1000], ['calciumMg', 'calcium', 1000],
+  ['ironMg', 'iron', 1000], ['potassiumMg', 'potassium', 1000], ['magnesiumMg', 'magnesium', 1000],
+  ['zincMg', 'zinc', 1000], ['vitaminCMg', 'vitamin-c', 1000], ['vitaminB12Mcg', 'vitamin-b12', 1e6],
+  ['vitaminDIU', 'vitamin-d', 1e6 * 40],
+];
+
+/** OFF label micros for one serving (per-serving fields, else per 100 g × weight). Exported for tests. */
+export function offMicros(n: any, servingG: number | null): LabelMicros {
+  const out: LabelMicros = {};
+  for (const [key, field, k] of OFF_MICROS) {
+    const ps = num(n?.[`${field}_serving`]);
+    const p100 = num(n?.[`${field}_100g`]);
+    const v = ps != null ? ps : p100 != null && servingG ? (p100 * servingG) / 100 : null;
+    if (v != null) out[key] = Math.round(v * k * 10) / 10;
+  }
+  return out;
+}
+
+/** USDA branded label micros for one serving (FDC gives branded values per 100 g). Exported for tests. */
+export function usdaMicros(f: any, servingG: number | null): LabelMicros {
+  const out: LabelMicros = {};
+  if (!servingG) return out;
+  const list = Array.isArray(f?.foodNutrients) ? f.foodNutrients : [];
+  for (const key of MICRO_KEYS) {
+    // Branded vitamin D comes as IU (1110) and µg (1114); only IU matches our key.
+    const ids: readonly number[] = key === 'vitaminDIU' ? [1110] : NUTRIENT_IDS[key];
+    if (!list.some((x: any) => ids.includes(x?.nutrientId))) continue;
+    out[key] = Math.round(((extractNutrient(f, ids) * servingG) / 100) * 10) / 10;
+  }
+  return out;
 }
 
 const STOP = new Set(['the', 'a', 'an', 'and', 'with', 'of', 'in', 'on', 'from', 'by', 'flavour', 'flavor', 'flavored', 'flavoured']);
@@ -56,6 +96,7 @@ export function offCandidate(p: any): DbCandidate | null {
   if (!brand || !name) return null;
   const n = p?.nutriments ?? {};
   let perServing: DbCandidate['perServing'] = null;
+  const servingG = num(p?.serving_quantity);
   const ks = num(n['energy-kcal_serving']);
   if (ks != null) {
     perServing = { calories: ks, proteinG: num(n.proteins_serving) ?? 0, carbsG: num(n.carbohydrates_serving) ?? 0, fatG: num(n.fat_serving) ?? 0 };
@@ -68,7 +109,11 @@ export function offCandidate(p: any): DbCandidate | null {
     }
   }
   const countries: string[] = Array.isArray(p?.countries_tags) ? p.countries_tags : [];
-  return { db: 'off', brand, name, servingSize: typeof p?.serving_size === 'string' ? p.serving_size : null, perServing, canada: countries.includes('en:canada') };
+  const code = typeof p?.code === 'string' && /^\d{6,14}$/.test(p.code) ? p.code : null;
+  return {
+    db: 'off', brand, name, servingSize: typeof p?.serving_size === 'string' ? p.serving_size : null, perServing,
+    micros: offMicros(n, servingG), url: code ? `https://world.openfoodfacts.org/product/${code}` : null, canada: countries.includes('en:canada'),
+  };
 }
 
 const USDA_IDS = { calories: [1008, 2047, 2048], proteinG: [1003], carbsG: [1005], fatG: [1004] };
@@ -92,7 +137,12 @@ export function usdaCandidate(f: any): DbCandidate | null {
     perServing = { calories: k100 * k, proteinG: (usdaNutrient(f, USDA_IDS.proteinG) ?? 0) * k, carbsG: (usdaNutrient(f, USDA_IDS.carbsG) ?? 0) * k, fatG: (usdaNutrient(f, USDA_IDS.fatG) ?? 0) * k };
   }
   const serving = [f?.householdServingFullText, size ? `${size} ${unit.replace('grm', 'g').replace('mlt', 'ml')}` : null].filter(Boolean).join(' · ') || null;
-  return { db: 'usda', brand, name, servingSize: serving, perServing, canada: false };
+  const fdcId = Number.isFinite(f?.fdcId) ? Number(f.fdcId) : null;
+  return {
+    db: 'usda', brand, name, servingSize: serving, perServing,
+    micros: usdaMicros(f, size && /^(g|grm|ml|mlt)$/.test(unit) ? size : null),
+    url: fdcId ? `https://fdc.nal.usda.gov/food-details/${fdcId}/nutrients` : null, canada: false,
+  };
 }
 
 type Fetch = typeof fetch;
@@ -108,7 +158,7 @@ async function getJson(url: string, init: RequestInit, fetchImpl: Fetch): Promis
 }
 
 export async function searchOff(q: string, fetchImpl: Fetch = fetch): Promise<DbCandidate[] | null> {
-  const url = `${OFF_SEARCH}?q=${encodeURIComponent(q)}&page_size=10&fields=product_name,brands,serving_size,serving_quantity,nutriments,countries_tags`;
+  const url = `${OFF_SEARCH}?q=${encodeURIComponent(q)}&page_size=10&fields=code,product_name,brands,serving_size,serving_quantity,nutriments,countries_tags`;
   const j = await getJson(url, { headers: { 'User-Agent': UA } }, fetchImpl);
   if (!j) return null;
   return (Array.isArray(j.hits) ? j.hits : []).map(offCandidate).filter(Boolean) as DbCandidate[];
@@ -147,7 +197,8 @@ export function pickDbMatch(item: Pick<BrandedItem, 'brand' | 'product' | 'size'
     facts: {
       name: best.name.slice(0, 160), brand: best.brand.split(',')[0].trim().slice(0, 80), servingSize: best.servingSize,
       calories: Math.round(best.perServing.calories), proteinG: r1(best.perServing.proteinG), carbsG: r1(best.perServing.carbsG), fatG: r1(best.perServing.fatG),
-      sources: [{ title: best.db === 'off' ? 'Open Food Facts' : 'USDA FoodData Central', uri: '' }],
+      micros: best.micros,
+      sources: [{ title: best.db === 'off' ? 'Open Food Facts' : 'USDA FoodData Central', uri: best.url ?? '' }],
     },
   };
 }

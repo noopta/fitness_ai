@@ -10,7 +10,7 @@ vi.mock('@google/genai', () => ({
 
 import {
   validateBrandedAnswer, applyBrandedLookups, coerceBrandedItems, lookupBranded, _resetBrandedCache,
-  buildBrandedPrompt, mentionsBrand, sourceLabel, menuSize, type BrandedItem,
+  buildBrandedPrompt, mentionsBrand, sourceLabel, menuSize, applyLabelMicros, resolveSources, type BrandedItem,
 } from '../services/food/brandedLookup.js';
 
 const SRC = [{ title: 'starbucks.ca', uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' }];
@@ -90,6 +90,7 @@ describe('mentionsBrand and sourceLabel', () => {
   it('names the site from the title when the link is a grounding redirect', () => {
     expect(sourceLabel(SRC[0])).toBe('starbucks.ca');
     expect(sourceLabel({ title: null, uri: 'https://www.timhortons.ca/nutrition' })).toBe('timhortons.ca');
+    expect(sourceLabel({ title: 'Open Food Facts', uri: 'https://world.openfoodfacts.org/product/1' })).toBe('Open Food Facts');
   });
 });
 
@@ -150,5 +151,38 @@ describe('lookupBranded', () => {
 
   it('asks for the size in the prompt', () => {
     expect(buildBrandedPrompt(item())).toMatch(/Grande size/);
+  });
+});
+
+describe('label micronutrients', () => {
+  const found = (micros: any, calories = 200) => ({ kind: 'found' as const, facts: { name: 'x', brand: 'B', servingSize: null, calories, proteinG: 0, carbsG: 0, fatG: 0, micros, sources: [] } });
+  it('a lone item takes the label values; unlisted micros follow its calories', () => {
+    const meal = { calories: 400, nutrients: { fiberG: 2, sodiumMg: 300, ironMg: 4 }, nutrientMap: { leucineG: 2 } };
+    const r = applyLabelMicros(meal, [item({ estimate: { calories: 400, proteinG: 0, carbsG: 0, fatG: 0 } })], [found({ fiberG: 9, sodiumMg: 120 })]);
+    expect(r.nutrients).toMatchObject({ fiberG: 9, sodiumMg: 120, ironMg: 2 });
+    expect(r.fromLabel.sort()).toEqual(['fiberG', 'sodiumMg']);
+    expect(r.nutrientMap).toMatchObject({ leucineG: 2, fiberG: 9, sodiumMg: 120, ironMg: 2 });
+  });
+  it('in a mixed meal only the item’s share is swapped, times servings', () => {
+    const meal = { calories: 800, nutrients: { sodiumMg: 1000 } };
+    const r = applyLabelMicros(meal, [item({ servings: 2, estimate: { calories: 400, proteinG: 0, carbsG: 0, fatG: 0 } })], [found({ sodiumMg: 100 })]);
+    expect(r.nutrients.sodiumMg).toBe(700); // 1000 − 500 (its half) + 2 × 100
+  });
+  it('leaves micros alone when nothing was found', () => {
+    expect(applyLabelMicros({ calories: 300, nutrients: { fiberG: 3 } }, [item()], [{ kind: 'not_found', reason: 'x' }]).nutrients.fiberG).toBe(3);
+  });
+});
+
+describe('resolveSources', () => {
+  it('follows grounding redirects to the real page, and drops ones that fail', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce({ headers: { get: () => 'https://www.mcdonalds.com/ca/en-ca/product/mcdouble.html' } })
+      .mockRejectedValueOnce(new Error('timeout'));
+    const out = await resolveSources([
+      { title: 'mcdonalds.com', uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/a' },
+      { title: 'x.com', uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/b' },
+      { title: 'y.ca', uri: 'https://y.ca/page' },
+    ], fetchImpl as any);
+    expect(out.map((s) => s.uri)).toEqual(['https://www.mcdonalds.com/ca/en-ca/product/mcdouble.html', '', 'https://y.ca/page']);
   });
 });

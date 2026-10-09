@@ -7,10 +7,11 @@ import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry, restoreMealEntry } from '../../services/mealLogService.js';
-import { parseMealMacros, withBrandedLookups } from '../../services/llmService.js';
+import { withBrandedLookups } from '../../services/llmService.js';
+import { estimateTypedMeal, parseTypedMeal } from '../../services/food/typedMeal.js';
 import { asksForLookup } from '../../services/food/foodResolver.js';
 import { dayLabel, num, plural, clockTime } from '../cards/format.js';
-import type { CardDraft, CardRow } from '../cards/types.js';
+import type { CardAction, CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
 import type { ItemLookupResult } from '../../services/food/brandedLookup.js';
 
@@ -197,6 +198,28 @@ const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn
 function lookupSummary(lookups: ItemLookupResult[]): string[] {
   return lookups.map((l) => `${[l.brand, l.product, l.size].filter(Boolean).join(' ')}: ${l.status === 'found' ? `published values from ${l.sourceDomain ?? 'the brand'}` : 'not published online — estimated'}`);
 }
+/**
+ * Where a looked-up meal's numbers came from, as card rows — tappable when
+ * there's a page to open (in the app's browser) — plus the client actions the
+ * rows point at.
+ */
+function sourceRows(lookups: ItemLookupResult[] | null | undefined): { rows: CardRow[]; actions: CardAction[] } {
+  const rows: CardRow[] = [];
+  const actions: CardAction[] = [];
+  (lookups ?? []).forEach((l, i) => {
+    if (l.status !== 'found') return;
+    const what = [l.brand, l.product].filter(Boolean).join(' ').slice(0, 60);
+    if (l.sourceUrl) {
+      const id = `source_${i}`;
+      rows.push({ key: 'Source', value: `${l.sourceDomain ?? 'Open'} ↗`, sub: what, action: id });
+      actions.push({ id, label: `Open ${l.sourceDomain ?? 'source'}`, kind: 'secondary', client: { action: 'open_url', args: { url: l.sourceUrl } } });
+    } else {
+      rows.push({ key: 'Source', value: l.sourceDomain ?? 'Verified', sub: what });
+    }
+  });
+  return { rows, actions };
+}
+
 /** Card note when published values were used ("From starbucks.ca."), else null. */
 function foundNote(lookups: ItemLookupResult[] | undefined): string | null {
   const hits = (lookups ?? []).filter((l) => l.status === 'found');
@@ -220,7 +243,8 @@ export const NUTRITION_TOOLS = [
       let meal: any;
       if (!explicit && str(input.description)) {
         const desc = str(input.description);
-        const d0 = await parseMealMacros(desc, 'global', { tz: ctx.tz, userId, surface: 'chat', lookup: false });
+        // Same pipeline as the describe box: estimate, then USDA enrichment, then lookups.
+        const { detail: d0 } = await estimateTypedMeal(desc, 'global', { tz: ctx.tz, userId, surface: 'chat' });
         // A vague brand or an unnamed restaurant: ask first, log after.
         if (d0.clarify?.length && input.clarified !== true) {
           return { needsDetail: d0.clarify[0], logged: null, note: 'Nothing logged yet.' };
@@ -240,7 +264,12 @@ export const NUTRITION_TOOLS = [
       if (!r?.mealId) return null;
       const c = await loggedMealCard('NUT-01', ctx.userId, r.mealId, ctx);
       const src = foundNote(r._lookups);
-      return src && c.note ? { ...c, note: `${src} ${c.note}` } : src ? { ...c, note: src } : c;
+      const s = sourceRows(r._lookups);
+      return {
+        ...c,
+        ...(src ? { note: c.note ? `${src} ${c.note}` : src } : {}),
+        ...(s.rows.length ? { rows: [...(c.rows ?? []), ...s.rows], actions: [...(c.actions ?? []), ...s.actions] } : {}),
+      };
     },
   }),
   tool({
@@ -425,15 +454,15 @@ export const NUTRITION_TOOLS = [
     receipt: (i) => ({ verb: 'Searched', text: str(i.food) }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
-      const d = await parseMealMacros(str(input.food), 'global', { tz: ctx.tz, userId, surface: 'lookup', explicit: asksForLookup(str(input.food)) });
+      const { detail: d } = await parseTypedMeal(str(input.food), 'global', { tz: ctx.tz, userId, surface: 'lookup', explicit: asksForLookup(str(input.food)) });
       return { ...(d.clarify?.length ? { couldAsk: d.clarify[0] } : {}), ...(d.lookups?.length ? { lookedUp: lookupSummary(d.lookups) } : {}), name: d.name, calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, fiberG: (d.nutrients as any)?.fiberG ?? null, date: ctx.today, slot: slotOf(null, ctx.tz), _parsed: d };
     },
     card: (_i, r) => ({
       fn: 'NUT-14', pattern: 'glance', rule: 'show', meta: { label: r.name },
       hero: { value: num(r.calories), unit: 'kcal' },
-      rows: [{ key: 'Protein', value: `${num(r.proteinG)} g` }, { key: 'Carbs', value: `${num(r.carbsG)} g` }, { key: 'Fat', value: `${num(r.fatG)} g` }, ...(r.fiberG != null ? [{ key: 'Fiber', value: `${num(r.fiberG, 1)} g` }] : [])],
+      rows: [{ key: 'Protein', value: `${num(r.proteinG)} g` }, { key: 'Carbs', value: `${num(r.carbsG)} g` }, { key: 'Fat', value: `${num(r.fatG)} g` }, ...(r.fiberG != null ? [{ key: 'Fiber', value: `${num(r.fiberG, 1)} g` }] : []), ...sourceRows(r._parsed.lookups).rows],
       note: foundNote(r._parsed.lookups) ?? 'Estimate, ±15%.',
-      actions: [{ id: 'log', label: 'Log it', kind: 'primary' }],
+      actions: [{ id: 'log', label: 'Log it', kind: 'primary' }, ...sourceRows(r._parsed.lookups).actions],
       pending: { actions: { log: { op: 'meal.create', args: { input: { date: r.date, name: r.name, mealType: r.slot, calories: r.calories, proteinG: r.proteinG, carbsG: r.carbsG, fatG: r.fatG, ingredients: r._parsed.ingredients, tags: r._parsed.tags, plants: r._parsed.plants, fermentedFoods: r._parsed.fermentedFoods, ultraProcessed: r._parsed.ultraProcessed, nutrients: r._parsed.nutrients, source: 'agent-parsed', ...(foundNote(r._parsed.lookups) ? { notes: r._parsed.notes } : {}) } }, line: `Logged · ${r.name}` } } },
     }),
   }),

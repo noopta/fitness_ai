@@ -15,7 +15,7 @@ import {
   consumeMealLoggingQuota,
   updateNutritionStreakInBackground,
 } from '../services/nutritionShared.js';
-import { parseMealMacros, finishLookups, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
+import { finishLookups, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
 import { mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
 import { coerceExistingItems, MAX_MEAL_PHOTOS } from '../services/food/mealPhotoSchema.js';
 import { consumeAddPhotoGrant } from '../services/food/mealPhotoCache.js';
@@ -49,6 +49,7 @@ import { searchUsdaCandidates } from '../services/food/usdaLookup.js';
 import { queryDateOrToday, requestTz } from '../services/userTimezone.js';
 import { asksForLookup, resolveAll } from '../services/food/foodResolver.js';
 import { getLookupJob, startLookupJob } from '../services/food/lookupJobs.js';
+import { parseTypedMeal } from '../services/food/typedMeal.js';
 import { TEXT_LOOKUP_ENABLED } from '../services/food/brandedLookup.js';
 
 
@@ -694,8 +695,8 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     const defer = req.body?.defer === true;
     const tz = await requestTz(req);
     const explicit = asksForLookup(description);
-    const parsed = await parseMealMacros(description.trim(), normalizeFoodRegion(user.foodRegion), { tz, userId: req.user!.id, surface: 'describe', explicit, lookup: !defer });
-    const { detail, meta } = await enrichMealDetailHybrid(parsed, { region: normalizeFoodRegion(user.foodRegion) });
+    // Estimate → enrich → look up (typedMeal.ts); with defer the lookup runs as a job.
+    const { detail, meta } = await parseTypedMeal(description.trim(), normalizeFoodRegion(user.foodRegion), { tz, userId: req.user!.id, surface: 'describe', explicit, lookup: !defer });
     const { brandedItems: _items, ...shown } = detail;
     if (defer && detail.brandedItems?.length && TEXT_LOOKUP_ENABLED()) {
       const job = startLookupJob(req.user!.id, detail, (items, c) => resolveAll(items, { userId: req.user!.id, tz, surface: 'describe', explicit, onEvent: c.onEvent }), finishLookups);

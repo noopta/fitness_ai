@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@google/genai', () => ({ GoogleGenAI: vi.fn() }));
 
-import { offCandidate, usdaCandidate, pickDbMatch, productRecall, searchDatabases } from '../services/food/nameSearch.js';
+import { offCandidate, usdaCandidate, pickDbMatch, productRecall, searchDatabases, offMicros, usdaMicros } from '../services/food/nameSearch.js';
 
 const BAREBELLS_OFF = { brands: ['Barebells'], product_name: 'Protein Bar Cookies & Cream', serving_size: '55 g', serving_quantity: 55, countries_tags: ['en:canada'], nutriments: { 'energy-kcal_100g': 362, proteins_100g: 36, carbohydrates_100g: 31, fat_100g: 13.6 } };
 const QUEST_USDA = { brandOwner: 'Quest Nutrition, LLC', brandName: 'QUEST', description: 'COOKIES & CREAM PROTEIN BAR', servingSize: 60, servingSizeUnit: 'GRM', householdServingFullText: '1 bar', foodNutrients: [{ nutrientId: 1008, value: 333 }, { nutrientId: 1003, value: 35 }, { nutrientId: 1005, value: 40 }, { nutrientId: 1004, value: 13.3 }] };
@@ -56,5 +56,24 @@ describe('searchDatabases', () => {
     const ok = vi.fn().mockImplementation(async (url: string) => ({ ok: true, json: async () => (url.includes('openfoodfacts') ? { hits: [BAREBELLS_OFF] } : { foods: [] }) }));
     process.env.USDA_API_KEY = 'k';
     expect((await searchDatabases(item, { fetchImpl: ok as any })).kind).toBe('found');
+  });
+});
+
+describe('label micronutrients and links', () => {
+  it('reads OFF micros per serving, converting grams to mg / IU', () => {
+    expect(offMicros({ fiber_100g: 7.3, sodium_100g: 0.2, 'saturated-fat_serving': 4, calcium_100g: 0.4, 'vitamin-d_100g': 0.000005 }, 55))
+      .toEqual({ fiberG: 4, saturatedFatG: 4, sodiumMg: 110, calciumMg: 220, vitaminDIU: 110 });
+    expect(offMicros({ fiber_100g: 7 }, null)).toEqual({});
+  });
+  it('reads USDA branded micros per serving, vitamin D only as IU', () => {
+    const f = { foodNutrients: [{ nutrientId: 1079, value: 10 }, { nutrientId: 1093, value: 400 }, { nutrientId: 1114, value: 2 }, { nutrientId: 1110, value: 80 }] };
+    expect(usdaMicros(f, 50)).toEqual({ fiberG: 5, sodiumMg: 200, vitaminDIU: 40 });
+    expect(usdaMicros(f, null)).toEqual({});
+  });
+  it('links each match to its product page', () => {
+    expect(offCandidate({ ...BAREBELLS_OFF, code: '7340001802222' })!.url).toBe('https://world.openfoodfacts.org/product/7340001802222');
+    expect(usdaCandidate({ ...QUEST_USDA, fdcId: 2081234 })!.url).toBe('https://fdc.nal.usda.gov/food-details/2081234/nutrients');
+    const r = pickDbMatch(item, [offCandidate({ ...BAREBELLS_OFF, code: '7340001802222' })!], true);
+    expect(r.kind === 'found' && r.facts.sources[0]).toEqual({ title: 'Open Food Facts', uri: 'https://world.openfoodfacts.org/product/7340001802222' });
   });
 });

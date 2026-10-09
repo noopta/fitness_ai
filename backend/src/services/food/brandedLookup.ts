@@ -46,6 +46,9 @@ export interface BrandedItem {
   estimate: { calories: number; proteinG: number; carbsG: number; fatG: number };
 }
 
+/** Label micronutrients for one serving — only what the source states (keys as Micronutrients). */
+export type LabelMicros = Partial<Record<'fiberG' | 'sugarG' | 'sodiumMg' | 'saturatedFatG' | 'cholesterolMg' | 'vitaminAIU' | 'vitaminCMg' | 'vitaminDIU' | 'vitaminEMg' | 'vitaminB12Mcg' | 'folateMcg' | 'ironMg' | 'calciumMg' | 'magnesiumMg' | 'zincMg' | 'potassiumMg' | 'omega3G' | 'omega6G', number>>;
+
 export interface BrandedFacts {
   name: string;
   brand: string;
@@ -55,6 +58,7 @@ export interface BrandedFacts {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  micros?: LabelMicros;
   sources: WebSource[];
 }
 
@@ -92,6 +96,9 @@ export const BRANDED_ANSWER_SCHEMA = {
     servingSize: { type: 'STRING', nullable: true, description: 'Serving/size text as the source prints it, e.g. "Grande (16 fl oz)"' },
     servingGrams: { type: 'NUMBER', nullable: true },
     sizeMatches: { type: 'BOOLEAN', nullable: true, description: 'true if these values are for the size that was asked for' },
+    fiberG: { type: 'NUMBER', nullable: true }, sugarG: { type: 'NUMBER', nullable: true }, saturatedFatG: { type: 'NUMBER', nullable: true },
+    sodiumMg: { type: 'NUMBER', nullable: true }, cholesterolMg: { type: 'NUMBER', nullable: true }, potassiumMg: { type: 'NUMBER', nullable: true },
+    calciumMg: { type: 'NUMBER', nullable: true }, ironMg: { type: 'NUMBER', nullable: true },
     calories: { type: 'NUMBER', nullable: true },
     proteinG: { type: 'NUMBER', nullable: true },
     carbsG: { type: 'NUMBER', nullable: true },
@@ -109,7 +116,7 @@ export function buildBrandedPrompt(item: Pick<BrandedItem, 'brand' | 'product' |
 Rules:
 - Prefer the brand's own nutrition page or menu; a major nutrition database listing for this exact item is acceptable.
 - Only report it if the source is clearly this exact product from ${item.brand}. A different product, flavour or variant of the same brand is NOT a match — set found=false.
-${item.size ? `- The values must be for the ${item.size} size; set sizeMatches=true when they are. If the source only lists a different size, set found=false.\n` : ''}- Report the values exactly as the source states them. Do not estimate or fill gaps from general knowledge.
+${item.size ? `- The values must be for the ${item.size} size; set sizeMatches=true when they are. If the source only lists a different size, set found=false.\n` : ''}- Report the values exactly as the source states them. Do not estimate or fill gaps from general knowledge. Fibre, sugar, saturated fat, sodium, cholesterol, potassium, calcium and iron: only when the source lists them (mg for minerals), else null.
 - basis: "per_serving" for values per item/serving as sold (servingSize as printed), or "per_100g" with servingGrams.
 - If you are not certain, set found=false.`;
 }
@@ -181,9 +188,16 @@ export function validateBrandedAnswer(raw: any, sources: WebSource[], item: Pick
   if (kcal > 3000) return { kind: 'not_found', reason: 'implausible' };
 
   const r1 = (x: number) => Math.round(x * 10) / 10;
+  const k = raw.basis === 'per_100g' ? (num(raw.servingGrams) ?? 100) / 100 : 1;
+  const micros: LabelMicros = {};
+  for (const key of ['fiberG', 'sugarG', 'saturatedFatG', 'sodiumMg', 'cholesterolMg', 'potassiumMg', 'calciumMg', 'ironMg'] as const) {
+    const v = num(raw[key]);
+    if (v != null) micros[key] = r1(v * k);
+  }
   return {
     kind: 'found',
     facts: {
+      micros,
       name: name.slice(0, 160),
       brand: String(raw.brand ?? item.brand).trim().slice(0, 80) || item.brand,
       servingSize,
@@ -225,7 +239,7 @@ export function _resetBrandedCache(): void { found.clear(); missed.clear(); }
 
 export async function lookupBranded(
   item: Pick<BrandedItem, 'brand' | 'product' | 'size'>,
-  opts: { tz?: string | null; generate?: Generate; timeoutMs?: number } = {},
+  opts: { tz?: string | null; generate?: Generate; timeoutMs?: number; fetchImpl?: typeof fetch } = {},
 ): Promise<BrandedLookup> {
   const key = brandedCacheKey(item, opts.tz);
   const hit = found.get(key) ?? missed.get(key);
@@ -246,9 +260,28 @@ export async function lookupBranded(
   }
   let raw: any = null;
   try { raw = JSON.parse(String(response?.text ?? '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()); } catch { raw = null; }
-  const result = validateBrandedAnswer(raw, sourcesFrom(response), item);
+  let result = validateBrandedAnswer(raw, sourcesFrom(response), item);
+  if (result.kind === 'found') result = { kind: 'found', facts: { ...result.facts, sources: await resolveSources(result.facts.sources, opts.fetchImpl) } };
   (result.kind === 'found' ? found : missed).set(key, result);
   return result;
+}
+
+/**
+ * Grounding links are short-lived Vertex redirects. Follow each once to the
+ * real page so the app can open it (and it still works next week).
+ * A link that won't resolve is dropped, never shown as a dead redirect.
+ */
+export async function resolveSources(sources: WebSource[], fetchImpl: typeof fetch = fetch): Promise<WebSource[]> {
+  return Promise.all(sources.map(async (s) => {
+    if (!/vertexaisearch\.cloud\.google\.com/.test(s.uri)) return s;
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 3000);
+    try {
+      const r = await fetchImpl(s.uri, { method: 'GET', redirect: 'manual', signal: ac.signal });
+      const loc = r.headers.get('location');
+      return { ...s, uri: loc && /^https?:\/\//.test(loc) && !/vertexaisearch/.test(loc) ? loc : '' };
+    } catch { return { ...s, uri: '' }; } finally { clearTimeout(t); }
+  }));
 }
 
 export function domainOf(uri: string | null | undefined): string | null {
@@ -263,10 +296,11 @@ export function domainOf(uri: string | null | undefined): string | null {
 /** "starbucks.ca" from a source: the URL's host, else a domain-looking title. */
 export function sourceLabel(s: WebSource | undefined): string | null {
   if (!s) return null;
-  const fromUri = domainOf(s.uri);
-  if (fromUri) return fromUri;
-  const t = (s.title ?? '').trim().toLowerCase();
-  return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(t) ? t.replace(/^www\./, '') : (s.title ?? null);
+  // The title names the source as people know it ("starbucks.ca", "Open Food
+  // Facts"); the link's host ("world.openfoodfacts.org") is the fallback.
+  const t = (s.title ?? '').trim();
+  if (t) return /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(t) ? t.toLowerCase().replace(/^www\./, '') : t;
+  return domainOf(s.uri);
 }
 
 export interface MacroTotals { calories: number; proteinG: number; carbsG: number; fatG: number }
@@ -298,6 +332,45 @@ export function applyBrandedLookups(
   });
   const r1 = (x: number) => Math.max(0, Math.round(x * 10) / 10);
   return { totals: { calories: Math.max(0, Math.round(out.calories)), proteinG: r1(out.proteinG), carbsG: r1(out.carbsG), fatG: r1(out.fatG) }, lookups };
+}
+
+const LABEL_KEYS = ['fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'cholesterolMg', 'vitaminAIU', 'vitaminCMg', 'vitaminDIU', 'vitaminEMg', 'vitaminB12Mcg', 'folateMcg', 'ironMg', 'calciumMg', 'magnesiumMg', 'zincMg', 'potassiumMg', 'omega3G', 'omega6G'] as const;
+
+/**
+ * Micronutrients for a meal after lookups. Each found item's share of the
+ * whole-meal estimate (by calories) is replaced: by the label's value where
+ * the source states one, otherwise rescaled to the item's real calories.
+ * Never below zero. Pure; exported for tests.
+ */
+export function applyLabelMicros(
+  meal: { calories: number; nutrients: Record<string, any>; nutrientMap?: Record<string, number> },
+  items: BrandedItem[],
+  results: BrandedLookup[],
+): { nutrients: Record<string, any>; nutrientMap: Record<string, number>; fromLabel: string[] } {
+  const nutrients: Record<string, any> = { ...meal.nutrients };
+  const fromLabel = new Set<string>();
+  const total = meal.calories > 0 ? meal.calories : 0;
+  items.forEach((item, i) => {
+    const r = results[i];
+    if (r?.kind !== 'found') return;
+    const k = item.servings > 0 ? item.servings : 1;
+    const share = total > 0 ? Math.min(1, item.estimate.calories / total) : 1;
+    const scale = item.estimate.calories > 0 ? (r.facts.calories * k) / item.estimate.calories : 1;
+    for (const key of LABEL_KEYS) {
+      const cur = typeof nutrients[key] === 'number' && Number.isFinite(nutrients[key]) ? nutrients[key] : 0;
+      const part = cur * share;
+      const label = r.facts.micros?.[key];
+      const next = label != null ? cur - part + label * k : cur - part + part * scale;
+      if (label != null) fromLabel.add(key);
+      nutrients[key] = Math.max(0, Math.round(next * 10) / 10);
+    }
+  });
+  const nutrientMap: Record<string, number> = { ...(meal.nutrientMap ?? {}) };
+  for (const key of LABEL_KEYS) {
+    const v = nutrients[key];
+    if (typeof v === 'number' && v > 0) nutrientMap[key] = v; else delete nutrientMap[key];
+  }
+  return { nutrients, nutrientMap, fromLabel: [...fromLabel] };
 }
 
 /** Coerce the parser's `branded` array. Pure; exported for tests. */
