@@ -1,0 +1,330 @@
+{
+ "chain": "krystal",
+ "country": "US",
+ "source": {
+  "url": "https://www.krystal.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "3-egg-breakfast-plate-biscuit-bacon-and-grits",
+   "name": "3 Egg Breakfast Plate - Biscuit, Bacon & Grits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 11,
+      "sodiumMg": 1840,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "barq-s-root-beer",
+   "name": "Barq's Root Beer",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-dusted-tots",
+   "name": "Ranch Dusted Tots",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 840,
+      "saturatedFatG": 13
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 540,
+      "saturatedFatG": 9
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 390,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-ranch-wings",
+   "name": "Spicy Ranch Wings",
+   "sizes": [
+    {
+     "size": "10 pc",
+     "label": "10 pc",
+     "calories": 1030,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 83,
+     "micros": {
+      "sugarG": 10,
+      "sodiumMg": 2850,
+      "saturatedFatG": 29
+     }
+    },
+    {
+     "size": "20pc",
+     "label": "20pc",
+     "calories": 2060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 166,
+     "micros": {
+      "sugarG": 20,
+      "sodiumMg": 5700,
+      "saturatedFatG": 58
+     }
+    },
+    {
+     "size": "5 pc",
+     "label": "5 pc",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "sugarG": 5,
+      "sodiumMg": 1420,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-patty-melt",
+   "name": "Bacon & Egg Patty Melt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 830,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 62,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 1130,
+      "saturatedFatG": 18
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-patty-melt-combo-breakfast-no-drink",
+   "name": "Bacon & Egg Patty Melt Combo - Breakfast (No Drink)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 76,
+     "micros": {
+      "sugarG": 7,
+      "sodiumMg": 1660,
+      "saturatedFatG": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-patty-melt-combo-lunch-no-drink",
+   "name": "Bacon & Egg Patty Melt Combo - Lunch (No Drink)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 75,
+     "micros": {
+      "sugarG": 7,
+      "sodiumMg": 2140,
+      "saturatedFatG": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-bacon-and-egg-patty-melt",
+   "name": "Chipotle Bacon & Egg Patty Melt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 43,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 1600,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-bacon-and-egg-patty-melt-combo-breakfast-no-drink",
+   "name": "Chipotle Bacon & Egg Patty Melt Combo - Breakfast (No Drink)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 61,
+     "micros": {
+      "sugarG": 12,
+      "sodiumMg": 2680,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-bacon-and-egg-patty-melt-combo-lunch-no-drink",
+   "name": "Chipotle Bacon & Egg Patty Melt Combo - Lunch (No Drink)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 10,
+      "sodiumMg": 6580,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-patty-melt",
+   "name": "Chipotle Patty Melt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 8,
+      "sodiumMg": 1230,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-patty-melt-combo-breakfast-no-drink",
+   "name": "Chipotle Patty Melt Combo - Breakfast (No Drink)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 47,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 1780,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-patty-melt-combo-lunch-no-drink",
+   "name": "Chipotle Patty Melt Combo - Lunch (No Drink)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 6210,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-patty-melt",
+   "name": "Classic Patty Melt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 8,
+      "sodiumMg": 1000,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

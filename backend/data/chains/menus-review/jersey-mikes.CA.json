@@ -1,0 +1,230 @@
+{
+ "chain": "jersey-mikes",
+ "country": "CA",
+ "source": {
+  "url": "https://www.jerseymikes.ca/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "1-blt-mini-mike-s-rosemary-parmesan-bread",
+   "name": "#1 - BLT Mini Mike's - Rosemary Parmesan Bread",
+   "sizes": [
+    {
+     "size": "mini",
+     "label": "Mini",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 0.4,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "14-the-veggie-giant-mike-s-way-cold-rosemary-parmesan",
+   "name": "#14 - The Veggie Giant Mike's Way Cold - Rosemary Parmesan",
+   "sizes": [
+    {
+     "size": "giant",
+     "label": "Giant",
+     "calories": 1860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 116,
+     "micros": {
+      "sugarG": 10,
+      "sodiumMg": 2470,
+      "saturatedFatG": 46
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "5-giant-extra-cheese",
+   "name": "#5 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "6-giant-extra-cheese",
+   "name": "#6 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "7-giant-extra-cheese",
+   "name": "#7 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "8-giant-extra-cheese",
+   "name": "#8 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "9-giant-extra-cheese",
+   "name": "#9 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 160,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 8
+    }
+   }
+  },
+  {
+   "id": "11-giant-extra-cheese",
+   "name": "#11 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "12-giant-extra-cheese",
+   "name": "#12 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "13-giant-extra-cheese",
+   "name": "#13 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "14-giant-extra-cheese",
+   "name": "#14 - Giant Extra Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 690,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 52,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 34
+    }
+   }
+  },
+  {
+   "id": "extra-beef-philly",
+   "name": "Extra Beef Philly",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 230,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 13,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 5
+    }
+   }
+  },
+  {
+   "id": "extra-chicken-philly",
+   "name": "Extra Chicken Philly",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 150,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "extra-white-american-cheese",
+   "name": "Extra White American Cheese",
+   "unit": "1 Serving",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "sugarG": 2,
+     "saturatedFatG": 8
+    }
+   }
+  }
+ ]
+}

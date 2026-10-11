@@ -1,0 +1,85 @@
+{
+ "chain": "chick-fil-a",
+ "country": "CA",
+ "source": {
+  "url": "https://www.chick-fil-a.ca/nutrition-allergens",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "spicy-chick-fil-a-chick-n-strips",
+   "name": "Spicy Chick-fil-A Chick-n-Strips",
+   "sizes": [
+    {
+     "size": "2 ct",
+     "label": "2 ct",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cobb-salad-w-grilled-filet-warm",
+   "name": "Cobb Salad w/ Grilled Filet (Warm)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "gallon-freshly-brewed-iced-tea-sweetened",
+   "name": "Gallon Freshly-Brewed Iced Tea Sweetened",
+   "sizes": [
+    {
+     "size": "gallon",
+     "label": "Gallon",
+     "calories": 1360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 338,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chick-fil-a-diet-lemonade",
+   "name": "Chick-fil-A® Diet Lemonade",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.2,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

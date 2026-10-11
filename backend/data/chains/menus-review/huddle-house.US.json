@@ -1,0 +1,240 @@
+{
+ "chain": "huddle-house",
+ "country": "US",
+ "source": {
+  "url": "https://a.storyblok.com/f/140760/x/3d26059f12/160108-hh-nutritional-guide-august-2025-final.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "cheesy-bacon-crinkle-fries",
+   "name": "Cheesy Bacon Crinkle Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "mac-and-cheese",
+   "name": "Mac & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes",
+   "name": "Mashed Potatoes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes-and-brown-gravy",
+   "name": "Mashed Potatoes & Brown Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 520,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes-and-white-gravy",
+   "name": "Mashed Potatoes & White Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 480,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mixed-fruit",
+   "name": "Mixed Fruit",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 15,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushrooms",
+   "name": "Mushrooms",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 230,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "small-tossed-salad",
+   "name": "Small Tossed Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 5,
+      "sodiumMg": 400,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "sourdough-bread",
+   "name": "Sourdough Bread",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 290,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tater-tots",
+   "name": "Tater Tots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 800,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-toast",
+   "name": "Texas Toast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 300,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetable-medly",
+   "name": "Vegetable Medly",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4.5,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 190,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

@@ -1,0 +1,3962 @@
+{
+ "chain": "pf-changs",
+ "country": "US",
+ "source": {
+  "url": "https://www.pfchangs.com/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "chang-s-chicken-lettuce-wraps",
+   "name": "Chang's Chicken Lettuce Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-lettuce-wraps",
+   "name": "Veggie Lettuce Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-belly-bao-buns",
+   "name": "Pork Belly Bao Buns",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 78,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "japanese-wok-fired-calamari",
+   "name": "Japanese Wok Fired Calamari",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 63,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-eggplant",
+   "name": "Crispy Eggplant",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 57,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "flaming-red-wontons",
+   "name": "Flaming Red Wontons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-pork-spare-ribs-6",
+   "name": "BBQ Pork Spare Ribs (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-pork-spare-ribs-3-half-order",
+   "name": "BBQ Pork Spare Ribs (3) Half Order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "northern-style-spare-ribs-6",
+   "name": "Northern Style Spare Ribs (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "northern-style-spare-ribs-3-half-order",
+   "name": "Northern Style Spare Ribs (3) half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-green-beans",
+   "name": "Crispy Green Beans",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 78,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "duck-wings",
+   "name": "Duck Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "edamame",
+   "name": "Edamame",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "dynamite-shrimp",
+   "name": "Dynamite Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 55,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetable-spring-rolls-1",
+   "name": "Vegetable Spring Rolls (1)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetable-spring-rolls-3",
+   "name": "Vegetable Spring Rolls (3)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 36,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-dumplings-pan-fried-6",
+   "name": "Pork Dumplings Pan Fried (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-dumplings-pan-fried-3-half-order",
+   "name": "Pork Dumplings Pan Fried (3) half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 4.5
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-dumpling-steamed-6",
+   "name": "Pork Dumpling Steamed (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-dumpling-steamed-3-half-order",
+   "name": "Pork Dumpling Steamed (3) half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10.5,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10.5,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-dumplings-pan-fried-6",
+   "name": "Shrimp Dumplings Pan Fried (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-dumplings-pan-fried-3-half-order",
+   "name": "Shrimp Dumplings Pan Fried (3) half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-dumplings-steamed-6",
+   "name": "Shrimp Dumplings Steamed (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-dumplings-steamed-3-half-order",
+   "name": "Shrimp Dumplings Steamed (3)half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-egg-rolls-2",
+   "name": "Wagyu Egg Rolls (2)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 135,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 28
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-egg-rolls-2",
+   "name": "Pork Egg Rolls (2)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "crab-wontons-6",
+   "name": "Crab Wontons (6)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "crab-wontons-3-half-order",
+   "name": "Crab Wontons (3) half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10.5,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-brussel-sprouts",
+   "name": "Kung Pao Brussel Sprouts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-noodles",
+   "name": "Garlic Noodles",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-cucumber-salad",
+   "name": "Cold Cucumber Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "chili-garlic-green-beans",
+   "name": "Chili Garlic Green Beans",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 40,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "wonton-soup",
+   "name": "Wonton Soup",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-drop-soup",
+   "name": "Egg Drop Soup",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-and-sour-soup",
+   "name": "Hot & Sour Soup",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-peanut-salad",
+   "name": "Thai Peanut Salad",
+   "sizes": [
+    {
+     "size": "to share",
+     "label": "To Share",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "asian-caesar-salad",
+   "name": "Asian Caesar Salad",
+   "sizes": [
+    {
+     "size": "to share",
+     "label": "To Share",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "mandarin-crunch-salad",
+   "name": "Mandarin Crunch Salad",
+   "sizes": [
+    {
+     "size": "to share",
+     "label": "To Share",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 40,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-salad",
+   "name": "House Salad",
+   "sizes": [
+    {
+     "size": "to share",
+     "label": "To Share",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-side-salad",
+   "name": "House Side Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 0.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "dynamite-roll",
+   "name": "Dynamite Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 41,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "california-roll",
+   "name": "California Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "california-hand-roll-1",
+   "name": "California Hand Roll*(1)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 0.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-tempura-roll",
+   "name": "Shrimp Tempura Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-tempura-hand-roll-1",
+   "name": "Shrimp Tempura Hand Roll*(1)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-tuna-hand-roll-1",
+   "name": "Spicy Tuna Hand Roll*(1)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-tuna-roll",
+   "name": "Spicy Tuna Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-tuna-crispy-rice",
+   "name": "Spicy Tuna Crispy Rice*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 33,
+     "micros": {
+      "sugarG": 15,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "tiger-roll",
+   "name": "Tiger Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "japanese-philly-roll",
+   "name": "Japanese Philly Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-dragon-roll",
+   "name": "Kung Pao Dragon Roll*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "hong-kong-beef",
+   "name": "Hong Kong Beef",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "korean-sesame-chicken",
+   "name": "Korean Sesame Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-with-broccoli-house-special",
+   "name": "Chicken with Broccoli (House Special)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "mongolian-tofu-house-special",
+   "name": "Mongolian Tofu (House Special)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "mongolian-beef",
+   "name": "Mongolian Beef",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-with-broccoli",
+   "name": "Beef with Broccoli",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 16,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki-beef",
+   "name": "Teriyaki Beef",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 71,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 800,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 70,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepper-steak",
+   "name": "Pepper Steak",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 16,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 16,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-beef",
+   "name": "Sesame Beef",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 650,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 49,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 820,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 48,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-beef",
+   "name": "Kung Pao Beef",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 47,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 9
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 900,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 54,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "chang-s-spicy-chicken",
+   "name": "Chang's Spicy Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 800,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 1060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 52,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-honey-chicken",
+   "name": "Crispy Honey Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 1180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 68,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 11
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 1380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 82,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-chicken",
+   "name": "Sesame Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 41,
+     "micros": {
+      "sugarG": 49,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 980,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 48,
+     "micros": {
+      "sugarG": 48,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-chicken",
+   "name": "Orange Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 1060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 60,
+     "micros": {
+      "sugarG": 48,
+      "saturatedFatG": 10
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 1260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 74,
+     "micros": {
+      "sugarG": 48,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-with-broccoli",
+   "name": "Chicken with Broccoli",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 26,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "traditional sized",
+     "label": "Traditional Sized",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-and-sour-chicken",
+   "name": "Sweet & Sour Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki-chicken",
+   "name": "Teriyaki Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 850,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 71,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 44,
+     "micros": {
+      "sugarG": 70,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-chicken",
+   "name": "Kung Pao Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 850,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 57,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 9
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 68,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-pepper-chicken",
+   "name": "Black Pepper Chicken",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 760,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "firecracker-shrimp",
+   "name": "Firecracker Shrimp",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 14
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-honey-shrimp",
+   "name": "Crispy Honey Shrimp",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 980,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 64,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 11
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 80,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-shrimp",
+   "name": "Kung Pao Shrimp",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 48,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 70,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "stir-fried-eggplant",
+   "name": "Stir-Fried Eggplant",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mongolian-tofu",
+   "name": "Mongolian Tofu",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 750,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 53,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 10
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 64,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "buddha-s-feast",
+   "name": "Buddha's Feast",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "ma-po-tofu",
+   "name": "Ma Po Tofu",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 62,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "mongolian-trio",
+   "name": "Mongolian Trio",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 49,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 48,
+     "micros": {
+      "sugarG": 50,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki-trio",
+   "name": "Teriyaki Trio",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Chef's Feast/Medium Sized/Meal Deals",
+     "calories": 930,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 36,
+     "micros": {
+      "sugarG": 92,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 54,
+     "micros": {
+      "sugarG": 92,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "pad-thai-chefs-feast",
+   "name": "Pad Thai chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pad-thai-chefs-feast",
+   "name": "Chicken Pad Thai chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 52,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "tofu-pad-thai-chefs-feast",
+   "name": "Tofu Pad Thai chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 70,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-pad-thai-chefs-feast",
+   "name": "Beef Pad Thai chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 53,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-pad-thai-chefs-feast",
+   "name": "Shrimp Pad Thai chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 49,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-vegetable-chefs-feast",
+   "name": "Fried Rice with Vegetable Chefs Feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-beef-chefs-feast",
+   "name": "Fried Rice with Beef Chefs Feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-chicken-chefs-feast",
+   "name": "Fried Rice with Chicken Chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-shrimp-chefs-feast",
+   "name": "Fried Rice with Shrimp chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-tofu-chefs-feast",
+   "name": "Fried Rice with Tofu chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 33,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-vegetable-chefs-feast",
+   "name": "Lo Mein Vegetable Chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-beef-chefs-feast",
+   "name": "Lo Mein Beef Chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-chicken-chefs-feast",
+   "name": "Lo Mein Chicken Chefs Feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-shrimp-chefs-feast",
+   "name": "Lo Mein Shrimp Chefs Feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-tofu-chefs-feast",
+   "name": "Lo Mein Tofu Chefs feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "ny-prime-strip-steak-takaki",
+   "name": "NY Prime Strip Steak Takaki*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 70,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 28
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-pepper-filet",
+   "name": "Black Pepper Filet*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 74,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-rice-individual-serving",
+   "name": "White Rice - individual serving",
+   "sizes": [
+    {
+     "size": "6oz",
+     "label": "6oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brown-rice-individual-serving",
+   "name": "Brown Rice - individual serving",
+   "sizes": [
+    {
+     "size": "6oz",
+     "label": "6oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "miso-glazed-salmon",
+   "name": "Miso Glazed Salmon",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "oolong-chilean-seabass",
+   "name": "Oolong Chilean Seabass",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 61,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "salt-and-pepper-prawns",
+   "name": "Salt & Pepper Prawns",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "pad-thai",
+   "name": "Pad Thai",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pad-thai",
+   "name": "Chicken Pad Thai",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "tofu-pad-thai",
+   "name": "Tofu Pad Thai",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 76,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-pad-thai",
+   "name": "Beef Pad Thai",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-pad-thai",
+   "name": "Shrimp Pad Thai",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "combo-pad-thai",
+   "name": "Combo Pad Thai",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 60,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-vegetables",
+   "name": "Fried Rice with Vegetables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-combo",
+   "name": "Fried Rice Combo",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-beef",
+   "name": "Fried Rice with Beef",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-chicken",
+   "name": "Fried Rice with Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-shrimp",
+   "name": "Fried Rice with Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice-with-tofu",
+   "name": "Fried Rice with Tofu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 44,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "duck-fried-rice",
+   "name": "Duck Fried Rice",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 90,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 29
+     }
+    }
+   ]
+  },
+  {
+   "id": "lobster-and-prawn-fried-rice",
+   "name": "Lobster & Prawn Fried Rice",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 74,
+     "micros": {
+      "sugarG": 15,
+      "saturatedFatG": 28
+     }
+    }
+   ]
+  },
+  {
+   "id": "longlife-noodles-and-prawns",
+   "name": "Longlife Noodles & Prawns",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 59,
+     "micros": {
+      "sugarG": 39,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "singapore-street-noodles",
+   "name": "Singapore Street Noodles",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-vegetables",
+   "name": "Lo Mein Vegetables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-combo",
+   "name": "Lo Mein Combo",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-beef",
+   "name": "Lo Mein Beef",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-chicken",
+   "name": "Lo Mein Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-shrimp",
+   "name": "Lo Mein Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-tofu",
+   "name": "Lo Mein Tofu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 44,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-rice-individual-serving-6oz",
+   "name": "White Rice - individual serving (6oz)",
+   "sizes": [
+    {
+     "size": "6oz",
+     "label": "6oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brown-rice-individual-serving-6oz",
+   "name": "Brown Rice - individual serving (6oz)",
+   "sizes": [
+    {
+     "size": "6oz",
+     "label": "6oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice",
+   "name": "Fried Rice",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "lo-mein-noodles",
+   "name": "Lo Mein Noodles",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-mongolian-beef",
+   "name": "Lunch Mongolian Beef",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-mongolian-tofu",
+   "name": "Lunch Mongolian Tofu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-chang-s-spicy-chicken",
+   "name": "Lunch Chang's Spicy Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-firecracker-shrimp",
+   "name": "Lunch Firecracker Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-miso-glazed-salmon",
+   "name": "Lunch Miso Glazed Salmon",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-sesame-chicken",
+   "name": "Lunch Sesame Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 34,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-beef-and-broccoli",
+   "name": "Lunch Beef & Broccoli",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-teriyaki-beef",
+   "name": "Lunch Teriyaki Beef",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-teriyaki-chicken",
+   "name": "Lunch Teriyaki Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-crispy-honey-chicken",
+   "name": "Lunch Crispy Honey Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-orange-chicken",
+   "name": "Lunch Orange Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 31,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lunch-kung-pao-chicken",
+   "name": "Lunch Kung Pao Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-rice-8oz",
+   "name": "White Rice (8oz)",
+   "sizes": [
+    {
+     "size": "8oz",
+     "label": "8oz",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brown-rice-8oz",
+   "name": "Brown Rice (8oz)",
+   "sizes": [
+    {
+     "size": "8oz",
+     "label": "8oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-and-sour-soup-cup",
+   "name": "Hot & Sour Soup Cup",
+   "sizes": [
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-drop-soup-cup",
+   "name": "Egg Drop Soup Cup",
+   "sizes": [
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetable-spring-roll-1",
+   "name": "Vegetable Spring Roll (1)",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-egg-rolls-1",
+   "name": "Pork Egg Rolls (1)",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "chang-s-chicken-lettuce-wraps-half-order",
+   "name": "Chang's Chicken Lettuce Wraps Half Order",
+   "sizes": [
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-lettuce-wraps-half-order",
+   "name": "Veggie Lettuce Wraps Half Order",
+   "sizes": [
+    {
+     "size": "half order",
+     "label": "Half Order",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-salad-for-one",
+   "name": "House Salad For One",
+   "sizes": [
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-peanut-salad-for-one",
+   "name": "Thai Peanut Salad For One",
+   "sizes": [
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "asian-caesar-salad-for-one",
+   "name": "Asian Caesar Salad For One",
+   "sizes": [
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "mandarin-crunch-salad-for-one",
+   "name": "Mandarin Crunch Salad For One",
+   "sizes": [
+    {
+     "size": "for one",
+     "label": "For One",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-mongolian-beef",
+   "name": "GF Mongolian Beef",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-beef-with-broccoli",
+   "name": "GF Beef with Broccoli",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-chang-s-spicy-chicken",
+   "name": "GF Chang's Spicy Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-white-rice-8oz",
+   "name": "GF White Rice (8oz)",
+   "sizes": [
+    {
+     "size": "8oz",
+     "label": "8oz",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-brown-rice-8oz",
+   "name": "GF Brown Rice (8oz)",
+   "sizes": [
+    {
+     "size": "8oz",
+     "label": "8oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-fried-rice-8oz",
+   "name": "GF Fried Rice (8oz)",
+   "sizes": [
+    {
+     "size": "8oz",
+     "label": "8oz",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-honey-chicken",
+   "name": "Kids Honey Chicken",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-orange-chicken",
+   "name": "Kids Orange Chicken",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 640,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-sweet-and-sour-chicken",
+   "name": "Kids Sweet & Sour Chicken",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-teriyaki-chicken",
+   "name": "Kids Teriyaki Chicken",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-teriyaki-beef",
+   "name": "Kids Teriyaki Beef",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chicken-lo-mein",
+   "name": "Kids Chicken Lo Mein",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chicken-fried-rice",
+   "name": "Kids Chicken Fried Rice",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "baby-buddha-s-feast-stir-fried",
+   "name": "Baby Buddha's Feast Stir Fried",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "baby-buddha-s-feast-steamed",
+   "name": "Baby Buddha's Feast Steamed",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-california-roll",
+   "name": "Kids California Roll",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-kids-chicken-fried-rice",
+   "name": "GF Kids Chicken Fried Rice",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-avocado-roll",
+   "name": "Kids Avocado Roll",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-steamed-snap-peas",
+   "name": "Kids Steamed Snap Peas",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-steamed-carrots",
+   "name": "Kids Steamed Carrots",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-fruit-cup",
+   "name": "Kids Fruit Cup",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-steamed-broccoli",
+   "name": "Kids Steamed Broccoli",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-milk-2",
+   "name": "Kids Milk 2%",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-apple-juice",
+   "name": "Kids Apple Juice",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 36,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-orange-juice",
+   "name": "Kids Orange Juice",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "sugarG": 31,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-lemonade",
+   "name": "Kids Lemonade",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 29,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-strawberry-lemonade",
+   "name": "Kids Strawberry Lemonade",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-coconut-pineapple-ice-cream",
+   "name": "Kids Coconut Pineapple Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-vanilla-ice-cream",
+   "name": "Kids Vanilla Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-great-wall-of-chocolate",
+   "name": "The Great Wall of Chocolate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1940,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 80,
+     "micros": {
+      "sugarG": 230,
+      "saturatedFatG": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-spring-rolls",
+   "name": "Banana Spring Rolls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-york-style-cheesecake",
+   "name": "New York-Style Cheesecake",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 62,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 36
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-souffle",
+   "name": "Chocolate Souffle",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 72,
+      "saturatedFatG": 32
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "chicken-protein-option",
+   "name": "Chicken Protein Option",
+   "per": {
+    "calories": 220,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "sugarG": 2,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "salmon-protein-option",
+   "name": "Salmon Protein Option",
+   "per": {
+    "calories": 320,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 26,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 4
+    }
+   }
+  },
+  {
+   "id": "chicken-steamed",
+   "name": "Chicken - steamed",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 3,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "chicken-wok-fried",
+   "name": "Chicken - wok fried",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "chicken-wok-fried-w-starch",
+   "name": "Chicken - wok fried w/ starch",
+   "per": {
+    "calories": 200,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "chicken-crispy",
+   "name": "Chicken - Crispy",
+   "per": {
+    "calories": 240,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "tofu",
+   "name": "Tofu",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 11,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 1.5
+    }
+   }
+  },
+  {
+   "id": "beef-wok-fried",
+   "name": "Beef - wok fried",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 7,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "beef-wok-fried-w-starch",
+   "name": "Beef - wok fried w/ starch",
+   "per": {
+    "calories": 140,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 7,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "shrimp-steamed",
+   "name": "Shrimp - Steamed",
+   "per": {
+    "calories": 40,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "shrimp-wok-fried",
+   "name": "Shrimp - wok fried",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 3,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "shrimp-wok-fried-w-starch",
+   "name": "Shrimp - wok fried w/ starch",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 8,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 2
+    }
+   }
+  }
+ ]
+}

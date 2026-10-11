@@ -1,0 +1,8092 @@
+{
+ "chain": "dutch-bros",
+ "country": "US",
+ "source": {
+  "url": "https://www.dutchbros.com/website/menu/nutritional-guide.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "911-hot",
+   "name": "911 Hot",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 58,
+      "saturatedFatG": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-hot",
+   "name": "Latte - Hot",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-iced",
+   "name": "Latte - Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 4.5
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-protein-latte-hot",
+   "name": "Vanilla Protein Latte Hot",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 40,
+      "sodiumMg": 190,
+      "saturatedFatG": 4.5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 135,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-protein-latte-iced",
+   "name": "Vanilla Protein Latte Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 160,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 135,
+      "saturatedFatG": 3.5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 75,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-zero-sugar-added-protein-latte-hot",
+   "name": "Vanilla Zero Sugar Added Protein Latte Hot",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 23,
+      "sodiumMg": 230,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 20,
+      "sodiumMg": 200,
+      "saturatedFatG": 4.5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 14,
+      "sodiumMg": 140,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-zero-sugar-added-protein-latte-iced",
+   "name": "Vanilla Zero Sugar Added Protein Latte Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 17,
+      "sodiumMg": 170,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 14,
+      "sodiumMg": 140,
+      "saturatedFatG": 3.5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 8,
+      "sodiumMg": 80,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "protein-latte-hot",
+   "name": "Protein Latte Hot",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 25,
+      "sodiumMg": 240,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 21,
+      "sodiumMg": 210,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 150,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "protein-latte-iced",
+   "name": "Protein Latte Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 19,
+      "sodiumMg": 180,
+      "saturatedFatG": 4.5
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 150,
+      "saturatedFatG": 3.5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 90,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "plain-blended-rebel",
+   "name": "Plain Blended Rebel",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 102,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 76,
+      "sodiumMg": 130,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 51,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "aftershock-rebel-blended",
+   "name": "Aftershock Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 142,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 103,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "aftershock-rebel-iced",
+   "name": "Aftershock Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 89,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 46,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragon-slayer-rebel-blended",
+   "name": "Dragon Slayer Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 169,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 128,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 86,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragon-slayer-rebel-iced",
+   "name": "Dragon Slayer Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 113,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 78,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-rainbro-rebel-blended",
+   "name": "Double Rainbro Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 140,
+      "sodiumMg": 130,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 106,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 66,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-rainbro-rebel-iced",
+   "name": "Double Rainbro Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 92,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dino-egg-rebel-blended",
+   "name": "Dino Egg Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 171,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 129,
+      "sodiumMg": 135,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 87,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dino-egg-rebel-iced",
+   "name": "Dino Egg Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 115,
+      "sodiumMg": 190,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 80,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 69,
+      "sodiumMg": 115,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "electric-berry-rebel-blended",
+   "name": "Electric Berry Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 145,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 105,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "electric-berry-rebel-iced",
+   "name": "Electric Berry Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 91,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hyperchrome-rebel-blended",
+   "name": "Hyperchrome Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 144,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 104,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hyperchrome-rebel-iced",
+   "name": "Hyperchrome Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 90,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 46,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "midnight-rebel-blended",
+   "name": "Midnight Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 139,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 101,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 63,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "midnight-rebel-iced",
+   "name": "Midnight Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 89,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "og-gummy-bear-rebel-blended",
+   "name": "OG Gummy Bear Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 139,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 101,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 63,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "og-gummy-bear-rebel-iced",
+   "name": "OG Gummy Bear Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 88,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "palm-beach-rebel-blended",
+   "name": "Palm Beach Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 145,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 105,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "palm-beach-rebel-iced",
+   "name": "Palm Beach Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 91,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-rebel-blended",
+   "name": "Peach Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 620,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 151,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 109,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-rebel-iced",
+   "name": "Peach Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 95,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 60,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 49,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-ring-rebel-blended",
+   "name": "Peach Ring Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 168,
+      "sodiumMg": 260,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "sugarG": 128,
+      "sodiumMg": 190,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 88,
+      "sodiumMg": 115,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-ring-rebel-iced",
+   "name": "Peach Ring Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "sugarG": 114,
+      "sodiumMg": 240,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 81,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 70,
+      "sodiumMg": 125,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shark-attack-rebel-blended",
+   "name": "Shark Attack Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 165,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 125,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 84,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shark-attack-rebel-iced",
+   "name": "Shark Attack Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 111,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 77,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 66,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-rebel-blended",
+   "name": "Strawberry Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 139,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 101,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 63,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-rebel-iced",
+   "name": "Strawberry Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 87,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "watermelon-rebel-blended",
+   "name": "Watermelon Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 142,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 103,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "watermelon-rebel-iced",
+   "name": "Watermelon Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 89,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 46,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tigers-blood-rebel-blended",
+   "name": "Tigers Blood Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 145,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 105,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tigers-blood-rebel-iced",
+   "name": "Tigers Blood Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 91,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vampire-slayer-rebel-blended",
+   "name": "Vampire Slayer Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 139,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 101,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 63,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vampire-slayer-rebel-iced",
+   "name": "Vampire Slayer Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 70,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "sodiumMg": 120,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-strawberry-rebel-blended",
+   "name": "Zero Sugar Strawberry Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 70,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-strawberry-rebel-iced",
+   "name": "Zero Sugar Strawberry Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-double-rainbro-rebel-blended",
+   "name": "Zero Sugar Double Rainbro Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 135,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 70,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-double-rainbro-rebel-iced",
+   "name": "Zero Sugar Double Rainbro Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-pink-flamingo-rebel-blended",
+   "name": "Zero Sugar Pink Flamingo Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1.5,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-pink-flamingo-rebel-iced",
+   "name": "Zero Sugar Pink Flamingo Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-tigers-blood-rebel-blended",
+   "name": "Zero Sugar Tigers Blood Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 130,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-tigers-blood-rebel-iced",
+   "name": "Zero Sugar Tigers Blood Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-peach-vanilla-rebel-blended",
+   "name": "Zero Sugar Peach Vanilla Rebel Blended",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 70,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-peach-vanilla-rebel-iced",
+   "name": "Zero Sugar Peach Vanilla Rebel Iced",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "passion-watermelon-myst-iced",
+   "name": "Passion Watermelon Myst Iced",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "sodiumMg": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 18,
+      "sodiumMg": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "passion-watermelon-myst",
+   "name": "Passion Watermelon Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 36,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-lime-myst",
+   "name": "Cherry Lime Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "firestorm-myst",
+   "name": "Firestorm™ Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-myst",
+   "name": "Tropical Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 39,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shark-attack-myst",
+   "name": "Shark Attack™ Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 39,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "og-gummy-bear-myst",
+   "name": "OG Gummy Bear Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "myst-w-sugar-free-strawberry-vanilla",
+   "name": "Myst w/ Sugar Free Strawberry Vanilla",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "myst-w-sugar-free-peach",
+   "name": "Myst w/ Sugar Free Peach",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "myst-w-sugar-free-rose-city",
+   "name": "Myst w/ Sugar Free Rose City",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "myst-w-sugar-free-raspberry",
+   "name": "Myst w/ Sugar Free Raspberry",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "plain-myst",
+   "name": "Plain Myst",
+   "category": "Myst",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poppin-boba-fire-lizard-rebel",
+   "name": "Poppin' Boba Fire Lizard Rebel",
+   "category": "Poppin' Boba",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 156,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 116,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 77,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 102,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poppin-boba-berry-lemonade",
+   "name": "Poppin' Boba Berry Lemonade",
+   "category": "Poppin' Boba",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 154,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 121,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 88,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 79,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 66,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "not-so-hot",
+   "name": "Not So Hot",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "dutch-cocoa",
+   "name": "Dutch Cocoa",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 82,
+      "saturatedFatG": 17
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 66,
+      "saturatedFatG": 14
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 49,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-cocoa",
+   "name": "Caramel Cocoa",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 59,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 98,
+      "saturatedFatG": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 82,
+      "saturatedFatG": 12
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-chocolate-cocoa",
+   "name": "Double Chocolate Cocoa",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 60,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 99,
+      "saturatedFatG": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 83,
+      "saturatedFatG": 12
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-cocoa",
+   "name": "Vanilla Cocoa",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 95,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 80,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 64,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-cocoa",
+   "name": "White Chocolate Cocoa",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 99,
+      "saturatedFatG": 16
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 83,
+      "saturatedFatG": 13
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 10
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 60,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-added-cocoa",
+   "name": "Zero Sugar Added Cocoa",
+   "category": "Dutch Cocoa",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 750,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 54,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 36
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 28
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 10,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "chai",
+   "name": "Chai",
+   "category": "Chai",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 3.5
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 55,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 55,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "golden-eagle-chai",
+   "name": "Golden Eagle Chai",
+   "category": "Chai",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 88,
+      "saturatedFatG": 19
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 76,
+      "saturatedFatG": 15
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 63,
+      "saturatedFatG": 11
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 76,
+      "saturatedFatG": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 63,
+      "saturatedFatG": 11
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 51,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "horchata-chai",
+   "name": "Horchata Chai",
+   "category": "Chai",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 86,
+      "saturatedFatG": 3.5
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 72,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 59,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 72,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 59,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-horchata-chai",
+   "name": "Strawberry Horchata Chai",
+   "category": "Chai",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 72,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 58,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-chai",
+   "name": "White Chocolate Chai",
+   "category": "Chai",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 88,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 75,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 2.5
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 75,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 2.5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 47,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-chai",
+   "name": "Vanilla Chai",
+   "category": "Chai",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 88,
+      "saturatedFatG": 4.5
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 74,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-chai-hot",
+   "name": "Vanilla Chai Hot",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-rainbro-lemonade",
+   "name": "Double Rainbro Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 44,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 620,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 145,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 112,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 79,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "palm-beach-lemonade",
+   "name": "Palm Beach Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Iced Kids",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 34,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 620,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 144,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 111,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 78,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Blended Kids",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "passion-fruit-lemonade",
+   "name": "Passion Fruit Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 142,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 109,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 76,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-lemonade",
+   "name": "Peach Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 146,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 113,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 80,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 71,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lemonade",
+   "name": "Strawberry Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 142,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 109,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 76,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lavender-lemonade",
+   "name": "Strawberry Lavender Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 145,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 112,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 79,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tigers-blood-lemonade",
+   "name": "Tigers Blood Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 144,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 111,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 78,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "og-gummy-bear-lemonade",
+   "name": "OG Gummy Bear Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragon-slayer-black-tea",
+   "name": "Dragon Slayer Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 87,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-rainbro-black-tea",
+   "name": "Double Rainbro Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-rainbro-green-tea",
+   "name": "Double Rainbro Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "eclipse-black-tea",
+   "name": "Eclipse Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 83,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "marmalade-black-tea",
+   "name": "Marmalade Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "palm-beach-black-tea",
+   "name": "Palm Beach Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "palm-beach-green-tea",
+   "name": "Palm Beach Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "passion-fruit-black-tea",
+   "name": "Passion Fruit Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 37,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "passion-fruit-green-tea",
+   "name": "Passion Fruit Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 37,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-black-tea",
+   "name": "Peach Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-green-tea",
+   "name": "Peach Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-black-tea",
+   "name": "Strawberry Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 37,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-green-tea",
+   "name": "Strawberry Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 56,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 37,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-tea",
+   "name": "Sweet Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 26,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-black-tea",
+   "name": "Tropical Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-green-tea",
+   "name": "Tropical Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 64,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "electric-berry-black-tea",
+   "name": "Electric Berry Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "electric-berry-green-tea",
+   "name": "Electric Berry Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 41,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-strawberry-black-tea",
+   "name": "Zero Sugar Strawberry Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zero-sugar-strawberry-green-tea",
+   "name": "Zero Sugar Strawberry Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Iced Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Iced Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Iced Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ceylon-tea",
+   "name": "Ceylon Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-spice-tea",
+   "name": "Cinnamon Spice Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "earl-grey-tea",
+   "name": "Earl Grey Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-tea",
+   "name": "Green Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "paris-black-tea",
+   "name": "Paris Black Tea",
+   "category": "TEA",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Hot Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Hot Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Hot Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-apple-smoothie",
+   "name": "Green Apple Smoothie",
+   "category": "SMOOTHIE",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 168,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 126,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 84,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Blended Kids",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 52,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-smoothie",
+   "name": "Mango Smoothie",
+   "category": "SMOOTHIE",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 128,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "sugarG": 85,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Blended Kids",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-smoothie",
+   "name": "Strawberry Smoothie",
+   "category": "SMOOTHIE",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Blended Large",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 138,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Blended Medium",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 104,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Blended Small",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Blended Kids",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "private-reserve-espresso",
+   "name": "Private Reserve Espresso",
+   "category": "ESPRESSO",
+   "sizes": [
+    {
+     "size": "dub shot",
+     "label": "Dub Shot",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-coffee-espresso",
+   "name": "White Coffee Espresso",
+   "category": "ESPRESSO",
+   "sizes": [
+    {
+     "size": "dub shot",
+     "label": "Dub Shot",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-bread",
+   "name": "Banana Bread",
+   "category": "EATS N' SWEETS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-muffin",
+   "name": "Blueberry Muffin",
+   "category": "EATS N' SWEETS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 33,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-muffin-top",
+   "name": "Chocolate Chip Muffin Top",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 6,
+     "carbsG": 77,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 49,
+      "sodiumMg": 420,
+      "saturatedFatG": 11,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee-cake",
+   "name": "Coffee Cake",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 5,
+     "carbsG": 59,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 320,
+      "saturatedFatG": 12,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-dough-cake-pop",
+   "name": "Cookie Dough Cake Pop",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 70,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-waffle",
+   "name": "Maple Waffle",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 38,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 300,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-bacon-and-cheese-sandwich",
+   "name": "Egg, Bacon and Cheese Sandwich",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 14,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 510,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-egg-and-cheese-sandwich",
+   "name": "Sausage, Egg and Cheese Sandwich",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 580,
+      "saturatedFatG": 6,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorizo-egg-and-hot-pepper-cheese-wrap",
+   "name": "Chorizo, Egg and Hot Pepper Cheese Wrap",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 15,
+     "carbsG": 34,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1090,
+      "saturatedFatG": 11,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-hash-brown-duo",
+   "name": "Cheesy Hash Brown Duo",
+   "category": "Food",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 530,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-pie-chai-hot",
+   "name": "Cherry Pie Chai - Hot",
+   "category": "Cherry Pie Chai",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 62,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 125,
+      "saturatedFatG": 9,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 440,
+     "proteinG": 9,
+     "carbsG": 75,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 160,
+      "saturatedFatG": 10,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 510,
+     "proteinG": 11,
+     "carbsG": 88,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 79,
+      "sodiumMg": 200,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-pie-chai-iced",
+   "name": "Cherry Pie Chai - Iced",
+   "category": "Cherry Pie Chai",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 330,
+     "proteinG": 5,
+     "carbsG": 55,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 105,
+      "saturatedFatG": 9,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 68,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 140,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 480,
+     "proteinG": 10,
+     "carbsG": 81,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-mocha-hot",
+   "name": "Pumpkin Pie Spice Mocha - Hot",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 440,
+     "proteinG": 10,
+     "carbsG": 70,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 59,
+      "sodiumMg": 280,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 560,
+     "proteinG": 15,
+     "carbsG": 86,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 15,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 18,
+     "carbsG": 96,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 83,
+      "sodiumMg": 460,
+      "saturatedFatG": 16,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-mocha-iced",
+   "name": "Pumpkin Pie Spice Mocha - Iced",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 380,
+     "proteinG": 8,
+     "carbsG": 62,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 51,
+      "sodiumMg": 230,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 500,
+     "proteinG": 13,
+     "carbsG": 78,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 67,
+      "sodiumMg": 340,
+      "saturatedFatG": 13,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 570,
+     "proteinG": 16,
+     "carbsG": 88,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 15,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-latte-hot",
+   "name": "Pumpkin Pie Spice Latte - Hot",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 350,
+     "proteinG": 11,
+     "carbsG": 54,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 44,
+      "sodiumMg": 210,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 420,
+     "proteinG": 16,
+     "carbsG": 62,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 51,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 19,
+     "carbsG": 67,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 55,
+      "sodiumMg": 330,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-latte-iced",
+   "name": "Pumpkin Pie Spice Latte - Iced",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 310,
+     "proteinG": 9,
+     "carbsG": 50,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 180,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 380,
+     "proteinG": 14,
+     "carbsG": 58,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 48,
+      "sodiumMg": 250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 430,
+     "proteinG": 17,
+     "carbsG": 63,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-freeze",
+   "name": "Pumpkin Pie Spice Freeze",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 540,
+     "proteinG": 12,
+     "carbsG": 88,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 77,
+      "sodiumMg": 230,
+      "saturatedFatG": 13,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 740,
+     "proteinG": 18,
+     "carbsG": 118,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 105,
+      "sodiumMg": 320,
+      "saturatedFatG": 17,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 940,
+     "proteinG": 24,
+     "carbsG": 148,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 133,
+      "sodiumMg": 410,
+      "saturatedFatG": 21,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-breve-hot",
+   "name": "Pumpkin Pie Spice Breve - Hot",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 470,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 39,
+     "micros": {
+      "sugarG": 96,
+      "sodiumMg": 0,
+      "saturatedFatG": 48,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 610,
+     "proteinG": 14,
+     "carbsG": 40,
+     "fatG": 43,
+     "micros": {
+      "sugarG": 96,
+      "sodiumMg": 0,
+      "saturatedFatG": 52,
+      "cholesterolMg": 29
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 700,
+     "proteinG": 16,
+     "carbsG": 46,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 192,
+      "sodiumMg": 0,
+      "saturatedFatG": 56,
+      "cholesterolMg": 33
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-breve-iced",
+   "name": "Pumpkin Pie Spice Breve - Iced",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 22,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 96,
+      "sodiumMg": 0,
+      "saturatedFatG": 46,
+      "cholesterolMg": 16
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 540,
+     "proteinG": 12,
+     "carbsG": 34,
+     "fatG": 41,
+     "micros": {
+      "sugarG": 96,
+      "sodiumMg": 0,
+      "saturatedFatG": 50,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 14,
+     "carbsG": 40,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 192,
+      "sodiumMg": 0,
+      "saturatedFatG": 54,
+      "cholesterolMg": 29
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-spice-cold-brew",
+   "name": "Pumpkin Pie Spice Cold Brew",
+   "category": "Pumpkin Pie Spice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 44,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 150,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 45,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 160,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 46,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-breve-hot",
+   "name": "Caramel Pumpkin Brûlée Breve - Hot",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 52,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 260,
+      "saturatedFatG": 22,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 640,
+     "proteinG": 13,
+     "carbsG": 56,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 340,
+      "saturatedFatG": 30,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 720,
+     "proteinG": 16,
+     "carbsG": 59,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 53,
+      "sodiumMg": 380,
+      "saturatedFatG": 34,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-breve-iced",
+   "name": "Caramel Pumpkin Brûlée Breve - Iced",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 360,
+     "proteinG": 5,
+     "carbsG": 47,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 180,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 52,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 260,
+      "saturatedFatG": 22,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 580,
+     "proteinG": 12,
+     "carbsG": 55,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 300,
+      "saturatedFatG": 26,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-latte-hot",
+   "name": "Caramel Pumpkin Brulee Latte - Hot",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 370,
+     "proteinG": 11,
+     "carbsG": 57,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 52,
+      "sodiumMg": 250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 440,
+     "proteinG": 16,
+     "carbsG": 64,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 59,
+      "sodiumMg": 330,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 490,
+     "proteinG": 19,
+     "carbsG": 70,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 63,
+      "sodiumMg": 360,
+      "saturatedFatG": 12,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-latte-iced",
+   "name": "Caramel Pumpkin Brulee Latte - Iced",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 340,
+     "proteinG": 8,
+     "carbsG": 53,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 48,
+      "sodiumMg": 210,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 13,
+     "carbsG": 60,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 55,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 450,
+     "proteinG": 16,
+     "carbsG": 66,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 59,
+      "sodiumMg": 330,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-chai-hot",
+   "name": "Caramel Pumpkin Brûlée Chai - Hot",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 550,
+     "proteinG": 7,
+     "carbsG": 76,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 230,
+      "saturatedFatG": 18,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 670,
+     "proteinG": 9,
+     "carbsG": 89,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 270,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 780,
+     "proteinG": 11,
+     "carbsG": 101,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 310,
+      "saturatedFatG": 27,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-chai-iced",
+   "name": "Caramel Pumpkin Brûlée Chai - Iced",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 440,
+     "proteinG": 5,
+     "carbsG": 64,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 190,
+      "saturatedFatG": 14,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 550,
+     "proteinG": 7,
+     "carbsG": 76,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 230,
+      "saturatedFatG": 18,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 9,
+     "carbsG": 89,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 270,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-freeze",
+   "name": "Caramel Pumpkin Brûlée Freeze",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 570,
+     "proteinG": 11,
+     "carbsG": 92,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 270,
+      "saturatedFatG": 14,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 770,
+     "proteinG": 17,
+     "carbsG": 122,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 113,
+      "sodiumMg": 360,
+      "saturatedFatG": 18,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 970,
+     "proteinG": 23,
+     "carbsG": 152,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 141,
+      "sodiumMg": 450,
+      "saturatedFatG": 22,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-shake",
+   "name": "Caramel Pumpkin Brûlée Shake",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 600,
+     "proteinG": 10,
+     "carbsG": 109,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 102,
+      "sodiumMg": 310,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 830,
+     "proteinG": 14,
+     "carbsG": 155,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 146,
+      "sodiumMg": 450,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1050,
+     "proteinG": 18,
+     "carbsG": 201,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 190,
+      "sodiumMg": 580,
+      "saturatedFatG": 15,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-cold-brew",
+   "name": "Caramel Pumpkin Brûlée Cold Brew",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 46,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 47,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 190,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 48,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-latte-hot",
+   "name": "Cookie Butter Latte - Hot",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 530,
+     "proteinG": 11,
+     "carbsG": 67,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 53,
+      "sodiumMg": 400,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 16,
+     "carbsG": 75,
+     "fatG": 28,
+     "micros": {
+      "sugarG": 60,
+      "sodiumMg": 480,
+      "saturatedFatG": 20,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 650,
+     "proteinG": 20,
+     "carbsG": 80,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 64,
+      "sodiumMg": 510,
+      "saturatedFatG": 21,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-latte-iced",
+   "name": "Cookie Butter Latte - Iced",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 63,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 50,
+      "sodiumMg": 360,
+      "saturatedFatG": 17,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 570,
+     "proteinG": 14,
+     "carbsG": 71,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 440,
+      "saturatedFatG": 19,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 610,
+     "proteinG": 17,
+     "carbsG": 76,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 480,
+      "saturatedFatG": 20,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-protein-latte",
+   "name": "Cookie Butter Protein Latte",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 520,
+     "proteinG": 16,
+     "carbsG": 61,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 48,
+      "sodiumMg": 340,
+      "saturatedFatG": 17,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 26,
+     "carbsG": 67,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 54,
+      "sodiumMg": 400,
+      "saturatedFatG": 19,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 660,
+     "proteinG": 32,
+     "carbsG": 72,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 57,
+      "sodiumMg": 430,
+      "saturatedFatG": 20,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-freeze",
+   "name": "Cookie Butter Freeze",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 730,
+     "proteinG": 12,
+     "carbsG": 101,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 86,
+      "sodiumMg": 420,
+      "saturatedFatG": 22,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 930,
+     "proteinG": 18,
+     "carbsG": 131,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 114,
+      "sodiumMg": 510,
+      "saturatedFatG": 26,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1130,
+     "proteinG": 24,
+     "carbsG": 161,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 142,
+      "sodiumMg": 600,
+      "saturatedFatG": 30,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-chai-hot",
+   "name": "Cookie Butter Chai - Hot",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 560,
+     "proteinG": 8,
+     "carbsG": 82,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 69,
+      "sodiumMg": 350,
+      "saturatedFatG": 17,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 640,
+     "proteinG": 10,
+     "carbsG": 95,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 82,
+      "sodiumMg": 390,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 710,
+     "proteinG": 13,
+     "carbsG": 108,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 430,
+      "saturatedFatG": 19,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-chai-iced",
+   "name": "Cookie Butter Chai - Iced",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 530,
+     "proteinG": 6,
+     "carbsG": 75,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 340,
+      "saturatedFatG": 17,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 9,
+     "carbsG": 88,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 370,
+      "saturatedFatG": 18,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 11,
+     "carbsG": 101,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 88,
+      "sodiumMg": 410,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-mocha-hot",
+   "name": "Cookie Butter Mocha - Hot",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 620,
+     "proteinG": 10,
+     "carbsG": 83,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 68,
+      "sodiumMg": 470,
+      "saturatedFatG": 21,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 740,
+     "proteinG": 15,
+     "carbsG": 99,
+     "fatG": 33,
+     "micros": {
+      "sugarG": 83,
+      "sodiumMg": 590,
+      "saturatedFatG": 24,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 810,
+     "proteinG": 18,
+     "carbsG": 109,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 91,
+      "sodiumMg": 640,
+      "saturatedFatG": 25,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-mocha-iced",
+   "name": "Cookie Butter Mocha - Iced",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 560,
+     "proteinG": 8,
+     "carbsG": 75,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 60,
+      "sodiumMg": 410,
+      "saturatedFatG": 19,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 680,
+     "proteinG": 13,
+     "carbsG": 91,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 76,
+      "sodiumMg": 530,
+      "saturatedFatG": 22,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 750,
+     "proteinG": 16,
+     "carbsG": 101,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 84,
+      "sodiumMg": 590,
+      "saturatedFatG": 24,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-rebel",
+   "name": "Autumn Berry Rebel",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 2,
+     "carbsG": 162,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 158,
+      "sodiumMg": 150,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-rebel-blended",
+   "name": "Autumn Berry Rebel (Blended)",
+   "sizes": [
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 116,
+      "sodiumMg": 115,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 76,
+      "sodiumMg": 80,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-rebel-iced",
+   "name": "Autumn Berry Rebel (Iced)",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 102,
+      "sodiumMg": 170,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 68,
+      "sodiumMg": 125,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-myst-iced",
+   "name": "Autumn Berry Myst (Iced)",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 44,
+      "sodiumMg": 5,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-fizz-iced",
+   "name": "Autumn Berry Fizz (Iced)",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 97,
+      "sodiumMg": 20,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 75,
+      "sodiumMg": 15,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "sodiumMg": 10,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 31,
+      "sodiumMg": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-lemonade-blended",
+   "name": "Autumn Berry Lemonade (Blended)",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 151,
+      "sodiumMg": 50,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 119,
+      "sodiumMg": 40,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 87,
+      "sodiumMg": 25,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 63,
+      "sodiumMg": 15,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-lemonade-iced",
+   "name": "Autumn Berry Lemonade (Iced)",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 78,
+      "sodiumMg": 30,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "sodiumMg": 20,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "sodiumMg": 15,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 44,
+      "sodiumMg": 10,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "soft-top",
+   "name": "Soft Top",
+   "unit": "2 Scoops",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 8,
+    "micros": {
+     "sugarG": 5,
+     "saturatedFatG": 7
+    }
+   }
+  },
+  {
+   "id": "caramel-drizzle",
+   "name": "Caramel Drizzle",
+   "unit": "Hashtag",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 4,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "dark-chocolate-drizzle",
+   "name": "Dark Chocolate Drizzle",
+   "unit": "Hashtag",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 4,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "white-chocolate-drizzle",
+   "name": "White Chocolate Drizzle",
+   "unit": "Hashtag",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 4,
+     "saturatedFatG": 0
+    }
+   }
+  }
+ ]
+}

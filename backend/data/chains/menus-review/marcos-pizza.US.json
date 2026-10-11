@@ -1,0 +1,28 @@
+{
+ "chain": "marcos-pizza",
+ "country": "US",
+ "source": {
+  "url": "https://www.marcos.com/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "deluxe-pizza",
+   "name": "Deluxe Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "slice 1 8 of pizza",
+     "label": "Slice (1/8 of pizza)",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

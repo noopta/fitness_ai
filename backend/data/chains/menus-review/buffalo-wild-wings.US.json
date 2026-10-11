@@ -1,0 +1,4397 @@
+{
+ "chain": "buffalo-wild-wings",
+ "country": "US",
+ "source": {
+  "url": "https://www.buffalowildwings.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "boneless-wings",
+   "name": "Boneless Wings",
+   "sizes": [
+    {
+     "size": "6 count",
+     "label": "6 Count",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "30-count-boneless-wings",
+   "name": "30 Count Boneless Wings",
+   "category": "Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1820,
+     "proteinG": 144,
+     "carbsG": 102,
+     "fatG": 93,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 6280,
+      "saturatedFatG": 36,
+      "cholesterolMg": 425
+     }
+    }
+   ]
+  },
+  {
+   "id": "6-count-bone-in-wings",
+   "name": "6 Count Bone-In Wings",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 53,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 160,
+      "saturatedFatG": 8,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "6-count-bone-in-wings-flats-only",
+   "name": "6 Count Bone-In Wings (Flats Only)",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 46,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 140,
+      "saturatedFatG": 8,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "6-count-bone-in-wings-drums-only",
+   "name": "6 Count Bone-In Wings (Drums Only)",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 60,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 180,
+      "saturatedFatG": 8,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-count-bone-in-wings",
+   "name": "10 Count Bone-In Wings",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 88,
+     "carbsG": 0,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 270,
+      "saturatedFatG": 13,
+      "cholesterolMg": 360
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-count-bone-in-wings-flats-only",
+   "name": "10 Count Bone-In Wings (Flats Only)",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 77,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 230,
+      "saturatedFatG": 14,
+      "cholesterolMg": 350
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-count-bone-in-wings-drums-only",
+   "name": "10 Count Bone-In Wings (Drums Only)",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 100,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 300,
+      "saturatedFatG": 13,
+      "cholesterolMg": 360
+     }
+    }
+   ]
+  },
+  {
+   "id": "15-count-bone-in-wings",
+   "name": "15 Count Bone-In Wings",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 132,
+     "carbsG": 0,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 400,
+      "saturatedFatG": 20,
+      "cholesterolMg": 540
+     }
+    }
+   ]
+  },
+  {
+   "id": "15-count-bone-in-wings-flats-only",
+   "name": "15 Count Bone-In Wings (Flats Only)",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 115,
+     "carbsG": 0,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 350,
+      "saturatedFatG": 20,
+      "cholesterolMg": 530
+     }
+    }
+   ]
+  },
+  {
+   "id": "15-count-bone-in-wings-drums-only",
+   "name": "15 Count Bone-In Wings (Drums Only)",
+   "category": "Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 150,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 450,
+      "saturatedFatG": 20,
+      "cholesterolMg": 545
+     }
+    }
+   ]
+  },
+  {
+   "id": "20-count-bone-in-wings",
+   "name": "20 Count Bone-In Wings",
+   "sizes": [
+    {
+     "size": "20 count",
+     "label": "20 Count",
+     "calories": 1440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 82,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 27
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-pepper-hot-limited-time",
+   "name": "Lemon Pepper Hot - limited time",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 3730,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-habanero",
+   "name": "Mango Habanero™",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 53,
+      "sodiumMg": 1740,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-buffalo",
+   "name": "Original Buffalo",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 47,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 3950,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "parmesan-garlic",
+   "name": "Parmesan Garlic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 5,
+      "sodiumMg": 2500,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-garlic",
+   "name": "Spicy Garlic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 4530,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-bbq",
+   "name": "Sweet BBQ",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 2230,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki",
+   "name": "Teriyaki",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 2900,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-curry",
+   "name": "Thai Curry",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 3610,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "wild",
+   "name": "Wild®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 3410,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrots",
+   "name": "Carrots",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 7,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "celery-sticks",
+   "name": "Celery Sticks",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 75,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrots-and-celery-sticks",
+   "name": "Carrots & Celery Sticks",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bleu-cheese-dressing",
+   "name": "Bleu Cheese Dressing",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 550,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 117,
+     "micros": {
+      "sugarG": 7,
+      "sodiumMg": 2190,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-dressing",
+   "name": "Ranch Dressing",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 510,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 136,
+     "micros": {
+      "sugarG": 7,
+      "sodiumMg": 2040,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-mustard",
+   "name": "Honey Mustard",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 650,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 890,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 78,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 2580,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "southwestern-ranch",
+   "name": "Southwestern Ranch",
+   "category": "VEGGIES & DIPS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 800,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 146,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 3180,
+      "saturatedFatG": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-chicken-dippers",
+   "name": "Original Chicken Dippers",
+   "category": "CHICKEN DIPPERS",
+   "sizes": [
+    {
+     "size": "2 count",
+     "label": "2 count",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1280,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "3 count",
+     "label": "3 count",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1910,
+      "saturatedFatG": 9
+     }
+    },
+    {
+     "size": "5 count",
+     "label": "5 count",
+     "calories": 960,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 40,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 3190,
+      "saturatedFatG": 15
+     }
+    },
+    {
+     "size": "10 count",
+     "label": "10 count",
+     "calories": 1910,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 80,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 6380,
+      "saturatedFatG": 30
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 count",
+     "calories": 2870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 121,
+     "micros": {
+      "sugarG": 10,
+      "sodiumMg": 9570,
+      "saturatedFatG": 46
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chicken-dippers",
+   "name": "Spicy Chicken Dippers",
+   "category": "CHICKEN DIPPERS",
+   "sizes": [
+    {
+     "size": "2 count",
+     "label": "2 count",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 1,
+      "sodiumMg": 1130,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "3 count",
+     "label": "3 count",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1700,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "5 count",
+     "label": "5 count",
+     "calories": 830,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 2840,
+      "saturatedFatG": 14
+     }
+    },
+    {
+     "size": "10 count",
+     "label": "10 count",
+     "calories": 1650,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 79,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 5670,
+      "saturatedFatG": 28
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 count",
+     "calories": 2480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 118,
+     "micros": {
+      "sugarG": 10,
+      "sodiumMg": 8510,
+      "saturatedFatG": 42
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-dippers",
+   "name": "Grilled Chicken Dippers",
+   "category": "CHICKEN DIPPERS",
+   "sizes": [
+    {
+     "size": "2 count",
+     "label": "2 count",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 760,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "3 count",
+     "label": "3 count",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 1140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "5 count",
+     "label": "5 count",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 1910,
+      "saturatedFatG": 0.5
+     }
+    },
+    {
+     "size": "10 count",
+     "label": "10 count",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 3810,
+      "saturatedFatG": 1.5
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 count",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 5720,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-cheddar-jumbo-tots-with-b-dubs-dip-and-ranch",
+   "name": "Bacon Cheddar Jumbo Tots, with B-Dubs Dip & Ranch",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 98,
+     "micros": {
+      "sugarG": 7,
+      "sodiumMg": 3200,
+      "saturatedFatG": 26
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-on-weck-sliders-with-au-jus-limited-time",
+   "name": "Beef on Weck Sliders, with Au Jus - limited time",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 13,
+      "sodiumMg": 4010,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-dip",
+   "name": "Buffalo Chicken Dip",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 87,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 4030,
+      "saturatedFatG": 33
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-tots",
+   "name": "Buffalo Chicken Tots",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 144,
+     "micros": {
+      "sugarG": 4,
+      "sodiumMg": 7090,
+      "saturatedFatG": 51
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-fries-at-select-locations",
+   "name": "Cheeseburger Fries - at select locations",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 92,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 4650,
+      "saturatedFatG": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-sliders-with-golden-fire-and-ranch",
+   "name": "Cheeseburger Sliders with Golden Fire & Ranch",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 64,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 2120,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-curds-with-b-dubs-dip",
+   "name": "Cheddar Cheese Curds, with B-Dubs Dip",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 102,
+     "micros": {
+      "sugarG": 8,
+      "sodiumMg": 3160,
+      "saturatedFatG": 49
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-dip-trio",
+   "name": "Chips & Dip Trio",
+   "category": "APPETIZERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 87,
+     "micros": {
+      "sugarG": 20,
+      "sodiumMg": 4210,
+      "saturatedFatG": 33
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-house-made-guacamole-at-select-locations",
+   "name": "Chips & House-made Guacamole - at select locations",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 62,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-ranch-chicken-wrap",
+   "name": "Buffalo Ranch Chicken Wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 49,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 3240,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-pepsi",
+   "name": "Diet Pepsi®",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper",
+   "name": "Dr Pepper®",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew",
+   "name": "Mountain Dew®",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 30,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mug-root-beer",
+   "name": "Mug® Root Beer",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi",
+   "name": "Pepsi®",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-zero",
+   "name": "Pepsi Zero®",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "starry",
+   "name": "Starry™",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropicana-lemonade",
+   "name": "Tropicana® Lemonade",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-brewed-lipton-unsweetened-iced-tea",
+   "name": "Fresh-Brewed Lipton® Unsweetened Iced Tea",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-tea-at-select-locations",
+   "name": "Sweet Tea - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lipton-brisk-iced-tea-at-select-locations",
+   "name": "Lipton Brisk® Iced Tea - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "aquafina-bottled-water",
+   "name": "Aquafina Bottled Water",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bubly-sparkling-water-at-select-locations",
+   "name": "bubly™ sparkling water - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mug-root-beer-bottle",
+   "name": "Mug® Root Beer Bottle",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "bottle",
+     "label": "Bottle",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lowfat-milk-at-select-locations",
+   "name": "Lowfat Milk - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 8,
+     "carbsG": 12,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 110,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-milk-at-select-locations",
+   "name": "Chocolate Milk - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 9,
+     "carbsG": 22,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 130,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-juice-at-select-locations",
+   "name": "Apple Juice - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-juice-at-select-locations",
+   "name": "Orange Juice - at select locations",
+   "category": "Sodas & More",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ginger-beer",
+   "name": "Ginger Beer",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tonic",
+   "name": "Tonic",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 12,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 12,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-soda",
+   "name": "Club Soda",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "q-hibiscus-ginger-beer",
+   "name": "Q Hibiscus Ginger Beer",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull",
+   "name": "Red Bull®",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-sugarfree",
+   "name": "Red Bull® Sugarfree",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-peach-edition-white-peach",
+   "name": "Red Bull® Peach Edition (White Peach)",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-sea-blue-edition-juneberry",
+   "name": "Red Bull® Sea Blue Edition (Juneberry)",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-red-edition-watermelon",
+   "name": "Red Bull® Red Edition (Watermelon)",
+   "category": "Mixers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "b-dubs-bloody-mary-at-select-locations",
+   "name": "B-Dubs Bloody Mary - at select locations",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 8,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1450,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-long-island-iced-tea",
+   "name": "Blue Long Island Iced Tea",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-watermelon-cooler",
+   "name": "Blue Watermelon Cooler",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "boozy-dunkin-cold-brew",
+   "name": "Boozy Dunkin’ Cold Brew",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 1,
+     "carbsG": 31,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 25,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bourbon-old-fashioned-at-select-locations",
+   "name": "Bourbon Old Fashioned - at select locations",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-trace-old-fashioned-at-select-locations",
+   "name": "Buffalo Trace Old Fashioned - at select locations",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-zoo-limited-time",
+   "name": "Buffalo Zoo - limited time",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 1,
+     "carbsG": 30,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-at-select-locations-nd-and-sd-only",
+   "name": "Caesar - at select locations (ND & SD only)",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 1,
+     "carbsG": 19,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1370,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-espresso-martini",
+   "name": "Classic Espresso Martini",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-margarita",
+   "name": "House Margarita",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 800,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "old-fashioned",
+   "name": "Old Fashioned",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular 200 Cal",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mezcal-margarita",
+   "name": "Mezcal Margarita",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "modelo-michelada",
+   "name": "Modelo Michelada",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1320,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "patron-margarita",
+   "name": "Patrón Margarita",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 15,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-sunrise",
+   "name": "Red Bull® Sunrise",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 1,
+     "carbsG": 74,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 67,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-white-and-booze-at-select-locations",
+   "name": "Red, White & Booze - at select locations",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "salted-caramel-espresso-martini",
+   "name": "Salted Caramel Espresso Martini",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 40,
+      "saturatedFatG": 3,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-margarita",
+   "name": "Spicy Margarita",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-pickle-bloody-mary",
+   "name": "Spicy Pickle Bloody Mary",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 7,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1750,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-margarita",
+   "name": "Strawberry Margarita",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 800,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tito-s-spiked-lemonade",
+   "name": "Tito’s® Spiked Lemonade",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "top-shelf-long-island-iced-tea",
+   "name": "Top Shelf Long Island Iced Tea",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-margarita",
+   "name": "Tropical Margarita",
+   "category": "Cocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barefoot-pinot-grigio",
+   "name": "Barefoot, Pinot Grigio",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "6 7 fl oz",
+     "label": "6.7 fl oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chardonnay",
+   "name": "Butter, Chardonnay",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "8 4 fl oz",
+     "label": "8.4 fl oz",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "josh-chardonnay",
+   "name": "Josh, Chardonnay",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "12 7 fl oz",
+     "label": "12.7 fl oz",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barefoot-cabernet-sauvignon",
+   "name": "Barefoot, Cabernet Sauvignon",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "6 7 fl oz",
+     "label": "6.7 fl oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "archer-roose-pinot-noir",
+   "name": "Archer Roose, Pinot Noir",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "8 4 fl oz",
+     "label": "8.4 fl oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "josh-cabernet-sauvignon",
+   "name": "Josh, Cabernet Sauvignon",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "12 7 fl oz",
+     "label": "12.7 fl oz",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "francis-coppola-prosecco",
+   "name": "Francis Coppola, Prosecco",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "187 ml",
+     "label": "187 mL",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "graham-and-fish-moscato-w-bubbles",
+   "name": "Graham & Fish, Moscato w/ Bubbles",
+   "category": "Wine",
+   "sizes": [
+    {
+     "size": "250 ml",
+     "label": "250 mL",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "salt-and-vinegar-dry-rub-for-20-24-count-boneless-wings",
+   "name": "Salt & Vinegar Dry Rub (for 20/24 Count Boneless Wings)",
+   "group": "topping",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 1250,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "asian-zing-for-30-count-boneless-wings",
+   "name": "Asian Zing (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 520,
+    "proteinG": 2,
+    "carbsG": 124,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 115,
+     "sodiumMg": 3440,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "black-garlic-glaze-for-30-count-boneless-wings",
+   "name": "Black Garlic Glaze (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 350,
+    "proteinG": 2,
+    "carbsG": 83,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 74,
+     "sodiumMg": 2510,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "blazin-knockout-for-30-count-boneless-wings",
+   "name": "Blazin' Knockout (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 300,
+    "proteinG": 2,
+    "carbsG": 48,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 38,
+     "sodiumMg": 5470,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-ranch-for-30-count-boneless-wings",
+   "name": "Buffalo Ranch (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 330,
+    "proteinG": 2,
+    "carbsG": 11,
+    "fatG": 31,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 1,
+     "sodiumMg": 5160,
+     "saturatedFatG": 6,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "caribbean-jerk-for-30-count-boneless-wings",
+   "name": "Caribbean Jerk (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 450,
+    "proteinG": 2,
+    "carbsG": 77,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 69,
+     "sodiumMg": 1980,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "golden-fire-for-30-count-boneless-wings",
+   "name": "Golden Fire (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 380,
+    "proteinG": 4,
+    "carbsG": 75,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 67,
+     "sodiumMg": 3050,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-bbq-for-30-count-boneless-wings",
+   "name": "Honey BBQ (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 410,
+    "proteinG": 1,
+    "carbsG": 101,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 83,
+     "sodiumMg": 2480,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-for-30-count-boneless-wings",
+   "name": "Honey Garlic (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 490,
+    "proteinG": 3,
+    "carbsG": 118,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 103,
+     "sodiumMg": 4230,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-for-30-count-boneless-wings",
+   "name": "Hot (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 270,
+    "proteinG": 2,
+    "carbsG": 11,
+    "fatG": 24,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 6610,
+     "saturatedFatG": 4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-bbq-for-30-count-boneless-wings",
+   "name": "Hot BBQ (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 220,
+    "proteinG": 2,
+    "carbsG": 30,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 21,
+     "sodiumMg": 4030,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "jammin-jalapeno-for-30-count-boneless-wings",
+   "name": "Jammin' Jalapeño (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 540,
+    "proteinG": 0,
+    "carbsG": 120,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 96,
+     "sodiumMg": 4080,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-for-30-count-boneless-wings",
+   "name": "Lemon Pepper (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 910,
+    "proteinG": 2,
+    "carbsG": 16,
+    "fatG": 93,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 7,
+     "sodiumMg": 3390,
+     "saturatedFatG": 18,
+     "cholesterolMg": 70
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-hot-for-30-count-boneless-wings",
+   "name": "Lemon Pepper Hot (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 640,
+    "proteinG": 2,
+    "carbsG": 8,
+    "fatG": 69,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 1,
+     "sodiumMg": 5590,
+     "saturatedFatG": 13,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "mango-habanero-for-30-count-boneless-wings",
+   "name": "Mango Habanero (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 450,
+    "proteinG": 1,
+    "carbsG": 106,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 79,
+     "sodiumMg": 2610,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-for-30-count-boneless-wings",
+   "name": "Medium (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 190,
+    "proteinG": 2,
+    "carbsG": 8,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 6520,
+     "saturatedFatG": 3,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "mild-for-30-count-boneless-wings",
+   "name": "Mild (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 290,
+    "proteinG": 2,
+    "carbsG": 8,
+    "fatG": 28,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 5540,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "original-buffalo-for-30-count-boneless-wings",
+   "name": "Original Buffalo (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 670,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 71,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 5930,
+     "saturatedFatG": 14,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "parmesan-garlic-for-30-count-boneless-wings",
+   "name": "Parmesan Garlic (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 770,
+    "proteinG": 7,
+    "carbsG": 18,
+    "fatG": 75,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 7,
+     "sodiumMg": 3750,
+     "saturatedFatG": 14,
+     "cholesterolMg": 70
+    }
+   }
+  },
+  {
+   "id": "spicy-garlic-for-30-count-boneless-wings",
+   "name": "Spicy Garlic (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 270,
+    "proteinG": 3,
+    "carbsG": 11,
+    "fatG": 24,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 6800,
+     "saturatedFatG": 4,
+     "cholesterolMg": 45
+    }
+   }
+  },
+  {
+   "id": "sweet-bbq-for-30-count-boneless-wings",
+   "name": "Sweet BBQ (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 290,
+    "proteinG": 2,
+    "carbsG": 70,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 51,
+     "sodiumMg": 3350,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "teriyaki-for-30-count-boneless-wings",
+   "name": "Teriyaki (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 400,
+    "proteinG": 11,
+    "carbsG": 90,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 71,
+     "sodiumMg": 4350,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "thai-curry-for-30-count-boneless-wings",
+   "name": "Thai Curry (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 880,
+    "proteinG": 4,
+    "carbsG": 23,
+    "fatG": 86,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 13,
+     "sodiumMg": 5410,
+     "saturatedFatG": 16,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "wild-for-30-count-boneless-wings",
+   "name": "Wild (for 30 Count Boneless Wings)",
+   "group": "sauce",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 290,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 25,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 5,
+     "sodiumMg": 5120,
+     "saturatedFatG": 4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-dry-rub-for-30-count-boneless-wings",
+   "name": "Buffalo Dry Rub (for 30 Count Boneless Wings)",
+   "group": "topping",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1910,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chipotle-bbq-dry-rub-for-30-count-boneless-wings",
+   "name": "Chipotle BBQ Dry Rub (for 30 Count Boneless Wings)",
+   "group": "topping",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 6,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 1450,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "desert-heat-dry-rub-for-30-count-boneless-wings",
+   "name": "Desert Heat Dry Rub (for 30 Count Boneless Wings)",
+   "group": "topping",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 30,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 1000,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-dry-rub-for-30-count-boneless-wings",
+   "name": "Lemon Pepper Dry Rub (for 30 Count Boneless Wings)",
+   "group": "topping",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1160,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "salt-and-vinegar-dry-rub-for-30-count-boneless-wings",
+   "name": "Salt & Vinegar Dry Rub (for 30 Count Boneless Wings)",
+   "group": "topping",
+   "unit": "for 30 count wings",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 2140,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "asian-zing-for-6-count-bone-in-wings",
+   "name": "Asian Zing (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 21,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 19,
+     "sodiumMg": 570,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "black-garlic-glaze-for-6-count-bone-in-wings",
+   "name": "Black Garlic Glaze (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 420,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "blazin-knockout-for-6-count-bone-in-wings",
+   "name": "Blazin' Knockout (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 8,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 6,
+     "sodiumMg": 910,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-ranch-for-6-count-bone-in-wings",
+   "name": "Buffalo Ranch (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 860,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "caribbean-jerk-for-6-count-bone-in-wings",
+   "name": "Caribbean Jerk (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 13,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11,
+     "sodiumMg": 330,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "golden-fire-for-6-count-bone-in-wings",
+   "name": "Golden Fire (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 13,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 11,
+     "sodiumMg": 510,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-bbq-for-6-count-bone-in-wings",
+   "name": "Honey BBQ (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 17,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 410,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-for-6-count-bone-in-wings",
+   "name": "Honey Garlic (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 20,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 17,
+     "sodiumMg": 710,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-for-6-count-bone-in-wings",
+   "name": "Hot (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1100,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-bbq-for-6-count-bone-in-wings",
+   "name": "Hot BBQ (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 35,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 670,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "jammin-jalapeno-for-6-count-bone-in-wings",
+   "name": "Jammin' Jalapeño (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 20,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 16,
+     "sodiumMg": 680,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-for-6-count-bone-in-wings",
+   "name": "Lemon Pepper (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 150,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 560,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-hot-for-6-count-bone-in-wings",
+   "name": "Lemon Pepper Hot (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 930,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mango-habanero-for-6-count-bone-in-wings",
+   "name": "Mango Habanero (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 18,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 13,
+     "sodiumMg": 430,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-for-6-count-bone-in-wings",
+   "name": "Medium (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1090,
+     "saturatedFatG": 0,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "mild-for-6-count-bone-in-wings",
+   "name": "Mild (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 920,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "original-buffalo-for-6-count-bone-in-wings",
+   "name": "Original Buffalo (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 990,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "parmesan-garlic-for-6-count-bone-in-wings",
+   "name": "Parmesan Garlic (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 130,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 13,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 630,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "spicy-garlic-for-6-count-bone-in-wings",
+   "name": "Spicy Garlic (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1130,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "sweet-bbq-for-6-count-bone-in-wings",
+   "name": "Sweet BBQ (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 8,
+     "sodiumMg": 560,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "teriyaki-for-6-count-bone-in-wings",
+   "name": "Teriyaki (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 720,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "thai-curry-for-6-count-bone-in-wings",
+   "name": "Thai Curry (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 150,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 900,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "wild-for-6-count-bone-in-wings",
+   "name": "Wild (for 6 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 850,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-dry-rub-for-6-count-bone-in-wings",
+   "name": "Buffalo Dry Rub (for 6 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 480,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chipotle-bbq-dry-rub-for-6-count-bone-in-wings",
+   "name": "Chipotle BBQ Dry Rub (for 6 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 360,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "desert-heat-dry-rub-for-6-count-bone-in-wings",
+   "name": "Desert Heat Dry Rub (for 6 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 250,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-dry-rub-for-6-count-bone-in-wings",
+   "name": "Lemon Pepper Dry Rub (for 6 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 290,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "salt-and-vinegar-dry-rub-for-6-count-bone-in-wings",
+   "name": "Salt & Vinegar Dry Rub (for 6 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 6 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 540,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "asian-zing-for-10-count-bone-in-wings",
+   "name": "Asian Zing (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 130,
+    "proteinG": 1,
+    "carbsG": 31,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 29,
+     "sodiumMg": 860,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "black-garlic-glaze-for-10-count-bone-in-wings",
+   "name": "Black Garlic Glaze (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 21,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 19,
+     "sodiumMg": 630,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "blazin-knockout-for-10-count-bone-in-wings",
+   "name": "Blazin' Knockout (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 10,
+     "sodiumMg": 1370,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-ranch-for-10-count-bone-in-wings",
+   "name": "Buffalo Ranch (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1290,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "caribbean-jerk-for-10-count-bone-in-wings",
+   "name": "Caribbean Jerk (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 19,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 17,
+     "sodiumMg": 490,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "golden-fire-for-10-count-bone-in-wings",
+   "name": "Golden Fire (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 19,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 17,
+     "sodiumMg": 760,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-bbq-for-10-count-bone-in-wings",
+   "name": "Honey BBQ (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 25,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 21,
+     "sodiumMg": 620,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-for-10-count-bone-in-wings",
+   "name": "Honey Garlic (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 120,
+    "proteinG": 1,
+    "carbsG": 29,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 26,
+     "sodiumMg": 1060,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-for-10-count-bone-in-wings",
+   "name": "Hot (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1650,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-bbq-for-10-count-bone-in-wings",
+   "name": "Hot BBQ (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 1,
+    "carbsG": 8,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 1010,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "jammin-jalapeno-for-10-count-bone-in-wings",
+   "name": "Jammin' Jalapeño (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 30,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 24,
+     "sodiumMg": 1020,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-for-10-count-bone-in-wings",
+   "name": "Lemon Pepper (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 230,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 850,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-hot-for-10-count-bone-in-wings",
+   "name": "Lemon Pepper Hot (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 160,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1400,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "mango-habanero-for-10-count-bone-in-wings",
+   "name": "Mango Habanero (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 26,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 20,
+     "sodiumMg": 650,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-for-10-count-bone-in-wings",
+   "name": "Medium (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1630,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "mild-for-10-count-bone-in-wings",
+   "name": "Mild (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1390,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "original-buffalo-for-10-count-bone-in-wings",
+   "name": "Original Buffalo (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1480,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "parmesan-garlic-for-10-count-bone-in-wings",
+   "name": "Parmesan Garlic (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 190,
+    "proteinG": 2,
+    "carbsG": 5,
+    "fatG": 19,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 940,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "spicy-garlic-for-10-count-bone-in-wings",
+   "name": "Spicy Garlic (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1700,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sweet-bbq-for-10-count-bone-in-wings",
+   "name": "Sweet BBQ (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 17,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 13,
+     "sodiumMg": 840,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "teriyaki-for-10-count-bone-in-wings",
+   "name": "Teriyaki (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 100,
+    "proteinG": 3,
+    "carbsG": 22,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 18,
+     "sodiumMg": 1090,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "thai-curry-for-10-count-bone-in-wings",
+   "name": "Thai Curry (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 220,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 22,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 1350,
+     "saturatedFatG": 4,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "wild-for-10-count-bone-in-wings",
+   "name": "Wild (for 10 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 1280,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-dry-rub-for-10-count-bone-in-wings",
+   "name": "Buffalo Dry Rub (for 10 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 640,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chipotle-bbq-dry-rub-for-10-count-bone-in-wings",
+   "name": "Chipotle BBQ Dry Rub (for 10 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 480,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "desert-heat-dry-rub-for-10-count-bone-in-wings",
+   "name": "Desert Heat Dry Rub (for 10 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 330,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-dry-rub-for-10-count-bone-in-wings",
+   "name": "Lemon Pepper Dry Rub (for 10 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 390,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "salt-and-vinegar-dry-rub-for-10-count-bone-in-wings",
+   "name": "Salt & Vinegar Dry Rub (for 10 Count Bone-In Wings)",
+   "group": "topping",
+   "unit": "for 10 count wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 710,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "asian-zing-for-15-count-bone-in-wings",
+   "name": "Asian Zing (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 170,
+    "proteinG": 1,
+    "carbsG": 41,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 38,
+     "sodiumMg": 1150,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "black-garlic-glaze-for-15-count-bone-in-wings",
+   "name": "Black Garlic Glaze (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 120,
+    "proteinG": 1,
+    "carbsG": 28,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 25,
+     "sodiumMg": 840,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "blazin-knockout-for-15-count-bone-in-wings",
+   "name": "Blazin' Knockout (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 100,
+    "proteinG": 1,
+    "carbsG": 16,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 13,
+     "sodiumMg": 1820,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "buffalo-ranch-for-15-count-bone-in-wings",
+   "name": "Buffalo Ranch (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1720,
+     "saturatedFatG": 2,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "caribbean-jerk-for-15-count-bone-in-wings",
+   "name": "Caribbean Jerk (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 150,
+    "proteinG": 1,
+    "carbsG": 26,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 23,
+     "sodiumMg": 660,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "golden-fire-for-15-count-bone-in-wings",
+   "name": "Golden Fire (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 130,
+    "proteinG": 1,
+    "carbsG": 25,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 22,
+     "sodiumMg": 1020,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-bbq-for-15-count-bone-in-wings",
+   "name": "Honey BBQ (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 200,
+    "proteinG": 1,
+    "carbsG": 50,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 41,
+     "sodiumMg": 1240,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-for-15-count-bone-in-wings",
+   "name": "Honey Garlic (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 160,
+    "proteinG": 1,
+    "carbsG": 39,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 34,
+     "sodiumMg": 1410,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-for-15-count-bone-in-wings",
+   "name": "Hot (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 2200,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-bbq-for-15-count-bone-in-wings",
+   "name": "Hot BBQ (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 7,
+     "sodiumMg": 1340,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "jammin-jalapeno-for-15-count-bone-in-wings",
+   "name": "Jammin' Jalapeño (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 180,
+    "proteinG": 0,
+    "carbsG": 40,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 32,
+     "sodiumMg": 1360,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-for-15-count-bone-in-wings",
+   "name": "Lemon Pepper (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 300,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 31,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 1130,
+     "saturatedFatG": 6,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-hot-for-15-count-bone-in-wings",
+   "name": "Lemon Pepper Hot (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 210,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1860,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "mango-habanero-for-15-count-bone-in-wings",
+   "name": "Mango Habanero (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 150,
+    "proteinG": 0,
+    "carbsG": 35,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 26,
+     "sodiumMg": 870,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-for-15-count-bone-in-wings",
+   "name": "Medium (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 2170,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "mild-for-15-count-bone-in-wings",
+   "name": "Mild (for 15 Count Bone-In Wings)",
+   "group": "sauce",
+   "unit": "for 15 count wings",
+   "per": {
+    "calories": 100,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1850,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "black-cherry-flavor",
+   "name": "Black Cherry Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mango-flavor",
+   "name": "Mango Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 13,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 13,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "passion-fruit-flavor",
+   "name": "Passion Fruit Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "peach-flavor",
+   "name": "Peach Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pineapple-flavor",
+   "name": "Pineapple Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 13,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 13,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "strawberry-flavor",
+   "name": "Strawberry Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "watermelon-flavor",
+   "name": "Watermelon Flavor",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

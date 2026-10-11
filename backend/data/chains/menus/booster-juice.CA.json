@@ -1,0 +1,49 @@
+{
+ "chain": "booster-juice",
+ "country": "CA",
+ "source": {
+  "url": "https://cdn.shopify.com/s/files/1/0673/9371/6482/files/2026-09-NutritionGuide-ENG.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "strawberry-sunshine",
+   "name": "Strawberry Sunshine",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 76,
+      "saturatedFatG": 0.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple",
+   "name": "Apple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

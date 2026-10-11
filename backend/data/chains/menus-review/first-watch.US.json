@@ -1,0 +1,1331 @@
+{
+ "chain": "first-watch",
+ "country": "US",
+ "source": {
+  "url": "https://firstwatch.com/nutrition-and-allergens",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "the-godfather-breakfast-bowl",
+   "name": "The Godfather Breakfast Bowl",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 57,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "kale-tonic",
+   "name": "Kale Tonic",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "purple-haze",
+   "name": "Purple Haze",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-coffee",
+   "name": "Iced Coffee",
+   "category": "Iced Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-mocha-iced-coffee",
+   "name": "Mint Mocha Iced Coffee",
+   "category": "Iced Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 50,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-caramel-crunch-iced-coffee",
+   "name": "Honey Caramel Crunch Iced Coffee",
+   "category": "Iced Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 70,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "blood-orange-citrus-sparkler",
+   "name": "Blood Orange Citrus Sparkler",
+   "category": "Sparklers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 10,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "passion-fruit-mint-sparkler",
+   "name": "Passion Fruit Mint Sparkler",
+   "category": "Sparklers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-lime-sparkler",
+   "name": "Berry Lime Sparkler",
+   "category": "Sparklers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mimosa",
+   "name": "Mimosa",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 29,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spiked-lavender-lemonade",
+   "name": "Spiked Lavender Lemonade",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pomegranate-sunrise",
+   "name": "Pomegranate Sunrise",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 31,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-toast-cereal-milk",
+   "name": "Cinnamon Toast Cereal Milk",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 33,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pitcher-of-blackberry-bramble-sangria",
+   "name": "Pitcher of Blackberry Bramble Sangria",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "million-dollar-bloody-mary",
+   "name": "Million Dollar Bloody Mary",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-mimosa",
+   "name": "Classic Mimosa",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pomegranate-mimosa",
+   "name": "Pomegranate Mimosa",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lavender-lemon-mimosa",
+   "name": "Lavender Lemon Mimosa",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-tini",
+   "name": "Cold Brew Tini",
+   "category": "Boozy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "million-dollar-bacon",
+   "name": "Million Dollar Bacon",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "million-dollar-potatoes",
+   "name": "Million Dollar Potatoes",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "bob-s-red-mill-buttered-grits",
+   "name": "Bob's Red Mill Buttered Grits",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "bob-s-red-mill-cheesy-grits",
+   "name": "Bob's Red Mill Cheesy Grits",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "cup-of-fresh-seasonal-fruit",
+   "name": "Cup of Fresh, Seasonal Fruit",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 16,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-seasoned-potatoes",
+   "name": "Fresh, Seasoned Potatoes",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "hardwood-smoked-bacon",
+   "name": "Hardwood Smoked Bacon",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-sausage-links",
+   "name": "Pork Sausage Links",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-sausage-links",
+   "name": "Turkey Sausage Links",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-apple-sausage-patties",
+   "name": "Chicken Apple Sausage Patties",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "smoked-ham",
+   "name": "Smoked Ham",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscuits-and-turkey-sausage-gravy",
+   "name": "Biscuits & Turkey Sausage Gravy",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "one-cage-free-egg",
+   "name": "One Cage-Free Egg",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "two-cage-free-eggs",
+   "name": "Two Cage-Free Eggs",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "whole-grain-artisan-toast-with-all-natural-house-preserves-a",
+   "name": "Whole Grain Artisan Toast with All-Natural House Preserves & Whipped Butter",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "english-muffin",
+   "name": "English Muffin",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 16,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "gluten-free-toast-with-all-natural-house-preserves",
+   "name": "Gluten-Free Toast with All-Natural House Preserves",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freshly-baked-blueberry-muffin",
+   "name": "Freshly Baked Blueberry Muffin",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-dressed-organic-mixed-greens",
+   "name": "Lemon-Dressed Organic Mixed Greens",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "bowl-of-tomato-basil-soup",
+   "name": "Bowl of Tomato Basil Soup",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cup-of-tomato-basil-soup",
+   "name": "Cup of Tomato Basil Soup",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscuit-with-butter-honey-and-preserves",
+   "name": "Biscuit with Butter, Honey and Preserves",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "sliced-avocado",
+   "name": "Sliced Avocado",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "grab-n-go-gf-marshmallow-treat",
+   "name": "Grab N Go GF Marshmallow Treat",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 26,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "grab-n-go-gf-brownie",
+   "name": "Grab N Go GF Brownie",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "grab-n-go-salted-caramel-cookie",
+   "name": "Grab N Go Salted Caramel Cookie",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "project-sunrise-coffee",
+   "name": "Project Sunrise Coffee",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "decaf-coffee",
+   "name": "Decaf Coffee",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "herbal-teas",
+   "name": "Herbal Teas",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-brewed-iced-tea-unsweetened",
+   "name": "Fresh-Brewed Iced Tea (Unsweetened)",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-brewed-iced-tea-sweetened",
+   "name": "Fresh-Brewed Iced Tea (Sweetened)",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-brewed-iced-tea-blackberry",
+   "name": "Fresh-Brewed Iced Tea (Blackberry)",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chocolate",
+   "name": "Hot Chocolate",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "reduced-fat-milk",
+   "name": "Reduced-Fat Milk",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "oat-milk",
+   "name": "Oat Milk",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 1
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-milk",
+   "name": "Chocolate Milk",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 34,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "100-cold-squeezed-orange-juice",
+   "name": "100% Cold Squeezed Orange Juice",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 39,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "grapefruit-juice",
+   "name": "Grapefruit Juice",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-juice",
+   "name": "Apple Juice",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cranberry-juice",
+   "name": "Cranberry Juice",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke",
+   "name": "Coke",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke-zero",
+   "name": "Coke Zero",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 26,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-lemonade",
+   "name": "Minute Maid Lemonade",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "san-pellegrino-sparkling",
+   "name": "San Pellegrino (Sparkling)",
+   "category": "More Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

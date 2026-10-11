@@ -1,0 +1,2254 @@
+{
+ "chain": "el-pollo-loco",
+ "country": "US",
+ "source": {
+  "url": "https://www.elpolloloco.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "red-chile-cheesy-enchilada-double-chicken-bowl",
+   "name": "Red Chile Cheesy Enchilada Double Chicken Bowl",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1090,
+     "proteinG": 81,
+     "carbsG": 94,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 8,
+      "sodiumMg": 3560,
+      "saturatedFatG": 19,
+      "cholesterolMg": 275
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-chile-cheesy-enchilada-double-chicken-bowl",
+   "name": "Green Chile Cheesy Enchilada Double Chicken Bowl",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1100,
+     "proteinG": 81,
+     "carbsG": 93,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 8,
+      "sodiumMg": 3530,
+      "saturatedFatG": 19,
+      "cholesterolMg": 275
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-and-green-chile-cheesy-enchilada-double-chicken-bowl",
+   "name": "Red & Green Chile Cheesy Enchilada Double Chicken Bowl",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1090,
+     "proteinG": 81,
+     "carbsG": 94,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 8,
+      "sodiumMg": 3540,
+      "saturatedFatG": 19,
+      "cholesterolMg": 275
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-applechata",
+   "name": "Caramel AppleChata",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 36,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-applechata-cream",
+   "name": "Caramel AppleChata Cream",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 85,
+      "saturatedFatG": 12,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie-mini-churros",
+   "name": "Pumpkin Pie Mini Churros",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "5",
+     "label": "5",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 17,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 115,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-chile-chicken-tamale",
+   "name": "Red Chile Chicken Tamale",
+   "category": "FEATURED",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 230,
+     "proteinG": 9,
+     "carbsG": 18,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 650,
+      "saturatedFatG": 2,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-chicken-bowl",
+   "name": "Double Chicken Bowl",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 930,
+     "proteinG": 74,
+     "carbsG": 87,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 5,
+      "sodiumMg": 2670,
+      "saturatedFatG": 13,
+      "cholesterolMg": 250
+     }
+    }
+   ]
+  },
+  {
+   "id": "mexican-caesar-salad",
+   "name": "Mexican Caesar Salad*",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 52,
+     "carbsG": 18,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 1530,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-pollo-bowl",
+   "name": "Original Pollo Bowl®",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 41,
+     "carbsG": 83,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 3,
+      "sodiumMg": 2030,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "guacamole-chicken-burrito",
+   "name": "Guacamole Chicken Burrito",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 59,
+     "carbsG": 65,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 3,
+      "sodiumMg": 1980,
+      "saturatedFatG": 15,
+      "cholesterolMg": 205
+     }
+    }
+   ]
+  },
+  {
+   "id": "chopped-breast-side",
+   "name": "Chopped Breast Side",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 23,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 310,
+      "saturatedFatG": 1,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "2-pc-breast-and-wing-meal-w-corn-tortillas-pinto-beans-and-r",
+   "name": "2 pc Breast & Wing Meal w/Corn Tortillas Pinto Beans & Rice",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 58,
+     "carbsG": 77,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 2070,
+      "saturatedFatG": 4,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "2-pc-breast-and-wing-meal-w-flour-tortillas-pinto-beans-and-",
+   "name": "2 pc Breast & Wing Meal w/Flour Tortillas Pinto Beans & Rice",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 59,
+     "carbsG": 85,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 2490,
+      "saturatedFatG": 5,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "2-pc-breast-and-wing-meal-w-corn-tortillas-charro-beans-and-",
+   "name": "2 pc Breast & Wing Meal w/Corn Tortillas Charro Beans & Rice**",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 60,
+     "carbsG": 75,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 2200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "2-pc-breast-and-wing-meal-w-flour-tortillas-charro-beans-and",
+   "name": "2 pc Breast & Wing Meal w/Flour Tortillas Charro Beans & Rice**",
+   "category": "PROTEIN-PACKED",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 62,
+     "carbsG": 83,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 2,
+      "sodiumMg": 2610,
+      "saturatedFatG": 7,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-leg",
+   "name": "Chicken Leg",
+   "category": "FIRE-GRILLED CHICKEN",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 11,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 380,
+      "saturatedFatG": 2,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-thigh",
+   "name": "Chicken Thigh",
+   "category": "FIRE-GRILLED CHICKEN",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 21,
+     "carbsG": 2,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 420,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-breast",
+   "name": "Chicken Breast",
+   "category": "FIRE-GRILLED CHICKEN",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 34,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 820,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-wing",
+   "name": "Chicken Wing",
+   "category": "FIRE-GRILLED CHICKEN",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 10,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 150,
+      "saturatedFatG": 1,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "pinto-beans",
+   "name": "Pinto Beans",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 140,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 1,
+      "sodiumMg": 460,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-black-beans",
+   "name": "BBQ Black Beans",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 8,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 15,
+      "sodiumMg": 890,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "charro-beans",
+   "name": "Charro Beans**",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 11,
+     "carbsG": 23,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 1,
+      "sodiumMg": 580,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "rice",
+   "name": "Rice",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 33,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 630,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes-with-gravy",
+   "name": "Mashed Potatoes with Gravy",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 450,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaroni-and-cheese",
+   "name": "Macaroni & Cheese",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 310,
+     "proteinG": 9,
+     "carbsG": 24,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 870,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "loco-side-salad",
+   "name": "Loco Side Salad",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 8,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 260,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "coleslaw",
+   "name": "Coleslaw",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 9,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 210,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "corn",
+   "name": "Corn",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 140,
+     "proteinG": 3,
+     "carbsG": 27,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 400,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "broccoli",
+   "name": "Broccoli",
+   "category": "SIDES (Small) & SAUCES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 30,
+     "proteinG": 2,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-tostada",
+   "name": "Classic Chicken Tostada*",
+   "category": "TOSTADAS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 42,
+     "carbsG": 80,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 1430,
+      "saturatedFatG": 11,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-chicken-tostada",
+   "name": "Double Chicken Tostada*",
+   "category": "TOSTADAS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 990,
+     "proteinG": 65,
+     "carbsG": 82,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 6,
+      "sodiumMg": 1740,
+      "saturatedFatG": 13,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "street-corn-salad",
+   "name": "Street Corn Salad*",
+   "category": "TOSTADAS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 52,
+     "carbsG": 17,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 1600,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "grande-avocado-chicken-bowl",
+   "name": "Grande Avocado Chicken Bowl",
+   "category": "BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 49,
+     "carbsG": 90,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 6,
+      "sodiumMg": 2270,
+      "saturatedFatG": 11,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "queso-crunch-double-chicken-burrito-bowl",
+   "name": "Queso Crunch Double Chicken Burrito Bowl",
+   "category": "BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 78,
+     "carbsG": 96,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 5,
+      "sodiumMg": 3180,
+      "saturatedFatG": 17,
+      "cholesterolMg": 265
+     }
+    }
+   ]
+  },
+  {
+   "id": "street-corn-double-chicken-burrito-bowl",
+   "name": "Street Corn Double Chicken Burrito Bowl",
+   "category": "BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 75,
+     "carbsG": 95,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 6,
+      "sodiumMg": 3230,
+      "saturatedFatG": 14,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "taco-al-carbon",
+   "name": "Taco al Carbón",
+   "category": "TACOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 15,
+     "carbsG": 17,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 250,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-avocado-taco",
+   "name": "Chicken Avocado Taco",
+   "category": "TACOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 24,
+     "carbsG": 17,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 780,
+      "saturatedFatG": 6,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "shredded-chicken-crunchy-taco",
+   "name": "Shredded Chicken Crunchy Taco",
+   "category": "TACOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 14,
+     "carbsG": 22,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 420,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-guacamole-chicken-burrito",
+   "name": "Chipotle Guacamole Chicken Burrito",
+   "category": "BURRITOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1010,
+     "proteinG": 60,
+     "carbsG": 81,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 3,
+      "sodiumMg": 2340,
+      "saturatedFatG": 16,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "queso-guacamole-chicken-burrito",
+   "name": "Queso Guacamole Chicken Burrito",
+   "category": "BURRITOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 40,
+     "carbsG": 88,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 6,
+      "sodiumMg": 2440,
+      "saturatedFatG": 11,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-chicken-quesadilla",
+   "name": "Chipotle Chicken Quesadilla",
+   "category": "QUESADILLAS & NACHOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 930,
+     "proteinG": 51,
+     "carbsG": 53,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1720,
+      "saturatedFatG": 24,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "salsa-verde-chicken-quesadilla",
+   "name": "Salsa Verde Chicken Quesadilla",
+   "category": "QUESADILLAS & NACHOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 51,
+     "carbsG": 53,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1570,
+      "saturatedFatG": 22,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "shredded-chicken-nachos",
+   "name": "Shredded Chicken Nachos",
+   "category": "QUESADILLAS & NACHOS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 33,
+     "carbsG": 86,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 6,
+      "sodiumMg": 1890,
+      "saturatedFatG": 16,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-guacamole",
+   "name": "Chips & Guacamole",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 450,
+     "proteinG": 6,
+     "carbsG": 51,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 2,
+      "sodiumMg": 480,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "regular",
+     "calories": 900,
+     "proteinG": 12,
+     "carbsG": 101,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 19,
+      "sugarG": 3,
+      "sodiumMg": 960,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-queso-blanco",
+   "name": "Chips & Queso Blanco",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 47,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 2,
+      "sodiumMg": 740,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "regular",
+     "label": "regular",
+     "calories": 1010,
+     "proteinG": 23,
+     "carbsG": 94,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 3,
+      "sodiumMg": 1490,
+      "saturatedFatG": 19,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "tortilla-chips",
+   "name": "Tortilla Chips",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "side",
+     "label": "side",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 22,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 43,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 1,
+      "sodiumMg": 210,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "regular",
+     "calories": 680,
+     "proteinG": 9,
+     "carbsG": 87,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 1,
+      "sodiumMg": 410,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "corn-tortillas",
+   "name": "Corn Tortillas",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 90,
+     "proteinG": 2,
+     "carbsG": 19,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "flour-tortillas",
+   "name": "Flour Tortillas",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 27,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 430,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-tortilla-soup",
+   "name": "Chicken Tortilla Soup",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 23,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1260,
+      "saturatedFatG": 2,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-brc-burrito",
+   "name": "Original BRC Burrito®",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 13,
+     "carbsG": 63,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 1,
+      "sodiumMg": 1020,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinammon-churro",
+   "name": "Cinammon Churro",
+   "category": "SNACKS & SWEETS",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 170,
+     "proteinG": 1,
+     "carbsG": 16,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 190,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-churros-2",
+   "name": "Cinnamon Churros (2)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-flan-cup",
+   "name": "Caramel Flan Cup",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "tacos-al-carbon-3",
+   "name": "Tacos al Carbón (3)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-burrito",
+   "name": "Classic Chicken Burrito",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-legs-2",
+   "name": "Chicken Legs (2)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-quesadilla",
+   "name": "Cheese Quesadilla",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 18
+     }
+    }
+   ]
+  },
+  {
+   "id": "chatacoffeetm",
+   "name": "ChataCoffeeTM***",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 19,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chatacoffee-creamtm",
+   "name": "ChataCoffee CreamTM ***",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola",
+   "name": "Coca-Cola®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 72,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 109,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola-zero-sugar",
+   "name": "Coca-Cola Zero Sugar®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke ®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper",
+   "name": "Dr Pepper®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 70,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 107,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-dr-pepper",
+   "name": "Diet Dr Pepper®**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fuze-sweetened-raspberry-iced-tea",
+   "name": "FUZE® Sweetened Raspberry Iced Tea",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 43,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gold-peak-unsweetened-iced-tea",
+   "name": "Gold Peak® Unsweetened Iced Tea",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gold-peak-sweetened-iced-tea",
+   "name": "Gold Peak® Sweetened Iced Tea**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 66,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 103,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-flashin-fruit-punch",
+   "name": "Hi-C® Flashin’ Fruit Punch®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 103,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "horchata",
+   "name": "Horchata***",
+   "sizes": [
+    {
+     "size": "original",
+     "label": "Original",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 26,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 44,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 68,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-coffee-cream",
+   "name": "Iced Coffee Cream",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-aguas-frescas-mango-lime",
+   "name": "Minute Maid® Aguas Frescas Mango Lime",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 38,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 59,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-aguas-frescas-strawberry-hibiscus",
+   "name": "Minute Maid® Aguas Frescas Strawberry Hibiscus",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 34,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-lemonade",
+   "name": "Minute Maid® Lemonade",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 101,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-strawberry-lemonade",
+   "name": "Minute Maid® Strawberry Lemonade***",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 100,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 94,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vitaminwater-xxx",
+   "name": "VitaminWater® XXX***",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 33,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 51,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola-de-mexico",
+   "name": "Coca-Cola® de Mexico***",
+   "sizes": [
+    {
+     "size": "bottle",
+     "label": "Bottle",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 39,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nestle-pure-life-bottled-water",
+   "name": "Nestle® Pure Life® Bottled Water",
+   "sizes": [
+    {
+     "size": "bottle",
+     "label": "Bottle",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "red-enchilada-sauce-small",
+   "name": "Red Enchilada Sauce, Small",
+   "group": "sauce",
+   "unit": "2.0 oz",
+   "per": {
+    "calories": 25,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 290,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "green-enchilada-sauce-small",
+   "name": "Green Enchilada Sauce, Small",
+   "group": "sauce",
+   "unit": "2.0 oz",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 280,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "red-enchilada-sauce-regular",
+   "name": "Red Enchilada Sauce, Regular",
+   "group": "sauce",
+   "unit": "4.0 oz",
+   "per": {
+    "calories": 50,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 3,
+     "sodiumMg": 580,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "green-enchilada-sauce-regular",
+   "name": "Green Enchilada Sauce, Regular",
+   "group": "sauce",
+   "unit": "4.0 oz",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 560,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "creamy-cilantro-dressing",
+   "name": "Creamy Cilantro Dressing",
+   "group": "dressing",
+   "unit": "3.0 oz",
+   "per": {
+    "calories": 330,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 36,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 520,
+     "saturatedFatG": 6,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "house-ranch-regular",
+   "name": "House Ranch, Regular",
+   "group": "dressing",
+   "unit": "3.0 oz",
+   "per": {
+    "calories": 390,
+    "proteinG": 2,
+    "carbsG": 5,
+    "fatG": 41,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 680,
+     "saturatedFatG": 7,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "mexican-caesar-dressing",
+   "name": "Mexican Caesar Dressing",
+   "group": "dressing",
+   "unit": "3.0 oz",
+   "per": {
+    "calories": 440,
+    "proteinG": 3,
+    "carbsG": 4,
+    "fatG": 47,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 320,
+     "saturatedFatG": 8,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "creamy-chipotle-sauce",
+   "name": "Creamy Chipotle Sauce",
+   "group": "sauce",
+   "unit": "1.3 oz",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 350,
+     "saturatedFatG": 3,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "pollo-loco-saucetm",
+   "name": "Pollo Loco SauceTM",
+   "group": "sauce",
+   "unit": "1.3 oz",
+   "per": {
+    "calories": 180,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 490,
+     "saturatedFatG": 3,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "sour-cream",
+   "name": "Sour Cream",
+   "group": "topping",
+   "unit": "1.3 oz",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 20,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "guacamole-small",
+   "name": "Guacamole (small)",
+   "group": "topping",
+   "unit": "3.2 oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 2,
+    "carbsG": 7,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 5,
+     "sugarG": 1,
+     "sodiumMg": 270,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "guacamole-regular",
+   "name": "Guacamole (regular)",
+   "group": "topping",
+   "unit": "6.4 oz",
+   "per": {
+    "calories": 220,
+    "proteinG": 3,
+    "carbsG": 15,
+    "fatG": 19,
+    "micros": {
+     "fiberG": 9,
+     "sugarG": 2,
+     "sodiumMg": 550,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "queso-blanco-small",
+   "name": "Queso Blanco (small)",
+   "group": "sauce",
+   "unit": "3.2 oz",
+   "per": {
+    "calories": 160,
+    "proteinG": 7,
+    "carbsG": 3,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 540,
+     "saturatedFatG": 8,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "queso-blanco-regular",
+   "name": "Queso Blanco (regular)",
+   "group": "sauce",
+   "unit": "6.4 oz",
+   "per": {
+    "calories": 320,
+    "proteinG": 14,
+    "carbsG": 7,
+    "fatG": 27,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 1070,
+     "saturatedFatG": 16,
+     "cholesterolMg": 85
+    }
+   }
+  },
+  {
+   "id": "gravy-side",
+   "name": "Gravy (side)",
+   "group": "sauce",
+   "unit": "2.4 oz",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 160,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "gravy-small",
+   "name": "Gravy (small)",
+   "group": "sauce",
+   "unit": "5.0 oz",
+   "per": {
+    "calories": 25,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 340,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "salsa-fresca",
+   "name": "Salsa Fresca",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "avocado-salsa",
+   "name": "Avocado Salsa",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 1.5,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "salsa-roja",
+   "name": "Salsa Roja",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 0
+    }
+   }
+  }
+ ]
+}

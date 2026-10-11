@@ -1,0 +1,316 @@
+{
+ "chain": "harveys",
+ "country": "CA",
+ "source": {
+  "url": "https://www.harveys.ca/en/nutrition.html",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "angus-burger",
+   "name": "Angus Burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi",
+   "name": "Pepsi",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "sodiumMg": 45,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "english-muffin-with-chicken-and-cheese",
+   "name": "English Muffin with Chicken & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 34,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 800,
+      "saturatedFatG": 4,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap-with-egg-cheese-and-tater-tots",
+   "name": "Breakfast Wrap with Egg, Cheese & Tater Tots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 16,
+     "carbsG": 45,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1080,
+      "saturatedFatG": 9,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap-with-bacon-egg-cheese-and-tater-tots",
+   "name": "Breakfast Wrap with Bacon, Egg, Cheese & Tater Tots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 20,
+     "carbsG": 45,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1260,
+      "saturatedFatG": 10,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap-with-sausage-egg-cheese-and-tater-tots",
+   "name": "Breakfast Wrap with Sausage Egg, Cheese & Tater Tots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 22,
+     "carbsG": 46,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1370,
+      "saturatedFatG": 13,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap-with-chicken-egg-cheese-and-tater-tots",
+   "name": "Breakfast Wrap with Chicken, Egg, Cheese & Tater Tots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 24,
+     "carbsG": 53,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1400,
+      "saturatedFatG": 10,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "homestyle-breakfast-with-bacon",
+   "name": "Homestyle Breakfast with Bacon",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 28,
+     "carbsG": 49,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1310,
+      "saturatedFatG": 9,
+      "cholesterolMg": 395
+     }
+    }
+   ]
+  },
+  {
+   "id": "homestyle-breakfast-with-sausage",
+   "name": "Homestyle Breakfast with Sausage",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 25,
+     "carbsG": 49,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1250,
+      "saturatedFatG": 12,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "homestyle-breakfast-with-chicken",
+   "name": "Homestyle Breakfast with Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 27,
+     "carbsG": 56,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1270,
+      "saturatedFatG": 8,
+      "cholesterolMg": 395
+     }
+    }
+   ]
+  },
+  {
+   "id": "tater-tots",
+   "name": "Tater Tots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 2,
+     "carbsG": 23,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 590,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "fried-egg",
+   "name": "Fried Egg",
+   "group": "protein",
+   "unit": "57 g",
+   "per": {
+    "calories": 130,
+    "proteinG": 6,
+    "carbsG": 0,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 100,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 185
+    }
+   }
+  },
+  {
+   "id": "sausage-patty",
+   "name": "Sausage Patty",
+   "group": "protein",
+   "unit": "41 g",
+   "per": {
+    "calories": 150,
+    "proteinG": 6,
+    "carbsG": 1,
+    "fatG": 13,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 290,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "english-muffin",
+   "name": "English Muffin",
+   "group": "bread",
+   "unit": "65 g",
+   "per": {
+    "calories": 130,
+    "proteinG": 5,
+    "carbsG": 24,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 190,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "toast",
+   "name": "Toast",
+   "group": "bread",
+   "unit": "45 g",
+   "per": {
+    "calories": 130,
+    "proteinG": 4,
+    "carbsG": 25,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

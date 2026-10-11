@@ -1,0 +1,30 @@
+{
+ "chain": "moes",
+ "country": "US",
+ "source": {
+  "url": "https://assets.ctfassets.net/zqt8tllj2cy0/229Bgcvw5c0RwcUkhyghXG/d3722a14b4b1dd925316a8936200f5bd/MOES_1906368_Nutrition_Chart_2026_R4.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "tortilla-chips",
+   "name": "Tortilla Chips",
+   "sizes": [
+    {
+     "size": "side",
+     "label": "Side",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

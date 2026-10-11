@@ -1,0 +1,2353 @@
+{
+ "chain": "a-and-w-canada",
+ "country": "CA",
+ "defaultSize": "regular",
+ "source": {
+  "url": "https://web.aw.ca/en/our-menu",
+  "fetchedAt": "2026-10-11",
+  "note": "A&W Canada public menu feed; numbers only"
+ },
+ "items": [
+  {
+   "id": "bacon-egger",
+   "name": "Bacon & Egger",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/bacon-egger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "139",
+     "calories": 400,
+     "proteinG": 18,
+     "carbsG": 30,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 600,
+      "saturatedFatG": 9,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-egger",
+   "name": "Sausage & Egger",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/sausage-egger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "185",
+     "calories": 530,
+     "proteinG": 24,
+     "carbsG": 34,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 760,
+      "saturatedFatG": 12,
+      "cholesterolMg": 260
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-egger",
+   "name": "Cheese & Egger",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/cheese-egger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "130",
+     "calories": 360,
+     "proteinG": 14,
+     "carbsG": 30,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 520,
+      "saturatedFatG": 7,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-cheddar",
+   "name": "Sausage & Cheddar",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/sausage-cheddar",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "138",
+     "calories": 460,
+     "proteinG": 17,
+     "carbsG": 33,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 700,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-cheddar",
+   "name": "Chicken & Cheddar",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/chicken-cheddar",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "140",
+     "calories": 410,
+     "proteinG": 14,
+     "carbsG": 35,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 660,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chipotle-chicken-cheddar",
+   "name": "Spicy Chipotle Chicken & Cheddar",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/spicy-chipotle-chicken-cheddar",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "140",
+     "calories": 410,
+     "proteinG": 14,
+     "carbsG": 35,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 630,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-bacon-eggs",
+   "name": "Classic Bacon & Eggs",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/classic-bacon-eggs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "217",
+     "calories": 550,
+     "proteinG": 30,
+     "carbsG": 43,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 820,
+      "saturatedFatG": 9,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-canadian-special",
+   "name": "All-Canadian Special",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/all-canadian-special",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "347",
+     "calories": 860,
+     "proteinG": 34,
+     "carbsG": 55,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1250,
+      "saturatedFatG": 15,
+      "cholesterolMg": 460
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap",
+   "name": "Breakfast Wrap",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/breakfast-wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "95",
+     "calories": 230,
+     "proteinG": 13,
+     "carbsG": 18,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 5,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "pancakes-with-syrup-3pc",
+   "name": "Pancakes with Syrup (3pc)",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/pancakes-with-syrup",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "202",
+     "calories": 590,
+     "proteinG": 9,
+     "carbsG": 90,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 51,
+      "sodiumMg": 720,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "hash-brown",
+   "name": "Hash Brown",
+   "category": "Breakfast",
+   "url": "https://web.aw.ca/en/our-menu/hash-brown",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "70",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 18,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 270,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "teen-burger",
+   "name": "Teen Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/teen-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "250",
+     "calories": 500,
+     "proteinG": 27,
+     "carbsG": 36,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 910,
+      "saturatedFatG": 11,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "mozza-burger",
+   "name": "Mozza Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/mozza-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "218",
+     "calories": 620,
+     "proteinG": 27,
+     "carbsG": 37,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 900,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-teen-burger",
+   "name": "Double Teen Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/double-teen-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "340",
+     "calories": 680,
+     "proteinG": 43,
+     "carbsG": 36,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 990,
+      "saturatedFatG": 19,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-mozza-burger",
+   "name": "Double Mozza Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/double-mozza-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "278",
+     "calories": 800,
+     "proteinG": 41,
+     "carbsG": 37,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 950,
+      "saturatedFatG": 19,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-buddy-burger",
+   "name": "Double Buddy Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/double-buddy-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "176",
+     "calories": 435,
+     "proteinG": 21,
+     "carbsG": 35,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 730,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "mama-burger",
+   "name": "Mama Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/mama-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "170",
+     "calories": 400,
+     "proteinG": 20,
+     "carbsG": 35,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 870,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "papa-burger",
+   "name": "Papa Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/papa-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "230",
+     "calories": 580,
+     "proteinG": 40,
+     "carbsG": 35,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 950,
+      "saturatedFatG": 13,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "grandpa-burger",
+   "name": "Grandpa Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/grandpa-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "290",
+     "calories": 760,
+     "proteinG": 53,
+     "carbsG": 35,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1000,
+      "saturatedFatG": 21,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-bacon-uncle-burger",
+   "name": "Cheddar Bacon Uncle Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/cheddar-bacon-uncle-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "287",
+     "calories": 740,
+     "proteinG": 38,
+     "carbsG": 38,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 1095,
+      "saturatedFatG": 20,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "baby-burger",
+   "name": "Baby Burger",
+   "category": "Burgers",
+   "url": "https://web.aw.ca/en/our-menu/baby-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "96",
+     "calories": 240,
+     "proteinG": 12,
+     "carbsG": 29,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 540,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "chubby-chicken-cruncher",
+   "name": "Chubby Chicken Cruncher",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/chubby-chicken-cruncher",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "224",
+     "calories": 630,
+     "proteinG": 26,
+     "carbsG": 60,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1430,
+      "saturatedFatG": 3,
+      "cholesterolMg": 64
+     }
+    }
+   ]
+  },
+  {
+   "id": "nashville-hot-chicken-cruncher",
+   "name": "Nashville Hot Chicken Cruncher",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/nashville-hot-chicken-cruncher",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "260",
+     "calories": 720,
+     "proteinG": 26,
+     "carbsG": 60,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1700,
+      "saturatedFatG": 5,
+      "cholesterolMg": 64
+     }
+    }
+   ]
+  },
+  {
+   "id": "blt-chicken-cruncher",
+   "name": "BLT Chicken Cruncher",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/blt-chicken-cruncher",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "246",
+     "calories": 690,
+     "proteinG": 30,
+     "carbsG": 60,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1630,
+      "saturatedFatG": 5,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chubby-chicken-burger",
+   "name": "Chubby Chicken Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/chubby-chicken-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "190",
+     "calories": 490,
+     "proteinG": 21,
+     "carbsG": 44,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1100,
+      "saturatedFatG": 3,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chipotle-chicken-burger",
+   "name": "Spicy Chipotle Chicken Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/spicy-chipotle-chicken-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "225",
+     "calories": 550,
+     "proteinG": 20,
+     "carbsG": 47,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 870,
+      "saturatedFatG": 2,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "blt-chicken-burger",
+   "name": "BLT Chicken Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/blt-chicken-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "246",
+     "calories": 600,
+     "proteinG": 25,
+     "carbsG": 50,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1050,
+      "saturatedFatG": 4,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-chicken-buddy-burger",
+   "name": "Double Chicken Buddy Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/double-chicken-buddy-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "184",
+     "calories": 480,
+     "proteinG": 18,
+     "carbsG": 44,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 970,
+      "saturatedFatG": 4,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-habanero-chicken-burger",
+   "name": "Spicy Habanero Chicken Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/spicy-habanero-chicken-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "225",
+     "calories": 550,
+     "proteinG": 20,
+     "carbsG": 47,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 870,
+      "saturatedFatG": 2,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-strips-each",
+   "name": "Chicken Strips (each)",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/chicken-strips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "43",
+     "calories": 100,
+     "proteinG": 6,
+     "carbsG": 8,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 235,
+      "saturatedFatG": 0,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "masala-veggie-burger",
+   "name": "Masala Veggie Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/masala-veggie-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "240",
+     "calories": 490,
+     "proteinG": 15,
+     "carbsG": 60,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 890,
+      "saturatedFatG": 7,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-veggie-burger",
+   "name": "Crispy Veggie Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/crispy-veggie-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "240",
+     "calories": 570,
+     "proteinG": 15,
+     "carbsG": 60,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 830,
+      "saturatedFatG": 8,
+      "cholesterolMg": 34
+     }
+    }
+   ]
+  },
+  {
+   "id": "a-w-plant-based-burger",
+   "name": "A&W Plant-Based Burger",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/aw-plant-based-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "231",
+     "calories": 500,
+     "proteinG": 21,
+     "carbsG": 36,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 1260,
+      "saturatedFatG": 5,
+      "cholesterolMg": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "fish-sandwich",
+   "name": "Fish Sandwich",
+   "category": "Chicken",
+   "url": "https://web.aw.ca/en/our-menu/fish-sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "220",
+     "calories": 600,
+     "proteinG": 17,
+     "carbsG": 56,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 933,
+      "saturatedFatG": 4,
+      "cholesterolMg": 44
+     }
+    }
+   ]
+  },
+  {
+   "id": "frozen-a-w-root-beer",
+   "name": "Frozen A&W Root Beer",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/frozen-aw-root-beer",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "a-w-root-beer",
+   "name": "A&W Root Beer",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/aw-root-beer",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 39,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-passionfruit-smoothie",
+   "name": "Mango Passionfruit Smoothie",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mango-passionfruit-smoothie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 59,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "a-w-root-beer-shake",
+   "name": "A&W Root Beer Shake",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/aw-root-beer-shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 48,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 120,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "a-w-root-beer-zero-sugar",
+   "name": "A&W Root Beer Zero Sugar",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/aw-root-beer-zero-sugar",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 1,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-passionfruit-shake",
+   "name": "Mango Passionfruit Shake",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mango-passionfruit-shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 56,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 60,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-passionfruit-icer",
+   "name": "Mango Passionfruit Icer",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mango-passionfruit-icer",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 25,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 1,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-icer",
+   "name": "Strawberry Icer",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/strawberry-icer",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mixed-berry-with-acai-icer",
+   "name": "Mixed Berry with Acai Icer",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mixed-berry-with-acai-icer",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola",
+   "name": "Coca-Cola",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/coca-cola",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 39,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 27,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "diet Coke",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/diet-coke",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mixed-berry-with-acai-smoothie",
+   "name": "Mixed Berry with Acai Smoothie",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mixed-berry-with-acai-smoothie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 50,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-smoothie",
+   "name": "Strawberry Smoothie",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/strawberry-smoothie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 220,
+     "proteinG": 1,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 46,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke-zero-12oz",
+   "name": "Coke Zero (12oz)",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/coke-zero",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "355",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/sprite",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 38,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mixed-berry-with-acai-shake",
+   "name": "Mixed Berry with Acai Shake",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mixed-berry-with-acai-shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 56,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 53,
+      "sodiumMg": 60,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shake",
+   "name": "Strawberry Shake",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/strawberry-shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 56,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 60,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea",
+   "name": "Iced Tea",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/iced-tea",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-juice",
+   "name": "Orange Juice",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/orange-juice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-juice",
+   "name": "Apple Juice",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/apple-juice",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "2-milk-237ml",
+   "name": "2% Milk (237ml)",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/2-milk",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "237",
+     "calories": 130,
+     "proteinG": 8,
+     "carbsG": 12,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 120,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-chocolate-milk-237ml",
+   "name": "1% Chocolate Milk (237ml)",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/1-chocolate-milk",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "237",
+     "calories": 150,
+     "proteinG": 8,
+     "carbsG": 26,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade",
+   "name": "Lemonade",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/lemonade",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "355",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-small-2-milk",
+   "name": "Iced Latte (Small - 2% Milk)",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/iced-latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 90,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-small-2-milk",
+   "name": "Iced Vanilla Latte (Small - 2% Milk)",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/iced-vanilla-latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 110,
+     "proteinG": 6,
+     "carbsG": 12,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-caramel-latte-small-2-milk",
+   "name": "Iced Caramel Latte (Small - 2% Milk)",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/iced-caramel-latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 110,
+     "proteinG": 6,
+     "carbsG": 12,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-espresso-coffee",
+   "name": "Iced Espresso Coffee",
+   "category": "Cold Drinks",
+   "url": "https://web.aw.ca/en/our-menu/iced-espresso-coffee",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "a-w-root-beer-float-zero-sugar",
+   "name": "A&W Root Beer Float (Zero Sugar)",
+   "category": "Featured",
+   "url": "https://web.aw.ca/en/our-menu/aw-root-beer-float",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "485",
+     "calories": 310,
+     "proteinG": 3,
+     "carbsG": 44,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 29,
+      "sodiumMg": 253,
+      "saturatedFatG": 9,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "rodeo-rooty",
+   "name": "Rodeo Rooty",
+   "category": "Featured",
+   "url": "https://web.aw.ca/en/our-menu/rodeo-rooty",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "paddling-rooty",
+   "name": "Paddling Rooty",
+   "category": "Featured",
+   "url": "https://web.aw.ca/en/our-menu/paddling-rooty",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hiking-rooty",
+   "name": "Hiking Rooty",
+   "category": "Featured",
+   "url": "https://web.aw.ca/en/our-menu/hiking-rooty",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-rooty",
+   "name": "Poutine Rooty",
+   "category": "Featured",
+   "url": "https://web.aw.ca/en/our-menu/poutine-rooty",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fishing-rooty",
+   "name": "Fishing Rooty",
+   "category": "Featured",
+   "url": "https://web.aw.ca/en/our-menu/fishing-rooty",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-small-2-milk",
+   "name": "Latte (Small - 2% Milk)",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 130,
+     "proteinG": 10,
+     "carbsG": 13,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "flat-white",
+   "name": "Flat White",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/flat-white",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "295",
+     "calories": 140,
+     "proteinG": 12,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-latte-small-2-milk",
+   "name": "Vanilla Latte (Small - 2% Milk)",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/vanilla-latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 150,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-latte-small-2-milk",
+   "name": "Caramel Latte (Small - 2% Milk)",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/caramel-latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 150,
+     "proteinG": 10,
+     "carbsG": 18,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "brewed-coffee",
+   "name": "Brewed Coffee",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/brewed-coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "296",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino",
+   "name": "Cappuccino",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/cappuccino",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 140,
+     "proteinG": 10,
+     "carbsG": 14,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chocolate",
+   "name": "Hot Chocolate",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/hot-chocolate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "250",
+     "calories": 160,
+     "proteinG": 1,
+     "carbsG": 26,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 210,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "americano",
+   "name": "Americano",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/americano",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha",
+   "name": "Mocha",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/mocha",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 250,
+     "proteinG": 9,
+     "carbsG": 35,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "chai-latte",
+   "name": "Chai Latte",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/chai-latte",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 240,
+     "proteinG": 6,
+     "carbsG": 37,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 100,
+      "saturatedFatG": 4,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chocolate-brew-bar",
+   "name": "Hot Chocolate Brew Bar",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/hot-chocolate-brew-bar",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "295",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 39,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 32,
+      "sodiumMg": 290,
+      "saturatedFatG": 7,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "espresso-single",
+   "name": "Espresso (Single)",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/espresso",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "30",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "teas",
+   "name": "Teas",
+   "category": "Hot Drinks",
+   "url": "https://web.aw.ca/en/our-menu/teas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "295",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-buddy-burger-buddy-burger",
+   "name": "Kids' Buddy Burger (Buddy Burger)",
+   "category": "Kidspack",
+   "url": "https://web.aw.ca/en/our-menu/kids-buddy-burger",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "95",
+     "calories": 280,
+     "proteinG": 12,
+     "carbsG": 29,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 510,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-buddy-burger-with-cheese-kids-buddy-burger",
+   "name": "Kids' Buddy Burger with Cheese (Kids Buddy Burger)",
+   "category": "Kidspack",
+   "url": "https://web.aw.ca/en/our-menu/kids-buddy-burger-with-cheese",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "110",
+     "calories": 340,
+     "proteinG": 20,
+     "carbsG": 30,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 600,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chicken-strips-chicken-strips-2",
+   "name": "Kids' Chicken Strips (Chicken Strips - 2)",
+   "category": "Kidspack",
+   "url": "https://web.aw.ca/en/our-menu/kids-chicken-strips",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "100",
+     "calories": 200,
+     "proteinG": 13,
+     "carbsG": 14,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 470,
+      "saturatedFatG": 1,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chicken-buddy-burger-chicken-buddy-burger",
+   "name": "Kids' Chicken Buddy Burger (Chicken Buddy Burger)",
+   "category": "Kidspack",
+   "url": "https://web.aw.ca/en/our-menu/kids-chicken-buddy-burger",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "134",
+     "calories": 360,
+     "proteinG": 10,
+     "carbsG": 36,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 780,
+      "saturatedFatG": 2,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "russet-thick-cut-fries",
+   "name": "Russet Thick-Cut Fries",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/russet-thick-cut-fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "155",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 0,
+      "sodiumMg": 320,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "onion-rings",
+   "name": "Onion Rings",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/onion-rings",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "150",
+     "calories": 520,
+     "proteinG": 7,
+     "carbsG": 50,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 630,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-potato-fries",
+   "name": "Sweet Potato Fries",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/sweet-potato-fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "135",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 47,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 17,
+      "sodiumMg": 115,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-english-canada",
+   "name": "Poutine (English Canada)",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/poutine",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "333",
+     "calories": 610,
+     "proteinG": 23,
+     "carbsG": 58,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 1,
+      "sodiumMg": 1240,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-mayonnaise-60ml",
+   "name": "Chipotle Mayonnaise (60ml)",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/chipotle-mayonnaise",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "60",
+     "calories": 320,
+     "proteinG": 1,
+     "carbsG": 4,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 240,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "gravy",
+   "name": "Gravy",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "236",
+     "calories": 100,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1390,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-turnover",
+   "name": "Apple Turnover",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/apple-turnover",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "90",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 38,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 190,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "root-beer-lollipops",
+   "name": "Root Beer Lollipops",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/root-beer-lollipops",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "9",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dipping-sauce-sweet-sour",
+   "name": "Dipping Sauce (Sweet & Sour)",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/dipping-sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "32",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kraft-table-spreads",
+   "name": "Kraft Table Spreads",
+   "category": "Sides",
+   "url": "https://web.aw.ca/en/our-menu/kraft-table-spreads",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "buddy-burger",
+   "name": "Buddy Burger",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/buddy-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "145",
+     "calories": 310,
+     "proteinG": 13,
+     "carbsG": 36,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 700,
+      "saturatedFatG": 5,
+      "cholesterolMg": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "buddy-cheeseburger",
+   "name": "Buddy Cheeseburger",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/buddy-cheeseburger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "159",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 35,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 770,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-buddy-burger",
+   "name": "Chicken Buddy Burger",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/chicken-buddy-burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "134",
+     "calories": 360,
+     "proteinG": 11,
+     "carbsG": 35,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 730,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chipotle-chicken-wrap",
+   "name": "Spicy Chipotle Chicken Wrap",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/spicy-chipotle-chicken-wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "105",
+     "calories": 290,
+     "proteinG": 11,
+     "carbsG": 28,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 12,
+      "sodiumMg": 640,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-chicken-wrap",
+   "name": "Bacon Chicken Wrap",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/bacon-chicken-wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "106",
+     "calories": 290,
+     "proteinG": 11,
+     "carbsG": 28,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 680,
+      "saturatedFatG": 2,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-piri-piri-beef-buddy",
+   "name": "Spicy Piri-Piri Beef Buddy",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/spicy-piri-piri-beef-buddy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "170",
+     "calories": 330,
+     "proteinG": 14,
+     "carbsG": 30,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 640,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-piri-piri-potato-buddy",
+   "name": "Spicy Piri-Piri Potato Buddy",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/spicy-piri-piri-potato-buddy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "200",
+     "calories": 320,
+     "proteinG": 7,
+     "carbsG": 43,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 640,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-piri-piri-chicken-buddy",
+   "name": "Spicy Piri-Piri Chicken Buddy",
+   "category": "Value",
+   "url": "https://web.aw.ca/en/our-menu/spicy-piri-piri-chicken-buddy",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "180",
+     "calories": 320,
+     "proteinG": 12,
+     "carbsG": 42,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 620,
+      "saturatedFatG": 1,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

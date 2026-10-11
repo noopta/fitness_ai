@@ -1,0 +1,2881 @@
+{
+ "chain": "papa-johns",
+ "country": "US",
+ "source": {
+  "url": "https://www.papajohns.com/company/nutritional-details/index.html",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "cheese-pizza-original-crust",
+   "name": "Cheese Pizza - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 200,
+     "proteinG": 8,
+     "carbsG": 25,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 500,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 180,
+     "proteinG": 7,
+     "carbsG": 25,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 440,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 520,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 290,
+     "proteinG": 11,
+     "carbsG": 38,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 710,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 300,
+     "proteinG": 11,
+     "carbsG": 40,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 730,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-pizza-epic-stuffed-crust",
+   "name": "Cheese Pizza - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 15,
+     "carbsG": 40,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 900,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-pizza-thin-crust",
+   "name": "Cheese Pizza - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 490,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-pizza-gluten-free",
+   "name": "Cheese Pizza - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 10,
+     "carbsG": 36,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 680,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-pizza-original-crust",
+   "name": "Pepperoni Pizza - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 220,
+     "proteinG": 8,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 25,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 530,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 26,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 570,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 320,
+     "proteinG": 12,
+     "carbsG": 38,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 810,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 330,
+     "proteinG": 12,
+     "carbsG": 40,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 840,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-pizza-epic-stuffed-crust",
+   "name": "Pepperoni Pizza - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 16,
+     "carbsG": 40,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 980,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-pizza-thin-crust",
+   "name": "Pepperoni Pizza - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 9,
+     "carbsG": 20,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 590,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-pizza-gluten-free",
+   "name": "Pepperoni Pizza - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 12,
+     "carbsG": 36,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 820,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-pizza-original-crust",
+   "name": "Sausage Pizza - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 8,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 540,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 8,
+     "carbsG": 27,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 12,
+     "carbsG": 38,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 810,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 340,
+     "proteinG": 12,
+     "carbsG": 40,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 840,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-pizza-epic-stuffed-crust",
+   "name": "Sausage Pizza - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 16,
+     "carbsG": 40,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1000,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-pizza-thin-crust",
+   "name": "Sausage Pizza - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 9,
+     "carbsG": 20,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 590,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-pizza-gluten-free",
+   "name": "Sausage Pizza - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 11,
+     "carbsG": 36,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 780,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-bacon-original-crust",
+   "name": "BBQ Chicken Bacon - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 240,
+     "proteinG": 12,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 740,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 30,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 660,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 11,
+     "carbsG": 32,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 730,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 340,
+     "proteinG": 16,
+     "carbsG": 45,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1020,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 48,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1070,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-bacon-epic-stuffed-crust",
+   "name": "BBQ Chicken Bacon - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 20,
+     "carbsG": 45,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 1090,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-bacon-thin-crust",
+   "name": "BBQ Chicken Bacon - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 13,
+     "carbsG": 27,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 800,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-bacon-gluten-free",
+   "name": "BBQ Chicken Bacon - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 13,
+     "carbsG": 42,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 950,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chicken-original-crust",
+   "name": "Butter Chicken - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 26,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 520,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 11,
+     "carbsG": 26,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 510,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 280,
+     "proteinG": 15,
+     "carbsG": 36,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 700,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 300,
+     "proteinG": 16,
+     "carbsG": 38,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 750,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 310,
+     "proteinG": 16,
+     "carbsG": 41,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 780,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chicken-epic-stuffed-crust",
+   "name": "Butter Chicken - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 23,
+     "carbsG": 39,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 930,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chicken-thin-crust",
+   "name": "Butter Chicken - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 14,
+     "carbsG": 20,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 540,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chicken-gluten-free",
+   "name": "Butter Chicken - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 7,
+     "carbsG": 14,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 280,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "epic-pepperoni-stuffed-crust-pizza-cheese-only",
+   "name": "Epic Pepperoni Stuffed Crust Pizza - Cheese Only",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 16,
+     "carbsG": 39,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 1000,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "epic-pepperoni-stuffed-crust-pizza-pepperoni-only",
+   "name": "Epic Pepperoni Stuffed Crust Pizza - Pepperoni Only",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 410,
+     "proteinG": 17,
+     "carbsG": 39,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 1090,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "epic-pepperoni-stuffed-crust-pizza-sausage-only",
+   "name": "Epic Pepperoni Stuffed Crust Pizza - Sausage Only",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 430,
+     "proteinG": 17,
+     "carbsG": 39,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 1100,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "extra-cheesy-alfredo-original-crust",
+   "name": "Extra Cheesy Alfredo - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 220,
+     "proteinG": 9,
+     "carbsG": 24,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 520,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 500,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 550,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 37,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 750,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 330,
+     "proteinG": 13,
+     "carbsG": 39,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 760,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "extra-cheesy-alfredo-epic-stuffed-crust",
+   "name": "Extra Cheesy Alfredo - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 18,
+     "carbsG": 39,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 970,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "extra-cheesy-alfredo-thin-crust",
+   "name": "Extra Cheesy Alfredo - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 19,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 530,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "extra-cheesy-alfredo-gluten-free",
+   "name": "Extra Cheesy Alfredo - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 7,
+     "carbsG": 18,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 350,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiery-buffalo-chicken-original-crust",
+   "name": "Fiery Buffalo Chicken - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 26,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 840,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 780,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 820,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 16,
+     "carbsG": 38,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 350,
+     "proteinG": 16,
+     "carbsG": 40,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiery-buffalo-chicken-epic-stuffed-crust",
+   "name": "Fiery Buffalo Chicken - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 20,
+     "carbsG": 40,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1320,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiery-buffalo-chicken-thin-crust",
+   "name": "Fiery Buffalo Chicken - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 20,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 980,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiery-buffalo-chicken-gluten-free",
+   "name": "Fiery Buffalo Chicken - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 540,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-spinach-and-tomato-alfredo-original-crust",
+   "name": "Fresh Spinach & Tomato Alfredo - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 190,
+     "proteinG": 7,
+     "carbsG": 26,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 470,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 7,
+     "carbsG": 26,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 440,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 200,
+     "proteinG": 7,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 470,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 39,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 690,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 300,
+     "proteinG": 11,
+     "carbsG": 41,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 440,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-spinach-and-tomato-alfredo-epic-stuffed-crust",
+   "name": "Fresh Spinach & Tomato Alfredo - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 15,
+     "carbsG": 39,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 890,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-spinach-and-tomato-alfredo-thin-crust",
+   "name": "Fresh Spinach & Tomato Alfredo - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 21,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-spinach-and-tomato-alfredo-gluten-free",
+   "name": "Fresh Spinach & Tomato Alfredo - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 37,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-fresh-original-crust",
+   "name": "Garden Fresh - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 190,
+     "proteinG": 7,
+     "carbsG": 26,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 470,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 7,
+     "carbsG": 26,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 200,
+     "proteinG": 7,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 480,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 39,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 680,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 300,
+     "proteinG": 11,
+     "carbsG": 41,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 710,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-fresh-epic-stuffed-crust",
+   "name": "Garden Fresh - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 15,
+     "carbsG": 41,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 870,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-fresh-thin-crust",
+   "name": "Garden Fresh - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 21,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 460,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-fresh-gluten-free",
+   "name": "Garden Fresh - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 37,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 640,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-epic-stuffed-crust-pizza",
+   "name": "Garlic Epic Stuffed Crust Pizza",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 39,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 990,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "heart-shaped-pizza-thin-crust",
+   "name": "Heart Shaped Pizza - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 6,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 350,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-pepperoni-original-crust",
+   "name": "Meatball Pepperoni - Original Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "pizza for one",
+     "label": "Pizza for One",
+     "calories": 240,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 600,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 600,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 360,
+     "proteinG": 15,
+     "carbsG": 38,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 880,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Extra Large",
+     "calories": 370,
+     "proteinG": 15,
+     "carbsG": 41,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 920,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-pepperoni-epic-stuffed-crust",
+   "name": "Meatball Pepperoni - Epic Stuffed Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 19,
+     "carbsG": 41,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1080,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-pepperoni-thin-crust",
+   "name": "Meatball Pepperoni - Thin Crust",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 12,
+     "carbsG": 20,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 660,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-pepperoni-gluten-free",
+   "name": "Meatball Pepperoni - Gluten Free",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 420,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-york-style",
+   "name": "New York Style",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 310,
+     "proteinG": 12,
+     "carbsG": 40,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 770,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pan-crust-pizza",
+   "name": "Pan Crust Pizza",
+   "category": "Pizzas",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 350,
+     "proteinG": 17,
+     "carbsG": 27,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 960,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-pizza",
+   "name": "Original Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 670,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 620,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 25,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 650,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 390,
+     "proteinG": 16,
+     "carbsG": 36,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 920,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 410,
+     "proteinG": 16,
+     "carbsG": 38,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 960,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 480,
+     "proteinG": 20,
+     "carbsG": 40,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1220,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 18,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 700,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "philly-cheesesteak-pizza",
+   "name": "Philly Cheesesteak Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 26,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 840,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 220,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 780,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 820,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 330,
+     "proteinG": 16,
+     "carbsG": 38,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 350,
+     "proteinG": 16,
+     "carbsG": 40,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 430,
+     "proteinG": 19,
+     "carbsG": 40,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1050,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 20,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 980,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 540,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pizza-my-heart-canada",
+   "name": "Pizza My Heart (Canada)",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 170,
+     "proteinG": 6,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 350,
+      "saturatedFatG": 24.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "shaq-a-roni",
+   "name": "Shaq-a-Roni",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 390,
+     "proteinG": 15,
+     "carbsG": 39,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1010,
+      "saturatedFatG": 8,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-hawaiian",
+   "name": "Super Hawaiian",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 630,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 610,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 630,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 340,
+     "proteinG": 15,
+     "carbsG": 40,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 920,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 42,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 970,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 400,
+     "proteinG": 19,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1060,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 260,
+     "proteinG": 12,
+     "carbsG": 22,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 700,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 17,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-meats",
+   "name": "The Meats",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 26,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 720,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 250,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 700,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 710,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 380,
+     "proteinG": 15,
+     "carbsG": 38,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1040,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 410,
+     "proteinG": 17,
+     "carbsG": 41,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1130,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 440,
+     "proteinG": 20,
+     "carbsG": 40,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1200,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 300,
+     "proteinG": 13,
+     "carbsG": 20,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 820,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 340,
+     "proteinG": 13,
+     "carbsG": 36,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 870,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-works",
+   "name": "The Works",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 230,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 610,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 230,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 590,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 230,
+     "proteinG": 9,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 620,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 340,
+     "proteinG": 13,
+     "carbsG": 39,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 890,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 360,
+     "proteinG": 14,
+     "carbsG": 41,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 940,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 410,
+     "proteinG": 18,
+     "carbsG": 41,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1080,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "pan crust",
+     "label": "Pan Crust",
+     "calories": 290,
+     "proteinG": 14,
+     "carbsG": 25,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 780,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 270,
+     "proteinG": 11,
+     "carbsG": 21,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 670,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 320,
+     "proteinG": 12,
+     "carbsG": 37,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 780,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuscan-six-cheese",
+   "name": "Tuscan Six Cheese",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 220,
+     "proteinG": 10,
+     "carbsG": 25,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 550,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 220,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 530,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 560,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 320,
+     "proteinG": 14,
+     "carbsG": 38,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 780,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 330,
+     "proteinG": 14,
+     "carbsG": 40,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 810,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 390,
+     "proteinG": 18,
+     "carbsG": 40,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 980,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 20,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 560,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 310,
+     "proteinG": 12,
+     "carbsG": 36,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 720,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-pepperoni",
+   "name": "Ultimate Pepperoni",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 250,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 660,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 240,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 600,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 250,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 650,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 360,
+     "proteinG": 14,
+     "carbsG": 38,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 930,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 370,
+     "proteinG": 14,
+     "carbsG": 40,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 940,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 410,
+     "proteinG": 17,
+     "carbsG": 40,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1060,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 290,
+     "proteinG": 12,
+     "carbsG": 20,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 710,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 180,
+     "proteinG": 7,
+     "carbsG": 16,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 440,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "zesty-italian-trio",
+   "name": "Zesty Italian Trio",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "original crust pizza for one",
+     "label": "Original Crust - Pizza for One",
+     "calories": 250,
+     "proteinG": 10,
+     "carbsG": 25,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 680,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Original Crust - Small",
+     "calories": 240,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 660,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Original Crust - Medium",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 710,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Original Crust - Large",
+     "calories": 370,
+     "proteinG": 14,
+     "carbsG": 38,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1020,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "extra large",
+     "label": "Original Crust - Extra Large",
+     "calories": 390,
+     "proteinG": 15,
+     "carbsG": 40,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1070,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "epic stuffed crust",
+     "label": "Epic Stuffed Crust",
+     "calories": 440,
+     "proteinG": 19,
+     "carbsG": 41,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1230,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "thin crust",
+     "label": "Thin Crust",
+     "calories": 300,
+     "proteinG": 12,
+     "carbsG": 20,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 810,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "gluten free",
+     "label": "Gluten Free",
+     "calories": 180,
+     "proteinG": 7,
+     "carbsG": 16,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 500,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-garlic-epic-stuffed-crust-pizza",
+   "name": "Spicy Garlic Epic Stuffed Crust Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 39,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 980,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "create-your-own-crispy-parm-pizza",
+   "name": "Create Your Own Crispy Parm Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 140,
+     "proteinG": 5,
+     "carbsG": 16,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "ny-style-crispy-cuppy-roni-pizza",
+   "name": "NY Style Crispy Cuppy ‘Roni Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 390,
+     "proteinG": 17,
+     "carbsG": 39,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 920,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-burger",
+   "name": "Cheesy Burger",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 270,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 710,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-calzone-epic-stuffed-crust-pizza",
+   "name": "Cheesy Calzone Epic Stuffed Crust Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 350,
+     "proteinG": 14,
+     "carbsG": 41,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 910,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "jack-o-lantern-pizza",
+   "name": "Jack O' Lantern Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "1 large pizza",
+     "calories": 2080,
+     "proteinG": 85,
+     "carbsG": 163,
+     "fatG": 122,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 15,
+      "sodiumMg": 5130,
+      "saturatedFatG": 50,
+      "cholesterolMg": 270
+     }
+    }
+   ]
+  },
+  {
+   "id": "papa-dippa",
+   "name": "Papa Dippa",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 160,
+     "proteinG": 6,
+     "carbsG": 18,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 340,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-5-cheese-crust-pizza",
+   "name": "Garlic 5-Cheese Crust Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 40,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 790,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

@@ -1,0 +1,745 @@
+{
+ "chain": "five-guys",
+ "country": "CA",
+ "source": {
+  "url": "https://www.fiveguys.ca/media/canada_en-ca/-/media/public-site/files/allergen-ingredients-and-nutrition-info/five-guys-canada-ingredient--allergen-guide-english.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "five-guys-style-fries",
+   "name": "Five Guys Style Fries",
+   "category": "FRIES",
+   "sizes": [
+    {
+     "size": "little",
+     "label": "Little",
+     "calories": 526,
+     "proteinG": 8,
+     "carbsG": 72,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 531,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 953,
+     "proteinG": 15,
+     "carbsG": 131,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 4,
+      "sodiumMg": 962,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1314,
+     "proteinG": 20,
+     "carbsG": 181,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 21,
+      "sugarG": 6,
+      "sodiumMg": 1327,
+      "saturatedFatG": 10,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-style-fries",
+   "name": "Cajun Style Fries",
+   "category": "FRIES",
+   "sizes": [
+    {
+     "size": "little",
+     "label": "Little",
+     "calories": 540,
+     "proteinG": 8,
+     "carbsG": 45,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 862,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 967,
+     "proteinG": 15,
+     "carbsG": 134,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 4,
+      "sodiumMg": 1293,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1328,
+     "proteinG": 20,
+     "carbsG": 184,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 21,
+      "sugarG": 6,
+      "sodiumMg": 1658,
+      "saturatedFatG": 10,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake-base",
+   "name": "Vanilla Shake Base",
+   "category": "MILKSHAKES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 13,
+     "carbsG": 84,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 82,
+      "sodiumMg": 360,
+      "saturatedFatG": 21,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "bulk-peanuts",
+   "name": "Bulk Peanuts",
+   "category": "OTHER ITEMS",
+   "sizes": [
+    {
+     "size": "1oz",
+     "label": "1oz.",
+     "calories": 170,
+     "proteinG": 7,
+     "carbsG": 5,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 180,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "bacon",
+   "name": "Bacon",
+   "group": "protein",
+   "unit": "2 pieces",
+   "per": {
+    "calories": 70,
+    "proteinG": 5,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 210,
+     "saturatedFatG": 2,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "hamburger-patty",
+   "name": "Hamburger Patty",
+   "group": "protein",
+   "per": {
+    "calories": 302,
+    "proteinG": 16,
+    "carbsG": 0,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 50,
+     "saturatedFatG": 8,
+     "cholesterolMg": 60
+    }
+   }
+  },
+  {
+   "id": "hot-dog",
+   "name": "Hot Dog",
+   "group": "protein",
+   "per": {
+    "calories": 280,
+    "proteinG": 11,
+    "carbsG": 1,
+    "fatG": 26,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 800,
+     "saturatedFatG": 12,
+     "cholesterolMg": 56
+    }
+   }
+  },
+  {
+   "id": "bun",
+   "name": "Bun",
+   "group": "bread",
+   "per": {
+    "calories": 240,
+    "proteinG": 7,
+    "carbsG": 39,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 8,
+     "sodiumMg": 330,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "bbq-sauce",
+   "name": "BBQ Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 49,
+    "proteinG": 0,
+    "carbsG": 15,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 10,
+     "sodiumMg": 400,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cheese",
+   "name": "Cheese",
+   "group": "cheese",
+   "unit": "1 slice",
+   "per": {
+    "calories": 70,
+    "proteinG": 4,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sodiumMg": 310,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "green-peppers",
+   "name": "Green Peppers",
+   "group": "topping",
+   "per": {
+    "calories": 3,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "sodiumMg": 1,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "grilled-mushrooms",
+   "name": "Grilled Mushrooms",
+   "group": "topping",
+   "per": {
+    "calories": 6,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 50,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-sauce",
+   "name": "Hot Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 200,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hp-sauce",
+   "name": "HP Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 21,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 3,
+     "sodiumMg": 164,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "jalapeno-peppers",
+   "name": "Jalapeño Peppers",
+   "group": "topping",
+   "per": {
+    "calories": 3,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "ketchup",
+   "name": "Ketchup",
+   "group": "sauce",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 160,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lettuce",
+   "name": "Lettuce",
+   "group": "topping",
+   "per": {
+    "calories": 3,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "sodiumMg": 3,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mayonnaise",
+   "name": "Mayonnaise",
+   "group": "sauce",
+   "per": {
+    "calories": 111,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 70,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "mustard",
+   "name": "Mustard",
+   "group": "sauce",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 55,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "onions-grilled-onions",
+   "name": "Onions / Grilled Onions",
+   "group": "topping",
+   "per": {
+    "calories": 11,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 1,
+     "sodiumMg": 1,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pickles",
+   "name": "Pickles",
+   "group": "topping",
+   "per": {
+    "calories": 4,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 260,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "relish",
+   "name": "Relish",
+   "group": "topping",
+   "per": {
+    "calories": 16,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 85,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tomatoes",
+   "name": "Tomatoes",
+   "group": "topping",
+   "per": {
+    "calories": 8,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 1,
+     "sodiumMg": 3,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "whipped-cream",
+   "name": "Whipped Cream",
+   "group": "topping",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "bacon-mix-in",
+   "name": "Bacon (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 70,
+    "proteinG": 5,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 210,
+     "saturatedFatG": 2,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "banana-mix-in",
+   "name": "Banana (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 160,
+    "proteinG": 1,
+    "carbsG": 51,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 44,
+     "sodiumMg": 5,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "candy-cane-crunch-mix-in",
+   "name": "Candy Cane Crunch (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 185,
+    "proteinG": 0,
+    "carbsG": 48,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 33,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chocolate-mix-in",
+   "name": "Chocolate (Mix-In)",
+   "group": "syrup",
+   "per": {
+    "calories": 250,
+    "proteinG": 2,
+    "carbsG": 55,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 32,
+     "sodiumMg": 170,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "oreo-cookie-pieces-mix-in",
+   "name": "Oreo® Cookie Pieces (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 120,
+    "proteinG": 1,
+    "carbsG": 18,
+    "fatG": 5,
+    "micros": {
+     "sugarG": 10,
+     "sodiumMg": 86,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "peanut-butter-mix-in",
+   "name": "Peanut Butter (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 322,
+    "proteinG": 9,
+    "carbsG": 9,
+    "fatG": 29,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 4,
+     "sodiumMg": 218,
+     "saturatedFatG": 5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "reese-s-peanut-butter-cup-mix-in",
+   "name": "Reese’s® Peanut Butter Cup (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 150,
+    "proteinG": 3,
+    "carbsG": 15,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 14,
+     "sodiumMg": 98,
+     "saturatedFatG": 3,
+     "cholesterolMg": 2
+    }
+   }
+  },
+  {
+   "id": "salted-caramel-mix-in",
+   "name": "Salted Caramel (Mix-In)",
+   "group": "syrup",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 37,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 18,
+     "sodiumMg": 125,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "strawberry-mix-in",
+   "name": "Strawberry (Mix-In)",
+   "group": "add-on",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 17,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 23,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "poutine-gravy",
+   "name": "Poutine Gravy",
+   "group": "sauce",
+   "per": {
+    "calories": 54,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 1,
+    "micros": {
+     "sugarG": 1,
+     "sodiumMg": 1036,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cheese-curd",
+   "name": "Cheese Curd",
+   "group": "cheese",
+   "per": {
+    "calories": 366,
+    "proteinG": 24,
+    "carbsG": 4,
+    "fatG": 28,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 700,
+     "saturatedFatG": 17,
+     "cholesterolMg": 99
+    }
+   }
+  },
+  {
+   "id": "malt-vinegar",
+   "name": "Malt Vinegar",
+   "group": "sauce",
+   "unit": "1tbs",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "white-vinegar",
+   "name": "White Vinegar",
+   "group": "sauce",
+   "per": {
+    "calories": 1,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

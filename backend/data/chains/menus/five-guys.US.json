@@ -1,0 +1,30 @@
+{
+ "chain": "five-guys",
+ "country": "US",
+ "source": {
+  "url": "https://www.fiveguys.com/nutritional-allergy-information/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "five-guys-style-fries",
+   "name": "Five Guys Style Fries",
+   "sizes": [
+    {
+     "size": "mini",
+     "label": "Mini",
+     "calories": 405,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 1.5,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

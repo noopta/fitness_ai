@@ -1,0 +1,1429 @@
+{
+ "chain": "waffle-house",
+ "country": "US",
+ "source": {
+  "url": "https://www.wafflehouse.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "classic-waffle",
+   "name": "Classic Waffle",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 870,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "2-eggs-scrambled",
+   "name": "2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 176,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-egg-and-cheese-hashbrown-bowl",
+   "name": "Sausage Egg & Cheese Hashbrown Bowl",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 62,
+     "micros": {
+      "sugarG": 4,
+      "sodiumMg": 1666,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-sausage-egg-and-cheese-hashbrown-bowl",
+   "name": "Chicken Sausage Egg & Cheese Hashbrown Bowl",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 51,
+     "micros": {
+      "sugarG": 4,
+      "sodiumMg": 1856,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-egg-and-cheese-hashbrown-bowl",
+   "name": "Bacon Egg & Cheese Hashbrown Bowl",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 795,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 4,
+      "sodiumMg": 1531,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-egg-and-cheese-hashbrown-bowl",
+   "name": "Ham Egg & Cheese Hashbrown Bowl",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 44,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 2416,
+      "saturatedFatG": 17
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-n-eggs-2-scrambled-eggs-with-cheese",
+   "name": "Cheese 'N Eggs: 2 Scrambled Eggs with Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 4,
+      "sodiumMg": 676,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-bone-and-eggs-t-bone-steak-and-2-eggs-scrambled",
+   "name": "T-Bone & Eggs: T-Bone Steak and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 43,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 436,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-and-eggs-delmonico-steak-and-2-eggs-scrambled",
+   "name": "Steak & Eggs: Delmonico Steak and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 28,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 636,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "country-ham-and-eggs-country-ham-and-2-eggs-scrambled",
+   "name": "Country Ham & Eggs: Country Ham and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 2286,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-and-eggs-grilled-chicken-and-2-eggs-scrambled",
+   "name": "Chicken & Eggs: Grilled Chicken and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1106,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "meat-lover-s-chicken-and-eggs-2-pieces-of-grilled-chicken-an",
+   "name": "Meat Lover's Chicken & Eggs: 2 Pieces of Grilled Chicken and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 2036,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-chops-and-eggs-2-grilled-pork-chops-and-2-eggs-scramble",
+   "name": "Pork Chops & Eggs: 2 Grilled Pork Chops and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 28,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1216,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "meat-lover-s-pork-chops-and-eggs-3-grilled-pork-chops-and-2-",
+   "name": "Meat Lover's Pork Chops & Eggs: 3 Grilled Pork Chops and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1736,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesesteak-and-eggs-cheesesteak-and-2-eggs-scrambled",
+   "name": "Cheesesteak & Eggs: Cheesesteak and 2 Eggs - Scrambled",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 2e+99,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-cheese-omelet-breakfast-2-egg-ham-and-cheese-omelet",
+   "name": "Ham & Cheese Omelet Breakfast: 2 Egg Ham & Cheese Omelet",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-biscuit",
+   "name": "Grilled Biscuit",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-toast",
+   "name": "Texas Toast",
+   "sizes": [
+    {
+     "size": "1 slice",
+     "label": "1 Slice",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "grits",
+   "name": "Grits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "hashbrowns",
+   "name": "Hashbrowns",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "sliced-tomatoes",
+   "name": "Sliced Tomatoes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-grilled-chicken-melt",
+   "name": "Texas Grilled Chicken Melt",
+   "category": "Texas Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 445,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-cheesesteak-melt",
+   "name": "Texas Cheesesteak™ Melt",
+   "category": "Texas Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 445,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-angus-patty-melt",
+   "name": "Texas Angus Patty Melt",
+   "category": "Texas Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 535,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "bert-s-chili",
+   "name": "Bert's Chili™",
+   "category": "REGULAR BERT'S CHILI™",
+   "sizes": [
+    {
+     "size": "6 oz",
+     "label": "6 oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "9 oz",
+     "label": "9 oz",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "angus-1-4-lb-hamburger-deluxe",
+   "name": "Angus 1/4 LB Hamburger Deluxe",
+   "category": "100% Angus Beef Hamburgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "angus-1-4-lb-cheeseburger-deluxe",
+   "name": "Angus 1/4 LB Cheeseburger Deluxe",
+   "category": "100% Angus Beef Hamburgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-angus-1-4-lb-cheeseburger-deluxe",
+   "name": "Double Angus 1/4 LB Cheeseburger Deluxe",
+   "category": "100% Angus Beef Hamburgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-sandwich-deluxe",
+   "name": "Grilled Chicken Sandwich Deluxe",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-bacon-cheese-sandwich-deluxe",
+   "name": "Grilled Chicken Bacon Cheese Sandwich Deluxe",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-cheese-sandwich",
+   "name": "Grilled Cheese Sandwich",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-sandwich-ham-and-cheese-on-wheat",
+   "name": "Waffle Sandwich (Ham and Cheese on Wheat)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-cheese-sandwich-lettuce-and-tomato",
+   "name": "Ham & Cheese Sandwich (Lettuce & Tomato)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 285,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "blt-sandwich-3-bacon-slices",
+   "name": "BLT Sandwich - 3 bacon slices",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 275,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-bacon-lover-s-blt-sandwich-5-bacon-slices",
+   "name": "Texas Bacon Lover's BLT Sandwich - 5 bacon slices",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 435,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "southern-pecan-pie",
+   "name": "Southern Pecan Pie",
+   "category": "Pies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular Slice",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 28,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small Slice",
+     "calories": 255,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-chocolate-pie",
+   "name": "Triple Chocolate Pie",
+   "category": "Pies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular Slice",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 16
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small Slice",
+     "calories": 245,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dark-roast-coffee",
+   "name": "Dark Roast Coffee",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee-decaf",
+   "name": "Coffee - Decaf",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola",
+   "name": "Coca-Cola®",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 44,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke®",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite®",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pibb-xtra",
+   "name": "Pibb-Xtra®",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barq-s-root-beer",
+   "name": "Barq's Root Beer®",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 50,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-fruit-punch",
+   "name": "Hi-C® Fruit Punch",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-lemonade",
+   "name": "Simply Lemonade",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 39,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "alice-s-iced-tea-unsweet",
+   "name": "Alice's Iced Tea™ - Unsweet",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "alice-s-iced-tea-sweet",
+   "name": "Alice's Iced Tea™ - Sweet",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "alice-s-iced-tea-monade",
+   "name": "Alice's Iced Tea-Monade",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-orange-juice",
+   "name": "Simply Orange Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 33,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-apple-juice",
+   "name": "Simply Apple Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 40,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honest-kids-apple-juice",
+   "name": "Honest Kids Apple Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "milk",
+   "name": "Milk",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-milk",
+   "name": "Chocolate Milk",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 29,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-tea",
+   "name": "Hot Tea",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "white-toast-2-slices",
+   "name": "White Toast - 2 Slices",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "sugarG": 3,
+     "sodiumMg": 260,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "wheat-toast-2-slices",
+   "name": "Wheat Toast - 2 Slices",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "sugarG": 2,
+     "sodiumMg": 250,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "raisin-toast-2-slices",
+   "name": "Raisin Toast - 2 Slices",
+   "per": {
+    "calories": 220,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 3,
+    "micros": {
+     "sugarG": 16,
+     "sodiumMg": 280,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "grilled-biscuit",
+   "name": "Grilled Biscuit",
+   "per": {
+    "calories": 300,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 15,
+    "micros": {
+     "sugarG": 2,
+     "sodiumMg": 800,
+     "saturatedFatG": 9
+    }
+   }
+  },
+  {
+   "id": "texas-toast-1-slice",
+   "name": "Texas Toast - 1 Slice",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 1,
+    "micros": {
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "grits",
+   "name": "Grits",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 3,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 300,
+     "saturatedFatG": 1
+    }
+   }
+  },
+  {
+   "id": "regular-hashbrowns",
+   "name": "Regular Hashbrowns",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 7,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 240,
+     "saturatedFatG": 3
+    }
+   }
+  },
+  {
+   "id": "sliced-tomatoes",
+   "name": "Sliced Tomatoes",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 2,
+     "sodiumMg": 0,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "bacon-3-slices",
+   "name": "Bacon - 3 Slices",
+   "per": {
+    "calories": 135,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 375,
+     "saturatedFatG": 5
+    }
+   }
+  },
+  {
+   "id": "sausage-2-patties",
+   "name": "Sausage - 2 patties",
+   "per": {
+    "calories": 260,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 24,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 510,
+     "saturatedFatG": 8
+    }
+   }
+  },
+  {
+   "id": "chicken-sausage-2-patties",
+   "name": "Chicken Sausage - 2 patties",
+   "per": {
+    "calories": 180,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 13,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 700,
+     "saturatedFatG": 4
+    }
+   }
+  },
+  {
+   "id": "city-ham-1-slice",
+   "name": "City Ham - 1 Slice",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 3,
+    "micros": {
+     "sugarG": 6,
+     "sodiumMg": 850,
+     "saturatedFatG": 1
+    }
+   }
+  },
+  {
+   "id": "country-ham-1-slice",
+   "name": "Country Ham - 1 Slice",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 9,
+    "micros": {
+     "sugarG": 1,
+     "sodiumMg": 2110,
+     "saturatedFatG": 3
+    }
+   }
+  },
+  {
+   "id": "large-hashbrowns",
+   "name": "Large Hashbrowns",
+   "per": {
+    "calories": 380,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 480,
+     "saturatedFatG": 6
+    }
+   }
+  },
+  {
+   "id": "american-cheese-2-slices",
+   "name": "American Cheese (2 Slices)",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 10,
+    "micros": {
+     "sugarG": 2,
+     "sodiumMg": 500,
+     "saturatedFatG": 5
+    }
+   }
+  },
+  {
+   "id": "diced-ham-1-5-oz",
+   "name": "Diced Ham - 1.5-oz",
+   "per": {
+    "calories": 140,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "sugarG": 2,
+     "sodiumMg": 1260,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "add-bacon",
+   "name": "Add Bacon",
+   "unit": "2 slices",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 8,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 3
+    }
+   }
+  },
+  {
+   "id": "bert-s-chili-as-a-topping",
+   "name": "Bert's Chili™ as a Topping",
+   "unit": "3 oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 4,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 1
+    }
+   }
+  },
+  {
+   "id": "angus-patty",
+   "name": "Angus Patty",
+   "per": {
+    "calories": 220,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 17,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 7
+    }
+   }
+  },
+  {
+   "id": "bun",
+   "name": "Bun",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "sugarG": 3,
+     "saturatedFatG": 0
+    }
+   }
+  }
+ ]
+}

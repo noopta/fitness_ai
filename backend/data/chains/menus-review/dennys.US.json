@@ -1,0 +1,2290 @@
+{
+ "chain": "dennys",
+ "country": "US",
+ "source": {
+  "url": "https://dennys.com/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "55-country-fried-steak-w-gravy-and-dinner-bread",
+   "name": "55+ Country-Fried Steak w/ gravy & dinner bread",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-strips",
+   "name": "Bacon Strips",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 3
+     }
+    },
+    {
+     "size": "4",
+     "label": "4",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "buttermilk-biscuit",
+   "name": "Buttermilk Biscuit",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "eggs-boiled",
+   "name": "Eggs, Boiled",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 1.5
+     }
+    },
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "eggs-fried-basted",
+   "name": "Eggs, Fried / Basted",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 2
+     }
+    },
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "eggs-scrambled",
+   "name": "Eggs, Scrambled",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 2.5
+     }
+    },
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-whites",
+   "name": "Egg Whites",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "english-muffin-w-o-margarine",
+   "name": "English Muffin w/o margarine",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "english-muffin-w-margarine",
+   "name": "English Muffin w/ margarine",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-ham-slice",
+   "name": "Grilled Ham Slice",
+   "sizes": [
+    {
+     "size": "3 oz",
+     "label": "3 oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "hash-browns",
+   "name": "Hash Browns",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pancakes-buttermilk",
+   "name": "Pancakes, Buttermilk",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pancakes-hearty-9-grain",
+   "name": "Pancakes, Hearty 9-Grain",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-links",
+   "name": "Sausage Links",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "4",
+     "label": "4",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "seasonal-fruit",
+   "name": "Seasonal Fruit",
+   "sizes": [
+    {
+     "size": "6 oz",
+     "label": "6 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "toast-white-w-o-margarine",
+   "name": "Toast, White, w/o margarine",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1.5,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "toast-white-w-margarine",
+   "name": "Toast, White, w/ margarine",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-bacon-strips",
+   "name": "Turkey Bacon Strips",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 1
+     }
+    },
+    {
+     "size": "4",
+     "label": "4",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-american-slam-w-hash-browns-and-white-toast",
+   "name": "All-American Slam® w/ hash browns & white toast",
+   "sizes": [
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 1200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 81,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 27
+     }
+    }
+   ]
+  },
+  {
+   "id": "fit-slam",
+   "name": "Fit Slam®",
+   "sizes": [
+    {
+     "size": "15 oz",
+     "label": "15 oz",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-toast-slam-add-egg-choice",
+   "name": "French Toast Slam® (add egg choice)",
+   "sizes": [
+    {
+     "size": "9 oz",
+     "label": "9 oz",
+     "calories": 810,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 45,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "lumberjack-slam-w-hash-browns-and-white-toast-add-egg-choice",
+   "name": "Lumberjack Slam® w/ hash browns & white toast (add egg choice)",
+   "sizes": [
+    {
+     "size": "21 oz",
+     "label": "21 oz",
+     "calories": 1260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 57,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-grand-slam-add-egg-choice",
+   "name": "Original Grand Slam® (add egg choice)",
+   "sizes": [
+    {
+     "size": "11 oz",
+     "label": "11 oz",
+     "calories": 740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-stuffed-french-toast-slam-add-egg-choice",
+   "name": "Berry Stuffed French Toast Slam® (add egg choice)",
+   "sizes": [
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 1240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 61,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-stuffed-french-toast-a-la-carte",
+   "name": "Berry Stuffed French Toast À La Carte",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 950,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 66,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-waffle-slam-add-egg-choice",
+   "name": "Berry Waffle Slam® (add egg choice)",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 1200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 68,
+     "micros": {
+      "sugarG": 65,
+      "saturatedFatG": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-waffles-a-la-carte",
+   "name": "Berry Waffles a la carte",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 900,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 45,
+     "micros": {
+      "sugarG": 61,
+      "saturatedFatG": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-slam-add-egg-choice",
+   "name": "Waffle Slam® (add egg choice)",
+   "sizes": [
+    {
+     "size": "9 oz",
+     "label": "9 oz",
+     "calories": 1160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 72,
+     "micros": {
+      "sugarG": 50,
+      "saturatedFatG": 33
+     }
+    }
+   ]
+  },
+  {
+   "id": "choconana-pancake-slam-add-hash-browns-egg-and-meat-choices",
+   "name": "Choconana Pancake Slam® (add hash browns, egg & meat choices)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 74,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-roll-pancake-slam-w-cream-cheese-icing-add-hash-bro",
+   "name": "Cinnamon Roll Pancake Slam® w/ cream cheese icing (add hash browns, egg & meat choices)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 1100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 145,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-berry-banana-pancake-slam-add-hash-browns-egg-and-mea",
+   "name": "Double Berry Banana Pancake Slam® (add hash browns, egg & meat choices)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-9-grain-pancake-slam-add-hash-browns-egg-and-meat-cho",
+   "name": "Hearty 9-Grain Pancake Slam® (add hash browns, egg & meat choices)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "plant-based-slam",
+   "name": "Plant Based Slam®",
+   "sizes": [
+    {
+     "size": "23 oz",
+     "label": "23 oz",
+     "calories": 1000,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-vanilla-one-crepe-breakfast-w-hash-browns-add-egg-and-",
+   "name": "Berry Vanilla One Crepe Breakfast w/ hash browns (add egg & meat choices)",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-vanilla-two-crepe-breakfast-w-hash-browns-add-egg-and-",
+   "name": "Berry Vanilla Two Crepe Breakfast w/ hash browns (add egg & meat choices)",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 45,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-vanilla-two-crepes-a-la-carte",
+   "name": "Berry Vanilla Two Crepes À La Carte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 44,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-veggie-omelette-w-hash-browns-and-white-toast",
+   "name": "Loaded Veggie Omelette w/ hash browns & white toast",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 56,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "mile-high-denver-omelette-w-hash-browns-and-white-toast",
+   "name": "Mile High Denver Omelette w/ hash browns & white toast",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 1090,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 67,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "moons-over-my-hammy-omelette-w-hash-browns-and-white-toast",
+   "name": "Moons Over My Hammy® Omelette w/ hash browns & white toast",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 1080,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 67,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "philly-cheesesteak-omelette-w-hash-browns-and-white-toast",
+   "name": "Philly Cheesesteak Omelette w/ hash browns & white toast",
+   "sizes": [
+    {
+     "size": "21 oz",
+     "label": "21 oz",
+     "calories": 1120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 68,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 22
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-omelette-w-hash-browns-and-white-toast",
+   "name": "Ultimate Omelette® w/ hash browns & white toast",
+   "sizes": [
+    {
+     "size": "21 oz",
+     "label": "21 oz",
+     "calories": 1150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 77,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "omelette-egg-white-plain",
+   "name": "Omelette, Egg White, Plain",
+   "sizes": [
+    {
+     "size": "7 oz",
+     "label": "7 oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1.5,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "omelette-plain",
+   "name": "Omelette, Plain",
+   "sizes": [
+    {
+     "size": "7 oz",
+     "label": "7 oz",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "country-fried-steak-and-eggs-w-gravy-hash-browns-and-white-t",
+   "name": "Country-Fried Steak & Eggs w/ gravy, hash browns & white toast (add egg choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 810,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 43,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "moons-over-my-hammy-w-hash-browns",
+   "name": "Moons Over My Hammy® w/ hash browns",
+   "sizes": [
+    {
+     "size": "17 oz",
+     "label": "17 oz",
+     "calories": 960,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 55,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 18
+     }
+    }
+   ]
+  },
+  {
+   "id": "santa-fe-sizzlin-skillet-add-egg-choice",
+   "name": "Santa Fe Sizzlin’ Skillet (add egg choice)",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "sirloin-steak-and-eggs-w-hash-browns-and-white-toast-add-egg",
+   "name": "Sirloin Steak & Eggs w/ hash browns & white toast (add egg choice)",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 36,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-bone-steak-and-eggs-w-hash-browns-and-white-toast-add-egg-",
+   "name": "T-Bone Steak & Eggs w/ hash browns & white toast (add egg choice)",
+   "sizes": [
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 910,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 49,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "grand-slamwich-w-hash-browns",
+   "name": "Grand Slamwich® w/ hash browns",
+   "sizes": [
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 1220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 78,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 26
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscuit-and-gravy",
+   "name": "Biscuit & Gravy",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-hash-browns",
+   "name": "Cheddar Cheese Hash Browns",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-skinned-potatoes",
+   "name": "Red-Skinned Potatoes",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "slices-of-french-toast",
+   "name": "Slices of French Toast",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "stack-of-buttermilk-pancakes",
+   "name": "Stack of Buttermilk Pancakes",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 20,
+      "saturatedFatG": 3.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "tortillas-flour",
+   "name": "Tortillas, Flour",
+   "sizes": [
+    {
+     "size": "3",
+     "label": "3",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle",
+   "name": "Waffle",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 25,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-noodle-soup",
+   "name": "Chicken Noodle Soup",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 4
+     }
+    },
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-baked-potato-soup",
+   "name": "Loaded Baked Potato Soup",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 11
+     }
+    },
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "cobb-salad-add-dressing-choice",
+   "name": "Cobb Salad (add dressing choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-salad-add-dressing-choice",
+   "name": "House Salad (add dressing choice)",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "bone-in-wings-with-bbq-sauce-add-dipping-sauce-choice",
+   "name": "Bone-In Wings with BBQ Sauce (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8",
+     "calories": 640,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 9
+     }
+    },
+    {
+     "size": "16",
+     "label": "16",
+     "calories": 1290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 63,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 18
+     }
+    }
+   ]
+  },
+  {
+   "id": "bone-in-wings-with-buffalo-sauce-add-dipping-sauce-choice",
+   "name": "Bone-In Wings with Buffalo Sauce (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 47,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 11
+     }
+    },
+    {
+     "size": "16",
+     "label": "16",
+     "calories": 1330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 94,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "boneless-chicken-wings-w-bbq-sauce-add-dipping-sauce-choice",
+   "name": "Boneless Chicken Wings w/ BBQ Sauce (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8",
+     "calories": 740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 36,
+     "micros": {
+      "sugarG": 27,
+      "saturatedFatG": 5
+     }
+    },
+    {
+     "size": "16",
+     "label": "16",
+     "calories": 1490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 72,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "boneless-chicken-wings-w-buffalo-sauce-add-dipping-sauce-cho",
+   "name": "Boneless Chicken Wings w/ Buffalo Sauce (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 52,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "16",
+     "label": "16",
+     "calories": 1530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 103,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "diner-dipper-bone-in-buffalo-wings-add-dipping-sauce-choice",
+   "name": "Diner Dipper: Bone-In Buffalo Wings (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "4",
+     "label": "4",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "diner-dipper-boneless-buffalo-wings-add-dipping-sauce-choice",
+   "name": "Diner Dipper: Boneless Buffalo Wings (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "6",
+     "label": "6",
+     "calories": 570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "diner-dipper-cheesy-bacon-ranch-sliders-add-dipping-sauce-ch",
+   "name": "Diner Dipper: Cheesy Bacon Ranch Sliders (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 910,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 63,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 18
+     }
+    }
+   ]
+  },
+  {
+   "id": "diner-dipper-chicken-tenders-add-dipping-sauce-choice",
+   "name": "Diner Dipper: Chicken Tenders (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "diner-dipper-mozzillastm-add-sauce-choice",
+   "name": "Diner Dipper: MozzillasTM (add sauce choice)",
+   "sizes": [
+    {
+     "size": "2",
+     "label": "2",
+     "calories": 640,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "diner-dipper-onion-rings-add-dipping-sauce-choice",
+   "name": "Diner Dipper: Onion Rings (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "seasoned-fries-add-dipping-sauce-choice",
+   "name": "Seasoned Fries (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "5 5 oz",
+     "label": "5.5 oz",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "wavy-cut-fries-add-dipping-sauce-choice",
+   "name": "Wavy-Cut Fries (add dipping sauce choice)",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-stuffed-donut-holes",
+   "name": "Maple Stuffed Donut Holes",
+   "sizes": [
+    {
+     "size": "4",
+     "label": "4",
+     "calories": 760,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 52,
+      "saturatedFatG": 17
+     }
+    },
+    {
+     "size": "10",
+     "label": "10",
+     "calories": 1750,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 89,
+     "micros": {
+      "sugarG": 109,
+      "saturatedFatG": 37
+     }
+    }
+   ]
+  },
+  {
+   "id": "mozzillastm-add-sauce-choice",
+   "name": "MozzillasTM (add sauce choice)",
+   "sizes": [
+    {
+     "size": "4",
+     "label": "4",
+     "calories": 1280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 31
+     }
+    }
+   ]
+  },
+  {
+   "id": "premium-chicken-tenders-add-sauce-choice",
+   "name": "Premium Chicken Tenders (add sauce choice)",
+   "sizes": [
+    {
+     "size": "5",
+     "label": "5",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 40,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "zesty-nachos",
+   "name": "Zesty Nachos",
+   "sizes": [
+    {
+     "size": "25 oz",
+     "label": "25 oz",
+     "calories": 1660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 106,
+     "micros": {
+      "sugarG": 15,
+      "saturatedFatG": 36
+     }
+    },
+    {
+     "size": "15 oz",
+     "label": "15 oz",
+     "calories": 870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 55,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-club-sandwich-add-side-choice",
+   "name": "Cali Club Sandwich (add side choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 48,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-bacon-ranch-sandwich-add-side-choice",
+   "name": "Crispy Chicken Bacon Ranch Sandwich (add side choice)",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 1160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 74,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-bacon-chicken-sandwich-add-side-choice",
+   "name": "BBQ Bacon Chicken Sandwich (add side choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 760,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 29,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "pot-roast-melt-add-side-choice",
+   "name": "Pot Roast Melt (add side choice)",
+   "sizes": [
+    {
+     "size": "11 oz",
+     "label": "11 oz",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-bird-add-side-choice",
+   "name": "Super Bird® (add side choice)",
+   "sizes": [
+    {
+     "size": "11 oz",
+     "label": "11 oz",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 34,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "beer-battered-onion-rings",
+   "name": "Beer-Battered Onion Rings",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-side-salad-add-dressing-choice",
+   "name": "Garden Side Salad (add dressing choice)",
+   "sizes": [
+    {
+     "size": "7 oz",
+     "label": "7 oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "seasoned-fries",
+   "name": "Seasoned Fries",
+   "sizes": [
+    {
+     "size": "5 5 oz",
+     "label": "5.5 oz",
+     "calories": 490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "wavy-cut-fries",
+   "name": "Wavy-Cut Fries",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-avocado-cheeseburger-add-side-choice",
+   "name": "Bacon Avocado Cheeseburger (add side choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 1010,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 70,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-bacon-avocado-cheeseburger-add-side-choice",
+   "name": "Double Bacon Avocado Cheeseburger (add side choice)",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 1450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 105,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 38
+     }
+    }
+   ]
+  },
+  {
+   "id": "bourbon-bacon-burger-add-side-choice",
+   "name": "Bourbon Bacon Burger (add side choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 51,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-bourbon-bacon-burger-add-side-choice",
+   "name": "Double Bourbon Bacon Burger (add side choice)",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 1320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 86,
+     "micros": {
+      "sugarG": 18,
+      "saturatedFatG": 34
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-bacon-ranch-sliders-add-side-choice",
+   "name": "Cheesy Bacon Ranch Sliders (add side choice)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 1360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 94,
+     "micros": {
+      "sugarG": 11,
+      "saturatedFatG": 27
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-cheeseburger-add-cheese-and-side-choices",
+   "name": "Double Cheeseburger (add cheese & side choices)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 57,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 22
+     }
+    }
+   ]
+  },
+  {
+   "id": "single-cheeseburger-add-cheese-and-side-choices",
+   "name": "Single Cheeseburger (add cheese & side choices)",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 30,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-praeger-s-veggie-patty",
+   "name": "Dr. Praeger’s® Veggie Patty",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-seasoned-chicken-breast",
+   "name": "Grilled Seasoned Chicken Breast",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "slamburger-add-egg-and-side-choices",
+   "name": "Slamburger™ (add egg & side choices)",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 830,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 49,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-slamburger-add-egg-and-side-choices",
+   "name": "Double Slamburger™ (add egg & side choices)",
+   "sizes": [
+    {
+     "size": "15 oz",
+     "label": "15 oz",
+     "calories": 1270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 83,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 34
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-juicy-burger-add-side-choice",
+   "name": "Triple Juicy Burger (add side choice)",
+   "sizes": [
+    {
+     "size": "19 oz",
+     "label": "19 oz",
+     "calories": 1510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 105,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 41
+     }
+    }
+   ]
+  },
+  {
+   "id": "bourbon-chicken-sizzlin-skillet",
+   "name": "Bourbon Chicken Sizzlin’ Skillet",
+   "sizes": [
+    {
+     "size": "21 oz",
+     "label": "21 oz",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "sugarG": 36,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "country-fried-steak-w-gravy-and-dinner-bread-add-side-choice",
+   "name": "Country-Fried Steak w/ gravy & dinner bread (add side choices)",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz",
+     "calories": 960,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 56,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "crazy-spicy-sizzlin-skillet-add-optional-egg-choice",
+   "name": "Crazy Spicy Sizzlin’ Skillet (add optional egg choice)",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 1040,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 69,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-fish-platter-with-dinner-bread-add-side-choices",
+   "name": "Fried Fish Platter with dinner bread (add side choices)",
+   "sizes": [
+    {
+     "size": "13 oz",
+     "label": "13 oz",
+     "calories": 900,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 55,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "smokehouse-mac-n-cheese-skillettm",
+   "name": "Smokehouse Mac ‘N’ Cheese SkilletTM",
+   "sizes": [
+    {
+     "size": "17 oz",
+     "label": "17 oz",
+     "calories": 990,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 54,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "plate-lickin-chicken-fried-chicken-w-dinner-bread-add-side-c",
+   "name": "Plate Lickin’ Chicken Fried Chicken w/ dinner bread (add side choices)",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 1070,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 62,
+     "micros": {
+      "sugarG": 3,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "premium-chicken-tenders-w-dinner-bread-add-side-and-sauce-ch",
+   "name": "Premium Chicken Tenders w/ dinner bread (add side & sauce choices)",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 47,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "sirloin-steak-w-dinner-bread-add-side-choices",
+   "name": "Sirloin Steak w/ dinner bread (add side choices)",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-and-meatballs-w-dinner-bread",
+   "name": "Spaghetti & Meatballs w/ dinner bread",
+   "sizes": [
+    {
+     "size": "22 oz",
+     "label": "22 oz",
+     "calories": 1200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "sugarG": 15,
+      "saturatedFatG": 21
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-and-meatballs-refill",
+   "name": "Spaghetti & Meatballs refill",
+   "sizes": [
+    {
+     "size": "10 oz",
+     "label": "10 oz",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-bone-steak-w-dinner-bread-add-side-choices",
+   "name": "T-Bone Steak w/ dinner bread (add side choices)",
+   "sizes": [
+    {
+     "size": "13 oz",
+     "label": "13 oz",
+     "calories": 680,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "wild-alaska-salmon-w-dinner-bread-add-side-choices",
+   "name": "Wild Alaska Salmon w/ dinner bread (add side choices)",
+   "sizes": [
+    {
+     "size": "9 oz",
+     "label": "9 oz",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "broccoli",
+   "name": "Broccoli",
+   "sizes": [
+    {
+     "size": "4 oz",
+     "label": "4 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-toast-dinner-bread",
+   "name": "Garlic Toast / Dinner Bread",
+   "sizes": [
+    {
+     "size": "2 pc",
+     "label": "2 pc",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "mac-n-cheese",
+   "name": "Mac ‘N Cheese",
+   "sizes": [
+    {
+     "size": "4 oz",
+     "label": "4 oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-rustic-mashed-potatoestm-add-optional-gravy-choice",
+   "name": "Red Rustic Mashed PotatoesTM (add optional gravy choice)",
+   "sizes": [
+    {
+     "size": "1 serv",
+     "label": "1 serv",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 7
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-corn",
+   "name": "Sweet Corn",
+   "sizes": [
+    {
+     "size": "1 serv",
+     "label": "1 serv",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 14,
+      "saturatedFatG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "whole-grain-rice",
+   "name": "Whole Grain Rice",
+   "sizes": [
+    {
+     "size": "5 oz",
+     "label": "5 oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0.5
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "add-a-meatball",
+   "name": "Add a meatball",
+   "unit": "1 each",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 6
+    }
+   }
+  }
+ ]
+}

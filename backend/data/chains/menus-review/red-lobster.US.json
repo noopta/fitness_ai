@@ -1,0 +1,652 @@
+{
+ "chain": "red-lobster",
+ "country": "US",
+ "source": {
+  "url": "https://img-ecomm-rl-prod-fye5gqbxdtbghqer.a03.azurefd.net/brandsite/documents/US_Nutrition_8-17-26.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "endless-shrimp-garlic-bread-crusted-shrimp",
+   "name": "Endless Shrimp® Garlic Bread-Crusted Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "baked-potato-lobster-topped",
+   "name": "Baked Potato, Lobster-Topped",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "coleslaw",
+   "name": "Coleslaw",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 32,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-brussels-sprouts",
+   "name": "Crispy Brussels Sprouts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 68,
+     "micros": {
+      "sugarG": 76,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-salad",
+   "name": "House Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 36,
+     "micros": {
+      "sugarG": 16,
+      "saturatedFatG": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes",
+   "name": "Mashed Potatoes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 6,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "orzo-rice",
+   "name": "Orzo Rice",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "seasoned-broccoli",
+   "name": "Seasoned Broccoli",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 64,
+     "micros": {
+      "sugarG": 8,
+      "saturatedFatG": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesecake",
+   "name": "Cheesecake",
+   "sizes": [
+    {
+     "size": "10 slices",
+     "label": "10 slices",
+     "calories": 9870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 618,
+     "micros": {
+      "sugarG": 523,
+      "saturatedFatG": 347
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-wave-cake",
+   "name": "Chocolate Wave Cake",
+   "sizes": [
+    {
+     "size": "14 slices",
+     "label": "14 slices",
+     "calories": 13020,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 746,
+     "micros": {
+      "sugarG": 1085,
+      "saturatedFatG": 226
+     }
+    }
+   ]
+  },
+  {
+   "id": "key-lime-pie",
+   "name": "Key Lime Pie",
+   "sizes": [
+    {
+     "size": "8 slices",
+     "label": "8 slices",
+     "calories": 4160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 176,
+     "micros": {
+      "sugarG": 424,
+      "saturatedFatG": 88
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-chocolate-brownie",
+   "name": "Triple Chocolate Brownie",
+   "sizes": [
+    {
+     "size": "24 pieces",
+     "label": "24 pieces",
+     "calories": 6220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 360,
+     "micros": {
+      "sugarG": 490,
+      "saturatedFatG": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "admiral-s-feast-family-feast",
+   "name": "Admiral's Feast, Family Feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 349,
+     "micros": {
+      "sugarG": 72,
+      "saturatedFatG": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-bay-biscuits",
+   "name": "Cheddar Bay Biscuits®",
+   "sizes": [
+    {
+     "size": "half dozen",
+     "label": "Half Dozen",
+     "calories": 970,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 59,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 26
+     }
+    },
+    {
+     "size": "one dozen",
+     "label": "One Dozen",
+     "calories": 1940,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 118,
+     "micros": {
+      "sugarG": 9,
+      "saturatedFatG": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "crab-queso-platter",
+   "name": "Crab Queso Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 4480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 282,
+     "micros": {
+      "sugarG": 30,
+      "saturatedFatG": 123
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-tenders-platter",
+   "name": "Crispy Chicken Tenders Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 4850,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 375,
+     "micros": {
+      "sugarG": 32,
+      "saturatedFatG": 44
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-dragon-shrimp-platter",
+   "name": "Crispy Dragon Shrimp® Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 4010,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 288,
+     "micros": {
+      "sugarG": 87,
+      "saturatedFatG": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "fish-fry-family-meal",
+   "name": "Fish Fry Family Meal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 7530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 435,
+     "micros": {
+      "sugarG": 54,
+      "saturatedFatG": 51
+     }
+    }
+   ]
+  },
+  {
+   "id": "mozzarella-cheesestick-platter",
+   "name": "Mozzarella Cheesestick Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 137,
+     "micros": {
+      "sugarG": 13,
+      "saturatedFatG": 47
+     }
+    }
+   ]
+  },
+  {
+   "id": "parrot-isle-coconut-shrimp-platter",
+   "name": "Parrot Isle Coconut Shrimp Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 162,
+     "micros": {
+      "sugarG": 82,
+      "saturatedFatG": 43
+     }
+    }
+   ]
+  },
+  {
+   "id": "popcorn-shrimp-platter",
+   "name": "Popcorn Shrimp Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 154,
+     "micros": {
+      "sugarG": 53,
+      "saturatedFatG": 16
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-cocktail",
+   "name": "Shrimp Cocktail",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large Platter",
+     "calories": 1010,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 49,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small Platter",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 24,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-feast-family-feast",
+   "name": "Ultimate Feast®, Family Feast",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 4310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 324,
+     "micros": {
+      "sugarG": 52,
+      "saturatedFatG": 136
+     }
+    }
+   ]
+  },
+  {
+   "id": "walt-s-favorite-shrimp-platter",
+   "name": "Walt's Favorite Shrimp Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 50,
+     "micros": {
+      "sugarG": 49,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "blue-cheese-dressing",
+   "name": "Blue Cheese Dressing",
+   "per": {
+    "calories": 210,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 23,
+    "micros": {
+     "sugarG": 2,
+     "saturatedFatG": 5
+    }
+   }
+  },
+  {
+   "id": "butter-100-pure-melted-butter",
+   "name": "Butter - 100% Pure Melted Butter",
+   "per": {
+    "calories": 300,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 33,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 21
+    }
+   }
+  },
+  {
+   "id": "butter-whipped",
+   "name": "Butter - Whipped",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 6
+    }
+   }
+  },
+  {
+   "id": "caesar-dressing",
+   "name": "Caesar Dressing",
+   "per": {
+    "calories": 300,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 32,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 6
+    }
+   }
+  },
+  {
+   "id": "cocktail-sauce",
+   "name": "Cocktail Sauce",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 10,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "honey-mustard-dressing",
+   "name": "Honey Mustard Dressing",
+   "per": {
+    "calories": 200,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 19,
+    "micros": {
+     "sugarG": 7,
+     "saturatedFatG": 3
+    }
+   }
+  },
+  {
+   "id": "ketchup",
+   "name": "Ketchup",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 12,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "marinara-sauce",
+   "name": "Marinara Sauce",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 1,
+    "micros": {
+     "sugarG": 2,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "pico-de-gallo",
+   "name": "Pico de Gallo",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 0
+    }
+   }
+  },
+  {
+   "id": "pina-colada-sauce",
+   "name": "Piña Colada Sauce",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 4,
+    "micros": {
+     "sugarG": 11,
+     "saturatedFatG": 3
+    }
+   }
+  },
+  {
+   "id": "ranch-dressing",
+   "name": "Ranch Dressing",
+   "per": {
+    "calories": 150,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 16,
+    "micros": {
+     "sugarG": 1,
+     "saturatedFatG": 3
+    }
+   }
+  },
+  {
+   "id": "sour-cream",
+   "name": "Sour Cream",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "sugarG": 0,
+     "saturatedFatG": 2
+    }
+   }
+  },
+  {
+   "id": "tartar-sauce",
+   "name": "Tartar Sauce",
+   "per": {
+    "calories": 230,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 23,
+    "micros": {
+     "sugarG": 2,
+     "saturatedFatG": 4
+    }
+   }
+  }
+ ]
+}

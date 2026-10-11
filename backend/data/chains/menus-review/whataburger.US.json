@@ -1,0 +1,1061 @@
+{
+ "chain": "whataburger",
+ "country": "US",
+ "source": {
+  "url": "https://wbimageserver.whataburger.com/Nutrition.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "1-whataburger",
+   "name": "# 1 Whataburger®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-salad",
+   "name": "Garden Salad",
+   "category": "Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 4,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake",
+   "name": "Chocolate Shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 78,
+      "sodiumMg": 390,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 100,
+      "sodiumMg": 490,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 890,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 159,
+      "sodiumMg": 790,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-malt",
+   "name": "Chocolate Malt",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 83,
+      "sodiumMg": 390,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 107,
+      "sodiumMg": 490,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 166,
+      "sodiumMg": 780,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shake",
+   "name": "Strawberry Shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 80,
+      "sodiumMg": 370,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 103,
+      "sodiumMg": 460,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 890,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 160,
+      "sodiumMg": 750,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-malt",
+   "name": "Strawberry Malt",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 85,
+      "sodiumMg": 370,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 110,
+      "sodiumMg": 460,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 170,
+      "sodiumMg": 740,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake",
+   "name": "Vanilla Shake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 69,
+      "sodiumMg": 390,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 86,
+      "sodiumMg": 490,
+      "saturatedFatG": 9
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 820,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 137,
+      "sodiumMg": 790,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-malt",
+   "name": "Vanilla Malt",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 74,
+      "sodiumMg": 390,
+      "saturatedFatG": 7
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 93,
+      "sodiumMg": 490,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 860,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 147,
+      "sodiumMg": 780,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-shake",
+   "name": "Dr Pepper Shake †",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small (16 fl oz)",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 78,
+      "sodiumMg": 370,
+      "saturatedFatG": 6
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (20 fl oz)",
+     "calories": 550,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 99,
+      "sodiumMg": 460,
+      "saturatedFatG": 8
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (32 fl oz)",
+     "calories": 870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 155,
+      "sodiumMg": 740,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola-classic",
+   "name": "Coca-Cola Classic",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 54,
+      "sodiumMg": 55,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 67,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 107,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 147,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 80,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 130,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 180,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke-zero",
+   "name": "Coke Zero",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 55,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "powerade-mountain-blast",
+   "name": "POWERADE Mountain Blast",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 29,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 190,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "sodiumMg": 300,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 80,
+      "sodiumMg": 410,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "powerade-fruit-punch",
+   "name": "POWERADE Fruit Punch",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 190,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 310,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 78,
+      "sodiumMg": 420,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-orange-lavaburst",
+   "name": "Hi-C Orange Lavaburst",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 55,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 71,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 113,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 156,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-poppin-pink-lemonade",
+   "name": "Hi-C Poppin’ Pink Lemonade",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 48,
+      "sodiumMg": 130,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 60,
+      "sodiumMg": 160,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 96,
+      "sodiumMg": 260,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 132,
+      "sodiumMg": 350,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fanta-orange",
+   "name": "Fanta Orange",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 53,
+      "sodiumMg": 55,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 66,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 106,
+      "sodiumMg": 105,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 146,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fanta-strawberry",
+   "name": "Fanta Strawberry",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 59,
+      "sodiumMg": 55,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 73,
+      "sodiumMg": 70,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 117,
+      "sodiumMg": 110,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 161,
+      "sodiumMg": 150,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mello-yello",
+   "name": "Mello Yello",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 58,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 73,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 116,
+      "sodiumMg": 135,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 600,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 160,
+      "sodiumMg": 190,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fuze-raspberry-tea",
+   "name": "Fuze Raspberry Tea",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 30,
+      "sodiumMg": 65,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 85,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 59,
+      "sodiumMg": 135,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 81,
+      "sodiumMg": 180,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pibb-xtra",
+   "name": "Pibb Xtra",
+   "sizes": [
+    {
+     "size": "kid s 16 fl oz",
+     "label": "Kid’s (16 fl oz)",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 50,
+      "sodiumMg": 70,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (20 fl oz)",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 63,
+      "sodiumMg": 90,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (32 fl oz)",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 101,
+      "sodiumMg": 140,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (44 fl oz)",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 139,
+      "sodiumMg": 200,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}
